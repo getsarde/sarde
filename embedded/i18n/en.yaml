@@ -1,0 +1,10 @@
+nav:
+  previous: "Previous"
+  next: "Next"
+  toc: "On this page"
+  search: "Search"
+  draft: "Draft"
+  reading_time: "{{ .Minutes }} min read"
+
+fallback:
+  notice: "This page is not yet available in {{ .Lang }}. Showing the original version."

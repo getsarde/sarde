@@ -45,7 +45,7 @@ func New(opts Options) *DevServer {
 		port:       opts.Port,
 		liveReload: opts.LiveReload,
 		hub:        NewHub(),
-		rebuilder:  NewRebuilder(opts.BuilderFactory),
+		rebuilder:  NewRebuilder(opts.BuilderFactory, opts.ProjectDir),
 	}
 
 	ds.watcher = NewWatcher(opts.ProjectDir, 50*time.Millisecond, ds.onFileChange)
@@ -119,7 +119,7 @@ func (ds *DevServer) onFileChange(change FileChange) {
 		log.Printf("Rebuilt %d pages in %s", result.PageCount, result.Duration)
 	}
 
-	msg := ToReloadMessage(change, result)
+	msg := ToReloadMessage(change, result, ds.projectDir)
 	ds.hub.Broadcast(msg)
 
 	// Send a follow-up warning if there are warnings after a successful rebuild.

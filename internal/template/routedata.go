@@ -1,24 +1,38 @@
 package template
 
 import (
+	"github.com/coderoo-dev/coderoo/internal/config"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 	"github.com/coderoo-dev/coderoo/internal/navigation"
 )
 
 // BuildRouteData constructs the unified RouteData context for a page render.
-// Translation fields are left nil — populated in Phase 13.
 func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.ThemeConfig) *engine.RouteData {
 	rd := &engine.RouteData{
 		Page:   page,
 		Site:   site,
 		Theme:  theme,
 		Layout: engine.LayoutDefault,
-		Lang:   "en",
-		Dir:    "ltr",
+		Lang:   resolveLang(page, site),
+		Dir:    resolveDir(page, site),
 	}
 
-	if site != nil && site.Language != "" {
-		rd.Lang = site.Language
+	// Build translation links from page.Translations
+	if len(page.Translations) > 0 {
+		rd.Translations = make([]engine.TranslationLink, 0, len(page.Translations)+1)
+		// Include current page in translations list
+		rd.Translations = append(rd.Translations, engine.TranslationLink{
+			Lang:  page.Lang,
+			URL:   page.RelPermalink,
+			Title: page.Title,
+		})
+		for _, tr := range page.Translations {
+			rd.Translations = append(rd.Translations, engine.TranslationLink{
+				Lang:  tr.Lang,
+				URL:   tr.RelPermalink,
+				Title: tr.Title,
+			})
+		}
 	}
 
 	col := page.Collection
@@ -60,8 +74,15 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 		if rd.Layout == engine.LayoutDocs {
 			rd.SidebarType = "nav"
 			rd.HasSidebar = true
-			if col.NavTree != nil {
-				rd.Sidebar = navigation.MarkActive(col.NavTree, page)
+			// Use per-language nav tree if available, else fall back to default
+			navTree := col.NavTree
+			if col.NavTrees != nil && page.Lang != "" {
+				if langTree, ok := col.NavTrees[page.Lang]; ok {
+					navTree = langTree
+				}
+			}
+			if navTree != nil {
+				rd.Sidebar = navigation.MarkActive(navTree, page)
 			}
 			rd.Breadcrumbs = navigation.BuildBreadcrumbs(page, col)
 		} else {
@@ -104,4 +125,28 @@ func resolveTemplateName(page *engine.Page, col *engine.Collection) string {
 	default:
 		return prefix + "/single"
 	}
+}
+
+// resolveLang determines the language code for a page's RouteData.
+func resolveLang(page *engine.Page, site *engine.SiteContext) string {
+	if page.Lang != "" {
+		return page.Lang
+	}
+	if site != nil && site.Language != "" {
+		return site.Language
+	}
+	return "en"
+}
+
+// resolveDir determines the text direction for a page's RouteData.
+func resolveDir(page *engine.Page, site *engine.SiteContext) string {
+	lang := resolveLang(page, site)
+	if site != nil && site.Config != nil {
+		if cfg, ok := site.Config.(*config.SiteConfig); ok {
+			if lc, ok := cfg.I18n.Languages[lang]; ok && lc.Dir != "" {
+				return lc.Dir
+			}
+		}
+	}
+	return "ltr"
 }

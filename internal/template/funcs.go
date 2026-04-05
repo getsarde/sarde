@@ -17,6 +17,7 @@ import (
 	"github.com/coderoo-dev/coderoo/internal/component"
 	"github.com/coderoo-dev/coderoo/internal/content"
 	"github.com/coderoo-dev/coderoo/internal/engine"
+	"github.com/coderoo-dev/coderoo/internal/i18n"
 )
 
 // buildFuncMap creates the template.FuncMap with all template functions.
@@ -31,6 +32,8 @@ func buildFuncMap(
 	assetResolver *asset.Resolver,
 	assetManifest *asset.Manifest,
 	pluginFuncs map[string]any,
+	currentLangPtr *string,
+	i18nStrings *i18n.StringTable,
 ) htmltemplate.FuncMap {
 	fm := htmltemplate.FuncMap{
 		// ── Strings ──
@@ -214,8 +217,19 @@ func buildFuncMap(
 			))
 		},
 
-		// ── i18n (stub — Phase 13) ──
-		"t": func(key string) string { return key },
+		// ── i18n ──
+		"t": func(key string) string {
+			if i18nStrings == nil || currentLangPtr == nil {
+				return key
+			}
+			return i18nStrings.Resolve(*currentLangPtr, key)
+		},
+		"tWithData": func(key string, data any) string {
+			if i18nStrings == nil || currentLangPtr == nil {
+				return key
+			}
+			return i18nStrings.Resolve(*currentLangPtr, key, data)
+		},
 
 		// ── Cross-collection ──
 		"recentEntries": func(colName string, n int) []*engine.Page {
@@ -260,7 +274,7 @@ func buildFuncMap(
 			if err != nil {
 				return "", err
 			}
-			tmpl, err := htmltemplate.New(name).Funcs(buildFuncMap(site, resolver, registry, dataCache, cachedCSS, assetResolver, assetManifest, pluginFuncs)).Parse(string(content))
+			tmpl, err := htmltemplate.New(name).Funcs(buildFuncMap(site, resolver, registry, dataCache, cachedCSS, assetResolver, assetManifest, pluginFuncs, currentLangPtr, i18nStrings)).Parse(string(content))
 			if err != nil {
 				return "", fmt.Errorf("parsing partial %q: %w", name, err)
 			}

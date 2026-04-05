@@ -85,11 +85,37 @@ func BuildCollections(
 		setCollectionOnSections(sections, col)
 
 		// 9. Build nav tree (docs-layout) and wire prev/next
-		if collCfg.Layout == engine.LayoutDocs {
-			col.NavTree = navigation.BuildNavTree(col)
-			navigation.WirePrevNextFromTree(col.NavTree)
+		// When multi-language, build per-language trees; otherwise single tree.
+		langs := collectLanguages(pages)
+		if len(langs) > 1 {
+			col.NavTrees = make(map[string]*engine.NavTree)
+			for _, lang := range langs {
+				langPages := filterByLang(pages, lang)
+				if collCfg.Layout == engine.LayoutDocs {
+					langCol := &engine.Collection{
+						Name:     col.Name,
+						Config:   col.Config,
+						Pages:    langPages,
+						Sections: BuildSectionTree(langPages, name),
+					}
+					tree := navigation.BuildNavTree(langCol)
+					col.NavTrees[lang] = tree
+					navigation.WirePrevNextFromTree(tree)
+				} else {
+					wirePrevNext(langPages)
+				}
+			}
+			// Set default NavTree for backward compat
+			if len(langs) > 0 {
+				col.NavTree = col.NavTrees[langs[0]]
+			}
 		} else {
-			wirePrevNext(pages)
+			if collCfg.Layout == engine.LayoutDocs {
+				col.NavTree = navigation.BuildNavTree(col)
+				navigation.WirePrevNextFromTree(col.NavTree)
+			} else {
+				wirePrevNext(pages)
+			}
 		}
 
 		collections[name] = col
@@ -194,6 +220,8 @@ func buildPages(
 			FilePath:      cf.FilePath,
 			RawContent:    body,
 			Params:        fm.Params,
+			Lang:          cf.Lang,
+			LangRelPath:   cf.LangRelPath,
 		}
 
 		// Transfer section-specific fields to Params for section builder
@@ -280,4 +308,28 @@ func setCollectionOnSections(sections []*engine.Section, col *engine.Collection)
 		sec.Collection = col
 		setCollectionOnSections(sec.Sections, col)
 	}
+}
+
+// collectLanguages returns the unique language codes found in the pages, in order of first appearance.
+func collectLanguages(pages []*engine.Page) []string {
+	seen := make(map[string]bool)
+	var langs []string
+	for _, p := range pages {
+		if p.Lang != "" && !seen[p.Lang] {
+			seen[p.Lang] = true
+			langs = append(langs, p.Lang)
+		}
+	}
+	return langs
+}
+
+// filterByLang returns only pages with the given language code.
+func filterByLang(pages []*engine.Page, lang string) []*engine.Page {
+	var result []*engine.Page
+	for _, p := range pages {
+		if p.Lang == lang {
+			result = append(result, p)
+		}
+	}
+	return result
 }

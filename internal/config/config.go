@@ -1,6 +1,10 @@
 package config
 
-import "gopkg.in/yaml.v3"
+import (
+	"sort"
+
+	"gopkg.in/yaml.v3"
+)
 
 // ---------------------------------------------------------------------------
 // Helpers for *bool fields
@@ -184,6 +188,7 @@ type BuildSettings struct {
 	Drafts      *bool  `yaml:"drafts"`
 	Future      *bool  `yaml:"future"`
 	Parallel    *bool  `yaml:"parallel"`
+	Cache       *bool  `yaml:"cache"`
 }
 
 // ---------------------------------------------------------------------------
@@ -372,8 +377,39 @@ type I18nSettings struct {
 }
 
 type LanguageConfig struct {
-	Name string `yaml:"name"`
-	Dir  string `yaml:"dir"` // "ltr" or "rtl"
+	Name   string `yaml:"name"`
+	Title  string `yaml:"title"`
+	Weight int    `yaml:"weight"`
+	Dir    string `yaml:"dir"` // "ltr" or "rtl"
+}
+
+// IsMultiLang returns true when the site has multiple languages configured.
+func (s *I18nSettings) IsMultiLang() bool {
+	return len(s.Languages) > 0
+}
+
+// GetDefaultLanguage returns the configured default language code, or "en" if unset.
+func (s *I18nSettings) GetDefaultLanguage() string {
+	if s.DefaultLanguage != "" {
+		return s.DefaultLanguage
+	}
+	return "en"
+}
+
+// LanguageCodes returns all configured language codes sorted by weight then alphabetically.
+func (s *I18nSettings) LanguageCodes() []string {
+	codes := make([]string, 0, len(s.Languages))
+	for code := range s.Languages {
+		codes = append(codes, code)
+	}
+	sort.Slice(codes, func(i, j int) bool {
+		wi, wj := s.Languages[codes[i]].Weight, s.Languages[codes[j]].Weight
+		if wi != wj {
+			return wi < wj
+		}
+		return codes[i] < codes[j]
+	})
+	return codes
 }
 
 // ---------------------------------------------------------------------------

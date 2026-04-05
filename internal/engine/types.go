@@ -91,6 +91,7 @@ type Page struct {
 
 	// i18n
 	Lang         string
+	LangRelPath  string // relative path within language root (for translation matching)
 	Translations []*Page
 	IsFallback   bool
 
@@ -172,7 +173,8 @@ type Collection struct {
 	Config    *CollectionConfig
 	Pages     []*Page
 	Sections  []*Section
-	NavTree   *NavTree
+	NavTree   *NavTree            // default language nav tree (backward compat)
+	NavTrees  map[string]*NavTree // per-language nav trees (i18n)
 	IndexPage *Page
 }
 
@@ -377,9 +379,10 @@ type SiteContext struct {
 
 // Language represents a configured language for i18n.
 type Language struct {
-	Code string
-	Name string
-	Dir  string // "ltr" or "rtl"
+	Code   string
+	Name   string
+	Dir    string // "ltr" or "rtl"
+	Weight int
 }
 
 // ---------------------------------------------------------------------------

@@ -13,3 +13,6 @@
 {{ if index . "canonical" }}<link rel="canonical" href="{{ index . "canonical" }}">{{ end }}
 {{ if index . "json_ld" }}<script type="application/ld+json">{{ index . "json_ld" }}</script>{{ end }}
 {{ end }}{{ end }}
+{{ if .Translations }}{{ range .Translations }}
+<link rel="alternate" hreflang="{{ .Lang }}" href="{{ .URL }}">
+{{ end }}{{ end }}

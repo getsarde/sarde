@@ -1,18 +1,25 @@
 package build
 
 import (
+	"context"
 	"fmt"
 	htmltemplate "html/template"
 	"io/fs"
 	"path/filepath"
+	"runtime"
+	"sync"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
+	"github.com/coderoo-dev/coderoo/embedded"
 	"github.com/coderoo-dev/coderoo/internal/asset"
 	"github.com/coderoo-dev/coderoo/internal/collection"
 	"github.com/coderoo-dev/coderoo/internal/config"
 	"github.com/coderoo-dev/coderoo/internal/content"
 	"github.com/coderoo-dev/coderoo/internal/content/markdown"
 	"github.com/coderoo-dev/coderoo/internal/engine"
+	"github.com/coderoo-dev/coderoo/internal/i18n"
 	"github.com/coderoo-dev/coderoo/internal/plugin"
 	"github.com/coderoo-dev/coderoo/internal/taxonomy"
 	coderootemplate "github.com/coderoo-dev/coderoo/internal/template"
@@ -74,6 +81,26 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		outputDir = filepath.Join(b.projectDir, b.config.Build.Output)
 	}
 
+	// i18n: load translation strings (if multi-language)
+	isMultiLang := b.config.I18n.IsMultiLang()
+	defaultLang := b.config.I18n.GetDefaultLanguage()
+	var stringTable *i18n.StringTable
+	if isMultiLang {
+		var err error
+		stringTable, err = i18n.LoadStrings(embedded.I18nFS(), b.projectDir, b.config.Theme.Name, defaultLang)
+		if err != nil {
+			return nil, fmt.Errorf("loading i18n strings: %w", err)
+		}
+
+		// Configure scanner for multi-language detection
+		langCodes := make(map[string]bool)
+		for code := range b.config.I18n.Languages {
+			langCodes[code] = true
+		}
+		b.scanner.Languages = langCodes
+		b.scanner.DefaultLang = defaultLang
+	}
+
 	// Plugin hook: ConfigSetup (serial, after config resolved).
 	if err := b.pluginMgr.RunConfigSetup(b.config); err != nil {
 		return nil, err
@@ -110,6 +137,20 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		return nil, err
 	}
 
+	// i18n: generate fallback pages and link translations
+	if isMultiLang {
+		langCodes := b.config.I18n.LanguageCodes()
+		fallbacks := i18n.GenerateFallbacks(allPages, langCodes, defaultLang)
+		allPages = append(allPages, fallbacks...)
+
+		// Build language weight map for sorting
+		weights := make(map[string]int)
+		for code, lc := range b.config.I18n.Languages {
+			weights[code] = lc.Weight
+		}
+		i18n.LinkTranslations(allPages, weights)
+	}
+
 	// Build taxonomies.
 	taxonomies := taxonomy.BuildTaxonomies(allPages)
 
@@ -123,6 +164,24 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		Taxonomies:  taxonomies,
 		Pages:       allPages,
 		BuildTime:   time.Now(),
+	}
+
+	// i18n: populate site-level language info
+	if isMultiLang {
+		siteCtx.DefaultLang = defaultLang
+		for _, code := range b.config.I18n.LanguageCodes() {
+			lc := b.config.I18n.Languages[code]
+			dir := lc.Dir
+			if dir == "" {
+				dir = "ltr"
+			}
+			siteCtx.Languages = append(siteCtx.Languages, engine.Language{
+				Code:   code,
+				Name:   lc.Name,
+				Dir:    dir,
+				Weight: lc.Weight,
+			})
+		}
 	}
 
 	// Phase 4.5: ASSETS
@@ -140,23 +199,100 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		}
 	}
 
+	// Markdown render cache (dev mode only — production builds have image processing side effects).
+	var pageCache *PageCache
+	if b.devMode && config.BoolVal(b.config.Build.Cache, true) {
+		pageCache = NewPageCache(b.projectDir)
+	}
+
 	// Render markdown for all pages (after asset enhancement so image
 	// renderer can access processed resource data for <picture> generation).
-	for _, page := range allPages {
-		if page.RawContent == "" {
-			continue
+	parallel := config.BoolVal(b.config.Build.Parallel, true)
+	if parallel {
+		// Create a pool of renderers (Goldmark construction is expensive).
+		poolSize := runtime.NumCPU()
+		rendererPool := make(chan *markdown.Renderer, poolSize)
+		for i := 0; i < poolSize; i++ {
+			rendererPool <- markdown.NewRenderer()
 		}
 
-		// Set per-page image lookup for bundle-relative images.
-		lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor(), outputDir)
-		b.mdRenderer.SetImageLookup(lookup)
+		g, _ := errgroup.WithContext(context.Background())
+		g.SetLimit(poolSize)
+		for _, page := range allPages {
+			if page.RawContent == "" {
+				continue
+			}
+			g.Go(func() error {
+				// Check cache first.
+				hash := ContentHash(page.RawContent)
+				if pageCache != nil {
+					if entry := pageCache.Get(hash); entry != nil {
+						page.Content = htmltemplate.HTML(entry.HTML)
+						page.Headings = entry.Headings
+						return nil
+					}
+				}
 
-		html, headings, err := b.mdRenderer.Render(page.RawContent)
-		if err != nil {
-			return nil, fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
+				// Borrow a renderer from the pool.
+				renderer := <-rendererPool
+				lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor(), outputDir)
+				renderer.SetImageLookup(lookup)
+
+				html, headings, err := renderer.Render(page.RawContent)
+				rendererPool <- renderer // return to pool
+				if err != nil {
+					return fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
+				}
+				page.Content = htmltemplate.HTML(html)
+				page.Headings = headings
+
+				// Store in cache.
+				if pageCache != nil {
+					pageCache.Put(hash, &CacheEntry{
+						ContentHash: hash,
+						HTML:        string(html),
+						Headings:    headings,
+					})
+				}
+				return nil
+			})
 		}
-		page.Content = htmltemplate.HTML(html)
-		page.Headings = headings
+		if err := g.Wait(); err != nil {
+			return nil, err
+		}
+	} else {
+		for _, page := range allPages {
+			if page.RawContent == "" {
+				continue
+			}
+
+			hash := ContentHash(page.RawContent)
+			if pageCache != nil {
+				if entry := pageCache.Get(hash); entry != nil {
+					page.Content = htmltemplate.HTML(entry.HTML)
+					page.Headings = entry.Headings
+					continue
+				}
+			}
+
+			lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor(), outputDir)
+			b.mdRenderer.SetImageLookup(lookup)
+
+			html, headings, err := b.mdRenderer.Render(page.RawContent)
+			if err != nil {
+				return nil, fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
+			}
+			page.Content = htmltemplate.HTML(html)
+			page.Headings = headings
+
+			if pageCache != nil {
+				pageCache.Put(hash, &CacheEntry{
+					ContentHash: hash,
+					HTML:        string(html),
+					Headings:    headings,
+				})
+			}
+		}
 	}
 
 	// Bundle global CSS/JS assets (processes head.custom_css/custom_js from config).
@@ -164,10 +300,13 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		return nil, fmt.Errorf("bundling global assets: %w", err)
 	}
 
-	// Load template engine (needs SiteContext + asset pipeline + plugin funcs for funcMap closures).
+	// Load template engine (needs SiteContext + asset pipeline + plugin funcs + i18n for funcMap closures).
 	b.tmplEngine.SetSiteContext(siteCtx)
 	b.tmplEngine.SetAssetPipeline(assetPipeline.Resolver(), assetPipeline.Manifest())
 	b.tmplEngine.SetPluginFuncs(b.pluginMgr.TemplateFuncs())
+	if stringTable != nil {
+		b.tmplEngine.SetI18nStrings(stringTable)
+	}
 	resolver := &engine.ThemeResolver{
 		ProjectDir: b.projectDir,
 		ThemeName:  b.config.Theme.Name,
@@ -181,59 +320,138 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	var rendered []RenderedPage
 	aliases := make(map[string]string)
 
+	// Filter to renderable pages.
+	var renderablePages []*engine.Page
 	for _, page := range allPages {
-		// Skip non-rendering pages.
 		if page.Params != nil {
 			if r, ok := page.Params["render"].(bool); ok && !r {
 				continue
 			}
 		}
+		renderablePages = append(renderablePages, page)
+	}
 
-		rd := coderootemplate.BuildRouteData(page, siteCtx, b.themeConfig)
+	if parallel {
+		// Group pages by language for thread-safe t() function.
+		langGroups := groupPagesByLang(renderablePages)
+		var mu sync.Mutex
 
-		// Plugin hook: BeforeRender (serial per page).
-		if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, siteCtx); err != nil {
-			return nil, err
+		for _, lang := range langGroups.order {
+			pages := langGroups.pages[lang]
+			b.tmplEngine.SetCurrentLang(lang)
+
+			g, _ := errgroup.WithContext(context.Background())
+			g.SetLimit(runtime.NumCPU())
+
+			for _, page := range pages {
+				g.Go(func() error {
+					rd := coderootemplate.BuildRouteData(page, siteCtx, b.themeConfig)
+
+					if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, siteCtx); err != nil {
+						return err
+					}
+
+					html, err := b.tmplEngine.Render(rd.Template, rd)
+					if err != nil {
+						return fmt.Errorf("rendering %s (template %s): %w", page.FilePath, rd.Template, err)
+					}
+
+					rp := RenderedPage{
+						Page:    page,
+						HTML:    html,
+						OutPath: PageOutputPath(page.RelPermalink),
+					}
+
+					mu.Lock()
+					rendered = append(rendered, rp)
+					for _, alias := range page.Aliases {
+						aliases[alias] = page.RelPermalink
+					}
+					mu.Unlock()
+					return nil
+				})
+			}
+			if err := g.Wait(); err != nil {
+				return nil, err
+			}
 		}
+	} else {
+		for _, page := range renderablePages {
+			rd := coderootemplate.BuildRouteData(page, siteCtx, b.themeConfig)
+			b.tmplEngine.SetCurrentLang(rd.Lang)
 
-		html, err := b.tmplEngine.Render(rd.Template, rd)
-		if err != nil {
-			return nil, fmt.Errorf("rendering %s (template %s): %w", page.FilePath, rd.Template, err)
-		}
+			if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, siteCtx); err != nil {
+				return nil, err
+			}
 
-		rendered = append(rendered, RenderedPage{
-			Page:    page,
-			HTML:    html,
-			OutPath: PageOutputPath(page.RelPermalink),
-		})
+			html, err := b.tmplEngine.Render(rd.Template, rd)
+			if err != nil {
+				return nil, fmt.Errorf("rendering %s (template %s): %w", page.FilePath, rd.Template, err)
+			}
 
-		// Collect aliases.
-		for _, alias := range page.Aliases {
-			aliases[alias] = page.RelPermalink
+			rendered = append(rendered, RenderedPage{
+				Page:    page,
+				HTML:    html,
+				OutPath: PageOutputPath(page.RelPermalink),
+			})
+
+			for _, alias := range page.Aliases {
+				aliases[alias] = page.RelPermalink
+			}
 		}
 	}
 
-	// Render 404 page.
-	page404 := &engine.Page{Title: "Page Not Found", Kind: engine.KindPage}
-	rd404 := &engine.RouteData{
-		Template: "_default/404",
-		Layout:   engine.LayoutDefault,
-		Site:     siteCtx,
-		Theme:    b.themeConfig,
-		Page:     page404,
-		Lang:     siteCtx.Language,
-		Dir:      "ltr",
+	// Render 404 page(s).
+	render404 := func(lang, dir, outPath string) {
+		page404 := &engine.Page{Title: "Page Not Found", Kind: engine.KindPage, Lang: lang}
+		rd404 := &engine.RouteData{
+			Template: "_default/404",
+			Layout:   engine.LayoutDefault,
+			Site:     siteCtx,
+			Theme:    b.themeConfig,
+			Page:     page404,
+			Lang:     lang,
+			Dir:      dir,
+		}
+		b.tmplEngine.SetCurrentLang(lang)
+		html404, err := b.tmplEngine.Render(rd404.Template, rd404)
+		if err == nil {
+			rendered = append(rendered, RenderedPage{
+				Page:    page404,
+				HTML:    html404,
+				OutPath: outPath,
+			})
+		}
 	}
-	if siteCtx.Language == "" {
-		rd404.Lang = "en"
+
+	if isMultiLang {
+		// One 404 per language
+		for _, code := range b.config.I18n.LanguageCodes() {
+			lc := b.config.I18n.Languages[code]
+			dir := lc.Dir
+			if dir == "" {
+				dir = "ltr"
+			}
+			if code == defaultLang {
+				render404(code, dir, "404.html")
+			} else {
+				render404(code, dir, code+"/404.html")
+			}
+		}
+	} else {
+		lang := siteCtx.Language
+		if lang == "" {
+			lang = "en"
+		}
+		render404(lang, "ltr", "404.html")
 	}
-	html404, err := b.tmplEngine.Render(rd404.Template, rd404)
-	if err == nil {
-		rendered = append(rendered, RenderedPage{
-			Page:    page404,
-			HTML:    html404,
-			OutPath: "404.html",
-		})
+
+	// HTML minification (production builds only).
+	if !b.devMode && config.BoolVal(b.config.Build.Minify, true) {
+		mn := NewMinifier()
+		for i := range rendered {
+			rendered[i].HTML = mn.MinifyHTML(rendered[i].HTML)
+		}
 	}
 
 	// Phase 6: WRITE
@@ -293,6 +511,16 @@ func (b *SiteBuilder) Validate() (*ValidateResult, error) {
 		contentDir = filepath.Join(b.projectDir, b.config.Content.Dir)
 	}
 
+	// i18n: configure scanner for multi-language detection
+	if b.config.I18n.IsMultiLang() {
+		langCodes := make(map[string]bool)
+		for code := range b.config.I18n.Languages {
+			langCodes[code] = true
+		}
+		b.scanner.Languages = langCodes
+		b.scanner.DefaultLang = b.config.I18n.GetDefaultLanguage()
+	}
+
 	files, err := b.scanner.DiscoverFiles(contentDir)
 	if err != nil {
 		return nil, fmt.Errorf("discovering content: %w", err)
@@ -328,4 +556,26 @@ type ValidateResult struct {
 	Collections int
 	Warnings    []engine.ValidationWarning
 	Duration    time.Duration
+}
+
+// langGrouping holds pages grouped by language, preserving order.
+type langGrouping struct {
+	pages map[string][]*engine.Page
+	order []string
+}
+
+// groupPagesByLang groups pages by Lang field, with stable ordering.
+// Pages without a Lang are placed in a "" group.
+func groupPagesByLang(pages []*engine.Page) langGrouping {
+	result := langGrouping{pages: make(map[string][]*engine.Page)}
+	seen := make(map[string]bool)
+	for _, p := range pages {
+		lang := p.Lang
+		result.pages[lang] = append(result.pages[lang], p)
+		if !seen[lang] {
+			seen[lang] = true
+			result.order = append(result.order, lang)
+		}
+	}
+	return result
 }
