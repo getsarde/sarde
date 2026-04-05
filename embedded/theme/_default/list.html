@@ -1,0 +1,14 @@
+{{ define "content" }}
+<h1>{{ .Page.Title }}</h1>
+{{ if .Page.Content }}{{ .Page.Content }}{{ end }}
+{{ if .Collection }}
+<ul class="page-list">
+{{ range .Collection.Pages }}
+  <li>
+    <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+    {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
+  </li>
+{{ end }}
+</ul>
+{{ end }}
+{{ end }}

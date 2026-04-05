@@ -1,0 +1,7 @@
+{{ if .GlobalNav }}
+<nav class="global-nav">
+  {{ range .GlobalNav.Items }}
+  <a href="{{ .URL }}"{{ if .IsActive }} class="active"{{ end }}{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}</a>
+  {{ end }}
+</nav>
+{{ end }}

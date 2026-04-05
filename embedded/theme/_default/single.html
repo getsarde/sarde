@@ -1,0 +1,7 @@
+{{ define "content" }}
+<article>
+  {{ component "PageTitle" . }}
+  {{ .Page.Content }}
+  {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
+</article>
+{{ end }}

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="{{ .Lang }}" dir="{{ .Dir }}">
+<head>
+  {{ component "Head" . }}
+</head>
+<body class="layout-{{ .Layout }}">
+  {{ component "Header" . }}
+  <main>
+    {{ block "content" . }}{{ .Page.Content }}{{ end }}
+  </main>
+  {{ component "Footer" . }}
+</body>
+</html>

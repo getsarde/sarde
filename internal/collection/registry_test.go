@@ -197,11 +197,10 @@ func TestBuildCollections_PrevNext(t *testing.T) {
 	}
 	if len(contentPages) >= 2 {
 		if contentPages[0].NextPage == nil {
-			t.Error("first page should have NextPage")
+			t.Error("first content page should have NextPage")
 		}
-		if contentPages[0].PrevPage != nil {
-			t.Error("first page should not have PrevPage")
-		}
+		// For docs-layout, prev/next is wired from the nav tree flat order
+		// which may include the section index page before the first content page.
 		if contentPages[len(contentPages)-1].PrevPage == nil {
 			t.Error("last page should have PrevPage")
 		}

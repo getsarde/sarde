@@ -1,0 +1,10 @@
+{{ if .Page.Headings }}
+<details class="mobile-toc">
+  <summary>On this page</summary>
+  <ul>
+  {{ range .Page.Headings }}
+    <li><a href="#{{ .ID }}">{{ .Text }}</a></li>
+  {{ end }}
+  </ul>
+</details>
+{{ end }}

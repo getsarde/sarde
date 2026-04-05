@@ -7,6 +7,7 @@ import (
 	"github.com/coderoo-dev/coderoo/internal/config"
 	"github.com/coderoo-dev/coderoo/internal/content"
 	"github.com/coderoo-dev/coderoo/internal/engine"
+	"github.com/coderoo-dev/coderoo/internal/navigation"
 )
 
 // BuildCollections groups discovered files into typed collections, builds Pages,
@@ -59,10 +60,7 @@ func BuildCollections(
 		// 7. Build section tree
 		sections := BuildSectionTree(pages, name)
 
-		// 8. Wire prev/next
-		wirePrevNext(pages)
-
-		// 9. Find index page
+		// 8. Find index page
 		var indexPage *engine.Page
 		for _, p := range pages {
 			if p.Kind == engine.KindSection && sectionDir(p.RelPermalink, name) == "" {
@@ -85,6 +83,14 @@ func BuildCollections(
 			p.Collection = col
 		}
 		setCollectionOnSections(sections, col)
+
+		// 9. Build nav tree (docs-layout) and wire prev/next
+		if collCfg.Layout == engine.LayoutDocs {
+			col.NavTree = navigation.BuildNavTree(col)
+			navigation.WirePrevNextFromTree(col.NavTree)
+		} else {
+			wirePrevNext(pages)
+		}
 
 		collections[name] = col
 	}

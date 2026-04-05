@@ -2,6 +2,7 @@ package engine
 
 import (
 	"html/template"
+	"io/fs"
 	"time"
 )
 
@@ -446,8 +447,12 @@ type FieldDef struct {
 	Options   []string `yaml:"options"` // for enum type
 }
 
-// ThemeResolver handles three-layer template/asset resolution. Defined in Phase 7.
-type ThemeResolver struct{}
+// ThemeResolver handles three-layer template/asset resolution (user → theme → embedded).
+type ThemeResolver struct {
+	ProjectDir string // root of user project (contains layouts/, themes/)
+	ThemeName  string // active theme name (for themes/<name>/layouts/)
+	EmbeddedFS fs.FS  // compiled-in embedded/theme/ filesystem
+}
 
 // DefaultsInferrer fills missing frontmatter values. Defined in Phase 2.
 type DefaultsInferrer struct{}

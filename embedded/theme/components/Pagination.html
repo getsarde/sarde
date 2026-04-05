@@ -1,0 +1,6 @@
+{{ if .Pagination }}
+<nav class="pagination">
+  {{ with .Pagination.Prev }}<a href="{{ .URL }}" class="pagination-prev">&larr; {{ .Title }}</a>{{ end }}
+  {{ with .Pagination.Next }}<a href="{{ .URL }}" class="pagination-next">{{ .Title }} &rarr;</a>{{ end }}
+</nav>
+{{ end }}

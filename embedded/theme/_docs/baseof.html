@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="{{ .Lang }}" dir="{{ .Dir }}">
+<head>
+  {{ component "Head" . }}
+</head>
+<body class="layout-docs">
+  {{ component "Header" . }}
+  <div class="docs-container">
+    {{ if .HasSidebar }}
+    <aside class="docs-sidebar">
+      {{ component "Sidebar" . }}
+    </aside>
+    {{ end }}
+    <main class="docs-content">
+      {{ if .Breadcrumbs }}{{ component "Breadcrumbs" . }}{{ end }}
+      <article>
+        {{ block "content" . }}{{ .Page.Content }}{{ end }}
+      </article>
+      {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
+    </main>
+  </div>
+  {{ component "Footer" . }}
+</body>
+</html>
