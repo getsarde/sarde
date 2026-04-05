@@ -1,0 +1,42 @@
+# Docs (local only)
+my-docs/
+coderoo-go/content/
+content/
+
+# Go binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.*
+*.coverprofile
+profile.cov
+go.work
+go.work.sum
+
+# Go content output
+dist/
+
+# Node
+node_modules/
+package-lock.json
+
+# Rust / Tauri
+coderoo-desktop/src-tauri/target/
+coderoo-desktop/src-tauri/binaries/
+coderoo-desktop/src-tauri/gen/schemas/
+
+
+# Env
+.env
+
+# Editor/IDE
+.idea/
+.vscode/
+*.swp
+*~
+.coderoo-cache/
+dist1

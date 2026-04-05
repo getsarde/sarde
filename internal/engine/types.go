@@ -1,0 +1,453 @@
+package engine
+
+import (
+	"html/template"
+	"time"
+)
+
+// ---------------------------------------------------------------------------
+// Node Kinds
+// ---------------------------------------------------------------------------
+
+// NodeKind classifies content files discovered during the filesystem walk.
+type NodeKind string
+
+const (
+	KindHome       NodeKind = "home"
+	KindSection    NodeKind = "section"
+	KindPage       NodeKind = "page"
+	KindBundle     NodeKind = "bundle"
+	KindStandalone NodeKind = "standalone"
+)
+
+// ---------------------------------------------------------------------------
+// Layout Types
+// ---------------------------------------------------------------------------
+
+// LayoutType determines the page layout (column structure).
+type LayoutType string
+
+const (
+	LayoutDefault LayoutType = "default" // single-column (blog, projects, standalone)
+	LayoutDocs    LayoutType = "docs"    // three-column (sidebar | content | ToC)
+	LayoutSplash  LayoutType = "splash"  // full-width, no sidebar or ToC (landing pages)
+)
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
+
+// Page represents a single content page after parsing and transformation.
+type Page struct {
+	// Identity
+	Title        string
+	Slug         string
+	Date         time.Time
+	Updated      time.Time
+	Permalink    string
+	RelPermalink string
+	Kind         NodeKind
+	FilePath     string
+
+	// Content
+	Content     template.HTML
+	Summary     template.HTML
+	RawContent  string
+	WordCount   int
+	ReadingTime int
+	Headings    []Heading
+
+	// Metadata
+	Draft       bool
+	Weight      int
+	Description string
+	Image       string
+
+	// Relationships
+	Collection *Collection
+	Section    *Section
+	PrevPage   *Page
+	NextPage   *Page
+	Siblings   []*Page
+	Backlinks  []*Page
+
+	// Navigation (docs-layout only)
+	NavNode *NavNode
+
+	// Taxonomy
+	Tags       []string
+	Categories []string
+	Aliases    []string
+
+	// Sidebar
+	SidebarLabel  string
+	SidebarHidden bool
+	Badge         string
+	BadgeColor    string
+
+	// Bundle resources
+	Resources []Resource
+
+	// i18n
+	Lang         string
+	Translations []*Page
+	IsFallback   bool
+
+	// User data
+	Params map[string]any
+}
+
+// ---------------------------------------------------------------------------
+// Frontmatter
+// ---------------------------------------------------------------------------
+
+// Frontmatter represents parsed frontmatter fields from a content file.
+type Frontmatter struct {
+	Title         string            `yaml:"title"`
+	Date          time.Time         `yaml:"date"`
+	Updated       time.Time         `yaml:"updated"`
+	Draft         bool              `yaml:"draft"`
+	Slug          string            `yaml:"slug"`
+	Summary       string            `yaml:"summary"`
+	Template      string            `yaml:"template"`
+	Tags          []string          `yaml:"tags"`
+	Categories    []string          `yaml:"categories"`
+	Layout        string            `yaml:"layout"`
+	Type          string            `yaml:"type"`
+	Weight        int               `yaml:"weight"`
+	Description   string            `yaml:"description"`
+	Image         string            `yaml:"image"`
+	Aliases       []string          `yaml:"aliases"`
+	Transparent   bool              `yaml:"transparent"`
+	Render        *bool             `yaml:"render"`
+	Hero          *HeroConfig       `yaml:"hero"`
+	Pagefind      *bool             `yaml:"pagefind"`
+	SidebarLabel  string            `yaml:"sidebar_label"`
+	SidebarHidden bool              `yaml:"sidebar_hidden"`
+	SidebarGroup  string            `yaml:"sidebar_group"`
+	SidebarAttrs  map[string]string `yaml:"sidebar_attrs"`
+	Badge         string            `yaml:"badge"`
+	BadgeColor    string            `yaml:"badge_color"`
+	TOC           *bool             `yaml:"toc"`
+	TOCMinLevel   int               `yaml:"toc_min_level"`
+	TOCMaxLevel   int               `yaml:"toc_max_level"`
+	Prev          string            `yaml:"prev"`
+	Next          string            `yaml:"next"`
+	Params        map[string]any    `yaml:"params"`
+}
+
+// HeroConfig defines hero section fields for splash layout pages.
+type HeroConfig struct {
+	Title   string       `yaml:"title"`
+	Tagline string       `yaml:"tagline"`
+	Image   *HeroImage   `yaml:"image"`
+	Actions []HeroAction `yaml:"actions"`
+}
+
+// HeroImage defines the hero image with optional light/dark variants.
+type HeroImage struct {
+	Src   string `yaml:"src"`
+	Light string `yaml:"light"`
+	Dark  string `yaml:"dark"`
+	Alt   string `yaml:"alt"`
+}
+
+// HeroAction defines a call-to-action button in the hero section.
+type HeroAction struct {
+	Text    string `yaml:"text"`
+	Link    string `yaml:"link"`
+	Variant string `yaml:"variant"`
+	Icon    string `yaml:"icon"`
+}
+
+// ---------------------------------------------------------------------------
+// Collection
+// ---------------------------------------------------------------------------
+
+// Collection represents a group of pages (blog, docs, courses, etc.).
+type Collection struct {
+	Name      string
+	Title     string
+	Config    *CollectionConfig
+	Pages     []*Page
+	Sections  []*Section
+	NavTree   *NavTree
+	IndexPage *Page
+}
+
+// CollectionConfig holds per-collection settings (auto-detected or explicit).
+type CollectionConfig struct {
+	SortBy    string
+	SortOrder string
+	Layout    LayoutType
+	Permalink string
+	Paginate  int
+	Feed      bool
+	Sidebar   *SidebarConfig
+	TOC       *TOCConfig
+	PrevNext  *PrevNextConfig
+}
+
+// SidebarConfig controls sidebar behavior for docs-layout collections.
+type SidebarConfig struct {
+	Collapsible        bool
+	CollapsedByDefault bool
+	MaxDepth           int
+	Search             bool
+}
+
+// TOCConfig controls table of contents rendering.
+type TOCConfig struct {
+	Enabled         bool
+	MinLevel        int
+	MaxLevel        int
+	ScrollHighlight bool
+}
+
+// PrevNextConfig controls prev/next navigation links.
+type PrevNextConfig struct {
+	Enabled bool
+	Labels  [2]string
+}
+
+// ---------------------------------------------------------------------------
+// Section
+// ---------------------------------------------------------------------------
+
+// Section represents a directory with child pages and sub-sections.
+type Section struct {
+	Title       string
+	Slug        string
+	Permalink   string
+	Pages       []*Page
+	Sections    []*Section
+	IndexPage   *Page
+	Parent      *Section
+	Collection  *Collection
+	Transparent bool
+	Render      bool
+}
+
+// ---------------------------------------------------------------------------
+// Navigation
+// ---------------------------------------------------------------------------
+
+// NavTree represents a complete sidebar navigation tree for a collection.
+type NavTree struct {
+	Root       *NavNode
+	Flat       []*NavNode
+	TotalPages int
+	MaxDepth   int
+}
+
+// NavNode is a single entry in the sidebar navigation tree.
+type NavNode struct {
+	Label     string
+	URL       string
+	Slug      string
+	Weight    int
+	Position  int
+	Children  []*NavNode
+	Parent    *NavNode
+	Depth     int
+	IsActive  bool
+	IsOpen    bool
+	HasActive bool
+	Page      *Page
+	Attrs     map[string]string
+}
+
+// GlobalNav represents the top-level site navigation bar.
+type GlobalNav struct {
+	Items []GlobalNavItem
+}
+
+// GlobalNavItem is a single entry in the global navigation bar.
+type GlobalNavItem struct {
+	Label      string
+	URL        string
+	Collection string
+	IsActive   bool
+	External   bool
+}
+
+// BreadcrumbItem is a single entry in a breadcrumb trail.
+type BreadcrumbItem struct {
+	Label   string
+	URL     string
+	Current bool
+}
+
+// PaginationLinks holds prev/next page references.
+type PaginationLinks struct {
+	Prev *PaginationLink
+	Next *PaginationLink
+}
+
+// PaginationLink is a reference to a prev or next page.
+type PaginationLink struct {
+	URL   string
+	Title string
+}
+
+// ---------------------------------------------------------------------------
+// Taxonomy
+// ---------------------------------------------------------------------------
+
+// Taxonomy represents a grouping dimension (tags, categories, authors, etc.).
+type Taxonomy struct {
+	Name      string
+	Singular  string
+	Terms     map[string]*TaxonomyTerm
+	Permalink string
+}
+
+// TaxonomyTerm is a single term within a taxonomy with its associated pages.
+type TaxonomyTerm struct {
+	Name      string
+	Slug      string
+	Permalink string
+	Pages     []*Page
+}
+
+// ---------------------------------------------------------------------------
+// Resource
+// ---------------------------------------------------------------------------
+
+// Resource represents a page-bundled asset (image, file, etc.).
+type Resource struct {
+	Name         string
+	Title        string
+	MediaType    string
+	RelPermalink string
+	Width        int
+	Height       int
+}
+
+// ---------------------------------------------------------------------------
+// Heading
+// ---------------------------------------------------------------------------
+
+// Heading represents a heading extracted from content for ToC generation.
+type Heading struct {
+	Level int
+	ID    string
+	Text  string
+}
+
+// ---------------------------------------------------------------------------
+// Build Result
+// ---------------------------------------------------------------------------
+
+// BuildResult holds the outcome of a site build.
+type BuildResult struct {
+	PageCount int
+	Duration  time.Duration
+	Warnings  []ValidationWarning
+	OutputDir string
+}
+
+// ValidationWarning represents a non-fatal issue found during frontmatter validation.
+type ValidationWarning struct {
+	File    string
+	Field   string
+	Message string
+	Level   string
+}
+
+// ---------------------------------------------------------------------------
+// Site Context
+// ---------------------------------------------------------------------------
+
+// SiteContext provides global site data accessible in every template.
+type SiteContext struct {
+	Title       string
+	BaseURL     string
+	Language    string
+	Config      *SiteConfig
+	Collections map[string]*Collection
+	Taxonomies  map[string]*Taxonomy
+	Pages       []*Page
+	Data        map[string]any
+	BuildTime   time.Time
+	Languages   []Language
+	DefaultLang string
+}
+
+// Language represents a configured language for i18n.
+type Language struct {
+	Code string
+	Name string
+	Dir  string // "ltr" or "rtl"
+}
+
+// ---------------------------------------------------------------------------
+// RouteData
+// ---------------------------------------------------------------------------
+
+// RouteData is the unified context object passed to every template render.
+type RouteData struct {
+	Page         *Page
+	Collection   *Collection
+	GlobalNav    *GlobalNav
+	Sidebar      *NavTree
+	SidebarType  string
+	Breadcrumbs  []BreadcrumbItem
+	Pagination   *PaginationLinks
+	HasSidebar   bool
+	Section      *Section
+	IsSection    bool
+	Layout       LayoutType
+	Template     string
+	Site         *SiteContext
+	Theme        *ThemeConfig
+	Lang         string
+	Dir          string
+	Translations []TranslationLink
+}
+
+// TranslationLink points to the same page in another language.
+type TranslationLink struct {
+	Lang  string
+	URL   string
+	Title string
+}
+
+// ThemeConfig holds metadata and token values for the active theme.
+type ThemeConfig struct {
+	Name    string
+	Slug    string
+	Version string
+	Author  string
+	Tokens  map[string]string
+}
+
+// ---------------------------------------------------------------------------
+// Placeholder types — fully defined in later phases
+// ---------------------------------------------------------------------------
+
+// SiteConfig holds the full site configuration. Defined in Phase 1 (config package).
+type SiteConfig struct{}
+
+// FrontmatterSchema defines the expected frontmatter fields for a collection.
+type FrontmatterSchema struct {
+	Fields map[string]FieldDef `yaml:"fields"`
+}
+
+// FieldDef describes a single frontmatter field for validation and editor UI.
+type FieldDef struct {
+	Type      string   `yaml:"type"`       // "string", "int", "float", "bool", "date", "list", "enum"
+	Label     string   `yaml:"label"`
+	Required  bool     `yaml:"required"`
+	Default   any      `yaml:"default"`
+	Min       *float64 `yaml:"min"`
+	Max       *float64 `yaml:"max"`
+	MaxLength *int     `yaml:"max_length"`
+	Options   []string `yaml:"options"` // for enum type
+}
+
+// ThemeResolver handles three-layer template/asset resolution. Defined in Phase 7.
+type ThemeResolver struct{}
+
+// DefaultsInferrer fills missing frontmatter values. Defined in Phase 2.
+type DefaultsInferrer struct{}

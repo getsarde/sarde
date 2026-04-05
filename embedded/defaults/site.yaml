@@ -1,0 +1,152 @@
+# Coderoo — Embedded Default Configuration
+# These defaults are compiled into the binary. Users never see this file.
+# Every field here can be overridden by theme.yaml, site.yaml, CLI flags, or env vars.
+
+site:
+  title: "My Site"
+  description: ""
+  url: ""
+  language: "en"
+  favicon: ""
+  edit_url: ""
+
+social: []
+
+theme:
+  name: "default"
+  preset: ""
+  dark: true
+  overrides: {}
+
+toc:
+  enabled: true
+  min_level: 2
+  max_level: 4
+
+sidebar:
+  collapsed: false
+  badges: true
+  pagination: true
+
+header:
+  search: true
+  theme_toggle: true
+  social: true
+  links: []
+
+footer:
+  text: ""
+  links: []
+
+head:
+  tags: []
+  custom_css: []
+  custom_js: []
+
+build:
+  output: "dist"
+  base_path: ""
+  clean: true
+  sitemap: true
+  minify: false
+  last_updated: true
+  feed: true
+  drafts: false
+  future: false
+  parallel: true
+
+markdown:
+  katex: true
+  mermaid: true
+  cdn: false
+  unsafe: false
+  typographer: true
+  github_alerts: true
+  triple_colon_callouts: true
+  toc:
+    min_heading_level: 2
+    max_heading_level: 4
+  highlighting:
+    style: "class"
+    light_theme: "github"
+    dark_theme: "monokai"
+    theme: ""
+
+prefetch:
+  enabled: true
+  strategy: "hover"
+  delay: 300
+
+images:
+  widths: [400, 800, 1200]
+  formats: ["webp"]
+  quality: 80
+  placeholder: "lqip"
+  max_width: 2400
+  lazy_loading: true
+  dimensions: true
+
+search:
+  enabled: true
+  provider: "orama"
+
+link_validation:
+  enabled: true
+  level: "warn"
+  check_anchors: true
+  check_images: true
+  warn_relative_links: true
+  check_external: false
+  ignore: []
+
+content_lint:
+  enabled: true
+  rules:
+    heading_max_length: 60
+    heading_increment: true
+    image_alt_required: true
+    no_empty_links: true
+    frontmatter_required: []
+
+analytics:
+  provider: ""
+  site_id: ""
+
+redirects: {}
+
+collections: {}
+
+homepage:
+  template: "hero"
+  hero:
+    title: ""
+    subtitle: ""
+    background: "gradient"
+
+plugins:
+  enabled: []
+  config: {}
+
+taxonomies:
+  tags: "tags"
+  categories: "categories"
+
+server:
+  port: 3000
+  live_reload: true
+
+permalinks:
+  blog: "/blog/:year/:slug/"
+  _default: "/:slug/"
+
+i18n:
+  default_language: "en"
+  languages: {}
+
+content:
+  dir: "content"
+  summary_length: 70
+
+llms_txt:
+  enabled: true
+  include_blog: true

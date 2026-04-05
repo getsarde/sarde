@@ -1,0 +1,61 @@
+package collection
+
+import "github.com/coderoo-dev/coderoo/internal/engine"
+
+var blogNames = map[string]bool{
+	"blog": true, "posts": true, "articles": true, "news": true,
+}
+
+var docsNames = map[string]bool{
+	"docs": true, "documentation": true, "guides": true, "reference": true,
+	"courses": true, "tutorials": true, "lessons": true, "workshops": true,
+}
+
+// InferCollection returns a CollectionConfig with sensible defaults
+// based on the directory name convention.
+func InferCollection(dirName string) *engine.CollectionConfig {
+	switch {
+	case blogNames[dirName]:
+		return &engine.CollectionConfig{
+			SortBy:    "date",
+			SortOrder: "desc",
+			Layout:    engine.LayoutDefault,
+			Feed:      true,
+			Paginate:  10,
+			PrevNext: &engine.PrevNextConfig{
+				Enabled: true,
+				Labels:  [2]string{"Newer", "Older"},
+			},
+		}
+
+	case docsNames[dirName]:
+		return &engine.CollectionConfig{
+			SortBy:    "weight",
+			SortOrder: "asc",
+			Layout:    engine.LayoutDocs,
+			Sidebar: &engine.SidebarConfig{
+				Collapsible:        true,
+				CollapsedByDefault: false,
+				MaxDepth:           4,
+				Search:             true,
+			},
+			TOC: &engine.TOCConfig{
+				Enabled:         true,
+				MinLevel:        2,
+				MaxLevel:        4,
+				ScrollHighlight: true,
+			},
+			PrevNext: &engine.PrevNextConfig{
+				Enabled: true,
+				Labels:  [2]string{"Previous", "Next"},
+			},
+		}
+
+	default:
+		return &engine.CollectionConfig{
+			SortBy:    "title",
+			SortOrder: "asc",
+			Layout:    engine.LayoutDefault,
+		}
+	}
+}
