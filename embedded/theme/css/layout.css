@@ -1,0 +1,141 @@
+/* Coderoo Default Theme — Layout */
+
+/* ── Single-Column Layout ── */
+.layout-default {
+  display: grid;
+  grid-template-rows: var(--fb-nav-height) 1fr auto;
+  grid-template-areas: "header" "content" "footer";
+  min-height: 100vh;
+}
+
+.layout-default > main {
+  grid-area: content;
+  max-width: var(--fb-content-width);
+  margin: 0 auto;
+  padding: var(--fb-space-6) var(--fb-space-4);
+  width: 100%;
+}
+
+/* ── Site Header ── */
+.site-header {
+  grid-area: header;
+  position: sticky;
+  top: 0;
+  z-index: var(--fb-z-header);
+  height: var(--fb-nav-height);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--fb-space-4);
+  background: var(--fb-bg);
+  border-bottom: 1px solid var(--fb-border);
+  backdrop-filter: blur(8px);
+}
+
+.site-title {
+  font-weight: var(--fb-weight-bold);
+  font-size: var(--fb-text-lg);
+  color: var(--fb-text);
+  text-decoration: none;
+  margin-right: var(--fb-space-8);
+}
+
+.site-title:hover {
+  text-decoration: none;
+}
+
+/* ── Global Nav ── */
+.global-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--fb-space-1);
+}
+
+.global-nav a {
+  padding: var(--fb-space-2) var(--fb-space-3);
+  border-radius: var(--fb-radius-sm);
+  color: var(--fb-text-muted);
+  text-decoration: none;
+  font-size: var(--fb-text-sm);
+  font-weight: var(--fb-weight-medium);
+  transition: color var(--fb-transition-fast), background var(--fb-transition-fast);
+}
+
+.global-nav a:hover {
+  color: var(--fb-text);
+  background: var(--fb-hover);
+}
+
+.global-nav a.active {
+  color: var(--fb-text-accent);
+  background: var(--fb-bg-accent-subtle);
+}
+
+/* ── Site Footer ── */
+.site-footer {
+  grid-area: footer;
+  padding: var(--fb-space-6) var(--fb-space-4);
+  text-align: center;
+  font-size: var(--fb-text-sm);
+  color: var(--fb-text-muted);
+  border-top: 1px solid var(--fb-border);
+}
+
+/* ── Docs 3-Column Layout ── */
+.layout-docs {
+  display: grid;
+  grid-template-rows: var(--fb-nav-height) 1fr auto;
+  grid-template-areas: "header header header" "sidebar content toc" "footer footer footer";
+  min-height: 100vh;
+}
+
+.docs-container {
+  display: grid;
+  grid-template-columns: var(--fb-sidebar-width) minmax(0, 1fr);
+  grid-template-areas: "sidebar content";
+  max-width: 90rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.docs-sidebar {
+  grid-area: sidebar;
+  position: sticky;
+  top: var(--fb-nav-height);
+  height: calc(100vh - var(--fb-nav-height));
+  overflow-y: auto;
+  padding: var(--fb-space-4) var(--fb-space-4) var(--fb-space-4) var(--fb-space-6);
+  border-right: 1px solid var(--fb-border);
+}
+
+.docs-content {
+  grid-area: content;
+  max-width: var(--fb-content-width);
+  padding: var(--fb-space-6) var(--fb-space-8);
+  min-width: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1279px) {
+  .docs-container {
+    grid-template-columns: var(--fb-sidebar-width) 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .docs-container {
+    grid-template-columns: 1fr;
+    grid-template-areas: "content";
+  }
+
+  .docs-sidebar {
+    display: none;
+  }
+
+  .docs-content {
+    padding: var(--fb-space-4) var(--fb-space-3);
+  }
+
+  .layout-default > main {
+    padding: var(--fb-space-4) var(--fb-space-3);
+  }
+}

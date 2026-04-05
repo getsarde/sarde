@@ -1,0 +1,134 @@
+/* Coderoo Default Theme — Token Definitions
+   Primitives and semantic aliases. Dynamic tokens (--fb-primary, --fb-bg, etc.)
+   are injected via <style id="fb-theme"> from theme.yaml resolution. */
+
+:root {
+  /* ── White/Black ── */
+  --fb-white: #ffffff;
+  --fb-black: #09090b;
+
+  /* ── Gray Scale ── */
+  --fb-gray-1: #fafafa;
+  --fb-gray-2: #f4f4f5;
+  --fb-gray-3: #e4e4e7;
+  --fb-gray-4: #a1a1aa;
+  --fb-gray-5: #71717a;
+  --fb-gray-6: #52525b;
+  --fb-gray-7: #3f3f46;
+  --fb-gray-8: #27272a;
+  --fb-gray-9: #18181b;
+
+  /* ── Status Hues ── */
+  --fb-hue-green: 150;
+  --fb-hue-amber: 38;
+  --fb-hue-red: 0;
+  --fb-hue-cyan: 185;
+
+  --fb-green: hsl(var(--fb-hue-green), 60%, 40%);
+  --fb-green-low: hsl(var(--fb-hue-green), 50%, 92%);
+  --fb-amber: hsl(var(--fb-hue-amber), 90%, 50%);
+  --fb-amber-low: hsl(var(--fb-hue-amber), 90%, 92%);
+  --fb-red: hsl(var(--fb-hue-red), 70%, 50%);
+  --fb-red-low: hsl(var(--fb-hue-red), 70%, 94%);
+  --fb-blue: #3b82f6;
+  --fb-blue-low: #eff6ff;
+  --fb-purple: #8b5cf6;
+  --fb-purple-low: #f5f3ff;
+
+  /* ── Semantic Text ── */
+  --fb-text: var(--fb-gray-9);
+  --fb-text-muted: var(--fb-gray-6);
+  --fb-text-subtle: var(--fb-gray-5);
+  --fb-text-accent: var(--fb-primary, #6366f1);
+  --fb-text-invert: var(--fb-white);
+
+  /* ── Semantic Backgrounds ── */
+  --fb-bg: var(--fb-white);
+  --fb-bg-surface: var(--fb-gray-1);
+  --fb-bg-inline-code: var(--fb-gray-2);
+  --fb-bg-accent: var(--fb-primary, #6366f1);
+  --fb-bg-accent-subtle: var(--fb-primary-low, rgba(99, 102, 241, 0.1));
+  --fb-hover: var(--fb-gray-2);
+
+  /* ── Semantic Borders ── */
+  --fb-border: var(--fb-gray-3);
+  --fb-border-muted: var(--fb-gray-3);
+  --fb-border-accent: var(--fb-primary, #6366f1);
+  --fb-hairline: var(--fb-gray-3);
+
+  /* ── Interactive ── */
+  --fb-focus-ring: var(--fb-primary, #6366f1);
+
+  /* ── Typography ── */
+  --fb-font-sans: var(--fb-font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+  --fb-font-mono: var(--fb-font-mono, 'JetBrains Mono', ui-monospace, monospace);
+
+  --fb-text-xs: 0.75rem;
+  --fb-text-sm: 0.875rem;
+  --fb-text-base: 1rem;
+  --fb-text-lg: 1.125rem;
+  --fb-text-xl: 1.25rem;
+  --fb-text-2xl: 1.5rem;
+  --fb-text-3xl: 1.875rem;
+  --fb-text-4xl: 2.25rem;
+
+  --fb-line-height: 1.75;
+  --fb-line-height-headings: 1.2;
+  --fb-weight-normal: 400;
+  --fb-weight-medium: 500;
+  --fb-weight-semibold: 600;
+  --fb-weight-bold: 700;
+
+  /* ── Spacing ── */
+  --fb-space-1: 0.25rem;
+  --fb-space-2: 0.5rem;
+  --fb-space-3: 0.75rem;
+  --fb-space-4: 1rem;
+  --fb-space-6: 1.5rem;
+  --fb-space-8: 2rem;
+  --fb-space-10: 2.5rem;
+  --fb-space-12: 3rem;
+
+  /* ── Radius ── */
+  --fb-radius-sm: 0.25rem;
+  --fb-radius-md: var(--fb-radius, 0.375rem);
+  --fb-radius-lg: 0.5rem;
+  --fb-radius-xl: 0.75rem;
+  --fb-radius-full: 9999px;
+
+  /* ── Layout ── */
+  --fb-nav-height: 4rem;
+  --fb-sidebar-width: 280px;
+  --fb-toc-width: 240px;
+  --fb-content-width: 768px;
+
+  /* ── Z-index ── */
+  --fb-z-header: 20;
+  --fb-z-sidebar: 30;
+  --fb-z-overlay: 40;
+  --fb-z-modal: 50;
+
+  /* ── Transitions ── */
+  --fb-transition-fast: 150ms ease;
+  --fb-transition-normal: 200ms ease;
+
+  /* ── Shadows ── */
+  --fb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --fb-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --fb-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+  /* ── Code ── */
+  --fb-code-bg: var(--fb-bg-surface);
+  --fb-code-text: var(--fb-text);
+  --fb-code-border: var(--fb-border);
+
+  /* ── Asides ── */
+  --fb-aside-note: var(--fb-blue);
+  --fb-aside-note-bg: var(--fb-blue-low);
+  --fb-aside-tip: var(--fb-green);
+  --fb-aside-tip-bg: var(--fb-green-low);
+  --fb-aside-caution: var(--fb-amber);
+  --fb-aside-caution-bg: var(--fb-amber-low);
+  --fb-aside-danger: var(--fb-red);
+  --fb-aside-danger-bg: var(--fb-red-low);
+}

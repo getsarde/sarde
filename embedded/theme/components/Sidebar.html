@@ -2,23 +2,34 @@
 <nav class="sidebar-nav" aria-label="Section navigation">
   <ul class="sidebar-tree">
   {{ range .Sidebar.Root.Children }}
-    <li>{{ template "navnode" . }}</li>
+    {{ if .Children }}
+    <li>
+      <details{{ if or .IsActive .IsOpen }} open{{ end }}>
+        <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ else }}<span>{{ .Label }}</span>{{ end }}</summary>
+        <ul>
+        {{ range .Children }}
+          {{ if .Children }}
+          <li>
+            <details{{ if or .IsActive .IsOpen }} open{{ end }}>
+              <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ else }}<span>{{ .Label }}</span>{{ end }}</summary>
+              <ul>
+              {{ range .Children }}
+                <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ if .Page }}{{ if .Page.Badge }} <span class="badge badge-{{ .Page.BadgeColor }}">{{ .Page.Badge }}</span>{{ end }}{{ end }}</li>
+              {{ end }}
+              </ul>
+            </details>
+          </li>
+          {{ else }}
+          <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ if .Page }}{{ if .Page.Badge }} <span class="badge badge-{{ .Page.BadgeColor }}">{{ .Page.Badge }}</span>{{ end }}{{ end }}</li>
+          {{ end }}
+        {{ end }}
+        </ul>
+      </details>
+    </li>
+    {{ else }}
+    <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ if .Page }}{{ if .Page.Badge }} <span class="badge badge-{{ .Page.BadgeColor }}">{{ .Page.Badge }}</span>{{ end }}{{ end }}</li>
+    {{ end }}
   {{ end }}
   </ul>
 </nav>
-{{ define "navnode" }}
-  {{ if .Children }}
-    <details{{ if or .IsActive .IsOpen }} open{{ end }}>
-      <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ else }}<span>{{ .Label }}</span>{{ end }}</summary>
-      <ul>
-        {{ range .Children }}
-          <li>{{ template "navnode" . }}</li>
-        {{ end }}
-      </ul>
-    </details>
-  {{ else }}
-    <a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>
-    {{ if .Page }}{{ if .Page.Badge }}<span class="badge badge-{{ .Page.BadgeColor }}">{{ .Page.Badge }}</span>{{ end }}{{ end }}
-  {{ end }}
-{{ end }}
 {{ end }}

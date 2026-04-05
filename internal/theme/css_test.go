@@ -1,0 +1,114 @@
+package theme
+
+import (
+	"strings"
+	"testing"
+)
+
+func TestGenerateCSS_LightOnly(t *testing.T) {
+	css := GenerateCSS(map[string]string{"primary": "#6366f1", "bg": "#ffffff"}, nil)
+
+	if !strings.Contains(css, ":root {") {
+		t.Error("expected :root block")
+	}
+	if !strings.Contains(css, "--fb-primary: #6366f1") {
+		t.Error("expected --fb-primary")
+	}
+	if !strings.Contains(css, "--fb-bg: #ffffff") {
+		t.Error("expected --fb-bg")
+	}
+	if strings.Contains(css, ":root.dark") {
+		t.Error("should not have dark block with nil dark tokens")
+	}
+}
+
+func TestGenerateCSS_LightAndDark(t *testing.T) {
+	light := map[string]string{"bg": "#ffffff"}
+	dark := map[string]string{"bg": "#0f172a"}
+	css := GenerateCSS(light, dark)
+
+	if !strings.Contains(css, ":root {") {
+		t.Error("expected :root block")
+	}
+	if !strings.Contains(css, ":root.dark {") {
+		t.Error("expected :root.dark block")
+	}
+	if !strings.Contains(css, "--fb-bg: #0f172a") {
+		t.Error("expected dark --fb-bg")
+	}
+}
+
+func TestGenerateCSS_SortedKeys(t *testing.T) {
+	tokens := map[string]string{
+		"text":    "#1e293b",
+		"bg":      "#ffffff",
+		"primary": "#6366f1",
+	}
+	css := GenerateCSS(tokens, nil)
+
+	bgIdx := strings.Index(css, "--fb-bg")
+	primaryIdx := strings.Index(css, "--fb-primary")
+	textIdx := strings.Index(css, "--fb-text")
+
+	if bgIdx > primaryIdx || primaryIdx > textIdx {
+		t.Error("keys should be sorted alphabetically")
+	}
+}
+
+func TestGenerateCSS_Empty(t *testing.T) {
+	css := GenerateCSS(nil, nil)
+	if css != "" {
+		t.Errorf("expected empty, got %q", css)
+	}
+}
+
+func TestGenerateStyleTag(t *testing.T) {
+	tag := GenerateStyleTag(map[string]string{"primary": "#6366f1"}, nil)
+
+	s := string(tag)
+	if !strings.HasPrefix(s, "<style") {
+		t.Error("expected <style> prefix")
+	}
+	if !strings.HasSuffix(s, "</style>") {
+		t.Error("expected </style> suffix")
+	}
+	if !strings.Contains(s, "--fb-primary") {
+		t.Error("expected token in style tag")
+	}
+}
+
+func TestGenerateStyleTag_Empty(t *testing.T) {
+	tag := GenerateStyleTag(nil, nil)
+	if tag != "" {
+		t.Error("expected empty for nil tokens")
+	}
+}
+
+func TestGenerateCSS_FullPipeline(t *testing.T) {
+	// Simulate the full pipeline: defaults → theme → preset → derive → CSS.
+	theme := &Theme{
+		Tokens: map[string]string{"primary": "#3b82f6"},
+		Presets: map[string]Preset{
+			"ocean": {
+				Tokens:     map[string]string{"primary": "#0ea5e9"},
+				DarkTokens: map[string]string{"primary": "#38bdf8"},
+			},
+		},
+	}
+
+	light := ResolveTokens(DefaultTokens(), theme, "ocean", nil)
+	dark := ResolveDarkTokens(DefaultDarkTokens(), theme, "ocean", nil)
+	DeriveTokens(light)
+
+	css := GenerateCSS(light, dark)
+
+	if !strings.Contains(css, "--fb-primary: #0ea5e9") {
+		t.Error("expected ocean primary")
+	}
+	if !strings.Contains(css, "--fb-primary-hover:") {
+		t.Error("expected derived primary-hover")
+	}
+	if !strings.Contains(css, ":root.dark {") {
+		t.Error("expected dark block")
+	}
+}

@@ -365,7 +365,7 @@ type SiteContext struct {
 	Title       string
 	BaseURL     string
 	Language    string
-	Config      *SiteConfig
+	Config      any // *config.SiteConfig at runtime; any to avoid circular imports
 	Collections map[string]*Collection
 	Taxonomies  map[string]*Taxonomy
 	Pages       []*Page
@@ -414,21 +414,21 @@ type TranslationLink struct {
 	Title string
 }
 
-// ThemeConfig holds metadata and token values for the active theme.
+// ThemeConfig holds metadata, token values, and pre-rendered CSS for the active theme.
 type ThemeConfig struct {
-	Name    string
-	Slug    string
-	Version string
-	Author  string
-	Tokens  map[string]string
+	Name        string
+	Slug        string
+	Version     string
+	Author      string
+	Tokens      map[string]string
+	DarkTokens  map[string]string
+	DarkEnabled bool
+	StyleTag    template.HTML // pre-rendered <style> block with :root/:root.dark tokens
 }
 
 // ---------------------------------------------------------------------------
 // Placeholder types — fully defined in later phases
 // ---------------------------------------------------------------------------
-
-// SiteConfig holds the full site configuration. Defined in Phase 1 (config package).
-type SiteConfig struct{}
 
 // FrontmatterSchema defines the expected frontmatter fields for a collection.
 type FrontmatterSchema struct {
@@ -454,5 +454,3 @@ type ThemeResolver struct {
 	EmbeddedFS fs.FS  // compiled-in embedded/theme/ filesystem
 }
 
-// DefaultsInferrer fills missing frontmatter values. Defined in Phase 2.
-type DefaultsInferrer struct{}

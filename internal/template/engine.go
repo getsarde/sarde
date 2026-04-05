@@ -24,6 +24,7 @@ type Engine struct {
 	funcMap    htmltemplate.FuncMap
 	dataCache  sync.Map
 	site       *engine.SiteContext
+	cachedCSS  string // embedded CSS, loaded once
 	mu         sync.RWMutex
 }
 
@@ -47,8 +48,11 @@ func (e *Engine) SetSiteContext(site *engine.SiteContext) {
 func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	e.resolver = resolver
 
+	// Load and cache embedded CSS files.
+	e.cachedCSS = loadEmbeddedCSS(resolver.EmbeddedFS)
+
 	// Build a bootstrap FuncMap (without component support) for initial parsing.
-	bootstrapFM := buildFuncMap(e.site, resolver, nil, &e.dataCache)
+	bootstrapFM := buildFuncMap(e.site, resolver, nil, &e.dataCache, e.cachedCSS)
 
 	// Create the component registry with embedded defaults.
 	registry, err := component.NewRegistry(resolver.EmbeddedFS, bootstrapFM)
@@ -73,7 +77,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	e.components = registry
 
 	// Rebuild the final FuncMap with the real component registry.
-	e.funcMap = buildFuncMap(e.site, resolver, registry, &e.dataCache)
+	e.funcMap = buildFuncMap(e.site, resolver, registry, &e.dataCache, e.cachedCSS)
 
 	// Re-register all components with the final FuncMap so they can call
 	// template functions like `component`, `now`, etc.
@@ -261,4 +265,31 @@ func (e *Engine) reregisterFromOSDir(dir string) error {
 		e.components.RegisterTemplate(name, tmpl)
 	}
 	return nil
+}
+
+// loadEmbeddedCSS reads and concatenates all CSS files from the embedded FS.
+func loadEmbeddedCSS(efs fs.FS) string {
+	if efs == nil {
+		return ""
+	}
+
+	cssOrder := []string{
+		"css/tokens.css",
+		"css/base.css",
+		"css/layout.css",
+		"css/content.css",
+		"css/components.css",
+		"css/dark.css",
+	}
+
+	var sb strings.Builder
+	for _, name := range cssOrder {
+		data, err := fs.ReadFile(efs, name)
+		if err != nil {
+			continue
+		}
+		sb.Write(data)
+		sb.WriteByte('\n')
+	}
+	return sb.String()
 }

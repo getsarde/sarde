@@ -1,0 +1,46 @@
+name: Default
+slug: default
+version: "1.0.0"
+author: Coderoo
+description: The default Coderoo theme with a modern, professional appearance.
+license: MIT
+
+tokens:
+  primary: "#6366f1"
+  bg: "#ffffff"
+  bg-surface: "#f8fafc"
+  bg-code: "#1e293b"
+  text: "#1e293b"
+  text-muted: "#64748b"
+  border: "#e2e8f0"
+  font-sans: "'Inter', system-ui, -apple-system, sans-serif"
+  font-mono: "'JetBrains Mono', ui-monospace, monospace"
+  radius: "0.5rem"
+
+dark_tokens:
+  bg: "#0f172a"
+  bg-surface: "#1e293b"
+  bg-code: "#0f172a"
+  text: "#e2e8f0"
+  text-muted: "#94a3b8"
+  border: "#334155"
+
+presets:
+  ocean:
+    name: Ocean
+    tokens:
+      primary: "#0ea5e9"
+    dark_tokens:
+      primary: "#38bdf8"
+  forest:
+    name: Forest
+    tokens:
+      primary: "#16a34a"
+    dark_tokens:
+      primary: "#4ade80"
+  rose:
+    name: Rose
+    tokens:
+      primary: "#e11d48"
+    dark_tokens:
+      primary: "#fb7185"

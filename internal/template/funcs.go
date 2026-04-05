@@ -19,11 +19,13 @@ import (
 
 // buildFuncMap creates the template.FuncMap with all template functions.
 // Closures capture runtime state (site context, resolver, registry, data cache).
+// cachedCSS is the pre-loaded embedded CSS (empty string if not yet loaded).
 func buildFuncMap(
 	site *engine.SiteContext,
 	resolver *engine.ThemeResolver,
 	registry *component.Registry,
 	dataCache *sync.Map,
+	cachedCSS string,
 ) htmltemplate.FuncMap {
 	return htmltemplate.FuncMap{
 		// ── Strings ──
@@ -124,6 +126,25 @@ func buildFuncMap(
 			return loadDataFile(resolver.ProjectDir, name, dataCache)
 		},
 
+		// ── Theme Styles ──
+		"themeStyles": func(data any) htmltemplate.HTML {
+			rd, ok := data.(*engine.RouteData)
+			if !ok || rd == nil {
+				return htmltemplate.HTML(wrapCSS(cachedCSS))
+			}
+			var sb strings.Builder
+			// Token <style> block (dynamic, from theme resolution).
+			if rd.Theme != nil && rd.Theme.StyleTag != "" {
+				sb.WriteString(string(rd.Theme.StyleTag))
+				sb.WriteByte('\n')
+			}
+			// Embedded CSS (static, cached at load time).
+			if cachedCSS != "" {
+				sb.WriteString(wrapCSS(cachedCSS))
+			}
+			return htmltemplate.HTML(sb.String())
+		},
+
 		// ── Assets (stubs — Phase 10) ──
 		"fingerprint": func(path string) string { return path },
 		"inline":      func(path string) htmltemplate.HTML { return "" },
@@ -175,7 +196,7 @@ func buildFuncMap(
 			if err != nil {
 				return "", err
 			}
-			tmpl, err := htmltemplate.New(name).Funcs(buildFuncMap(site, resolver, registry, dataCache)).Parse(string(content))
+			tmpl, err := htmltemplate.New(name).Funcs(buildFuncMap(site, resolver, registry, dataCache, cachedCSS)).Parse(string(content))
 			if err != nil {
 				return "", fmt.Errorf("parsing partial %q: %w", name, err)
 			}
@@ -571,4 +592,12 @@ func getField(item any, field string) any {
 		}
 	}
 	return nil
+}
+
+// wrapCSS wraps raw CSS in a <style> tag.
+func wrapCSS(css string) string {
+	if css == "" {
+		return ""
+	}
+	return "<style>\n" + css + "</style>"
 }
