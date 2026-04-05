@@ -32,7 +32,7 @@ func testSite() *engine.SiteContext {
 }
 
 func testFuncMapBuild() htmltemplate.FuncMap {
-	return buildFuncMap(testSite(), &engine.ThemeResolver{}, nil, &sync.Map{}, "")
+	return buildFuncMap(testSite(), &engine.ThemeResolver{}, nil, &sync.Map{}, "", nil, nil, nil)
 }
 
 // ── String tests ──

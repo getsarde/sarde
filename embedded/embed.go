@@ -11,6 +11,11 @@ import (
 //go:embed defaults/site.yaml
 var DefaultsYAML []byte
 
+// LiveReloadJS contains the embedded live reload client script.
+//
+//go:embed livereload/livereload.js
+var LiveReloadJS []byte
+
 // themeFS contains all embedded theme templates and components.
 //
 //go:embed all:theme

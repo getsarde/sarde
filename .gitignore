@@ -39,4 +39,5 @@ coderoo-desktop/src-tauri/gen/schemas/
 *.swp
 *~
 .coderoo-cache/
+.cache/
 dist1

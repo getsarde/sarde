@@ -6,12 +6,14 @@ import (
 	htmltemplate "html/template"
 	"math"
 	"math/rand"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/coderoo-dev/coderoo/internal/asset"
 	"github.com/coderoo-dev/coderoo/internal/component"
 	"github.com/coderoo-dev/coderoo/internal/content"
 	"github.com/coderoo-dev/coderoo/internal/engine"
@@ -26,8 +28,11 @@ func buildFuncMap(
 	registry *component.Registry,
 	dataCache *sync.Map,
 	cachedCSS string,
+	assetResolver *asset.Resolver,
+	assetManifest *asset.Manifest,
+	pluginFuncs map[string]any,
 ) htmltemplate.FuncMap {
-	return htmltemplate.FuncMap{
+	fm := htmltemplate.FuncMap{
 		// ── Strings ──
 		"upper":      strings.ToUpper,
 		"lower":      strings.ToLower,
@@ -145,10 +150,69 @@ func buildFuncMap(
 			return htmltemplate.HTML(sb.String())
 		},
 
-		// ── Assets (stubs — Phase 10) ──
-		"fingerprint": func(path string) string { return path },
-		"inline":      func(path string) htmltemplate.HTML { return "" },
-		"asset":       func(path string) string { return path },
+		// ── Assets ──
+		"asset": func(path string) string {
+			if assetResolver == nil {
+				return path
+			}
+			resolved, err := assetResolver.Resolve(path)
+			if err != nil {
+				return path
+			}
+			// For embedded assets, return the path as-is (will be served from embedded FS).
+			if strings.HasPrefix(resolved, "embedded:") {
+				return "/assets/" + path
+			}
+			return "/assets/" + path
+		},
+		"fingerprint": func(path string) string {
+			if assetManifest == nil {
+				return path
+			}
+			entry, ok := assetManifest.Lookup(path)
+			if !ok {
+				return path
+			}
+			return entry.OutputURL
+		},
+		"inline": func(path string) htmltemplate.HTML {
+			if assetResolver == nil {
+				return ""
+			}
+			data, err := assetResolver.ResolveContent(path)
+			if err != nil {
+				return ""
+			}
+			ext := strings.ToLower(filepath.Ext(path))
+			switch ext {
+			case ".css":
+				return htmltemplate.HTML("<style>" + string(data) + "</style>")
+			case ".js":
+				return htmltemplate.HTML("<script>" + string(data) + "</script>")
+			default:
+				return htmltemplate.HTML(string(data))
+			}
+		},
+
+		// ── Resource queries ──
+		"getResource": func(resources []engine.Resource, name string) *engine.Resource {
+			return asset.GetResource(resources, name)
+		},
+		"matchResources": func(resources []engine.Resource, pattern string) []engine.Resource {
+			return asset.MatchResources(resources, pattern)
+		},
+		"resourcesByType": func(resources []engine.Resource, mediaType string) []engine.Resource {
+			return asset.ResourcesByType(resources, mediaType)
+		},
+
+		// ── Image rendering ──
+		"image": func(res engine.Resource) htmltemplate.HTML {
+			return htmltemplate.HTML(asset.RenderPicture(
+				res.RelPermalink, res.Title,
+				res.Width, res.Height,
+				nil, "", true,
+			))
+		},
 
 		// ── i18n (stub — Phase 13) ──
 		"t": func(key string) string { return key },
@@ -196,7 +260,7 @@ func buildFuncMap(
 			if err != nil {
 				return "", err
 			}
-			tmpl, err := htmltemplate.New(name).Funcs(buildFuncMap(site, resolver, registry, dataCache, cachedCSS)).Parse(string(content))
+			tmpl, err := htmltemplate.New(name).Funcs(buildFuncMap(site, resolver, registry, dataCache, cachedCSS, assetResolver, assetManifest, pluginFuncs)).Parse(string(content))
 			if err != nil {
 				return "", fmt.Errorf("parsing partial %q: %w", name, err)
 			}
@@ -213,6 +277,13 @@ func buildFuncMap(
 			return registry.RenderComponent(name, data)
 		},
 	}
+
+	// Merge plugin-provided template functions.
+	for k, v := range pluginFuncs {
+		fm[k] = v
+	}
+
+	return fm
 }
 
 // ── String function implementations ──

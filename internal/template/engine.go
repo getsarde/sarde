@@ -11,21 +11,25 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/coderoo-dev/coderoo/internal/asset"
 	"github.com/coderoo-dev/coderoo/internal/component"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 )
 
 // Engine implements engine.TemplateEngine using Go's html/template.
 type Engine struct {
-	resolver   *engine.ThemeResolver
-	components *component.Registry
-	baseCache  map[string]*htmltemplate.Template // layout key → baseof+partials
-	templates  map[string]*htmltemplate.Template // "default:blog/single" → cloned template
-	funcMap    htmltemplate.FuncMap
-	dataCache  sync.Map
-	site       *engine.SiteContext
-	cachedCSS  string // embedded CSS, loaded once
-	mu         sync.RWMutex
+	resolver      *engine.ThemeResolver
+	components    *component.Registry
+	baseCache     map[string]*htmltemplate.Template // layout key → baseof+partials
+	templates     map[string]*htmltemplate.Template // "default:blog/single" → cloned template
+	funcMap       htmltemplate.FuncMap
+	dataCache     sync.Map
+	site          *engine.SiteContext
+	cachedCSS     string // embedded CSS, loaded once
+	assetResolver *asset.Resolver
+	assetManifest *asset.Manifest
+	pluginFuncs   map[string]any
+	mu            sync.RWMutex
 }
 
 // NewEngine creates a new template Engine.
@@ -42,6 +46,19 @@ func (e *Engine) SetSiteContext(site *engine.SiteContext) {
 	e.site = site
 }
 
+// SetAssetPipeline sets the asset resolver and manifest used by asset template functions.
+// Must be called before Load().
+func (e *Engine) SetAssetPipeline(resolver *asset.Resolver, manifest *asset.Manifest) {
+	e.assetResolver = resolver
+	e.assetManifest = manifest
+}
+
+// SetPluginFuncs sets additional template functions provided by plugins.
+// Must be called before Load().
+func (e *Engine) SetPluginFuncs(funcs map[string]any) {
+	e.pluginFuncs = funcs
+}
+
 // Load implements engine.TemplateEngine. It initializes the template system:
 // loads base templates for each layout, sets up the component registry,
 // and builds the FuncMap.
@@ -52,7 +69,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	e.cachedCSS = loadEmbeddedCSS(resolver.EmbeddedFS)
 
 	// Build a bootstrap FuncMap (without component support) for initial parsing.
-	bootstrapFM := buildFuncMap(e.site, resolver, nil, &e.dataCache, e.cachedCSS)
+	bootstrapFM := buildFuncMap(e.site, resolver, nil, &e.dataCache, e.cachedCSS, e.assetResolver, e.assetManifest, e.pluginFuncs)
 
 	// Create the component registry with embedded defaults.
 	registry, err := component.NewRegistry(resolver.EmbeddedFS, bootstrapFM)
@@ -77,7 +94,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	e.components = registry
 
 	// Rebuild the final FuncMap with the real component registry.
-	e.funcMap = buildFuncMap(e.site, resolver, registry, &e.dataCache, e.cachedCSS)
+	e.funcMap = buildFuncMap(e.site, resolver, registry, &e.dataCache, e.cachedCSS, e.assetResolver, e.assetManifest, e.pluginFuncs)
 
 	// Re-register all components with the final FuncMap so they can call
 	// template functions like `component`, `now`, etc.
