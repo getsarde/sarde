@@ -31,6 +31,8 @@
   import StatusBar from './StatusBar.svelte'
   import CommandPalette from './CommandPalette.svelte'
   import SettingsModal from './SettingsModal.svelte'
+  import DeployModal from './DeployModal.svelte'
+  import ImportModal from './ImportModal.svelte'
   import ToastContainer from './ToastContainer.svelte'
 
   let { projectName = '', onClose } = $props()
@@ -64,6 +66,12 @@
   <CommandPalette />
   {#if ui.settingsOpen}
     <SettingsModal />
+  {/if}
+  {#if ui.deployOpen}
+    <DeployModal />
+  {/if}
+  {#if ui.importOpen}
+    <ImportModal />
   {/if}
   <ToastContainer />
 </div>

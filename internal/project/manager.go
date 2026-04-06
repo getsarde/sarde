@@ -160,6 +160,13 @@ func (pm *ProjectManager) State() ProjectState {
 	return pm.state
 }
 
+// ProjectDir returns the root directory of the currently open project.
+func (pm *ProjectManager) ProjectDir() string {
+	pm.mu.RLock()
+	defer pm.mu.RUnlock()
+	return pm.projectDir
+}
+
 // ---------------------------------------------------------------------------
 // Build
 // ---------------------------------------------------------------------------

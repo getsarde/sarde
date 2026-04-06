@@ -1,0 +1,19 @@
+<section class="hero hero-bg-{{ if .Homepage }}{{ .Homepage.Hero.Background }}{{ else }}gradient{{ end }}">
+  <div class="hero-inner">
+    <h1 class="hero-title">
+      {{- if and .Homepage .Homepage.Hero.Title }}
+        {{- .Homepage.Hero.Title -}}
+      {{ else }}
+        {{- .Site.Title -}}
+      {{ end -}}
+    </h1>
+    {{ if and .Homepage .Homepage.Hero.Subtitle }}
+    <p class="hero-subtitle">{{ .Homepage.Hero.Subtitle }}</p>
+    {{ end }}
+    {{ if and .Homepage .Homepage.Hero.CTA }}
+    <div class="hero-actions">
+      <a href="{{ .Homepage.Hero.CTA.URL }}" class="hero-cta">{{ .Homepage.Hero.CTA.Label }}</a>
+    </div>
+    {{ end }}
+  </div>
+</section>

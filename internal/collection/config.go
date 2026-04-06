@@ -29,7 +29,7 @@ func MergeCollectionConfig(inferred *engine.CollectionConfig, siteCfg *config.Co
 	}
 
 	if siteCfg.Layout != "" {
-		merged.Layout = engine.LayoutType(siteCfg.Layout)
+		merged.Layout = engine.ResolveLayout(siteCfg.Layout)
 	}
 	if siteCfg.Permalink != "" {
 		merged.Permalink = siteCfg.Permalink

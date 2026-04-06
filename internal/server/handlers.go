@@ -3,9 +3,20 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"path/filepath"
 
+	"github.com/coderoo-dev/coderoo/internal/deploy"
+	"github.com/coderoo-dev/coderoo/internal/importer"
 	"github.com/coderoo-dev/coderoo/internal/project"
 )
+
+// ---------------------------------------------------------------------------
+// Health
+// ---------------------------------------------------------------------------
+
+func (s *APIServer) handleHealth(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
 
 // ---------------------------------------------------------------------------
 // Project lifecycle
@@ -293,5 +304,91 @@ func (s *APIServer) handleRenderMarkdown(w http.ResponseWriter, r *http.Request)
 		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 		return
 	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+// ---------------------------------------------------------------------------
+// Deploy
+// ---------------------------------------------------------------------------
+
+func (s *APIServer) handleDeploy(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Provider string `json:"provider"` // optional override
+	}
+	json.NewDecoder(r.Body).Decode(&req) // body is optional
+
+	cfg := s.pm.GetConfig()
+	if cfg == nil {
+		writeError(w, http.StatusBadRequest, "PROJECT_NOT_OPEN", "no project is open")
+		return
+	}
+
+	deployCfg := cfg.Deploy
+	if req.Provider != "" {
+		deployCfg.Provider = req.Provider
+	}
+
+	deployer, err := deploy.NewDeployer(deployCfg)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "DEPLOY_CONFIG_ERROR", err.Error())
+		return
+	}
+
+	outputDir := cfg.Build.Output
+	if outputDir == "" {
+		outputDir = "dist"
+	}
+	projectDir := s.pm.ProjectDir()
+	if !filepath.IsAbs(outputDir) {
+		outputDir = filepath.Join(projectDir, outputDir)
+	}
+
+	if err := deployer.Deploy(outputDir); err != nil {
+		writeError(w, http.StatusInternalServerError, "DEPLOY_FAILED", err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{
+		"status":   "deployed",
+		"provider": deployer.Name(),
+	})
+}
+
+// ---------------------------------------------------------------------------
+// Import
+// ---------------------------------------------------------------------------
+
+func (s *APIServer) handleImportObsidian(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		VaultPath  string `json:"vault_path"`
+		Collection string `json:"collection"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "invalid JSON body")
+		return
+	}
+	if req.VaultPath == "" {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "vault_path is required")
+		return
+	}
+
+	projectDir := s.pm.ProjectDir()
+	if projectDir == "" {
+		writeError(w, http.StatusBadRequest, "PROJECT_NOT_OPEN", "no project is open")
+		return
+	}
+
+	collection := req.Collection
+	if collection == "" {
+		collection = filepath.Base(req.VaultPath)
+	}
+
+	contentDir := filepath.Join(projectDir, "content")
+	result, err := importer.ImportObsidian(req.VaultPath, collection, contentDir)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "IMPORT_FAILED", err.Error())
+		return
+	}
+
 	writeJSON(w, http.StatusOK, result)
 }

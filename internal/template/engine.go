@@ -164,10 +164,13 @@ func (e *Engine) getOrParseTemplate(name string, layout engine.LayoutType, col *
 		return tmpl, nil
 	}
 
-	// Get the base template for this layout. Splash uses default base.
+	// Get the base template for this layout. Map non-primary layouts to their base.
 	baseLayout := layout
-	if baseLayout == engine.LayoutSplash {
+	switch baseLayout {
+	case engine.LayoutSplash, engine.LayoutFull, engine.LayoutCentered:
 		baseLayout = engine.LayoutDefault
+	case engine.LayoutWide:
+		baseLayout = engine.LayoutDocs
 	}
 	base, ok := e.baseCache[string(baseLayout)]
 	if !ok {
@@ -311,6 +314,7 @@ func loadEmbeddedCSS(efs fs.FS) string {
 		"css/layout.css",
 		"css/content.css",
 		"css/components.css",
+		"css/homepage.css",
 		"css/dark.css",
 	}
 

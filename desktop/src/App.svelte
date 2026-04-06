@@ -1,8 +1,9 @@
 <script>
+  import { onMount } from 'svelte'
   import { invoke } from '@tauri-apps/api/core'
   import { open as openDialog } from '@tauri-apps/plugin-dialog'
   import { sidecar } from './lib/stores/app.svelte.js'
-  import { projectInfo, startPreview } from './lib/api.js'
+  import { projectOpen, projectClose } from './lib/api.js'
   import './app.css'
 
   import WelcomeScreen from './lib/components/WelcomeScreen.svelte'
@@ -14,33 +15,19 @@
   let projectName = $state('')
   let errorMsg = $state('')
 
-  // Poll sidecar until ready, then fetch project info
-  function waitForSidecar() {
+  // Start sidecar on app launch so it's ready for welcome screen actions.
+  onMount(() => {
+    invoke('start_sidecar').catch(e => console.error('Sidecar start failed:', e))
+    ensureSidecar()
+  })
+
+  /** Poll until sidecar is ready (sets sidecar.url/ready, nothing else). */
+  function ensureSidecar() {
     let attempts = 0
     const poll = () => {
-      invoke('get_sidecar_url').then(async (url) => {
+      invoke('get_sidecar_url').then(url => {
         sidecar.url = url
         sidecar.ready = true
-        // Tauri's main.rs already calls /api/project/open after sidecar starts.
-        // Fetch project info to confirm it's loaded.
-        try {
-          const info = await projectInfo()
-          if (info?.data?.title) {
-            projectName = info.data.title
-          }
-        } catch (_) {}
-
-        // Auto-start the dev preview server.
-        try {
-          const preview = await startPreview(3000)
-          if (preview?.data?.port) {
-            sidecar.previewUrl = `http://localhost:${preview.data.port}`
-          }
-        } catch (_) {
-          // Preview start may fail if project has no content yet — non-fatal.
-        }
-
-        screen = 'ready'
       }).catch(() => {
         if (++attempts < 60) setTimeout(poll, 500)
         else {
@@ -52,6 +39,20 @@
     poll()
   }
 
+  /** Wait for sidecar.ready (returns immediately if already ready). */
+  function waitUntilSidecarReady() {
+    if (sidecar.ready) return Promise.resolve()
+    return new Promise((resolve, reject) => {
+      let attempts = 0
+      const poll = () => {
+        if (sidecar.ready) return resolve()
+        if (++attempts > 60) return reject(new Error('Sidecar not ready after 30s'))
+        setTimeout(poll, 500)
+      }
+      poll()
+    })
+  }
+
   /** Start the project at a given path */
   async function startProject(path) {
     projectPath = path
@@ -61,8 +62,15 @@
     addRecent(path, projectName)
 
     try {
-      await invoke('start_with_project', { projectPath: path })
-      waitForSidecar()
+      await waitUntilSidecarReady()
+
+      // Open project via API.
+      const result = await projectOpen(path)
+      if (result?.data?.title) {
+        projectName = result.data.title
+      }
+
+      screen = 'ready'
     } catch (e) {
       errorMsg = String(e)
       screen = 'error'
@@ -88,10 +96,8 @@
   }
 
   function backToLauncher() {
-    invoke('stop_sidecar').catch(() => {})
+    projectClose().catch(() => {})
     screen = 'launcher'
-    sidecar.url = ''
-    sidecar.ready = false
     sidecar.previewUrl = ''
     projectPath = ''
     projectName = ''

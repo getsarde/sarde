@@ -8,6 +8,8 @@ import (
 	"image/jpeg"
 	"image/png"
 	"os"
+
+	_ "golang.org/x/image/webp" // register WebP decoder for image.Decode
 	"path/filepath"
 	"strings"
 
@@ -70,6 +72,11 @@ func (p *ImageProcessor) ProcessImage(srcPath, outputDir string) ([]ImageVariant
 	// Determine output format from source extension.
 	ext := strings.ToLower(filepath.Ext(srcPath))
 	baseName := strings.TrimSuffix(filepath.Base(srcPath), filepath.Ext(srcPath))
+
+	// WebP inputs are re-encoded as JPEG (no pure-Go WebP encoder).
+	if ext == ".webp" {
+		ext = ".jpg"
+	}
 
 	// Generate variants for each configured width.
 	widths := p.Config.Widths
@@ -234,6 +241,9 @@ func saveImage(img image.Image, path, ext string, quality int) error {
 		return png.Encode(f, img)
 	case ".jpg", ".jpeg":
 		return jpeg.Encode(f, img, &jpeg.Options{Quality: quality})
+	case ".webp":
+		// No pure-Go WebP encoder available; encode as JPEG instead.
+		return jpeg.Encode(f, img, &jpeg.Options{Quality: quality})
 	default:
 		// Fallback to JPEG for unsupported formats.
 		return jpeg.Encode(f, img, &jpeg.Options{Quality: quality})
@@ -246,6 +256,8 @@ func hashImage(img image.Image, ext string, quality int) string {
 	switch ext {
 	case ".png":
 		png.Encode(&buf, img)
+	case ".webp":
+		jpeg.Encode(&buf, img, &jpeg.Options{Quality: quality})
 	default:
 		jpeg.Encode(&buf, img, &jpeg.Options{Quality: quality})
 	}

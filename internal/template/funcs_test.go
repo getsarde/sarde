@@ -281,3 +281,120 @@ func TestFnDump(t *testing.T) {
 		t.Error("expected non-empty output")
 	}
 }
+
+// ── Navigation helper tests ──
+
+func TestNavFor(t *testing.T) {
+	tree := &engine.NavTree{Root: &engine.NavNode{Label: "Docs"}}
+	site := &engine.SiteContext{
+		Collections: map[string]*engine.Collection{
+			"docs": {Name: "docs", NavTree: tree},
+		},
+	}
+	fm := buildFuncMap(site, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	navFor := fm["navFor"].(func(string) *engine.NavTree)
+
+	if got := navFor("docs"); got != tree {
+		t.Errorf("navFor(docs) = %v, want %v", got, tree)
+	}
+	if got := navFor("nonexistent"); got != nil {
+		t.Errorf("navFor(nonexistent) = %v, want nil", got)
+	}
+}
+
+func TestBreadcrumbs(t *testing.T) {
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	breadcrumbs := fm["breadcrumbs"].(func(any) []engine.BreadcrumbItem)
+
+	items := []engine.BreadcrumbItem{
+		{Label: "Home", URL: "/"},
+		{Label: "Docs", URL: "/docs/"},
+	}
+	rd := &engine.RouteData{Breadcrumbs: items}
+
+	got := breadcrumbs(rd)
+	if len(got) != 2 || got[0].Label != "Home" {
+		t.Errorf("breadcrumbs(rd) = %v, want %v", got, items)
+	}
+	if breadcrumbs(nil) != nil {
+		t.Error("breadcrumbs(nil) should return nil")
+	}
+}
+
+func TestSiblings(t *testing.T) {
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	siblings := fm["siblings"].(func(*engine.Page) []*engine.Page)
+
+	pages := []*engine.Page{{Title: "A"}, {Title: "B"}}
+	section := &engine.Section{Pages: pages}
+	page := &engine.Page{Title: "A", Section: section}
+
+	if got := siblings(page); len(got) != 2 {
+		t.Errorf("siblings() = %d pages, want 2", len(got))
+	}
+	if siblings(nil) != nil {
+		t.Error("siblings(nil) should return nil")
+	}
+	if siblings(&engine.Page{}) != nil {
+		t.Error("siblings(no section) should return nil")
+	}
+}
+
+func TestTranslations(t *testing.T) {
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	translations := fm["translations"].(func(any) []engine.TranslationLink)
+
+	links := []engine.TranslationLink{
+		{Lang: "en", URL: "/about/"},
+		{Lang: "fr", URL: "/fr/about/"},
+	}
+	rd := &engine.RouteData{Translations: links}
+
+	got := translations(rd)
+	if len(got) != 2 || got[1].Lang != "fr" {
+		t.Errorf("translations(rd) = %v, want %v", got, links)
+	}
+	if translations(nil) != nil {
+		t.Error("translations(nil) should return nil")
+	}
+}
+
+func TestToString(t *testing.T) {
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	toString := fm["toString"].(func(any) string)
+
+	if got := toString(42); got != "42" {
+		t.Errorf("toString(42) = %q, want %q", got, "42")
+	}
+	if got := toString(3.14); got != "3.14" {
+		t.Errorf("toString(3.14) = %q, want %q", got, "3.14")
+	}
+}
+
+func TestToInt(t *testing.T) {
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	toInt := fm["toInt"].(func(any) int)
+
+	if got := toInt(42); got != 42 {
+		t.Errorf("toInt(42) = %d, want 42", got)
+	}
+	if got := toInt(3.7); got != 3 {
+		t.Errorf("toInt(3.7) = %d, want 3", got)
+	}
+	if got := toInt("not a number"); got != 0 {
+		t.Errorf("toInt(string) = %d, want 0", got)
+	}
+}
+
+func TestLang(t *testing.T) {
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	lang := fm["lang"].(func(any) string)
+
+	rd := &engine.RouteData{Lang: "fr"}
+	if got := lang(rd); got != "fr" {
+		t.Errorf("lang(rd) = %q, want %q", got, "fr")
+	}
+	if got := lang(nil); got != "" {
+		t.Errorf("lang(nil) = %q, want empty", got)
+	}
+}

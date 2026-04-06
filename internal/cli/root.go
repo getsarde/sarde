@@ -12,6 +12,7 @@ func init() {
 	rootCmd.PersistentFlags().StringP("config", "c", "site.yaml", "Path to site config file")
 	rootCmd.PersistentFlags().String("baseURL", "", "Override site base URL")
 	rootCmd.PersistentFlags().BoolP("drafts", "D", false, "Include draft content")
+	rootCmd.PersistentFlags().Bool("future", false, "Include future-dated content")
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Verbose output")
 	rootCmd.PersistentFlags().BoolP("quiet", "q", false, "Suppress non-error output")
 }
@@ -28,6 +29,9 @@ func CollectCLIFlags(cmd *cobra.Command) map[string]any {
 	}
 	if cmd.Flags().Changed("drafts") {
 		flags["build.drafts"], _ = cmd.Flags().GetBool("drafts")
+	}
+	if cmd.Flags().Changed("future") {
+		flags["build.future"], _ = cmd.Flags().GetBool("future")
 	}
 	return flags
 }

@@ -139,3 +139,23 @@
     padding: var(--fb-space-4) var(--fb-space-3);
   }
 }
+
+/* ── Wide Layout ── */
+.layout-wide .docs-content {
+  max-width: var(--fb-wide-content-width, 56rem);
+}
+
+/* ── Full Layout ── */
+.layout-full > main {
+  max-width: none;
+  padding: var(--fb-space-6) var(--fb-space-4);
+  width: 100%;
+}
+
+/* ── Centered Layout ── */
+.layout-centered > main {
+  max-width: var(--fb-centered-width, 40rem);
+  margin: 0 auto;
+  padding: var(--fb-space-8) var(--fb-space-4);
+  width: 100%;
+}

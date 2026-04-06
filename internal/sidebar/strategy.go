@@ -20,7 +20,7 @@ type SidebarStrategy interface {
 // GetStrategy returns the appropriate sidebar strategy for a layout type.
 func GetStrategy(layout engine.LayoutType) SidebarStrategy {
 	switch layout {
-	case engine.LayoutDocs:
+	case engine.LayoutDocs, engine.LayoutWide:
 		return &DocsSidebarStrategy{}
 	default:
 		return &DefaultSidebarStrategy{}

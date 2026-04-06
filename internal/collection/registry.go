@@ -3,6 +3,8 @@ package collection
 import (
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/coderoo-dev/coderoo/internal/config"
 	"github.com/coderoo-dev/coderoo/internal/content"
@@ -23,6 +25,8 @@ func BuildCollections(
 	var allWarnings []engine.ValidationWarning
 
 	includeDrafts := config.BoolVal(siteCfg.Build.Drafts, false)
+	includeFuture := config.BoolVal(siteCfg.Build.Future, false)
+	now := time.Now()
 
 	for name, colFiles := range grouped {
 		if name == "" {
@@ -39,6 +43,15 @@ func BuildCollections(
 			}
 		}
 
+		// Apply site-level permalink pattern if collection doesn't have one
+		if collCfg.Permalink == "" {
+			if siteCfg.Permalinks != nil {
+				if pattern, ok := siteCfg.Permalinks[name]; ok {
+					collCfg.Permalink = pattern
+				}
+			}
+		}
+
 		// 3. Load schema (optional)
 		schema, _ := content.LoadSchema(filepath.Join(contentDir, name))
 
@@ -49,10 +62,8 @@ func BuildCollections(
 		}
 		allWarnings = append(allWarnings, warnings...)
 
-		// 5. Filter drafts
-		if !includeDrafts {
-			pages = filterDrafts(pages)
-		}
+		// 5. Filter drafts and future content
+		pages = filterExcluded(pages, includeDrafts, includeFuture, now)
 
 		// 6. Sort pages
 		SortPages(pages, collCfg.SortBy, collCfg.SortOrder)
@@ -91,7 +102,7 @@ func BuildCollections(
 			col.NavTrees = make(map[string]*engine.NavTree)
 			for _, lang := range langs {
 				langPages := filterByLang(pages, lang)
-				if collCfg.Layout == engine.LayoutDocs {
+				if engine.LayoutHasSidebar(collCfg.Layout) {
 					langCol := &engine.Collection{
 						Name:     col.Name,
 						Config:   col.Config,
@@ -110,7 +121,7 @@ func BuildCollections(
 				col.NavTree = col.NavTrees[langs[0]]
 			}
 		} else {
-			if collCfg.Layout == engine.LayoutDocs {
+			if engine.LayoutHasSidebar(collCfg.Layout) {
 				col.NavTree = navigation.BuildNavTree(col)
 				navigation.WirePrevNextFromTree(col.NavTree)
 			} else {
@@ -205,7 +216,8 @@ func buildPages(
 			Slug:          fm.Slug,
 			Date:          fm.Date,
 			Updated:       fm.Updated,
-			Draft:         fm.Draft,
+			Draft:       fm.Draft,
+			PublishDate: fm.PublishDate,
 			Weight:        fm.Weight,
 			Description:   fm.Description,
 			Image:         fm.Image,
@@ -243,8 +255,22 @@ func buildPages(
 			return nil, nil, err
 		}
 
-		// Compute permalink
-		page.RelPermalink = content.ComputePermalink(contentDir, cf.FilePath)
+		// Compute permalink: use pattern if configured, else directory-based
+		isIndex := filepath.Base(cf.FilePath) == "_index.md" || filepath.Base(cf.FilePath) == "index.md"
+		if collCfg != nil && collCfg.Permalink != "" && !isIndex {
+			vars := content.PermalinkVars{
+				Slug:       page.Slug,
+				Year:       page.Date.Format("2006"),
+				Month:      page.Date.Format("01"),
+				Day:        page.Date.Format("02"),
+				Section:    extractSection(cf.FilePath, contentDir),
+				Collection: cf.CollectionName,
+				Title:      content.Slugify(page.Title),
+			}
+			page.RelPermalink = content.ComputePatternPermalink(collCfg.Permalink, vars)
+		} else {
+			page.RelPermalink = content.ComputePermalink(contentDir, cf.FilePath)
+		}
 		page.Permalink = page.RelPermalink
 
 		// Transform (word count, reading time, summary)
@@ -267,10 +293,22 @@ func buildPages(
 	return pages, warnings, nil
 }
 
-func filterDrafts(pages []*engine.Page) []*engine.Page {
+// extractSection returns the immediate parent directory name relative to the collection root.
+func extractSection(filePath, contentDir string) string {
+	rel, _ := filepath.Rel(contentDir, filePath)
+	rel = filepath.ToSlash(rel)
+	parts := strings.Split(rel, "/")
+	// parts[0] is collection, parts[1..n-1] are sections, parts[n-1] is filename
+	if len(parts) > 2 {
+		return parts[len(parts)-2]
+	}
+	return ""
+}
+
+func filterExcluded(pages []*engine.Page, includeDrafts, includeFuture bool, now time.Time) []*engine.Page {
 	var result []*engine.Page
 	for _, p := range pages {
-		if !p.Draft {
+		if !content.ShouldExclude(p.Draft, p.PublishDate, includeDrafts, includeFuture, now) {
 			result = append(result, p)
 		}
 	}

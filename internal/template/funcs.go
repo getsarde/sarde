@@ -231,6 +231,57 @@ func buildFuncMap(
 			return i18nStrings.Resolve(*currentLangPtr, key, data)
 		},
 
+		// ── Navigation helpers ──
+		"navFor": func(colName string) *engine.NavTree {
+			if site == nil {
+				return nil
+			}
+			col, ok := site.Collections[colName]
+			if !ok || col == nil {
+				return nil
+			}
+			return col.NavTree
+		},
+		"breadcrumbs": func(data any) []engine.BreadcrumbItem {
+			rd, ok := data.(*engine.RouteData)
+			if !ok || rd == nil {
+				return nil
+			}
+			return rd.Breadcrumbs
+		},
+		"siblings": func(page *engine.Page) []*engine.Page {
+			if page == nil || page.Section == nil {
+				return nil
+			}
+			return page.Section.Pages
+		},
+		"translations": func(data any) []engine.TranslationLink {
+			rd, ok := data.(*engine.RouteData)
+			if !ok || rd == nil {
+				return nil
+			}
+			return rd.Translations
+		},
+
+		// ── Type conversion ──
+		"toString": func(v any) string { return fmt.Sprint(v) },
+		"toInt": func(v any) int {
+			f, ok := toFloat64(v)
+			if !ok {
+				return 0
+			}
+			return int(f)
+		},
+
+		// ── Language ──
+		"lang": func(data any) string {
+			rd, ok := data.(*engine.RouteData)
+			if !ok || rd == nil {
+				return ""
+			}
+			return rd.Lang
+		},
+
 		// ── Cross-collection ──
 		"recentEntries": func(colName string, n int) []*engine.Page {
 			if site == nil {

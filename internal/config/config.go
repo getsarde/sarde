@@ -45,6 +45,7 @@ type SiteConfig struct {
 	LinkValidation LinkValidationSettings        `yaml:"link_validation"`
 	ContentLint    ContentLintSettings           `yaml:"content_lint"`
 	Analytics      AnalyticsSettings             `yaml:"analytics"`
+	Deploy         DeployConfig                  `yaml:"deploy"`
 	Redirects      map[string]string             `yaml:"redirects"`
 	Collections    map[string]*CollectionSiteConfig `yaml:"collections"`
 	Homepage       HomepageSettings              `yaml:"homepage"`
@@ -290,6 +291,19 @@ type ContentLintRules struct {
 type AnalyticsSettings struct {
 	Provider string `yaml:"provider"`
 	SiteID   string `yaml:"site_id"`
+}
+
+// ---------------------------------------------------------------------------
+// Deployment
+// ---------------------------------------------------------------------------
+
+type DeployConfig struct {
+	Provider    string `yaml:"provider"`     // github, netlify, cloudflare, vercel, custom
+	Branch      string `yaml:"branch"`       // GitHub Pages branch (default: gh-pages)
+	SiteID      string `yaml:"site_id"`      // Netlify site ID
+	ProjectName string `yaml:"project_name"` // Cloudflare Pages project name
+	ProjectID   string `yaml:"project_id"`   // Vercel project ID
+	Command     string `yaml:"command"`       // Custom deploy command
 }
 
 // ---------------------------------------------------------------------------

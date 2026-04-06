@@ -111,6 +111,23 @@ export async function stopPreview() {
 }
 
 // ---------------------------------------------------------------------------
+// Deploy
+// ---------------------------------------------------------------------------
+
+export async function deploy(provider = null) {
+  const body = provider ? { provider } : {}
+  return request('POST', '/api/deploy', body)
+}
+
+// ---------------------------------------------------------------------------
+// Import
+// ---------------------------------------------------------------------------
+
+export async function importObsidian(vaultPath, collection = '') {
+  return request('POST', '/api/import/obsidian', { vault_path: vaultPath, collection })
+}
+
+// ---------------------------------------------------------------------------
 // Rendering
 // ---------------------------------------------------------------------------
 

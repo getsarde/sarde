@@ -1,7 +1,7 @@
 <script>
   import { open as openDialog } from '@tauri-apps/plugin-dialog'
-  import { mkdir, writeTextFile } from '@tauri-apps/plugin-fs'
   import { ArrowLeft, FolderOpen, Rocket } from 'lucide-svelte'
+  import { projectCreate } from '../api.js'
 
   let { onCreated, onBack } = $props()
 
@@ -34,91 +34,7 @@
     const root = `${location}/${name}`
 
     try {
-      // Directory structure
-      await mkdir(`${root}/content/courses/getting-started`, { recursive: true })
-      await mkdir(`${root}/templates`, { recursive: true })
-      await mkdir(`${root}/static`, { recursive: true })
-
-      // config.yaml
-      await writeTextFile(`${root}/config.yaml`, `site:
-  title: ${name}
-  description: A documentation site built with Coderoo.
-  language: en
-
-build:
-  output: dist
-  clean: true
-  minify: true
-  sitemap: true
-  search: true
-  feed: true
-  llms: true
-  lint: true
-  link_check: true
-  last_updated: git
-  katex: false
-  mermaid: false
-  cdn: false
-`)
-
-      // Collection config
-      await writeTextFile(`${root}/content/courses/config.yaml`, `title: Courses
-type: courses
-`)
-
-      // Course config
-      await writeTextFile(`${root}/content/courses/getting-started/config.yaml`, `title: Getting Started
-description: Learn the basics of building your site with Coderoo.
-icon: rocket
-`)
-
-      // Sample lessons
-      await writeTextFile(`${root}/content/courses/getting-started/index.md`, `---
-title: Getting Started
-description: Welcome to your new Coderoo site.
----
-
-# Getting Started
-
-Welcome to your new Coderoo site! Follow the lessons below to learn the basics.
-`)
-
-      await writeTextFile(`${root}/content/courses/getting-started/01-introduction.md`, `---
-title: Introduction
-description: An overview of your new site.
----
-
-# Introduction
-
-This is the first lesson in the Getting Started course.
-
-You can edit this file or create new ones using the file tree on the left.
-`)
-
-      await writeTextFile(`${root}/content/courses/getting-started/02-markdown-basics.md`, `---
-title: Markdown Basics
-description: Learn markdown syntax supported by Coderoo.
----
-
-# Markdown Basics
-
-Coderoo uses extended markdown with support for code blocks, callouts, and more.
-
-Try typing \`/\` at the start of a line to see all available slash commands.
-`)
-
-      await writeTextFile(`${root}/content/courses/getting-started/03-extensions.md`, `---
-title: Extensions
-description: Explore Coderoo's custom markdown extensions.
----
-
-# Extensions
-
-Coderoo supports tabs, steps, file trees, and other custom blocks.
-
-Try typing \`:::\` at the start of a line to see all available block extensions.
-`)
-
+      await projectCreate(root, name)
       onCreated(root)
     } catch (e) {
       error = String(e)

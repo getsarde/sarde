@@ -1,5 +1,6 @@
 <script>
-  import { ui, tabs, sidecar, addToast, closeTabById } from '../stores/app.svelte.js'
+  import { ui, tabs, sidecar, addToast, closeTabById, warnings } from '../stores/app.svelte.js'
+  import { build as apiBuild } from '../api.js'
   import { Search } from 'lucide-svelte'
   import { open as openShell } from '@tauri-apps/plugin-shell'
 
@@ -20,6 +21,7 @@
     { id: 'build-site', label: 'Build Site', category: 'Build', shortcut: 'Ctrl+Shift+B' },
     { id: 'preview-site', label: 'Preview Site', category: 'Build' },
     { id: 'deploy', label: 'Deploy Site', category: 'Deploy' },
+    { id: 'import-obsidian', label: 'Import Obsidian Vault', category: 'Import' },
     { id: 'find-in-files', label: 'Search in Files', category: 'Search', shortcut: 'Ctrl+Shift+F' },
   ]
 
@@ -82,8 +84,19 @@
         ui.settingsOpen = true
         break
       case 'build-site':
-        window.dispatchEvent(new CustomEvent('coderoo:build'))
         addToast('info', 'Build started...')
+        apiBuild().then(resp => {
+          const w = resp?.data?.warnings ?? resp?.data?.Warnings ?? []
+          warnings.items = w
+          const wCount = w.length
+          if (wCount > 0) {
+            addToast('warning', `Build complete with ${wCount} warning${wCount === 1 ? '' : 's'}`)
+          } else {
+            addToast('success', 'Build complete')
+          }
+        }).catch(e => {
+          addToast('error', `Build failed: ${e.message}`)
+        })
         break
       case 'preview-site':
         if (sidecar.previewUrl) {
@@ -93,7 +106,10 @@
         }
         break
       case 'deploy':
-        addToast('info', 'Deploy not yet configured')
+        ui.deployOpen = true
+        break
+      case 'import-obsidian':
+        ui.importOpen = true
         break
       case 'find-in-files':
         ui.leftPanel = 'search'

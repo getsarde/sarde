@@ -1,5 +1,5 @@
 <script>
-  import { doc, sidecar } from '../stores/app.svelte.js'
+  import { doc, sidecar, ui, warnings } from '../stores/app.svelte.js'
 
   let saveLabel = $derived(doc.dirty ? 'Unsaved' : 'Saved')
   let saveClass = $derived(doc.dirty ? 'unsaved' : 'saved')
@@ -17,6 +17,12 @@
       <span class="status-dot"></span>
       {connectionLabel}
     </span>
+    {#if warnings.items.length > 0}
+      <button class="status-item status-btn warnings-indicator" onclick={() => { ui.rightPanel = 'warnings' }}>
+        <span class="status-dot"></span>
+        {warnings.items.length} {warnings.items.length === 1 ? 'warning' : 'warnings'}
+      </button>
+    {/if}
   </div>
 
   <div class="status-right">
@@ -82,5 +88,22 @@
 
   .disconnected .status-dot {
     background: #ef4444;
+  }
+
+  .status-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .status-btn:hover {
+    color: var(--color-text, #cdd6f4);
+  }
+
+  .warnings-indicator .status-dot {
+    background: #f59e0b;
   }
 </style>

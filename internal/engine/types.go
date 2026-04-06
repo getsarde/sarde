@@ -29,10 +29,40 @@ const (
 type LayoutType string
 
 const (
-	LayoutDefault LayoutType = "default" // single-column (blog, projects, standalone)
-	LayoutDocs    LayoutType = "docs"    // three-column (sidebar | content | ToC)
-	LayoutSplash  LayoutType = "splash"  // full-width, no sidebar or ToC (landing pages)
+	LayoutDefault  LayoutType = "default"  // single-column (blog, projects, standalone)
+	LayoutDocs     LayoutType = "docs"     // three-column (sidebar | content | ToC)
+	LayoutSplash   LayoutType = "splash"   // full-width, no sidebar or ToC (landing pages)
+	LayoutWide     LayoutType = "wide"     // wider content with sidebar, no ToC
+	LayoutFull     LayoutType = "full"     // full-width, no sidebar or ToC
+	LayoutCentered LayoutType = "centered" // narrow centered column, no sidebar
 )
+
+var validLayouts = map[LayoutType]bool{
+	LayoutDefault: true, LayoutDocs: true, LayoutSplash: true,
+	LayoutWide: true, LayoutFull: true, LayoutCentered: true,
+}
+
+// ValidateLayout returns true if the layout type is recognized.
+func ValidateLayout(layout LayoutType) bool { return validLayouts[layout] }
+
+// ResolveLayout converts a string to a validated LayoutType, falling back to LayoutDefault.
+func ResolveLayout(s string) LayoutType {
+	lt := LayoutType(s)
+	if validLayouts[lt] {
+		return lt
+	}
+	return LayoutDefault
+}
+
+// LayoutHasSidebar returns true if the layout includes a sidebar.
+func LayoutHasSidebar(layout LayoutType) bool {
+	return layout == LayoutDocs || layout == LayoutWide
+}
+
+// LayoutHasTOC returns true if the layout includes a table of contents.
+func LayoutHasTOC(layout LayoutType) bool {
+	return layout == LayoutDocs
+}
 
 // ---------------------------------------------------------------------------
 // Page
@@ -41,10 +71,11 @@ const (
 // Page represents a single content page after parsing and transformation.
 type Page struct {
 	// Identity
-	Title        string
-	Slug         string
-	Date         time.Time
-	Updated      time.Time
+	Title       string
+	Slug        string
+	Date        time.Time
+	Updated     time.Time
+	PublishDate time.Time
 	Permalink    string
 	RelPermalink string
 	Kind         NodeKind
@@ -108,7 +139,8 @@ type Frontmatter struct {
 	Title         string            `yaml:"title"`
 	Date          time.Time         `yaml:"date"`
 	Updated       time.Time         `yaml:"updated"`
-	Draft         bool              `yaml:"draft"`
+	Draft       bool      `yaml:"draft"`
+	PublishDate time.Time `yaml:"publish_date"`
 	Slug          string            `yaml:"slug"`
 	Summary       string            `yaml:"summary"`
 	Template      string            `yaml:"template"`
@@ -408,6 +440,27 @@ type RouteData struct {
 	Lang         string
 	Dir          string
 	Translations []TranslationLink
+	Homepage     *HomepageData // only set for KindHome pages
+}
+
+// HomepageData exposes homepage settings to templates.
+type HomepageData struct {
+	Template string
+	Hero     HeroData
+}
+
+// HeroData holds hero section settings for the homepage.
+type HeroData struct {
+	Title      string
+	Subtitle   string
+	CTA        *HeroCTAData
+	Background string
+}
+
+// HeroCTAData holds the call-to-action button settings.
+type HeroCTAData struct {
+	Label string
+	URL   string
 }
 
 // TranslationLink points to the same page in another language.

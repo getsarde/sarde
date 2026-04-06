@@ -135,9 +135,7 @@ server:
   port: 3000
   live_reload: true
 
-permalinks:
-  blog: "/blog/:year/:slug/"
-  _default: "/:slug/"
+permalinks: {}
 
 i18n:
   default_language: "en"

@@ -64,6 +64,9 @@ func (s *APIServer) Port() int {
 }
 
 func (s *APIServer) setupRoutes(mux *http.ServeMux) {
+	// Health check (project-independent).
+	mux.HandleFunc("GET /api/health", s.handleHealth)
+
 	// Project lifecycle.
 	mux.HandleFunc("POST /api/project/open", s.handleProjectOpen)
 	mux.HandleFunc("POST /api/project/create", s.handleProjectCreate)
@@ -91,6 +94,12 @@ func (s *APIServer) setupRoutes(mux *http.ServeMux) {
 
 	// Rendering.
 	mux.HandleFunc("POST /api/render/markdown", s.handleRenderMarkdown)
+
+	// Deploy.
+	mux.HandleFunc("POST /api/deploy", s.handleDeploy)
+
+	// Import.
+	mux.HandleFunc("POST /api/import/obsidian", s.handleImportObsidian)
 
 	// WebSocket events.
 	mux.HandleFunc("/api/events", s.hub.HandleWS)

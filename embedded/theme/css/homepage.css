@@ -1,0 +1,181 @@
+/* Coderoo Default Theme — Homepage */
+
+/* ── Hero ── */
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: var(--fb-space-12, 4rem) var(--fb-space-4);
+  text-align: center;
+}
+
+.hero-inner {
+  max-width: 48rem;
+}
+
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: var(--fb-weight-bold);
+  line-height: 1.15;
+  color: var(--fb-text);
+  margin-bottom: var(--fb-space-4);
+}
+
+.hero-subtitle {
+  font-size: var(--fb-text-xl, 1.25rem);
+  color: var(--fb-text-muted);
+  line-height: 1.6;
+  max-width: 36rem;
+  margin: 0 auto var(--fb-space-8);
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--fb-space-3);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.hero-cta {
+  display: inline-block;
+  padding: var(--fb-space-3) var(--fb-space-6);
+  background: var(--fb-text-accent);
+  color: var(--fb-bg);
+  border-radius: var(--fb-radius-md);
+  font-weight: var(--fb-weight-semibold, 600);
+  font-size: var(--fb-text-base);
+  text-decoration: none;
+  transition: opacity var(--fb-transition-fast);
+}
+
+.hero-cta:hover {
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+/* Hero backgrounds */
+.hero-bg-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--fb-bg) 0%,
+    var(--fb-bg-accent-subtle, var(--fb-hover)) 100%
+  );
+}
+
+.hero-bg-solid {
+  background: var(--fb-bg-accent-subtle, var(--fb-hover));
+}
+
+.hero-bg-none,
+.hero-bg- {
+  background: transparent;
+}
+
+/* ── Catalog ── */
+.catalog {
+  padding: var(--fb-space-8) var(--fb-space-4);
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+.catalog-title {
+  font-size: var(--fb-text-2xl, 1.875rem);
+  font-weight: var(--fb-weight-bold);
+  margin-bottom: var(--fb-space-8);
+  text-align: center;
+}
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--fb-space-6);
+}
+
+.catalog-card {
+  border: 1px solid var(--fb-border);
+  border-radius: var(--fb-radius-md);
+  padding: var(--fb-space-6);
+  transition: border-color var(--fb-transition-fast);
+}
+
+.catalog-card:hover {
+  border-color: var(--fb-text-accent);
+}
+
+.catalog-card h2 {
+  font-size: var(--fb-text-lg);
+  margin-bottom: var(--fb-space-2);
+}
+
+.catalog-card h2 a {
+  color: var(--fb-text);
+  text-decoration: none;
+}
+
+.catalog-card h2 a:hover {
+  color: var(--fb-text-accent);
+}
+
+.catalog-card p {
+  color: var(--fb-text-muted);
+  font-size: var(--fb-text-sm);
+  margin-bottom: var(--fb-space-3);
+}
+
+.catalog-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.catalog-card li {
+  padding: var(--fb-space-1) 0;
+  font-size: var(--fb-text-sm);
+}
+
+.catalog-card li a {
+  color: var(--fb-text-muted);
+}
+
+.catalog-card li a:hover {
+  color: var(--fb-text-accent);
+}
+
+/* ── Minimal ── */
+.minimal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  padding: var(--fb-space-12, 4rem) var(--fb-space-4);
+  text-align: center;
+}
+
+.minimal-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: var(--fb-weight-bold);
+  color: var(--fb-text);
+}
+
+/* ── Home Content (rendered from _index.md) ── */
+.home-content {
+  max-width: var(--fb-content-width);
+  margin: 0 auto;
+  padding: var(--fb-space-8) var(--fb-space-4);
+}
+
+/* ── Responsive ── */
+@media (max-width: 767px) {
+  .hero {
+    min-height: 50vh;
+    padding: var(--fb-space-8) var(--fb-space-3);
+  }
+
+  .catalog {
+    padding: var(--fb-space-6) var(--fb-space-3);
+  }
+
+  .catalog-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -92,6 +92,7 @@ func mergeConfig(base, over *SiteConfig) {
 	mergeLinkValidation(&base.LinkValidation, &over.LinkValidation)
 	mergeContentLint(&base.ContentLint, &over.ContentLint)
 	mergeAnalytics(&base.Analytics, &over.Analytics)
+	mergeDeploy(&base.Deploy, &over.Deploy)
 	mergeStringMap(&base.Redirects, over.Redirects)
 	mergeCollections(&base.Collections, over.Collections)
 	mergeHomepage(&base.Homepage, &over.Homepage)
@@ -259,6 +260,15 @@ func mergeContentLint(base, over *ContentLintSettings) {
 func mergeAnalytics(base, over *AnalyticsSettings) {
 	mergeStr(&base.Provider, over.Provider)
 	mergeStr(&base.SiteID, over.SiteID)
+}
+
+func mergeDeploy(base, over *DeployConfig) {
+	mergeStr(&base.Provider, over.Provider)
+	mergeStr(&base.Branch, over.Branch)
+	mergeStr(&base.SiteID, over.SiteID)
+	mergeStr(&base.ProjectName, over.ProjectName)
+	mergeStr(&base.ProjectID, over.ProjectID)
+	mergeStr(&base.Command, over.Command)
 }
 
 func mergeCollections(base *map[string]*CollectionSiteConfig, over map[string]*CollectionSiteConfig) {

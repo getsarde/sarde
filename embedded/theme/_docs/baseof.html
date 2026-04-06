@@ -4,7 +4,7 @@
   <script>if(localStorage.getItem('fb-theme')==='dark'||(localStorage.getItem('fb-theme')!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')</script>
   {{ component "Head" . }}
 </head>
-<body class="layout-docs">
+<body class="layout-{{ .Layout }}">
   {{ component "Header" . }}
   <div class="docs-container">
     {{ if .HasSidebar }}

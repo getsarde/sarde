@@ -10,4 +10,7 @@ var builtinRegistry = map[string]func(cfg map[string]any) *Plugin{
 	"reading_time": newReadingTimePlugin,
 	"search":       newSearchPlugin,
 	"link_checker": newLinkCheckerPlugin,
+	"redirects":    newRedirectsPlugin,
+	"content_lint": newContentLintPlugin,
+	"llms_txt":     newLlmsTxtPlugin,
 }

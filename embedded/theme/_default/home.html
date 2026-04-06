@@ -1,6 +1,20 @@
 {{ define "content" }}
 <div class="home">
-  <h1>{{ .Site.Title }}</h1>
-  {{ .Page.Content }}
+  {{ if .Homepage }}
+    {{ if eq .Homepage.Template "catalog" }}
+      {{ partial "home-catalog.html" . }}
+    {{ else if eq .Homepage.Template "minimal" }}
+      {{ partial "home-minimal.html" . }}
+    {{ else }}
+      {{ partial "home-hero.html" . }}
+    {{ end }}
+  {{ else }}
+    {{ partial "home-hero.html" . }}
+  {{ end }}
+  {{ if .Page.Content }}
+  <div class="home-content">
+    {{ .Page.Content }}
+  </div>
+  {{ end }}
 </div>
 {{ end }}

@@ -27,6 +27,8 @@ export const ui = $state({
   settingsOpen: false,
   settingsSection: 'general',
   commandPaletteOpen: false,
+  deployOpen: false,
+  importOpen: false,
 })
 
 // ---------------------------------------------------------------------------
@@ -115,6 +117,35 @@ export async function saveSiteConfig() {
     addToast('error', `Failed to save settings: ${e}`)
   } finally {
     siteConfig.saving = false
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Validation warnings
+// ---------------------------------------------------------------------------
+import { validate as apiValidate } from '../api.js'
+
+export const warnings = $state({
+  items: [],       // { file, field, message, level }[]
+  loading: false,
+})
+
+export async function runValidation() {
+  if (warnings.loading || !sidecar.ready) return
+  warnings.loading = true
+  try {
+    const resp = await apiValidate()
+    warnings.items = resp?.data?.warnings ?? resp?.data?.Warnings ?? []
+    const count = warnings.items.length
+    if (count > 0) {
+      addToast('warning', `${count} warning${count === 1 ? '' : 's'} found`)
+    } else {
+      addToast('success', 'No warnings')
+    }
+  } catch (e) {
+    addToast('error', `Validation failed: ${e.message}`)
+  } finally {
+    warnings.loading = false
   }
 }
 

@@ -33,7 +33,7 @@ fn stop_sidecar(state: tauri::State<SidecarState>) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn start_with_project(app: tauri::AppHandle, project_path: String) -> Result<(), String> {
+fn start_sidecar(app: tauri::AppHandle) -> Result<(), String> {
     let state = app.state::<SidecarState>();
 
     // Stop existing sidecar if running.
@@ -60,7 +60,6 @@ fn start_with_project(app: tauri::AppHandle, project_path: String) -> Result<(),
     *state.child.lock().unwrap() = Some(child);
 
     let app_handle = app.clone();
-    let project = project_path.clone();
 
     tauri::async_runtime::spawn(async move {
         while let Some(event) = rx.recv().await {
@@ -79,19 +78,6 @@ fn start_with_project(app: tauri::AppHandle, project_path: String) -> Result<(),
                                 *state.port.lock().unwrap() = port;
                                 *state.ready.lock().unwrap() = true;
                                 println!("Sidecar ready on port {}", port);
-
-                                // Open the project via the IPC API.
-                                let url = format!("http://localhost:{}/api/project/open", port);
-                                let body = serde_json::json!({ "dir": project });
-                                let client = reqwest::Client::new();
-                                match client.post(&url).json(&body).send().await {
-                                    Ok(resp) => {
-                                        if !resp.status().is_success() {
-                                            eprintln!("Project open failed: {}", resp.status());
-                                        }
-                                    }
-                                    Err(e) => eprintln!("Project open request failed: {}", e),
-                                }
                             }
                         }
                     }
@@ -162,7 +148,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             get_sidecar_url,
-            start_with_project,
+            start_sidecar,
             stop_sidecar,
         ])
         .run(tauri::generate_context!())

@@ -1,6 +1,6 @@
 <script>
-  import { ui, doc } from '../stores/app.svelte.js'
-  import { List, PencilLine, Image, TrendingUp } from 'lucide-svelte'
+  import { ui, doc, warnings, runValidation } from '../stores/app.svelte.js'
+  import { List, PencilLine, Image, TrendingUp, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-svelte'
 
   function togglePanel(panel) {
     ui.rightPanel = ui.rightPanel === panel ? null : panel
@@ -46,6 +46,17 @@
     characters: doc.content.length,
     lines: doc.content ? doc.content.split('\n').length : 0,
     headings: headings.length,
+  })
+
+  /** Group warnings by file */
+  let warningsByFile = $derived.by(() => {
+    const groups = new Map()
+    for (const w of warnings.items) {
+      const file = w.file || w.File || 'Unknown'
+      if (!groups.has(file)) groups.set(file, [])
+      groups.get(file).push(w)
+    }
+    return groups
   })
 </script>
 
@@ -118,6 +129,37 @@
             </div>
           </div>
         </div>
+      {:else if ui.rightPanel === 'warnings'}
+        <div class="panel-header">
+          <span class="panel-title">Warnings</span>
+          <button class="panel-action" onclick={runValidation} disabled={warnings.loading} title="Re-validate">
+            <RefreshCw size={13} />
+          </button>
+        </div>
+        <div class="panel-body">
+          {#if warnings.loading}
+            <p class="empty-msg">Validating...</p>
+          {:else if warnings.items.length === 0}
+            <div class="warnings-empty">
+              <CheckCircle size={20} />
+              <p>No warnings</p>
+            </div>
+          {:else}
+            <div class="warnings-list">
+              {#each [...warningsByFile] as [file, items]}
+                <div class="warning-group">
+                  <div class="warning-file">{file}</div>
+                  {#each items as w}
+                    <div class="warning-item" class:warning-error={(w.level || w.Level) === 'error'}>
+                      <span class="warning-field">{w.field || w.Field || 'lint'}</span>
+                      <span class="warning-msg">{w.message || w.Message}</span>
+                    </div>
+                  {/each}
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
       {/if}
     </div>
   {/if}
@@ -127,6 +169,14 @@
     <button class="icon-btn" class:active={ui.rightPanel === 'properties'} onclick={() => togglePanel('properties')} title="Properties">          <PencilLine size={20} /></button>
     <button class="icon-btn" class:active={ui.rightPanel === 'assets'}     onclick={() => togglePanel('assets')}     title="Assets">              <Image      size={20} /></button>
     <button class="icon-btn" class:active={ui.rightPanel === 'stats'}      onclick={() => togglePanel('stats')}      title="Stats">               <TrendingUp size={20} /></button>
+    <button class="icon-btn" class:active={ui.rightPanel === 'warnings'}   onclick={() => togglePanel('warnings')}   title="Warnings">
+      <span class="icon-btn-badge-wrap">
+        <AlertTriangle size={20} />
+        {#if warnings.items.length > 0}
+          <span class="badge">{warnings.items.length}</span>
+        {/if}
+      </span>
+    </button>
   </div>
 </aside>
 
@@ -309,5 +359,113 @@
     letter-spacing: 0.05em;
     color: var(--color-text-muted, #6c7086);
     margin-top: 2px;
+  }
+
+  /* Panel action button (e.g. refresh) */
+  .panel-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-text-muted, #6c7086);
+    cursor: pointer;
+  }
+
+  .panel-action:hover {
+    color: var(--color-text, #cdd6f4);
+    background: var(--color-hover, rgba(255, 255, 255, 0.06));
+  }
+
+  .panel-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Warnings */
+  .warnings-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 24px 12px;
+    color: #22c55e;
+    font-size: 12px;
+  }
+
+  .warnings-empty p {
+    margin: 0;
+    color: var(--color-text-muted, #6c7086);
+  }
+
+  .warnings-list {
+    padding: 0 8px;
+  }
+
+  .warning-group {
+    margin-bottom: 8px;
+  }
+
+  .warning-file {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-muted, #6c7086);
+    padding: 4px 4px 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .warning-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 4px 4px 4px 10px;
+    border-left: 2px solid #f59e0b;
+    margin: 2px 0;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .warning-item.warning-error {
+    border-left-color: #f38ba8;
+  }
+
+  .warning-field {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-muted, #6c7086);
+  }
+
+  .warning-msg {
+    font-size: 12px;
+    color: var(--color-text, #cdd6f4);
+    word-break: break-word;
+  }
+
+  /* Badge on icon button */
+  .icon-btn-badge-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    min-width: 14px;
+    height: 14px;
+    padding: 0 3px;
+    border-radius: 7px;
+    background: #f59e0b;
+    color: #000;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 14px;
+    text-align: center;
   }
 </style>

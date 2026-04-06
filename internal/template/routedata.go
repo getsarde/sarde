@@ -70,8 +70,8 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 			rd.Section = page.Section
 		}
 
-		// Sidebar and navigation for docs-layout
-		if rd.Layout == engine.LayoutDocs {
+		// Sidebar and navigation for layouts with sidebar
+		if engine.LayoutHasSidebar(rd.Layout) {
 			rd.SidebarType = "nav"
 			rd.HasSidebar = true
 			// Use per-language nav tree if available, else fall back to default
@@ -94,6 +94,11 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 		case engine.KindHome:
 			rd.Template = "home"
 			rd.Layout = engine.LayoutDefault
+			if site != nil && site.Config != nil {
+				if cfg, ok := site.Config.(*config.SiteConfig); ok {
+					rd.Homepage = mapHomepageSettings(&cfg.Homepage)
+				}
+			}
 		default:
 			rd.Template = "_default/single"
 		}
@@ -149,4 +154,23 @@ func resolveDir(page *engine.Page, site *engine.SiteContext) string {
 		}
 	}
 	return "ltr"
+}
+
+// mapHomepageSettings converts config.HomepageSettings to engine.HomepageData.
+func mapHomepageSettings(s *config.HomepageSettings) *engine.HomepageData {
+	d := &engine.HomepageData{
+		Template: s.Template,
+		Hero: engine.HeroData{
+			Title:      s.Hero.Title,
+			Subtitle:   s.Hero.Subtitle,
+			Background: s.Hero.Background,
+		},
+	}
+	if s.Hero.CTA != nil {
+		d.Hero.CTA = &engine.HeroCTAData{
+			Label: s.Hero.CTA.Label,
+			URL:   s.Hero.CTA.URL,
+		}
+	}
+	return d
 }
