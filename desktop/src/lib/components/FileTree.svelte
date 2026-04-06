@@ -1,0 +1,596 @@
+<script>
+  import { readDir, readTextFile, writeTextFile, mkdir, rename } from '@tauri-apps/plugin-fs'
+  import { doc, tabs, sidecar, switchToTab, closeTabById, addToast } from '../stores/app.svelte.js'
+  import { ChevronRight, Folder, FolderOpen, FileText, File, FilePlus, FolderPlus, Pencil, Trash2, Copy } from 'lucide-svelte'
+
+  let entries = $state([])
+  let expandedDirs = $state(new Set())
+
+  // Context menu
+  let ctxMenu = $state({ visible: false, x: 0, y: 0, item: null })
+
+  // Inline rename
+  let renamingPath = $state(null)
+  let renameValue = $state('')
+
+  // Inline create (new file / folder)
+  let creating = $state(null) // { parentPath, depth, type: 'file'|'folder' }
+  let createValue = $state('')
+
+  // Drag-and-drop
+  let dragItem = $state(null)
+  let dragOverPath = $state(null)
+
+  let { basePath = '' } = $props()
+
+  function rootPath() { return basePath || sidecar.contentPath }
+
+  $effect(() => {
+    const path = rootPath()
+    if (path) loadTree(path)
+  })
+
+  // --- Tree loading ---
+
+  async function loadTree(dir) {
+    try {
+      entries = buildTree(await readDir(dir), dir)
+    } catch (e) {
+      console.error('Failed to read directory:', e)
+      entries = []
+    }
+  }
+
+  async function refreshTree() {
+    await loadTree(rootPath())
+    await reloadExpanded(entries)
+  }
+
+  async function reloadExpanded(items) {
+    for (const item of items) {
+      if (item.isDir && expandedDirs.has(item.path)) {
+        try {
+          item.children = buildTree(await readDir(item.path), item.path)
+          await reloadExpanded(item.children)
+        } catch {}
+      }
+    }
+  }
+
+  function buildTree(items, parentPath) {
+    return [...items]
+      .map(item => ({
+        name: item.name,
+        path: parentPath + '/' + item.name,
+        isDir: item.isDirectory,
+        children: [],
+      }))
+      .sort((a, b) => {
+        if (a.isDir && !b.isDir) return -1
+        if (!a.isDir && b.isDir) return 1
+        return a.name.localeCompare(b.name)
+      })
+  }
+
+  async function toggleDir(item) {
+    if (expandedDirs.has(item.path)) {
+      expandedDirs.delete(item.path)
+    } else {
+      try {
+        item.children = buildTree(await readDir(item.path), item.path)
+      } catch { item.children = [] }
+      expandedDirs.add(item.path)
+    }
+    expandedDirs = new Set(expandedDirs)
+  }
+
+  async function openFile(item) {
+    const existing = tabs.items.find(t => t.path === item.path)
+    if (existing) { switchToTab(existing.id); return }
+    try {
+      const content = await readTextFile(item.path)
+      const id = crypto.randomUUID()
+      tabs.items = [...tabs.items, { id, name: item.name, path: item.path, dirty: false, cachedContent: content }]
+      tabs.activeId = id
+      doc.content = content
+      doc.filePath = item.path
+      doc.dirty = false
+      doc.cursorLine = 1
+      doc.cursorCol = 1
+      doc.wordCount = content.split(/\s+/).filter(w => w).length
+      doc.readingTime = Math.max(1, Math.ceil(doc.wordCount / 250))
+    } catch (e) {
+      addToast('error', 'Could not open file')
+    }
+  }
+
+  // --- Context menu ---
+
+  function showCtxMenu(e, item) {
+    e.preventDefault()
+    e.stopPropagation()
+    ctxMenu = { visible: true, x: e.clientX, y: e.clientY, item }
+  }
+
+  function hideCtxMenu() {
+    ctxMenu = { ...ctxMenu, visible: false }
+  }
+
+  // --- Create new file / folder ---
+
+  export function newFileAtRoot() { startCreate(rootPath(), 0, 'file') }
+  export function newFolderAtRoot() { startCreate(rootPath(), 0, 'folder') }
+
+  async function startCreate(parentPath, depth, type) {
+    hideCtxMenu()
+    // Auto-expand the parent dir if it isn't already
+    if (parentPath !== rootPath() && !expandedDirs.has(parentPath)) {
+      const entry = findEntry(entries, parentPath)
+      if (entry) await toggleDir(entry)
+    }
+    creating = { parentPath, depth, type }
+    createValue = ''
+  }
+
+  async function confirmCreate() {
+    if (!creating) return   // guard against double-fire (Enter + blur)
+    const name = createValue.trim()
+    if (!name) { creating = null; return }
+    const parentPath = creating.parentPath
+    const type = creating.type
+    creating = null           // clear immediately to prevent re-entry
+    createValue = ''
+    const fullPath = parentPath + '/' + name
+    try {
+      if (type === 'file') {
+        const title = name.replace(/\.\w+$/, '').replace(/^\d+[-_]/, '').replace(/[-_]/g, ' ')
+        await writeTextFile(fullPath, `---\ntitle: ${title}\n---\n`)
+        addToast('success', `Created ${name}`)
+      } else {
+        await mkdir(fullPath)
+        addToast('success', `Created folder ${name}`)
+      }
+      await refreshTree()
+    } catch (e) {
+      addToast('error', `Failed to create: ${e}`)
+    }
+  }
+
+  function cancelCreate() {
+    creating = null
+    createValue = ''
+  }
+
+  // --- Rename ---
+
+  function startRename(item) {
+    hideCtxMenu()
+    renamingPath = item.path
+    renameValue = item.name
+  }
+
+  async function confirmRename(item) {
+    if (!renamingPath) return   // guard against double-fire (Enter + blur)
+    const name = renameValue.trim()
+    renamingPath = null
+    if (!name || name === item.name) return
+    const dir = item.path.substring(0, item.path.lastIndexOf('/'))
+    const newPath = dir + '/' + name
+    try {
+      await rename(item.path, newPath)
+      // Patch open tab path
+      const tab = tabs.items.find(t => t.path === item.path)
+      if (tab) {
+        tab.path = newPath
+        tab.name = name
+        if (doc.filePath === item.path) doc.filePath = newPath
+      }
+      await refreshTree()
+    } catch (e) {
+      addToast('error', `Rename failed: ${e}`)
+    }
+  }
+
+  // --- Delete (soft — moves to .trash) ---
+
+  async function deleteItem(item) {
+    hideCtxMenu()
+    const root = rootPath()
+    const trashDir = root + '/.trash'
+    try { await mkdir(trashDir) } catch {}
+    const trashPath = trashDir + '/' + Date.now() + '-' + item.name
+    try {
+      await rename(item.path, trashPath)
+      const tab = tabs.items.find(t => t.path === item.path)
+      if (tab) closeTabById(tab.id)
+      addToast('info', `"${item.name}" moved to .trash`)
+      await refreshTree()
+    } catch (e) {
+      addToast('error', `Delete failed: ${e}`)
+    }
+  }
+
+  // --- Copy path ---
+
+  function copyPath(item) {
+    hideCtxMenu()
+    navigator.clipboard.writeText(item.path)
+    addToast('info', 'Path copied to clipboard')
+  }
+
+  // --- Drag-and-drop (reorder within same directory) ---
+
+  function onDragStart(e, item) {
+    if (item.isDir) return
+    dragItem = item
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  function onDragOver(e, item, siblings) {
+    if (!dragItem || dragItem.path === item.path || item.isDir) return
+    const same = sameDir(dragItem.path, item.path)
+    if (!same) return
+    e.preventDefault()
+    dragOverPath = item.path
+  }
+
+  function onDragLeave() {
+    dragOverPath = null
+  }
+
+  async function onDrop(e, item, siblings) {
+    e.preventDefault()
+    dragOverPath = null
+    if (!dragItem || dragItem.path === item.path) { dragItem = null; return }
+    if (!sameDir(dragItem.path, item.path)) { dragItem = null; return }
+
+    const dir = item.path.substring(0, item.path.lastIndexOf('/'))
+    const files = siblings.filter(s => !s.isDir)
+    const without = files.filter(f => f.path !== dragItem.path)
+    const idx = without.findIndex(f => f.path === item.path)
+    without.splice(idx === -1 ? without.length : idx, 0, dragItem)
+
+    await renumberFiles(without, dir)
+    dragItem = null
+    await refreshTree()
+  }
+
+  async function renumberFiles(files, dir) {
+    const prefixed = files.filter(f => /^\d+[-_]/.test(f.name))
+    if (prefixed.length < 2) return
+    for (let i = 0; i < prefixed.length; i++) {
+      const f = prefixed[i]
+      const m = f.name.match(/^(\d+)([-_].*)$/)
+      if (!m) continue
+      const newName = String(i + 1).padStart(m[1].length, '0') + m[2]
+      if (newName !== f.name) {
+        try { await rename(f.path, dir + '/' + newName) } catch {}
+      }
+    }
+  }
+
+  // --- Helpers ---
+
+  function sameDir(a, b) {
+    return a.substring(0, a.lastIndexOf('/')) === b.substring(0, b.lastIndexOf('/'))
+  }
+
+  function findEntry(items, path) {
+    for (const item of items) {
+      if (item.path === path) return item
+      if (item.children?.length) {
+        const found = findEntry(item.children, path)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
+  /** Svelte action: focus + select the input on mount */
+  function autoFocus(node) {
+    node.focus()
+    node.select()
+  }
+
+  function isMd(name) { return name.endsWith('.md') }
+</script>
+
+<!-- Dismiss context menu on outside click -->
+<svelte:window
+  onclick={() => ctxMenu.visible && hideCtxMenu()}
+  onkeydown={(e) => {
+    if (e.key === 'Escape') { hideCtxMenu(); creating && cancelCreate(); renamingPath && (renamingPath = null) }
+  }}
+/>
+
+{#snippet inlineInput(depth, placeholder, onconfirm, oncancel)}
+  <li class="tree-item">
+    <div class="tree-row" style="padding-left: {depth * 14 + 8 + 20}px">
+      <input
+        class="inline-input"
+        type="text"
+        {placeholder}
+        bind:value={createValue}
+        use:autoFocus
+        onkeydown={(e) => { if (e.key === 'Enter') onconfirm(); if (e.key === 'Escape') oncancel() }}
+        onblur={oncancel}
+      />
+    </div>
+  </li>
+{/snippet}
+
+{#snippet renameInput(item)}
+  <input
+    class="inline-input tree-rename"
+    type="text"
+    bind:value={renameValue}
+    use:autoFocus
+    onkeydown={(e) => { if (e.key === 'Enter') confirmRename(item); if (e.key === 'Escape') renamingPath = null }}
+    onblur={() => confirmRename(item)}
+  />
+{/snippet}
+
+{#snippet treeNode(items, depth, parentPath)}
+  <ul class="tree-list">
+    {#each items as item}
+      <li class="tree-item">
+        {#if item.isDir}
+          <button
+            class="tree-row tree-dir"
+            style="padding-left: {depth * 14 + 8}px"
+            onclick={() => toggleDir(item)}
+            oncontextmenu={(e) => showCtxMenu(e, item)}
+          >
+            <span class="tree-arrow" class:expanded={expandedDirs.has(item.path)}>
+              <ChevronRight size={12} strokeWidth={2.5} />
+            </span>
+            <span class="tree-icon">
+              {#if expandedDirs.has(item.path)}<FolderOpen size={16} />{:else}<Folder size={16} />{/if}
+            </span>
+            {#if renamingPath === item.path}
+              {@render renameInput(item)}
+            {:else}
+              <span class="tree-name">{item.name}</span>
+            {/if}
+          </button>
+
+          {#if expandedDirs.has(item.path) && item.children}
+            {@render treeNode(item.children, depth + 1, item.path)}
+          {/if}
+
+        {:else}
+          <button
+            class="tree-row tree-file"
+            class:active={doc.filePath === item.path}
+            class:drag-over={dragOverPath === item.path}
+            style="padding-left: {depth * 14 + 8}px"
+            draggable="true"
+            onclick={() => openFile(item)}
+            oncontextmenu={(e) => showCtxMenu(e, item)}
+            ondragstart={(e) => onDragStart(e, item)}
+            ondragover={(e) => onDragOver(e, item, items)}
+            ondragleave={onDragLeave}
+            ondrop={(e) => onDrop(e, item, items)}
+            ondragend={() => { dragItem = null; dragOverPath = null }}
+          >
+            <span class="tree-arrow-placeholder"></span>
+            <span class="tree-icon">
+              {#if isMd(item.name)}<FileText size={16} />{:else}<File size={16} />{/if}
+            </span>
+            {#if renamingPath === item.path}
+              {@render renameInput(item)}
+            {:else}
+              <span class="tree-name">{item.name}</span>
+            {/if}
+          </button>
+        {/if}
+      </li>
+    {/each}
+
+    <!-- Inline create input at end of this directory's list -->
+    {#if creating?.parentPath === parentPath}
+      {@render inlineInput(
+        depth,
+        creating.type === 'file' ? 'filename.md' : 'folder-name',
+        confirmCreate,
+        cancelCreate
+      )}
+    {/if}
+  </ul>
+{/snippet}
+
+<div class="file-tree">
+  {#if entries.length === 0 && !creating}
+    <p class="empty-msg">No files found.</p>
+  {:else}
+    {@render treeNode(entries, 0, rootPath())}
+  {/if}
+</div>
+
+<!-- Context menu -->
+{#if ctxMenu.visible && ctxMenu.item}
+  <div
+    class="ctx-menu"
+    style="left: {ctxMenu.x}px; top: {ctxMenu.y}px"
+    role="menu"
+  >
+    {#if ctxMenu.item.isDir}
+      <button class="ctx-item" role="menuitem" onclick={() => startCreate(ctxMenu.item.path, 1, 'file')}>
+        <FilePlus size={14} /> New File
+      </button>
+      <button class="ctx-item" role="menuitem" onclick={() => startCreate(ctxMenu.item.path, 1, 'folder')}>
+        <FolderPlus size={14} /> New Folder
+      </button>
+      <div class="ctx-sep"></div>
+    {/if}
+    <button class="ctx-item" role="menuitem" onclick={() => startRename(ctxMenu.item)}>
+      <Pencil size={14} /> Rename
+    </button>
+    <button class="ctx-item ctx-danger" role="menuitem" onclick={() => deleteItem(ctxMenu.item)}>
+      <Trash2 size={14} /> Delete
+    </button>
+    <div class="ctx-sep"></div>
+    <button class="ctx-item" role="menuitem" onclick={() => copyPath(ctxMenu.item)}>
+      <Copy size={14} /> Copy Path
+    </button>
+  </div>
+{/if}
+
+<style>
+  .file-tree {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px 0;
+  }
+
+  .empty-msg {
+    padding: 12px;
+    font-size: 12px;
+    color: var(--color-text-muted, #6c7086);
+    margin: 0;
+  }
+
+  .tree-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .tree-item {
+    margin: 0;
+    padding: 0;
+  }
+
+  .tree-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-right: 8px;
+    border: none;
+    background: transparent;
+    color: var(--color-text, #cdd6f4);
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    border-radius: 0;
+  }
+
+  .tree-row:hover {
+    background: var(--color-hover, rgba(255, 255, 255, 0.06));
+  }
+
+  .tree-file.active {
+    background: var(--color-active, rgba(137, 180, 250, 0.1));
+    color: var(--color-accent, #89b4fa);
+  }
+
+  .tree-file.drag-over {
+    border-top: 2px solid var(--color-accent, #89b4fa);
+  }
+
+  .tree-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+    color: var(--color-text-muted, #6c7086);
+  }
+
+  .tree-arrow.expanded {
+    transform: rotate(90deg);
+  }
+
+  .tree-arrow-placeholder {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .tree-icon {
+    flex-shrink: 0;
+    color: var(--color-text-muted, #6c7086);
+  }
+
+  .tree-dir .tree-icon {
+    color: var(--color-accent, #89b4fa);
+  }
+
+  .tree-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Inline inputs (rename / create) */
+  .inline-input {
+    flex: 1;
+    min-width: 0;
+    background: var(--color-input, #11111b);
+    border: 1px solid var(--color-accent, #89b4fa);
+    border-radius: 3px;
+    color: var(--color-text, #cdd6f4);
+    font-size: 13px;
+    font-family: inherit;
+    padding: 1px 5px;
+    outline: none;
+  }
+
+  .tree-rename {
+    /* Positioned inline inside the row */
+    margin-left: 2px;
+  }
+
+  /* Context menu */
+  .ctx-menu {
+    position: fixed;
+    z-index: 300;
+    min-width: 160px;
+    background: var(--color-surface, #1e1e2e);
+    border: 1px solid var(--color-border, #313244);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    padding: 4px;
+    overflow: hidden;
+  }
+
+  .ctx-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--color-text, #cdd6f4);
+    font-size: 13px;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .ctx-item:hover {
+    background: var(--color-hover, rgba(255, 255, 255, 0.06));
+  }
+
+  .ctx-danger {
+    color: var(--color-danger, #f38ba8);
+  }
+
+  .ctx-danger:hover {
+    background: rgba(243, 139, 168, 0.1);
+  }
+
+  .ctx-sep {
+    height: 1px;
+    background: var(--color-border, #313244);
+    margin: 3px 0;
+  }
+</style>

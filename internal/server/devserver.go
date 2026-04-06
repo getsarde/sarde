@@ -225,10 +225,12 @@ func (ds *DevServer) injectScript(next http.Handler) http.Handler {
 }
 
 // bufferedResponseWriter captures an HTTP response in memory.
+// Follows the http.ResponseWriter contract: first Write implies WriteHeader(200).
 type bufferedResponseWriter struct {
-	header     http.Header
-	body       *bytes.Buffer
-	statusCode int
+	header      http.Header
+	body        *bytes.Buffer
+	statusCode  int
+	wroteHeader bool
 }
 
 func (b *bufferedResponseWriter) Header() http.Header {
@@ -236,14 +238,24 @@ func (b *bufferedResponseWriter) Header() http.Header {
 }
 
 func (b *bufferedResponseWriter) Write(data []byte) (int, error) {
+	if !b.wroteHeader {
+		b.WriteHeader(http.StatusOK)
+	}
 	return b.body.Write(data)
 }
 
 func (b *bufferedResponseWriter) WriteHeader(statusCode int) {
+	if b.wroteHeader {
+		return
+	}
+	b.wroteHeader = true
 	b.statusCode = statusCode
 }
 
 // ReadFrom implements io.ReaderFrom to support io.Copy from http.ServeFile.
 func (b *bufferedResponseWriter) ReadFrom(r io.Reader) (int64, error) {
+	if !b.wroteHeader {
+		b.WriteHeader(http.StatusOK)
+	}
 	return io.Copy(b.body, r)
 }

@@ -25,9 +25,10 @@ node_modules/
 package-lock.json
 
 # Rust / Tauri
-coderoo-desktop/src-tauri/target/
-coderoo-desktop/src-tauri/binaries/
-coderoo-desktop/src-tauri/gen/schemas/
+desktop/src-tauri/target/
+desktop/src-tauri/binaries/
+desktop/src-tauri/gen/
+desktop/dist/
 
 
 # Env
