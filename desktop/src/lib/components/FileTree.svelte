@@ -1,6 +1,6 @@
 <script>
   import { readDir, readTextFile, writeTextFile, mkdir, rename } from '@tauri-apps/plugin-fs'
-  import { doc, tabs, sidecar, switchToTab, closeTabById, addToast } from '../stores/app.svelte.js'
+  import { doc, tabs, project, switchToTab, closeTabById, addToast } from '../stores/app.svelte.js'
   import { ChevronRight, Folder, FolderOpen, FileText, File, FilePlus, FolderPlus, Pencil, Trash2, Copy } from 'lucide-svelte'
 
   let entries = $state([])
@@ -23,7 +23,7 @@
 
   let { basePath = '' } = $props()
 
-  function rootPath() { return basePath || sidecar.contentPath }
+  function rootPath() { return basePath || project.contentPath }
 
   $effect(() => {
     const path = rootPath()

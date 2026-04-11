@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"time"
 
+	"github.com/coderoo-dev/coderoo/internal/project"
 	"github.com/spf13/cobra"
 )
 
@@ -50,16 +50,8 @@ func runNew(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("creating directory: %w", err)
 	}
 
-	// Write content file.
-	now := time.Now().Format(time.RFC3339)
-	content := fmt.Sprintf(`---
-title: "%s"
-date: "%s"
-draft: true
----
-`, title, now)
-
-	if err := os.WriteFile(absPath, []byte(content), 0o644); err != nil {
+	// Write content file using archetype/schema-aware scaffolding.
+	if err := project.ScaffoldFile(projectDir, collection, title, absPath); err != nil {
 		return fmt.Errorf("writing file: %w", err)
 	}
 

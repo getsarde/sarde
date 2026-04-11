@@ -1,6 +1,7 @@
 <script>
   import { ui, doc, warnings, runValidation } from '../stores/app.svelte.js'
   import { List, PencilLine, Image, TrendingUp, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-svelte'
+  import PropertiesPanel from './PropertiesPanel.svelte'
 
   function togglePanel(panel) {
     ui.rightPanel = ui.rightPanel === panel ? null : panel
@@ -24,19 +25,6 @@
       }
     }
     return result
-  })
-
-  /** Parse frontmatter properties */
-  let frontmatter = $derived.by(() => {
-    if (!doc.content) return []
-    const fmMatch = doc.content.match(/^---\n([\s\S]*?)\n---/)
-    if (!fmMatch) return []
-    const entries = []
-    for (const line of fmMatch[1].split('\n')) {
-      const kv = line.match(/^(\w[\w-]*):\s*(.*)/)
-      if (kv) entries.push({ key: kv[1], value: kv[2] })
-    }
-    return entries
   })
 
   /** Document statistics */
@@ -83,18 +71,7 @@
       {:else if ui.rightPanel === 'properties'}
         <div class="panel-header"><span class="panel-title">Properties</span></div>
         <div class="panel-body">
-          {#if frontmatter.length === 0}
-            <p class="empty-msg">No frontmatter found.</p>
-          {:else}
-            <dl class="prop-list">
-              {#each frontmatter as prop}
-                <div class="prop-row">
-                  <dt class="prop-key">{prop.key}</dt>
-                  <dd class="prop-value">{prop.value}</dd>
-                </div>
-              {/each}
-            </dl>
-          {/if}
+          <PropertiesPanel />
         </div>
 
       {:else if ui.rightPanel === 'assets'}
@@ -296,37 +273,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  /* Properties */
-  .prop-list {
-    margin: 0;
-    padding: 0 12px;
-  }
-
-  .prop-row {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--color-border, #313244);
-  }
-
-  .prop-row:last-child {
-    border-bottom: none;
-  }
-
-  .prop-key {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--color-text-muted, #6c7086);
-  }
-
-  .prop-value {
-    margin: 0;
-    font-size: 12px;
-    color: var(--color-text, #cdd6f4);
-    word-break: break-word;
   }
 
   /* Stats */

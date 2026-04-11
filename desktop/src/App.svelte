@@ -1,8 +1,7 @@
 <script>
   import { onMount } from 'svelte'
-  import { invoke } from '@tauri-apps/api/core'
   import { open as openDialog } from '@tauri-apps/plugin-dialog'
-  import { sidecar } from './lib/stores/app.svelte.js'
+  import { preview, project, setupPreviewListeners } from './lib/stores/app.svelte.js'
   import { projectOpen, projectClose } from './lib/api.js'
   import './app.css'
 
@@ -10,48 +9,12 @@
   import CreateProjectWizard from './lib/components/CreateProjectWizard.svelte'
   import EditorLayout from './lib/components/EditorLayout.svelte'
 
+  onMount(() => { setupPreviewListeners() })
+
   let screen = $state('launcher') // 'launcher' | 'create' | 'starting' | 'ready' | 'error'
   let projectPath = $state('')
   let projectName = $state('')
   let errorMsg = $state('')
-
-  // Start sidecar on app launch so it's ready for welcome screen actions.
-  onMount(() => {
-    invoke('start_sidecar').catch(e => console.error('Sidecar start failed:', e))
-    ensureSidecar()
-  })
-
-  /** Poll until sidecar is ready (sets sidecar.url/ready, nothing else). */
-  function ensureSidecar() {
-    let attempts = 0
-    const poll = () => {
-      invoke('get_sidecar_url').then(url => {
-        sidecar.url = url
-        sidecar.ready = true
-      }).catch(() => {
-        if (++attempts < 60) setTimeout(poll, 500)
-        else {
-          errorMsg = 'Server failed to start after 30s'
-          screen = 'error'
-        }
-      })
-    }
-    poll()
-  }
-
-  /** Wait for sidecar.ready (returns immediately if already ready). */
-  function waitUntilSidecarReady() {
-    if (sidecar.ready) return Promise.resolve()
-    return new Promise((resolve, reject) => {
-      let attempts = 0
-      const poll = () => {
-        if (sidecar.ready) return resolve()
-        if (++attempts > 60) return reject(new Error('Sidecar not ready after 30s'))
-        setTimeout(poll, 500)
-      }
-      poll()
-    })
-  }
 
   /** Start the project at a given path */
   async function startProject(path) {
@@ -62,13 +25,15 @@
     addRecent(path, projectName)
 
     try {
-      await waitUntilSidecarReady()
-
-      // Open project via API.
       const result = await projectOpen(path)
-      if (result?.data?.title) {
-        projectName = result.data.title
+      if (result?.title) {
+        projectName = result.title
       }
+
+      // Set the content path for file tree / search panel.
+      project.contentPath = path.replace(/\\/g, '/') + '/content'
+      project.root = path
+      project.name = projectName
 
       screen = 'ready'
     } catch (e) {
@@ -98,7 +63,11 @@
   function backToLauncher() {
     projectClose().catch(() => {})
     screen = 'launcher'
-    sidecar.previewUrl = ''
+    preview.port = 0
+    preview.running = false
+    project.contentPath = ''
+    project.root = ''
+    project.name = ''
     projectPath = ''
     projectName = ''
     errorMsg = ''

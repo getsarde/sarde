@@ -1,6 +1,6 @@
 <script>
   import { open } from '@tauri-apps/plugin-dialog'
-  import { ui, sidecar } from '../stores/app.svelte.js'
+  import { ui, project } from '../stores/app.svelte.js'
   import FileTree from './FileTree.svelte'
   import SearchPanel from './SearchPanel.svelte'
   import { Folder, Search, GitBranch, Settings, FilePlus, FolderPlus, FolderOpen } from 'lucide-svelte'
@@ -14,7 +14,7 @@
   async function openFolder() {
     const selected = await open({ directory: true, multiple: false, title: 'Open Project Folder' })
     if (selected) {
-      sidecar.contentPath = selected
+      project.contentPath = selected
     }
   }
 </script>

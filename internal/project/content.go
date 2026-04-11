@@ -13,6 +13,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// contentDirForCollection returns the absolute path to a collection's content directory.
+func contentDirForCollection(projectDir, collection string) string {
+	return filepath.Join(projectDir, "content", collection)
+}
+
 var parser = &content.Parser{}
 
 // readContentFile reads a content file and returns parsed frontmatter and body.
@@ -89,13 +94,47 @@ func slugify(title string) string {
 	return s
 }
 
-// scaffoldFrontmatter creates default frontmatter for a new content file.
-func scaffoldFrontmatter(title string) map[string]any {
-	return map[string]any{
-		"title": title,
-		"date":  time.Now().Format(time.RFC3339),
+// scaffoldFrontmatter creates frontmatter for a new content file by merging:
+//  1. Built-in base fields (draft: true)
+//  2. Schema defaults from content/<collection>/config.yaml
+//  3. Archetype file from archetypes/<collection>.md (or archetypes/default.md)
+//  4. User-supplied title and current date (always applied last)
+//
+// projectDir and collection may be empty; the function degrades gracefully.
+func scaffoldFrontmatter(projectDir, collection, title string) map[string]any {
+	fm := map[string]any{
 		"draft": true,
 	}
+
+	// Layer 2: schema defaults from content/<collection>/config.yaml
+	if projectDir != "" && collection != "" {
+		colDir := contentDirForCollection(projectDir, collection)
+		if schema, err := content.LoadSchema(colDir); err == nil && schema != nil {
+			fm = content.ApplyDefaults(fm, schema)
+		}
+	}
+
+	// Layer 3: archetype file fields
+	if projectDir != "" && collection != "" {
+		if arch := loadArchetype(projectDir, collection); arch != nil {
+			for k, v := range arch {
+				fm[k] = v
+			}
+		}
+	}
+
+	// Layer 4: always override with user-supplied title and current date
+	fm["title"] = title
+	if _, hasDate := fm["date"]; !hasDate {
+		fm["date"] = time.Now().Format(time.RFC3339)
+	} else {
+		// Archetype date placeholder (empty string) → replace with real date
+		if d, ok := fm["date"].(string); ok && d == "" {
+			fm["date"] = time.Now().Format(time.RFC3339)
+		}
+	}
+
+	return fm
 }
 
 // extractSummary extracts metadata from parsed frontmatter for ContentFile/ContentSummary.

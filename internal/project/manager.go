@@ -167,6 +167,26 @@ func (pm *ProjectManager) ProjectDir() string {
 	return pm.projectDir
 }
 
+// ContentDir returns the absolute path to the content directory.
+func (pm *ProjectManager) ContentDir() string {
+	pm.mu.RLock()
+	defer pm.mu.RUnlock()
+	return pm.contentDir()
+}
+
+// GetSchema returns the frontmatter schema for a collection, or nil if none exists.
+func (pm *ProjectManager) GetSchema(collection string) (*engine.FrontmatterSchema, error) {
+	pm.mu.RLock()
+	defer pm.mu.RUnlock()
+
+	if pm.state == StateClosed {
+		return nil, fmt.Errorf("no project open")
+	}
+
+	colDir := filepath.Join(pm.contentDir(), collection)
+	return content.LoadSchema(colDir)
+}
+
 // ---------------------------------------------------------------------------
 // Build
 // ---------------------------------------------------------------------------
@@ -397,7 +417,7 @@ func (pm *ProjectManager) CreateContent(collection, title string) (*ContentFile,
 		return nil, fmt.Errorf("file already exists: %s", relPath)
 	}
 
-	fm := scaffoldFrontmatter(title)
+	fm := scaffoldFrontmatter(pm.projectDir, collection, title)
 	if err := writeContentFile(contentDir, relPath, fm, "\n"); err != nil {
 		return nil, err
 	}

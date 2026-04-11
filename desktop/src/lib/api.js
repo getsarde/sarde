@@ -1,156 +1,64 @@
-// Coderoo Desktop — API client for the Go sidecar (sarde IPC server).
-// All endpoints defined in internal/server/api.go.
+// Coderoo Desktop — Tauri IPC API client.
+// All calls go directly to the Rust backend via invoke().
 
-import { sidecar } from './stores/app.svelte.js'
-
-function baseUrl() {
-  return sidecar.url
-}
-
-async function request(method, path, body = null) {
-  const url = baseUrl() + path
-  const opts = {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-  }
-  if (body !== null) {
-    opts.body = JSON.stringify(body)
-  }
-  const resp = await fetch(url, opts)
-  const data = await resp.json()
-  if (!resp.ok) {
-    const msg = data?.error?.message || data?.error || resp.statusText
-    throw new Error(msg)
-  }
-  return data
-}
+import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
 
 // ---------------------------------------------------------------------------
 // Project lifecycle
 // ---------------------------------------------------------------------------
 
-export async function projectOpen(dir) {
-  return request('POST', '/api/project/open', { dir })
-}
-
-export async function projectCreate(dir, title = '') {
-  return request('POST', '/api/project/create', { dir, title })
-}
-
-export async function projectClose() {
-  return request('POST', '/api/project/close')
-}
-
-export async function projectInfo() {
-  return request('GET', '/api/project/info')
-}
+export const projectOpen = (dir) => invoke('open_project', { dir })
+export const projectCreate = (dir, title = '') => invoke('create_project', { dir, title })
+export const projectClose = () => invoke('close_project')
+export const projectInfo = () => invoke('get_project_info')
+export const listRecentProjects = () => invoke('list_recent_projects')
 
 // ---------------------------------------------------------------------------
 // Content CRUD
 // ---------------------------------------------------------------------------
 
-export async function listContent(collection = '') {
-  const q = collection ? `?collection=${encodeURIComponent(collection)}` : ''
-  return request('GET', `/api/content${q}`)
-}
-
-export async function readContent(path) {
-  return request('GET', `/api/content/${encodeURIComponent(path)}`)
-}
-
-export async function saveContent(path, frontmatter, body) {
-  return request('PUT', `/api/content/${encodeURIComponent(path)}`, { frontmatter, body })
-}
-
-export async function createContent(collection, title) {
-  return request('POST', '/api/content', { collection, title })
-}
-
-export async function deleteContent(path) {
-  return request('DELETE', `/api/content/${encodeURIComponent(path)}`)
-}
-
-export async function renameContent(oldPath, newPath) {
-  return request('POST', '/api/content/rename', { old_path: oldPath, new_path: newPath })
-}
+export const listContent = (collection = null) => invoke('list_content', { collection })
+export const readContent = (path) => invoke('read_content', { path })
+export const saveContent = (path, frontmatter, body) => invoke('save_content', { path, frontmatter, body })
+export const createContent = (collection, title) => invoke('create_content', { collection, title })
+export const deleteContent = (path) => invoke('delete_content', { path })
+export const renameContent = (oldPath, newPath) => invoke('rename_content', { oldPath, newPath })
 
 // ---------------------------------------------------------------------------
-// Config
+// Config & schema
 // ---------------------------------------------------------------------------
 
-export async function getConfig() {
-  return request('GET', '/api/config')
-}
-
-export async function updateConfig(settings) {
-  return request('PATCH', '/api/config', settings)
-}
-
-export async function getCollections() {
-  return request('GET', '/api/collections')
-}
+export const getConfig = () => invoke('get_config')
+export const updateConfig = (settings) => invoke('update_config', { settings })
+export const getCollections = () => invoke('get_collections')
+export const fetchSchema = (collection) => invoke('get_schema', { collection })
 
 // ---------------------------------------------------------------------------
 // Build & preview
 // ---------------------------------------------------------------------------
 
-export async function build() {
-  return request('POST', '/api/build')
-}
-
-export async function validate() {
-  return request('POST', '/api/build/validate')
-}
-
-export async function startPreview(port = 3000) {
-  return request('POST', '/api/preview/start', { port })
-}
-
-export async function stopPreview() {
-  return request('POST', '/api/preview/stop')
-}
+export const build = () => invoke('run_build')
+export const startPreview = () => invoke('start_preview')
+export const stopPreview = () => invoke('stop_preview')
 
 // ---------------------------------------------------------------------------
-// Deploy
+// Tauri event listeners (replaces WebSocket connectEvents)
 // ---------------------------------------------------------------------------
 
-export async function deploy(provider = null) {
-  const body = provider ? { provider } : {}
-  return request('POST', '/api/deploy', body)
-}
+export const onBuildLog = (cb) => listen('build:log', (e) => cb(e.payload))
+export const onBuildComplete = (cb) => listen('build:complete', (e) => cb(e.payload))
+export const onBuildError = (cb) => listen('build:error', (e) => cb(e.payload))
+export const onPreviewReady = (cb) => listen('preview:ready', (e) => cb(e.payload))
+export const onPreviewStopped = (cb) => listen('preview:stopped', (e) => cb(e.payload))
 
 // ---------------------------------------------------------------------------
-// Import
+// Validate, deploy, import
 // ---------------------------------------------------------------------------
 
-export async function importObsidian(vaultPath, collection = '') {
-  return request('POST', '/api/import/obsidian', { vault_path: vaultPath, collection })
-}
+export const validate = () => invoke('validate_project')
+export const deploy = (provider = null) => invoke('deploy', { provider })
+export const importObsidian = (vaultPath, collection = '') => invoke('import_obsidian', { vaultPath, collection })
 
-// ---------------------------------------------------------------------------
-// Rendering
-// ---------------------------------------------------------------------------
-
-export async function renderMarkdown(markdown) {
-  return request('POST', '/api/render/markdown', { markdown })
-}
-
-// ---------------------------------------------------------------------------
-// WebSocket events
-// ---------------------------------------------------------------------------
-
-export function connectEvents(onMessage) {
-  const wsUrl = baseUrl().replace(/^http/, 'ws') + '/api/events'
-  const ws = new WebSocket(wsUrl)
-  ws.onmessage = (e) => {
-    try {
-      const msg = JSON.parse(e.data)
-      onMessage(msg)
-    } catch (_) {}
-  }
-  ws.onclose = () => {
-    // Reconnect after 2s.
-    setTimeout(() => connectEvents(onMessage), 2000)
-  }
-  return ws
-}
+// Not yet available — requires Go-side markdown rendering endpoint.
+export const renderMarkdown = (markdown) => Promise.reject(new Error('Not yet implemented'))

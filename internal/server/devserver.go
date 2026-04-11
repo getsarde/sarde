@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -86,10 +87,20 @@ func (ds *DevServer) Start() error {
 		Handler: mux,
 	}
 
-	log.Printf("Dev server running at http://localhost:%d", ds.port)
+	// Bind the listener first so we know the actual port (important when port=0).
+	ln, err := net.Listen("tcp", ds.server.Addr)
+	if err != nil {
+		return fmt.Errorf("listen: %w", err)
+	}
+	actualPort := ln.Addr().(*net.TCPAddr).Port
+
+	log.Printf("Dev server running at http://localhost:%d", actualPort)
 	log.Printf("Watching: content/, layouts/, assets/, data/")
 
-	return ds.server.ListenAndServe()
+	// Emit JSON ready signal on stdout for the Tauri desktop app to detect.
+	fmt.Fprintf(os.Stdout, "{\"ready\":true,\"port\":%d}\n", actualPort)
+
+	return ds.server.Serve(ln)
 }
 
 // Stop gracefully shuts down the dev server.

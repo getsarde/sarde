@@ -1,6 +1,6 @@
 <script>
-  import { ui, tabs, sidecar, addToast, closeTabById, warnings } from '../stores/app.svelte.js'
-  import { build as apiBuild } from '../api.js'
+  import { ui, tabs, preview, addToast, closeTabById, warnings } from '../stores/app.svelte.js'
+  import { build as apiBuild, startPreview } from '../api.js'
   import { Search } from 'lucide-svelte'
   import { open as openShell } from '@tauri-apps/plugin-shell'
 
@@ -71,7 +71,7 @@
         if (tabs.activeId) closeTabById(tabs.activeId)
         break
       case 'open-browser-preview':
-        if (sidecar.previewUrl) openShell(sidecar.previewUrl)
+        if (preview.port > 0) openShell(`http://localhost:${preview.port}`)
         else addToast('warning', 'Preview server not running')
         break
       case 'toggle-sidebar-left':
@@ -86,7 +86,7 @@
       case 'build-site':
         addToast('info', 'Build started...')
         apiBuild().then(resp => {
-          const w = resp?.data?.warnings ?? resp?.data?.Warnings ?? []
+          const w = resp?.warnings ?? []
           warnings.items = w
           const wCount = w.length
           if (wCount > 0) {
@@ -99,10 +99,11 @@
         })
         break
       case 'preview-site':
-        if (sidecar.previewUrl) {
-          openShell(sidecar.previewUrl)
+        if (preview.port > 0) {
+          openShell(`http://localhost:${preview.port}`)
         } else {
-          addToast('warning', 'Preview server not running')
+          addToast('info', 'Starting preview server...')
+          startPreview().catch(e => addToast('error', `Preview failed: ${e}`))
         }
         break
       case 'deploy':

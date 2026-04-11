@@ -92,6 +92,9 @@ func (s *APIServer) setupRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("PATCH /api/config", s.handleUpdateSettings)
 	mux.HandleFunc("GET /api/collections", s.handleGetCollections)
 
+	// Schema.
+	mux.HandleFunc("GET /api/schema/{collection}", s.handleGetSchema)
+
 	// Rendering.
 	mux.HandleFunc("POST /api/render/markdown", s.handleRenderMarkdown)
 

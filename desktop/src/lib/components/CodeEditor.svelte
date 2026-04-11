@@ -17,6 +17,7 @@
   let view = $state(null)
   let currentFilePath = $state('')
   let saveTimer
+  let applyingExternal = false
 
   // Font size — persisted across sessions (Ctrl+= / Ctrl+-)
   let fontSize = $state(parseInt(localStorage.getItem('coderoo-font-size') || '14'))
@@ -59,6 +60,19 @@
       view.dispatch({
         changes: { from: 0, to: view.state.doc.length, insert: doc.content },
       })
+    }
+  })
+
+  // When PropertiesPanel updates doc.content, sync it into the CodeMirror view
+  $effect(() => {
+    const _tick = doc.externalUpdate
+    if (_tick > 0 && view && doc.filePath === currentFilePath) {
+      applyingExternal = true
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: doc.content },
+      })
+      applyingExternal = false
+      scheduleAutoSave()
     }
   })
 
@@ -127,7 +141,7 @@
           ...foldKeymap,
         ]),
         EditorView.updateListener.of(update => {
-          if (update.docChanged) {
+          if (update.docChanged && !applyingExternal) {
             doc.content = update.state.doc.toString()
             doc.dirty = true
             // Sync to active tab cache so switching tabs preserves unsaved edits

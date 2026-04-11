@@ -24,10 +24,7 @@ func init() {
 }
 
 func runDeploy(cmd *cobra.Command, args []string) error {
-	projectDir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("getting working directory: %w", err)
-	}
+	projectDir := projectDirFromArgs(args)
 
 	// Resolve config.
 	configPath, _ := cmd.Flags().GetString("config")

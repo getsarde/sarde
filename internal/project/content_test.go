@@ -88,7 +88,7 @@ func TestSlugify(t *testing.T) {
 }
 
 func TestScaffoldFrontmatter(t *testing.T) {
-	fm := scaffoldFrontmatter("My Post")
+	fm := scaffoldFrontmatter("", "", "My Post")
 
 	if fm["title"] != "My Post" {
 		t.Errorf("title = %v, want My Post", fm["title"])
@@ -98,6 +98,68 @@ func TestScaffoldFrontmatter(t *testing.T) {
 	}
 	if fm["date"] == nil {
 		t.Error("date should be set")
+	}
+}
+
+func TestScaffoldFrontmatterWithArchetype(t *testing.T) {
+	// Create a temp project dir with an archetype file.
+	dir := t.TempDir()
+	archetypeDir := filepath.Join(dir, "archetypes")
+	if err := os.MkdirAll(archetypeDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	archContent := "---\ntags: []\nauthor: \"\"\ndescription: \"\"\n---\n"
+	if err := os.WriteFile(filepath.Join(archetypeDir, "blog.md"), []byte(archContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	fm := scaffoldFrontmatter(dir, "blog", "Hello Archetype")
+
+	if fm["title"] != "Hello Archetype" {
+		t.Errorf("title = %v, want Hello Archetype", fm["title"])
+	}
+	if fm["draft"] != true {
+		t.Errorf("draft = %v, want true", fm["draft"])
+	}
+	if _, ok := fm["tags"]; !ok {
+		t.Error("expected tags field from archetype")
+	}
+	if _, ok := fm["author"]; !ok {
+		t.Error("expected author field from archetype")
+	}
+}
+
+func TestScaffoldFrontmatterArchetypeFallback(t *testing.T) {
+	// No archetypes dir — should return base fields only.
+	fm := scaffoldFrontmatter(t.TempDir(), "blog", "Fallback")
+
+	if fm["title"] != "Fallback" {
+		t.Errorf("title = %v, want Fallback", fm["title"])
+	}
+	if fm["draft"] != true {
+		t.Errorf("draft = %v, want true", fm["draft"])
+	}
+	if fm["date"] == nil {
+		t.Error("date should be set")
+	}
+}
+
+func TestScaffoldFrontmatterDefaultArchetype(t *testing.T) {
+	// default.md is used when no collection-specific archetype exists.
+	dir := t.TempDir()
+	archetypeDir := filepath.Join(dir, "archetypes")
+	if err := os.MkdirAll(archetypeDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	archContent := "---\nextra_field: default_value\n---\n"
+	if err := os.WriteFile(filepath.Join(archetypeDir, "default.md"), []byte(archContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	fm := scaffoldFrontmatter(dir, "docs", "Default Archetype")
+
+	if fm["extra_field"] != "default_value" {
+		t.Errorf("extra_field = %v, want default_value", fm["extra_field"])
 	}
 }
 

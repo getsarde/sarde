@@ -2,13 +2,24 @@
 // This file uses the .svelte.js extension to enable rune syntax at module level.
 
 // ---------------------------------------------------------------------------
-// Sidecar connection (Go backend served over HTTP)
+// Preview server state (Go `coderoo serve` process managed by Rust)
 // ---------------------------------------------------------------------------
-export const sidecar = $state({
-  url: '',
-  ready: false,
-  previewUrl: '',  // dev preview server URL (separate from IPC API)
+export const preview = $state({
+  port: 0,        // port the preview server is listening on (0 = not running)
+  running: false,
 })
+
+/** Register Tauri event listeners that keep preview state in sync. Call once on mount. */
+export function setupPreviewListeners() {
+  onPreviewReady((port) => {
+    preview.port = port
+    preview.running = true
+  })
+  onPreviewStopped(() => {
+    preview.port = 0
+    preview.running = false
+  })
+}
 
 // ---------------------------------------------------------------------------
 // Tabs — each item: { id, name, path, dirty, cachedContent }
@@ -43,6 +54,7 @@ export const doc = $state({
   cursorLine: 1,
   cursorCol: 1,
   targetLine: 0,  // set by search panel; CodeEditor scrolls to this line then resets to 0
+  externalUpdate: 0, // bumped by PropertiesPanel to signal CodeEditor to reload content
 })
 
 // ---------------------------------------------------------------------------
@@ -74,7 +86,7 @@ export function removeToast(id) {
 }
 
 // ---------------------------------------------------------------------------
-// File tree — populated by sidecar /api/files responses
+// File tree
 // ---------------------------------------------------------------------------
 export const fileTree = $state({
   root: null,       // tree node: { name, path, type, children?, expanded? }
@@ -84,7 +96,7 @@ export const fileTree = $state({
 // ---------------------------------------------------------------------------
 // Site configuration — loaded/saved via sarde IPC API
 // ---------------------------------------------------------------------------
-import { getConfig as apiGetConfig, updateConfig as apiUpdateConfig } from '../api.js'
+import { getConfig as apiGetConfig, updateConfig as apiUpdateConfig, onPreviewReady, onPreviewStopped } from '../api.js'
 
 export const siteConfig = $state({
   loaded: false,
@@ -93,12 +105,11 @@ export const siteConfig = $state({
 })
 
 export async function loadSiteConfig() {
-  if (!sidecar.ready) return
   siteConfig.loaded = false
   siteConfig.data = null
   try {
     const resp = await apiGetConfig()
-    siteConfig.data = resp?.data ?? {}
+    siteConfig.data = resp ?? {}
     siteConfig.loaded = true
   } catch (e) {
     console.error('Failed to load site config:', e)
@@ -131,11 +142,11 @@ export const warnings = $state({
 })
 
 export async function runValidation() {
-  if (warnings.loading || !sidecar.ready) return
+  if (warnings.loading) return
   warnings.loading = true
   try {
     const resp = await apiValidate()
-    warnings.items = resp?.data?.warnings ?? resp?.data?.Warnings ?? []
+    warnings.items = resp?.warnings ?? []
     const count = warnings.items.length
     if (count > 0) {
       addToast('warning', `${count} warning${count === 1 ? '' : 's'} found`)
@@ -165,6 +176,7 @@ export const project = $state({
   name: '',
   root: '',
   config: null,
+  contentPath: '',  // absolute path to the content/ directory
 })
 
 // ---------------------------------------------------------------------------

@@ -1,12 +1,12 @@
 <script>
-  import { ui, sidecar, siteConfig, loadSiteConfig, saveSiteConfig } from '../stores/app.svelte.js'
+  import { ui, project, siteConfig, loadSiteConfig, saveSiteConfig } from '../stores/app.svelte.js'
   import { X, Loader } from 'lucide-svelte'
 
   const sections = ['general', 'appearance', 'editor', 'navigation', 'build', 'deploy', 'about']
 
   // Reload config whenever the modal opens or the project changes
   $effect(() => {
-    if (ui.settingsOpen && sidecar.contentPath) {
+    if (ui.settingsOpen && project.contentPath) {
       loadSiteConfig()
     }
   })
@@ -436,12 +436,8 @@
             <p class="about-name">Coderoo Desktop</p>
             <p class="about-version">v0.1.0</p>
             <p class="about-detail">Built with Tauri v2 + Svelte 5</p>
-            <p class="about-detail">Go sidecar for SSG engine</p>
-            {#if sidecar.ready}
-              <p class="about-status about-online">Sidecar connected at {sidecar.url}</p>
-            {:else}
-              <p class="about-status about-offline">Sidecar not connected</p>
-            {/if}
+            <p class="about-detail">Go CLI for SSG build &amp; preview</p>
+            <p class="about-status about-online">Rust backend active</p>
           </div>
         {/if}
       </div>

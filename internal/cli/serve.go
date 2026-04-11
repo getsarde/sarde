@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -29,10 +28,7 @@ func init() {
 }
 
 func runServe(cmd *cobra.Command, args []string) error {
-	projectDir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("getting working directory: %w", err)
-	}
+	projectDir := projectDirFromArgs(args)
 
 	cfg, themeCfg, err := resolveAll(cmd, projectDir)
 	if err != nil {

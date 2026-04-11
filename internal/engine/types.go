@@ -488,19 +488,19 @@ type ThemeConfig struct {
 
 // FrontmatterSchema defines the expected frontmatter fields for a collection.
 type FrontmatterSchema struct {
-	Fields map[string]FieldDef `yaml:"fields"`
+	Fields map[string]FieldDef `yaml:"fields" json:"fields"`
 }
 
 // FieldDef describes a single frontmatter field for validation and editor UI.
 type FieldDef struct {
-	Type      string   `yaml:"type"`       // "string", "int", "float", "bool", "date", "list", "enum"
-	Label     string   `yaml:"label"`
-	Required  bool     `yaml:"required"`
-	Default   any      `yaml:"default"`
-	Min       *float64 `yaml:"min"`
-	Max       *float64 `yaml:"max"`
-	MaxLength *int     `yaml:"max_length"`
-	Options   []string `yaml:"options"` // for enum type
+	Type      string   `yaml:"type"       json:"type"`       // "string", "int", "float", "bool", "date", "list", "enum"
+	Label     string   `yaml:"label"      json:"label,omitempty"`
+	Required  bool     `yaml:"required"   json:"required,omitempty"`
+	Default   any      `yaml:"default"    json:"default,omitempty"`
+	Min       *float64 `yaml:"min"        json:"min,omitempty"`
+	Max       *float64 `yaml:"max"        json:"max,omitempty"`
+	MaxLength *int     `yaml:"max_length" json:"maxLength,omitempty"`
+	Options   []string `yaml:"options"    json:"options,omitempty"` // for enum type
 }
 
 // ThemeResolver handles three-layer template/asset resolution (user → theme → embedded).

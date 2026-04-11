@@ -1,5 +1,5 @@
 <script>
-  import { ui, sidecar } from '../stores/app.svelte.js'
+  import { ui, preview } from '../stores/app.svelte.js'
   import { open as openShell } from '@tauri-apps/plugin-shell'
 
   function onGlobalKeydown(e) {
@@ -18,7 +18,7 @@
       ui.settingsOpen = !ui.settingsOpen
     } else if (ctrl && e.shiftKey && e.key === 'V') {
       e.preventDefault()
-      if (sidecar.url) openShell(sidecar.url)
+      if (preview.port > 0) openShell(`http://localhost:${preview.port}`)
     }
   }
   import { tabs } from '../stores/app.svelte.js'

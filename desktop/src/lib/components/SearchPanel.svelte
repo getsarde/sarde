@@ -1,6 +1,6 @@
 <script>
   import { readDir, readTextFile } from '@tauri-apps/plugin-fs'
-  import { sidecar, doc, tabs, switchToTab, addToast } from '../stores/app.svelte.js'
+  import { project, doc, tabs, switchToTab, addToast } from '../stores/app.svelte.js'
   import { Search, FileText, Loader } from 'lucide-svelte'
 
   /** Flat index of all .md files under contentPath */
@@ -15,7 +15,7 @@
 
   // Rebuild index when content path changes
   $effect(() => {
-    const root = sidecar.contentPath
+    const root = project.contentPath
     if (root && root !== indexedRoot) {
       fileIndex = []
       indexedRoot = root
@@ -35,13 +35,13 @@
   let indexPromise = null
 
   async function ensureIndex() {
-    const root = sidecar.contentPath
+    const root = project.contentPath
     if (!root) return
     if (indexedRoot === root && fileIndex.length > 0) return
     if (indexPromise) return indexPromise  // deduplicate concurrent calls
     indexing = true
     indexPromise = collectFiles(root, root).then(files => {
-      if (sidecar.contentPath === root) {  // guard against root change mid-flight
+      if (project.contentPath === root) {  // guard against root change mid-flight
         fileIndex = files
         indexedRoot = root
       }
@@ -198,7 +198,7 @@
       </div>
     {/each}
 
-    {#if !sidecar.contentPath}
+    {#if !project.contentPath}
       <p class="search-hint">Open a project folder first.</p>
     {:else if !query.trim()}
       <p class="search-hint">Type to search across all .md files.</p>

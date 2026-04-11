@@ -26,10 +26,7 @@ func init() {
 }
 
 func runBuild(cmd *cobra.Command, args []string) error {
-	projectDir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("getting working directory: %w", err)
-	}
+	projectDir := projectDirFromArgs(args)
 
 	// Resolve config.
 	cfg, themeCfg, err := resolveAll(cmd, projectDir)
@@ -123,4 +120,20 @@ func resolveAll(cmd *cobra.Command, projectDir string) (*config.SiteConfig, *eng
 	}
 
 	return cfg, themeCfg, nil
+}
+
+// projectDirFromArgs returns the project directory from the first positional arg,
+// or falls back to the current working directory. Used by all CLI commands so the
+// desktop app (Tauri) can pass the project path explicitly.
+func projectDirFromArgs(args []string) string {
+	if len(args) > 0 && args[0] != "" {
+		if filepath.IsAbs(args[0]) {
+			return args[0]
+		}
+		if abs, err := filepath.Abs(args[0]); err == nil {
+			return abs
+		}
+	}
+	dir, _ := os.Getwd()
+	return dir
 }

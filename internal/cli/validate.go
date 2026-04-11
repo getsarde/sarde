@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/coderoo-dev/coderoo/embedded"
 	"github.com/coderoo-dev/coderoo/internal/build"
@@ -21,10 +20,7 @@ func init() {
 }
 
 func runValidate(cmd *cobra.Command, args []string) error {
-	projectDir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("getting working directory: %w", err)
-	}
+	projectDir := projectDirFromArgs(args)
 
 	cfg, themeCfg, err := resolveAll(cmd, projectDir)
 	if err != nil {

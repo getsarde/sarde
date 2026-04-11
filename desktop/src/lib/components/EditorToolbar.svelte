@@ -1,23 +1,39 @@
 <script>
   import { open as openShell } from '@tauri-apps/plugin-shell'
-  import { doc, sidecar, addToast } from '../stores/app.svelte.js'
+  import { doc, preview, addToast } from '../stores/app.svelte.js'
+  import { startPreview } from '../api.js'
   import {
-    Bold, Italic, Heading, Link, Image, Code, Braces, List, Table, ExternalLink,
+    Bold, Italic, Heading, Link, Image, Code, Braces, List, Table, ExternalLink, Play,
   } from 'lucide-svelte'
 
   let { editor = null } = $props()
 
+  let previewRunning = $derived(preview.port > 0)
+  let previewFullUrl = $derived(previewRunning ? `http://localhost:${preview.port}` : '')
+  let previewUrl = $derived(previewRunning ? `localhost:${preview.port}` : null)
+
+  let starting = $state(false)
+
   function previewInBrowser() {
-    if (!sidecar.previewUrl) {
+    if (!previewRunning) {
       addToast('warning', 'Preview server is not running')
       return
     }
-    openShell(sidecar.previewUrl)
+    openShell(previewFullUrl)
   }
 
-  let previewUrl = $derived(
-    sidecar.previewUrl ? sidecar.previewUrl.replace(/^https?:\/\//, '') : null
-  )
+  async function startServer() {
+    if (starting || previewRunning) return
+    starting = true
+    addToast('info', 'Starting preview server...')
+    try {
+      await startPreview()
+    } catch (e) {
+      addToast('error', `Preview failed: ${e}`)
+    } finally {
+      starting = false
+    }
+  }
 </script>
 
 <div class="editor-toolbar">
@@ -37,22 +53,29 @@
   </div>
 
   <div class="preview-area">
-    <span class="server-indicator" class:live={!!sidecar.previewUrl} title={sidecar.previewUrl ? 'Preview server running' : 'Preview server offline'}></span>
-    {#if sidecar.previewUrl && previewUrl}
+    <span class="server-indicator" class:live={previewRunning} title={previewRunning ? 'Preview server running' : 'Preview server offline'}></span>
+    {#if previewRunning && previewUrl}
       <span class="server-url">{previewUrl}</span>
+      <button
+        class="preview-btn"
+        onclick={previewInBrowser}
+        title="Open preview in browser (Ctrl+Shift+V)"
+      >
+        <ExternalLink size={13} />
+        Open
+      </button>
     {:else}
       <span class="server-url muted">offline</span>
+      <button
+        class="preview-btn start"
+        onclick={startServer}
+        title="Start preview server"
+        disabled={starting}
+      >
+        <Play size={13} />
+        {starting ? 'Starting...' : 'Start'}
+      </button>
     {/if}
-    <button
-      class="preview-btn"
-      class:disabled={!sidecar.previewUrl}
-      onclick={previewInBrowser}
-      title="Open preview in browser (Ctrl+Shift+V)"
-      disabled={!sidecar.previewUrl}
-    >
-      <ExternalLink size={13} />
-      Open
-    </button>
   </div>
 </div>
 
@@ -167,5 +190,17 @@
   .preview-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+  }
+
+  .preview-btn.start {
+    background: var(--bg-elevated, #2a2a3a);
+    color: var(--text-primary, #cdd6f4);
+    border: 1px solid var(--border, #2e2e3e);
+  }
+
+  .preview-btn.start:hover:not(:disabled) {
+    background: var(--accent, #6366f1);
+    color: #fff;
+    border-color: transparent;
   }
 </style>

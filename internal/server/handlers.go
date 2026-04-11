@@ -287,6 +287,26 @@ func (s *APIServer) handleGetCollections(w http.ResponseWriter, r *http.Request)
 }
 
 // ---------------------------------------------------------------------------
+// Schema
+// ---------------------------------------------------------------------------
+
+func (s *APIServer) handleGetSchema(w http.ResponseWriter, r *http.Request) {
+	collection := r.PathValue("collection")
+	if collection == "" {
+		writeJSON(w, http.StatusOK, nil)
+		return
+	}
+
+	schema, err := s.pm.GetSchema(collection)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "SCHEMA_ERROR", err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, schema)
+}
+
+// ---------------------------------------------------------------------------
 // Rendering
 // ---------------------------------------------------------------------------
 
