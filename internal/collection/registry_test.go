@@ -246,10 +246,75 @@ func TestBuildCollections_IndexPage(t *testing.T) {
 	}
 }
 
+func TestBuildCollections_FeaturedFiltering(t *testing.T) {
+	dir := t.TempDir()
+	contentDir := filepath.Join(dir, "content")
+	writeTestFile(t, contentDir, filepath.Join("blog", "_index.md"), "---\ntitle: Blog\n---\n")
+	writeTestFile(t, contentDir, filepath.Join("blog", "a.md"), "---\ntitle: Plain\ndate: 2026-01-01T00:00:00Z\n---\nBody\n")
+	writeTestFile(t, contentDir, filepath.Join("blog", "b.md"), "---\ntitle: Featured\ndate: 2026-02-01T00:00:00Z\nfeatured: true\n---\nBody\n")
+
+	scanner := &content.Scanner{}
+	files, err := scanner.DiscoverFiles(contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	collections, _, err := BuildCollections(files, config.Defaults(), contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	blog := collections["blog"]
+	if blog == nil {
+		t.Fatal("blog collection missing")
+	}
+	if len(blog.Featured) != 1 {
+		t.Fatalf("Featured count = %d, want 1", len(blog.Featured))
+	}
+	if blog.Featured[0].Title != "Featured" {
+		t.Errorf("Featured[0].Title = %q, want %q", blog.Featured[0].Title, "Featured")
+	}
+}
+
+func TestBuildCollections_RelPathPopulated(t *testing.T) {
+	contentDir, files := createTestSite(t)
+	siteCfg := config.Defaults()
+
+	collections, _, err := BuildCollections(files, siteCfg, contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	blog := collections["blog"]
+	if blog == nil {
+		t.Fatal("blog collection missing")
+	}
+	for _, p := range blog.Pages {
+		if p.RelPath == "" {
+			t.Errorf("page %q has empty RelPath", p.Title)
+		}
+		// Must be POSIX slashes.
+		if filepath.Separator == '\\' && containsBackslash(p.RelPath) {
+			t.Errorf("page RelPath %q should use forward slashes", p.RelPath)
+		}
+	}
+}
+
+func containsBackslash(s string) bool {
+	for _, r := range s {
+		if r == '\\' {
+			return true
+		}
+	}
+	return false
+}
+
+// unused suppress
+var _ = engine.KindPage
+
 func TestBuildStandalonePages(t *testing.T) {
 	contentDir, files := createTestSite(t)
 
-	pages, err := BuildStandalonePages(files, contentDir, 70)
+	pages, err := BuildStandalonePages(files, contentDir, 70, "")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,9 +1,9 @@
 <script>
   import { open as openShell } from '@tauri-apps/plugin-shell'
-  import { doc, preview, addToast } from '../stores/app.svelte.js'
-  import { startPreview } from '../api.js'
+  import { doc, preview, ui, addToast } from '../stores/app.svelte.js'
+  import { startPreview, stopPreview } from '../api.js'
   import {
-    Bold, Italic, Heading, Link, Image, Code, Braces, List, Table, ExternalLink, Play,
+    Bold, Italic, Heading, Link, Image, Code, Braces, List, Table, ExternalLink, Play, Square, Eye,
   } from 'lucide-svelte'
 
   let { editor = null } = $props()
@@ -34,6 +34,21 @@
       starting = false
     }
   }
+
+  let stopping = $state(false)
+
+  async function stopServer() {
+    if (stopping || !previewRunning) return
+    stopping = true
+    try {
+      await stopPreview()
+      addToast('info', 'Preview server stopped')
+    } catch (e) {
+      addToast('error', `Failed to stop preview: ${e}`)
+    } finally {
+      stopping = false
+    }
+  }
 </script>
 
 <div class="editor-toolbar">
@@ -50,6 +65,19 @@
     <div class="tool-sep"></div>
     <button class="tool-btn" onclick={() => editor?.insertText('\n- ')}              title="Bullet list"><List size={15} /></button>
     <button class="tool-btn" onclick={() => editor?.insertText('\n| Col 1 | Col 2 | Col 3 |\n| ----- | ----- | ----- |\n| Cell  | Cell  | Cell  |\n')} title="Table"><Table size={15} /></button>
+    <div class="tool-sep"></div>
+    <button
+      class="tool-btn"
+      class:active={ui.previewMode !== 'editor'}
+      onclick={() => {
+        const modes = ['editor', 'split', 'preview']
+        const idx = modes.indexOf(ui.previewMode)
+        ui.previewMode = modes[(idx + 1) % modes.length]
+      }}
+      title="Toggle preview (Ctrl+Shift+M)"
+    >
+      <Eye size={15} />
+    </button>
   </div>
 
   <div class="preview-area">
@@ -63,6 +91,15 @@
       >
         <ExternalLink size={13} />
         Open
+      </button>
+      <button
+        class="preview-btn stop"
+        onclick={stopServer}
+        title="Stop preview server"
+        disabled={stopping}
+      >
+        <Square size={11} />
+        Stop
       </button>
     {:else}
       <span class="server-url muted">offline</span>
@@ -122,6 +159,11 @@
 
   .tool-btn:active {
     background: var(--bg-base, #141420);
+  }
+
+  .tool-btn.active {
+    color: var(--accent, #89b4fa);
+    background: rgba(137, 180, 250, 0.1);
   }
 
   .tool-sep {
@@ -202,5 +244,17 @@
     background: var(--accent, #6366f1);
     color: #fff;
     border-color: transparent;
+  }
+
+  .preview-btn.stop {
+    background: transparent;
+    color: var(--text-muted, #888);
+    border: 1px solid var(--border, #2e2e3e);
+  }
+
+  .preview-btn.stop:hover:not(:disabled) {
+    color: #f38ba8;
+    border-color: #f38ba8;
+    background: rgba(243, 139, 168, 0.1);
   }
 </style>

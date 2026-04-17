@@ -1,0 +1,28 @@
+<section class="home-dashboard">
+  <header class="dashboard-header">
+    <h1>{{ if .Homepage.Hero.Title }}{{ .Homepage.Hero.Title }}{{ else }}{{ .Site.Title }}{{ end }}</h1>
+    {{ if .Homepage.Hero.Subtitle }}<p class="dashboard-subtitle">{{ .Homepage.Hero.Subtitle }}</p>{{ end }}
+  </header>
+
+  <dl class="dashboard-stats">
+    <div><dt>Collections</dt><dd>{{ len .Site.Collections }}</dd></div>
+    <div><dt>Pages</dt><dd>{{ len .Site.Pages }}</dd></div>
+    {{ if .Site.Taxonomies }}<div><dt>Taxonomies</dt><dd>{{ len .Site.Taxonomies }}</dd></div>{{ end }}
+  </dl>
+
+  <div class="dashboard-grid">
+    {{ range $name, $col := .Site.Collections }}
+    <article class="dashboard-card">
+      <h2><a href="/{{ $name }}/">{{ if $col.Title }}{{ $col.Title }}{{ else }}{{ $name }}{{ end }}</a></h2>
+      <p class="dashboard-card-meta">{{ len $col.Pages }} page{{ if ne (len $col.Pages) 1 }}s{{ end }}</p>
+      {{ if $col.Pages }}
+      <ul class="dashboard-card-list">
+        {{ range first 5 $col.Pages }}
+        <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+        {{ end }}
+      </ul>
+      {{ end }}
+    </article>
+    {{ end }}
+  </div>
+</section>

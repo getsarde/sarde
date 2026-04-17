@@ -22,8 +22,10 @@ var serveCmd = &cobra.Command{
 }
 
 func init() {
-	serveCmd.Flags().IntP("port", "p", 0, "Server port (default: from config or 3000)")
+	serveCmd.Flags().IntP("port", "p", 0, "Server port (default: from config or 4727)")
 	serveCmd.Flags().Bool("no-drafts", false, "Exclude draft content")
+	serveCmd.Flags().String("base-path", "", "Override URL base path (e.g. /docs/)")
+	serveCmd.Flags().String("content", "", "Override content directory path")
 	rootCmd.AddCommand(serveCmd)
 }
 
@@ -43,13 +45,26 @@ func runServe(cmd *cobra.Command, args []string) error {
 		cfg.Build.Drafts = config.BoolPtr(true)
 	}
 
-	// Determine port: CLI flag > config > 3000.
+	// Override base path from CLI flag.
+	if basePath, _ := cmd.Flags().GetString("base-path"); basePath != "" {
+		cfg.Build.BasePath = basePath
+	}
+
+	// Override content directory from CLI flag.
+	if contentDir, _ := cmd.Flags().GetString("content"); contentDir != "" {
+		if !filepath.IsAbs(contentDir) {
+			contentDir, _ = filepath.Abs(contentDir)
+		}
+		cfg.Content.Dir = contentDir
+	}
+
+	// Determine port: CLI flag > config > 4727.
 	port, _ := cmd.Flags().GetInt("port")
 	if port == 0 {
 		port = cfg.Server.Port
 	}
 	if port == 0 {
-		port = 3000
+		port = 4727
 	}
 
 	// Determine output directory.
@@ -78,6 +93,17 @@ func runServe(cmd *cobra.Command, args []string) error {
 			latestCfg.Build.Drafts = config.BoolPtr(true)
 		}
 
+		// Preserve CLI flag overrides across reloads.
+		if basePath, _ := cmd.Flags().GetString("base-path"); basePath != "" {
+			latestCfg.Build.BasePath = basePath
+		}
+		if contentDir, _ := cmd.Flags().GetString("content"); contentDir != "" {
+			if !filepath.IsAbs(contentDir) {
+				contentDir, _ = filepath.Abs(contentDir)
+			}
+			latestCfg.Content.Dir = contentDir
+		}
+
 		return build.NewSiteBuilder(build.BuildOptions{
 			ProjectDir:  projectDir,
 			Config:      latestCfg,
@@ -88,6 +114,14 @@ func runServe(cmd *cobra.Command, args []string) error {
 	}
 
 	liveReload := config.BoolVal(cfg.Server.LiveReload, true)
+
+	if verbose, _ := cmd.Flags().GetBool("verbose"); verbose {
+		log.Printf("Config: %s", cfg.Site.Title)
+		log.Printf("Theme: %s", cfg.Theme.Name)
+		log.Printf("Content dir: %s", cfg.Content.Dir)
+		log.Printf("Base path: %q", cfg.Build.BasePath)
+		log.Printf("Live reload: %v", liveReload)
+	}
 
 	ds := server.New(server.Options{
 		ProjectDir:     projectDir,

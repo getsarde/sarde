@@ -9,7 +9,8 @@ import { listen } from '@tauri-apps/api/event'
 // ---------------------------------------------------------------------------
 
 export const projectOpen = (dir) => invoke('open_project', { dir })
-export const projectCreate = (dir, title = '') => invoke('create_project', { dir, title })
+export const projectCreate = (dir, title = '', template = 'empty', description = '', author = '') =>
+  invoke('create_project', { dir, title, template, description, author })
 export const projectClose = () => invoke('close_project')
 export const projectInfo = () => invoke('get_project_info')
 export const listRecentProjects = () => invoke('list_recent_projects')
@@ -33,6 +34,8 @@ export const getConfig = () => invoke('get_config')
 export const updateConfig = (settings) => invoke('update_config', { settings })
 export const getCollections = () => invoke('get_collections')
 export const fetchSchema = (collection) => invoke('get_schema', { collection })
+export const createCollection = (name) => invoke('create_collection', { name })
+export const deleteCollection = (name) => invoke('delete_collection', { name })
 
 // ---------------------------------------------------------------------------
 // Build & preview
@@ -51,6 +54,7 @@ export const onBuildComplete = (cb) => listen('build:complete', (e) => cb(e.payl
 export const onBuildError = (cb) => listen('build:error', (e) => cb(e.payload))
 export const onPreviewReady = (cb) => listen('preview:ready', (e) => cb(e.payload))
 export const onPreviewStopped = (cb) => listen('preview:stopped', (e) => cb(e.payload))
+export const onPreviewCrashed = (cb) => listen('preview:crashed', (e) => cb(e.payload))
 
 // ---------------------------------------------------------------------------
 // Validate, deploy, import
@@ -60,5 +64,13 @@ export const validate = () => invoke('validate_project')
 export const deploy = (provider = null) => invoke('deploy', { provider })
 export const importObsidian = (vaultPath, collection = '') => invoke('import_obsidian', { vaultPath, collection })
 
-// Not yet available — requires Go-side markdown rendering endpoint.
-export const renderMarkdown = (markdown) => Promise.reject(new Error('Not yet implemented'))
+export const renderMarkdown = (markdown) => invoke('render_markdown', { markdown })
+
+// ---------------------------------------------------------------------------
+// Assets
+// ---------------------------------------------------------------------------
+
+export const assetList = (scope = 'all') => invoke('asset_list', { scope })
+export const assetUpload = (destination) => invoke('asset_upload', { destination })
+export const assetDelete = (path) => invoke('asset_delete', { path })
+export const assetGetThumbnail = (path) => invoke('asset_get_thumbnail', { path })

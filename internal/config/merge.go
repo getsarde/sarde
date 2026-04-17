@@ -69,6 +69,9 @@ func applyCLIFlagOverrides(cfg *SiteConfig, flags map[string]any) {
 	if v, ok := flags["build.drafts"].(bool); ok {
 		cfg.Build.Drafts = BoolPtr(v)
 	}
+	if v, ok := flags["build.future"].(bool); ok {
+		cfg.Build.Future = BoolPtr(v)
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -186,7 +189,9 @@ func mergeBuild(base, over *BuildSettings) {
 	mergeBoolP(&base.Clean, over.Clean)
 	mergeBoolP(&base.Sitemap, over.Sitemap)
 	mergeBoolP(&base.Minify, over.Minify)
-	mergeBoolP(&base.LastUpdated, over.LastUpdated)
+	if over.LastUpdated != "" {
+		base.LastUpdated = over.LastUpdated
+	}
 	mergeBoolP(&base.Feed, over.Feed)
 	mergeBoolP(&base.Drafts, over.Drafts)
 	mergeBoolP(&base.Future, over.Future)

@@ -9,15 +9,66 @@ export const preview = $state({
   running: false,
 })
 
-/** Register Tauri event listeners that keep preview state in sync. Call once on mount. */
+// ---------------------------------------------------------------------------
+// Build log — captures output from Go sidecar during build/serve
+// ---------------------------------------------------------------------------
+export const buildLog = $state({
+  entries: [],     // { timestamp, text, type }[]
+  visible: false,
+  building: false,
+})
+
+const MAX_LOG_ENTRIES = 500
+
+function pushLog(text, type = 'info') {
+  buildLog.entries.push({ timestamp: Date.now(), text, type })
+  if (buildLog.entries.length > MAX_LOG_ENTRIES) {
+    buildLog.entries.splice(0, buildLog.entries.length - MAX_LOG_ENTRIES)
+  }
+}
+
+export function clearBuildLog() {
+  buildLog.entries.length = 0
+}
+
+export function toggleBuildLog() {
+  buildLog.visible = !buildLog.visible
+}
+
+/** Register Tauri event listeners that keep preview + build state in sync. Call once on mount. */
 export function setupPreviewListeners() {
   onPreviewReady((port) => {
     preview.port = port
     preview.running = true
+    pushLog(`Preview server ready on port ${port}`, 'success')
+    addToast('success', `Preview running at localhost:${port}`)
   })
   onPreviewStopped(() => {
     preview.port = 0
     preview.running = false
+    pushLog('Preview server stopped', 'info')
+  })
+  onPreviewCrashed((code) => {
+    preview.port = 0
+    preview.running = false
+    pushLog(`Preview server crashed (exit code: ${code})`, 'error')
+    addToast('error', 'Preview server crashed')
+  })
+  onBuildLog((msg) => {
+    pushLog(msg, 'info')
+  })
+  onBuildComplete((result) => {
+    buildLog.building = false
+    const text = result?.duration
+      ? `Build complete in ${result.duration}`
+      : 'Build complete'
+    pushLog(text, 'success')
+  })
+  onBuildError((err) => {
+    buildLog.building = false
+    const msg = typeof err === 'string' ? err : err?.message ?? 'Unknown error'
+    pushLog(`Build error: ${msg}`, 'error')
+    addToast('error', `Build failed: ${msg}`)
   })
 }
 
@@ -35,11 +86,22 @@ export const tabs = $state({
 export const ui = $state({
   leftPanel: 'files',       // 'files' | 'search' | 'git' | null
   rightPanel: 'toc',        // 'toc' | 'properties' | 'assets' | 'stats' | null
+  propertiesMode: 'form',   // 'form' | 'yaml'
+  previewMode: 'editor',    // 'editor' | 'split' | 'preview'
   settingsOpen: false,
   settingsSection: 'general',
   commandPaletteOpen: false,
   deployOpen: false,
   importOpen: false,
+})
+
+// ---------------------------------------------------------------------------
+// Markdown preview state
+// ---------------------------------------------------------------------------
+export const mdPreview = $state({
+  html: '',
+  rendering: false,
+  error: null,
 })
 
 // ---------------------------------------------------------------------------
@@ -55,6 +117,7 @@ export const doc = $state({
   cursorCol: 1,
   targetLine: 0,  // set by search panel; CodeEditor scrolls to this line then resets to 0
   externalUpdate: 0, // bumped by PropertiesPanel to signal CodeEditor to reload content
+  insertText: '',    // set by MediaPanel; CodeEditor inserts at cursor then clears
 })
 
 // ---------------------------------------------------------------------------
@@ -96,25 +159,40 @@ export const fileTree = $state({
 // ---------------------------------------------------------------------------
 // Site configuration — loaded/saved via sarde IPC API
 // ---------------------------------------------------------------------------
-import { getConfig as apiGetConfig, updateConfig as apiUpdateConfig, onPreviewReady, onPreviewStopped } from '../api.js'
+import { getConfig as apiGetConfig, updateConfig as apiUpdateConfig, onPreviewReady, onPreviewStopped, onPreviewCrashed, onBuildLog, onBuildComplete, onBuildError } from '../api.js'
 
 export const siteConfig = $state({
   loaded: false,
   saving: false,
   data: /** @type {any} */ (null),
+  snapshot: /** @type {string|null} */ (null), // JSON snapshot taken on load/save
 })
+
+/** True when the config has unsaved changes. */
+export function isConfigDirty() {
+  return siteConfig.data && siteConfig.snapshot
+    ? JSON.stringify(siteConfig.data) !== siteConfig.snapshot
+    : false
+}
+
+function takeSnapshot() {
+  siteConfig.snapshot = siteConfig.data ? JSON.stringify(siteConfig.data) : null
+}
 
 export async function loadSiteConfig() {
   siteConfig.loaded = false
   siteConfig.data = null
+  siteConfig.snapshot = null
   try {
     const resp = await apiGetConfig()
     siteConfig.data = resp ?? {}
     siteConfig.loaded = true
+    takeSnapshot()
   } catch (e) {
     console.error('Failed to load site config:', e)
     siteConfig.data = {}
     siteConfig.loaded = true
+    takeSnapshot()
   }
 }
 
@@ -123,6 +201,7 @@ export async function saveSiteConfig() {
   siteConfig.saving = true
   try {
     await apiUpdateConfig(siteConfig.data)
+    takeSnapshot()
     addToast('success', 'Settings saved')
   } catch (e) {
     addToast('error', `Failed to save settings: ${e}`)
@@ -168,6 +247,31 @@ export const search = $state({
   results: [],
   loading: false,
 })
+
+// ---------------------------------------------------------------------------
+// Assets (media panel)
+// ---------------------------------------------------------------------------
+import { assetList as apiAssetList } from '../api.js'
+
+export const assets = $state({
+  items: [],       // AssetInfo[]
+  loading: false,
+  scope: 'all',    // 'all' | 'bundle' | 'shared'
+})
+
+export async function loadAssets(scope = assets.scope) {
+  if (assets.loading) return
+  assets.loading = true
+  assets.scope = scope
+  try {
+    assets.items = await apiAssetList(scope)
+  } catch (e) {
+    addToast('error', `Failed to load assets: ${e}`)
+    assets.items = []
+  } finally {
+    assets.loading = false
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Project metadata

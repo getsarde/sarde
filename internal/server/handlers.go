@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"path/filepath"
+	"strconv"
 
 	"github.com/coderoo-dev/coderoo/internal/deploy"
 	"github.com/coderoo-dev/coderoo/internal/importer"
@@ -178,6 +179,40 @@ func (s *APIServer) handleDeleteContent(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, nil)
 }
 
+func (s *APIServer) handleListRevisions(w http.ResponseWriter, r *http.Request) {
+	path := r.PathValue("path")
+	if path == "" {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "path is required")
+		return
+	}
+	revs, err := s.pm.ListRevisions(path)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "FILE_NOT_FOUND", err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, revs)
+}
+
+func (s *APIServer) handleRestoreRevision(w http.ResponseWriter, r *http.Request) {
+	path := r.PathValue("path")
+	if path == "" {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "path is required")
+		return
+	}
+	var req struct {
+		RevisionID string `json:"revisionId"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.RevisionID == "" {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "revisionId is required")
+		return
+	}
+	if err := s.pm.RestoreRevision(path, req.RevisionID); err != nil {
+		writeError(w, http.StatusBadRequest, "FILE_NOT_FOUND", err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, nil)
+}
+
 func (s *APIServer) handleRenameContent(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		OldPath string `json:"oldPath"`
@@ -238,7 +273,7 @@ func (s *APIServer) handlePreviewStart(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"port": port,
-		"url":  "http://localhost:" + http.StatusText(port),
+		"url":  "http://localhost:" + strconv.Itoa(port),
 	})
 }
 

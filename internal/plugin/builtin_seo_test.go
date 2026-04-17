@@ -89,6 +89,77 @@ func TestSEO_StandalonePageType(t *testing.T) {
 	}
 }
 
+func TestSEO_CollectionPageType(t *testing.T) {
+	page := &engine.Page{
+		Title:        "Blog",
+		RelPermalink: "/blog/",
+		Kind:         engine.KindSection,
+	}
+	ctx := &BeforeRenderContext{
+		Page:  page,
+		Site:  &engine.SiteContext{BaseURL: "https://example.com", Title: "Site"},
+		store: NewStore(),
+	}
+	seoBeforeRender(ctx, nil)
+
+	jsonLD := page.Params["seo"].(map[string]any)["json_ld"].(string)
+	if !strings.Contains(jsonLD, "CollectionPage") {
+		t.Errorf("expected CollectionPage in JSON-LD, got: %s", jsonLD)
+	}
+}
+
+func TestSEO_BreadcrumbList(t *testing.T) {
+	page := &engine.Page{
+		Title:        "Post",
+		RelPermalink: "/blog/post/",
+		Collection:   &engine.Collection{Name: "blog"},
+	}
+	ctx := &BeforeRenderContext{
+		Page: page,
+		Site: &engine.SiteContext{BaseURL: "https://example.com"},
+		RouteData: &engine.RouteData{
+			Breadcrumbs: []engine.BreadcrumbItem{
+				{Label: "Home", URL: "/"},
+				{Label: "Blog", URL: "/blog/"},
+				{Label: "Post", URL: "/blog/post/", Current: true},
+			},
+		},
+		store: NewStore(),
+	}
+	seoBeforeRender(ctx, nil)
+
+	jsonLD := page.Params["seo"].(map[string]any)["json_ld"].(string)
+	if !strings.Contains(jsonLD, "BreadcrumbList") {
+		t.Error("expected BreadcrumbList in JSON-LD")
+	}
+	if !strings.Contains(jsonLD, `"position":1`) {
+		t.Error("expected breadcrumb position 1")
+	}
+}
+
+func TestSEO_CourseNode(t *testing.T) {
+	page := &engine.Page{
+		Title:        "Intro to Go",
+		RelPermalink: "/courses/intro-go/",
+		Collection:   &engine.Collection{Name: "courses"},
+		Params:       map[string]any{"schema_type": "Course", "provider": "Acme"},
+	}
+	ctx := &BeforeRenderContext{
+		Page:  page,
+		Site:  &engine.SiteContext{BaseURL: "https://example.com"},
+		store: NewStore(),
+	}
+	seoBeforeRender(ctx, nil)
+
+	jsonLD := page.Params["seo"].(map[string]any)["json_ld"].(string)
+	if !strings.Contains(jsonLD, `"@type":"Course"`) {
+		t.Errorf("expected Course node, got: %s", jsonLD)
+	}
+	if !strings.Contains(jsonLD, "Acme") {
+		t.Error("expected provider name")
+	}
+}
+
 func TestSEO_DisableJSONLD(t *testing.T) {
 	page := &engine.Page{
 		Title:        "Test",

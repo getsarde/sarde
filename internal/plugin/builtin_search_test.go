@@ -60,6 +60,9 @@ func TestSearch_GeneratesIndex(t *testing.T) {
 	if doc.URL != "/docs/getting-started/" {
 		t.Errorf("URL = %q", doc.URL)
 	}
+	if doc.ID != "/docs/getting-started/" {
+		t.Errorf("ID = %q, want RelPermalink", doc.ID)
+	}
 	if doc.Section != "docs" {
 		t.Errorf("Section = %q", doc.Section)
 	}
@@ -69,6 +72,73 @@ func TestSearch_GeneratesIndex(t *testing.T) {
 	// Content should have HTML stripped.
 	if doc.Content != "This is the getting started guide." {
 		t.Errorf("Content = %q (should be stripped)", doc.Content)
+	}
+}
+
+func TestSearch_BuildDoneWritesVendorAssets(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+	ctx := &BuildDoneContext{
+		Config:    config.Defaults(),
+		OutputDir: outDir,
+		Pages:     []*engine.Page{{Title: "T", RelPermalink: "/t/"}},
+	}
+	ctx.SetWarnings(&warnings)
+
+	if err := searchBuildDone(ctx, nil); err != nil {
+		t.Fatalf("searchBuildDone: %v", err)
+	}
+
+	for _, rel := range []string{"assets/vendor/orama/orama.esm.js", "assets/js/static-search.js", "search-index.json"} {
+		if _, err := readTestFile(outDir, rel); err != nil {
+			t.Errorf("missing %s: %v", rel, err)
+		}
+	}
+}
+
+func TestSearch_BeforeRenderAppendsScripts(t *testing.T) {
+	p := newSearchPlugin(nil)
+	if p.Hooks.BeforeRender == nil {
+		t.Fatal("search plugin should register BeforeRender hook")
+	}
+	rd := &engine.RouteData{}
+	err := p.Hooks.BeforeRender(&BeforeRenderContext{
+		Page:      &engine.Page{Title: "X"},
+		RouteData: rd,
+	})
+	if err != nil {
+		t.Fatalf("BeforeRender: %v", err)
+	}
+	if len(rd.Scripts) != 2 {
+		t.Fatalf("expected 2 scripts appended, got %d: %v", len(rd.Scripts), rd.Scripts)
+	}
+}
+
+func TestSearch_IncludesDescription(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+	ctx := &BuildDoneContext{
+		Config:    config.Defaults(),
+		OutputDir: outDir,
+		Pages: []*engine.Page{
+			{Title: "T", Description: "short summary", RelPermalink: "/t/"},
+		},
+	}
+	ctx.SetWarnings(&warnings)
+
+	if err := searchBuildDone(ctx, nil); err != nil {
+		t.Fatal(err)
+	}
+	data, err := readTestFile(outDir, "search-index.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var docs []searchDocument
+	if err := json.Unmarshal(data, &docs); err != nil {
+		t.Fatal(err)
+	}
+	if len(docs) != 1 || docs[0].Description != "short summary" {
+		t.Errorf("docs[0].Description = %q, want %q", docs[0].Description, "short summary")
 	}
 }
 

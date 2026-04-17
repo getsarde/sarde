@@ -49,7 +49,7 @@ build:
   clean: true
   sitemap: true
   minify: false
-  last_updated: true
+  last_updated: mtime
   feed: true
   drafts: false
   future: false
@@ -124,7 +124,15 @@ homepage:
     background: "gradient"
 
 plugins:
-  enabled: []
+  enabled:
+    - search
+    - seo
+    - sitemap
+    - robots
+    - rss
+    - reading_time
+    - katex
+    - mermaid
   config: {}
 
 taxonomies:
@@ -132,7 +140,7 @@ taxonomies:
   categories: "categories"
 
 server:
-  port: 3000
+  port: 4727
   live_reload: true
 
 permalinks: {}

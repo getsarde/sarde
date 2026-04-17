@@ -3,12 +3,24 @@
 {{ if .Page.Content }}{{ .Page.Content }}{{ end }}
 {{ if .Collection }}
 <ul class="page-list">
-{{ range .Collection.Pages }}
+{{ $pages := .Collection.Pages }}
+{{ if and .Paginator .Paginator.CurrentPages }}{{ $pages = .Paginator.CurrentPages }}{{ end }}
+{{ range $pages }}
   <li>
     <a href="{{ .RelPermalink }}">{{ .Title }}</a>
     {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
   </li>
 {{ end }}
 </ul>
+{{ if .Paginator }}
+<nav class="pagination" aria-label="Pagination">
+  {{ if .Paginator.HasPrev }}<a class="pagination-prev" href="{{ .Paginator.PrevURL }}" rel="prev">{{ t "nav.previous" }}</a>{{ end }}
+  <ol class="pagination-pages">
+    {{ range .Paginator.Pages }}<li{{ if eq .URL $.Page.RelPermalink }} class="current"{{ end }}><a href="{{ .URL }}">{{ .Title }}</a></li>
+    {{ end }}
+  </ol>
+  {{ if .Paginator.HasNext }}<a class="pagination-next" href="{{ .Paginator.NextURL }}" rel="next">{{ t "nav.next" }}</a>{{ end }}
+</nav>
+{{ end }}
 {{ end }}
 {{ end }}

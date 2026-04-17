@@ -4,3 +4,5 @@
 {{ if .Page }}{{ if .Page.Description }}<meta name="description" content="{{ .Page.Description }}">{{ end }}{{ end }}
 {{ partial "seo.html" . }}
 {{ themeStyles . }}
+{{ range .Styles }}<link rel="stylesheet" href="{{ . }}">
+{{ end }}

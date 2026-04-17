@@ -1,8 +1,85 @@
 <script>
-  import { ui, project, siteConfig, loadSiteConfig, saveSiteConfig } from '../stores/app.svelte.js'
-  import { X, Loader } from 'lucide-svelte'
+  import { ui, project, siteConfig, isConfigDirty, loadSiteConfig, saveSiteConfig } from '../stores/app.svelte.js'
+  import { getCollections, createCollection, deleteCollection } from '../api.js'
+  import { THEME_PRESETS } from './theme-presets.js'
+  import { X, Loader, Code, Plus, Trash2 } from 'lucide-svelte'
+  import YamlEditor from './YamlEditor.svelte'
+  import jsYaml from 'js-yaml'
 
-  const sections = ['general', 'appearance', 'editor', 'navigation', 'build', 'deploy', 'about']
+  const sections = ['general', 'appearance', 'editor', 'navigation', 'collections', 'build', 'deploy', 'about']
+
+  // Raw YAML toggle
+  let yamlMode = $state(false)
+  let yamlError = $state('')
+
+  let rawYaml = $derived(cfg ? jsYaml.dump(cfg) : '')
+
+  function handleYamlChange(text) {
+    try {
+      const parsed = jsYaml.load(text)
+      if (parsed && typeof parsed === 'object') {
+        siteConfig.data = parsed
+        yamlError = ''
+        saveSiteConfig()
+      }
+    } catch (e) {
+      yamlError = e.message
+    }
+  }
+
+  function handleYamlError(msg) {
+    yamlError = msg
+  }
+
+  // Collections tab state
+  let collections = $state([])
+  let collectionsLoading = $state(false)
+  let newCollectionName = $state('')
+  let collectionCreating = $state(false)
+  let confirmingDelete = $state(null)
+
+  async function loadCollections() {
+    collectionsLoading = true
+    try {
+      collections = await getCollections()
+    } catch (e) {
+      collections = []
+    } finally {
+      collectionsLoading = false
+    }
+  }
+
+  async function handleCreateCollection() {
+    const name = newCollectionName.trim().toLowerCase().replace(/\s+/g, '-')
+    if (!name) return
+    collectionCreating = true
+    try {
+      await createCollection(name)
+      newCollectionName = ''
+      await loadCollections()
+    } catch (e) {
+      // Could show error, but keep simple
+    } finally {
+      collectionCreating = false
+    }
+  }
+
+  async function handleDeleteCollection(name) {
+    try {
+      await deleteCollection(name)
+      confirmingDelete = null
+      await loadCollections()
+    } catch (e) {
+      // Could show error
+    }
+  }
+
+  // Load collections when tab is selected
+  $effect(() => {
+    if (ui.settingsSection === 'collections' && project.contentPath) {
+      loadCollections()
+    }
+  })
 
   // Reload config whenever the modal opens or the project changes
   $effect(() => {
@@ -11,7 +88,26 @@
     }
   })
 
+  // Unsaved changes warning
+  let showDirtyBar = $state(false)
+
   function close() {
+    if (isConfigDirty()) {
+      showDirtyBar = true
+      return
+    }
+    ui.settingsOpen = false
+  }
+
+  async function saveAndClose() {
+    await saveSiteConfig()
+    showDirtyBar = false
+    ui.settingsOpen = false
+  }
+
+  function discardAndClose() {
+    loadSiteConfig() // reload from disk
+    showDirtyBar = false
     ui.settingsOpen = false
   }
 
@@ -67,6 +163,38 @@
 
   // Shorthand: cfg = siteConfig.data (null while loading)
   let cfg = $derived(siteConfig.data)
+
+  // URL validation
+  function isValidUrl(val) {
+    if (!val) return true
+    try { new URL(val); return true } catch { return false }
+  }
+
+  let urlInvalid = $derived(cfg?.site?.url ? !isValidUrl(cfg.site.url) : false)
+  let editUrlInvalid = $derived(cfg?.site?.edit_url ? !isValidUrl(cfg.site.edit_url) : false)
+
+  // Settings search
+  let searchQuery = $state('')
+
+  const sectionKeywords = {
+    general: ['title', 'description', 'url', 'language', 'heading', '404', 'delimiter', 'edit'],
+    appearance: ['theme', 'color', 'primary', 'accent', 'code', 'preset'],
+    editor: ['font', 'size', 'line', 'wrap', 'auto', 'save'],
+    navigation: ['sidebar', 'footer', 'header', 'search', 'pagination', 'badge', 'credits'],
+    collections: ['collection', 'content', 'directory'],
+    build: ['output', 'sitemap', 'feed', 'rss', 'minify', 'katex', 'mermaid', 'cdn', 'link', 'llms'],
+    deploy: ['provider', 'branch', 'netlify', 'github', 'cloudflare', 'vercel', 'site id'],
+    about: ['version', 'about'],
+  }
+
+  let filteredSections = $derived(
+    searchQuery.trim()
+      ? sections.filter(s => {
+          const q = searchQuery.toLowerCase()
+          return s.includes(q) || (sectionKeywords[s] ?? []).some(k => k.includes(q))
+        })
+      : sections
+  )
 </script>
 
 <svelte:window onkeydown={onKeydown} />
@@ -81,6 +209,14 @@
         {#if siteConfig.saving}
           <span class="save-indicator"><Loader size={14} /> Saving…</span>
         {/if}
+        <button
+          class="yaml-toggle"
+          class:active={yamlMode}
+          onclick={() => { yamlMode = !yamlMode; yamlError = '' }}
+          title={yamlMode ? 'Switch to form view' : 'Edit raw YAML'}
+        >
+          <Code size={16} />
+        </button>
         <button class="modal-close" onclick={close} title="Close">
           <X size={18} />
         </button>
@@ -88,8 +224,26 @@
     </div>
 
     <div class="modal-body">
+      {#if yamlMode}
+        <div class="yaml-mode">
+          {#if cfg}
+            <YamlEditor value={rawYaml} onchange={handleYamlChange} onerror={handleYamlError} />
+            {#if yamlError}
+              <div class="yaml-error">{yamlError}</div>
+            {/if}
+          {:else}
+            <div class="loading-state"><Loader size={20} /><span>Loading config…</span></div>
+          {/if}
+        </div>
+      {:else}
       <nav class="settings-nav">
-        {#each sections as section}
+        <input
+          type="text"
+          class="settings-search"
+          placeholder="Search settings…"
+          bind:value={searchQuery}
+        />
+        {#each filteredSections as section}
           <button
             class="settings-link"
             class:active={ui.settingsSection === section}
@@ -128,10 +282,14 @@
           <div class="field">
             <label class="field-label" for="site-url">URL</label>
             <input id="site-url" type="url" class="field-input"
+              class:field-invalid={urlInvalid}
               placeholder="https://example.com"
               value={cfg.site?.url ?? ''}
               oninput={(e) => { cfg.site ??= {}; cfg.site.url = e.target.value; scheduleSave() }}
             />
+            {#if urlInvalid}
+              <span class="field-hint field-hint-error">Please enter a valid URL (e.g. https://example.com)</span>
+            {/if}
           </div>
           <div class="field">
             <label class="field-label" for="site-lang">Language</label>
@@ -144,10 +302,14 @@
           <div class="field">
             <label class="field-label" for="edit-url">Edit URL</label>
             <input id="edit-url" type="url" class="field-input"
+              class:field-invalid={editUrlInvalid}
               placeholder="https://github.com/user/repo/edit/main/content"
               value={cfg.site?.edit_url ?? ''}
               oninput={(e) => { cfg.site ??= {}; cfg.site.edit_url = e.target.value; scheduleSave() }}
             />
+            {#if editUrlInvalid}
+              <span class="field-hint field-hint-error">Please enter a valid URL</span>
+            {/if}
           </div>
           <div class="field">
             <label class="field-label" for="title-delim">Title Delimiter</label>
@@ -189,6 +351,28 @@
                 >
                   <div class="theme-preview theme-{theme}"></div>
                   <span class="theme-name">{capitalize(theme)}</span>
+                </button>
+              {/each}
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-label">Color Preset</span>
+            <div class="preset-row">
+              {#each THEME_PRESETS as preset}
+                <button
+                  class="preset-swatch"
+                  class:active={cfg.theme?.preset === preset.id}
+                  title={preset.name}
+                  onclick={() => {
+                    cfg.theme ??= {};
+                    cfg.theme.preset = preset.id;
+                    cfg.theme.primary_color = preset.primary;
+                    cfg.theme.accent_color = preset.accent;
+                    immediateSave();
+                  }}
+                >
+                  <span class="swatch-half" style="background:{preset.primary}"></span>
+                  <span class="swatch-half" style="background:{preset.accent}"></span>
                 </button>
               {/each}
             </div>
@@ -354,6 +538,53 @@
             </label>
           </div>
 
+        {:else if ui.settingsSection === 'collections'}
+          <h3>Collections</h3>
+          <p class="section-desc">Content collections are subdirectories of content/. Each directory is a collection.</p>
+
+          {#if collectionsLoading}
+            <div class="loading-state"><Loader size={16} /><span>Loading…</span></div>
+          {:else}
+            <div class="collection-list">
+              {#each collections as col}
+                <div class="collection-card">
+                  <div class="collection-info">
+                    <span class="collection-name">{col.title}</span>
+                    <span class="collection-meta">{col.name}/ — {col.pageCount} page{col.pageCount !== 1 ? 's' : ''}</span>
+                  </div>
+                  {#if confirmingDelete === col.name}
+                    <div class="confirm-delete">
+                      <span class="confirm-text">Delete?</span>
+                      <button class="confirm-yes" onclick={() => handleDeleteCollection(col.name)}>Yes</button>
+                      <button class="confirm-no" onclick={() => confirmingDelete = null}>No</button>
+                    </div>
+                  {:else}
+                    <button class="collection-delete" onclick={() => confirmingDelete = col.name} title="Delete collection">
+                      <Trash2 size={14} />
+                    </button>
+                  {/if}
+                </div>
+              {/each}
+
+              {#if collections.length === 0}
+                <p class="empty-msg">No collections found. Create one below.</p>
+              {/if}
+            </div>
+
+            <div class="add-collection-row">
+              <input
+                type="text"
+                class="field-input"
+                placeholder="Collection name (e.g. tutorials)"
+                bind:value={newCollectionName}
+                onkeydown={(e) => e.key === 'Enter' && handleCreateCollection()}
+              />
+              <button class="add-btn" onclick={handleCreateCollection} disabled={!newCollectionName.trim() || collectionCreating}>
+                <Plus size={14} /> Create
+              </button>
+            </div>
+          {/if}
+
         {:else if ui.settingsSection === 'build'}
           <h3>Build</h3>
           <div class="field">
@@ -441,7 +672,19 @@
           </div>
         {/if}
       </div>
+      {/if}
     </div>
+
+    {#if showDirtyBar}
+      <div class="dirty-bar">
+        <span>You have unsaved changes</span>
+        <div class="dirty-actions">
+          <button class="dirty-btn cancel" onclick={() => showDirtyBar = false}>Cancel</button>
+          <button class="dirty-btn discard" onclick={discardAndClose}>Discard</button>
+          <button class="dirty-btn save" onclick={saveAndClose}>Save & Close</button>
+        </div>
+      </div>
+    {/if}
   </div>
 </div>
 
@@ -764,4 +1007,297 @@
 
   .about-online  { background: rgba(166, 227, 161, 0.1); color: #a6e3a1; }
   .about-offline { background: rgba(243, 139, 168, 0.1); color: #f38ba8; }
+
+  /* YAML toggle button */
+  .yaml-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--color-border, #313244);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-muted, #6c7086);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .yaml-toggle:hover {
+    color: var(--color-text, #cdd6f4);
+    border-color: var(--color-text-muted, #6c7086);
+  }
+
+  .yaml-toggle.active {
+    color: var(--color-accent, #89b4fa);
+    border-color: var(--color-accent, #89b4fa);
+    background: rgba(137, 180, 250, 0.1);
+  }
+
+  .yaml-mode {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .yaml-error {
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--color-danger, #f38ba8);
+    background: rgba(243, 139, 168, 0.08);
+    border-top: 1px solid var(--color-border, #313244);
+  }
+
+  /* Color presets */
+  .preset-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .preset-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border, #313244);
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    padding: 0;
+    background: none;
+    transition: border-color 0.15s, transform 0.1s;
+  }
+
+  .preset-swatch:hover {
+    border-color: var(--color-text-muted, #6c7086);
+    transform: scale(1.1);
+  }
+
+  .preset-swatch.active {
+    border-color: var(--color-accent, #89b4fa);
+    box-shadow: 0 0 0 2px rgba(137, 180, 250, 0.3);
+  }
+
+  .swatch-half {
+    flex: 1;
+  }
+
+  /* Collections tab */
+  .collection-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .collection-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border, #313244);
+    border-radius: 8px;
+    background: var(--color-input, #11111b);
+  }
+
+  .collection-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .collection-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text, #cdd6f4);
+  }
+
+  .collection-meta {
+    font-size: 11px;
+    color: var(--color-text-muted, #6c7086);
+  }
+
+  .collection-delete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-muted, #6c7086);
+    cursor: pointer;
+  }
+
+  .collection-delete:hover {
+    color: var(--color-danger, #f38ba8);
+    background: rgba(243, 139, 168, 0.1);
+  }
+
+  .confirm-delete {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .confirm-text {
+    font-size: 12px;
+    color: var(--color-danger, #f38ba8);
+  }
+
+  .confirm-yes,
+  .confirm-no {
+    padding: 3px 10px;
+    border: 1px solid var(--color-border, #313244);
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: inherit;
+    cursor: pointer;
+    background: transparent;
+  }
+
+  .confirm-yes {
+    color: var(--color-danger, #f38ba8);
+    border-color: var(--color-danger, #f38ba8);
+  }
+
+  .confirm-yes:hover {
+    background: rgba(243, 139, 168, 0.15);
+  }
+
+  .confirm-no {
+    color: var(--color-text-muted, #6c7086);
+  }
+
+  .confirm-no:hover {
+    color: var(--color-text, #cdd6f4);
+  }
+
+  .empty-msg {
+    font-size: 13px;
+    color: var(--color-text-muted, #6c7086);
+    text-align: center;
+    padding: 16px 0;
+  }
+
+  .add-collection-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .add-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 14px;
+    border: 1px solid var(--color-accent, #89b4fa);
+    border-radius: 6px;
+    background: rgba(137, 180, 250, 0.1);
+    color: var(--color-accent, #89b4fa);
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .add-btn:hover:not(:disabled) {
+    background: rgba(137, 180, 250, 0.2);
+  }
+
+  .add-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Settings search */
+  .settings-search {
+    width: 100%;
+    padding: 7px 10px;
+    font-size: 12px;
+    border: 1px solid var(--color-border, #313244);
+    border-radius: 6px;
+    background: var(--color-input, #11111b);
+    color: var(--color-text, #cdd6f4);
+    outline: none;
+    box-sizing: border-box;
+    font-family: inherit;
+    margin-bottom: 6px;
+  }
+
+  .settings-search:focus {
+    border-color: var(--color-accent, #89b4fa);
+  }
+
+  .settings-search::placeholder {
+    color: var(--color-text-muted, #6c7086);
+  }
+
+  /* URL validation */
+  .field-invalid {
+    border-color: var(--color-danger, #f38ba8) !important;
+  }
+
+  .field-hint-error {
+    color: var(--color-danger, #f38ba8) !important;
+  }
+
+  /* Unsaved changes bar */
+  .dirty-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-top: 1px solid var(--color-border, #313244);
+    background: rgba(249, 226, 175, 0.06);
+    font-size: 13px;
+    color: var(--color-warning, #f9e2af);
+  }
+
+  .dirty-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .dirty-btn {
+    padding: 5px 14px;
+    border: 1px solid var(--color-border, #313244);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    background: transparent;
+  }
+
+  .dirty-btn.cancel {
+    color: var(--color-text-muted, #6c7086);
+  }
+
+  .dirty-btn.cancel:hover {
+    color: var(--color-text, #cdd6f4);
+  }
+
+  .dirty-btn.discard {
+    color: var(--color-danger, #f38ba8);
+    border-color: var(--color-danger, #f38ba8);
+  }
+
+  .dirty-btn.discard:hover {
+    background: rgba(243, 139, 168, 0.1);
+  }
+
+  .dirty-btn.save {
+    color: var(--color-surface, #1e1e2e);
+    background: var(--color-accent, #89b4fa);
+    border-color: var(--color-accent, #89b4fa);
+    font-weight: 600;
+  }
+
+  .dirty-btn.save:hover {
+    background: #74c7ec;
+    border-color: #74c7ec;
+  }
 </style>

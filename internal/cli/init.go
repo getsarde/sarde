@@ -50,7 +50,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	// Write site.yaml.
 	siteYAML := `site:
   title: "My Site"
-  url: "http://localhost:3000"
+  url: "http://localhost:4727"
 `
 	if err := os.WriteFile(filepath.Join(absDir, "site.yaml"), []byte(siteYAML), 0o644); err != nil {
 		return fmt.Errorf("writing site.yaml: %w", err)
@@ -67,6 +67,11 @@ Edit this page at ` + "`content/_index.md`" + `, then run ` + "`coderoo serve`" 
 `
 	if err := os.WriteFile(filepath.Join(absDir, "content", "_index.md"), []byte(indexMD), 0o644); err != nil {
 		return fmt.Errorf("writing _index.md: %w", err)
+	}
+
+	// Write static/.gitkeep so git tracks the otherwise-empty directory.
+	if err := os.WriteFile(filepath.Join(absDir, "static", ".gitkeep"), []byte(""), 0o644); err != nil {
+		return fmt.Errorf("writing static/.gitkeep: %w", err)
 	}
 
 	// Write .gitignore.

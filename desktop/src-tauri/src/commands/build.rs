@@ -237,6 +237,59 @@ pub async fn deploy(
     }
 }
 
+/// Render markdown to HTML via `coderoo render` (stdin → JSON stdout).
+#[tauri::command]
+pub async fn render_markdown(
+    markdown: String,
+    state: tauri::State<'_, AppState>,
+) -> Result<serde_json::Value, String> {
+    let sidecar = {
+        let path = state.sidecar_path.lock().unwrap();
+        path.clone().ok_or("Sidecar binary not found")?
+    };
+
+    let mut cmd = std::process::Command::new(&sidecar);
+    cmd.args(["render"])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped());
+
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
+    }
+
+    let mut child = cmd
+        .spawn()
+        .map_err(|e| format!("Failed to spawn render: {}", e))?;
+
+    // Write markdown to stdin.
+    if let Some(mut stdin) = child.stdin.take() {
+        use std::io::Write;
+        stdin
+            .write_all(markdown.as_bytes())
+            .map_err(|e| format!("Writing to stdin: {}", e))?;
+        // stdin is dropped here, closing the pipe
+    }
+
+    let output = child
+        .wait_with_output()
+        .map_err(|e| format!("Waiting for render: {}", e))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        return Err(if stderr.is_empty() {
+            "Render failed".to_string()
+        } else {
+            stderr
+        });
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    serde_json::from_str(stdout.trim()).map_err(|e| format!("Parsing render output: {}", e))
+}
+
 /// Run `coderoo import obsidian` to import an Obsidian vault.
 #[tauri::command]
 pub async fn import_obsidian(

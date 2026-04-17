@@ -4,6 +4,7 @@ package component
 // compiled into the binary and can be overridden by themes or users.
 const (
 	SlotHead                  = "Head"
+	SlotScripts               = "Scripts"
 	SlotHeader                = "Header"
 	SlotSiteTitle             = "SiteTitle"
 	SlotGlobalNav             = "GlobalNav"
@@ -25,7 +26,7 @@ const (
 // AllSlots returns all built-in component slot names.
 func AllSlots() []string {
 	return []string{
-		SlotHead, SlotHeader, SlotSiteTitle, SlotGlobalNav,
+		SlotHead, SlotScripts, SlotHeader, SlotSiteTitle, SlotGlobalNav,
 		SlotSearch, SlotThemeToggle, SlotSidebar, SlotTableOfContents,
 		SlotMobileTableOfContents, SlotBreadcrumbs, SlotPagination,
 		SlotPageTitle, SlotContentPanel, SlotFooter, SlotEditLink,

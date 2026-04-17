@@ -14,6 +14,8 @@ pub struct AppState {
     pub preview_child: Mutex<Option<CommandChild>>,
     /// Port the preview server is listening on.
     pub preview_port: Mutex<u16>,
+    /// Resolved path to the coderoo sidecar binary.
+    pub sidecar_path: Mutex<Option<PathBuf>>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -31,6 +33,7 @@ impl AppState {
             recent_projects: Mutex::new(Vec::new()),
             preview_child: Mutex::new(None),
             preview_port: Mutex::new(0),
+            sidecar_path: Mutex::new(None),
         }
     }
 

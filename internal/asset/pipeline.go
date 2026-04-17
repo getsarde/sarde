@@ -54,6 +54,7 @@ func NewPipeline(opts PipelineOptions) *Pipeline {
 		bundler: &Bundler{
 			Resolver:  resolver,
 			DevMode:   opts.DevMode,
+			Minify:    config.BoolVal(opts.Config.Build.Minify, true),
 			OutputDir: opts.OutputDir,
 		},
 		cache:    cache,

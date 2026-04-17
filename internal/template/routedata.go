@@ -1,10 +1,18 @@
 package template
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/coderoo-dev/coderoo/internal/config"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 	"github.com/coderoo-dev/coderoo/internal/navigation"
 )
+
+// paginationCurrentKey is an internal Params sentinel set by the builder on
+// synthesized pagination pages (e.g. /blog/page/2/) so BuildRouteData knows
+// which page index to render.
+const paginationCurrentKey = "__pagination_current"
 
 // BuildRouteData constructs the unified RouteData context for a page render.
 func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.ThemeConfig) *engine.RouteData {
@@ -68,6 +76,17 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 		if page.Kind == engine.KindSection {
 			rd.IsSection = true
 			rd.Section = page.Section
+		}
+
+		// Numbered pagination for list pages (section index with Paginate > 0).
+		if rd.IsSection && col.Config != nil && col.Config.Paginate > 0 {
+			current := 1
+			if page.Params != nil {
+				if n, ok := page.Params[paginationCurrentKey].(int); ok && n > 0 {
+					current = n
+				}
+			}
+			rd.Paginator = buildPaginator(col, current)
 		}
 
 		// Sidebar and navigation for layouts with sidebar
@@ -154,6 +173,80 @@ func resolveDir(page *engine.Page, site *engine.SiteContext) string {
 		}
 	}
 	return "ltr"
+}
+
+// buildPaginator computes the Paginator for a list page of a paginated collection.
+// current is the 1-based index of the page being rendered.
+func buildPaginator(col *engine.Collection, current int) *engine.Paginator {
+	perPage := col.Config.Paginate
+	// Only include rendered pages (exclude section index).
+	var pages []*engine.Page
+	for _, p := range col.Pages {
+		if p.Kind != engine.KindSection {
+			pages = append(pages, p)
+		}
+	}
+	total := (len(pages) + perPage - 1) / perPage
+	if total < 1 {
+		total = 1
+	}
+	if current < 1 {
+		current = 1
+	}
+	if current > total {
+		current = total
+	}
+	start := (current - 1) * perPage
+	end := start + perPage
+	if end > len(pages) {
+		end = len(pages)
+	}
+
+	base := paginationBaseURL(col)
+	p := &engine.Paginator{
+		CurrentPages: pages[start:end],
+		Current:      current,
+		Total:        total,
+	}
+	p.Pages = make([]engine.PaginationLink, 0, total)
+	for i := 1; i <= total; i++ {
+		p.Pages = append(p.Pages, engine.PaginationLink{
+			URL:   paginationURL(base, i),
+			Title: fmt.Sprintf("%d", i),
+		})
+	}
+	if current > 1 {
+		p.HasPrev = true
+		p.PrevURL = paginationURL(base, current-1)
+	}
+	if current < total {
+		p.HasNext = true
+		p.NextURL = paginationURL(base, current+1)
+	}
+	return p
+}
+
+// paginationBaseURL returns the index URL for a collection, e.g. "/blog/".
+func paginationBaseURL(col *engine.Collection) string {
+	if col == nil {
+		return "/"
+	}
+	if col.IndexPage != nil && col.IndexPage.RelPermalink != "" {
+		return col.IndexPage.RelPermalink
+	}
+	return "/" + col.Name + "/"
+}
+
+// paginationURL returns the URL for the Nth pagination page of a collection.
+// Page 1 maps to the collection's base URL; N>1 maps to "<base>page/N/".
+func paginationURL(base string, n int) string {
+	if n <= 1 {
+		return base
+	}
+	if !strings.HasSuffix(base, "/") {
+		base += "/"
+	}
+	return fmt.Sprintf("%spage/%d/", base, n)
 }
 
 // mapHomepageSettings converts config.HomepageSettings to engine.HomepageData.

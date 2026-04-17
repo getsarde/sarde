@@ -173,6 +173,100 @@ func TestBuildRouteData_NoPagination(t *testing.T) {
 	}
 }
 
+func TestBuildRouteData_PaginatorOnListPage(t *testing.T) {
+	// 12 pages, paginate by 5 → 3 pagination pages total.
+	pages := make([]*engine.Page, 12)
+	for i := range pages {
+		pages[i] = &engine.Page{Kind: engine.KindPage, Title: "post", RelPermalink: "/blog/post/"}
+	}
+	col := &engine.Collection{
+		Name:   "blog",
+		Pages:  pages,
+		Config: &engine.CollectionConfig{Layout: engine.LayoutDefault, Paginate: 5},
+	}
+	indexPage := &engine.Page{
+		Title:        "Blog",
+		Kind:         engine.KindSection,
+		Collection:   col,
+		RelPermalink: "/blog/",
+	}
+	col.IndexPage = indexPage
+
+	rd := BuildRouteData(indexPage, baseSite(), nil)
+
+	if rd.Paginator == nil {
+		t.Fatal("Paginator should be populated for paginated list page")
+	}
+	if rd.Paginator.Total != 3 {
+		t.Errorf("Total = %d, want 3", rd.Paginator.Total)
+	}
+	if rd.Paginator.Current != 1 {
+		t.Errorf("Current = %d, want 1", rd.Paginator.Current)
+	}
+	if len(rd.Paginator.CurrentPages) != 5 {
+		t.Errorf("CurrentPages len = %d, want 5", len(rd.Paginator.CurrentPages))
+	}
+	if !rd.Paginator.HasNext {
+		t.Error("HasNext should be true on page 1 of 3")
+	}
+	if rd.Paginator.HasPrev {
+		t.Error("HasPrev should be false on page 1")
+	}
+	if rd.Paginator.NextURL != "/blog/page/2/" {
+		t.Errorf("NextURL = %q, want /blog/page/2/", rd.Paginator.NextURL)
+	}
+}
+
+func TestBuildRouteData_PaginatorCurrentFromParams(t *testing.T) {
+	pages := make([]*engine.Page, 12)
+	for i := range pages {
+		pages[i] = &engine.Page{Kind: engine.KindPage, RelPermalink: "/blog/post/"}
+	}
+	col := &engine.Collection{
+		Name:   "blog",
+		Pages:  pages,
+		Config: &engine.CollectionConfig{Layout: engine.LayoutDefault, Paginate: 5},
+	}
+	indexPage := &engine.Page{
+		Kind:         engine.KindSection,
+		Collection:   col,
+		RelPermalink: "/blog/",
+		Params:       map[string]any{paginationCurrentKey: 2},
+	}
+	col.IndexPage = indexPage
+
+	rd := BuildRouteData(indexPage, baseSite(), nil)
+
+	if rd.Paginator == nil {
+		t.Fatal("Paginator not set")
+	}
+	if rd.Paginator.Current != 2 {
+		t.Errorf("Current = %d, want 2", rd.Paginator.Current)
+	}
+	if !rd.Paginator.HasPrev || !rd.Paginator.HasNext {
+		t.Error("Page 2 of 3 should have both HasPrev and HasNext")
+	}
+	if rd.Paginator.PrevURL != "/blog/" {
+		t.Errorf("PrevURL = %q, want /blog/", rd.Paginator.PrevURL)
+	}
+	if rd.Paginator.NextURL != "/blog/page/3/" {
+		t.Errorf("NextURL = %q, want /blog/page/3/", rd.Paginator.NextURL)
+	}
+}
+
+func TestBuildRouteData_NoPaginatorWhenPaginateZero(t *testing.T) {
+	col := &engine.Collection{
+		Name:   "blog",
+		Pages:  []*engine.Page{{Kind: engine.KindPage}},
+		Config: &engine.CollectionConfig{Layout: engine.LayoutDefault},
+	}
+	page := &engine.Page{Kind: engine.KindSection, Collection: col}
+	rd := BuildRouteData(page, baseSite(), nil)
+	if rd.Paginator != nil {
+		t.Error("Paginator should be nil when Paginate == 0")
+	}
+}
+
 func TestBuildRouteData_Lang(t *testing.T) {
 	site := baseSite()
 	site.Language = "fr"

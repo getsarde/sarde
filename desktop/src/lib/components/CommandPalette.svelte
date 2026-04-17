@@ -1,6 +1,6 @@
 <script>
   import { ui, tabs, preview, addToast, closeTabById, warnings } from '../stores/app.svelte.js'
-  import { build as apiBuild, startPreview } from '../api.js'
+  import { build as apiBuild, startPreview, stopPreview } from '../api.js'
   import { Search } from 'lucide-svelte'
   import { open as openShell } from '@tauri-apps/plugin-shell'
 
@@ -20,15 +20,24 @@
     { id: 'open-settings', label: 'Open Settings', category: 'Preferences', shortcut: 'Ctrl+,' },
     { id: 'build-site', label: 'Build Site', category: 'Build', shortcut: 'Ctrl+Shift+B' },
     { id: 'preview-site', label: 'Preview Site', category: 'Build' },
+    { id: 'stop-preview', label: 'Stop Preview Server', category: 'Build' },
     { id: 'deploy', label: 'Deploy Site', category: 'Deploy' },
     { id: 'import-obsidian', label: 'Import Obsidian Vault', category: 'Import' },
     { id: 'find-in-files', label: 'Search in Files', category: 'Search', shortcut: 'Ctrl+Shift+F' },
   ]
 
+  // Hide context-dependent commands
+  let visibleCommands = $derived(
+    commands.filter(c => {
+      if (c.id === 'stop-preview') return preview.port > 0
+      return true
+    })
+  )
+
   let filtered = $derived.by(() => {
-    if (!query.trim()) return commands
+    if (!query.trim()) return visibleCommands
     const q = query.toLowerCase()
-    return commands.filter(c =>
+    return visibleCommands.filter(c =>
       c.label.toLowerCase().includes(q) || c.category.toLowerCase().includes(q)
     )
   })
@@ -104,6 +113,13 @@
         } else {
           addToast('info', 'Starting preview server...')
           startPreview().catch(e => addToast('error', `Preview failed: ${e}`))
+        }
+        break
+      case 'stop-preview':
+        if (preview.port > 0) {
+          stopPreview().catch(e => addToast('error', `Failed to stop: ${e}`))
+        } else {
+          addToast('info', 'Preview server is not running')
         }
         break
       case 'deploy':

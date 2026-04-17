@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+	"log"
 	"sort"
 
 	"gopkg.in/yaml.v3"
@@ -179,17 +181,48 @@ type HeadTag struct {
 // ---------------------------------------------------------------------------
 
 type BuildSettings struct {
-	Output      string `yaml:"output"`
-	BasePath    string `yaml:"base_path"`
-	Clean       *bool  `yaml:"clean"`
-	Sitemap     *bool  `yaml:"sitemap"`
-	Minify      *bool  `yaml:"minify"`
-	LastUpdated *bool  `yaml:"last_updated"`
-	Feed        *bool  `yaml:"feed"`
-	Drafts      *bool  `yaml:"drafts"`
-	Future      *bool  `yaml:"future"`
-	Parallel    *bool  `yaml:"parallel"`
-	Cache       *bool  `yaml:"cache"`
+	Output   string `yaml:"output"`
+	BasePath string `yaml:"base_path"`
+	Clean    *bool  `yaml:"clean"`
+	Sitemap  *bool  `yaml:"sitemap"`
+	Minify   *bool  `yaml:"minify"`
+	// LastUpdated selects the strategy for page "last updated" timestamps:
+	//   "git"   — `git log -1` for the file, fall back to mtime on error
+	//   "mtime" — filesystem modification time (default)
+	//   "false" / "off" — disabled; no timestamp rendered
+	// Legacy YAML bool form is accepted: true → "mtime", false → "false" (with deprecation warning).
+	LastUpdated LastUpdatedStrategy `yaml:"last_updated"`
+	Feed        *bool               `yaml:"feed"`
+	Drafts      *bool               `yaml:"drafts"`
+	Future      *bool               `yaml:"future"`
+	Parallel    *bool               `yaml:"parallel"`
+	Cache       *bool               `yaml:"cache"`
+}
+
+// LastUpdatedStrategy is a string enum with back-compat for the legacy bool form.
+type LastUpdatedStrategy string
+
+// UnmarshalYAML accepts strings ("git", "mtime", "false") and legacy bools
+// (true → "mtime", false → "false") with a deprecation warning.
+func (l *LastUpdatedStrategy) UnmarshalYAML(value *yaml.Node) error {
+	if value.Kind == yaml.ScalarNode && value.Tag == "!!bool" {
+		switch value.Value {
+		case "true":
+			*l = "mtime"
+		case "false":
+			*l = "false"
+		default:
+			return fmt.Errorf("build.last_updated: invalid bool %q", value.Value)
+		}
+		log.Printf("config: build.last_updated as bool is deprecated; use \"git\", \"mtime\", or \"false\"")
+		return nil
+	}
+	var s string
+	if err := value.Decode(&s); err != nil {
+		return err
+	}
+	*l = LastUpdatedStrategy(s)
+	return nil
 }
 
 // ---------------------------------------------------------------------------

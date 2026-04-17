@@ -24,8 +24,8 @@ func TestDefaults_ReturnsPopulatedConfig(t *testing.T) {
 	if cfg.Build.Output != "dist" {
 		t.Errorf("Build.Output = %q, want %q", cfg.Build.Output, "dist")
 	}
-	if cfg.Server.Port != 3000 {
-		t.Errorf("Server.Port = %d, want %d", cfg.Server.Port, 3000)
+	if cfg.Server.Port != 4727 {
+		t.Errorf("Server.Port = %d, want %d", cfg.Server.Port, 4727)
 	}
 	if !BoolVal(cfg.TOC.Enabled, false) {
 		t.Error("TOC.Enabled should be true")
@@ -150,6 +150,49 @@ func TestLogo_ObjectForm(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
+// LastUpdatedStrategy UnmarshalYAML
+// ---------------------------------------------------------------------------
+
+func TestLastUpdated_StringForms(t *testing.T) {
+	cases := []struct {
+		yamlSrc string
+		want    LastUpdatedStrategy
+	}{
+		{"build:\n  last_updated: git\n", "git"},
+		{"build:\n  last_updated: mtime\n", "mtime"},
+		{"build:\n  last_updated: \"false\"\n", "false"},
+	}
+	for _, c := range cases {
+		var cfg SiteConfig
+		if err := yaml.Unmarshal([]byte(c.yamlSrc), &cfg); err != nil {
+			t.Fatalf("yaml.Unmarshal(%q) error: %v", c.yamlSrc, err)
+		}
+		if cfg.Build.LastUpdated != c.want {
+			t.Errorf("Build.LastUpdated = %q, want %q (src: %q)", cfg.Build.LastUpdated, c.want, c.yamlSrc)
+		}
+	}
+}
+
+func TestLastUpdated_LegacyBoolForms(t *testing.T) {
+	// true → "mtime", false → "false" (deprecation warning logged via log.Printf).
+	var cfgTrue SiteConfig
+	if err := yaml.Unmarshal([]byte("build:\n  last_updated: true\n"), &cfgTrue); err != nil {
+		t.Fatalf("Unmarshal(true) error: %v", err)
+	}
+	if cfgTrue.Build.LastUpdated != "mtime" {
+		t.Errorf("last_updated:true → %q, want %q", cfgTrue.Build.LastUpdated, "mtime")
+	}
+
+	var cfgFalse SiteConfig
+	if err := yaml.Unmarshal([]byte("build:\n  last_updated: false\n"), &cfgFalse); err != nil {
+		t.Fatalf("Unmarshal(false) error: %v", err)
+	}
+	if cfgFalse.Build.LastUpdated != "false" {
+		t.Errorf("last_updated:false → %q, want %q", cfgFalse.Build.LastUpdated, "false")
+	}
+}
+
+// ---------------------------------------------------------------------------
 // Merge
 // ---------------------------------------------------------------------------
 
@@ -175,8 +218,8 @@ func TestMerge_ZeroValuesSkipped(t *testing.T) {
 	if base.Site.Title != originalTitle {
 		t.Errorf("Title changed to %q, should remain %q", base.Site.Title, originalTitle)
 	}
-	if base.Server.Port != 3000 {
-		t.Errorf("Port changed to %d, should remain 3000", base.Server.Port)
+	if base.Server.Port != 4727 {
+		t.Errorf("Port changed to %d, should remain 4727", base.Server.Port)
 	}
 }
 
@@ -243,8 +286,8 @@ func TestResolve_DefaultsOnly(t *testing.T) {
 	if cfg.Site.Title != "My Site" {
 		t.Errorf("Site.Title = %q, want %q", cfg.Site.Title, "My Site")
 	}
-	if cfg.Server.Port != 3000 {
-		t.Errorf("Server.Port = %d, want %d", cfg.Server.Port, 3000)
+	if cfg.Server.Port != 4727 {
+		t.Errorf("Server.Port = %d, want %d", cfg.Server.Port, 4727)
 	}
 }
 
@@ -261,8 +304,8 @@ func TestResolve_UserOverrides(t *testing.T) {
 		t.Errorf("Site.Title = %q, want %q", cfg.Site.Title, "User Site")
 	}
 	// Other defaults should remain
-	if cfg.Server.Port != 3000 {
-		t.Errorf("Server.Port = %d, want %d", cfg.Server.Port, 3000)
+	if cfg.Server.Port != 4727 {
+		t.Errorf("Server.Port = %d, want %d", cfg.Server.Port, 4727)
 	}
 }
 

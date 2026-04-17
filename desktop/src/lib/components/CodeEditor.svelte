@@ -1,8 +1,8 @@
 <script>
   import { onMount } from 'svelte'
-  import { Compartment, EditorState } from '@codemirror/state'
+  import { Compartment, EditorState, StateEffect, StateField } from '@codemirror/state'
   import {
-    EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection,
+    EditorView, Decoration, keymap, lineNumbers, highlightActiveLine, drawSelection,
   } from '@codemirror/view'
   import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
   import { markdown } from '@codemirror/lang-markdown'
@@ -22,6 +22,23 @@
   // Font size — persisted across sessions (Ctrl+= / Ctrl+-)
   let fontSize = $state(parseInt(localStorage.getItem('coderoo-font-size') || '14'))
   const fontComp = new Compartment()
+
+  // Transient line highlight for search navigation
+  const flashLineEffect = StateEffect.define()
+  const flashClearEffect = StateEffect.define()
+  const flashLineDeco = Decoration.line({ class: 'cm-flash-line' })
+  const flashLineField = StateField.define({
+    create() { return Decoration.none },
+    update(deco, tr) {
+      deco = deco.map(tr.changes)
+      for (const e of tr.effects) {
+        if (e.is(flashLineEffect)) deco = Decoration.set([flashLineDeco.range(e.value)])
+        else if (e.is(flashClearEffect)) deco = Decoration.none
+      }
+      return deco
+    },
+    provide: f => EditorView.decorations.from(f),
+  })
 
   function fontTheme(size) {
     return EditorView.theme({
@@ -84,9 +101,30 @@
       const pos = view.state.doc.line(clamped).from
       view.dispatch({
         selection: { anchor: pos },
-        effects: EditorView.scrollIntoView(pos, { y: 'center' }),
+        effects: [
+          EditorView.scrollIntoView(pos, { y: 'center' }),
+          flashLineEffect.of(pos),
+        ],
       })
       doc.targetLine = 0
+      setTimeout(() => {
+        view?.dispatch({ effects: flashClearEffect.of(null) })
+      }, 1200)
+    }
+  })
+
+  // Insert text at cursor when set (e.g. from media panel)
+  $effect(() => {
+    const text = doc.insertText
+    if (text && view) {
+      const cursor = view.state.selection.main.head
+      view.dispatch({
+        changes: { from: cursor, insert: text },
+        selection: { anchor: cursor + text.length },
+      })
+      doc.insertText = ''
+      doc.dirty = true
+      scheduleAutoSave()
     }
   })
 
@@ -127,6 +165,7 @@
         markdown(),
         highlightSelectionMatches(),
         fontComp.of(fontTheme(fontSize)),
+        flashLineField,
         keymap.of([
           { key: 'Mod-s', run: () => { saveFile(); return true } },
           { key: 'Mod-b', run: (v) => wrapAt(v, '**', '**') },
@@ -266,5 +305,13 @@
   }
   .code-editor :global(.cm-scroller) {
     overflow: auto;
+  }
+  .code-editor :global(.cm-flash-line) {
+    background-color: rgba(250, 204, 21, 0.28);
+    animation: cm-flash-fade 1.2s ease-out forwards;
+  }
+  @keyframes cm-flash-fade {
+    0%   { background-color: rgba(250, 204, 21, 0.45); }
+    100% { background-color: rgba(250, 204, 21, 0); }
   }
 </style>

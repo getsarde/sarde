@@ -86,7 +86,7 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 
 	// JSON-LD structured data.
 	if enableJSONLD {
-		ld := buildJSONLD(page, baseURL, description)
+		ld := buildJSONLD(page, ctx.RouteData, ctx.Site, baseURL, description)
 		if ld != "" {
 			seo["json_ld"] = ld
 		}
@@ -96,34 +96,115 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 	return nil
 }
 
-func buildJSONLD(page *engine.Page, baseURL, description string) string {
-	ld := map[string]any{
+// buildJSONLD emits a schema.org @graph containing up to three entities:
+// the primary node for the page (Article / CollectionPage / WebPage), a
+// BreadcrumbList derived from route data, and a Course when the collection
+// is tagged as a course (via Params["schema_type"] = "Course").
+func buildJSONLD(page *engine.Page, route *engine.RouteData, site *engine.SiteContext, baseURL, description string) string {
+	pageURL := baseURL + page.RelPermalink
+	siteName := ""
+	if site != nil {
+		siteName = site.Title
+	}
+
+	primary := primaryNode(page, pageURL, description, siteName)
+	graph := []map[string]any{primary}
+
+	if crumbs := breadcrumbListNode(route, baseURL); crumbs != nil {
+		graph = append(graph, crumbs)
+	}
+	if course := courseNode(page, pageURL, description); course != nil {
+		graph = append(graph, course)
+	}
+
+	out := map[string]any{
 		"@context": "https://schema.org",
+		"@graph":   graph,
 	}
-
-	if page.Collection != nil {
-		ld["@type"] = "Article"
-		ld["headline"] = page.Title
-		ld["url"] = baseURL + page.RelPermalink
-		if description != "" {
-			ld["description"] = description
-		}
-		if !page.Date.IsZero() {
-			ld["datePublished"] = page.Date.Format("2006-01-02")
-		}
-		if !page.Updated.IsZero() {
-			ld["dateModified"] = page.Updated.Format("2006-01-02")
-		}
-	} else {
-		ld["@type"] = "WebPage"
-		ld["name"] = page.Title
-		ld["url"] = baseURL + page.RelPermalink
-	}
-
-	data, err := json.Marshal(ld)
+	data, err := json.Marshal(out)
 	if err != nil {
 		return ""
 	}
 	return string(data)
+}
+
+func primaryNode(page *engine.Page, pageURL, description, siteName string) map[string]any {
+	node := map[string]any{}
+	switch {
+	case page.Kind == engine.KindSection || page.Kind == engine.KindHome:
+		node["@type"] = "CollectionPage"
+		node["name"] = page.Title
+		node["url"] = pageURL
+		if siteName != "" {
+			node["isPartOf"] = map[string]any{"@type": "WebSite", "name": siteName}
+		}
+	case page.Collection != nil:
+		node["@type"] = "Article"
+		node["headline"] = page.Title
+		node["url"] = pageURL
+		node["mainEntityOfPage"] = pageURL
+		if !page.Date.IsZero() {
+			node["datePublished"] = page.Date.Format("2006-01-02")
+		}
+		if !page.Updated.IsZero() {
+			node["dateModified"] = page.Updated.Format("2006-01-02")
+		}
+		if author, ok := page.Params["author"].(string); ok && author != "" {
+			node["author"] = map[string]any{"@type": "Person", "name": author}
+		}
+		if page.Image != "" {
+			node["image"] = page.Image
+		}
+	default:
+		node["@type"] = "WebPage"
+		node["name"] = page.Title
+		node["url"] = pageURL
+	}
+	if description != "" {
+		node["description"] = description
+	}
+	return node
+}
+
+func breadcrumbListNode(route *engine.RouteData, baseURL string) map[string]any {
+	if route == nil || len(route.Breadcrumbs) < 2 {
+		return nil
+	}
+	items := make([]map[string]any, 0, len(route.Breadcrumbs))
+	for i, c := range route.Breadcrumbs {
+		item := map[string]any{
+			"@type":    "ListItem",
+			"position": i + 1,
+			"name":     c.Label,
+		}
+		if c.URL != "" {
+			item["item"] = baseURL + c.URL
+		}
+		items = append(items, item)
+	}
+	return map[string]any{
+		"@type":           "BreadcrumbList",
+		"itemListElement": items,
+	}
+}
+
+func courseNode(page *engine.Page, pageURL, description string) map[string]any {
+	// Only emit Course when the page (or its frontmatter params) opts in.
+	t, _ := page.Params["schema_type"].(string)
+	if !strings.EqualFold(t, "Course") {
+		return nil
+	}
+	node := map[string]any{
+		"@type": "Course",
+		"name":  page.Title,
+		"url":   pageURL,
+	}
+	if description != "" {
+		node["description"] = description
+	}
+	if provider, ok := page.Params["provider"].(string); ok && provider != "" {
+		node["provider"] = map[string]any{"@type": "Organization", "name": provider}
+	}
+	return node
 }
 

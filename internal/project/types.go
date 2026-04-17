@@ -57,6 +57,13 @@ type ContentFile struct {
 	ReadingTime int            `json:"readingTime"`
 }
 
+// RevisionSummary describes one snapshot of a content file.
+type RevisionSummary struct {
+	ID        string    `json:"id"`
+	Timestamp time.Time `json:"timestamp"`
+	Size      int64     `json:"size"`
+}
+
 // ContentSummary is a lightweight listing entry for content files.
 type ContentSummary struct {
 	Path   string    `json:"path"`

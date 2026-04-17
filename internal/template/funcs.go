@@ -100,6 +100,12 @@ func buildFuncMap(
 			base := strings.TrimRight(site.BaseURL, "/")
 			return strings.TrimPrefix(absPath, base)
 		},
+		"editURL": func(base, relPath string) string {
+			if base == "" || relPath == "" {
+				return ""
+			}
+			return strings.TrimRight(base, "/") + "/" + strings.TrimLeft(filepath.ToSlash(relPath), "/")
+		},
 		"urlize": content.Slugify,
 		"ref": func(slug string) string {
 			if site == nil {

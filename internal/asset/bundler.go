@@ -12,6 +12,7 @@ import (
 type Bundler struct {
 	Resolver  *Resolver
 	DevMode   bool
+	Minify    bool
 	OutputDir string // absolute path to output directory
 }
 
@@ -59,7 +60,7 @@ func (b *Bundler) bundle(entryPoint string, loader api.Loader) (*BundleResult, e
 		Plugins:     []api.Plugin{b.resolverPlugin()},
 	}
 
-	if !b.DevMode {
+	if !b.DevMode && b.Minify {
 		opts.MinifyWhitespace = true
 		opts.MinifyIdentifiers = true
 		opts.MinifySyntax = true
@@ -131,7 +132,7 @@ func (b *Bundler) bundleFromContent(entryPoint string, loader api.Loader) (*Bund
 		Plugins: []api.Plugin{b.resolverPlugin()},
 	}
 
-	if !b.DevMode {
+	if !b.DevMode && b.Minify {
 		opts.MinifyWhitespace = true
 		opts.MinifyIdentifiers = true
 		opts.MinifySyntax = true

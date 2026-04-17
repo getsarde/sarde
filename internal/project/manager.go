@@ -14,6 +14,7 @@ import (
 	"github.com/coderoo-dev/coderoo/internal/config"
 	"github.com/coderoo-dev/coderoo/internal/content"
 	"github.com/coderoo-dev/coderoo/internal/content/markdown"
+	"github.com/coderoo-dev/coderoo/internal/editor"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 	"github.com/coderoo-dev/coderoo/internal/theme"
 	"gopkg.in/yaml.v3"
@@ -454,6 +455,61 @@ func (pm *ProjectManager) SaveContent(relPath string, fm map[string]any, body st
 		return err
 	}
 
+	pm.eventHub.Broadcast(Event{Type: "file:changed", Data: map[string]any{"path": relPath}})
+	return nil
+}
+
+// ListRevisions returns the revision history for a content file, newest first.
+func (pm *ProjectManager) ListRevisions(relPath string) ([]RevisionSummary, error) {
+	pm.mu.RLock()
+	defer pm.mu.RUnlock()
+
+	if pm.state == StateClosed {
+		return nil, fmt.Errorf("no project open")
+	}
+	contentDir := pm.contentDir()
+	if err := validateContentPath(contentDir, relPath); err != nil {
+		return nil, err
+	}
+	absPath := filepath.Join(contentDir, filepath.FromSlash(relPath))
+	revs := editor.ListRevisions(absPath)
+
+	out := make([]RevisionSummary, 0, len(revs))
+	for _, r := range revs {
+		out = append(out, RevisionSummary{
+			ID:        filepath.Base(r.Path),
+			Timestamp: r.Timestamp,
+			Size:      r.Size,
+		})
+	}
+	return out, nil
+}
+
+// RestoreRevision overwrites the content file with the named revision's contents.
+// The current version is snapshotted first so the restore is itself reversible.
+func (pm *ProjectManager) RestoreRevision(relPath, revisionID string) error {
+	pm.mu.Lock()
+	defer pm.mu.Unlock()
+
+	if pm.state == StateClosed {
+		return fmt.Errorf("no project open")
+	}
+	contentDir := pm.contentDir()
+	if err := validateContentPath(contentDir, relPath); err != nil {
+		return err
+	}
+	// Revision ID must be a plain filename — reject any path segment.
+	if strings.ContainsAny(revisionID, "/\\") || strings.Contains(revisionID, "..") {
+		return fmt.Errorf("invalid revision id")
+	}
+	absPath := filepath.Join(contentDir, filepath.FromSlash(relPath))
+	revPath := filepath.Join(filepath.Dir(absPath), ".revisions", revisionID)
+	if _, err := os.Stat(revPath); err != nil {
+		return fmt.Errorf("revision not found")
+	}
+	if err := editor.RestoreRevision(absPath, revPath); err != nil {
+		return err
+	}
 	pm.eventHub.Broadcast(Event{Type: "file:changed", Data: map[string]any{"path": relPath}})
 	return nil
 }

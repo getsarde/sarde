@@ -1,8 +1,10 @@
 <script>
-  import { doc, ui, warnings } from '../stores/app.svelte.js'
+  import { doc, ui, warnings, preview, buildLog, toggleBuildLog } from '../stores/app.svelte.js'
 
   let saveLabel = $derived(doc.dirty ? 'Unsaved' : 'Saved')
   let saveClass = $derived(doc.dirty ? 'unsaved' : 'saved')
+  let previewLabel = $derived(preview.running ? `Preview :${preview.port}` : 'Preview off')
+  let previewClass = $derived(preview.running ? 'connected' : 'disconnected')
 </script>
 
 <div class="status-bar">
@@ -11,10 +13,10 @@
       <span class="status-dot"></span>
       {saveLabel}
     </span>
-    <span class="status-item connected">
+    <button class="status-item status-btn {previewClass}" onclick={toggleBuildLog} title="Toggle build log">
       <span class="status-dot"></span>
-      Ready
-    </span>
+      {previewLabel}
+    </button>
     {#if warnings.items.length > 0}
       <button class="status-item status-btn warnings-indicator" onclick={() => { ui.rightPanel = 'warnings' }}>
         <span class="status-dot"></span>

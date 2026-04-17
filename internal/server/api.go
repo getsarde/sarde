@@ -81,6 +81,10 @@ func (s *APIServer) setupRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/content/{path...}", s.handleSaveContent)
 	mux.HandleFunc("DELETE /api/content/{path...}", s.handleDeleteContent)
 
+	// Revisions.
+	mux.HandleFunc("GET /api/revisions/{path...}", s.handleListRevisions)
+	mux.HandleFunc("POST /api/revisions/restore/{path...}", s.handleRestoreRevision)
+
 	// Build & preview.
 	mux.HandleFunc("POST /api/build", s.handleBuild)
 	mux.HandleFunc("POST /api/build/validate", s.handleValidate)

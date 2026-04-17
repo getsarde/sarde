@@ -5,6 +5,8 @@
       {{ partial "home-catalog.html" . }}
     {{ else if eq .Homepage.Template "minimal" }}
       {{ partial "home-minimal.html" . }}
+    {{ else if eq .Homepage.Template "dashboard" }}
+      {{ partial "home-dashboard.html" . }}
     {{ else }}
       {{ partial "home-hero.html" . }}
     {{ end }}

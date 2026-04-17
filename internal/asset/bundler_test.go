@@ -21,6 +21,7 @@ func setupBundlerTest(t *testing.T) (projectDir string, bundler *Bundler) {
 	bundler = &Bundler{
 		Resolver:  resolver,
 		DevMode:   false,
+		Minify:    true,
 		OutputDir: t.TempDir(),
 	}
 	return

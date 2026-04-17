@@ -80,6 +80,7 @@ type Page struct {
 	RelPermalink string
 	Kind         NodeKind
 	FilePath     string
+	RelPath      string // path relative to content dir (POSIX slashes); used by editURL template func
 
 	// Content
 	Content     template.HTML
@@ -204,6 +205,7 @@ type Collection struct {
 	Title     string
 	Config    *CollectionConfig
 	Pages     []*Page
+	Featured  []*Page             // subset of Pages with frontmatter `featured: true`
 	Sections  []*Section
 	NavTree   *NavTree            // default language nav tree (backward compat)
 	NavTrees  map[string]*NavTree // per-language nav trees (i18n)
@@ -325,6 +327,18 @@ type PaginationLink struct {
 	Title string
 }
 
+// Paginator holds numbered list-page pagination state for collection index pages.
+type Paginator struct {
+	Pages        []PaginationLink // Numbered links (one per page of results)
+	CurrentPages []*Page          // Slice of content pages visible on this pagination page
+	Current      int              // 1-based index of the current page
+	Total        int              // Total number of pagination pages
+	HasPrev      bool
+	HasNext      bool
+	PrevURL      string
+	NextURL      string
+}
+
 // ---------------------------------------------------------------------------
 // Taxonomy
 // ---------------------------------------------------------------------------
@@ -407,6 +421,7 @@ type SiteContext struct {
 	BuildTime   time.Time
 	Languages   []Language
 	DefaultLang string
+	EditURL     string // base URL for "edit this page" links (e.g. https://github.com/user/repo/edit/main/content)
 }
 
 // Language represents a configured language for i18n.
@@ -430,6 +445,7 @@ type RouteData struct {
 	SidebarType  string
 	Breadcrumbs  []BreadcrumbItem
 	Pagination   *PaginationLinks
+	Paginator    *Paginator // numbered list-page pagination (section/list pages only)
 	HasSidebar   bool
 	Section      *Section
 	IsSection    bool
@@ -441,6 +457,11 @@ type RouteData struct {
 	Dir          string
 	Translations []TranslationLink
 	Homepage     *HomepageData // only set for KindHome pages
+
+	// Per-page asset injection (populated by plugins via BeforeRender).
+	Scripts       []string        // root-relative script URLs (emitted as <script defer src>)
+	Styles        []string        // root-relative stylesheet URLs (emitted as <link rel="stylesheet">)
+	InlineScripts []template.HTML // inline <script> bodies (already-escaped template.HTML)
 }
 
 // HomepageData exposes homepage settings to templates.

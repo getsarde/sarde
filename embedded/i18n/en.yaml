@@ -8,3 +8,10 @@ nav:
 
 fallback:
   notice: "This page is not yet available in {{ .Lang }}. Showing the original version."
+
+search:
+  results: "Search results"
+  no_results: "No results found."
+
+edit_this_page: "Edit this page"
+last_updated: "Last updated: {{ .Date }}"

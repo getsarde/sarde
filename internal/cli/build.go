@@ -22,6 +22,8 @@ var buildCmd = &cobra.Command{
 
 func init() {
 	buildCmd.Flags().StringP("output", "o", "", "Override output directory (default: dist)")
+	buildCmd.Flags().String("base-path", "", "Override URL base path (e.g. /docs/)")
+	buildCmd.Flags().String("content", "", "Override content directory path")
 	rootCmd.AddCommand(buildCmd)
 }
 
@@ -39,6 +41,19 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		cfg.Build.Output = output
 	}
 
+	// Override base path from CLI flag.
+	if basePath, _ := cmd.Flags().GetString("base-path"); basePath != "" {
+		cfg.Build.BasePath = basePath
+	}
+
+	// Override content directory from CLI flag.
+	if contentDir, _ := cmd.Flags().GetString("content"); contentDir != "" {
+		if !filepath.IsAbs(contentDir) {
+			contentDir, _ = filepath.Abs(contentDir)
+		}
+		cfg.Content.Dir = contentDir
+	}
+
 	// Build.
 	builder := build.NewSiteBuilder(build.BuildOptions{
 		ProjectDir:  projectDir,
@@ -54,6 +69,7 @@ func runBuild(cmd *cobra.Command, args []string) error {
 
 	// Print summary.
 	quiet, _ := cmd.Flags().GetBool("quiet")
+	verbose, _ := cmd.Flags().GetBool("verbose")
 	if !quiet {
 		fmt.Printf("Built %d pages in %s\n", result.PageCount, result.Duration.Round(1e6))
 		if len(result.Warnings) > 0 {
@@ -63,6 +79,11 @@ func runBuild(cmd *cobra.Command, args []string) error {
 			}
 		}
 		fmt.Printf("  Output: %s\n", result.OutputDir)
+		if verbose {
+			fmt.Printf("  Theme: %s\n", cfg.Theme.Name)
+			fmt.Printf("  Base path: %q\n", cfg.Build.BasePath)
+			fmt.Printf("  Content dir: %s\n", cfg.Content.Dir)
+		}
 	}
 
 	return nil

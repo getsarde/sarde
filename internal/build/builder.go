@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -21,6 +22,8 @@ import (
 	"github.com/coderoo-dev/coderoo/internal/engine"
 	"github.com/coderoo-dev/coderoo/internal/i18n"
 	"github.com/coderoo-dev/coderoo/internal/plugin"
+	"github.com/coderoo-dev/coderoo/internal/plugin/katex"
+	"github.com/coderoo-dev/coderoo/internal/plugin/mermaid"
 	"github.com/coderoo-dev/coderoo/internal/taxonomy"
 	coderootemplate "github.com/coderoo-dev/coderoo/internal/template"
 )
@@ -52,6 +55,7 @@ type SiteBuilder struct {
 func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
 	mgr := plugin.NewManager()
 	mgr.RegisterBuiltins(opts.Config.Plugins.Enabled, opts.Config.Plugins.Config)
+	registerSubpackagePlugins(mgr, opts.Config.Plugins.Enabled, opts.Config.Plugins.Config)
 
 	return &SiteBuilder{
 		projectDir:  opts.ProjectDir,
@@ -73,7 +77,11 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	// Phase 1: INITIALIZE
 	contentDir := filepath.Join(b.projectDir, "content")
 	if b.config.Content.Dir != "" {
-		contentDir = filepath.Join(b.projectDir, b.config.Content.Dir)
+		if filepath.IsAbs(b.config.Content.Dir) {
+			contentDir = b.config.Content.Dir
+		} else {
+			contentDir = filepath.Join(b.projectDir, b.config.Content.Dir)
+		}
 	}
 
 	outputDir := filepath.Join(b.projectDir, "dist")
@@ -118,7 +126,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		return nil, fmt.Errorf("building collections: %w", err)
 	}
 
-	standalones, err := collection.BuildStandalonePages(files, contentDir, b.config.Content.SummaryLength)
+	standalones, err := collection.BuildStandalonePages(files, contentDir, b.config.Content.SummaryLength, string(b.config.Build.LastUpdated))
 	if err != nil {
 		return nil, fmt.Errorf("building standalone pages: %w", err)
 	}
@@ -164,6 +172,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		Taxonomies:  taxonomies,
 		Pages:       allPages,
 		BuildTime:   time.Now(),
+		EditURL:     b.config.Site.EditURL,
 	}
 
 	// i18n: populate site-level language info
@@ -401,6 +410,62 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		}
 	}
 
+	// Synthesize numbered pagination pages (e.g. /blog/page/2/) for any collection
+	// with Paginate > 0 and enough pages to warrant a second list page.
+	for _, col := range collections {
+		if col.Config == nil || col.Config.Paginate <= 0 {
+			continue
+		}
+		var contentPages []*engine.Page
+		for _, p := range col.Pages {
+			if p.Kind != engine.KindSection {
+				contentPages = append(contentPages, p)
+			}
+		}
+		perPage := col.Config.Paginate
+		total := (len(contentPages) + perPage - 1) / perPage
+		if total <= 1 || col.IndexPage == nil {
+			continue
+		}
+		idx := col.IndexPage
+		base := idx.RelPermalink
+		if base == "" {
+			base = "/" + col.Name + "/"
+		}
+		if !strings.HasSuffix(base, "/") {
+			base += "/"
+		}
+		for n := 2; n <= total; n++ {
+			permalink := fmt.Sprintf("%spage/%d/", base, n)
+			stub := &engine.Page{
+				Title:        idx.Title,
+				Kind:         engine.KindSection,
+				Permalink:    permalink,
+				RelPermalink: permalink,
+				Collection:   col,
+				Section:      idx.Section,
+				Lang:         idx.Lang,
+				Params: map[string]any{
+					"__pagination_current": n,
+				},
+			}
+			rd := coderootemplate.BuildRouteData(stub, siteCtx, b.themeConfig)
+			b.tmplEngine.SetCurrentLang(rd.Lang)
+			if err := b.pluginMgr.RunBeforeRender(b.config, stub, rd, siteCtx); err != nil {
+				return nil, err
+			}
+			html, err := b.tmplEngine.Render(rd.Template, rd)
+			if err != nil {
+				return nil, fmt.Errorf("rendering paginated list %s: %w", permalink, err)
+			}
+			rendered = append(rendered, RenderedPage{
+				Page:    stub,
+				HTML:    html,
+				OutPath: PageOutputPath(permalink),
+			})
+		}
+	}
+
 	// Render 404 page(s).
 	render404 := func(lang, dir, outPath string) {
 		page404 := &engine.Page{Title: "Page Not Found", Kind: engine.KindPage, Lang: lang}
@@ -479,6 +544,11 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		return nil, fmt.Errorf("writing bundled files: %w", err)
 	}
 
+	// Write embedded theme-level static assets (JS helpers like copy-code, spoiler, tabs, prefetch).
+	if err := WriteEmbeddedAssets(b.embeddedFS, outputDir); err != nil {
+		return nil, fmt.Errorf("writing embedded theme assets: %w", err)
+	}
+
 	// Plugin hook: BuildDone (parallel, after all files written).
 	var pluginWarnings []engine.ValidationWarning
 	buildDoneCtx := &plugin.BuildDoneContext{
@@ -508,7 +578,11 @@ func (b *SiteBuilder) Validate() (*ValidateResult, error) {
 
 	contentDir := filepath.Join(b.projectDir, "content")
 	if b.config.Content.Dir != "" {
-		contentDir = filepath.Join(b.projectDir, b.config.Content.Dir)
+		if filepath.IsAbs(b.config.Content.Dir) {
+			contentDir = b.config.Content.Dir
+		} else {
+			contentDir = filepath.Join(b.projectDir, b.config.Content.Dir)
+		}
 	}
 
 	// i18n: configure scanner for multi-language detection
@@ -531,7 +605,7 @@ func (b *SiteBuilder) Validate() (*ValidateResult, error) {
 		return nil, fmt.Errorf("building collections: %w", err)
 	}
 
-	standalones, err := collection.BuildStandalonePages(files, contentDir, b.config.Content.SummaryLength)
+	standalones, err := collection.BuildStandalonePages(files, contentDir, b.config.Content.SummaryLength, string(b.config.Build.LastUpdated))
 	if err != nil {
 		return nil, fmt.Errorf("building standalone pages: %w", err)
 	}
@@ -566,6 +640,20 @@ type langGrouping struct {
 
 // groupPagesByLang groups pages by Lang field, with stable ordering.
 // Pages without a Lang are placed in a "" group.
+// registerSubpackagePlugins wires plugins whose assets live in their own
+// subpackage (and therefore can't be referenced from internal/plugin/registry.go
+// without creating an import cycle).
+func registerSubpackagePlugins(mgr *plugin.Manager, enabled []string, configs map[string]map[string]any) {
+	for _, name := range enabled {
+		switch name {
+		case "katex":
+			mgr.Register(katex.New(configs[name]))
+		case "mermaid":
+			mgr.Register(mermaid.New(configs[name]))
+		}
+	}
+}
+
 func groupPagesByLang(pages []*engine.Page) langGrouping {
 	result := langGrouping{pages: make(map[string][]*engine.Page)}
 	seen := make(map[string]bool)

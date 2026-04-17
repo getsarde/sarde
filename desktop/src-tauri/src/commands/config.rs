@@ -11,7 +11,7 @@ pub fn get_config(state: tauri::State<AppState>) -> Result<serde_json::Value, St
     serde_json::to_value(config).map_err(|e| format!("Serializing config: {}", e))
 }
 
-/// Update site config: read site.yaml, merge provided fields into the `site` section, write back.
+/// Update site config: read site.yaml, merge provided top-level sections, write back.
 #[tauri::command]
 pub fn update_config(
     settings: serde_json::Value,
@@ -28,28 +28,17 @@ pub fn update_config(
     let mut raw: serde_yaml::Value =
         serde_yaml::from_str(&data).unwrap_or(serde_yaml::Value::Mapping(Default::default()));
 
-    // Ensure site section exists.
-    let site_section = raw
+    // Merge each top-level key from settings into the root mapping.
+    let root = raw
         .as_mapping_mut()
         .ok_or("Invalid site.yaml format")?;
 
-    let site_key = serde_yaml::Value::String("site".into());
-    if !site_section.contains_key(&site_key) {
-        site_section.insert(site_key.clone(), serde_yaml::Value::Mapping(Default::default()));
-    }
-
-    let site = site_section
-        .get_mut(&site_key)
-        .and_then(|v| v.as_mapping_mut())
-        .ok_or("Invalid site section in site.yaml")?;
-
-    // Merge settings into the site section.
     if let Some(obj) = settings.as_object() {
         for (key, val) in obj {
             let yaml_key = serde_yaml::Value::String(key.clone());
             let yaml_val =
                 serde_yaml::to_value(val).map_err(|e| format!("Converting value: {}", e))?;
-            site.insert(yaml_key, yaml_val);
+            root.insert(yaml_key, yaml_val);
         }
     }
 
@@ -98,4 +87,75 @@ pub fn get_schema(
 
     // No schema found — return null (not an error).
     Ok(serde_json::Value::Null)
+}
+
+/// Create a new collection: mkdir + write _index.md with title frontmatter.
+#[tauri::command]
+pub fn create_collection(
+    name: String,
+    state: tauri::State<AppState>,
+) -> Result<crate::commands::project::CollectionSummary, String> {
+    let content_dir = state.content_dir().ok_or("No project open")?;
+
+    // Validate name: non-empty, no path traversal.
+    let name = name.trim().to_string();
+    if name.is_empty() || name.contains("..") || name.contains('/') || name.contains('\\') {
+        return Err("Invalid collection name".into());
+    }
+
+    let col_dir = content_dir.join(&name);
+    if col_dir.exists() {
+        return Err(format!("Collection '{}' already exists", name));
+    }
+
+    fs::create_dir_all(&col_dir).map_err(|e| format!("Creating directory: {}", e))?;
+
+    // Write _index.md with title.
+    let title = capitalize_name(&name);
+    let index_content = format!("---\ntitle: {}\n---\n", title);
+    fs::write(col_dir.join("_index.md"), &index_content)
+        .map_err(|e| format!("Writing _index.md: {}", e))?;
+
+    Ok(crate::commands::project::CollectionSummary {
+        name,
+        title,
+        page_count: 1,
+    })
+}
+
+/// Delete a collection directory recursively.
+#[tauri::command]
+pub fn delete_collection(
+    name: String,
+    state: tauri::State<AppState>,
+) -> Result<(), String> {
+    let content_dir = state.content_dir().ok_or("No project open")?;
+
+    let name = name.trim().to_string();
+    if name.is_empty() || name.contains("..") || name.contains('/') || name.contains('\\') {
+        return Err("Invalid collection name".into());
+    }
+
+    let col_dir = content_dir.join(&name);
+    if !col_dir.is_dir() {
+        return Err(format!("Collection '{}' not found", name));
+    }
+
+    // Ensure the path is actually inside content_dir (prevent traversal).
+    let canonical = fs::canonicalize(&col_dir).map_err(|e| format!("Resolving path: {}", e))?;
+    let canonical_content = fs::canonicalize(&content_dir).map_err(|e| format!("Resolving content dir: {}", e))?;
+    if !canonical.starts_with(&canonical_content) {
+        return Err("Path outside content directory".into());
+    }
+
+    fs::remove_dir_all(&col_dir).map_err(|e| format!("Deleting collection: {}", e))?;
+    Ok(())
+}
+
+fn capitalize_name(s: &str) -> String {
+    let mut chars = s.chars();
+    match chars.next() {
+        None => String::new(),
+        Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
+    }
 }

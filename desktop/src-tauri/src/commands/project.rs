@@ -76,10 +76,14 @@ pub fn open_project(dir: String, state: tauri::State<AppState>) -> Result<Projec
 }
 
 /// Create a new project: scaffold directories, write site.yaml, _index.md, .gitignore.
+/// Template determines the initial collection structure.
 #[tauri::command]
 pub fn create_project(
     dir: String,
     title: String,
+    template: Option<String>,
+    description: Option<String>,
+    author: Option<String>,
     state: tauri::State<AppState>,
 ) -> Result<ProjectInfo, String> {
     let abs_dir = PathBuf::from(&dir);
@@ -94,6 +98,7 @@ pub fn create_project(
     } else {
         title
     };
+    let template = template.unwrap_or_else(|| "empty".to_string());
 
     // Scaffold directories.
     for d in &["content", "static"] {
@@ -101,18 +106,111 @@ pub fn create_project(
             .map_err(|e| format!("Creating directory: {}", e))?;
     }
 
-    // Write site.yaml.
-    let site_yaml = format!(
-        "site:\n  title: \"{}\"\n  url: \"http://localhost:3000\"\n",
+    // Build site.yaml content.
+    let mut yaml_parts = vec![format!(
+        "site:\n  title: \"{}\"\n  url: \"http://localhost:3000\"",
         title.replace('"', "\\\"")
-    );
-    fs::write(abs_dir.join("site.yaml"), &site_yaml)
+    )];
+
+    if let Some(ref desc) = description {
+        if !desc.is_empty() {
+            yaml_parts.push(format!("  description: \"{}\"", desc.replace('"', "\\\"")));
+        }
+    }
+    if let Some(ref auth) = author {
+        if !auth.is_empty() {
+            yaml_parts.push(format!("  author: \"{}\"", auth.replace('"', "\\\"")));
+        }
+    }
+
+    // Template-specific config sections.
+    match template.as_str() {
+        "blog" => {
+            yaml_parts.push("\nbuild:\n  feed: true".to_string());
+        }
+        "docs" => {
+            yaml_parts.push("\nsidebar:\n  auto_generate: true".to_string());
+            yaml_parts.push("\nbuild:\n  search: true".to_string());
+        }
+        _ => {} // "empty" — no extra config
+    }
+
+    yaml_parts.push(String::new()); // trailing newline
+    fs::write(abs_dir.join("site.yaml"), yaml_parts.join("\n"))
         .map_err(|e| format!("Writing site.yaml: {}", e))?;
 
     // Write content/_index.md.
     let index_md = "---\ntitle: Welcome\n---\n\n# Welcome to your new site\n\nEdit this page at `content/_index.md`, then run `coderoo serve` to see your changes.\n";
     fs::write(abs_dir.join("content/_index.md"), index_md)
         .map_err(|e| format!("Writing _index.md: {}", e))?;
+
+    // Template-specific content scaffolding.
+    match template.as_str() {
+        "blog" => {
+            let posts_dir = abs_dir.join("content/posts");
+            fs::create_dir_all(&posts_dir)
+                .map_err(|e| format!("Creating posts dir: {}", e))?;
+            fs::write(
+                posts_dir.join("_index.md"),
+                "---\ntitle: Posts\n---\n",
+            )
+            .map_err(|e| format!("Writing posts/_index.md: {}", e))?;
+            fs::write(
+                posts_dir.join("hello-world.md"),
+                &format!(
+                    "---\ntitle: Hello World\ndate: {}T00:00:00Z\ndraft: true\ntags:\n  - getting-started\n---\n\n# Hello World\n\nThis is your first blog post. Edit or delete this file to get started.\n",
+                    chrono::Utc::now().format("%Y-%m-%d")
+                ),
+            )
+            .map_err(|e| format!("Writing hello-world.md: {}", e))?;
+        }
+        "docs" => {
+            let docs_dir = abs_dir.join("content/docs");
+            fs::create_dir_all(&docs_dir)
+                .map_err(|e| format!("Creating docs dir: {}", e))?;
+            fs::write(
+                docs_dir.join("_index.md"),
+                "---\ntitle: Documentation\n---\n",
+            )
+            .map_err(|e| format!("Writing docs/_index.md: {}", e))?;
+            let lessons: &[(&str, &str, &str)] = &[
+                (
+                    "01-getting-started.md",
+                    "Getting Started",
+                    "This is the first page in your documentation. Edit it to introduce your project.\n\nFiles with a numeric prefix (`01-`, `02-`, …) are ordered automatically and can be drag-reordered in the sidebar.\n",
+                ),
+                (
+                    "02-installation.md",
+                    "Installation",
+                    "Describe how users install or set up your project.\n\n## Prerequisites\n\n- Requirement one\n- Requirement two\n\n## Steps\n\n1. First step\n2. Second step\n",
+                ),
+                (
+                    "03-configuration.md",
+                    "Configuration",
+                    "Document configuration options here.\n\n```yaml\n# Example configuration\nkey: value\n```\n",
+                ),
+                (
+                    "04-next-steps.md",
+                    "Next Steps",
+                    "Point readers to deeper topics once they're up and running.\n\n- Link to related guides\n- Link to API references\n",
+                ),
+            ];
+            for (i, (filename, title, body)) in lessons.iter().enumerate() {
+                fs::write(
+                    docs_dir.join(filename),
+                    &format!(
+                        "---\ntitle: {}\nweight: {}\n---\n\n# {}\n\n{}",
+                        title,
+                        i + 1,
+                        title,
+                        body
+                    ),
+                )
+                .map_err(|e| format!("Writing {}: {}", filename, e))?;
+            }
+        }
+        _ => {} // "empty" — no extra content
+    }
 
     // Write .gitignore.
     fs::write(abs_dir.join(".gitignore"), "dist/\n.cache/\n")

@@ -56,7 +56,7 @@ func BuildCollections(
 		schema, _ := content.LoadSchema(filepath.Join(contentDir, name))
 
 		// 4. Build pages
-		pages, warnings, err := buildPages(colFiles, contentDir, collCfg, schema, siteCfg.Content.SummaryLength)
+		pages, warnings, err := buildPages(colFiles, contentDir, collCfg, schema, siteCfg.Content.SummaryLength, string(siteCfg.Build.LastUpdated))
 		if err != nil {
 			return nil, nil, err
 		}
@@ -85,6 +85,7 @@ func BuildCollections(
 			Title:     collectionTitle(name, indexPage),
 			Config:    collCfg,
 			Pages:     pages,
+			Featured:  extractFeatured(pages),
 			Sections:  sections,
 			IndexPage: indexPage,
 		}
@@ -140,6 +141,7 @@ func BuildStandalonePages(
 	files []content.ContentFile,
 	contentDir string,
 	summaryLength int,
+	lastUpdatedStrategy string,
 ) ([]*engine.Page, error) {
 	grouped := groupByCollection(files)
 	rootFiles := grouped[""]
@@ -147,8 +149,25 @@ func BuildStandalonePages(
 		return nil, nil
 	}
 
-	pages, _, err := buildPages(rootFiles, contentDir, nil, nil, summaryLength)
+	pages, _, err := buildPages(rootFiles, contentDir, nil, nil, summaryLength, lastUpdatedStrategy)
 	return pages, err
+}
+
+// extractFeatured returns the subset of pages whose frontmatter Params has
+// `featured: true`.
+func extractFeatured(pages []*engine.Page) []*engine.Page {
+	var out []*engine.Page
+	for _, p := range pages {
+		if p.Params == nil {
+			continue
+		}
+		if v, ok := p.Params["featured"]; ok {
+			if b, _ := v.(bool); b {
+				out = append(out, p)
+			}
+		}
+	}
+	return out
 }
 
 // ---------------------------------------------------------------------------
@@ -169,9 +188,10 @@ func buildPages(
 	collCfg *engine.CollectionConfig,
 	schema *engine.FrontmatterSchema,
 	summaryLength int,
+	lastUpdatedStrategy string,
 ) ([]*engine.Page, []engine.ValidationWarning, error) {
 	parser := &content.Parser{}
-	inferrer := &content.Inferrer{}
+	inferrer := &content.Inferrer{LastUpdatedStrategy: lastUpdatedStrategy}
 	transformer := &content.Transformer{SummaryLength: summaryLength}
 	validator := &content.Validator{}
 
@@ -235,6 +255,9 @@ func buildPages(
 			Lang:          cf.Lang,
 			LangRelPath:   cf.LangRelPath,
 		}
+		if rel, err := filepath.Rel(contentDir, cf.FilePath); err == nil {
+			page.RelPath = filepath.ToSlash(rel)
+		}
 
 		// Transfer section-specific fields to Params for section builder
 		if fm.Transparent {
@@ -248,6 +271,13 @@ func buildPages(
 				page.Params = make(map[string]any)
 			}
 			page.Params["render"] = false
+		}
+		// Transfer `featured` (unknown to typed Frontmatter) from the raw map.
+		if b, ok := fmMap["featured"].(bool); ok && b {
+			if page.Params == nil {
+				page.Params = make(map[string]any)
+			}
+			page.Params["featured"] = true
 		}
 
 		// Infer defaults (title, date, slug, weight)

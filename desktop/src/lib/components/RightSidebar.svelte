@@ -1,7 +1,8 @@
 <script>
-  import { ui, doc, warnings, runValidation } from '../stores/app.svelte.js'
-  import { List, PencilLine, Image, TrendingUp, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-svelte'
+  import { ui, doc, warnings, runValidation, loadAssets } from '../stores/app.svelte.js'
+  import { List, PencilLine, Image, TrendingUp, AlertTriangle, CheckCircle, RefreshCw, Code } from 'lucide-svelte'
   import PropertiesPanel from './PropertiesPanel.svelte'
+  import MediaPanel from './MediaPanel.svelte'
 
   function togglePanel(panel) {
     ui.rightPanel = ui.rightPanel === panel ? null : panel
@@ -69,15 +70,30 @@
         </div>
 
       {:else if ui.rightPanel === 'properties'}
-        <div class="panel-header"><span class="panel-title">Properties</span></div>
+        <div class="panel-header">
+          <span class="panel-title">Properties</span>
+          <button
+            class="panel-action"
+            class:active={ui.propertiesMode === 'yaml'}
+            onclick={() => { ui.propertiesMode = ui.propertiesMode === 'form' ? 'yaml' : 'form' }}
+            title={ui.propertiesMode === 'form' ? 'Switch to raw YAML' : 'Switch to form view'}
+          >
+            <Code size={13} />
+          </button>
+        </div>
         <div class="panel-body">
           <PropertiesPanel />
         </div>
 
       {:else if ui.rightPanel === 'assets'}
-        <div class="panel-header"><span class="panel-title">Assets</span></div>
+        <div class="panel-header">
+          <span class="panel-title">Assets</span>
+          <button class="panel-action" onclick={() => loadAssets()} title="Refresh">
+            <RefreshCw size={13} />
+          </button>
+        </div>
         <div class="panel-body">
-          <p class="empty-msg">Drag files here or browse to add assets.</p>
+          <MediaPanel />
         </div>
 
       {:else if ui.rightPanel === 'stats'}
@@ -329,6 +345,10 @@
   .panel-action:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .panel-action.active {
+    color: var(--color-accent, #89b4fa);
   }
 
   /* Warnings */

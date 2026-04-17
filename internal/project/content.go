@@ -10,8 +10,12 @@ import (
 	"time"
 
 	"github.com/coderoo-dev/coderoo/internal/content"
+	"github.com/coderoo-dev/coderoo/internal/editor"
 	"gopkg.in/yaml.v3"
 )
+
+// revisionRetention caps the number of snapshots kept per file.
+const revisionRetention = 20
 
 // contentDirForCollection returns the absolute path to a collection's content directory.
 func contentDirForCollection(projectDir, collection string) string {
@@ -50,12 +54,16 @@ func writeContentFile(contentDir, relPath string, fm map[string]any, body string
 	}
 	sb.WriteString(body)
 
-	// Write atomically: temp file then rename.
-	tmpPath := absPath + ".tmp"
-	if err := os.WriteFile(tmpPath, []byte(sb.String()), 0o644); err != nil {
+	// Atomic write + .bak backup + revision snapshot for existing files.
+	if err := editor.SafeWrite(absPath, []byte(sb.String()), editor.SafeWriteOptions{
+		Backup:   true,
+		Revision: true,
+	}); err != nil {
 		return err
 	}
-	return os.Rename(tmpPath, absPath)
+	// Best-effort cap on revision growth.
+	_ = editor.PruneRevisions(absPath, revisionRetention)
+	return nil
 }
 
 // validateContentPath ensures the path is within the content directory and does not traverse.

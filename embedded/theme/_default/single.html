@@ -2,6 +2,7 @@
 <article>
   {{ component "PageTitle" . }}
   {{ .Page.Content }}
+  {{ component "EditLink" . }}
   {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
 </article>
 {{ end }}

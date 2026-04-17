@@ -87,10 +87,21 @@ func (ds *DevServer) Start() error {
 		Handler: mux,
 	}
 
-	// Bind the listener first so we know the actual port (important when port=0).
-	ln, err := net.Listen("tcp", ds.server.Addr)
-	if err != nil {
-		return fmt.Errorf("listen: %w", err)
+	// Bind the listener, retrying up to 10 consecutive ports on EADDRINUSE.
+	var ln net.Listener
+	basePort := ds.port
+	for i := 0; i < 10; i++ {
+		tryAddr := fmt.Sprintf(":%d", basePort+i)
+		var listenErr error
+		ln, listenErr = net.Listen("tcp", tryAddr)
+		if listenErr == nil {
+			ds.server.Addr = tryAddr
+			break
+		}
+		if i == 9 {
+			return fmt.Errorf("could not bind to any port in range %d–%d: %w", basePort, basePort+9, listenErr)
+		}
+		log.Printf("Port %d in use, trying %d...", basePort+i, basePort+i+1)
 	}
 	actualPort := ln.Addr().(*net.TCPAddr).Port
 
