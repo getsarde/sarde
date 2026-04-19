@@ -1,0 +1,116 @@
+/* Coderoo Default Theme — Prose/Content Typography */
+
+/* ── Headings ── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--fb-font-sans);
+  font-weight: var(--fb-weight-bold);
+  line-height: var(--fb-line-height-headings);
+  color: var(--fb-text);
+  margin-top: var(--fb-space-8);
+  margin-bottom: var(--fb-space-3);
+  scroll-margin-top: calc(var(--fb-nav-height) + var(--fb-space-4));
+}
+
+h1 { font-size: var(--fb-text-3xl); letter-spacing: -0.025em; margin-top: 0; }
+h2 { font-size: var(--fb-text-2xl); letter-spacing: -0.02em; padding-bottom: var(--fb-space-2); border-bottom: 1px solid var(--fb-border); }
+h3 { font-size: var(--fb-text-xl); }
+h4 { font-size: var(--fb-text-lg); }
+h5, h6 { font-size: var(--fb-text-base); }
+
+
+/* ── Prose ── */
+article p,
+.content p {
+  margin-bottom: var(--fb-space-4);
+}
+
+article ul, article ol,
+.content ul, .content ol {
+  padding-left: var(--fb-space-6);
+  margin-bottom: var(--fb-space-4);
+}
+
+article li,
+.content li {
+  margin-bottom: var(--fb-space-1);
+}
+
+article li > ul, article li > ol,
+.content li > ul, .content li > ol {
+  margin-top: var(--fb-space-1);
+  margin-bottom: 0;
+}
+
+article blockquote,
+.content blockquote {
+  border-left: 4px solid var(--fb-border);
+  padding: var(--fb-space-1) var(--fb-space-4);
+  color: var(--fb-text-muted);
+  margin: var(--fb-space-6) 0;
+}
+
+article hr,
+.content hr {
+  border: none;
+  border-top: 1px solid var(--fb-border);
+  margin: var(--fb-space-8) 0;
+}
+
+/* ── Inline Code ── */
+:not(pre) > code {
+  font-family: var(--fb-font-mono);
+  font-size: 0.875em;
+  padding: 0.125rem 0.375rem;
+  background: var(--fb-bg-inline-code);
+  border-radius: var(--fb-radius-sm);
+  color: var(--fb-text);
+}
+
+/* ── Code Blocks ── */
+pre {
+  margin: var(--fb-space-6) 0;
+  padding: var(--fb-space-4);
+  overflow-x: auto;
+  font-family: var(--fb-font-mono);
+  font-size: var(--fb-text-sm);
+  line-height: 1.7;
+  background: var(--fb-code-bg);
+  border: 1px solid var(--fb-code-border);
+  border-radius: var(--fb-radius-lg);
+  color: var(--fb-code-text);
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* ── Tables ── */
+article table,
+.content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--fb-space-6) 0;
+  font-size: var(--fb-text-sm);
+}
+
+article th,
+.content th {
+  text-align: left;
+  font-weight: var(--fb-weight-semibold);
+  padding: var(--fb-space-2) var(--fb-space-3);
+  border-bottom: 2px solid var(--fb-border);
+}
+
+article td,
+.content td {
+  padding: var(--fb-space-2) var(--fb-space-3);
+  border-bottom: 1px solid var(--fb-border);
+}
+
+/* ── Images ── */
+article img,
+.content img {
+  border-radius: var(--fb-radius-md);
+}

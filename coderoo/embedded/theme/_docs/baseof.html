@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="{{ .Lang }}" dir="{{ .Dir }}">
+<head>
+  <script>if(localStorage.getItem('fb-theme')==='dark'||(localStorage.getItem('fb-theme')!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')</script>
+  {{ component "Head" . }}
+</head>
+<body class="layout-{{ .Layout }}">
+  {{ if .HasSidebar }}
+  <aside class="docs-sidebar">
+    <div class="docs-sidebar-nav">
+      {{ component "Sidebar" . }}
+    </div>
+  </aside>
+  {{ end }}
+  <div class="docs-main">
+    {{ component "Header" . }}
+    <main class="docs-content-area">
+      <div class="docs-content-grid">
+        <div class="docs-content">
+          {{ if .Breadcrumbs }}{{ component "Breadcrumbs" . }}{{ end }}
+          {{ component "MobileTableOfContents" . }}
+          <article>
+            {{ block "content" . }}{{ .Page.Content }}{{ end }}
+          </article>
+          {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
+        </div>
+        {{ if .Page.Headings }}
+        <aside class="docs-toc">
+          <div class="docs-toc-inner">
+            {{ component "TableOfContents" . }}
+          </div>
+        </aside>
+        {{ end }}
+      </div>
+    </main>
+    {{ component "Footer" . }}
+  </div>
+  {{ component "Scripts" . }}
+</body>
+</html>
