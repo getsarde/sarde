@@ -48,11 +48,18 @@ func ThemeCSS() string {
 		"css/content.css",
 		"css/components.css",
 		"css/extensions.css",
+		"css/style.css",
+		"css/blog.css",
+		"css/search.css",
+		"css/homepage.css",
+		"css/utilities.css",
+		"css/print.css",
 		"css/dark.css",
 	}
 
 	efs := ThemeFS()
 	var sb strings.Builder
+	sb.WriteString("@layer coderoo.base, coderoo.reset, coderoo.core, coderoo.content, coderoo.components, coderoo.variants, coderoo.utils;\n")
 	for _, name := range cssOrder {
 		data, err := fs.ReadFile(efs, name)
 		if err != nil {

@@ -7,6 +7,7 @@ import (
 	"path"
 	"path/filepath"
 
+	collectionpkg "github.com/coderoo-dev/coderoo/internal/collection"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 )
 
@@ -119,6 +120,14 @@ func buildTemplateCandidates(resolver *engine.ThemeResolver, collection string, 
 		}
 	}
 
+	// Layer 3-4 (blog only): _blog/ specific
+	if collection != "" && collectionpkg.IsBlogName(collection) {
+		candidates = append(candidates, fsCandidate(filepath.Join(projDir, "layouts", "_blog", name)))
+		if theme != "" {
+			candidates = append(candidates, fsCandidate(filepath.Join(projDir, "themes", theme, "layouts", "_blog", name)))
+		}
+	}
+
 	// Layer 5-6: _default (user, then theme)
 	candidates = append(candidates, fsCandidate(filepath.Join(projDir, "layouts", "_default", name)))
 	if theme != "" {
@@ -129,6 +138,9 @@ func buildTemplateCandidates(resolver *engine.ThemeResolver, collection string, 
 	if resolver.EmbeddedFS != nil {
 		if layout == engine.LayoutDocs {
 			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join("_docs", name)))
+		}
+		if collection != "" && collectionpkg.IsBlogName(collection) {
+			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join("_blog", name)))
 		}
 		candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join("_default", name)))
 	}

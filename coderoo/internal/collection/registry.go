@@ -278,6 +278,12 @@ func buildPages(
 			}
 			page.Params["featured"] = true
 		}
+		if fm.Template != "" {
+			if page.Params == nil {
+				page.Params = make(map[string]any)
+			}
+			page.Params["template"] = fm.Template
+		}
 
 		// Infer defaults (title, date, slug, weight)
 		if err := inferrer.Infer(page, cf.FilePath); err != nil {

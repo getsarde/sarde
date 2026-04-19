@@ -89,17 +89,15 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		outputDir = filepath.Join(b.projectDir, b.config.Build.Output)
 	}
 
-	// i18n: load translation strings (if multi-language)
+	// i18n: load translation strings (always — UI strings are needed even for single-language sites)
 	isMultiLang := b.config.I18n.IsMultiLang()
 	defaultLang := b.config.I18n.GetDefaultLanguage()
-	var stringTable *i18n.StringTable
-	if isMultiLang {
-		var err error
-		stringTable, err = i18n.LoadStrings(embedded.I18nFS(), b.projectDir, b.config.Theme.Name, defaultLang)
-		if err != nil {
-			return nil, fmt.Errorf("loading i18n strings: %w", err)
-		}
+	stringTable, err := i18n.LoadStrings(embedded.I18nFS(), b.projectDir, b.config.Theme.Name, defaultLang)
+	if err != nil {
+		return nil, fmt.Errorf("loading i18n strings: %w", err)
+	}
 
+	if isMultiLang {
 		// Configure scanner for multi-language detection
 		langCodes := make(map[string]bool)
 		for code := range b.config.I18n.Languages {

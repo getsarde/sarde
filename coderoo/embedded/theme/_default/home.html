@@ -7,16 +7,30 @@
       {{ partial "home-minimal.html" . }}
     {{ else if eq .Homepage.Template "dashboard" }}
       {{ partial "home-dashboard.html" . }}
+    {{ else if eq .Homepage.Template "portfolio" }}
+      {{ partial "home-portfolio.html" . }}
+    {{ else if eq .Homepage.Template "landing" }}
+      {{ partial "home-landing.html" . }}
+    {{ else if eq .Homepage.Template "marketing" }}
+      {{ partial "home-marketing.html" . }}
+    {{ else if eq .Homepage.Template "blog" }}
+      {{ partial "home-blog.html" . }}
     {{ else }}
       {{ partial "home-hero.html" . }}
     {{ end }}
   {{ else }}
     {{ partial "home-hero.html" . }}
   {{ end }}
-  {{ if .Page.Content }}
+  {{ if and .Page.Content (not .Homepage) }}
   <div class="home-content">
     {{ .Page.Content }}
   </div>
+  {{ else if and .Page.Content .Homepage }}
+    {{ if not (or (eq .Homepage.Template "portfolio") (eq .Homepage.Template "landing") (eq .Homepage.Template "marketing") (eq .Homepage.Template "blog")) }}
+    <div class="home-content">
+      {{ .Page.Content }}
+    </div>
+    {{ end }}
   {{ end }}
 </div>
 {{ end }}

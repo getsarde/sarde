@@ -1,0 +1,33 @@
+<section class="landing-hero hero-bg-{{ if .Homepage }}{{ .Homepage.Hero.Background }}{{ else }}gradient{{ end }}">
+  <div class="landing-hero-inner">
+    <h1 class="landing-title">
+      {{- if and .Homepage .Homepage.Hero.Title }}{{ .Homepage.Hero.Title }}{{ else }}{{ .Site.Title }}{{ end -}}
+    </h1>
+    {{ if and .Homepage .Homepage.Hero.Subtitle }}
+    <p class="landing-subtitle">{{ .Homepage.Hero.Subtitle }}</p>
+    {{ end }}
+    {{ if and .Homepage .Homepage.Hero.CTA }}
+    <div class="hero-actions">
+      <a href="{{ .Homepage.Hero.CTA.URL }}" class="hero-cta hero-cta-lg">{{ .Homepage.Hero.CTA.Label }}</a>
+    </div>
+    {{ end }}
+  </div>
+</section>
+
+{{ if .Page.Content }}
+<div class="landing-content fb-markdown-content">
+  {{ .Page.Content }}
+</div>
+{{ end }}
+
+{{ if and .Homepage .Homepage.Hero.CTA }}
+<section class="landing-cta-bottom">
+  <h2 class="landing-cta-title">{{ t "home.get_started" }}</h2>
+  {{ if and .Homepage .Homepage.Hero.Subtitle }}
+  <p class="landing-cta-subtitle">{{ .Homepage.Hero.Subtitle }}</p>
+  {{ end }}
+  <div class="hero-actions">
+    <a href="{{ .Homepage.Hero.CTA.URL }}" class="hero-cta hero-cta-lg">{{ .Homepage.Hero.CTA.Label }}</a>
+  </div>
+</section>
+{{ end }}

@@ -1,0 +1,44 @@
+<section class="home-portfolio">
+  <div class="portfolio-hero">
+    <h1 class="portfolio-title">
+      {{- if and .Homepage .Homepage.Hero.Title }}{{ .Homepage.Hero.Title }}{{ else }}{{ .Site.Title }}{{ end -}}
+    </h1>
+    {{ if and .Homepage .Homepage.Hero.Subtitle }}
+    <p class="portfolio-subtitle">{{ .Homepage.Hero.Subtitle }}</p>
+    {{ end }}
+    {{ if and .Homepage .Homepage.Hero.CTA }}
+    <div class="hero-actions">
+      <a href="{{ .Homepage.Hero.CTA.URL }}" class="hero-cta">{{ .Homepage.Hero.CTA.Label }}</a>
+    </div>
+    {{ end }}
+  </div>
+</section>
+
+{{ if .Page.Content }}
+<div class="portfolio-content fb-markdown-content">
+  {{ .Page.Content }}
+</div>
+{{ end }}
+
+{{ range $name, $col := allCollections }}
+{{ $recent := recentEntries $name 3 }}
+{{ if $recent }}
+<section class="portfolio-recent">
+  <div class="portfolio-recent-inner">
+    <div class="section-header-row">
+      <h2 class="section-label">{{ $col.Title }}</h2>
+      <a class="section-link" href="/{{ $name }}/">{{ t "home.all_posts" }} &rarr;</a>
+    </div>
+    <div class="recent-grid">
+      {{ range $recent }}
+      <a class="recent-card" href="{{ .RelPermalink }}">
+        <span class="recent-card-title">{{ .Title }}</span>
+        {{ if not .Date.IsZero }}<time class="recent-card-date">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
+        {{ if .Summary }}<span class="recent-card-excerpt">{{ .Summary }}</span>{{ end }}
+      </a>
+      {{ end }}
+    </div>
+  </div>
+</section>
+{{ end }}
+{{ end }}

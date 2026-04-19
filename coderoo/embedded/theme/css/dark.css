@@ -1,44 +1,52 @@
-/* Coderoo Default Theme — Dark Mode Overrides
-   Token-based dark mode swaps are handled by :root.dark in the generated
-   <style id="fb-theme"> block. This file handles non-token overrides. */
+@layer coderoo.reset {
+	/* Coderoo Default Theme — Dark Mode Overrides
+	   Token-based dark mode swaps are handled by :root.dark in the generated
+	   <style id="fb-theme"> block. This file handles non-token overrides. */
 
-:root.dark {
-  /* ── Semantic Remaps ── */
-  --fb-text: var(--fb-gray-3);
-  --fb-text-muted: var(--fb-gray-4);
-  --fb-text-subtle: var(--fb-gray-5);
-  --fb-text-accent: var(--fb-primary-high, var(--fb-primary, #818cf8));
-  --fb-text-invert: var(--fb-black);
+	:root.dark {
+	  /* ── Semantic Remaps ── */
+	  --fb-text: var(--fb-gray-3);
+	  --fb-text-muted: var(--fb-gray-4);
+	  --fb-text-subtle: var(--fb-gray-5);
+	  --fb-text-accent: var(--fb-primary-high, var(--fb-primary, #818cf8));
+	  --fb-text-invert: var(--fb-black);
 
-  --fb-bg: var(--fb-black);
-  --fb-bg-surface: var(--fb-gray-9);
-  --fb-bg-inline-code: var(--fb-gray-8);
-  --fb-bg-accent-subtle: var(--fb-primary-low, rgba(99, 102, 241, 0.15));
-  --fb-hover: var(--fb-gray-8);
+	  --fb-bg: var(--fb-black);
+	  --fb-bg-surface: var(--fb-gray-9);
+	  --fb-bg-inline-code: var(--fb-gray-8);
+	  --fb-bg-accent-subtle: var(--fb-primary-low, rgba(99, 102, 241, 0.15));
+	  --fb-hover: var(--fb-gray-8);
 
-  --fb-border: var(--fb-gray-8);
-  --fb-border-muted: var(--fb-gray-7);
-  --fb-border-accent: var(--fb-primary-high, var(--fb-primary, #818cf8));
-  --fb-hairline: var(--fb-gray-8);
+	  --fb-border: var(--fb-gray-8);
+	  --fb-border-muted: var(--fb-gray-7);
+	  --fb-border-accent: var(--fb-primary-high, var(--fb-primary, #818cf8));
+	  --fb-hairline: var(--fb-gray-8);
 
-  --fb-code-bg: var(--fb-gray-9);
-  --fb-code-border: var(--fb-gray-7);
+	  --fb-code-bg: var(--fb-gray-9);
+	  --fb-code-border: var(--fb-gray-7);
 
-  /* ── Shadows ── */
-  --fb-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
-  --fb-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  --fb-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
+	  /* ── Shadows ── */
+	  --fb-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+	  --fb-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+	  --fb-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
+	  --fb-shadow-accent: 0 4px 14px -2px rgba(129, 140, 248, 0.2);
 
-  /* ── Dark aside variants ── */
-  --fb-aside-note-bg: rgba(59, 130, 246, 0.1);
-  --fb-aside-tip-bg: rgba(34, 197, 94, 0.1);
-  --fb-aside-caution-bg: rgba(245, 158, 11, 0.1);
-  --fb-aside-danger-bg: rgba(239, 68, 68, 0.1);
+	  /* ── Glass ── */
+	  --fb-glass-bg: rgba(0, 0, 0, 0.6);
+	  --fb-glass-border: rgba(255, 255, 255, 0.08);
 
-  color-scheme: dark;
-}
+	  /* ── Dark aside variants ── */
+	  --fb-aside-note-bg: rgba(59, 130, 246, 0.1);
+	  --fb-aside-tip-bg: rgba(34, 197, 94, 0.1);
+	  --fb-aside-caution-bg: rgba(245, 158, 11, 0.1);
+	  --fb-aside-danger-bg: rgba(239, 68, 68, 0.1);
 
-/* Image opacity in dark mode */
-:root.dark img:not([src*=".svg"]) {
-  opacity: 0.9;
+	  color-scheme: dark;
+	}
+
+	/* Image opacity in dark mode */
+	:root.dark img:not([src*=".svg"]) {
+	  opacity: 0.9;
+	}
+
 }

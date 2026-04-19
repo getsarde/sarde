@@ -1,0 +1,47 @@
+@layer coderoo.utils {
+	/* Coderoo Default Theme — Print Stylesheet */
+
+	@media print {
+	  /* Hide non-content elements */
+	  .docs-sidebar, .site-header, .docs-toc, .mobile-toc,
+	  .search-modal, .search-trigger, .theme-toggle,
+	  .copy-btn, .heading-anchor, .mobile-menu-toggle,
+	  .spoiler-toggle, .skip-link, .pagination,
+	  .post-navigation, .blog-pagination,
+	  .header, .navbar, .footer { display: none !important; }
+
+	  /* Full-width content */
+	  .docs-main { padding-left: 0 !important; }
+	  .docs-content { max-width: none !important; }
+	  .docs-content-area { padding: 0 !important; }
+	  .docs-content-grid { display: block !important; }
+	  body { font-size: 12pt; line-height: 1.6; color: #000; background: #fff; }
+
+	  /* Typography */
+	  h1 { font-size: 20pt; }
+	  h2 { font-size: 16pt; }
+	  h3 { font-size: 14pt; }
+	  h4 { font-size: 12pt; }
+
+	  /* Page breaks */
+	  h1, h2, h3 { page-break-after: avoid; }
+	  aside, pre, table, figure, img { page-break-inside: avoid; }
+
+	  /* Links: show URL for external, hide for internal */
+	  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.8em; color: #666; }
+	  a[href^="/"]::after { content: none; }
+
+	  /* Simplified asides */
+	  .aside { border: 1px solid #ccc; border-left: 4px solid #666; background: none !important; }
+	  .aside-icon { display: none; }
+
+	  /* Code blocks */
+	  pre { white-space: pre-wrap; word-wrap: break-word; border: 1px solid #ccc; background: #f5f5f5 !important; }
+	  .code-title { background: #eee !important; border-bottom: 1px solid #ccc; }
+	  .code-block { border: 1px solid #ccc; }
+
+	  /* Images */
+	  img { max-width: 100%; }
+	}
+
+}

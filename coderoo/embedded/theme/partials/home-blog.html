@@ -1,0 +1,36 @@
+<section class="blog-hero">
+  <h1 class="blog-author-name">
+    {{- if and .Homepage .Homepage.Hero.Title }}{{ .Homepage.Hero.Title }}{{ else }}{{ .Site.Title }}{{ end -}}
+  </h1>
+  {{ if and .Homepage .Homepage.Hero.Subtitle }}
+  <p class="blog-author-bio">{{ .Homepage.Hero.Subtitle }}</p>
+  {{ end }}
+</section>
+
+{{ if .Page.Content }}
+<div class="blog-home-content fb-markdown-content">
+  {{ .Page.Content }}
+</div>
+{{ end }}
+
+{{ range $name, $col := allCollections }}
+{{ $recent := recentEntries $name 5 }}
+{{ if $recent }}
+<section class="blog-recent">
+  <div class="blog-recent-inner">
+    <div class="section-header-row">
+      <h2 class="section-label">{{ $col.Title }}</h2>
+      <a class="section-link" href="/{{ $name }}/">{{ t "home.all_posts" }} &rarr;</a>
+    </div>
+    <ul class="blog-recent-list">
+      {{ range $recent }}
+      <li>
+        <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+        {{ if not .Date.IsZero }}<time>{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
+      </li>
+      {{ end }}
+    </ul>
+  </div>
+</section>
+{{ end }}
+{{ end }}

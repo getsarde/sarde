@@ -6,6 +6,11 @@ var blogNames = map[string]bool{
 	"blog": true, "posts": true, "articles": true, "news": true,
 }
 
+// IsBlogName returns true if the directory name maps to a blog-type collection.
+func IsBlogName(name string) bool {
+	return blogNames[name]
+}
+
 var docsNames = map[string]bool{
 	"docs": true, "documentation": true, "guides": true, "reference": true,
 	"courses": true, "tutorials": true, "lessons": true, "workshops": true,

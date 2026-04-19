@@ -19,7 +19,7 @@
         <div class="docs-content">
           {{ if .Breadcrumbs }}{{ component "Breadcrumbs" . }}{{ end }}
           {{ component "MobileTableOfContents" . }}
-          <article>
+          <article class="fb-markdown-content">
             {{ block "content" . }}{{ .Page.Content }}{{ end }}
           </article>
           {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
