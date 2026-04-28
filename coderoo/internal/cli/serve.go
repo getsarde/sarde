@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -26,6 +27,7 @@ func init() {
 	serveCmd.Flags().Bool("no-drafts", false, "Exclude draft content")
 	serveCmd.Flags().String("base-path", "", "Override URL base path (e.g. /docs/)")
 	serveCmd.Flags().String("content", "", "Override content directory path")
+	serveCmd.Flags().Bool("watch-stdin", false, "Exit when stdin closes (sidecar/child-process mode)")
 	rootCmd.AddCommand(serveCmd)
 }
 
@@ -121,6 +123,15 @@ func runServe(cmd *cobra.Command, args []string) error {
 		log.Printf("Content dir: %s", cfg.Content.Dir)
 		log.Printf("Base path: %q", cfg.Build.BasePath)
 		log.Printf("Live reload: %v", liveReload)
+	}
+
+	if watchStdin, _ := cmd.Flags().GetBool("watch-stdin"); watchStdin {
+		go func() {
+			buf := make([]byte, 1)
+			_, _ = os.Stdin.Read(buf) // blocks until EOF or 1 byte read
+			fmt.Fprintln(os.Stderr, "Parent process gone (stdin closed), shutting down")
+			os.Exit(0)
+		}()
 	}
 
 	ds := server.New(server.Options{

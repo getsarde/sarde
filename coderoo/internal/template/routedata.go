@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/coderoo-dev/coderoo/internal/config"
+	"github.com/coderoo-dev/coderoo/internal/consts"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 	"github.com/coderoo-dev/coderoo/internal/navigation"
 )
@@ -119,7 +120,7 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 				}
 			}
 		default:
-			rd.Template = "_default/single"
+			rd.Template = consts.DirDefault + "/single"
 		}
 		rd.SidebarType = "none"
 	}

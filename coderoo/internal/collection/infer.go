@@ -1,9 +1,12 @@
 package collection
 
-import "github.com/coderoo-dev/coderoo/internal/engine"
+import (
+	"github.com/coderoo-dev/coderoo/internal/consts"
+	"github.com/coderoo-dev/coderoo/internal/engine"
+)
 
 var blogNames = map[string]bool{
-	"blog": true, "posts": true, "articles": true, "news": true,
+	consts.CollectionBlog: true, "posts": true, "articles": true, "news": true,
 }
 
 // IsBlogName returns true if the directory name maps to a blog-type collection.
@@ -12,8 +15,8 @@ func IsBlogName(name string) bool {
 }
 
 var docsNames = map[string]bool{
-	"docs": true, "documentation": true, "guides": true, "reference": true,
-	"courses": true, "tutorials": true, "lessons": true, "workshops": true,
+	consts.CollectionDocs: true, "documentation": true, "guides": true, "reference": true,
+	consts.CollectionCourses: true, "tutorials": true, "lessons": true, "workshops": true,
 }
 
 // InferCollection returns a CollectionConfig with sensible defaults

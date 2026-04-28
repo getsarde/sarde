@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/coderoo-dev/coderoo/internal/consts"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -60,7 +61,7 @@ func (w *Watcher) Start() error {
 	w.watcher = fsw
 
 	// Add recursive watches on key directories.
-	watchDirs := []string{"content", "layouts", "assets", "data", "static", "themes"}
+	watchDirs := []string{consts.DirContent, consts.DirLayouts, consts.DirAssets, consts.DirData, consts.DirStatic, consts.DirThemes}
 	for _, dir := range watchDirs {
 		abs := filepath.Join(w.projectDir, dir)
 		if info, err := os.Stat(abs); err == nil && info.IsDir() {

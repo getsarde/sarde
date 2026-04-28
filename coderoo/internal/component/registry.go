@@ -9,6 +9,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/coderoo-dev/coderoo/internal/consts"
 )
 
 // Registry manages component templates with override support.
@@ -28,7 +30,7 @@ func NewRegistry(embeddedFS fs.FS, funcMap htmltemplate.FuncMap) (*Registry, err
 	}
 
 	if embeddedFS != nil {
-		if err := r.loadFromFS(embeddedFS, "components"); err != nil {
+		if err := r.loadFromFS(embeddedFS, consts.DirComponents); err != nil {
 			return nil, fmt.Errorf("loading embedded components: %w", err)
 		}
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/coderoo-dev/coderoo/internal/asset"
 	"github.com/coderoo-dev/coderoo/internal/collection"
 	"github.com/coderoo-dev/coderoo/internal/config"
+	"github.com/coderoo-dev/coderoo/internal/consts"
 	"github.com/coderoo-dev/coderoo/internal/content"
 	"github.com/coderoo-dev/coderoo/internal/content/markdown"
 	"github.com/coderoo-dev/coderoo/internal/engine"
@@ -468,7 +469,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	render404 := func(lang, dir, outPath string) {
 		page404 := &engine.Page{Title: "Page Not Found", Kind: engine.KindPage, Lang: lang}
 		rd404 := &engine.RouteData{
-			Template: "_default/404",
+			Template: consts.DirDefault + "/404",
 			Layout:   engine.LayoutDefault,
 			Site:     siteCtx,
 			Theme:    b.themeConfig,

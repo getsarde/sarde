@@ -5,37 +5,51 @@ A zero-config, Go-based static site generator that ships as a single binary. Dro
 ## Quick Start
 
 ```bash
+cd coderoo
 go run ./cmd/coderoo init my-site
 cd my-site
-go run ./cmd/coderoo serve
+go run ../cmd/coderoo serve
 ```
 
 ## Commands
 
 ```bash
-coderoo build     # Production build (with minification)
-coderoo serve     # Dev server with live reload (port 3000)
-coderoo init      # Scaffold a new project
-coderoo new       # Create new content
-coderoo validate  # Validate content without building
-coderoo sidecar   # Start IPC server for desktop app
+coderoo build                        # Production build (with minification)
+coderoo serve                        # Dev server with live reload (port 4727)
+coderoo init [path]                  # Scaffold a new project
+coderoo new <collection> <title>     # Create new content file
+coderoo new course <name>            # Scaffold a new course
+coderoo new lesson <course> <name>   # Add an auto-numbered lesson to a course
+coderoo validate                     # Validate content without building
+coderoo render                       # Render markdown from stdin to JSON
+coderoo deploy                       # Deploy the built site
+coderoo import obsidian <vault>      # Import an Obsidian vault
+coderoo sidecar                      # Start IPC server for desktop app
+coderoo version                      # Print version info
+```
+
+## Building
+
+All build commands must be run from the `coderoo/` directory (where `go.mod` lives):
+
+```bash
+cd coderoo
+
+# Build the binary (output: coderoo or coderoo.exe)
+go build -o ../dist/coderoo ./cmd/coderoo
+
+# Build with a version tag
+go build -ldflags "-X github.com/coderoo-dev/coderoo/internal/cli.Version=1.0.0" -o ../dist/coderoo ./cmd/coderoo
+
+# Cross-compile examples
+GOOS=linux   GOARCH=amd64 go build -o ../dist/coderoo-linux   ./cmd/coderoo
+GOOS=darwin  GOARCH=arm64 go build -o ../dist/coderoo-macos   ./cmd/coderoo
+GOOS=windows GOARCH=amd64 go build -o ../dist/coderoo.exe     ./cmd/coderoo
 ```
 
 ## Development
 
 ```bash
-make build        # Build binary to dist/
-make test         # Run all tests
-make bench        # Run performance benchmarks
-make vet          # Run static analysis
-make clean        # Remove dist/ and .cache/
-make build-all    # Cross-compile for linux, macOS, Windows
-```
-
-Or without Make:
-
-```bash
-go build ./cmd/coderoo                                      # Build binary
 go test ./...                                               # Run all tests
 go test -bench=. -benchmem -timeout 300s ./internal/build/  # Run benchmarks
 go vet ./...                                                # Static analysis

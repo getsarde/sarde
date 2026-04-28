@@ -13,6 +13,7 @@ import (
 
 	"github.com/coderoo-dev/coderoo/internal/asset"
 	"github.com/coderoo-dev/coderoo/internal/component"
+	"github.com/coderoo-dev/coderoo/internal/consts"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 	"github.com/coderoo-dev/coderoo/internal/i18n"
 )
@@ -94,14 +95,14 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 
 	// Load theme component overrides.
 	if resolver.ThemeName != "" {
-		themeCompDir := filepath.Join(resolver.ProjectDir, "themes", resolver.ThemeName, "layouts", "components")
+		themeCompDir := filepath.Join(resolver.ProjectDir, consts.DirThemes, resolver.ThemeName, consts.DirLayouts, consts.DirComponents)
 		if err := registry.LoadOverridesFromDir(themeCompDir); err != nil {
 			return fmt.Errorf("loading theme component overrides: %w", err)
 		}
 	}
 
 	// Load user component overrides (highest priority).
-	userCompDir := filepath.Join(resolver.ProjectDir, "layouts", "components")
+	userCompDir := filepath.Join(resolver.ProjectDir, consts.DirLayouts, consts.DirComponents)
 	if err := registry.LoadOverridesFromDir(userCompDir); err != nil {
 		return fmt.Errorf("loading user component overrides: %w", err)
 	}
@@ -224,7 +225,7 @@ func (e *Engine) loadBase(layout engine.LayoutType) error {
 	// Load all partials into the base template.
 	partials := resolveAllPartials(e.resolver)
 	for name, data := range partials {
-		if _, err := base.New("partials/" + name).Parse(string(data)); err != nil {
+		if _, err := base.New(consts.DirPartials + "/" + name).Parse(string(data)); err != nil {
 			return fmt.Errorf("parsing partial %q: %w", name, err)
 		}
 	}
@@ -238,21 +239,21 @@ func (e *Engine) loadBase(layout engine.LayoutType) error {
 func (e *Engine) reregisterComponents() error {
 	// Re-register from embedded FS.
 	if e.resolver.EmbeddedFS != nil {
-		if err := e.reregisterFromFS(e.resolver.EmbeddedFS, "components"); err != nil {
+		if err := e.reregisterFromFS(e.resolver.EmbeddedFS, consts.DirComponents); err != nil {
 			return err
 		}
 	}
 
 	// Re-register theme overrides.
 	if e.resolver.ThemeName != "" {
-		dir := filepath.Join(e.resolver.ProjectDir, "themes", e.resolver.ThemeName, "layouts", "components")
+		dir := filepath.Join(e.resolver.ProjectDir, consts.DirThemes, e.resolver.ThemeName, consts.DirLayouts, consts.DirComponents)
 		if err := e.reregisterFromOSDir(dir); err != nil {
 			return err
 		}
 	}
 
 	// Re-register user overrides (highest priority).
-	dir := filepath.Join(e.resolver.ProjectDir, "layouts", "components")
+	dir := filepath.Join(e.resolver.ProjectDir, consts.DirLayouts, consts.DirComponents)
 	return e.reregisterFromOSDir(dir)
 }
 

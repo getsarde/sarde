@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	collectionpkg "github.com/coderoo-dev/coderoo/internal/collection"
+	"github.com/coderoo-dev/coderoo/internal/consts"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 )
 
@@ -59,17 +60,17 @@ func resolveAllPartials(resolver *engine.ThemeResolver) map[string][]byte {
 	// Load in reverse priority order so higher-priority layers overwrite.
 	// 1. Embedded partials
 	if resolver.EmbeddedFS != nil {
-		loadPartialsFromFS(resolver.EmbeddedFS, "partials", partials)
+		loadPartialsFromFS(resolver.EmbeddedFS, consts.DirPartials, partials)
 	}
 
 	// 2. Theme partials
 	if resolver.ThemeName != "" {
-		themeDir := filepath.Join(resolver.ProjectDir, "themes", resolver.ThemeName, "layouts", "partials")
+		themeDir := filepath.Join(resolver.ProjectDir, consts.DirThemes, resolver.ThemeName, consts.DirLayouts, consts.DirPartials)
 		loadPartialsFromDir(themeDir, partials)
 	}
 
 	// 3. User partials (highest priority)
-	userDir := filepath.Join(resolver.ProjectDir, "layouts", "partials")
+	userDir := filepath.Join(resolver.ProjectDir, consts.DirLayouts, consts.DirPartials)
 	loadPartialsFromDir(userDir, partials)
 
 	return partials
@@ -106,43 +107,43 @@ func buildTemplateCandidates(resolver *engine.ThemeResolver, collection string, 
 
 	// Layer 1-2: Collection-specific (user, then theme)
 	if collection != "" {
-		candidates = append(candidates, fsCandidate(filepath.Join(projDir, "layouts", collection, name)))
+		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, collection, name)))
 		if theme != "" {
-			candidates = append(candidates, fsCandidate(filepath.Join(projDir, "themes", theme, "layouts", collection, name)))
+			candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirThemes, theme, consts.DirLayouts, collection, name)))
 		}
 	}
 
 	// Layer 3-4 (docs only): _docs/ specific
 	if layout == engine.LayoutDocs {
-		candidates = append(candidates, fsCandidate(filepath.Join(projDir, "layouts", "_docs", name)))
+		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, consts.DirDocs, name)))
 		if theme != "" {
-			candidates = append(candidates, fsCandidate(filepath.Join(projDir, "themes", theme, "layouts", "_docs", name)))
+			candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirThemes, theme, consts.DirLayouts, consts.DirDocs, name)))
 		}
 	}
 
 	// Layer 3-4 (blog only): _blog/ specific
 	if collection != "" && collectionpkg.IsBlogName(collection) {
-		candidates = append(candidates, fsCandidate(filepath.Join(projDir, "layouts", "_blog", name)))
+		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, consts.DirBlog, name)))
 		if theme != "" {
-			candidates = append(candidates, fsCandidate(filepath.Join(projDir, "themes", theme, "layouts", "_blog", name)))
+			candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirThemes, theme, consts.DirLayouts, consts.DirBlog, name)))
 		}
 	}
 
 	// Layer 5-6: _default (user, then theme)
-	candidates = append(candidates, fsCandidate(filepath.Join(projDir, "layouts", "_default", name)))
+	candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, consts.DirDefault, name)))
 	if theme != "" {
-		candidates = append(candidates, fsCandidate(filepath.Join(projDir, "themes", theme, "layouts", "_default", name)))
+		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirThemes, theme, consts.DirLayouts, consts.DirDefault, name)))
 	}
 
 	// Layer 7-8: Embedded fallback
 	if resolver.EmbeddedFS != nil {
 		if layout == engine.LayoutDocs {
-			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join("_docs", name)))
+			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirDocs, name)))
 		}
 		if collection != "" && collectionpkg.IsBlogName(collection) {
-			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join("_blog", name)))
+			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirBlog, name)))
 		}
-		candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join("_default", name)))
+		candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirDefault, name)))
 	}
 
 	return candidates
@@ -156,16 +157,16 @@ func buildPartialCandidates(resolver *engine.ThemeResolver, name string) []candi
 	theme := resolver.ThemeName
 
 	// User partials
-	candidates = append(candidates, fsCandidate(filepath.Join(projDir, "layouts", "partials", name)))
+	candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, consts.DirPartials, name)))
 
 	// Theme partials
 	if theme != "" {
-		candidates = append(candidates, fsCandidate(filepath.Join(projDir, "themes", theme, "layouts", "partials", name)))
+		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirThemes, theme, consts.DirLayouts, consts.DirPartials, name)))
 	}
 
 	// Embedded partials
 	if resolver.EmbeddedFS != nil {
-		candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join("partials", name)))
+		candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirPartials, name)))
 	}
 
 	return candidates
