@@ -73,6 +73,9 @@ func applyEnvOverrides(cfg *SiteConfig, prefix string) {
 	}
 
 	// Int fields
+	if v, ok := lookupEnv(prefix, "SERVER_HOST"); ok {
+		cfg.Server.Host = v
+	}
 	if v, ok := lookupEnvInt(prefix, "SERVER_PORT"); ok {
 		cfg.Server.Port = v
 	}

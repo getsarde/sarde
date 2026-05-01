@@ -1,6 +1,10 @@
 package config
 
-import "path/filepath"
+import (
+	"path/filepath"
+
+	"github.com/coderoo-dev/coderoo/internal/consts"
+)
 
 // ResolveOptions provides inputs for the 5-layer config cascade.
 type ResolveOptions struct {
@@ -24,7 +28,7 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 
 	// Layer 2: theme.yaml (if theme dir specified)
 	if opts.ThemeDir != "" {
-		themePath := filepath.Join(opts.ThemeDir, "theme.yaml")
+		themePath := filepath.Join(opts.ThemeDir, consts.FileThemeConfig)
 		themeCfg, err := LoadFile(themePath)
 		if err != nil {
 			return nil, err
@@ -37,7 +41,7 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 	// Layer 3: user's site.yaml
 	configPath := opts.ConfigPath
 	if configPath == "" {
-		configPath = "site.yaml"
+		configPath = consts.FileSiteConfig
 	}
 	userCfg, err := LoadFile(configPath)
 	if err != nil {

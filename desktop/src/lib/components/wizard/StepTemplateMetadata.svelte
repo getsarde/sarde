@@ -11,7 +11,7 @@
 </script>
 
 <div class="section">
-  <label class="section-label">Template</label>
+  <span class="section-label">Template</span>
   <div class="template-grid">
     {#each templates as t}
       {@const Icon = t.icon}

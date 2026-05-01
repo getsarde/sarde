@@ -10,6 +10,7 @@ import (
 
 	"github.com/coderoo-dev/coderoo/embedded"
 	"github.com/coderoo-dev/coderoo/internal/build"
+	"github.com/coderoo-dev/coderoo/internal/consts"
 	"github.com/coderoo-dev/coderoo/internal/project"
 	"github.com/coderoo-dev/coderoo/internal/server"
 	"github.com/spf13/cobra"
@@ -38,6 +39,7 @@ func runSidecar(cmd *cobra.Command, args []string) error {
 		return server.New(server.Options{
 			ProjectDir:     projectDir,
 			OutputDir:      outputDir,
+			Host:           consts.DefaultHost,
 			Port:           previewPort,
 			LiveReload:     liveReload,
 			BuilderFactory: builderFactory,

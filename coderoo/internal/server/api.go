@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/coderoo-dev/coderoo/internal/consts"
 	"github.com/coderoo-dev/coderoo/internal/project"
 )
 
@@ -36,7 +37,7 @@ func (s *APIServer) Start(port int) (int, error) {
 	handler = recovererMiddleware(handler)
 	handler = loggerMiddleware(handler)
 
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", consts.DefaultHost, port))
 	if err != nil {
 		return 0, fmt.Errorf("listening on port %d: %w", port, err)
 	}

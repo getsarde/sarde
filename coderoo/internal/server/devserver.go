@@ -15,12 +15,14 @@ import (
 
 	"github.com/coderoo-dev/coderoo/embedded"
 	"github.com/coderoo-dev/coderoo/internal/build"
+	"github.com/coderoo-dev/coderoo/internal/consts"
 )
 
 // Options configures the dev server.
 type Options struct {
 	ProjectDir     string
 	OutputDir      string
+	Host           string
 	Port           int
 	LiveReload     bool
 	BuilderFactory func() *build.SiteBuilder
@@ -30,6 +32,7 @@ type Options struct {
 type DevServer struct {
 	projectDir string
 	outputDir  string
+	host       string
 	port       int
 	liveReload bool
 	hub        *Hub
@@ -40,9 +43,14 @@ type DevServer struct {
 
 // New creates a new DevServer.
 func New(opts Options) *DevServer {
+	host := opts.Host
+	if host == "" {
+		host = consts.DefaultHost
+	}
 	ds := &DevServer{
 		projectDir: opts.ProjectDir,
 		outputDir:  opts.OutputDir,
+		host:       host,
 		port:       opts.Port,
 		liveReload: opts.LiveReload,
 		hub:        NewHub(),
@@ -83,7 +91,7 @@ func (ds *DevServer) Start() error {
 	mux.Handle("/", handler)
 
 	ds.server = &http.Server{
-		Addr:    fmt.Sprintf(":%d", ds.port),
+		Addr:    fmt.Sprintf("%s:%d", ds.host, ds.port),
 		Handler: mux,
 	}
 
@@ -91,7 +99,7 @@ func (ds *DevServer) Start() error {
 	var ln net.Listener
 	basePort := ds.port
 	for i := 0; i < 10; i++ {
-		tryAddr := fmt.Sprintf(":%d", basePort+i)
+		tryAddr := fmt.Sprintf("%s:%d", ds.host, basePort+i)
 		var listenErr error
 		ln, listenErr = net.Listen("tcp", tryAddr)
 		if listenErr == nil {
@@ -190,7 +198,7 @@ func (ds *DevServer) fileHandler() http.Handler {
 		}
 
 		// 404 fallback.
-		notFound := filepath.Join(ds.outputDir, "404.html")
+		notFound := filepath.Join(ds.outputDir, consts.Template404)
 		if _, err := os.Stat(notFound); err == nil {
 			w.WriteHeader(http.StatusNotFound)
 			data, _ := os.ReadFile(notFound)

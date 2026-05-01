@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/coderoo-dev/coderoo/internal/content"
 	"github.com/coderoo-dev/coderoo/internal/importer"
 	"github.com/spf13/cobra"
 )
@@ -40,7 +41,7 @@ func runImportObsidian(cmd *cobra.Command, args []string) error {
 
 	collection, _ := cmd.Flags().GetString("collection")
 	if collection == "" {
-		collection = slugify(filepath.Base(vaultPath))
+		collection = content.Slugify(filepath.Base(vaultPath))
 	}
 
 	contentDir, _ := cmd.Flags().GetString("content")

@@ -11,6 +11,7 @@ import (
 	"github.com/coderoo-dev/coderoo/embedded"
 	"github.com/coderoo-dev/coderoo/internal/build"
 	"github.com/coderoo-dev/coderoo/internal/config"
+	"github.com/coderoo-dev/coderoo/internal/consts"
 	"github.com/coderoo-dev/coderoo/internal/server"
 	"github.com/spf13/cobra"
 )
@@ -24,6 +25,7 @@ var serveCmd = &cobra.Command{
 
 func init() {
 	serveCmd.Flags().IntP("port", "p", 0, "Server port (default: from config or 4727)")
+	serveCmd.Flags().String("host", "", "Host to bind to (default: 127.0.0.1, use 0.0.0.0 for LAN access)")
 	serveCmd.Flags().Bool("no-drafts", false, "Exclude draft content")
 	serveCmd.Flags().String("base-path", "", "Override URL base path (e.g. /docs/)")
 	serveCmd.Flags().String("content", "", "Override content directory path")
@@ -60,13 +62,19 @@ func runServe(cmd *cobra.Command, args []string) error {
 		cfg.Content.Dir = contentDir
 	}
 
+	// Determine host: CLI flag > config > 127.0.0.1.
+	host, _ := cmd.Flags().GetString("host")
+	if host == "" {
+		host = cfg.Server.Host
+	}
+
 	// Determine port: CLI flag > config > 4727.
 	port, _ := cmd.Flags().GetInt("port")
 	if port == 0 {
 		port = cfg.Server.Port
 	}
 	if port == 0 {
-		port = 4727
+		port = consts.DefaultPort
 	}
 
 	// Determine output directory.
@@ -137,6 +145,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 	ds := server.New(server.Options{
 		ProjectDir:     projectDir,
 		OutputDir:      outputDir,
+		Host:           host,
 		Port:           port,
 		LiveReload:     liveReload,
 		BuilderFactory: builderFactory,

@@ -59,8 +59,8 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="modal-overlay" onclick={close} role="dialog" aria-modal="true" aria-label="Deploy" tabindex="-1">
-  <div class="modal-content" onclick={(e) => e.stopPropagation()}>
+<div class="modal-overlay" onclick={(e) => { if (e.target === e.currentTarget) close() }} onkeydown={onKeydown} role="dialog" aria-modal="true" aria-label="Deploy" tabindex="-1">
+  <div class="modal-content">
     <div class="modal-header">
       <h2>Deploy</h2>
       <button class="modal-close" onclick={close} title="Close">

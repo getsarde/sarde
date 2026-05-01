@@ -411,8 +411,9 @@ type PluginSettings struct {
 // ---------------------------------------------------------------------------
 
 type ServerSettings struct {
-	Port       int   `yaml:"port"`
-	LiveReload *bool `yaml:"live_reload"`
+	Host       string `yaml:"host"`
+	Port       int    `yaml:"port"`
+	LiveReload *bool  `yaml:"live_reload"`
 }
 
 // ---------------------------------------------------------------------------

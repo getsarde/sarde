@@ -212,7 +212,7 @@ func (e *Engine) getOrParseTemplate(name string, layout engine.LayoutType, col *
 
 // loadBase loads baseof.html and all partials for a layout type.
 func (e *Engine) loadBase(layout engine.LayoutType) error {
-	content, resolvedPath, err := resolveTemplate(e.resolver, "", layout, "baseof.html")
+	content, resolvedPath, err := resolveTemplate(e.resolver, "", layout, consts.TemplateBaseOf)
 	if err != nil {
 		return fmt.Errorf("resolving baseof.html: %w", err)
 	}

@@ -108,7 +108,7 @@ pub fn create_project(
 
     // Build site.yaml content.
     let mut yaml_parts = vec![format!(
-        "site:\n  title: \"{}\"\n  url: \"http://localhost:3000\"",
+        "site:\n  title: \"{}\"\n  url: \"http://localhost:4727\"",
         title.replace('"', "\\\"")
     )];
 

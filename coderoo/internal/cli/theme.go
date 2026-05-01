@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	"github.com/coderoo-dev/coderoo/embedded"
+	"github.com/coderoo-dev/coderoo/internal/config"
 	"github.com/coderoo-dev/coderoo/internal/consts"
+	"github.com/coderoo-dev/coderoo/internal/theme"
 	"github.com/spf13/cobra"
 )
 
@@ -24,8 +26,20 @@ var themeEjectCmd = &cobra.Command{
 	RunE:  runThemeEject,
 }
 
+var themeListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List available themes",
+	Long:  "List all available themes: the built-in default theme and any themes installed in themes/.",
+	RunE:  runThemeList,
+}
+
 func init() {
+	themeEjectCmd.Flags().Bool("force", false, "Overwrite existing themes/default/ directory")
 	themeCmd.AddCommand(themeEjectCmd)
+	themeCmd.AddCommand(themeListCmd)
+	themeCmd.AddCommand(themeAddCmd)
+	themeCmd.AddCommand(themeRemoveCmd)
+	themeCmd.AddCommand(themeInfoCmd)
 	rootCmd.AddCommand(themeCmd)
 }
 
@@ -37,7 +51,13 @@ func runThemeEject(cmd *cobra.Command, args []string) error {
 
 	targetDir := filepath.Join(projectDir, consts.DirThemes, "default")
 	if _, err := os.Stat(targetDir); err == nil {
-		return fmt.Errorf("themes/default/ already exists; remove it first to re-eject")
+		force, _ := cmd.Flags().GetBool("force")
+		if !force {
+			return fmt.Errorf("themes/default/ already exists; use --force to overwrite")
+		}
+		if err := os.RemoveAll(targetDir); err != nil {
+			return fmt.Errorf("removing existing themes/default/: %w", err)
+		}
 	}
 
 	themeFS := embedded.ThemeFS()
@@ -80,6 +100,63 @@ func runThemeEject(cmd *cobra.Command, args []string) error {
 	if quiet, _ := cmd.Flags().GetBool("quiet"); !quiet {
 		fmt.Printf("Ejected default theme to themes/default/ (%d files)\n", fileCount)
 	}
+	return nil
+}
+
+func runThemeList(cmd *cobra.Command, args []string) error {
+	projectDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("getting working directory: %w", err)
+	}
+
+	configPath, _ := cmd.Flags().GetString("config")
+	cfg, err := config.Resolve(config.ResolveOptions{ConfigPath: configPath})
+	if err != nil {
+		cfg = config.Defaults()
+	}
+	activeTheme := cfg.Theme.Name
+
+	embeddedTheme, _ := theme.LoadFromFS(embedded.ThemeFS(), ".")
+	embeddedDesc := ""
+	if embeddedTheme != nil && embeddedTheme.Description != "" {
+		embeddedDesc = embeddedTheme.Description
+	}
+
+	marker := " "
+	if activeTheme == "" || activeTheme == "default" {
+		marker = "*"
+	}
+	fmt.Printf("  %s default (embedded)", marker)
+	if embeddedDesc != "" {
+		fmt.Printf("  %s", embeddedDesc)
+	}
+	fmt.Println()
+
+	themesDir := filepath.Join(projectDir, consts.DirThemes)
+	entries, err := os.ReadDir(themesDir)
+	if err != nil {
+		return nil
+	}
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		name := e.Name()
+		thm, _ := theme.LoadFromDir(filepath.Join(themesDir, name))
+		if thm == nil {
+			continue
+		}
+		marker := " "
+		if name == activeTheme {
+			marker = "*"
+		}
+		fmt.Printf("  %s %s", marker, name)
+		if thm.Description != "" {
+			fmt.Printf("  %s", thm.Description)
+		}
+		fmt.Println()
+	}
+
 	return nil
 }
 

@@ -70,7 +70,7 @@ func (w *Watcher) Start() error {
 	}
 
 	// Watch individual config files.
-	configFiles := []string{"site.yaml", "theme.yaml", "nav.yaml"}
+	configFiles := []string{consts.FileSiteConfig, consts.FileThemeConfig, consts.FileNavConfig}
 	for _, f := range configFiles {
 		abs := filepath.Join(w.projectDir, f)
 		if _, err := os.Stat(abs); err == nil {
@@ -209,7 +209,7 @@ func (w *Watcher) classifyChange(path string) ChangeKind {
 
 	// Config files.
 	base := filepath.Base(rel)
-	if base == "site.yaml" || base == "theme.yaml" || base == "nav.yaml" {
+	if base == consts.FileSiteConfig || base == consts.FileThemeConfig || base == consts.FileNavConfig {
 		return ChangeConfig
 	}
 

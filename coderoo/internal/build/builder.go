@@ -497,9 +497,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				dir = "ltr"
 			}
 			if code == defaultLang {
-				render404(code, dir, "404.html")
+				render404(code, dir, consts.Template404)
 			} else {
-				render404(code, dir, code+"/404.html")
+				render404(code, dir, code+"/"+consts.Template404)
 			}
 		}
 	} else {
@@ -507,7 +507,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		if lang == "" {
 			lang = "en"
 		}
-		render404(lang, "ltr", "404.html")
+		render404(lang, "ltr", consts.Template404)
 	}
 
 	// HTML minification (production builds only).
@@ -609,16 +609,17 @@ func (b *SiteBuilder) Validate() (*ValidateResult, error) {
 		return nil, fmt.Errorf("building standalone pages: %w", err)
 	}
 
-	pageCount := 0
+	var allPages []*engine.Page
 	for _, col := range collections {
-		pageCount += len(col.Pages)
+		allPages = append(allPages, col.Pages...)
 	}
-	pageCount += len(standalones)
+	allPages = append(allPages, standalones...)
 
 	return &ValidateResult{
-		PageCount:   pageCount,
+		PageCount:   len(allPages),
 		Collections: len(collections),
 		Warnings:    warnings,
+		Pages:       allPages,
 		Duration:    time.Since(start),
 	}, nil
 }
@@ -628,6 +629,7 @@ type ValidateResult struct {
 	PageCount   int
 	Collections int
 	Warnings    []engine.ValidationWarning
+	Pages       []*engine.Page
 	Duration    time.Duration
 }
 

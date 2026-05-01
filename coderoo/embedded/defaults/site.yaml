@@ -130,7 +130,12 @@ plugins:
     - sitemap
     - robots
     - rss
+    - atom
     - reading_time
+    - content_lint
+    - link_checker
+    - redirects
+    - llms_txt
     - katex
     - mermaid
   config: {}

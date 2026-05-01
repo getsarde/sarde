@@ -31,9 +31,22 @@ func contentLintBuildDone(ctx *BuildDoneContext) error {
 		return nil
 	}
 
-	rules := lint.Rules
+	warnings := LintPages(ctx.Pages, lint)
+	for _, w := range warnings {
+		ctx.AddWarning(w)
+	}
 
-	for _, page := range ctx.Pages {
+	return nil
+}
+
+// LintPages runs content lint rules on a set of pages and returns warnings.
+// This is exported so that the validate command can call it directly without
+// going through the plugin BuildDone hook.
+func LintPages(pages []*engine.Page, lint config.ContentLintSettings) []engine.ValidationWarning {
+	rules := lint.Rules
+	var warnings []engine.ValidationWarning
+
+	for _, page := range pages {
 		if page.Draft {
 			continue
 		}
@@ -41,34 +54,24 @@ func contentLintBuildDone(ctx *BuildDoneContext) error {
 		lines := strings.Split(page.RawContent, "\n")
 		var issues []lintIssue
 
-		// Heading length check.
-		maxLen := rules.HeadingMaxLength
-		if maxLen > 0 {
-			issues = append(issues, checkHeadingLength(lines, maxLen)...)
+		if rules.HeadingMaxLength > 0 {
+			issues = append(issues, checkHeadingLength(lines, rules.HeadingMaxLength)...)
 		}
-
-		// Heading increment check.
 		if config.BoolVal(rules.HeadingIncrement, false) {
 			issues = append(issues, checkHeadingIncrement(lines)...)
 		}
-
-		// Image alt required.
 		if config.BoolVal(rules.ImageAltRequired, false) {
 			issues = append(issues, checkImageAlt(lines)...)
 		}
-
-		// No empty links.
 		if config.BoolVal(rules.NoEmptyLinks, false) {
 			issues = append(issues, checkEmptyLinks(lines)...)
 		}
-
-		// Required frontmatter fields.
 		if len(rules.FrontmatterRequired) > 0 {
 			issues = append(issues, checkFrontmatterRequired(page, rules.FrontmatterRequired)...)
 		}
 
 		for _, issue := range issues {
-			ctx.AddWarning(engine.ValidationWarning{
+			warnings = append(warnings, engine.ValidationWarning{
 				File:    page.FilePath,
 				Field:   "lint",
 				Message: fmt.Sprintf("line %d: %s", issue.Line, issue.Message),
@@ -76,7 +79,7 @@ func contentLintBuildDone(ctx *BuildDoneContext) error {
 		}
 	}
 
-	return nil
+	return warnings
 }
 
 var headingRegex = regexp.MustCompile(`^(#{1,6})\s+(.*)`)

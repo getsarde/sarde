@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/coderoo-dev/coderoo/internal/consts"
 	"gopkg.in/yaml.v3"
 )
 
@@ -14,9 +15,9 @@ import (
 // path is the directory within the FS containing theme.yaml.
 // Returns (nil, nil) if theme.yaml does not exist (zero-config behavior).
 func LoadFromFS(fsys fs.FS, path string) (*Theme, error) {
-	themeFile := path + "/theme.yaml"
+	themeFile := path + "/" + consts.FileThemeConfig
 	if path == "." || path == "" {
-		themeFile = "theme.yaml"
+		themeFile = consts.FileThemeConfig
 	}
 
 	data, err := fs.ReadFile(fsys, themeFile)
@@ -33,7 +34,7 @@ func LoadFromFS(fsys fs.FS, path string) (*Theme, error) {
 // LoadFromDir loads a theme from a filesystem directory.
 // Returns (nil, nil) if theme.yaml does not exist.
 func LoadFromDir(dir string) (*Theme, error) {
-	path := filepath.Join(dir, "theme.yaml")
+	path := filepath.Join(dir, consts.FileThemeConfig)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {

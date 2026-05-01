@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/coderoo-dev/coderoo/internal/consts"
@@ -52,7 +51,7 @@ func runNew(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("getting working directory: %w", err)
 	}
 
-	slug := slugify(title)
+	slug := content.Slugify(title)
 	if slug == "" {
 		return fmt.Errorf("cannot generate slug from title %q", title)
 	}
@@ -83,18 +82,6 @@ func runNew(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-var nonAlnumHyphen = regexp.MustCompile(`[^a-z0-9-]+`)
-var multiHyphen = regexp.MustCompile(`-{2,}`)
-
-func slugify(title string) string {
-	s := strings.ToLower(title)
-	s = strings.ReplaceAll(s, " ", "-")
-	s = nonAlnumHyphen.ReplaceAllString(s, "")
-	s = multiHyphen.ReplaceAllString(s, "-")
-	s = strings.Trim(s, "-")
-	return s
-}
-
 // titleCaseSlug converts a slug like "my-new-course" to "My New Course".
 func titleCaseSlug(slug string) string {
 	parts := strings.Split(slug, "-")
@@ -109,7 +96,7 @@ func titleCaseSlug(slug string) string {
 
 func runNewCourse(cmd *cobra.Command, args []string) error {
 	name := args[0]
-	slug := slugify(name)
+	slug := content.Slugify(name)
 	if slug == "" {
 		return fmt.Errorf("cannot generate slug from name %q", name)
 	}
@@ -130,7 +117,7 @@ func runNewCourse(cmd *cobra.Command, args []string) error {
 
 	title := titleCaseSlug(slug)
 
-	configPath := filepath.Join(courseDir, "config.yaml")
+	configPath := filepath.Join(courseDir, consts.FileCollConfig)
 	configBody := fmt.Sprintf("title: %s\ndescription: \"\"\nicon: book\n", title)
 	if err := os.WriteFile(configPath, []byte(configBody), 0o644); err != nil {
 		return fmt.Errorf("writing config.yaml: %w", err)
@@ -148,9 +135,9 @@ func runNewCourse(cmd *cobra.Command, args []string) error {
 }
 
 func runNewLesson(cmd *cobra.Command, args []string) error {
-	courseSlug := slugify(args[0])
+	courseSlug := content.Slugify(args[0])
 	lessonName := args[1]
-	lessonSlug := slugify(lessonName)
+	lessonSlug := content.Slugify(lessonName)
 	if courseSlug == "" {
 		return fmt.Errorf("invalid course slug %q", args[0])
 	}

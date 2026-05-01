@@ -1,6 +1,9 @@
 package cli
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/coderoo-dev/coderoo/internal/consts"
+	"github.com/spf13/cobra"
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "coderoo",
@@ -9,7 +12,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringP("config", "c", "site.yaml", "Path to site config file")
+	rootCmd.PersistentFlags().StringP("config", "c", consts.FileSiteConfig, "Path to site config file")
 	rootCmd.PersistentFlags().String("baseURL", "", "Override site base URL")
 	rootCmd.PersistentFlags().BoolP("drafts", "D", false, "Include draft content")
 	rootCmd.PersistentFlags().Bool("future", false, "Include future-dated content")

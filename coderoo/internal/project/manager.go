@@ -12,6 +12,7 @@ import (
 	"github.com/coderoo-dev/coderoo/embedded"
 	"github.com/coderoo-dev/coderoo/internal/build"
 	"github.com/coderoo-dev/coderoo/internal/config"
+	"github.com/coderoo-dev/coderoo/internal/consts"
 	"github.com/coderoo-dev/coderoo/internal/content"
 	"github.com/coderoo-dev/coderoo/internal/content/markdown"
 	"github.com/coderoo-dev/coderoo/internal/editor"
@@ -117,7 +118,7 @@ func (pm *ProjectManager) CreateProject(dir string, opts CreateOpts) (*ProjectIn
 	}
 
 	// Check if site already exists.
-	if _, err := os.Stat(filepath.Join(absDir, "site.yaml")); err == nil {
+	if _, err := os.Stat(filepath.Join(absDir, consts.FileSiteConfig)); err == nil {
 		return nil, fmt.Errorf("site.yaml already exists in %s", absDir)
 	}
 
@@ -134,8 +135,8 @@ func (pm *ProjectManager) CreateProject(dir string, opts CreateOpts) (*ProjectIn
 	}
 
 	// Write site.yaml.
-	siteYAML := fmt.Sprintf("site:\n  title: %q\n  url: \"http://localhost:3000\"\n", title)
-	if err := os.WriteFile(filepath.Join(absDir, "site.yaml"), []byte(siteYAML), 0o644); err != nil {
+	siteYAML := fmt.Sprintf("site:\n  title: %q\n  url: \"http://localhost:%d\"\n", title, consts.DefaultPort)
+	if err := os.WriteFile(filepath.Join(absDir, consts.FileSiteConfig), []byte(siteYAML), 0o644); err != nil {
 		return nil, err
 	}
 
@@ -256,7 +257,7 @@ func (pm *ProjectManager) StartPreview(port int) (int, error) {
 		port = pm.config.Server.Port
 	}
 	if port == 0 {
-		port = 3000
+		port = consts.DefaultPort
 	}
 
 	outputDir := pm.config.Build.Output
@@ -589,7 +590,7 @@ func (pm *ProjectManager) UpdateSettings(input SettingsInput) error {
 	}
 
 	// Read current site.yaml.
-	siteYAMLPath := filepath.Join(pm.projectDir, "site.yaml")
+	siteYAMLPath := filepath.Join(pm.projectDir, consts.FileSiteConfig)
 	data, err := os.ReadFile(siteYAMLPath)
 	if err != nil {
 		return fmt.Errorf("reading site.yaml: %w", err)
@@ -735,7 +736,7 @@ func (pm *ProjectManager) newBuilder() *build.SiteBuilder {
 }
 
 func (pm *ProjectManager) resolveConfig(projectDir string) (*config.SiteConfig, *engine.ThemeConfig, error) {
-	configPath := filepath.Join(projectDir, "site.yaml")
+	configPath := filepath.Join(projectDir, consts.FileSiteConfig)
 	cfg, err := config.Resolve(config.ResolveOptions{
 		ConfigPath: configPath,
 		EnvPrefix:  "CODEROO",
