@@ -156,32 +156,32 @@
     gap: 6px;
     border: none;
     background: transparent;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     font-size: 13px;
     cursor: pointer;
     padding: 6px 10px;
-    border-radius: 6px;
+    border-radius: var(--cr-radius);
   }
 
   .back-link:hover {
-    color: var(--color-text, #cdd6f4);
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
+    color: var(--cr-text);
+    background: var(--cr-hover);
   }
 
   .wizard-card {
     width: 440px;
     max-width: 90vw;
     padding: 32px;
-    border: 1px solid var(--color-border, #313244);
-    border-radius: 14px;
-    background: var(--color-surface-alt, #181825);
+    border: 1px solid var(--cr-border);
+    border-radius: var(--cr-radius-lg);
+    background: var(--cr-bg-input);
   }
 
   h2 {
     margin: 0 0 20px;
     font-size: 20px;
     font-weight: 700;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
   }
 
   /* Step indicator */
@@ -208,50 +208,50 @@
     justify-content: center;
     font-size: 11px;
     font-weight: 700;
-    border: 2px solid var(--color-border, #313244);
-    color: var(--color-text-muted, #6c7086);
+    border: 2px solid var(--cr-border);
+    color: var(--cr-text-muted);
     background: transparent;
     transition: all 0.2s;
   }
 
   .step-item.active .step-dot {
-    border-color: var(--color-accent, #89b4fa);
-    color: var(--color-accent, #89b4fa);
-    background: rgba(137, 180, 250, 0.1);
+    border-color: var(--cr-accent);
+    color: var(--cr-accent);
+    background: var(--cr-active);
   }
 
   .step-item.done .step-dot {
-    border-color: var(--color-success, #a6e3a1);
-    color: var(--color-success, #a6e3a1);
+    border-color: var(--cr-success);
+    color: var(--cr-success);
     background: rgba(166, 227, 161, 0.1);
   }
 
   .step-label {
     font-size: 11px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     white-space: nowrap;
   }
 
   .step-item.active .step-label {
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     font-weight: 600;
   }
 
   .step-item.done .step-label {
-    color: var(--color-success, #a6e3a1);
+    color: var(--cr-success);
   }
 
   .step-line {
     flex: 1;
     height: 1px;
-    background: var(--color-border, #313244);
+    background: var(--cr-border);
     margin: 0 8px;
     min-width: 12px;
     transition: background 0.2s;
   }
 
   .step-line.done {
-    background: var(--color-success, #a6e3a1);
+    background: var(--cr-success);
   }
 
   /* Step content area */
@@ -273,7 +273,7 @@
     gap: 6px;
     padding: 10px 18px;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--cr-radius);
     font-size: 13px;
     font-weight: 600;
     font-family: inherit;
@@ -282,12 +282,12 @@
   }
 
   .nav-btn.primary {
-    background: var(--color-accent, #89b4fa);
-    color: var(--color-surface, #1e1e2e);
+    background: var(--cr-accent);
+    color: var(--cr-bg-base);
   }
 
   .nav-btn.primary:hover:not(:disabled) {
-    background: #74c7ec;
+    background: var(--cr-accent-hover);
     transform: translateY(-1px);
   }
 
@@ -298,12 +298,12 @@
 
   .nav-btn.secondary {
     background: transparent;
-    color: var(--color-text-muted, #6c7086);
-    border: 1px solid var(--color-border, #313244);
+    color: var(--cr-text-muted);
+    border: 1px solid var(--cr-border);
   }
 
   .nav-btn.secondary:hover {
-    color: var(--color-text, #cdd6f4);
-    border-color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text);
+    border-color: var(--cr-text-muted);
   }
 </style>

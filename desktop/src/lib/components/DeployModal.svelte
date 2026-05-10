@@ -48,7 +48,7 @@
     try {
       const resp = await apiDeploy()
       status = 'success'
-      resultMessage = `Deployed to ${providerLabel(resp?.data?.provider || provider)}`
+      resultMessage = `Deployed to ${providerLabel(resp?.provider || provider)}`
       addToast('success', resultMessage)
     } catch (e) {
       status = 'error'
@@ -141,8 +141,8 @@
     max-width: 90vw;
     display: flex;
     flex-direction: column;
-    background: var(--color-surface, #1e1e2e);
-    border: 1px solid var(--color-border, #313244);
+    background: var(--cr-bg-base);
+    border: 1px solid var(--cr-border);
     border-radius: 12px;
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
     overflow: hidden;
@@ -153,14 +153,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--color-border, #313244);
+    border-bottom: 1px solid var(--cr-border);
   }
 
   .modal-header h2 {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
   }
 
   .modal-close {
@@ -170,15 +170,15 @@
     width: 30px;
     height: 30px;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--cr-radius);
     background: transparent;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     cursor: pointer;
   }
 
   .modal-close:hover {
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
-    color: var(--color-text, #cdd6f4);
+    background: var(--cr-hover);
+    color: var(--cr-text);
   }
 
   .modal-body {
@@ -194,11 +194,11 @@
   }
 
   .deploy-icon {
-    color: var(--color-accent, #6366f1);
+    color: var(--cr-accent);
   }
 
   .deploy-icon.muted {
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .deploy-icon.success {
@@ -206,7 +206,7 @@
   }
 
   .deploy-icon.error {
-    color: #f38ba8;
+    color: var(--cr-danger);
   }
 
   .deploy-icon.spinning {
@@ -221,11 +221,11 @@
   .deploy-message {
     margin: 0;
     font-size: 14px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .error-text {
-    color: #f38ba8;
+    color: var(--cr-danger);
   }
 
   .provider-badge {
@@ -234,14 +234,14 @@
     border-radius: 16px;
     font-size: 13px;
     font-weight: 500;
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
-    color: var(--color-text, #cdd6f4);
+    background: var(--cr-hover);
+    color: var(--cr-text);
   }
 
   .btn {
     padding: 8px 20px;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--cr-radius);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
@@ -253,13 +253,13 @@
   }
 
   .btn-primary {
-    background: var(--color-accent, #6366f1);
+    background: var(--cr-accent);
     color: #fff;
   }
 
   .btn-secondary {
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
-    color: var(--color-text, #cdd6f4);
+    background: var(--cr-hover);
+    color: var(--cr-text);
   }
 
   .btn-group {

@@ -1,6 +1,7 @@
 <script>
-  import { readDir, readTextFile, writeTextFile, mkdir, rename } from '@tauri-apps/plugin-fs'
+  import { readDir, readTextFile, mkdir, rename } from '@tauri-apps/plugin-fs'
   import { doc, tabs, project, switchToTab, closeTabById, addToast } from '../stores/app.svelte.js'
+  import { readContent, createContentFile, createContentDir, deleteContent, renameContent } from '../api.js'
   import { ChevronRight, Folder, FolderOpen, FileText, File, FilePlus, FolderPlus, Pencil, Trash2, Copy } from 'lucide-svelte'
 
   let entries = $state([])
@@ -85,15 +86,26 @@
   }
 
   async function openFile(item) {
-    const existing = tabs.items.find(t => t.path === item.path)
+    const contentPath = relContentPath(item.path)
+    const existing = tabs.items.find(t => t.contentPath === contentPath)
     if (existing) { switchToTab(existing.id); return }
     try {
-      const content = await readTextFile(item.path)
+      const file = await readContent(contentPath)
+      const content = file.raw ?? await readTextFile(item.path)
+      const absPath = (file.absPath ?? item.path).replace(/\\/g, '/')
       const id = crypto.randomUUID()
-      tabs.items = [...tabs.items, { id, name: item.name, path: item.path, dirty: false, cachedContent: content }]
+      tabs.items = [...tabs.items, {
+        id,
+        name: item.name,
+        path: absPath,
+        contentPath: file.path ?? contentPath,
+        dirty: false,
+        cachedContent: content,
+      }]
       tabs.activeId = id
       doc.content = content
-      doc.filePath = item.path
+      doc.filePath = absPath
+      doc.contentPath = file.path ?? contentPath
       doc.dirty = false
       doc.cursorLine = 1
       doc.cursorCol = 1
@@ -141,13 +153,14 @@
     creating = null           // clear immediately to prevent re-entry
     createValue = ''
     const fullPath = parentPath + '/' + name
+    const relPath = relContentPath(fullPath)
     try {
       if (type === 'file') {
         const title = name.replace(/\.\w+$/, '').replace(/^\d+[-_]/, '').replace(/[-_]/g, ' ')
-        await writeTextFile(fullPath, `---\ntitle: ${title}\n---\n`)
+        await createContentFile(relPath, `---\ntitle: ${title}\n---\n`)
         addToast('success', `Created ${name}`)
       } else {
-        await mkdir(fullPath)
+        await createContentDir(relPath)
         addToast('success', `Created folder ${name}`)
       }
       await refreshTree()
@@ -177,13 +190,23 @@
     const dir = item.path.substring(0, item.path.lastIndexOf('/'))
     const newPath = dir + '/' + name
     try {
-      await rename(item.path, newPath)
+      const oldRel = relContentPath(item.path)
+      const newRel = relContentPath(newPath)
+      if (item.isDir) {
+        await rename(item.path, newPath)
+      } else {
+        await renameContent(oldRel, newRel)
+      }
       // Patch open tab path
-      const tab = tabs.items.find(t => t.path === item.path)
+      const tab = tabs.items.find(t => t.path === item.path || t.contentPath === oldRel)
       if (tab) {
         tab.path = newPath
+        tab.contentPath = newRel
         tab.name = name
-        if (doc.filePath === item.path) doc.filePath = newPath
+        if (doc.filePath === item.path || doc.contentPath === oldRel) {
+          doc.filePath = newPath
+          doc.contentPath = newRel
+        }
       }
       await refreshTree()
     } catch (e) {
@@ -195,6 +218,20 @@
 
   async function deleteItem(item) {
     hideCtxMenu()
+    if (!item.isDir) {
+      const contentPath = relContentPath(item.path)
+      try {
+        await deleteContent(contentPath)
+        const tab = tabs.items.find(t => t.path === item.path || t.contentPath === contentPath)
+        if (tab) closeTabById(tab.id)
+        addToast('info', `"${item.name}" deleted`)
+        await refreshTree()
+      } catch (e) {
+        addToast('error', `Delete failed: ${e}`)
+      }
+      return
+    }
+
     const root = rootPath()
     const trashDir = root + '/.trash'
     try { await mkdir(trashDir) } catch {}
@@ -264,7 +301,7 @@
       if (!m) continue
       const newName = String(i + 1).padStart(m[1].length, '0') + m[2]
       if (newName !== f.name) {
-        try { await rename(f.path, dir + '/' + newName) } catch {}
+        try { await renameContent(relContentPath(f.path), relContentPath(dir + '/' + newName)) } catch {}
       }
     }
   }
@@ -284,6 +321,12 @@
       }
     }
     return null
+  }
+
+  function relContentPath(absPath) {
+    const root = rootPath().replace(/\\/g, '/').replace(/\/+$/, '')
+    const full = absPath.replace(/\\/g, '/')
+    return full.startsWith(root + '/') ? full.slice(root.length + 1) : full
   }
 
   /** Svelte action: focus + select the input on mount */
@@ -447,7 +490,7 @@
   .empty-msg {
     padding: 12px;
     font-size: 12px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     margin: 0;
   }
 
@@ -472,7 +515,7 @@
     padding-right: 8px;
     border: none;
     background: transparent;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     font-size: 13px;
     cursor: pointer;
     text-align: left;
@@ -481,16 +524,16 @@
   }
 
   .tree-row:hover {
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
+    background: var(--cr-hover);
   }
 
   .tree-file.active {
-    background: var(--color-active, rgba(137, 180, 250, 0.1));
-    color: var(--color-accent, #89b4fa);
+    background: var(--cr-active);
+    color: var(--cr-accent);
   }
 
   .tree-file.drag-over {
-    border-top: 2px solid var(--color-accent, #89b4fa);
+    border-top: 2px solid var(--cr-accent);
   }
 
   .tree-arrow {
@@ -501,7 +544,7 @@
     height: 16px;
     flex-shrink: 0;
     transition: transform 0.15s ease;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .tree-arrow.expanded {
@@ -516,11 +559,11 @@
 
   .tree-icon {
     flex-shrink: 0;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .tree-dir .tree-icon {
-    color: var(--color-accent, #89b4fa);
+    color: var(--cr-accent);
   }
 
   .tree-name {
@@ -532,10 +575,10 @@
   .inline-input {
     flex: 1;
     min-width: 0;
-    background: var(--color-input, #11111b);
-    border: 1px solid var(--color-accent, #89b4fa);
+    background: var(--cr-bg-input);
+    border: 1px solid var(--cr-accent);
     border-radius: 3px;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     font-size: 13px;
     font-family: inherit;
     padding: 1px 5px;
@@ -552,9 +595,9 @@
     position: fixed;
     z-index: 300;
     min-width: 160px;
-    background: var(--color-surface, #1e1e2e);
-    border: 1px solid var(--color-border, #313244);
-    border-radius: 8px;
+    background: var(--cr-bg-base);
+    border: 1px solid var(--cr-border);
+    border-radius: var(--cr-radius);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     padding: 4px;
     overflow: hidden;
@@ -569,7 +612,7 @@
     border: none;
     border-radius: 5px;
     background: transparent;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     font-size: 13px;
     font-family: inherit;
     text-align: left;
@@ -577,11 +620,11 @@
   }
 
   .ctx-item:hover {
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
+    background: var(--cr-hover);
   }
 
   .ctx-danger {
-    color: var(--color-danger, #f38ba8);
+    color: var(--cr-danger);
   }
 
   .ctx-danger:hover {
@@ -590,7 +633,7 @@
 
   .ctx-sep {
     height: 1px;
-    background: var(--color-border, #313244);
+    background: var(--cr-border);
     margin: 3px 0;
   }
 </style>

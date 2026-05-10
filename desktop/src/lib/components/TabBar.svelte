@@ -18,6 +18,7 @@
     if (tabs.activeId !== id) {
       tabs.activeId = id
       doc.filePath = keep.path
+      doc.contentPath = keep.contentPath ?? ''
       doc.content = keep.cachedContent ?? ''
       doc.dirty = keep.dirty ?? false
     }
@@ -28,6 +29,7 @@
     tabs.items.splice(0, tabs.items.length)
     tabs.activeId = null
     doc.filePath = ''
+    doc.contentPath = ''
     doc.content = ''
     doc.dirty = false
     doc.wordCount = 0
@@ -107,8 +109,8 @@
     align-items: center;
     justify-content: space-between;
     height: 38px;
-    background: var(--bg-surface, #1e1e2e);
-    border-bottom: 1px solid var(--border, #2e2e3e);
+    background: var(--cr-bg-surface);
+    border-bottom: 1px solid var(--cr-border);
     padding: 0 4px;
     gap: 8px;
     user-select: none;
@@ -130,7 +132,7 @@
     padding: 4px 10px;
     border: none;
     background: transparent;
-    color: var(--text-muted, #888);
+    color: var(--cr-text-muted);
     font-size: 12px;
     border-radius: 4px 4px 0 0;
     cursor: pointer;
@@ -140,20 +142,20 @@
   }
 
   .tab:hover {
-    background: var(--bg-elevated, #2a2a3a);
-    color: var(--text-primary, #e0e0e0);
+    background: var(--cr-bg-elevated);
+    color: var(--cr-text);
   }
 
   .tab.active {
-    background: var(--bg-base, #141420);
-    color: var(--text-primary, #e0e0e0);
+    background: var(--cr-bg-base);
+    color: var(--cr-text);
   }
 
   .tab-dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--accent, #6366f1);
+    background: var(--cr-accent);
     flex-shrink: 0;
   }
 
@@ -171,7 +173,7 @@
     height: 16px;
     border: none;
     background: transparent;
-    color: var(--text-muted, #888);
+    color: var(--cr-text-muted);
     font-size: 14px;
     line-height: 1;
     border-radius: 3px;
@@ -186,8 +188,8 @@
   }
 
   .tab-close:hover {
-    background: var(--bg-surface, #1e1e2e);
-    color: var(--text-primary, #e0e0e0);
+    background: var(--cr-bg-surface);
+    color: var(--cr-text);
   }
 
   /* Context menu */
@@ -201,9 +203,9 @@
     position: fixed;
     z-index: 300;
     min-width: 160px;
-    background: var(--bg-surface, #1e1e2e);
-    border: 1px solid var(--border, #313244);
-    border-radius: 6px;
+    background: var(--cr-bg-surface);
+    border: 1px solid var(--cr-border);
+    border-radius: var(--cr-radius);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     padding: 4px;
     font-size: 13px;
@@ -215,19 +217,19 @@
     padding: 6px 10px;
     border: none;
     background: transparent;
-    color: var(--text-primary, #cdd6f4);
+    color: var(--cr-text);
     text-align: left;
-    border-radius: 4px;
+    border-radius: var(--cr-radius-sm);
     cursor: pointer;
   }
 
   .ctx-item:hover {
-    background: var(--bg-elevated, #2a2a3a);
+    background: var(--cr-bg-elevated);
   }
 
   .ctx-sep {
     height: 1px;
-    background: var(--border, #313244);
+    background: var(--cr-border);
     margin: 4px 0;
   }
 </style>

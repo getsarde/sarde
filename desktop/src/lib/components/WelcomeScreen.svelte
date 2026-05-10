@@ -98,8 +98,8 @@
     width: 72px;
     height: 72px;
     border-radius: 18px;
-    background: var(--color-accent, #89b4fa);
-    color: var(--color-surface, #1e1e2e);
+    background: var(--cr-accent);
+    color: var(--cr-bg-base);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -112,13 +112,13 @@
     margin: 0;
     font-size: 28px;
     font-weight: 700;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
   }
 
   .tagline {
     margin: 0;
     font-size: 14px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .actions {
@@ -133,22 +133,22 @@
     gap: 8px;
     width: 180px;
     padding: 24px 16px;
-    border: 1px solid var(--color-border, #313244);
-    border-radius: 12px;
-    background: var(--color-surface-alt, #181825);
-    color: var(--color-text, #cdd6f4);
+    border: 1px solid var(--cr-border);
+    border-radius: var(--cr-radius-lg);
+    background: var(--cr-bg-input);
+    color: var(--cr-text);
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s, transform 0.1s;
   }
 
   .action-card:hover {
-    border-color: var(--color-accent, #89b4fa);
-    background: rgba(137, 180, 250, 0.06);
+    border-color: var(--cr-accent);
+    background: var(--cr-accent-bg);
     transform: translateY(-2px);
   }
 
   .action-card :global(svg) {
-    color: var(--color-accent, #89b4fa);
+    color: var(--cr-accent);
   }
 
   .action-label {
@@ -158,7 +158,7 @@
 
   .action-desc {
     font-size: 12px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     text-align: center;
   }
 
@@ -175,7 +175,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     margin: 0 0 8px;
   }
 
@@ -188,12 +188,12 @@
   .recent-row {
     display: flex;
     align-items: center;
-    border-radius: 8px;
+    border-radius: var(--cr-radius);
     transition: background 0.15s;
   }
 
   .recent-row:hover {
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
+    background: var(--cr-hover);
   }
 
   .recent-item {
@@ -204,9 +204,9 @@
     min-width: 0;
     padding: 10px 12px;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--cr-radius);
     background: transparent;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     cursor: pointer;
     text-align: left;
   }
@@ -226,7 +226,7 @@
 
   .recent-path {
     font-size: 11px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -234,7 +234,7 @@
 
   .recent-date {
     font-size: 11px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     white-space: nowrap;
     flex-shrink: 0;
   }
@@ -246,9 +246,9 @@
     width: 24px;
     height: 24px;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--cr-radius-sm);
     background: transparent;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     cursor: pointer;
     opacity: 0;
     transition: opacity 0.15s;
@@ -260,7 +260,7 @@
   }
 
   .recent-remove:hover {
-    color: var(--color-danger, #f38ba8);
+    color: var(--cr-danger);
     background: rgba(243, 139, 168, 0.1);
   }
 </style>

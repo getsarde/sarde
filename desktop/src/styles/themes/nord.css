@@ -1,0 +1,41 @@
+/* Nord
+   Palette: #2e3440 #3b4252 #434c5e #4c566a #d8dee9 #e5e9f0 #eceff4
+   Frost: #8fbcbb #88c0d0 #81a1c1 #5e81ac
+   Aurora: #bf616a #d08770 #ebcb8b #a3be8c #b48ead */
+
+[data-theme="nord"] {
+  --cr-bg-base: #2e3440;
+  --cr-bg-surface: #3b4252;
+  --cr-bg-elevated: #434c5e;
+  --cr-bg-input: #2e3440;
+  --cr-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  --cr-text: #d8dee9;
+  --cr-text-muted: #7b88a1;
+  --cr-text-dim: #4c566a;
+
+  --cr-accent: #88c0d0;
+  --cr-accent-hover: #8fbcbb;
+  --cr-accent-bg: rgba(136, 192, 208, 0.12);
+  --cr-accent-text: #2e3440;
+
+  --cr-border: #4c566a;
+  --cr-border-focus: #88c0d0;
+
+  --cr-success: #a3be8c;
+  --cr-warning: #ebcb8b;
+  --cr-danger: #bf616a;
+  --cr-info: #81a1c1;
+
+  --cr-hover: rgba(255, 255, 255, 0.05);
+  --cr-active: rgba(136, 192, 208, 0.1);
+  --cr-selection: rgba(136, 192, 208, 0.2);
+
+  --cr-scrollbar: #4c566a;
+  --cr-scrollbar-hover: #616e88;
+  --cr-scrollbar-active: #7b88a1;
+
+  --cr-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --cr-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.25);
+  --cr-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.35);
+}

@@ -1,0 +1,40 @@
+/* Dracula
+   Palette: #282a36 #44475a #6272a4 #f8f8f2
+   Colors: #ff79c6 #bd93f9 #8be9fd #50fa7b #ffb86c #f1fa8c #ff5555 */
+
+[data-theme="dracula"] {
+  --cr-bg-base: #282a36;
+  --cr-bg-surface: #343746;
+  --cr-bg-elevated: #44475a;
+  --cr-bg-input: #21222c;
+  --cr-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  --cr-text: #f8f8f2;
+  --cr-text-muted: #6272a4;
+  --cr-text-dim: #44475a;
+
+  --cr-accent: #bd93f9;
+  --cr-accent-hover: #caa9fa;
+  --cr-accent-bg: rgba(189, 147, 249, 0.12);
+  --cr-accent-text: #282a36;
+
+  --cr-border: #44475a;
+  --cr-border-focus: #bd93f9;
+
+  --cr-success: #50fa7b;
+  --cr-warning: #f1fa8c;
+  --cr-danger: #ff5555;
+  --cr-info: #8be9fd;
+
+  --cr-hover: rgba(255, 255, 255, 0.06);
+  --cr-active: rgba(189, 147, 249, 0.1);
+  --cr-selection: rgba(189, 147, 249, 0.2);
+
+  --cr-scrollbar: #44475a;
+  --cr-scrollbar-hover: #6272a4;
+  --cr-scrollbar-active: #7e8db8;
+
+  --cr-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --cr-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --cr-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.45);
+}

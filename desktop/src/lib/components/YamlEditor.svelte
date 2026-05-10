@@ -27,10 +27,10 @@
         EditorView.theme({
           '&': { height: '100%', fontSize: '12px' },
           '.cm-content': {
-            fontFamily: 'var(--font-mono, "JetBrains Mono", "Fira Code", monospace)',
+            fontFamily: 'var(--cr-font-mono)',
             padding: '8px',
           },
-          '.cm-cursor': { borderLeftColor: 'var(--accent, #6366f1)' },
+          '.cm-cursor': { borderLeftColor: 'var(--cr-accent)' },
           '.cm-selectionBackground': { background: 'rgba(99, 102, 241, 0.2) !important' },
           '.cm-scroller': { overflow: 'auto' },
         }, { dark: true }),
@@ -80,9 +80,9 @@
   .yaml-editor {
     flex: 1;
     overflow: hidden;
-    background: var(--color-surface-alt, #181825);
-    border: 1px solid var(--color-border, #313244);
-    border-radius: 4px;
+    background: var(--cr-bg-input);
+    border: 1px solid var(--cr-border);
+    border-radius: var(--cr-radius-sm);
   }
 
   .yaml-editor :global(.cm-editor) {

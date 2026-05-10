@@ -46,9 +46,9 @@
     result = null
     try {
       const resp = await importObsidian(vaultPath, collection)
-      result = resp?.data ?? {}
+      result = resp ?? {}
       status = 'success'
-      addToast('success', `Imported ${result.notes_converted} notes from ${vaultName}`)
+      addToast('success', `Imported ${result.notesConverted ?? 0} notes from ${vaultName}`)
     } catch (e) {
       status = 'error'
       errorMsg = e.message || 'Import failed'
@@ -118,19 +118,19 @@
           <p class="status-message">Import complete</p>
           <div class="stats-grid">
             <div class="stat">
-              <span class="stat-value">{result.notes_converted}</span>
+              <span class="stat-value">{result.notesConverted ?? 0}</span>
               <span class="stat-label">Notes</span>
             </div>
             <div class="stat">
-              <span class="stat-value">{result.images_copied}</span>
+              <span class="stat-value">{result.imagesCopied ?? 0}</span>
               <span class="stat-label">Images</span>
             </div>
             <div class="stat">
-              <span class="stat-value">{result.links_converted}</span>
+              <span class="stat-value">{result.linksConverted ?? 0}</span>
               <span class="stat-label">Links</span>
             </div>
             <div class="stat">
-              <span class="stat-value">{result.items_skipped}</span>
+              <span class="stat-value">{result.itemsSkipped ?? 0}</span>
               <span class="stat-label">Skipped</span>
             </div>
           </div>
@@ -170,8 +170,8 @@
     max-width: 90vw;
     display: flex;
     flex-direction: column;
-    background: var(--color-surface, #1e1e2e);
-    border: 1px solid var(--color-border, #313244);
+    background: var(--cr-bg-base);
+    border: 1px solid var(--cr-border);
     border-radius: 12px;
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
     overflow: hidden;
@@ -182,14 +182,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--color-border, #313244);
+    border-bottom: 1px solid var(--cr-border);
   }
 
   .modal-header h2 {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
   }
 
   .modal-close {
@@ -199,15 +199,15 @@
     width: 30px;
     height: 30px;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--cr-radius);
     background: transparent;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     cursor: pointer;
   }
 
   .modal-close:hover {
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
-    color: var(--color-text, #cdd6f4);
+    background: var(--cr-hover);
+    color: var(--cr-text);
   }
 
   .modal-body {
@@ -222,7 +222,7 @@
     display: block;
     font-size: 12px;
     font-weight: 500;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     margin-bottom: 6px;
   }
 
@@ -230,23 +230,23 @@
     width: 100%;
     padding: 8px 10px;
     font-size: 13px;
-    border: 1px solid var(--color-border, #313244);
-    border-radius: 6px;
-    background: var(--color-input, #11111b);
-    color: var(--color-text, #cdd6f4);
+    border: 1px solid var(--cr-border);
+    border-radius: var(--cr-radius);
+    background: var(--cr-bg-input);
+    color: var(--cr-text);
     box-sizing: border-box;
   }
 
   .field-input:focus {
     outline: none;
-    border-color: var(--color-accent, #89b4fa);
+    border-color: var(--cr-accent);
   }
 
   .field-hint {
     display: block;
     margin-top: 4px;
     font-size: 11px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .location-row {
@@ -264,18 +264,18 @@
     align-items: center;
     gap: 6px;
     padding: 8px 12px;
-    border: 1px solid var(--color-border, #313244);
-    border-radius: 6px;
-    background: var(--color-surface, #1e1e2e);
-    color: var(--color-text, #cdd6f4);
+    border: 1px solid var(--cr-border);
+    border-radius: var(--cr-radius);
+    background: var(--cr-bg-base);
+    color: var(--cr-text);
     font-size: 13px;
     cursor: pointer;
     white-space: nowrap;
   }
 
   .browse-btn:hover {
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
-    border-color: var(--color-accent, #89b4fa);
+    background: var(--cr-hover);
+    border-color: var(--cr-accent);
   }
 
   .btn {
@@ -286,7 +286,7 @@
     width: 100%;
     padding: 10px 20px;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--cr-radius);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
@@ -303,13 +303,13 @@
   }
 
   .btn-primary {
-    background: var(--color-accent, #6366f1);
+    background: var(--cr-accent);
     color: #fff;
   }
 
   .btn-secondary {
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
-    color: var(--color-text, #cdd6f4);
+    background: var(--cr-hover);
+    color: var(--cr-text);
   }
 
   .btn-group {
@@ -332,7 +332,7 @@
   }
 
   .status-icon {
-    color: var(--color-accent, #6366f1);
+    color: var(--cr-accent);
   }
 
   .status-icon.success {
@@ -340,7 +340,7 @@
   }
 
   .status-icon.error {
-    color: #f38ba8;
+    color: var(--cr-danger);
   }
 
   .status-icon.spinning {
@@ -355,11 +355,11 @@
   .status-message {
     margin: 0;
     font-size: 14px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .error-text {
-    color: #f38ba8;
+    color: var(--cr-danger);
   }
 
   .stats-grid {
@@ -379,11 +379,11 @@
   .stat-value {
     font-size: 20px;
     font-weight: 600;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
   }
 
   .stat-label {
     font-size: 11px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 </style>

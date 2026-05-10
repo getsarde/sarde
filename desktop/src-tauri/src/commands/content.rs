@@ -1,6 +1,7 @@
 use crate::state::AppState;
 use crate::yaml;
 use std::fs;
+use std::io::Write;
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -16,10 +17,12 @@ pub struct ContentSummary {
 #[serde(rename_all = "camelCase")]
 pub struct ContentFile {
     pub path: String,
+    pub abs_path: String,
     pub title: String,
     pub collection: String,
     pub frontmatter: serde_json::Value,
     pub body: String,
+    pub raw: String,
     pub draft: bool,
     pub date: String,
     pub word_count: usize,
@@ -90,7 +93,7 @@ pub fn read_content(
     let content_dir = state.content_dir().ok_or("No project open")?;
     yaml::validate_content_path(&path)?;
 
-    let abs_path = content_dir.join(path.replace('/', std::path::MAIN_SEPARATOR_STR));
+    let abs_path = yaml::safe_join(&content_dir, &path, true)?;
     let raw = fs::read_to_string(&abs_path)
         .map_err(|e| format!("Reading file: {}", e))?;
 
@@ -110,10 +113,12 @@ pub fn read_content(
 
     Ok(ContentFile {
         path,
+        abs_path: abs_path.to_string_lossy().to_string(),
         title,
         collection,
         frontmatter: fm_json,
         body,
+        raw,
         draft,
         date,
         word_count,
@@ -132,7 +137,7 @@ pub fn save_content(
     let content_dir = state.content_dir().ok_or("No project open")?;
     yaml::validate_content_path(&path)?;
 
-    let abs_path = content_dir.join(path.replace('/', std::path::MAIN_SEPARATOR_STR));
+    let abs_path = yaml::safe_join(&content_dir, &path, true)?;
 
     // Convert JSON frontmatter to YAML Value.
     let fm_yaml = json_to_yaml(&frontmatter);
@@ -194,15 +199,53 @@ pub fn create_content(
 
     Ok(ContentFile {
         path: rel_path,
+        abs_path: abs_path.to_string_lossy().to_string(),
         title,
         collection,
         frontmatter: fm_json,
         body: body.to_string(),
+        raw: content,
         draft: true,
         date: now,
         word_count: 0,
         reading_time: 0,
     })
+}
+
+/// Create a content file at an explicit relative path.
+#[tauri::command]
+pub fn create_content_file(
+    path: String,
+    content: String,
+    state: tauri::State<AppState>,
+) -> Result<(), String> {
+    let content_dir = state.content_dir().ok_or("No project open")?;
+    let abs_path = yaml::safe_join(&content_dir, &path, false)?;
+    if let Some(parent) = abs_path.parent() {
+        fs::create_dir_all(parent).map_err(|e| format!("Creating directory: {}", e))?;
+    }
+
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&abs_path)
+        .map_err(|e| format!("Creating file: {}", e))?;
+    file.write_all(content.as_bytes())
+        .map_err(|e| format!("Writing file: {}", e))?;
+
+    Ok(())
+}
+
+/// Create a content directory at an explicit relative path.
+#[tauri::command]
+pub fn create_content_dir(
+    path: String,
+    state: tauri::State<AppState>,
+) -> Result<(), String> {
+    let content_dir = state.content_dir().ok_or("No project open")?;
+    let abs_path = yaml::safe_join(&content_dir, &path, false)?;
+    fs::create_dir(&abs_path).map_err(|e| format!("Creating directory: {}", e))?;
+    Ok(())
 }
 
 /// Delete a content file.
@@ -214,7 +257,7 @@ pub fn delete_content(
     let content_dir = state.content_dir().ok_or("No project open")?;
     yaml::validate_content_path(&path)?;
 
-    let abs_path = content_dir.join(path.replace('/', std::path::MAIN_SEPARATOR_STR));
+    let abs_path = yaml::safe_join(&content_dir, &path, true)?;
     fs::remove_file(&abs_path)
         .map_err(|e| format!("Deleting file: {}", e))?;
 
@@ -232,7 +275,7 @@ pub fn rename_content(
     yaml::validate_content_path(&old_path)?;
     yaml::validate_content_path(&new_path)?;
 
-    let abs_old = content_dir.join(old_path.replace('/', std::path::MAIN_SEPARATOR_STR));
+    let abs_old = yaml::safe_join(&content_dir, &old_path, true)?;
     let abs_new = content_dir.join(new_path.replace('/', std::path::MAIN_SEPARATOR_STR));
 
     // Ensure target parent directory exists.

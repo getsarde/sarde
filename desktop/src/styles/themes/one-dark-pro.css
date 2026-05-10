@@ -1,0 +1,40 @@
+/* One Dark Pro
+   Palette: #282c34 #21252b #2c313c #3e4451 #5c6370 #abb2bf
+   Colors: #61afef #c678dd #98c379 #e5c07b #e06c75 #d19a66 #56b6c2 */
+
+[data-theme="one-dark-pro"] {
+  --cr-bg-base: #282c34;
+  --cr-bg-surface: #2c313c;
+  --cr-bg-elevated: #3e4451;
+  --cr-bg-input: #21252b;
+  --cr-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  --cr-text: #abb2bf;
+  --cr-text-muted: #5c6370;
+  --cr-text-dim: #3e4451;
+
+  --cr-accent: #61afef;
+  --cr-accent-hover: #79bff2;
+  --cr-accent-bg: rgba(97, 175, 239, 0.12);
+  --cr-accent-text: #282c34;
+
+  --cr-border: #3e4451;
+  --cr-border-focus: #61afef;
+
+  --cr-success: #98c379;
+  --cr-warning: #e5c07b;
+  --cr-danger: #e06c75;
+  --cr-info: #56b6c2;
+
+  --cr-hover: rgba(255, 255, 255, 0.05);
+  --cr-active: rgba(97, 175, 239, 0.1);
+  --cr-selection: rgba(97, 175, 239, 0.2);
+
+  --cr-scrollbar: #3e4451;
+  --cr-scrollbar-hover: #5c6370;
+  --cr-scrollbar-active: #737c8c;
+
+  --cr-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --cr-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --cr-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.4);
+}

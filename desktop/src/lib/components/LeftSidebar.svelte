@@ -1,6 +1,6 @@
 <script>
   import { open } from '@tauri-apps/plugin-dialog'
-  import { ui, project } from '../stores/app.svelte.js'
+  import { ui } from '../stores/app.svelte.js'
   import FileTree from './FileTree.svelte'
   import SearchPanel from './SearchPanel.svelte'
   import { Folder, Search, GitBranch, Settings, FilePlus, FolderPlus, FolderOpen } from 'lucide-svelte'
@@ -14,7 +14,7 @@
   async function openFolder() {
     const selected = await open({ directory: true, multiple: false, title: 'Open Project Folder' })
     if (selected) {
-      project.contentPath = selected
+      window.dispatchEvent(new CustomEvent('coderoo:open-project', { detail: selected }))
     }
   }
 </script>
@@ -79,8 +79,8 @@
   .left-sidebar {
     display: flex;
     height: 100%;
-    background: var(--color-surface, #1e1e2e);
-    border-right: 1px solid var(--color-border, #313244);
+    background: var(--cr-bg-base);
+    border-right: 1px solid var(--cr-border);
   }
 
   .icon-strip {
@@ -90,8 +90,8 @@
     width: 44px;
     padding: 6px 0;
     gap: 2px;
-    background: var(--color-surface-alt, #181825);
-    border-right: 1px solid var(--color-border, #313244);
+    background: var(--cr-bg-input);
+    border-right: 1px solid var(--cr-border);
   }
 
   .icon-btn {
@@ -101,21 +101,21 @@
     width: 36px;
     height: 36px;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--cr-radius);
     background: transparent;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     cursor: pointer;
     transition: color 0.15s, background 0.15s;
   }
 
   .icon-btn:hover {
-    color: var(--color-text, #cdd6f4);
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
+    color: var(--cr-text);
+    background: var(--cr-hover);
   }
 
   .icon-btn.active {
-    color: var(--color-accent, #89b4fa);
-    background: var(--color-active, rgba(137, 180, 250, 0.1));
+    color: var(--cr-accent);
+    background: var(--cr-active);
   }
 
   .icon-spacer {
@@ -138,8 +138,8 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--color-text-muted, #6c7086);
-    border-bottom: 1px solid var(--color-border, #313244);
+    color: var(--cr-text-muted);
+    border-bottom: 1px solid var(--cr-border);
   }
 
   .panel-title {
@@ -158,21 +158,21 @@
     width: 22px;
     height: 22px;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--cr-radius-sm);
     background: transparent;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     cursor: pointer;
   }
 
   .panel-action:hover {
-    color: var(--color-text, #cdd6f4);
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
+    color: var(--cr-text);
+    background: var(--cr-hover);
   }
 
   .git-placeholder {
     padding: 12px;
     font-size: 12px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     overflow-y: auto;
     flex: 1;
   }

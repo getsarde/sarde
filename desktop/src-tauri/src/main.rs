@@ -94,6 +94,8 @@ fn main() {
             commands::content::read_content,
             commands::content::save_content,
             commands::content::create_content,
+            commands::content::create_content_file,
+            commands::content::create_content_dir,
             commands::content::delete_content,
             commands::content::rename_content,
             // Config & schema

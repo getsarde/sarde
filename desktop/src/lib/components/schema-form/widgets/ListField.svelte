@@ -48,15 +48,15 @@
     flex-wrap: wrap;
     gap: 4px;
     padding: 4px 6px;
-    background: var(--color-surface-alt, #181825);
-    border: 1px solid var(--color-border, #313244);
-    border-radius: 4px;
+    background: var(--cr-bg-input);
+    border: 1px solid var(--cr-border);
+    border-radius: var(--cr-radius-sm);
     min-height: 28px;
     align-items: center;
   }
 
   .tag-input:focus-within {
-    border-color: var(--color-accent, #89b4fa);
+    border-color: var(--cr-accent);
   }
 
   .tag {
@@ -65,8 +65,8 @@
     gap: 2px;
     padding: 1px 6px;
     font-size: 11px;
-    color: var(--color-text, #cdd6f4);
-    background: var(--color-hover, rgba(255, 255, 255, 0.08));
+    color: var(--cr-text);
+    background: var(--cr-hover);
     border-radius: 3px;
     white-space: nowrap;
   }
@@ -74,7 +74,7 @@
   .tag-remove {
     border: none;
     background: none;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     cursor: pointer;
     padding: 0 1px;
     font-size: 13px;
@@ -82,7 +82,7 @@
   }
 
   .tag-remove:hover {
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
   }
 
   .tag-add {
@@ -90,13 +90,13 @@
     min-width: 50px;
     border: none;
     background: transparent;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     font-size: 11px;
     outline: none;
     padding: 2px 0;
   }
 
   .tag-add::placeholder {
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 </style>

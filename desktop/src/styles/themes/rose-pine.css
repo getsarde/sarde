@@ -1,0 +1,40 @@
+/* Rose Pine
+   Palette: #191724 #1f1d2e #26233a #403d52 #524f67 #6e6a86 #908caa #e0def4
+   Colors: #eb6f92 #f6c177 #ebbcba #31748f #9ccfd8 #c4a7e7 */
+
+[data-theme="rose-pine"] {
+  --cr-bg-base: #191724;
+  --cr-bg-surface: #1f1d2e;
+  --cr-bg-elevated: #26233a;
+  --cr-bg-input: #191724;
+  --cr-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  --cr-text: #e0def4;
+  --cr-text-muted: #6e6a86;
+  --cr-text-dim: #403d52;
+
+  --cr-accent: #c4a7e7;
+  --cr-accent-hover: #d4baf5;
+  --cr-accent-bg: rgba(196, 167, 231, 0.12);
+  --cr-accent-text: #191724;
+
+  --cr-border: #403d52;
+  --cr-border-focus: #c4a7e7;
+
+  --cr-success: #9ccfd8;
+  --cr-warning: #f6c177;
+  --cr-danger: #eb6f92;
+  --cr-info: #31748f;
+
+  --cr-hover: rgba(255, 255, 255, 0.05);
+  --cr-active: rgba(196, 167, 231, 0.1);
+  --cr-selection: rgba(196, 167, 231, 0.2);
+
+  --cr-scrollbar: #403d52;
+  --cr-scrollbar-hover: #524f67;
+  --cr-scrollbar-active: #6e6a86;
+
+  --cr-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --cr-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --cr-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.5);
+}

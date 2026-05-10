@@ -30,8 +30,8 @@
 
   // Derive collection from file path (first segment: "blog/my-post.md" → "blog")
   let collection = $derived.by(() => {
-    if (!doc.filePath) return ''
-    const parts = doc.filePath.replace(/\\/g, '/').split('/')
+    if (!doc.contentPath) return ''
+    const parts = doc.contentPath.replace(/\\/g, '/').split('/')
     return parts.length > 1 ? parts[0] : ''
   })
 
@@ -111,7 +111,7 @@
     padding: 12px;
     margin: 0;
     font-size: 12px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .properties-form {
@@ -129,9 +129,9 @@
   .yaml-error {
     padding: 6px 8px;
     font-size: 11px;
-    color: var(--color-error, #f38ba8);
+    color: var(--cr-danger);
     background: rgba(243, 139, 168, 0.1);
-    border-top: 1px solid var(--color-border, #313244);
+    border-top: 1px solid var(--cr-border);
     white-space: pre-wrap;
     word-break: break-word;
   }

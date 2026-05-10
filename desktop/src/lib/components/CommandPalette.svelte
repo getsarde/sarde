@@ -104,7 +104,7 @@
             addToast('success', 'Build complete')
           }
         }).catch(e => {
-          addToast('error', `Build failed: ${e.message}`)
+          addToast('error', `Build failed: ${e?.message ?? e}`)
         })
         break
       case 'preview-site':
@@ -219,9 +219,9 @@
     max-height: 380px;
     display: flex;
     flex-direction: column;
-    background: var(--color-surface, #1e1e2e);
-    border: 1px solid var(--color-border, #313244);
-    border-radius: 10px;
+    background: var(--cr-bg-base);
+    border: 1px solid var(--cr-border);
+    border-radius: var(--cr-radius-lg);
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
     overflow: hidden;
     align-self: flex-start;
@@ -232,12 +232,12 @@
     align-items: center;
     gap: 8px;
     padding: 12px 14px;
-    border-bottom: 1px solid var(--color-border, #313244);
+    border-bottom: 1px solid var(--cr-border);
   }
 
   :global(.palette-search-icon) {
     flex-shrink: 0;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .palette-input {
@@ -245,13 +245,13 @@
     border: none;
     background: transparent;
     font-size: 14px;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     outline: none;
     font-family: inherit;
   }
 
   .palette-input::placeholder {
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .palette-list {
@@ -264,7 +264,7 @@
     padding: 20px;
     text-align: center;
     font-size: 13px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .palette-item {
@@ -274,9 +274,9 @@
     width: 100%;
     padding: 8px 10px;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--cr-radius);
     background: transparent;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     font-size: 13px;
     text-align: left;
     cursor: pointer;
@@ -284,12 +284,12 @@
 
   .palette-item:hover,
   .palette-item.selected {
-    background: var(--color-active, rgba(137, 180, 250, 0.1));
+    background: var(--cr-active);
   }
 
   .palette-category {
     font-size: 11px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     min-width: 70px;
   }
 
@@ -299,11 +299,11 @@
 
   .palette-shortcut {
     font-size: 11px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     padding: 2px 6px;
-    border-radius: 4px;
-    background: var(--color-surface-alt, #181825);
-    border: 1px solid var(--color-border, #313244);
+    border-radius: var(--cr-radius-sm);
+    background: var(--cr-bg-input);
+    border: 1px solid var(--cr-border);
     font-family: inherit;
   }
 </style>

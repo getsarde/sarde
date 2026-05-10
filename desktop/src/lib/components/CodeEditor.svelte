@@ -10,8 +10,9 @@
   import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
   import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
   import { coderooCompletions } from '../editor/completions.js'
-  import { writeTextFile } from '@tauri-apps/plugin-fs'
   import { doc, tabs, addToast } from '../stores/app.svelte.js'
+  import { saveContent } from '../api.js'
+  import yaml from 'js-yaml'
 
   let editorContainer = $state(null)
   let view = $state(null)
@@ -130,16 +131,30 @@
 
   // Auto-save: write to disk 5s after last edit
   async function saveFile() {
-    if (!doc.filePath || !doc.dirty) return
+    if (!doc.contentPath || !doc.dirty) return
     try {
-      await writeTextFile(doc.filePath, doc.content)
+      const { frontmatter, body } = splitMarkdown(doc.content)
+      await saveContent(doc.contentPath, frontmatter, body)
       doc.dirty = false
       const activeTab = tabs.items.find(t => t.id === tabs.activeId)
-      if (activeTab) activeTab.dirty = false
+      if (activeTab) {
+        activeTab.dirty = false
+        activeTab.cachedContent = doc.content
+      }
     } catch (e) {
       console.error('Failed to save file:', e)
       addToast('error', `Save failed: ${e}`)
     }
+  }
+
+  function splitMarkdown(content) {
+    const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/)
+    if (!match) return { frontmatter: {}, body: content }
+    const parsed = yaml.load(match[1]) ?? {}
+    if (typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('Frontmatter must be a YAML object')
+    }
+    return { frontmatter: parsed, body: content.slice(match[0].length) }
   }
 
   function scheduleAutoSave() {
@@ -204,21 +219,21 @@
         EditorView.theme({
           '&': { height: '100%' },
           '.cm-content': {
-            fontFamily: 'var(--font-mono, "JetBrains Mono", "Fira Code", monospace)',
+            fontFamily: 'var(--cr-font-mono)',
             padding: '16px',
           },
           '.cm-gutters': {
-            background: 'var(--bg-surface, #1e1e2e)',
-            color: 'var(--text-muted, #6c7086)',
+            background: 'var(--cr-bg-surface)',
+            color: 'var(--cr-text-muted)',
             border: 'none',
           },
-          '.cm-activeLineGutter': { background: 'var(--bg-elevated, #2a2a3a)' },
+          '.cm-activeLineGutter': { background: 'var(--cr-bg-elevated)' },
           '.cm-activeLine': { background: 'rgba(99, 102, 241, 0.08)' },
-          '.cm-cursor': { borderLeftColor: 'var(--accent, #6366f1)' },
+          '.cm-cursor': { borderLeftColor: 'var(--cr-accent)' },
           '.cm-selectionBackground': { background: 'rgba(99, 102, 241, 0.2) !important' },
           '.cm-foldPlaceholder': {
-            background: 'var(--bg-elevated, #2a2a3a)',
-            color: 'var(--text-muted, #6c7086)',
+            background: 'var(--cr-bg-elevated)',
+            color: 'var(--cr-text-muted)',
             border: 'none',
             borderRadius: '3px',
             padding: '0 4px',
@@ -226,14 +241,14 @@
           '.cm-matchingBracket': { background: 'rgba(99, 102, 241, 0.25)', outline: 'none' },
           // Autocomplete dropdown
           '.cm-tooltip.cm-tooltip-autocomplete': {
-            background: 'var(--bg-surface, #1e1e2e)',
-            border: '1px solid var(--color-border, #313244)',
-            borderRadius: '8px',
+            background: 'var(--cr-bg-surface)',
+            border: '1px solid var(--cr-border)',
+            borderRadius: 'var(--cr-radius)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
             overflow: 'hidden',
           },
           '.cm-tooltip-autocomplete > ul': {
-            fontFamily: 'var(--font-ui, inherit)',
+            fontFamily: 'var(--cr-font-ui)',
             maxHeight: '280px',
           },
           '.cm-tooltip-autocomplete > ul > li': {
@@ -241,25 +256,25 @@
             lineHeight: '1.5',
           },
           '.cm-tooltip-autocomplete > ul > li[aria-selected]': {
-            background: 'var(--color-active, rgba(137,180,250,0.15))',
-            color: 'var(--color-text, #cdd6f4)',
+            background: 'var(--cr-active)',
+            color: 'var(--cr-text)',
           },
           '.cm-completionLabel': {
-            color: 'var(--color-text, #cdd6f4)',
+            color: 'var(--cr-text)',
             fontSize: '13px',
           },
           '.cm-completionDetail': {
-            color: 'var(--color-text-muted, #6c7086)',
+            color: 'var(--cr-text-muted)',
             fontSize: '11px',
             marginLeft: '8px',
           },
           '.cm-completionInfo': {
-            background: 'var(--bg-elevated, #2a2a3a)',
-            border: '1px solid var(--color-border, #313244)',
-            borderRadius: '6px',
+            background: 'var(--cr-bg-elevated)',
+            border: '1px solid var(--cr-border)',
+            borderRadius: 'var(--cr-radius)',
             padding: '6px 10px',
             fontSize: '12px',
-            color: 'var(--color-text-muted, #6c7086)',
+            color: 'var(--cr-text-muted)',
             maxWidth: '260px',
           },
         }, { dark: true }),

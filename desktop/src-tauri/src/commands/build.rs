@@ -1,12 +1,60 @@
 use crate::state::AppState;
+use regex::Regex;
 use tauri::Emitter;
 use tauri::Manager;
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_shell::process::CommandEvent;
 
+#[derive(Clone, Debug, Default, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DesktopWarning {
+    pub file: String,
+    pub field: String,
+    pub message: String,
+    pub level: String,
+}
+
+#[derive(Clone, Debug, Default, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BuildResult {
+    pub status: String,
+    pub summary: String,
+    pub page_count: usize,
+    pub duration: String,
+    pub output_dir: String,
+    pub warnings: Vec<DesktopWarning>,
+    pub raw_output: String,
+}
+
+#[derive(Clone, Debug, Default, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ValidationResult {
+    pub summary: String,
+    pub warnings: Vec<DesktopWarning>,
+    pub raw_output: String,
+}
+
+#[derive(Clone, Debug, Default, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeployResult {
+    pub provider: String,
+    pub output: String,
+    pub raw_output: String,
+}
+
+#[derive(Clone, Debug, Default, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportResult {
+    pub notes_converted: usize,
+    pub images_copied: usize,
+    pub links_converted: usize,
+    pub items_skipped: usize,
+    pub raw_output: String,
+}
+
 /// Run `coderoo build` on the current project. Streams stdout/stderr as Tauri events.
 #[tauri::command]
-pub async fn run_build(app: tauri::AppHandle) -> Result<serde_json::Value, String> {
+pub async fn run_build(app: tauri::AppHandle) -> Result<BuildResult, String> {
     let state = app.state::<AppState>();
     let project_dir = {
         let pd = state.project_dir.lock().unwrap();
@@ -29,26 +77,33 @@ pub async fn run_build(app: tauri::AppHandle) -> Result<serde_json::Value, Strin
     let app_handle = app.clone();
     let _ = app_handle.emit("build:started", ());
 
-    let mut last_line = String::new();
+    let mut stdout_lines = Vec::new();
+    let mut stderr_lines = Vec::new();
+    let mut exit_code = None;
     while let Some(event) = rx.recv().await {
         match event {
             CommandEvent::Stdout(line) => {
                 let text = String::from_utf8_lossy(&line).trim().to_string();
                 if !text.is_empty() {
-                    last_line = text.clone();
+                    stdout_lines.push(text.clone());
+                    let _ = app_handle.emit("build:log", &text);
                     let _ = app_handle.emit("build:stdout", &text);
                 }
             }
             CommandEvent::Stderr(line) => {
                 let text = String::from_utf8_lossy(&line).trim().to_string();
                 if !text.is_empty() {
+                    stderr_lines.push(text.clone());
+                    let _ = app_handle.emit("build:log", &text);
                     let _ = app_handle.emit("build:stderr", &text);
                 }
             }
             CommandEvent::Terminated(status) => {
                 let code = status.code.unwrap_or(-1);
+                exit_code = Some(code);
                 if code == 0 {
-                    let _ = app_handle.emit("build:complete", ());
+                    let result = parse_build_output(&stdout_lines.join("\n"));
+                    let _ = app_handle.emit("build:complete", &result);
                 } else {
                     let _ = app_handle.emit("build:error", &format!("Exit code: {}", code));
                 }
@@ -57,11 +112,16 @@ pub async fn run_build(app: tauri::AppHandle) -> Result<serde_json::Value, Strin
         }
     }
 
-    // Try to parse last stdout line as JSON (build stats).
-    match serde_json::from_str::<serde_json::Value>(&last_line) {
-        Ok(stats) => Ok(stats),
-        Err(_) => Ok(serde_json::json!({ "status": "complete" })),
+    if exit_code.unwrap_or(0) != 0 {
+        let stderr = stderr_lines.join("\n");
+        return Err(if stderr.is_empty() {
+            format!("Build failed with exit code {}", exit_code.unwrap_or(-1))
+        } else {
+            stderr
+        });
     }
+
+    Ok(parse_build_output(&stdout_lines.join("\n")))
 }
 
 /// Start the preview server: spawn `coderoo serve`, parse port from stdout.
@@ -120,8 +180,9 @@ pub async fn start_preview(app: tauri::AppHandle) -> Result<u16, String> {
                         }
                     }
 
-                    // Forward other stdout as build log.
-                    let _ = app_handle.emit("build:log", trimmed);
+                    if !trimmed.is_empty() {
+                        let _ = app_handle.emit("build:log", trimmed);
+                    }
                 }
                 CommandEvent::Stderr(line) => {
                     let text = String::from_utf8_lossy(&line).trim().to_string();
@@ -161,7 +222,7 @@ pub fn stop_preview(state: tauri::State<AppState>) -> Result<(), String> {
 
 /// Run `coderoo validate` on the current project.
 #[tauri::command]
-pub async fn validate_project(app: tauri::AppHandle) -> Result<String, String> {
+pub async fn validate_project(app: tauri::AppHandle) -> Result<ValidationResult, String> {
     let state = app.state::<AppState>();
     let project_dir = {
         let pd = state.project_dir.lock().unwrap();
@@ -181,7 +242,7 @@ pub async fn validate_project(app: tauri::AppHandle) -> Result<String, String> {
         .map_err(|e| format!("Failed to run validate: {}", e))?;
 
     if output.status.success() {
-        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+        Ok(parse_validation_output(&String::from_utf8_lossy(&output.stdout)))
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
         Err(if stderr.is_empty() {
@@ -197,7 +258,7 @@ pub async fn validate_project(app: tauri::AppHandle) -> Result<String, String> {
 pub async fn deploy(
     app: tauri::AppHandle,
     provider: Option<String>,
-) -> Result<String, String> {
+) -> Result<DeployResult, String> {
     let state = app.state::<AppState>();
     let project_dir = {
         let pd = state.project_dir.lock().unwrap();
@@ -209,6 +270,7 @@ pub async fn deploy(
 
     let shell = app.shell();
     let mut args = vec!["deploy".to_string(), project_dir];
+    let provider_override = provider.clone().unwrap_or_default();
     if let Some(p) = provider {
         if !p.is_empty() {
             args.push("--provider".to_string());
@@ -226,7 +288,12 @@ pub async fn deploy(
         .map_err(|e| format!("Failed to run deploy: {}", e))?;
 
     if output.status.success() {
-        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        Ok(DeployResult {
+            provider: parse_deploy_provider(&stdout, &provider_override, &state),
+            output: stdout.clone(),
+            raw_output: stdout,
+        })
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
         Err(if stderr.is_empty() {
@@ -296,7 +363,7 @@ pub async fn import_obsidian(
     app: tauri::AppHandle,
     vault_path: String,
     collection: Option<String>,
-) -> Result<String, String> {
+) -> Result<ImportResult, String> {
     let state = app.state::<AppState>();
     let project_dir = {
         let pd = state.project_dir.lock().unwrap();
@@ -343,7 +410,7 @@ pub async fn import_obsidian(
         .map_err(|e| format!("Failed to run import: {}", e))?;
 
     if output.status.success() {
-        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+        Ok(parse_import_output(&String::from_utf8_lossy(&output.stdout)))
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
         Err(if stderr.is_empty() {
@@ -351,5 +418,159 @@ pub async fn import_obsidian(
         } else {
             stderr
         })
+    }
+}
+
+fn parse_build_output(raw: &str) -> BuildResult {
+    let mut result = BuildResult {
+        status: "complete".into(),
+        raw_output: raw.trim().to_string(),
+        ..Default::default()
+    };
+
+    let built_re = Regex::new(r"^Built\s+(\d+)\s+pages?\s+in\s+(.+)$").unwrap();
+    let warning_re = Regex::new(r"^\s+(.+?):\s+(.+)$").unwrap();
+
+    let mut in_warnings = false;
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if result.summary.is_empty() && trimmed.starts_with("Built ") {
+            result.summary = trimmed.to_string();
+        }
+        if let Some(caps) = built_re.captures(trimmed) {
+            result.page_count = caps.get(1).and_then(|m| m.as_str().parse().ok()).unwrap_or(0);
+            result.duration = caps.get(2).map(|m| m.as_str().to_string()).unwrap_or_default();
+        } else if let Some(output) = trimmed.strip_prefix("Output:") {
+            result.output_dir = output.trim().to_string();
+        } else if trimmed.contains("warning(s):") {
+            in_warnings = true;
+        } else if in_warnings {
+            if let Some(caps) = warning_re.captures(line) {
+                result.warnings.push(DesktopWarning {
+                    file: caps.get(1).map(|m| m.as_str().trim().to_string()).unwrap_or_default(),
+                    field: "build".into(),
+                    message: caps.get(2).map(|m| m.as_str().trim().to_string()).unwrap_or_default(),
+                    level: "warning".into(),
+                });
+            }
+        }
+    }
+
+    if result.summary.is_empty() {
+        result.summary = "Build complete".into();
+    }
+
+    result
+}
+
+fn parse_validation_output(raw: &str) -> ValidationResult {
+    let mut result = ValidationResult {
+        raw_output: raw.trim().to_string(),
+        ..Default::default()
+    };
+    let warning_re = Regex::new(r"^\s+(.+?):\s+\[(.*?)\]\s+(.+)$").unwrap();
+    let fallback_warning_re = Regex::new(r"^\s+(.+?):\s+(.+)$").unwrap();
+    let mut in_warnings = false;
+
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if result.summary.is_empty() && trimmed.contains("validated in") {
+            result.summary = trimmed.to_string();
+        } else if trimmed.contains("warning(s):") {
+            in_warnings = true;
+        } else if in_warnings {
+            if let Some(caps) = warning_re.captures(line) {
+                result.warnings.push(DesktopWarning {
+                    file: caps.get(1).map(|m| m.as_str().trim().to_string()).unwrap_or_default(),
+                    field: caps.get(2).map(|m| m.as_str().trim().to_string()).unwrap_or_default(),
+                    message: caps.get(3).map(|m| m.as_str().trim().to_string()).unwrap_or_default(),
+                    level: "warning".into(),
+                });
+            } else if let Some(caps) = fallback_warning_re.captures(line) {
+                result.warnings.push(DesktopWarning {
+                    file: caps.get(1).map(|m| m.as_str().trim().to_string()).unwrap_or_default(),
+                    field: "validation".into(),
+                    message: caps.get(2).map(|m| m.as_str().trim().to_string()).unwrap_or_default(),
+                    level: "warning".into(),
+                });
+            }
+        }
+    }
+
+    if result.summary.is_empty() {
+        result.summary = "Validation complete".into();
+    }
+
+    result
+}
+
+fn parse_deploy_provider(raw: &str, provider_override: &str, state: &AppState) -> String {
+    if !provider_override.is_empty() {
+        return provider_override.to_string();
+    }
+    for line in raw.lines() {
+        if let Some(rest) = line.trim().strip_prefix("Deploying with ") {
+            return rest.trim_end_matches("...").trim().to_string();
+        }
+    }
+    state
+        .config
+        .lock()
+        .unwrap()
+        .as_ref()
+        .and_then(|c| c.get("deploy"))
+        .and_then(|d| d.get("provider"))
+        .and_then(|p| p.as_str())
+        .unwrap_or("configured provider")
+        .to_string()
+}
+
+fn parse_import_output(raw: &str) -> ImportResult {
+    let mut result = ImportResult {
+        raw_output: raw.trim().to_string(),
+        ..Default::default()
+    };
+    let done_re = Regex::new(
+        r"Done:\s+(\d+)\s+notes converted,\s+(\d+)\s+images copied,\s+(\d+)\s+links converted(?:,\s+(\d+)\s+items skipped)?",
+    )
+    .unwrap();
+
+    for line in raw.lines() {
+        if let Some(caps) = done_re.captures(line) {
+            result.notes_converted = caps.get(1).and_then(|m| m.as_str().parse().ok()).unwrap_or(0);
+            result.images_copied = caps.get(2).and_then(|m| m.as_str().parse().ok()).unwrap_or(0);
+            result.links_converted = caps.get(3).and_then(|m| m.as_str().parse().ok()).unwrap_or(0);
+            result.items_skipped = caps.get(4).and_then(|m| m.as_str().parse().ok()).unwrap_or(0);
+            break;
+        }
+    }
+
+    result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_validation_warnings() {
+        let result = parse_validation_output(
+            "3 pages across 1 collections validated in 2ms\n  1 warning(s):\n    docs/a.md: [title] Missing title\n",
+        );
+        assert_eq!(result.warnings.len(), 1);
+        assert_eq!(result.warnings[0].file, "docs/a.md");
+        assert_eq!(result.warnings[0].field, "title");
+        assert_eq!(result.warnings[0].message, "Missing title");
+    }
+
+    #[test]
+    fn parses_import_stats() {
+        let result = parse_import_output(
+            "Importing Obsidian vault from x -> y\nDone: 12 notes converted, 3 images copied, 4 links converted, 1 items skipped\n",
+        );
+        assert_eq!(result.notes_converted, 12);
+        assert_eq!(result.images_copied, 3);
+        assert_eq!(result.links_converted, 4);
+        assert_eq!(result.items_skipped, 1);
     }
 }

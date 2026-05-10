@@ -93,7 +93,7 @@ pub fn asset_get_thumbnail(
         .clone()
         .ok_or("No project open")?;
 
-    let abs_path = project_dir.join(path.replace('/', std::path::MAIN_SEPARATOR_STR));
+    let abs_path = yaml::safe_join(&project_dir, &path, true)?;
     if !abs_path.exists() {
         return Err("Asset not found".into());
     }
@@ -174,15 +174,19 @@ pub fn asset_upload(
         .ok_or("No project open")?;
 
     // Determine destination directory.
+    let content_dir_for_info = state.content_dir();
     let dest_dir = match destination.target.as_str() {
         "shared" => project_dir.join("static"),
         "bundle" => {
             let bundle = destination
                 .bundle_path
                 .ok_or("bundle_path required for bundle target")?;
-            yaml::validate_content_path(&bundle)?;
             let content_dir = state.content_dir().ok_or("No content directory")?;
-            content_dir.join(bundle.replace('/', std::path::MAIN_SEPARATOR_STR))
+            if bundle == "." {
+                content_dir
+            } else {
+                yaml::safe_join(&content_dir, &bundle, true)?
+            }
         }
         _ => return Err(format!("Invalid target: {}", destination.target)),
     };
@@ -221,7 +225,12 @@ pub fn asset_upload(
         fs::copy(src, &dest_path).map_err(|e| format!("Copying file: {}", e))?;
 
         // Build AssetInfo for the uploaded file.
-        if let Some(info) = build_asset_info(&dest_path, &project_dir, None) {
+        let content_scope = if destination.target == "bundle" {
+            content_dir_for_info.as_ref()
+        } else {
+            None
+        };
+        if let Some(info) = build_asset_info(&dest_path, &project_dir, content_scope) {
             uploaded.push(info);
         }
     }
@@ -241,7 +250,7 @@ pub fn asset_delete(path: String, state: tauri::State<AppState>) -> Result<(), S
         .clone()
         .ok_or("No project open")?;
 
-    let abs_path = project_dir.join(path.replace('/', std::path::MAIN_SEPARATOR_STR));
+    let abs_path = yaml::safe_join(&project_dir, &path, true)?;
 
     // Safety: verify the file is under content/ or static/.
     let canonical = abs_path

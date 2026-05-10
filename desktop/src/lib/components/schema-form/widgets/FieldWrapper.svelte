@@ -20,20 +20,20 @@
     display: block;
     font-size: 11px;
     font-weight: 600;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     margin-bottom: 4px;
     text-transform: capitalize;
   }
 
   .required {
-    color: var(--color-error, #f38ba8);
+    color: var(--cr-danger);
     margin-left: 2px;
   }
 
   .field-error {
     display: block;
     font-size: 11px;
-    color: var(--color-error, #f38ba8);
+    color: var(--cr-danger);
     margin-top: 3px;
   }
 </style>

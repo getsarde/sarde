@@ -6,6 +6,7 @@ use std::path::PathBuf;
 #[serde(rename_all = "camelCase")]
 pub struct ProjectInfo {
     pub dir: String,
+    pub content_dir: String,
     pub state: String,
     pub title: String,
     pub collections: Vec<CollectionSummary>,
@@ -19,22 +20,21 @@ pub struct CollectionSummary {
     pub page_count: usize,
 }
 
-/// Open a project: validate content/ exists, read site.yaml, cache config.
+/// Open a project: read site.yaml, validate configured content dir, cache config.
 #[tauri::command]
 pub fn open_project(dir: String, state: tauri::State<AppState>) -> Result<ProjectInfo, String> {
     let abs_dir = fs::canonicalize(&dir).map_err(|e| format!("Invalid path: {}", e))?;
 
-    // Validate content/ directory exists.
-    let content_dir = abs_dir.join("content");
+    // Read and parse site.yaml before validating content/, since content.dir may override it.
+    let config = read_site_config(&abs_dir)?;
+    let content_dir = resolve_content_dir(&abs_dir, &config);
     if !content_dir.is_dir() {
         return Err(format!(
-            "Not a valid project: content/ directory not found in {}",
-            abs_dir.display()
+            "Not a valid project: content directory not found at {}",
+            content_dir.display()
         ));
     }
 
-    // Read and parse site.yaml.
-    let config = read_site_config(&abs_dir)?;
     let title = config
         .get("site")
         .and_then(|s| s.get("title"))
@@ -69,6 +69,7 @@ pub fn open_project(dir: String, state: tauri::State<AppState>) -> Result<Projec
 
     Ok(ProjectInfo {
         dir: abs_dir.to_string_lossy().to_string(),
+        content_dir: content_dir.to_string_lossy().to_string(),
         state: "open".into(),
         title,
         collections,
@@ -259,6 +260,7 @@ pub fn get_project_info(state: tauri::State<AppState>) -> Result<ProjectInfo, St
 
     Ok(ProjectInfo {
         dir: project_dir.to_string_lossy().to_string(),
+        content_dir: content_dir.to_string_lossy().to_string(),
         state: "open".into(),
         title,
         collections,
@@ -284,6 +286,20 @@ fn read_site_config(project_dir: &PathBuf) -> Result<serde_yaml::Value, String> 
     let data = fs::read_to_string(&config_path)
         .map_err(|e| format!("Reading site.yaml: {}", e))?;
     serde_yaml::from_str(&data).map_err(|e| format!("Parsing site.yaml: {}", e))
+}
+
+fn resolve_content_dir(project_dir: &PathBuf, config: &serde_yaml::Value) -> PathBuf {
+    let content_subdir = config
+        .get("content")
+        .and_then(|c| c.get("dir"))
+        .and_then(|d| d.as_str())
+        .unwrap_or("content");
+    let path = PathBuf::from(content_subdir);
+    if path.is_absolute() {
+        path
+    } else {
+        project_dir.join(path)
+    }
 }
 
 /// Public wrapper for use from other modules (e.g. config.rs).

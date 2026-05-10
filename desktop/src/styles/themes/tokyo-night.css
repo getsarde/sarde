@@ -1,0 +1,40 @@
+/* Tokyo Night
+   Palette: #1a1b26 #16161e #24283b #414868 #565f89 #a9b1d6 #c0caf5
+   Colors: #7aa2f7 #bb9af7 #7dcfff #9ece6a #e0af68 #f7768e #ff9e64 */
+
+[data-theme="tokyo-night"] {
+  --cr-bg-base: #1a1b26;
+  --cr-bg-surface: #24283b;
+  --cr-bg-elevated: #2f3549;
+  --cr-bg-input: #16161e;
+  --cr-bg-overlay: rgba(0, 0, 0, 0.6);
+
+  --cr-text: #c0caf5;
+  --cr-text-muted: #565f89;
+  --cr-text-dim: #414868;
+
+  --cr-accent: #7aa2f7;
+  --cr-accent-hover: #89b4fa;
+  --cr-accent-bg: rgba(122, 162, 247, 0.12);
+  --cr-accent-text: #1a1b26;
+
+  --cr-border: #414868;
+  --cr-border-focus: #7aa2f7;
+
+  --cr-success: #9ece6a;
+  --cr-warning: #e0af68;
+  --cr-danger: #f7768e;
+  --cr-info: #7dcfff;
+
+  --cr-hover: rgba(255, 255, 255, 0.05);
+  --cr-active: rgba(122, 162, 247, 0.1);
+  --cr-selection: rgba(122, 162, 247, 0.2);
+
+  --cr-scrollbar: #414868;
+  --cr-scrollbar-hover: #565f89;
+  --cr-scrollbar-active: #737aa2;
+
+  --cr-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --cr-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --cr-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.5);
+}

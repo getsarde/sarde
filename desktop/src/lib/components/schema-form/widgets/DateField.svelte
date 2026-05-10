@@ -22,15 +22,15 @@
     box-sizing: border-box;
     padding: 5px 8px;
     font-size: 12px;
-    color: var(--color-text, #cdd6f4);
-    background: var(--color-surface-alt, #181825);
-    border: 1px solid var(--color-border, #313244);
-    border-radius: 4px;
+    color: var(--cr-text);
+    background: var(--cr-bg-input);
+    border: 1px solid var(--cr-border);
+    border-radius: var(--cr-radius-sm);
     outline: none;
     font-family: inherit;
   }
 
   .field-input:focus {
-    border-color: var(--color-accent, #89b4fa);
+    border-color: var(--cr-accent);
   }
 </style>

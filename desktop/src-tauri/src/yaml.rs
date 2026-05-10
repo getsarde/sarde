@@ -1,4 +1,5 @@
 use regex::Regex;
+use std::path::{Component, Path, PathBuf};
 use std::sync::LazyLock;
 
 /// Split a markdown file into frontmatter (YAML) and body.
@@ -119,11 +120,63 @@ pub fn validate_content_path(rel_path: &str) -> Result<(), String> {
     }
 
     let cleaned = rel_path.replace('\\', "/");
-    if cleaned.contains("..") {
+    if cleaned.starts_with('/') || cleaned.starts_with('~') {
+        return Err(format!("absolute paths are not allowed: {}", rel_path));
+    }
+    if cleaned.contains(':') {
+        return Err(format!("drive or scheme paths are not allowed: {}", rel_path));
+    }
+    if cleaned.split('/').any(|part| part.is_empty() || part == ".") {
+        return Err(format!("empty path segments are not allowed: {}", rel_path));
+    }
+    if cleaned.split('/').any(|part| part == "..") {
         return Err(format!("path traversal not allowed: {}", rel_path));
     }
 
+    let path = Path::new(rel_path);
+    if path.is_absolute() {
+        return Err(format!("absolute paths are not allowed: {}", rel_path));
+    }
+    for component in path.components() {
+        match component {
+            Component::Normal(_) => {}
+            _ => return Err(format!("invalid path component: {}", rel_path)),
+        }
+    }
+
     Ok(())
+}
+
+/// Join a validated relative path to a base directory and prove it cannot escape the base.
+pub fn safe_join(base: &Path, rel_path: &str, target_must_exist: bool) -> Result<PathBuf, String> {
+    validate_content_path(rel_path)?;
+
+    let base_canonical = base
+        .canonicalize()
+        .map_err(|e| format!("Resolving base directory: {}", e))?;
+    let candidate = base_canonical.join(rel_path.replace('/', std::path::MAIN_SEPARATOR_STR));
+
+    if target_must_exist {
+        let candidate_canonical = candidate
+            .canonicalize()
+            .map_err(|e| format!("Resolving path: {}", e))?;
+        if !candidate_canonical.starts_with(&base_canonical) {
+            return Err("Path traversal not allowed".into());
+        }
+        return Ok(candidate_canonical);
+    }
+
+    let parent = candidate
+        .parent()
+        .ok_or_else(|| "Invalid path parent".to_string())?;
+    let parent_canonical = parent
+        .canonicalize()
+        .map_err(|e| format!("Resolving parent directory: {}", e))?;
+    if !parent_canonical.starts_with(&base_canonical) {
+        return Err("Path traversal not allowed".into());
+    }
+
+    Ok(candidate)
 }
 
 #[cfg(test)]
@@ -166,7 +219,13 @@ mod tests {
     #[test]
     fn test_validate_content_path() {
         assert!(validate_content_path("blog/post.md").is_ok());
+        assert!(validate_content_path("blog\\post.md").is_ok());
         assert!(validate_content_path("../etc/passwd").is_err());
+        assert!(validate_content_path("blog/../post.md").is_err());
+        assert!(validate_content_path("/blog/post.md").is_err());
+        assert!(validate_content_path("C:/tmp/post.md").is_err());
+        assert!(validate_content_path("blog//post.md").is_err());
+        assert!(validate_content_path("./blog/post.md").is_err());
         assert!(validate_content_path("").is_err());
     }
 }

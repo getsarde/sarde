@@ -1,0 +1,38 @@
+/* GitHub Dark */
+
+[data-theme="github-dark"] {
+  --cr-bg-base: #0d1117;
+  --cr-bg-surface: #161b22;
+  --cr-bg-elevated: #1c2128;
+  --cr-bg-input: #0d1117;
+  --cr-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  --cr-text: #e6edf3;
+  --cr-text-muted: #7d8590;
+  --cr-text-dim: #484f58;
+
+  --cr-accent: #58a6ff;
+  --cr-accent-hover: #79c0ff;
+  --cr-accent-bg: rgba(88, 166, 255, 0.1);
+  --cr-accent-text: #0d1117;
+
+  --cr-border: #30363d;
+  --cr-border-focus: #58a6ff;
+
+  --cr-success: #3fb950;
+  --cr-warning: #d29922;
+  --cr-danger: #f85149;
+  --cr-info: #58a6ff;
+
+  --cr-hover: rgba(255, 255, 255, 0.04);
+  --cr-active: rgba(88, 166, 255, 0.1);
+  --cr-selection: rgba(88, 166, 255, 0.2);
+
+  --cr-scrollbar: #484f58;
+  --cr-scrollbar-hover: #6e7681;
+  --cr-scrollbar-active: #7d8590;
+
+  --cr-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --cr-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --cr-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.5);
+}

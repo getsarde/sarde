@@ -57,8 +57,14 @@ export function setupPreviewListeners() {
   onBuildLog((msg) => {
     pushLog(msg, 'info')
   })
+  onBuildStarted(() => {
+    buildLog.building = true
+    buildLog.visible = true
+    pushLog('Build started', 'info')
+  })
   onBuildComplete((result) => {
     buildLog.building = false
+    if (result?.warnings) warnings.items = result.warnings
     const text = result?.duration
       ? `Build complete in ${result.duration}`
       : 'Build complete'
@@ -110,6 +116,7 @@ export const mdPreview = $state({
 export const doc = $state({
   content: '',
   filePath: '',
+  contentPath: '',
   dirty: false,
   wordCount: 0,
   readingTime: 0,
@@ -159,7 +166,7 @@ export const fileTree = $state({
 // ---------------------------------------------------------------------------
 // Site configuration — loaded/saved via sarde IPC API
 // ---------------------------------------------------------------------------
-import { getConfig as apiGetConfig, updateConfig as apiUpdateConfig, onPreviewReady, onPreviewStopped, onPreviewCrashed, onBuildLog, onBuildComplete, onBuildError } from '../api.js'
+import { getConfig as apiGetConfig, updateConfig as apiUpdateConfig, onPreviewReady, onPreviewStopped, onPreviewCrashed, onBuildLog, onBuildStarted, onBuildComplete, onBuildError } from '../api.js'
 
 export const siteConfig = $state({
   loaded: false,
@@ -233,7 +240,7 @@ export async function runValidation() {
       addToast('success', 'No warnings')
     }
   } catch (e) {
-    addToast('error', `Validation failed: ${e.message}`)
+    addToast('error', `Validation failed: ${e?.message ?? e}`)
   } finally {
     warnings.loading = false
   }
@@ -280,7 +287,7 @@ export const project = $state({
   name: '',
   root: '',
   config: null,
-  contentPath: '',  // absolute path to the content/ directory
+  contentPath: '',  // absolute path to the configured content directory
 })
 
 // ---------------------------------------------------------------------------
@@ -306,6 +313,7 @@ export function switchToTab(newId) {
   if (!incoming) return
 
   doc.filePath = incoming.path
+  doc.contentPath = incoming.contentPath ?? ''
   doc.dirty = incoming.dirty ?? false
   doc.content = incoming.cachedContent ?? ''
   doc.cursorLine = incoming.savedCursorLine ?? 1
@@ -329,6 +337,7 @@ export function closeTabById(id) {
       // Load next tab without snapshot (outgoing tab is gone)
       tabs.activeId = next.id
       doc.filePath = next.path
+      doc.contentPath = next.contentPath ?? ''
       doc.dirty = next.dirty ?? false
       doc.content = next.cachedContent ?? ''
       doc.cursorLine = next.savedCursorLine ?? 1
@@ -339,6 +348,7 @@ export function closeTabById(id) {
     } else {
       tabs.activeId = null
       doc.filePath = ''
+      doc.contentPath = ''
       doc.content = ''
       doc.dirty = false
       doc.wordCount = 0

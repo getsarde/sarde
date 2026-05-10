@@ -25,14 +25,14 @@
     height: 20px;
     border-radius: 10px;
     border: none;
-    background: var(--color-border, #313244);
+    background: var(--cr-border);
     cursor: pointer;
     padding: 0;
     transition: background 0.2s;
   }
 
   .toggle.active {
-    background: var(--color-accent, #89b4fa);
+    background: var(--cr-accent);
   }
 
   .toggle:disabled {

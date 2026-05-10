@@ -1,0 +1,38 @@
+/* Catppuccin Latte */
+
+[data-theme="light"] {
+  --cr-bg-base: #eff1f5;
+  --cr-bg-surface: #e6e9ef;
+  --cr-bg-elevated: #dce0e8;
+  --cr-bg-input: #ccd0da;
+  --cr-bg-overlay: rgba(0, 0, 0, 0.3);
+
+  --cr-text: #4c4f69;
+  --cr-text-muted: #6c6f85;
+  --cr-text-dim: #9ca0b0;
+
+  --cr-accent: #1e66f5;
+  --cr-accent-hover: #2a6ef6;
+  --cr-accent-bg: rgba(30, 102, 245, 0.1);
+  --cr-accent-text: #ffffff;
+
+  --cr-border: #ccd0da;
+  --cr-border-focus: #1e66f5;
+
+  --cr-success: #40a02b;
+  --cr-warning: #df8e1d;
+  --cr-danger: #d20f39;
+  --cr-info: #1e66f5;
+
+  --cr-hover: rgba(0, 0, 0, 0.04);
+  --cr-active: rgba(30, 102, 245, 0.08);
+  --cr-selection: rgba(30, 102, 245, 0.15);
+
+  --cr-scrollbar: #bcc0cc;
+  --cr-scrollbar-hover: #9ca0b0;
+  --cr-scrollbar-active: #7c7f93;
+
+  --cr-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --cr-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --cr-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.15);
+}

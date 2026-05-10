@@ -59,13 +59,13 @@
     margin: 0;
     font-size: 18px;
     font-weight: 600;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
   }
 
   p {
     margin: 0;
     font-size: 13px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     line-height: 1.5;
   }
 
@@ -80,10 +80,10 @@
     align-items: center;
     gap: 8px;
     padding: 10px 18px;
-    border: 1px solid var(--color-border, #313244);
-    border-radius: 8px;
-    background: var(--color-surface-alt, #181825);
-    color: var(--color-text, #cdd6f4);
+    border: 1px solid var(--cr-border);
+    border-radius: var(--cr-radius);
+    background: var(--cr-bg-input);
+    color: var(--cr-text);
     font-size: 13px;
     font-family: inherit;
     cursor: pointer;
@@ -91,11 +91,11 @@
   }
 
   .shortcut-card:hover {
-    border-color: var(--color-accent, #89b4fa);
+    border-color: var(--cr-accent);
   }
 
   .shortcut-card :global(svg) {
-    color: var(--color-accent, #89b4fa);
+    color: var(--cr-accent);
   }
 
   .keyhints {
@@ -108,7 +108,7 @@
 
   .keyhint {
     font-size: 12px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -116,11 +116,11 @@
 
   kbd {
     padding: 2px 6px;
-    border-radius: 4px;
+    border-radius: var(--cr-radius-sm);
     font-size: 11px;
     font-family: inherit;
-    background: var(--color-surface-alt, #181825);
-    border: 1px solid var(--color-border, #313244);
-    color: var(--color-text-muted, #6c7086);
+    background: var(--cr-bg-input);
+    border: 1px solid var(--cr-border);
+    color: var(--cr-text-muted);
   }
 </style>

@@ -1,6 +1,7 @@
 <script>
   import { readDir, readTextFile } from '@tauri-apps/plugin-fs'
   import { project, doc, tabs, switchToTab, addToast } from '../stores/app.svelte.js'
+  import { readContent } from '../api.js'
   import { Search, FileText, Loader } from 'lucide-svelte'
 
   /** Flat index of all .md files under contentPath */
@@ -111,17 +112,28 @@
   }
 
   async function openResult(filePath, fileName, lineNum) {
-    const existing = tabs.items.find(t => t.path === filePath)
+    const contentPath = relContentPath(filePath)
+    const existing = tabs.items.find(t => t.path === filePath || t.contentPath === contentPath)
     if (existing) {
       switchToTab(existing.id)
     } else {
       try {
-        const content = await readTextFile(filePath)
+        const file = await readContent(contentPath)
+        const content = file.raw ?? await readTextFile(filePath)
+        const absPath = (file.absPath ?? filePath).replace(/\\/g, '/')
         const id = crypto.randomUUID()
-        tabs.items = [...tabs.items, { id, name: fileName, path: filePath, dirty: false, cachedContent: content }]
+        tabs.items = [...tabs.items, {
+          id,
+          name: fileName,
+          path: absPath,
+          contentPath: file.path ?? contentPath,
+          dirty: false,
+          cachedContent: content,
+        }]
         tabs.activeId = id
         doc.content = content
-        doc.filePath = filePath
+        doc.filePath = absPath
+        doc.contentPath = file.path ?? contentPath
         doc.dirty = false
         doc.wordCount = content.split(/\s+/).filter(w => w).length
         doc.readingTime = Math.max(1, Math.ceil(doc.wordCount / 250))
@@ -131,6 +143,12 @@
       }
     }
     doc.targetLine = lineNum
+  }
+
+  function relContentPath(absPath) {
+    const root = project.contentPath.replace(/\\/g, '/').replace(/\/+$/, '')
+    const full = absPath.replace(/\\/g, '/')
+    return full.startsWith(root + '/') ? full.slice(root.length + 1) : full
   }
 
   /** Split a line into before/match/after segments for highlighting, trimming long lines */
@@ -219,12 +237,12 @@
     align-items: center;
     gap: 6px;
     padding: 8px;
-    border-bottom: 1px solid var(--color-border, #313244);
+    border-bottom: 1px solid var(--cr-border);
   }
 
   .search-input-row :global(.search-icon) {
     flex-shrink: 0;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .search-input {
@@ -232,18 +250,18 @@
     border: none;
     background: transparent;
     font-size: 13px;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     outline: none;
     font-family: inherit;
   }
 
   .search-input::placeholder {
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .search-spinner {
     flex-shrink: 0;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     display: flex;
     animation: spin 1s linear infinite;
   }
@@ -255,8 +273,8 @@
   .search-summary {
     padding: 4px 10px 6px;
     font-size: 11px;
-    color: var(--color-text-muted, #6c7086);
-    border-bottom: 1px solid var(--color-border, #313244);
+    color: var(--cr-text-muted);
+    border-bottom: 1px solid var(--cr-border);
   }
 
   .results-list {
@@ -274,22 +292,22 @@
     align-items: center;
     gap: 5px;
     padding: 5px 10px 3px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     font-size: 11px;
     position: sticky;
     top: 0;
-    background: var(--color-surface, #1e1e2e);
+    background: var(--cr-bg-base);
     z-index: 1;
   }
 
   .result-file-header :global(svg) {
     flex-shrink: 0;
-    color: var(--color-accent, #89b4fa);
+    color: var(--cr-accent);
   }
 
   .result-file-name {
     font-weight: 600;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     white-space: nowrap;
   }
 
@@ -302,8 +320,8 @@
   }
 
   .result-match-count {
-    background: var(--color-active, rgba(137, 180, 250, 0.15));
-    color: var(--color-accent, #89b4fa);
+    background: var(--cr-active);
+    color: var(--cr-accent);
     border-radius: 10px;
     padding: 0 6px;
     font-size: 10px;
@@ -321,20 +339,20 @@
     background: transparent;
     cursor: pointer;
     text-align: left;
-    font-family: var(--font-mono, monospace);
+    font-family: var(--cr-font-mono);
     font-size: 12px;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     white-space: nowrap;
   }
 
   .result-line:hover {
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
+    background: var(--cr-hover);
   }
 
   .result-linenum {
     flex-shrink: 0;
     font-size: 11px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     min-width: 28px;
     text-align: right;
     user-select: none;
@@ -347,11 +365,11 @@
 
   .result-before,
   .result-after {
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .result-highlight {
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     background: rgba(137, 180, 250, 0.25);
     border-radius: 2px;
     padding: 0 1px;
@@ -361,6 +379,6 @@
     padding: 12px;
     margin: 0;
     font-size: 12px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 </style>

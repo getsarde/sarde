@@ -163,7 +163,7 @@
     min-width: 0;
     overflow: hidden;
     display: flex;
-    border-left: 1px solid var(--border, #2e2e3e);
+    border-left: 1px solid var(--cr-border);
   }
 
   .preview-pane.split {

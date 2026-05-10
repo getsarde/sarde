@@ -1,0 +1,38 @@
+/* Catppuccin Mocha */
+
+[data-theme="dark"] {
+  --cr-bg-base: #1e1e2e;
+  --cr-bg-surface: #252536;
+  --cr-bg-elevated: #2d2d44;
+  --cr-bg-input: #11111b;
+  --cr-bg-overlay: rgba(0, 0, 0, 0.6);
+
+  --cr-text: #cdd6f4;
+  --cr-text-muted: #6c7086;
+  --cr-text-dim: #45475a;
+
+  --cr-accent: #89b4fa;
+  --cr-accent-hover: #74c7ec;
+  --cr-accent-bg: rgba(137, 180, 250, 0.12);
+  --cr-accent-text: #1e1e2e;
+
+  --cr-border: #313244;
+  --cr-border-focus: #89b4fa;
+
+  --cr-success: #a6e3a1;
+  --cr-warning: #f9e2af;
+  --cr-danger: #f38ba8;
+  --cr-info: #89b4fa;
+
+  --cr-hover: rgba(255, 255, 255, 0.06);
+  --cr-active: rgba(137, 180, 250, 0.1);
+  --cr-selection: rgba(137, 180, 250, 0.2);
+
+  --cr-scrollbar: #45475a;
+  --cr-scrollbar-hover: #6c7086;
+  --cr-scrollbar-active: #9399b2;
+
+  --cr-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --cr-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --cr-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.4);
+}

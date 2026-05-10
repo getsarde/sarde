@@ -42,15 +42,13 @@
     uploading = true
 
     const destination = { target }
-    if (target === 'bundle' && doc.filePath) {
+    if (target === 'bundle' && doc.contentPath) {
       // Extract directory portion from the content file path.
-      const parts = doc.filePath.replace(/\\/g, '/').split('/')
+      const parts = doc.contentPath.replace(/\\/g, '/').split('/')
       // Remove the filename to get the directory.
       parts.pop()
       // Remove 'content/' prefix if present — the Rust side joins with content_dir.
-      const relDir = parts.join('/')
-      const withoutContent = relDir.startsWith('content/') ? relDir.slice(8) : relDir
-      destination.bundlePath = withoutContent || '.'
+      destination.bundlePath = parts.join('/') || '.'
     }
 
     try {
@@ -67,7 +65,7 @@
   }
 
   function insertAsset(asset) {
-    if (!doc.filePath) {
+    if (!doc.contentPath) {
       addToast('warning', 'No file open to insert into')
       return
     }
@@ -119,7 +117,7 @@
   </div>
 
   <div class="upload-area">
-    {#if doc.filePath}
+    {#if doc.contentPath}
       <button class="upload-btn" onclick={() => handleUpload('bundle')} disabled={uploading} title="Upload to current page folder">
         <ImagePlus size={13} />
         Page
@@ -214,7 +212,7 @@
     <div class="asset-actions">
       <div class="action-info">
         <span class="action-name">{selectedAsset.filename}</span>
-        <span class="action-meta">{formatSize(selectedAsset.sizeBytes)}{selectedAsset.dimensions ? ` \u00b7 ${selectedAsset.dimensions.width}\u00d7${selectedAsset.dimensions.height}` : ''}</span>
+        <span class="action-meta">{formatSize(selectedAsset.sizeBytes)}{selectedAsset.dimensions ? ` · ${selectedAsset.dimensions.width}×${selectedAsset.dimensions.height}` : ''}</span>
       </div>
       <div class="action-buttons">
         <button class="action-btn insert" onclick={() => insertAsset(selectedAsset)} title="Insert at cursor">
@@ -241,16 +239,16 @@
     display: flex;
     gap: 2px;
     padding: 6px 8px;
-    border-bottom: 1px solid var(--color-border, #313244);
+    border-bottom: 1px solid var(--cr-border);
   }
 
   .scope-tab {
     flex: 1;
     padding: 4px 0;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--cr-radius-sm);
     background: transparent;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
@@ -258,20 +256,20 @@
   }
 
   .scope-tab:hover {
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
-    color: var(--color-text, #cdd6f4);
+    background: var(--cr-hover);
+    color: var(--cr-text);
   }
 
   .scope-tab.active {
-    background: var(--color-active, rgba(137, 180, 250, 0.1));
-    color: var(--color-accent, #89b4fa);
+    background: var(--cr-active);
+    color: var(--cr-accent);
   }
 
   .upload-area {
     display: flex;
     gap: 4px;
     padding: 6px 8px;
-    border-bottom: 1px solid var(--color-border, #313244);
+    border-bottom: 1px solid var(--cr-border);
   }
 
   .upload-btn {
@@ -281,10 +279,10 @@
     justify-content: center;
     gap: 4px;
     padding: 5px 0;
-    border: 1px dashed var(--color-border, #313244);
-    border-radius: 4px;
+    border: 1px dashed var(--cr-border);
+    border-radius: var(--cr-radius-sm);
     background: transparent;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
@@ -292,9 +290,9 @@
   }
 
   .upload-btn:hover:not(:disabled) {
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
-    color: var(--color-text, #cdd6f4);
-    border-color: var(--color-accent, #89b4fa);
+    background: var(--cr-hover);
+    color: var(--cr-text);
+    border-color: var(--cr-accent);
   }
 
   .upload-btn:disabled {
@@ -308,7 +306,7 @@
     justify-content: center;
     gap: 6px;
     padding: 24px 12px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
     font-size: 12px;
   }
 
@@ -324,7 +322,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .asset-grid {
@@ -341,20 +339,20 @@
     gap: 4px;
     padding: 6px 4px;
     border: 1px solid transparent;
-    border-radius: 6px;
+    border-radius: var(--cr-radius);
     background: transparent;
     cursor: pointer;
     transition: background 0.12s, border-color 0.12s;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .asset-tile:hover {
-    background: var(--color-hover, rgba(255, 255, 255, 0.06));
+    background: var(--cr-hover);
   }
 
   .asset-tile.selected {
-    background: var(--color-active, rgba(137, 180, 250, 0.1));
-    border-color: var(--color-accent, #89b4fa);
+    background: var(--cr-active);
+    border-color: var(--cr-accent);
   }
 
   .tile-thumb {
@@ -363,8 +361,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
-    background: var(--color-surface-alt, #181825);
+    border-radius: var(--cr-radius-sm);
+    background: var(--cr-bg-input);
     overflow: hidden;
   }
 
@@ -372,12 +370,12 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: var(--cr-radius-sm);
   }
 
   .tile-name {
     font-size: 10px;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     max-width: 90px;
     white-space: nowrap;
     overflow: hidden;
@@ -386,7 +384,7 @@
   }
 
   .asset-actions {
-    border-top: 1px solid var(--color-border, #313244);
+    border-top: 1px solid var(--cr-border);
     padding: 8px;
     display: flex;
     flex-direction: column;
@@ -402,7 +400,7 @@
   .action-name {
     font-size: 11px;
     font-weight: 600;
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -410,7 +408,7 @@
 
   .action-meta {
     font-size: 10px;
-    color: var(--color-text-muted, #6c7086);
+    color: var(--cr-text-muted);
   }
 
   .action-buttons {
@@ -425,7 +423,7 @@
     gap: 4px;
     padding: 4px 10px;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--cr-radius-sm);
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
@@ -434,23 +432,23 @@
 
   .action-btn.insert {
     flex: 1;
-    background: var(--color-accent, #89b4fa);
+    background: var(--cr-accent);
     color: #000;
   }
 
   .action-btn.insert:hover {
-    background: var(--color-accent-hover, #74a8f7);
+    background: var(--cr-accent-hover);
   }
 
   .action-btn.delete {
     background: transparent;
-    color: var(--color-text-muted, #6c7086);
-    border: 1px solid var(--color-border, #313244);
+    color: var(--cr-text-muted);
+    border: 1px solid var(--cr-border);
   }
 
   .action-btn.delete:hover {
-    color: #f38ba8;
-    border-color: #f38ba8;
+    color: var(--cr-danger);
+    border-color: var(--cr-danger);
     background: rgba(243, 139, 168, 0.1);
   }
 </style>

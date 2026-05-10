@@ -1,7 +1,8 @@
 <script>
   import { onMount } from 'svelte'
   import { open as openDialog } from '@tauri-apps/plugin-dialog'
-  import { preview, project, setupPreviewListeners } from './lib/stores/app.svelte.js'
+  import { preview, project, setupPreviewListeners, doc, tabs } from './lib/stores/app.svelte.js'
+  import { initTheme } from './lib/stores/theme.svelte.js'
   import { projectOpen, projectClose } from './lib/api.js'
   import './app.css'
 
@@ -9,7 +10,15 @@
   import CreateProjectWizard from './lib/components/CreateProjectWizard.svelte'
   import EditorLayout from './lib/components/EditorLayout.svelte'
 
-  onMount(() => { setupPreviewListeners() })
+  onMount(() => {
+    initTheme()
+    setupPreviewListeners()
+    const openProjectHandler = (event) => {
+      if (event.detail) openProject(event.detail)
+    }
+    window.addEventListener('coderoo:open-project', openProjectHandler)
+    return () => window.removeEventListener('coderoo:open-project', openProjectHandler)
+  })
 
   let screen = $state('launcher') // 'launcher' | 'create' | 'starting' | 'ready' | 'error'
   let projectPath = $state('')
@@ -30,9 +39,9 @@
         projectName = result.title
       }
 
-      // Set the content path for file tree / search panel.
-      project.contentPath = path.replace(/\\/g, '/') + '/content'
-      project.root = path
+      // Set the configured content path for file tree / search panel.
+      project.contentPath = (result?.contentDir || `${path.replace(/\\/g, '/')}/content`).replace(/\\/g, '/')
+      project.root = result?.dir || path
       project.name = projectName
 
       screen = 'ready'
@@ -68,6 +77,12 @@
     project.contentPath = ''
     project.root = ''
     project.name = ''
+    tabs.items = []
+    tabs.activeId = null
+    doc.content = ''
+    doc.filePath = ''
+    doc.contentPath = ''
+    doc.dirty = false
     projectPath = ''
     projectName = ''
     errorMsg = ''
@@ -105,7 +120,7 @@
       <div class="error-icon">!</div>
       <h2>Failed to Start</h2>
       <p class="error-text">{errorMsg}</p>
-      <button class="back-btn" onclick={backToLauncher}>Back</button>
+      <button class="btn" onclick={backToLauncher}>Back</button>
     </div>
 
   {:else if screen === 'ready'}
@@ -117,9 +132,9 @@
   .app {
     height: 100vh;
     display: flex;
-    background: #1e1e2e;
-    color: #cdd6f4;
-    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--cr-bg-base);
+    color: var(--cr-text);
+    font-family: var(--cr-font-ui);
   }
 
   .center-screen {
@@ -135,15 +150,15 @@
 
   .sub {
     margin: 0;
-    color: #6c7086;
+    color: var(--cr-text-muted);
     font-size: 14px;
   }
 
   .spinner {
     width: 36px;
     height: 36px;
-    border: 3px solid #313244;
-    border-top-color: #89b4fa;
+    border: 3px solid var(--cr-border);
+    border-top-color: var(--cr-info);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
@@ -153,8 +168,8 @@
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: #f38ba8;
-    color: #1e1e2e;
+    background: var(--cr-danger);
+    color: var(--cr-bg-base);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -162,17 +177,5 @@
     font-weight: bold;
   }
 
-  .error-text { color: #f38ba8; margin: 0; }
-
-  .back-btn {
-    margin-top: 8px;
-    padding: 8px 20px;
-    border: 1px solid #313244;
-    border-radius: 6px;
-    background: transparent;
-    color: #cdd6f4;
-    font-size: 13px;
-    cursor: pointer;
-  }
-  .back-btn:hover { background: #313244; }
+  .error-text { color: var(--cr-danger); margin: 0; }
 </style>

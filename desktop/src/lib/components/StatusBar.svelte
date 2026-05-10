@@ -45,10 +45,10 @@
     justify-content: space-between;
     height: 24px;
     padding: 0 12px;
-    background: var(--bg-surface, #1e1e2e);
-    border-top: 1px solid var(--border, #2e2e3e);
+    background: var(--cr-bg-surface);
+    border-top: 1px solid var(--cr-border);
     font-size: 11px;
-    color: var(--text-muted, #888);
+    color: var(--cr-text-muted);
     user-select: none;
     flex-shrink: 0;
   }
@@ -100,7 +100,7 @@
   }
 
   .status-btn:hover {
-    color: var(--color-text, #cdd6f4);
+    color: var(--cr-text);
   }
 
   .warnings-indicator .status-dot {

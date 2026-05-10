@@ -46,8 +46,8 @@
     display: flex;
     flex-direction: column;
     height: 160px;
-    border-top: 1px solid var(--border, #2e2e3e);
-    background: var(--bg-surface, #1e1e2e);
+    border-top: 1px solid var(--cr-border);
+    background: var(--cr-bg-surface);
     flex-shrink: 0;
   }
 
@@ -56,14 +56,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 4px 10px;
-    border-bottom: 1px solid var(--border, #2e2e3e);
+    border-bottom: 1px solid var(--cr-border);
     flex-shrink: 0;
   }
 
   .log-title {
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-muted, #888);
+    color: var(--cr-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -80,22 +80,22 @@
     width: 22px;
     height: 22px;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--cr-radius-sm);
     background: transparent;
-    color: var(--text-muted, #888);
+    color: var(--cr-text-muted);
     cursor: pointer;
   }
 
   .log-action:hover {
-    background: var(--bg-elevated, #2a2a3a);
-    color: var(--text-primary, #e0e0e0);
+    background: var(--cr-bg-elevated);
+    color: var(--cr-text);
   }
 
   .log-list {
     flex: 1;
     overflow-y: auto;
     padding: 4px 0;
-    font-family: var(--font-mono, monospace);
+    font-family: var(--cr-font-mono);
     font-size: 12px;
     line-height: 1.6;
   }
@@ -104,7 +104,7 @@
     padding: 16px;
     text-align: center;
     font-size: 12px;
-    color: var(--text-muted, #555);
+    color: var(--cr-text-muted);
     font-family: inherit;
   }
 
@@ -119,24 +119,24 @@
   }
 
   .log-time {
-    color: var(--text-muted, #555);
+    color: var(--cr-text-muted);
     flex-shrink: 0;
   }
 
   .log-text {
-    color: var(--text-primary, #cdd6f4);
+    color: var(--cr-text);
     word-break: break-all;
   }
 
   .log-entry.error .log-text {
-    color: #f38ba8;
+    color: var(--cr-danger);
   }
 
   .log-entry.success .log-text {
-    color: #a6e3a1;
+    color: var(--cr-success);
   }
 
   .log-entry.warning .log-text {
-    color: #f9e2af;
+    color: var(--cr-warning);
   }
 </style>

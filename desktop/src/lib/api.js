@@ -23,6 +23,8 @@ export const listContent = (collection = null) => invoke('list_content', { colle
 export const readContent = (path) => invoke('read_content', { path })
 export const saveContent = (path, frontmatter, body) => invoke('save_content', { path, frontmatter, body })
 export const createContent = (collection, title) => invoke('create_content', { collection, title })
+export const createContentFile = (path, content) => invoke('create_content_file', { path, content })
+export const createContentDir = (path) => invoke('create_content_dir', { path })
 export const deleteContent = (path) => invoke('delete_content', { path })
 export const renameContent = (oldPath, newPath) => invoke('rename_content', { oldPath, newPath })
 
@@ -50,6 +52,7 @@ export const stopPreview = () => invoke('stop_preview')
 // ---------------------------------------------------------------------------
 
 export const onBuildLog = (cb) => listen('build:log', (e) => cb(e.payload))
+export const onBuildStarted = (cb) => listen('build:started', (e) => cb(e.payload))
 export const onBuildComplete = (cb) => listen('build:complete', (e) => cb(e.payload))
 export const onBuildError = (cb) => listen('build:error', (e) => cb(e.payload))
 export const onPreviewReady = (cb) => listen('preview:ready', (e) => cb(e.payload))

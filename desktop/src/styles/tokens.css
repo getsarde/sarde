@@ -1,0 +1,61 @@
+:root {
+  /* Backgrounds */
+  --cr-bg-base: #1e1e2e;
+  --cr-bg-surface: #252536;
+  --cr-bg-elevated: #2d2d44;
+  --cr-bg-input: #11111b;
+  --cr-bg-overlay: rgba(0, 0, 0, 0.6);
+
+  /* Foregrounds */
+  --cr-text: #cdd6f4;
+  --cr-text-muted: #6c7086;
+  --cr-text-dim: #45475a;
+
+  /* Accent */
+  --cr-accent: #89b4fa;
+  --cr-accent-hover: #74c7ec;
+  --cr-accent-bg: rgba(137, 180, 250, 0.12);
+  --cr-accent-text: #1e1e2e;
+
+  /* Borders */
+  --cr-border: #313244;
+  --cr-border-focus: #89b4fa;
+
+  /* Semantic */
+  --cr-success: #a6e3a1;
+  --cr-warning: #f9e2af;
+  --cr-danger: #f38ba8;
+  --cr-info: #89b4fa;
+
+  /* Interactive states */
+  --cr-hover: rgba(255, 255, 255, 0.06);
+  --cr-active: rgba(137, 180, 250, 0.1);
+  --cr-selection: rgba(137, 180, 250, 0.2);
+
+  /* Scrollbar */
+  --cr-scrollbar: #45475a;
+  --cr-scrollbar-hover: #6c7086;
+  --cr-scrollbar-active: #9399b2;
+
+  /* Shadows */
+  --cr-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --cr-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --cr-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.4);
+
+  /* Typography */
+  --cr-font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+  --cr-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  --cr-font-size: 13px;
+
+  /* Layout */
+  --cr-sidebar-width: 250px;
+  --cr-icon-strip-width: 48px;
+  --cr-tab-height: 36px;
+  --cr-toolbar-height: 36px;
+  --cr-statusbar-height: 28px;
+
+  /* Radius */
+  --cr-radius: 6px;
+  --cr-radius-sm: 4px;
+  --cr-radius-lg: 12px;
+}
