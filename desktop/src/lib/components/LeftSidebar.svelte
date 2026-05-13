@@ -3,6 +3,7 @@
   import { ui } from '../stores/app.svelte.js'
   import FileTree from './FileTree.svelte'
   import SearchPanel from './SearchPanel.svelte'
+  import AppTooltip from './primitives/AppTooltip.svelte'
   import { Folder, Search, GitBranch, Settings, FilePlus, FolderPlus, FolderOpen } from 'lucide-svelte'
 
   let fileTreeRef = $state(null)
@@ -20,22 +21,30 @@
 </script>
 
 <aside class="left-sidebar">
-  <div class="icon-strip">
-    <button class="icon-btn" class:active={ui.leftPanel === 'files'} onclick={() => togglePanel('files')} title="Explorer">
-      <Folder size={20} />
-    </button>
-    <button class="icon-btn" class:active={ui.leftPanel === 'search'} onclick={() => togglePanel('search')} title="Search">
-      <Search size={20} />
-    </button>
-    <button class="icon-btn" class:active={ui.leftPanel === 'git'} onclick={() => togglePanel('git')} title="Source Control">
-      <GitBranch size={20} />
-    </button>
+  <div class="icon-strip" role="toolbar" aria-label="Sidebar navigation">
+    <AppTooltip content="Explorer">
+      <button class="icon-btn" class:active={ui.leftPanel === 'files'} onclick={() => togglePanel('files')}>
+        <Folder size={20} />
+      </button>
+    </AppTooltip>
+    <AppTooltip content="Search">
+      <button class="icon-btn" class:active={ui.leftPanel === 'search'} onclick={() => togglePanel('search')}>
+        <Search size={20} />
+      </button>
+    </AppTooltip>
+    <AppTooltip content="Source Control">
+      <button class="icon-btn" class:active={ui.leftPanel === 'git'} onclick={() => togglePanel('git')}>
+        <GitBranch size={20} />
+      </button>
+    </AppTooltip>
 
     <div class="icon-spacer"></div>
 
-    <button class="icon-btn" onclick={() => (ui.settingsOpen = true)} title="Settings">
-      <Settings size={20} />
-    </button>
+    <AppTooltip content="Settings">
+      <button class="icon-btn" onclick={() => (ui.settingsOpen = true)}>
+        <Settings size={20} />
+      </button>
+    </AppTooltip>
   </div>
 
   {#if ui.leftPanel}
@@ -44,15 +53,21 @@
         <div class="panel-header">
           <span class="panel-title">Explorer</span>
           <div class="panel-actions">
-            <button class="panel-action" title="New File" onclick={() => fileTreeRef?.newFileAtRoot()}>
-              <FilePlus size={15} />
-            </button>
-            <button class="panel-action" title="New Folder" onclick={() => fileTreeRef?.newFolderAtRoot()}>
-              <FolderPlus size={15} />
-            </button>
-            <button class="panel-action" title="Open Folder" onclick={openFolder}>
-              <FolderOpen size={15} />
-            </button>
+            <AppTooltip content="New File">
+              <button class="panel-action" onclick={() => fileTreeRef?.newFileAtRoot()}>
+                <FilePlus size={15} />
+              </button>
+            </AppTooltip>
+            <AppTooltip content="New Folder">
+              <button class="panel-action" onclick={() => fileTreeRef?.newFolderAtRoot()}>
+                <FolderPlus size={15} />
+              </button>
+            </AppTooltip>
+            <AppTooltip content="Open Folder">
+              <button class="panel-action" onclick={openFolder}>
+                <FolderOpen size={15} />
+              </button>
+            </AppTooltip>
           </div>
         </div>
         <FileTree bind:this={fileTreeRef} />

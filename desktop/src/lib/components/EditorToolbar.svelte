@@ -5,6 +5,8 @@
   import {
     Bold, Italic, Heading, Link, Image, Code, Braces, List, Table, ExternalLink, Play, Square, Eye,
   } from 'lucide-svelte'
+  import AppTooltip from './primitives/AppTooltip.svelte'
+  import { Toggle } from 'bits-ui'
 
   let { editor = null } = $props()
 
@@ -53,65 +55,87 @@
 
 <div class="editor-toolbar">
   <div class="tool-group">
-    <button class="tool-btn" onclick={() => editor?.wrapSelection('**', '**')} title="Bold (Ctrl+B)"><Bold size={15} /></button>
-    <button class="tool-btn" onclick={() => editor?.wrapSelection('_', '_')}   title="Italic (Ctrl+I)"><Italic size={15} /></button>
-    <button class="tool-btn" onclick={() => editor?.insertText('\n## ')}       title="Heading"><Heading size={15} /></button>
+    <AppTooltip content="Bold (Ctrl+B)">
+      <button class="tool-btn" onclick={() => editor?.wrapSelection('**', '**')}><Bold size={15} /></button>
+    </AppTooltip>
+    <AppTooltip content="Italic (Ctrl+I)">
+      <button class="tool-btn" onclick={() => editor?.wrapSelection('_', '_')}><Italic size={15} /></button>
+    </AppTooltip>
+    <AppTooltip content="Heading">
+      <button class="tool-btn" onclick={() => editor?.insertText('\n## ')}><Heading size={15} /></button>
+    </AppTooltip>
     <div class="tool-sep"></div>
-    <button class="tool-btn" onclick={() => editor?.wrapSelection('[', '](url)')}    title="Link (Ctrl+K)"><Link size={15} /></button>
-    <button class="tool-btn" onclick={() => editor?.insertText('\n![alt](url)\n')}   title="Image"><Image size={15} /></button>
+    <AppTooltip content="Link (Ctrl+K)">
+      <button class="tool-btn" onclick={() => editor?.wrapSelection('[', '](url)')}><Link size={15} /></button>
+    </AppTooltip>
+    <AppTooltip content="Image">
+      <button class="tool-btn" onclick={() => editor?.insertText('\n![alt](url)\n')}><Image size={15} /></button>
+    </AppTooltip>
     <div class="tool-sep"></div>
-    <button class="tool-btn" onclick={() => editor?.wrapSelection('`', '`')}         title="Inline code"><Code size={15} /></button>
-    <button class="tool-btn" onclick={() => editor?.insertText('\n```\n\n```\n')}    title="Code block"><Braces size={15} /></button>
+    <AppTooltip content="Inline code">
+      <button class="tool-btn" onclick={() => editor?.wrapSelection('`', '`')}><Code size={15} /></button>
+    </AppTooltip>
+    <AppTooltip content="Code block">
+      <button class="tool-btn" onclick={() => editor?.insertText('\n```\n\n```\n')}><Braces size={15} /></button>
+    </AppTooltip>
     <div class="tool-sep"></div>
-    <button class="tool-btn" onclick={() => editor?.insertText('\n- ')}              title="Bullet list"><List size={15} /></button>
-    <button class="tool-btn" onclick={() => editor?.insertText('\n| Col 1 | Col 2 | Col 3 |\n| ----- | ----- | ----- |\n| Cell  | Cell  | Cell  |\n')} title="Table"><Table size={15} /></button>
+    <AppTooltip content="Bullet list">
+      <button class="tool-btn" onclick={() => editor?.insertText('\n- ')}><List size={15} /></button>
+    </AppTooltip>
+    <AppTooltip content="Table">
+      <button class="tool-btn" onclick={() => editor?.insertText('\n| Col 1 | Col 2 | Col 3 |\n| ----- | ----- | ----- |\n| Cell  | Cell  | Cell  |\n')}><Table size={15} /></button>
+    </AppTooltip>
     <div class="tool-sep"></div>
-    <button
-      class="tool-btn"
-      class:active={ui.previewMode !== 'editor'}
-      onclick={() => {
-        const modes = ['editor', 'split', 'preview']
-        const idx = modes.indexOf(ui.previewMode)
-        ui.previewMode = modes[(idx + 1) % modes.length]
-      }}
-      title="Toggle preview (Ctrl+Shift+M)"
-    >
-      <Eye size={15} />
-    </button>
+    <AppTooltip content="Toggle preview (Ctrl+Shift+M)">
+      <Toggle.Root
+        pressed={ui.previewMode !== 'editor'}
+        onPressedChange={() => {
+          const modes = ['editor', 'split', 'preview']
+          const idx = modes.indexOf(ui.previewMode)
+          ui.previewMode = modes[(idx + 1) % modes.length]
+        }}
+        class="tool-btn"
+      >
+        <Eye size={15} />
+      </Toggle.Root>
+    </AppTooltip>
   </div>
 
   <div class="preview-area">
-    <span class="server-indicator" class:live={previewRunning} title={previewRunning ? 'Preview server running' : 'Preview server offline'}></span>
+    <span class="server-indicator" class:live={previewRunning}></span>
     {#if previewRunning && previewUrl}
       <span class="server-url">{previewUrl}</span>
-      <button
-        class="preview-btn"
-        onclick={previewInBrowser}
-        title="Open preview in browser (Ctrl+Shift+V)"
-      >
-        <ExternalLink size={13} />
-        Open
-      </button>
-      <button
-        class="preview-btn stop"
-        onclick={stopServer}
-        title="Stop preview server"
-        disabled={stopping}
-      >
-        <Square size={11} />
-        Stop
-      </button>
+      <AppTooltip content="Open preview in browser (Ctrl+Shift+V)">
+        <button
+          class="preview-btn"
+          onclick={previewInBrowser}
+        >
+          <ExternalLink size={13} />
+          Open
+        </button>
+      </AppTooltip>
+      <AppTooltip content="Stop preview server">
+        <button
+          class="preview-btn stop"
+          onclick={stopServer}
+          disabled={stopping}
+        >
+          <Square size={11} />
+          Stop
+        </button>
+      </AppTooltip>
     {:else}
       <span class="server-url muted">offline</span>
-      <button
-        class="preview-btn start"
-        onclick={startServer}
-        title="Start preview server"
-        disabled={starting}
-      >
-        <Play size={13} />
-        {starting ? 'Starting...' : 'Start'}
-      </button>
+      <AppTooltip content="Start preview server">
+        <button
+          class="preview-btn start"
+          onclick={startServer}
+          disabled={starting}
+        >
+          <Play size={13} />
+          {starting ? 'Starting...' : 'Start'}
+        </button>
+      </AppTooltip>
     {/if}
   </div>
 </div>
@@ -161,7 +185,7 @@
     background: var(--cr-bg-base);
   }
 
-  .tool-btn.active {
+  :global(.tool-btn[data-state="on"]) {
     color: var(--cr-accent);
     background: var(--cr-active);
   }

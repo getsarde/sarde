@@ -2,6 +2,8 @@
   import { ui, siteConfig, addToast } from '../stores/app.svelte.js'
   import { deploy as apiDeploy } from '../api.js'
   import { X, Loader, Rocket, CheckCircle, AlertCircle } from 'lucide-svelte'
+  import AppDialog from './primitives/AppDialog.svelte'
+  import AppButton from './primitives/AppButton.svelte'
 
   let status = $state('idle') // 'idle' | 'deploying' | 'success' | 'error'
   let resultMessage = $state('')
@@ -19,10 +21,6 @@
 
   function close() {
     ui.deployOpen = false
-  }
-
-  function onKeydown(e) {
-    if (e.key === 'Escape') close()
   }
 
   function openDeploySettings() {
@@ -57,97 +55,75 @@
   }
 </script>
 
-<svelte:window onkeydown={onKeydown} />
-
-<div class="modal-overlay" onclick={(e) => { if (e.target === e.currentTarget) close() }} onkeydown={onKeydown} role="dialog" aria-modal="true" aria-label="Deploy" tabindex="-1">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Deploy</h2>
-      <button class="modal-close" onclick={close} title="Close">
-        <X size={16} />
-      </button>
-    </div>
-
-    <div class="modal-body">
-      {#if !configured}
-        <div class="deploy-state">
-          <div class="deploy-icon muted">
-            <Rocket size={32} />
-          </div>
-          <p class="deploy-message">No deploy provider configured.</p>
-          <button class="btn btn-primary" onclick={openDeploySettings}>
-            Configure in Settings
-          </button>
-        </div>
-
-      {:else if status === 'idle'}
-        <div class="deploy-state">
-          <div class="deploy-icon">
-            <Rocket size={32} />
-          </div>
-          <div class="provider-badge">{providerLabel(provider)}</div>
-          <button class="btn btn-primary" onclick={doDeploy}>
-            Deploy Now
-          </button>
-        </div>
-
-      {:else if status === 'deploying'}
-        <div class="deploy-state">
-          <div class="deploy-icon spinning">
-            <Loader size={32} />
-          </div>
-          <p class="deploy-message">Deploying to {providerLabel(provider)}...</p>
-        </div>
-
-      {:else if status === 'success'}
-        <div class="deploy-state">
-          <div class="deploy-icon success">
-            <CheckCircle size={32} />
-          </div>
-          <p class="deploy-message">{resultMessage}</p>
-          <button class="btn btn-secondary" onclick={close}>Close</button>
-        </div>
-
-      {:else if status === 'error'}
-        <div class="deploy-state">
-          <div class="deploy-icon error">
-            <AlertCircle size={32} />
-          </div>
-          <p class="deploy-message error-text">{resultMessage}</p>
-          <div class="btn-group">
-            <button class="btn btn-primary" onclick={() => { status = 'idle' }}>Try Again</button>
-            <button class="btn btn-secondary" onclick={close}>Close</button>
-          </div>
-        </div>
-      {/if}
-    </div>
+<AppDialog
+  open={ui.deployOpen}
+  onOpenChange={(v) => (ui.deployOpen = v)}
+  ariaLabel="Deploy"
+  width="400px"
+>
+  <div class="modal-header">
+    <h2>Deploy</h2>
+    <AppButton variant="ghost" size="icon" onclick={close}>
+      <X size={16} />
+    </AppButton>
   </div>
-</div>
+
+  <div class="modal-body">
+    {#if !configured}
+      <div class="deploy-state">
+        <div class="deploy-icon muted">
+          <Rocket size={32} />
+        </div>
+        <p class="deploy-message">No deploy provider configured.</p>
+        <AppButton variant="primary" onclick={openDeploySettings}>
+          Configure in Settings
+        </AppButton>
+      </div>
+
+    {:else if status === 'idle'}
+      <div class="deploy-state">
+        <div class="deploy-icon">
+          <Rocket size={32} />
+        </div>
+        <div class="provider-badge">{providerLabel(provider)}</div>
+        <AppButton variant="primary" onclick={doDeploy}>
+          Deploy Now
+        </AppButton>
+      </div>
+
+    {:else if status === 'deploying'}
+      <div class="deploy-state">
+        <div class="deploy-icon spinning">
+          <Loader size={32} />
+        </div>
+        <p class="deploy-message">Deploying to {providerLabel(provider)}...</p>
+      </div>
+
+    {:else if status === 'success'}
+      <div class="deploy-state">
+        <div class="deploy-icon success">
+          <CheckCircle size={32} />
+        </div>
+        <p class="deploy-message">{resultMessage}</p>
+        <AppButton variant="secondary" onclick={close}>Close</AppButton>
+      </div>
+
+    {:else if status === 'error'}
+      <div class="deploy-state">
+        <div class="deploy-icon error">
+          <AlertCircle size={32} />
+        </div>
+        <p class="deploy-message error-text">{resultMessage}</p>
+        <div class="btn-group">
+          <AppButton variant="primary" onclick={() => { status = 'idle' }}>Try Again</AppButton>
+          <AppButton variant="secondary" onclick={close}>Close</AppButton>
+        </div>
+      </div>
+    {/if}
+  </div>
+</AppDialog>
 
 <style>
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-  }
-
-  .modal-content {
-    width: 400px;
-    max-width: 90vw;
-    display: flex;
-    flex-direction: column;
-    background: var(--cr-bg-base);
-    border: 1px solid var(--cr-border);
-    border-radius: 12px;
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
-    overflow: hidden;
-  }
-
   .modal-header {
     display: flex;
     align-items: center;
@@ -160,24 +136,6 @@
     margin: 0;
     font-size: 16px;
     font-weight: 600;
-    color: var(--cr-text);
-  }
-
-  .modal-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border: none;
-    border-radius: var(--cr-radius);
-    background: transparent;
-    color: var(--cr-text-muted);
-    cursor: pointer;
-  }
-
-  .modal-close:hover {
-    background: var(--cr-hover);
     color: var(--cr-text);
   }
 
@@ -234,30 +192,6 @@
     border-radius: 16px;
     font-size: 13px;
     font-weight: 500;
-    background: var(--cr-hover);
-    color: var(--cr-text);
-  }
-
-  .btn {
-    padding: 8px 20px;
-    border: none;
-    border-radius: var(--cr-radius);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-
-  .btn:hover {
-    opacity: 0.9;
-  }
-
-  .btn-primary {
-    background: var(--cr-accent);
-    color: #fff;
-  }
-
-  .btn-secondary {
     background: var(--cr-hover);
     color: var(--cr-text);
   }

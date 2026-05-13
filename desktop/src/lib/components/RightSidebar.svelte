@@ -3,6 +3,8 @@
   import { List, PencilLine, Image, TrendingUp, AlertTriangle, CheckCircle, RefreshCw, Code } from 'lucide-svelte'
   import PropertiesPanel from './PropertiesPanel.svelte'
   import MediaPanel from './MediaPanel.svelte'
+  import AppTooltip from './primitives/AppTooltip.svelte'
+  import { Toggle } from 'bits-ui'
 
   function togglePanel(panel) {
     ui.rightPanel = ui.rightPanel === panel ? null : panel
@@ -72,14 +74,15 @@
       {:else if ui.rightPanel === 'properties'}
         <div class="panel-header">
           <span class="panel-title">Properties</span>
-          <button
-            class="panel-action"
-            class:active={ui.propertiesMode === 'yaml'}
-            onclick={() => { ui.propertiesMode = ui.propertiesMode === 'form' ? 'yaml' : 'form' }}
-            title={ui.propertiesMode === 'form' ? 'Switch to raw YAML' : 'Switch to form view'}
-          >
-            <Code size={13} />
-          </button>
+          <AppTooltip content={ui.propertiesMode === 'form' ? 'Switch to raw YAML' : 'Switch to form view'}>
+            <Toggle.Root
+              pressed={ui.propertiesMode === 'yaml'}
+              onPressedChange={(v) => { ui.propertiesMode = v ? 'yaml' : 'form' }}
+              class="panel-action"
+            >
+              <Code size={13} />
+            </Toggle.Root>
+          </AppTooltip>
         </div>
         <div class="panel-body">
           <PropertiesPanel />
@@ -88,9 +91,11 @@
       {:else if ui.rightPanel === 'assets'}
         <div class="panel-header">
           <span class="panel-title">Assets</span>
-          <button class="panel-action" onclick={() => loadAssets()} title="Refresh">
-            <RefreshCw size={13} />
-          </button>
+          <AppTooltip content="Refresh">
+            <button class="panel-action" onclick={() => loadAssets()}>
+              <RefreshCw size={13} />
+            </button>
+          </AppTooltip>
         </div>
         <div class="panel-body">
           <MediaPanel />
@@ -125,9 +130,11 @@
       {:else if ui.rightPanel === 'warnings'}
         <div class="panel-header">
           <span class="panel-title">Warnings</span>
-          <button class="panel-action" onclick={runValidation} disabled={warnings.loading} title="Re-validate">
-            <RefreshCw size={13} />
-          </button>
+          <AppTooltip content="Re-validate">
+            <button class="panel-action" onclick={runValidation} disabled={warnings.loading}>
+              <RefreshCw size={13} />
+            </button>
+          </AppTooltip>
         </div>
         <div class="panel-body">
           {#if warnings.loading}
@@ -157,19 +164,29 @@
     </div>
   {/if}
 
-  <div class="icon-strip">
-    <button class="icon-btn" class:active={ui.rightPanel === 'toc'}        onclick={() => togglePanel('toc')}        title="Table of Contents"><List       size={20} /></button>
-    <button class="icon-btn" class:active={ui.rightPanel === 'properties'} onclick={() => togglePanel('properties')} title="Properties">          <PencilLine size={20} /></button>
-    <button class="icon-btn" class:active={ui.rightPanel === 'assets'}     onclick={() => togglePanel('assets')}     title="Assets">              <Image      size={20} /></button>
-    <button class="icon-btn" class:active={ui.rightPanel === 'stats'}      onclick={() => togglePanel('stats')}      title="Stats">               <TrendingUp size={20} /></button>
-    <button class="icon-btn" class:active={ui.rightPanel === 'warnings'}   onclick={() => togglePanel('warnings')}   title="Warnings">
-      <span class="icon-btn-badge-wrap">
-        <AlertTriangle size={20} />
-        {#if warnings.items.length > 0}
-          <span class="badge">{warnings.items.length}</span>
-        {/if}
-      </span>
-    </button>
+  <div class="icon-strip" role="toolbar" aria-label="Panel tools">
+    <AppTooltip content="Table of Contents">
+      <button class="icon-btn" class:active={ui.rightPanel === 'toc'} onclick={() => togglePanel('toc')}><List size={20} /></button>
+    </AppTooltip>
+    <AppTooltip content="Properties">
+      <button class="icon-btn" class:active={ui.rightPanel === 'properties'} onclick={() => togglePanel('properties')}><PencilLine size={20} /></button>
+    </AppTooltip>
+    <AppTooltip content="Assets">
+      <button class="icon-btn" class:active={ui.rightPanel === 'assets'} onclick={() => togglePanel('assets')}><Image size={20} /></button>
+    </AppTooltip>
+    <AppTooltip content="Stats">
+      <button class="icon-btn" class:active={ui.rightPanel === 'stats'} onclick={() => togglePanel('stats')}><TrendingUp size={20} /></button>
+    </AppTooltip>
+    <AppTooltip content="Warnings">
+      <button class="icon-btn" class:active={ui.rightPanel === 'warnings'} onclick={() => togglePanel('warnings')}>
+        <span class="icon-btn-badge-wrap">
+          <AlertTriangle size={20} />
+          {#if warnings.items.length > 0}
+            <span class="badge">{warnings.items.length}</span>
+          {/if}
+        </span>
+      </button>
+    </AppTooltip>
   </div>
 </aside>
 
@@ -347,7 +364,7 @@
     cursor: not-allowed;
   }
 
-  .panel-action.active {
+  :global(.panel-action[data-state="on"]) {
     color: var(--cr-accent);
   }
 

@@ -128,31 +128,18 @@ export const doc = $state({
 })
 
 // ---------------------------------------------------------------------------
-// Toast notifications — array of { id, type, message, duration }
+// Toast notifications (powered by svelte-sonner)
 // ---------------------------------------------------------------------------
-export const toasts = $state({
-  items: [],
-})
+import { toast } from 'svelte-sonner'
 
-let _toastId = 0
-
-/**
- * Push a toast notification.
- * @param {'info'|'success'|'warning'|'error'} type
- * @param {string} message
- * @param {number} duration  ms before auto-dismiss (0 = sticky)
- */
 export function addToast(type, message, duration = 4000) {
-  const id = ++_toastId
-  toasts.items.push({ id, type, message, duration })
-  if (duration > 0) {
-    setTimeout(() => removeToast(id), duration)
+  const options = duration > 0 ? { duration } : { duration: Infinity }
+  switch (type) {
+    case 'success': toast.success(message, options); break
+    case 'error':   toast.error(message, options);   break
+    case 'warning': toast.warning(message, options);  break
+    default:        toast.info(message, options);     break
   }
-}
-
-export function removeToast(id) {
-  const idx = toasts.items.findIndex(t => t.id === id)
-  if (idx !== -1) toasts.items.splice(idx, 1)
 }
 
 // ---------------------------------------------------------------------------

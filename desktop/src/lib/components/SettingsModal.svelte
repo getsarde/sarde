@@ -5,6 +5,9 @@
   import { THEME_PRESETS } from './theme-presets.js'
   import { X, Loader, Code, Plus, Trash2, Monitor } from 'lucide-svelte'
   import YamlEditor from './YamlEditor.svelte'
+  import AppDialog from './primitives/AppDialog.svelte'
+  import AppButton from './primitives/AppButton.svelte'
+  import { RadioGroup, Tabs, Toggle, AlertDialog } from 'bits-ui'
   import jsYaml from 'js-yaml'
 
   const sections = ['general', 'appearance', 'editor', 'navigation', 'collections', 'build', 'deploy', 'about']
@@ -37,7 +40,7 @@
   let collectionsLoading = $state(false)
   let newCollectionName = $state('')
   let collectionCreating = $state(false)
-  let confirmingDelete = $state(null)
+
 
   async function loadCollections() {
     collectionsLoading = true
@@ -68,7 +71,6 @@
   async function handleDeleteCollection(name) {
     try {
       await deleteCollection(name)
-      confirmingDelete = null
       await loadCollections()
     } catch (e) {
       // Could show error
@@ -100,6 +102,20 @@
     ui.settingsOpen = false
   }
 
+  function handleEscapeKeydown(e) {
+    if (isConfigDirty()) {
+      e.preventDefault()
+      showDirtyBar = true
+    }
+  }
+
+  function handleInteractOutside(e) {
+    if (isConfigDirty()) {
+      e.preventDefault()
+      showDirtyBar = true
+    }
+  }
+
   async function saveAndClose() {
     await saveSiteConfig()
     showDirtyBar = false
@@ -110,10 +126,6 @@
     loadSiteConfig() // reload from disk
     showDirtyBar = false
     ui.settingsOpen = false
-  }
-
-  function onKeydown(e) {
-    if (e.key === 'Escape') close()
   }
 
   function capitalize(str) {
@@ -198,541 +210,513 @@
   )
 </script>
 
-<svelte:window onkeydown={onKeydown} />
-
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="modal-overlay" onclick={close} onkeydown={(e) => e.key === 'Escape' && close()} role="dialog" aria-modal="true" aria-label="Settings" tabindex="-1">
-  <!-- svelte-ignore a11y_no_noninteractive_element_interactions, a11y_click_events_have_key_events -->
-  <div class="modal-content" onclick={(e) => e.stopPropagation()}>
-    <div class="modal-header">
-      <h2>Settings</h2>
-      <div class="modal-header-right">
-        {#if siteConfig.saving}
-          <span class="save-indicator"><Loader size={14} /> Saving…</span>
-        {/if}
-        <button
-          class="yaml-toggle"
-          class:active={yamlMode}
-          onclick={() => { yamlMode = !yamlMode; yamlError = '' }}
-          title={yamlMode ? 'Switch to form view' : 'Edit raw YAML'}
-        >
-          <Code size={16} />
-        </button>
-        <button class="modal-close" onclick={close} title="Close">
-          <X size={18} />
-        </button>
-      </div>
+<AppDialog
+  open={ui.settingsOpen}
+  onOpenChange={(v) => { if (!v) close(); }}
+  ariaLabel="Settings"
+  width="720px"
+  onEscapeKeydown={handleEscapeKeydown}
+  onInteractOutside={handleInteractOutside}
+>
+  <div class="modal-header">
+    <h2>Settings</h2>
+    <div class="modal-header-right">
+      {#if siteConfig.saving}
+        <span class="save-indicator"><Loader size={14} /> Saving…</span>
+      {/if}
+      <Toggle.Root
+        pressed={yamlMode}
+        onPressedChange={(v) => { yamlMode = v; yamlError = '' }}
+        class="yaml-toggle"
+        title={yamlMode ? 'Switch to form view' : 'Edit raw YAML'}
+      >
+        <Code size={16} />
+      </Toggle.Root>
+      <AppButton variant="ghost" size="icon" onclick={close}>
+        <X size={18} />
+      </AppButton>
     </div>
+  </div>
 
-    <div class="modal-body">
-      {#if yamlMode}
-        <div class="yaml-mode">
-          {#if cfg}
-            <YamlEditor value={rawYaml} onchange={handleYamlChange} onerror={handleYamlError} />
-            {#if yamlError}
-              <div class="yaml-error">{yamlError}</div>
-            {/if}
-          {:else}
-            <div class="loading-state"><Loader size={20} /><span>Loading config…</span></div>
+  <div class="modal-body">
+    {#if yamlMode}
+      <div class="yaml-mode">
+        {#if cfg}
+          <YamlEditor value={rawYaml} onchange={handleYamlChange} onerror={handleYamlError} />
+          {#if yamlError}
+            <div class="yaml-error">{yamlError}</div>
+          {/if}
+        {:else}
+          <div class="loading-state"><Loader size={20} /><span>Loading config…</span></div>
+        {/if}
+      </div>
+    {:else}
+    <Tabs.Root value={ui.settingsSection} onValueChange={(v) => (ui.settingsSection = v)} orientation="vertical" class="settings-tabs-root">
+    <Tabs.List class="settings-nav">
+      <input
+        type="text"
+        class="settings-search"
+        placeholder="Search settings…"
+        bind:value={searchQuery}
+      />
+      {#each filteredSections as section}
+        <Tabs.Trigger value={section} class="settings-link">
+          {capitalize(section)}
+        </Tabs.Trigger>
+      {/each}
+    </Tabs.List>
+
+    <div class="settings-content">
+      {#if !cfg && ui.settingsSection !== 'editor' && ui.settingsSection !== 'about'}
+        <div class="loading-state">
+          <Loader size={20} />
+          <span>Loading settings…</span>
+        </div>
+
+      {:else if ui.settingsSection === 'general'}
+        <h3>General</h3>
+        <div class="field">
+          <label class="field-label" for="site-title">Site Title</label>
+          <input id="site-title" type="text" class="field-input"
+            placeholder="My Site"
+            value={cfg.site?.title ?? ''}
+            oninput={(e) => { cfg.site ??= {}; cfg.site.title = e.target.value; scheduleSave() }}
+          />
+        </div>
+        <div class="field">
+          <label class="field-label" for="site-desc">Description</label>
+          <textarea id="site-desc" class="field-textarea" rows="3"
+            placeholder="Site description"
+            value={cfg.site?.description ?? ''}
+            oninput={(e) => { cfg.site ??= {}; cfg.site.description = e.target.value; scheduleSave() }}
+          ></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label" for="site-url">URL</label>
+          <input id="site-url" type="url" class="field-input"
+            class:field-invalid={urlInvalid}
+            placeholder="https://example.com"
+            value={cfg.site?.url ?? ''}
+            oninput={(e) => { cfg.site ??= {}; cfg.site.url = e.target.value; scheduleSave() }}
+          />
+          {#if urlInvalid}
+            <span class="field-hint field-hint-error">Please enter a valid URL (e.g. https://example.com)</span>
           {/if}
         </div>
-      {:else}
-      <nav class="settings-nav">
-        <input
-          type="text"
-          class="settings-search"
-          placeholder="Search settings…"
-          bind:value={searchQuery}
-        />
-        {#each filteredSections as section}
-          <button
-            class="settings-link"
-            class:active={ui.settingsSection === section}
-            onclick={() => (ui.settingsSection = section)}
-          >
-            {capitalize(section)}
-          </button>
-        {/each}
-      </nav>
-
-      <div class="settings-content">
-        {#if !cfg && ui.settingsSection !== 'editor' && ui.settingsSection !== 'about'}
-          <div class="loading-state">
-            <Loader size={20} />
-            <span>Loading settings…</span>
-          </div>
-
-        {:else if ui.settingsSection === 'general'}
-          <h3>General</h3>
-          <div class="field">
-            <label class="field-label" for="site-title">Site Title</label>
-            <input id="site-title" type="text" class="field-input"
-              placeholder="My Site"
-              value={cfg.site?.title ?? ''}
-              oninput={(e) => { cfg.site ??= {}; cfg.site.title = e.target.value; scheduleSave() }}
-            />
-          </div>
-          <div class="field">
-            <label class="field-label" for="site-desc">Description</label>
-            <textarea id="site-desc" class="field-textarea" rows="3"
-              placeholder="Site description"
-              value={cfg.site?.description ?? ''}
-              oninput={(e) => { cfg.site ??= {}; cfg.site.description = e.target.value; scheduleSave() }}
-            ></textarea>
-          </div>
-          <div class="field">
-            <label class="field-label" for="site-url">URL</label>
-            <input id="site-url" type="url" class="field-input"
-              class:field-invalid={urlInvalid}
-              placeholder="https://example.com"
-              value={cfg.site?.url ?? ''}
-              oninput={(e) => { cfg.site ??= {}; cfg.site.url = e.target.value; scheduleSave() }}
-            />
-            {#if urlInvalid}
-              <span class="field-hint field-hint-error">Please enter a valid URL (e.g. https://example.com)</span>
-            {/if}
-          </div>
-          <div class="field">
-            <label class="field-label" for="site-lang">Language</label>
-            <input id="site-lang" type="text" class="field-input"
-              placeholder="en"
-              value={cfg.site?.language ?? 'en'}
-              oninput={(e) => { cfg.site ??= {}; cfg.site.language = e.target.value; scheduleSave() }}
-            />
-          </div>
-          <div class="field">
-            <label class="field-label" for="edit-url">Edit URL</label>
-            <input id="edit-url" type="url" class="field-input"
-              class:field-invalid={editUrlInvalid}
-              placeholder="https://github.com/user/repo/edit/main/content"
-              value={cfg.site?.edit_url ?? ''}
-              oninput={(e) => { cfg.site ??= {}; cfg.site.edit_url = e.target.value; scheduleSave() }}
-            />
-            {#if editUrlInvalid}
-              <span class="field-hint field-hint-error">Please enter a valid URL</span>
-            {/if}
-          </div>
-          <div class="field">
-            <label class="field-label" for="title-delim">Title Delimiter</label>
-            <input id="title-delim" type="text" class="field-input field-input-short"
-              placeholder="|"
-              value={cfg.site?.title_delimiter ?? '|'}
-              oninput={(e) => { cfg.site ??= {}; cfg.site.title_delimiter = e.target.value; scheduleSave() }}
-            />
-            <span class="field-hint">Separator between page title and site title in browser tab</span>
-          </div>
-          <div class="field">
-            <label class="field-label" for="custom-404">Custom 404 Page</label>
-            <input id="custom-404" type="text" class="field-input"
-              placeholder="404.md"
-              value={cfg.site?.custom_404 ?? ''}
-              oninput={(e) => { cfg.site ??= {}; cfg.site.custom_404 = e.target.value; scheduleSave() }}
-            />
-          </div>
-          <div class="field">
-            <label class="field-check">
-              <input type="checkbox"
-                checked={cfg.site?.heading_links ?? true}
-                onchange={(e) => { cfg.site ??= {}; cfg.site.heading_links = e.target.checked; immediateSave() }}
-              />
-              <span>Heading anchor links</span>
-            </label>
-          </div>
-
-        {:else if ui.settingsSection === 'appearance'}
-          <h3>Appearance</h3>
-          <div class="field">
-            <span class="field-label" id="theme-label">Theme</span>
-            <div class="theme-grid" role="radiogroup" aria-labelledby="theme-label">
-              {#each ['default', 'academic', 'minimal', 'docs', 'clean'] as theme}
-                <button
-                  class="theme-card"
-                  class:selected={cfg.theme?.name === theme}
-                  onclick={() => { cfg.theme ??= {}; cfg.theme.name = theme; immediateSave() }}
-                >
-                  <div class="theme-preview theme-{theme}"></div>
-                  <span class="theme-name">{capitalize(theme)}</span>
-                </button>
-              {/each}
-            </div>
-          </div>
-          <div class="field">
-            <span class="field-label">Color Preset</span>
-            <div class="preset-row">
-              {#each THEME_PRESETS as preset}
-                <button
-                  class="preset-swatch"
-                  class:active={cfg.theme?.preset === preset.id}
-                  title={preset.name}
-                  onclick={() => {
-                    cfg.theme ??= {};
-                    cfg.theme.preset = preset.id;
-                    cfg.theme.primary_color = preset.primary;
-                    cfg.theme.accent_color = preset.accent;
-                    immediateSave();
-                  }}
-                >
-                  <span class="swatch-half" style="background:{preset.primary}"></span>
-                  <span class="swatch-half" style="background:{preset.accent}"></span>
-                </button>
-              {/each}
-            </div>
-          </div>
-          <div class="field">
-            <label class="field-label" for="primary-color">Primary Color</label>
-            <div class="color-row">
-              <input id="primary-color" type="color" class="field-color"
-                value={cfg.theme?.primary_color || '#6366f1'}
-                oninput={(e) => { cfg.theme ??= {}; cfg.theme.primary_color = e.target.value; scheduleSave() }}
-              />
-              <input type="text" class="field-input color-text"
-                value={cfg.theme?.primary_color || ''}
-                placeholder="#6366f1"
-                oninput={(e) => { cfg.theme ??= {}; cfg.theme.primary_color = e.target.value; scheduleSave() }}
-              />
-            </div>
-          </div>
-          <div class="field">
-            <label class="field-label" for="accent-color">Accent Color</label>
-            <div class="color-row">
-              <input id="accent-color" type="color" class="field-color"
-                value={cfg.theme?.accent_color || '#89b4fa'}
-                oninput={(e) => { cfg.theme ??= {}; cfg.theme.accent_color = e.target.value; scheduleSave() }}
-              />
-              <input type="text" class="field-input color-text"
-                value={cfg.theme?.accent_color || ''}
-                placeholder="#89b4fa"
-                oninput={(e) => { cfg.theme ??= {}; cfg.theme.accent_color = e.target.value; scheduleSave() }}
-              />
-            </div>
-          </div>
-          <div class="field">
-            <label class="field-label" for="code-light">Code Theme (Light)</label>
-            <input id="code-light" type="text" class="field-input"
-              placeholder="github"
-              value={cfg.theme?.code_light ?? ''}
-              oninput={(e) => { cfg.theme ??= {}; cfg.theme.code_light = e.target.value; scheduleSave() }}
-            />
-          </div>
-          <div class="field">
-            <label class="field-label" for="code-dark">Code Theme (Dark)</label>
-            <input id="code-dark" type="text" class="field-input"
-              placeholder="catppuccin-mocha"
-              value={cfg.theme?.code_dark ?? ''}
-              oninput={(e) => { cfg.theme ??= {}; cfg.theme.code_dark = e.target.value; scheduleSave() }}
-            />
-          </div>
-
-        {:else if ui.settingsSection === 'editor'}
-          <h3>Editor</h3>
-          <p class="section-desc">These preferences are local to this device and are not saved to config.yaml.</p>
-
-          <div class="field">
-            <span class="field-label">Interface Theme</span>
-            <div class="interface-theme-grid">
-              {#each THEMES as theme}
-                <button
-                  class="interface-theme-card"
-                  class:active={getCurrentTheme() === theme.id}
-                  onclick={() => setTheme(theme.id)}
-                >
-                  {#if theme.id === 'system'}
-                    <Monitor size={14} />
-                  {/if}
-                  <span>{theme.name}</span>
-                </button>
-              {/each}
-            </div>
-          </div>
-
-          <div class="field">
-            <label class="field-label" for="font-size">Font Size</label>
-            <div class="range-row">
-              <input id="font-size" type="range" min="10" max="24"
-                value={editorFontSize}
-                class="field-range"
-                oninput={(e) => setFontSize(parseInt(e.target.value))}
-              />
-              <span class="range-value">{editorFontSize}px</span>
-            </div>
-          </div>
-          <div class="field">
-            <label class="field-check">
-              <input type="checkbox"
-                checked={editorLineNumbers}
-                onchange={(e) => toggleLineNumbers(e.target.checked)}
-              />
-              <span>Line Numbers</span>
-            </label>
-          </div>
-          <div class="field">
-            <label class="field-check">
-              <input type="checkbox"
-                checked={editorWordWrap}
-                onchange={(e) => toggleWordWrap(e.target.checked)}
-              />
-              <span>Word Wrap</span>
-            </label>
-          </div>
-          <div class="field">
-            <label class="field-check">
-              <input type="checkbox"
-                checked={editorAutoSave}
-                onchange={(e) => toggleAutoSave(e.target.checked)}
-              />
-              <span>Auto-save (5s delay)</span>
-            </label>
-          </div>
-
-        {:else if ui.settingsSection === 'navigation'}
-          <h3>Navigation</h3>
-          <div class="field">
-            <label class="field-check">
-              <input type="checkbox"
-                checked={cfg.sidebar?.auto_generate ?? true}
-                onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.auto_generate = e.target.checked; immediateSave() }}
-              />
-              <span>Auto-generate sidebar from file structure</span>
-            </label>
-          </div>
-          <div class="field">
-            <label class="field-check">
-              <input type="checkbox"
-                checked={cfg.sidebar?.collapsed ?? false}
-                onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.collapsed = e.target.checked; immediateSave() }}
-              />
-              <span>Collapse sidebar by default</span>
-            </label>
-          </div>
-          <div class="field">
-            <label class="field-check">
-              <input type="checkbox"
-                checked={cfg.sidebar?.badges ?? true}
-                onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.badges = e.target.checked; immediateSave() }}
-              />
-              <span>Show badges in sidebar</span>
-            </label>
-          </div>
-          <div class="field">
-            <label class="field-check">
-              <input type="checkbox"
-                checked={cfg.sidebar?.pagination ?? true}
-                onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.pagination = e.target.checked; immediateSave() }}
-              />
-              <span>Show previous/next page links</span>
-            </label>
-          </div>
-          <div class="field">
-            <label class="field-check">
-              <input type="checkbox"
-                checked={cfg.header?.search ?? true}
-                onchange={(e) => { cfg.header ??= {}; cfg.header.search = e.target.checked; immediateSave() }}
-              />
-              <span>Header search bar</span>
-            </label>
-          </div>
-          <div class="field">
-            <label class="field-check">
-              <input type="checkbox"
-                checked={cfg.header?.theme_toggle ?? true}
-                onchange={(e) => { cfg.header ??= {}; cfg.header.theme_toggle = e.target.checked; immediateSave() }}
-              />
-              <span>Header theme toggle</span>
-            </label>
-          </div>
-          <div class="field">
-            <label class="field-label" for="footer-text">Footer Text</label>
-            <input id="footer-text" type="text" class="field-input"
-              placeholder="© 2025 My Site"
-              value={cfg.footer?.text ?? ''}
-              oninput={(e) => { cfg.footer ??= {}; cfg.footer.text = e.target.value; scheduleSave() }}
-            />
-          </div>
-          <div class="field">
-            <label class="field-check">
-              <input type="checkbox"
-                checked={cfg.footer?.credits ?? false}
-                onchange={(e) => { cfg.footer ??= {}; cfg.footer.credits = e.target.checked; immediateSave() }}
-              />
-              <span>Show "Built with Coderoo" in footer</span>
-            </label>
-          </div>
-
-        {:else if ui.settingsSection === 'collections'}
-          <h3>Collections</h3>
-          <p class="section-desc">Content collections are subdirectories of content/. Each directory is a collection.</p>
-
-          {#if collectionsLoading}
-            <div class="loading-state"><Loader size={16} /><span>Loading…</span></div>
-          {:else}
-            <div class="collection-list">
-              {#each collections as col}
-                <div class="collection-card">
-                  <div class="collection-info">
-                    <span class="collection-name">{col.title}</span>
-                    <span class="collection-meta">{col.name}/ — {col.pageCount} page{col.pageCount !== 1 ? 's' : ''}</span>
-                  </div>
-                  {#if confirmingDelete === col.name}
-                    <div class="confirm-delete">
-                      <span class="confirm-text">Delete?</span>
-                      <button class="confirm-yes" onclick={() => handleDeleteCollection(col.name)}>Yes</button>
-                      <button class="confirm-no" onclick={() => confirmingDelete = null}>No</button>
-                    </div>
-                  {:else}
-                    <button class="collection-delete" onclick={() => confirmingDelete = col.name} title="Delete collection">
-                      <Trash2 size={14} />
-                    </button>
-                  {/if}
-                </div>
-              {/each}
-
-              {#if collections.length === 0}
-                <p class="empty-msg">No collections found. Create one below.</p>
-              {/if}
-            </div>
-
-            <div class="add-collection-row">
-              <input
-                type="text"
-                class="field-input"
-                placeholder="Collection name (e.g. tutorials)"
-                bind:value={newCollectionName}
-                onkeydown={(e) => e.key === 'Enter' && handleCreateCollection()}
-              />
-              <button class="add-btn" onclick={handleCreateCollection} disabled={!newCollectionName.trim() || collectionCreating}>
-                <Plus size={14} /> Create
-              </button>
-            </div>
+        <div class="field">
+          <label class="field-label" for="site-lang">Language</label>
+          <input id="site-lang" type="text" class="field-input"
+            placeholder="en"
+            value={cfg.site?.language ?? 'en'}
+            oninput={(e) => { cfg.site ??= {}; cfg.site.language = e.target.value; scheduleSave() }}
+          />
+        </div>
+        <div class="field">
+          <label class="field-label" for="edit-url">Edit URL</label>
+          <input id="edit-url" type="url" class="field-input"
+            class:field-invalid={editUrlInvalid}
+            placeholder="https://github.com/user/repo/edit/main/content"
+            value={cfg.site?.edit_url ?? ''}
+            oninput={(e) => { cfg.site ??= {}; cfg.site.edit_url = e.target.value; scheduleSave() }}
+          />
+          {#if editUrlInvalid}
+            <span class="field-hint field-hint-error">Please enter a valid URL</span>
           {/if}
+        </div>
+        <div class="field">
+          <label class="field-label" for="title-delim">Title Delimiter</label>
+          <input id="title-delim" type="text" class="field-input field-input-short"
+            placeholder="|"
+            value={cfg.site?.title_delimiter ?? '|'}
+            oninput={(e) => { cfg.site ??= {}; cfg.site.title_delimiter = e.target.value; scheduleSave() }}
+          />
+          <span class="field-hint">Separator between page title and site title in browser tab</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="custom-404">Custom 404 Page</label>
+          <input id="custom-404" type="text" class="field-input"
+            placeholder="404.md"
+            value={cfg.site?.custom_404 ?? ''}
+            oninput={(e) => { cfg.site ??= {}; cfg.site.custom_404 = e.target.value; scheduleSave() }}
+          />
+        </div>
+        <div class="field">
+          <label class="field-check">
+            <input type="checkbox"
+              checked={cfg.site?.heading_links ?? true}
+              onchange={(e) => { cfg.site ??= {}; cfg.site.heading_links = e.target.checked; immediateSave() }}
+            />
+            <span>Heading anchor links</span>
+          </label>
+        </div>
 
-        {:else if ui.settingsSection === 'build'}
-          <h3>Build</h3>
-          <div class="field">
-            <label class="field-label" for="output-dir">Output Directory</label>
-            <input id="output-dir" type="text" class="field-input"
-              placeholder="dist"
-              value={cfg.build?.output ?? 'dist'}
-              oninput={(e) => { cfg.build ??= {}; cfg.build.output = e.target.value; scheduleSave() }}
-            />
-          </div>
-          <div class="field">
-            <label class="field-label" for="base-path">Base Path</label>
-            <input id="base-path" type="text" class="field-input"
-              placeholder="/"
-              value={cfg.build?.base_path ?? ''}
-              oninput={(e) => { cfg.build ??= {}; cfg.build.base_path = e.target.value; scheduleSave() }}
-            />
-          </div>
-          <div class="field-group">
-            {#each [
-              ['sitemap',    'Generate Sitemap'],
-              ['feed',       'Generate RSS Feed'],
-              ['search',     'Build Search Index'],
-              ['minify',     'Minify HTML'],
-              ['clean',      'Clean Output on Build'],
-              ['link_check', 'Check Links'],
-              ['llms',       'Generate llms.txt'],
-              ['katex',      'Enable KaTeX (Math)'],
-              ['mermaid',    'Enable Mermaid (Diagrams)'],
-              ['cdn',        'Load KaTeX/Mermaid from CDN'],
-            ] as [key, label]}
-              <div class="field">
-                <label class="field-check">
-                  <input type="checkbox"
-                    checked={cfg.build?.[key] ?? false}
-                    onchange={(e) => { cfg.build ??= {}; cfg.build[key] = e.target.checked; immediateSave() }}
-                  />
-                  <span>{label}</span>
-                </label>
-              </div>
+      {:else if ui.settingsSection === 'appearance'}
+        <h3>Appearance</h3>
+        <div class="field">
+          <span class="field-label" id="theme-label">Theme</span>
+          <RadioGroup.Root value={cfg.theme?.name ?? 'default'} onValueChange={(v) => { cfg.theme ??= {}; cfg.theme.name = v; immediateSave() }} class="theme-grid" aria-labelledby="theme-label">
+            {#each ['default', 'academic', 'minimal', 'docs', 'clean'] as theme}
+              <RadioGroup.Item value={theme} class="theme-card">
+                <div class="theme-preview theme-{theme}"></div>
+                <span class="theme-name">{capitalize(theme)}</span>
+              </RadioGroup.Item>
+            {/each}
+          </RadioGroup.Root>
+        </div>
+        <div class="field">
+          <span class="field-label">Color Preset</span>
+          <div class="preset-row">
+            {#each THEME_PRESETS as preset}
+              <button
+                class="preset-swatch"
+                class:active={cfg.theme?.preset === preset.id}
+                title={preset.name}
+                onclick={() => {
+                  cfg.theme ??= {};
+                  cfg.theme.preset = preset.id;
+                  cfg.theme.primary_color = preset.primary;
+                  cfg.theme.accent_color = preset.accent;
+                  immediateSave();
+                }}
+              >
+                <span class="swatch-half" style="background:{preset.primary}"></span>
+                <span class="swatch-half" style="background:{preset.accent}"></span>
+              </button>
             {/each}
           </div>
-
-        {:else if ui.settingsSection === 'deploy'}
-          <h3>Deploy</h3>
-          <div class="field">
-            <label class="field-label" for="deploy-provider">Provider</label>
-            <select id="deploy-provider" class="field-select"
-              value={cfg.deploy?.provider ?? ''}
-              onchange={(e) => { cfg.deploy ??= {}; cfg.deploy.provider = e.target.value; immediateSave() }}
-            >
-              <option value="">None</option>
-              <option value="github">GitHub Pages</option>
-              <option value="netlify">Netlify</option>
-              <option value="cloudflare">Cloudflare Pages</option>
-              <option value="vercel">Vercel</option>
-              <option value="custom">Custom</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="field-label" for="deploy-branch">Branch</label>
-            <input id="deploy-branch" type="text" class="field-input"
-              placeholder="main"
-              value={cfg.deploy?.branch ?? 'main'}
-              oninput={(e) => { cfg.deploy ??= {}; cfg.deploy.branch = e.target.value; scheduleSave() }}
+        </div>
+        <div class="field">
+          <label class="field-label" for="primary-color">Primary Color</label>
+          <div class="color-row">
+            <input id="primary-color" type="color" class="field-color"
+              value={cfg.theme?.primary_color || '#6366f1'}
+              oninput={(e) => { cfg.theme ??= {}; cfg.theme.primary_color = e.target.value; scheduleSave() }}
+            />
+            <input type="text" class="field-input color-text"
+              value={cfg.theme?.primary_color || ''}
+              placeholder="#6366f1"
+              oninput={(e) => { cfg.theme ??= {}; cfg.theme.primary_color = e.target.value; scheduleSave() }}
             />
           </div>
-          <div class="field">
-            <label class="field-label" for="deploy-siteid">Site ID</label>
-            <input id="deploy-siteid" type="text" class="field-input"
-              placeholder="your-site-id"
-              value={cfg.deploy?.site_id ?? ''}
-              oninput={(e) => { cfg.deploy ??= {}; cfg.deploy.site_id = e.target.value; scheduleSave() }}
+        </div>
+        <div class="field">
+          <label class="field-label" for="accent-color">Accent Color</label>
+          <div class="color-row">
+            <input id="accent-color" type="color" class="field-color"
+              value={cfg.theme?.accent_color || '#89b4fa'}
+              oninput={(e) => { cfg.theme ??= {}; cfg.theme.accent_color = e.target.value; scheduleSave() }}
+            />
+            <input type="text" class="field-input color-text"
+              value={cfg.theme?.accent_color || ''}
+              placeholder="#89b4fa"
+              oninput={(e) => { cfg.theme ??= {}; cfg.theme.accent_color = e.target.value; scheduleSave() }}
             />
           </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="code-light">Code Theme (Light)</label>
+          <input id="code-light" type="text" class="field-input"
+            placeholder="github"
+            value={cfg.theme?.code_light ?? ''}
+            oninput={(e) => { cfg.theme ??= {}; cfg.theme.code_light = e.target.value; scheduleSave() }}
+          />
+        </div>
+        <div class="field">
+          <label class="field-label" for="code-dark">Code Theme (Dark)</label>
+          <input id="code-dark" type="text" class="field-input"
+            placeholder="catppuccin-mocha"
+            value={cfg.theme?.code_dark ?? ''}
+            oninput={(e) => { cfg.theme ??= {}; cfg.theme.code_dark = e.target.value; scheduleSave() }}
+          />
+        </div>
 
-        {:else if ui.settingsSection === 'about'}
-          <h3>About</h3>
-          <div class="about-block">
-            <p class="about-name">Coderoo Desktop</p>
-            <p class="about-version">v0.1.0</p>
-            <p class="about-detail">Built with Tauri v2 + Svelte 5</p>
-            <p class="about-detail">Go CLI for SSG build &amp; preview</p>
-            <p class="about-status about-online">Rust backend active</p>
+      {:else if ui.settingsSection === 'editor'}
+        <h3>Editor</h3>
+        <p class="section-desc">These preferences are local to this device and are not saved to config.yaml.</p>
+
+        <div class="field">
+          <span class="field-label">Interface Theme</span>
+          <RadioGroup.Root value={getCurrentTheme()} onValueChange={(v) => setTheme(v)} class="interface-theme-grid">
+            {#each THEMES as theme}
+              <RadioGroup.Item value={theme.id} class="interface-theme-card">
+                {#if theme.id === 'system'}
+                  <Monitor size={14} />
+                {/if}
+                <span>{theme.name}</span>
+              </RadioGroup.Item>
+            {/each}
+          </RadioGroup.Root>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="font-size">Font Size</label>
+          <div class="range-row">
+            <input id="font-size" type="range" min="10" max="24"
+              value={editorFontSize}
+              class="field-range"
+              oninput={(e) => setFontSize(parseInt(e.target.value))}
+            />
+            <span class="range-value">{editorFontSize}px</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-check">
+            <input type="checkbox"
+              checked={editorLineNumbers}
+              onchange={(e) => toggleLineNumbers(e.target.checked)}
+            />
+            <span>Line Numbers</span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="field-check">
+            <input type="checkbox"
+              checked={editorWordWrap}
+              onchange={(e) => toggleWordWrap(e.target.checked)}
+            />
+            <span>Word Wrap</span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="field-check">
+            <input type="checkbox"
+              checked={editorAutoSave}
+              onchange={(e) => toggleAutoSave(e.target.checked)}
+            />
+            <span>Auto-save (5s delay)</span>
+          </label>
+        </div>
+
+      {:else if ui.settingsSection === 'navigation'}
+        <h3>Navigation</h3>
+        <div class="field">
+          <label class="field-check">
+            <input type="checkbox"
+              checked={cfg.sidebar?.auto_generate ?? true}
+              onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.auto_generate = e.target.checked; immediateSave() }}
+            />
+            <span>Auto-generate sidebar from file structure</span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="field-check">
+            <input type="checkbox"
+              checked={cfg.sidebar?.collapsed ?? false}
+              onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.collapsed = e.target.checked; immediateSave() }}
+            />
+            <span>Collapse sidebar by default</span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="field-check">
+            <input type="checkbox"
+              checked={cfg.sidebar?.badges ?? true}
+              onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.badges = e.target.checked; immediateSave() }}
+            />
+            <span>Show badges in sidebar</span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="field-check">
+            <input type="checkbox"
+              checked={cfg.sidebar?.pagination ?? true}
+              onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.pagination = e.target.checked; immediateSave() }}
+            />
+            <span>Show previous/next page links</span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="field-check">
+            <input type="checkbox"
+              checked={cfg.header?.search ?? true}
+              onchange={(e) => { cfg.header ??= {}; cfg.header.search = e.target.checked; immediateSave() }}
+            />
+            <span>Header search bar</span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="field-check">
+            <input type="checkbox"
+              checked={cfg.header?.theme_toggle ?? true}
+              onchange={(e) => { cfg.header ??= {}; cfg.header.theme_toggle = e.target.checked; immediateSave() }}
+            />
+            <span>Header theme toggle</span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="field-label" for="footer-text">Footer Text</label>
+          <input id="footer-text" type="text" class="field-input"
+            placeholder="© 2025 My Site"
+            value={cfg.footer?.text ?? ''}
+            oninput={(e) => { cfg.footer ??= {}; cfg.footer.text = e.target.value; scheduleSave() }}
+          />
+        </div>
+        <div class="field">
+          <label class="field-check">
+            <input type="checkbox"
+              checked={cfg.footer?.credits ?? false}
+              onchange={(e) => { cfg.footer ??= {}; cfg.footer.credits = e.target.checked; immediateSave() }}
+            />
+            <span>Show "Built with Coderoo" in footer</span>
+          </label>
+        </div>
+
+      {:else if ui.settingsSection === 'collections'}
+        <h3>Collections</h3>
+        <p class="section-desc">Content collections are subdirectories of content/. Each directory is a collection.</p>
+
+        {#if collectionsLoading}
+          <div class="loading-state"><Loader size={16} /><span>Loading…</span></div>
+        {:else}
+          <div class="collection-list">
+            {#each collections as col}
+              <div class="collection-card">
+                <div class="collection-info">
+                  <span class="collection-name">{col.title}</span>
+                  <span class="collection-meta">{col.name}/ — {col.pageCount} page{col.pageCount !== 1 ? 's' : ''}</span>
+                </div>
+                <AlertDialog.Root>
+                  <AlertDialog.Trigger class="collection-delete" title="Delete collection">
+                    <Trash2 size={14} />
+                  </AlertDialog.Trigger>
+                  <AlertDialog.Portal>
+                    <AlertDialog.Overlay class="cr-alert-overlay" />
+                    <AlertDialog.Content class="cr-alert-content">
+                      <AlertDialog.Title class="cr-alert-title">Delete Collection</AlertDialog.Title>
+                      <AlertDialog.Description class="cr-alert-desc">Are you sure you want to delete "{col.name}"?</AlertDialog.Description>
+                      <div class="cr-alert-actions">
+                        <AlertDialog.Cancel class="cr-btn cr-btn-secondary cr-btn-sm">Cancel</AlertDialog.Cancel>
+                        <AlertDialog.Action class="cr-btn cr-btn-danger cr-btn-sm" onclick={() => handleDeleteCollection(col.name)}>Delete</AlertDialog.Action>
+                      </div>
+                    </AlertDialog.Content>
+                  </AlertDialog.Portal>
+                </AlertDialog.Root>
+              </div>
+            {/each}
+
+            {#if collections.length === 0}
+              <p class="empty-msg">No collections found. Create one below.</p>
+            {/if}
+          </div>
+
+          <div class="add-collection-row">
+            <input
+              type="text"
+              class="field-input"
+              placeholder="Collection name (e.g. tutorials)"
+              bind:value={newCollectionName}
+              onkeydown={(e) => e.key === 'Enter' && handleCreateCollection()}
+            />
+            <button class="add-btn" onclick={handleCreateCollection} disabled={!newCollectionName.trim() || collectionCreating}>
+              <Plus size={14} /> Create
+            </button>
           </div>
         {/if}
-      </div>
+
+      {:else if ui.settingsSection === 'build'}
+        <h3>Build</h3>
+        <div class="field">
+          <label class="field-label" for="output-dir">Output Directory</label>
+          <input id="output-dir" type="text" class="field-input"
+            placeholder="dist"
+            value={cfg.build?.output ?? 'dist'}
+            oninput={(e) => { cfg.build ??= {}; cfg.build.output = e.target.value; scheduleSave() }}
+          />
+        </div>
+        <div class="field">
+          <label class="field-label" for="base-path">Base Path</label>
+          <input id="base-path" type="text" class="field-input"
+            placeholder="/"
+            value={cfg.build?.base_path ?? ''}
+            oninput={(e) => { cfg.build ??= {}; cfg.build.base_path = e.target.value; scheduleSave() }}
+          />
+        </div>
+        <div class="field-group">
+          {#each [
+            ['sitemap',    'Generate Sitemap'],
+            ['feed',       'Generate RSS Feed'],
+            ['search',     'Build Search Index'],
+            ['minify',     'Minify HTML'],
+            ['clean',      'Clean Output on Build'],
+            ['link_check', 'Check Links'],
+            ['llms',       'Generate llms.txt'],
+            ['katex',      'Enable KaTeX (Math)'],
+            ['mermaid',    'Enable Mermaid (Diagrams)'],
+            ['cdn',        'Load KaTeX/Mermaid from CDN'],
+          ] as [key, label]}
+            <div class="field">
+              <label class="field-check">
+                <input type="checkbox"
+                  checked={cfg.build?.[key] ?? false}
+                  onchange={(e) => { cfg.build ??= {}; cfg.build[key] = e.target.checked; immediateSave() }}
+                />
+                <span>{label}</span>
+              </label>
+            </div>
+          {/each}
+        </div>
+
+      {:else if ui.settingsSection === 'deploy'}
+        <h3>Deploy</h3>
+        <div class="field">
+          <label class="field-label" for="deploy-provider">Provider</label>
+          <select id="deploy-provider" class="field-select"
+            value={cfg.deploy?.provider ?? ''}
+            onchange={(e) => { cfg.deploy ??= {}; cfg.deploy.provider = e.target.value; immediateSave() }}
+          >
+            <option value="">None</option>
+            <option value="github">GitHub Pages</option>
+            <option value="netlify">Netlify</option>
+            <option value="cloudflare">Cloudflare Pages</option>
+            <option value="vercel">Vercel</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="deploy-branch">Branch</label>
+          <input id="deploy-branch" type="text" class="field-input"
+            placeholder="main"
+            value={cfg.deploy?.branch ?? 'main'}
+            oninput={(e) => { cfg.deploy ??= {}; cfg.deploy.branch = e.target.value; scheduleSave() }}
+          />
+        </div>
+        <div class="field">
+          <label class="field-label" for="deploy-siteid">Site ID</label>
+          <input id="deploy-siteid" type="text" class="field-input"
+            placeholder="your-site-id"
+            value={cfg.deploy?.site_id ?? ''}
+            oninput={(e) => { cfg.deploy ??= {}; cfg.deploy.site_id = e.target.value; scheduleSave() }}
+          />
+        </div>
+
+      {:else if ui.settingsSection === 'about'}
+        <h3>About</h3>
+        <div class="about-block">
+          <p class="about-name">Coderoo Desktop</p>
+          <p class="about-version">v0.1.0</p>
+          <p class="about-detail">Built with Tauri v2 + Svelte 5</p>
+          <p class="about-detail">Go CLI for SSG build &amp; preview</p>
+          <p class="about-status about-online">Rust backend active</p>
+        </div>
       {/if}
     </div>
-
-    {#if showDirtyBar}
-      <div class="dirty-bar">
-        <span>You have unsaved changes</span>
-        <div class="dirty-actions">
-          <button class="dirty-btn cancel" onclick={() => showDirtyBar = false}>Cancel</button>
-          <button class="dirty-btn discard" onclick={discardAndClose}>Discard</button>
-          <button class="dirty-btn save" onclick={saveAndClose}>Save & Close</button>
-        </div>
-      </div>
+    </Tabs.Root>
     {/if}
   </div>
-</div>
+
+  {#if showDirtyBar}
+    <div class="dirty-bar">
+      <span>You have unsaved changes</span>
+      <div class="dirty-actions">
+        <button class="dirty-btn cancel" onclick={() => showDirtyBar = false}>Cancel</button>
+        <button class="dirty-btn discard" onclick={discardAndClose}>Discard</button>
+        <button class="dirty-btn save" onclick={saveAndClose}>Save & Close</button>
+      </div>
+    </div>
+  {/if}
+</AppDialog>
 
 <style>
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-  }
-
-  .modal-content {
-    width: 720px;
-    max-width: 90vw;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    background: var(--cr-bg-base);
-    border: 1px solid var(--cr-border);
-    border-radius: 12px;
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
-    overflow: hidden;
-  }
-
   .modal-header {
     display: flex;
     align-items: center;
@@ -762,31 +746,19 @@
     color: var(--cr-text-muted);
   }
 
-  .modal-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border: none;
-    border-radius: var(--cr-radius);
-    background: transparent;
-    color: var(--cr-text-muted);
-    cursor: pointer;
-  }
-
-  .modal-close:hover {
-    background: var(--cr-hover);
-    color: var(--cr-text);
-  }
-
   .modal-body {
     display: flex;
     flex: 1;
     overflow: hidden;
   }
 
-  .settings-nav {
+  :global(.settings-tabs-root) {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  :global(.settings-nav) {
     display: flex;
     flex-direction: column;
     width: 160px;
@@ -797,7 +769,7 @@
     flex-shrink: 0;
   }
 
-  .settings-link {
+  :global(.settings-link) {
     padding: 8px 12px;
     border: none;
     border-radius: var(--cr-radius);
@@ -809,12 +781,12 @@
     transition: color 0.15s, background 0.15s;
   }
 
-  .settings-link:hover {
+  :global(.settings-link:hover) {
     color: var(--cr-text);
     background: var(--cr-hover);
   }
 
-  .settings-link.active {
+  :global(.settings-link[data-state="active"]) {
     color: var(--cr-text);
     background: var(--cr-active);
     font-weight: 500;
@@ -964,14 +936,14 @@
   }
 
   /* Theme grid */
-  .theme-grid {
+  :global(.theme-grid) {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     margin-top: 4px;
   }
 
-  .theme-card {
+  :global(.theme-card) {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -984,12 +956,12 @@
     transition: border-color 0.15s;
   }
 
-  .theme-card:hover,
-  .theme-card.selected {
+  :global(.theme-card:hover),
+  :global(.theme-card[data-state="checked"]) {
     border-color: var(--cr-accent);
   }
 
-  .theme-card.selected {
+  :global(.theme-card[data-state="checked"]) {
     background: var(--cr-accent-bg);
   }
 
@@ -1029,7 +1001,7 @@
   .about-offline { background: rgba(243, 139, 168, 0.1); color: var(--cr-danger); }
 
   /* YAML toggle button */
-  .yaml-toggle {
+  :global(.yaml-toggle) {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1043,12 +1015,12 @@
     transition: all 0.15s;
   }
 
-  .yaml-toggle:hover {
+  :global(.yaml-toggle:hover) {
     color: var(--cr-text);
     border-color: var(--cr-text-muted);
   }
 
-  .yaml-toggle.active {
+  :global(.yaml-toggle[data-state="on"]) {
     color: var(--cr-accent);
     border-color: var(--cr-accent);
     background: var(--cr-active);
@@ -1138,7 +1110,7 @@
     color: var(--cr-text-muted);
   }
 
-  .collection-delete {
+  :global(.collection-delete) {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1151,48 +1123,52 @@
     cursor: pointer;
   }
 
-  .collection-delete:hover {
+  :global(.collection-delete:hover) {
     color: var(--cr-danger);
     background: rgba(243, 139, 168, 0.1);
   }
 
-  .confirm-delete {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  /* AlertDialog for delete confirmation */
+  :global(.cr-alert-overlay) {
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    background: var(--cr-bg-overlay);
   }
 
-  .confirm-text {
-    font-size: 12px;
-    color: var(--cr-danger);
-  }
-
-  .confirm-yes,
-  .confirm-no {
-    padding: 3px 10px;
+  :global(.cr-alert-content) {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 151;
+    max-width: 340px;
+    width: 90%;
+    padding: 20px;
+    background: var(--cr-bg-base);
     border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-sm);
-    font-size: 11px;
-    font-family: inherit;
-    cursor: pointer;
-    background: transparent;
+    border-radius: var(--cr-radius-lg);
+    box-shadow: var(--cr-shadow-lg);
   }
 
-  .confirm-yes {
-    color: var(--cr-danger);
-    border-color: var(--cr-danger);
-  }
-
-  .confirm-yes:hover {
-    background: rgba(243, 139, 168, 0.15);
-  }
-
-  .confirm-no {
-    color: var(--cr-text-muted);
-  }
-
-  .confirm-no:hover {
+  :global(.cr-alert-title) {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 600;
     color: var(--cr-text);
+  }
+
+  :global(.cr-alert-desc) {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: var(--cr-text-muted);
+    line-height: 1.4;
+  }
+
+  :global(.cr-alert-actions) {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
   }
 
   .empty-msg {
@@ -1322,14 +1298,14 @@
   }
 
   /* Interface theme picker */
-  .interface-theme-grid {
+  :global(.interface-theme-grid) {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
     margin-top: 4px;
   }
 
-  .interface-theme-card {
+  :global(.interface-theme-card) {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1345,12 +1321,12 @@
     transition: border-color 0.15s, color 0.15s, background 0.15s;
   }
 
-  .interface-theme-card:hover {
+  :global(.interface-theme-card:hover) {
     color: var(--cr-text);
     border-color: var(--cr-text-muted);
   }
 
-  .interface-theme-card.active {
+  :global(.interface-theme-card[data-state="checked"]) {
     color: var(--cr-accent);
     border-color: var(--cr-accent);
     background: var(--cr-active);

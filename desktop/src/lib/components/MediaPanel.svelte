@@ -2,6 +2,7 @@
   import { assets, loadAssets, doc, addToast } from '../stores/app.svelte.js'
   import { assetUpload, assetDelete, assetGetThumbnail } from '../api.js'
   import { Upload, Trash2, ImagePlus, FileText, Film, Loader } from 'lucide-svelte'
+  import { Tabs } from 'bits-ui'
 
   let thumbnailCache = $state(new Map())
   let selectedAsset = $state(null)
@@ -110,11 +111,13 @@
 </script>
 
 <div class="media-panel">
-  <div class="scope-tabs">
-    <button class="scope-tab" class:active={assets.scope === 'all'} onclick={() => changeScope('all')}>All</button>
-    <button class="scope-tab" class:active={assets.scope === 'bundle'} onclick={() => changeScope('bundle')}>Bundle</button>
-    <button class="scope-tab" class:active={assets.scope === 'shared'} onclick={() => changeScope('shared')}>Shared</button>
-  </div>
+  <Tabs.Root value={assets.scope} onValueChange={(v) => changeScope(v)}>
+    <Tabs.List class="scope-tabs">
+      <Tabs.Trigger value="all" class="scope-tab">All</Tabs.Trigger>
+      <Tabs.Trigger value="bundle" class="scope-tab">Bundle</Tabs.Trigger>
+      <Tabs.Trigger value="shared" class="scope-tab">Shared</Tabs.Trigger>
+    </Tabs.List>
+  </Tabs.Root>
 
   <div class="upload-area">
     {#if doc.contentPath}
@@ -235,14 +238,14 @@
     gap: 0;
   }
 
-  .scope-tabs {
+  :global(.scope-tabs) {
     display: flex;
     gap: 2px;
     padding: 6px 8px;
     border-bottom: 1px solid var(--cr-border);
   }
 
-  .scope-tab {
+  :global(.scope-tab) {
     flex: 1;
     padding: 4px 0;
     border: none;
@@ -255,12 +258,12 @@
     transition: background 0.12s, color 0.12s;
   }
 
-  .scope-tab:hover {
+  :global(.scope-tab:hover) {
     background: var(--cr-hover);
     color: var(--cr-text);
   }
 
-  .scope-tab.active {
+  :global(.scope-tab[data-state="active"]) {
     background: var(--cr-active);
     color: var(--cr-accent);
   }

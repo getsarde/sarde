@@ -114,15 +114,9 @@
   <RightSidebar />
 
   <CommandPalette />
-  {#if ui.settingsOpen}
-    <SettingsModal />
-  {/if}
-  {#if ui.deployOpen}
-    <DeployModal />
-  {/if}
-  {#if ui.importOpen}
-    <ImportModal />
-  {/if}
+  <SettingsModal />
+  <DeployModal />
+  <ImportModal />
   <ToastContainer />
 </div>
 

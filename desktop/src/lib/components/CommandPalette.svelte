@@ -1,12 +1,9 @@
 <script>
   import { ui, tabs, preview, addToast, closeTabById, warnings } from '../stores/app.svelte.js'
   import { build as apiBuild, startPreview, stopPreview } from '../api.js'
+  import { Dialog, Command } from 'bits-ui'
   import { Search } from 'lucide-svelte'
   import { open as openShell } from '@tauri-apps/plugin-shell'
-
-  let query = $state('')
-  let selectedIndex = $state(0)
-  let inputEl = $state(null)
 
   const commands = [
     { id: 'new-file', label: 'New File', category: 'File', shortcut: 'Ctrl+N' },
@@ -33,28 +30,6 @@
       return true
     })
   )
-
-  let filtered = $derived.by(() => {
-    if (!query.trim()) return visibleCommands
-    const q = query.toLowerCase()
-    return visibleCommands.filter(c =>
-      c.label.toLowerCase().includes(q) || c.category.toLowerCase().includes(q)
-    )
-  })
-
-  $effect(() => {
-    if (ui.commandPaletteOpen && inputEl) {
-      inputEl.focus()
-    }
-  })
-
-  // Reset state when palette opens
-  $effect(() => {
-    if (ui.commandPaletteOpen) {
-      query = ''
-      selectedIndex = 0
-    }
-  })
 
   function close() {
     ui.commandPaletteOpen = false
@@ -136,23 +111,6 @@
     }
   }
 
-  function onKeydown(e) {
-    if (e.key === 'Escape') {
-      close()
-      return
-    }
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      selectedIndex = Math.min(selectedIndex + 1, filtered.length - 1)
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      selectedIndex = Math.max(selectedIndex - 1, 0)
-    } else if (e.key === 'Enter' && filtered[selectedIndex]) {
-      e.preventDefault()
-      execute(filtered[selectedIndex])
-    }
-  }
-
   function onGlobalKeydown(e) {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
       e.preventDefault()
@@ -163,57 +121,55 @@
 
 <svelte:window onkeydown={onGlobalKeydown} />
 
-{#if ui.commandPaletteOpen}
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class="palette-overlay" onclick={close} role="presentation">
-    <div class="palette" onclick={(e) => e.stopPropagation()} onkeydown={onKeydown} role="dialog" aria-label="Command palette" tabindex="-1">
-      <div class="palette-input-row">
-        <Search size={16} class="palette-search-icon" />
-        <input
-          bind:this={inputEl}
-          bind:value={query}
-          type="text"
-          class="palette-input"
-          placeholder="Type a command..."
-        />
-      </div>
+<Dialog.Root
+  open={ui.commandPaletteOpen}
+  onOpenChange={(v) => (ui.commandPaletteOpen = v)}
+>
+  <Dialog.Portal>
+    <Dialog.Overlay class="palette-overlay" />
+    <Dialog.Content class="palette-container" aria-label="Command palette">
+      <Command.Root label="Command palette" shouldFilter={true} loop={true}>
+        <div class="palette-input-row">
+          <Search size={16} class="palette-search-icon" />
+          <Command.Input class="palette-input" placeholder="Type a command..." />
+        </div>
 
-      <div class="palette-list">
-        {#if filtered.length === 0}
-          <div class="palette-empty">No matching commands</div>
-        {:else}
-          {#each filtered as cmd, i}
-            <button
+        <Command.List class="palette-list">
+          <Command.Empty class="palette-empty">No matching commands</Command.Empty>
+          {#each visibleCommands as cmd (cmd.id)}
+            <Command.Item
+              value={cmd.id}
+              keywords={[cmd.label, cmd.category]}
+              onSelect={() => execute(cmd)}
               class="palette-item"
-              class:selected={i === selectedIndex}
-              onclick={() => execute(cmd)}
-              onmouseenter={() => (selectedIndex = i)}
             >
               <span class="palette-category">{cmd.category}</span>
               <span class="palette-label">{cmd.label}</span>
               {#if cmd.shortcut}
                 <span class="palette-shortcut">{cmd.shortcut}</span>
               {/if}
-            </button>
+            </Command.Item>
           {/each}
-        {/if}
-      </div>
-    </div>
-  </div>
-{/if}
+        </Command.List>
+      </Command.Root>
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>
 
 <style>
-  .palette-overlay {
+  :global(.palette-overlay) {
     position: fixed;
     inset: 0;
     z-index: 200;
-    display: flex;
-    justify-content: center;
-    padding-top: 20vh;
     background: rgba(0, 0, 0, 0.4);
   }
 
-  .palette {
+  :global(.palette-container) {
+    position: fixed;
+    top: 20vh;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
     width: 500px;
     max-width: 90vw;
     max-height: 380px;
@@ -224,7 +180,7 @@
     border-radius: var(--cr-radius-lg);
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
     overflow: hidden;
-    align-self: flex-start;
+    outline: none;
   }
 
   .palette-input-row {
@@ -240,7 +196,7 @@
     color: var(--cr-text-muted);
   }
 
-  .palette-input {
+  :global(.palette-input) {
     flex: 1;
     border: none;
     background: transparent;
@@ -250,24 +206,24 @@
     font-family: inherit;
   }
 
-  .palette-input::placeholder {
+  :global(.palette-input)::placeholder {
     color: var(--cr-text-muted);
   }
 
-  .palette-list {
+  :global(.palette-list) {
     flex: 1;
     overflow-y: auto;
     padding: 4px;
   }
 
-  .palette-empty {
+  :global(.palette-empty) {
     padding: 20px;
     text-align: center;
     font-size: 13px;
     color: var(--cr-text-muted);
   }
 
-  .palette-item {
+  :global(.palette-item) {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -282,8 +238,7 @@
     cursor: pointer;
   }
 
-  .palette-item:hover,
-  .palette-item.selected {
+  :global(.palette-item[data-selected]) {
     background: var(--cr-active);
   }
 

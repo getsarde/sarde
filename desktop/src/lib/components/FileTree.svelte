@@ -2,13 +2,11 @@
   import { readDir, readTextFile, mkdir, rename } from '@tauri-apps/plugin-fs'
   import { doc, tabs, project, switchToTab, closeTabById, addToast } from '../stores/app.svelte.js'
   import { readContent, createContentFile, createContentDir, deleteContent, renameContent } from '../api.js'
+  import { ContextMenu } from 'bits-ui'
   import { ChevronRight, Folder, FolderOpen, FileText, File, FilePlus, FolderPlus, Pencil, Trash2, Copy } from 'lucide-svelte'
 
   let entries = $state([])
   let expandedDirs = $state(new Set())
-
-  // Context menu
-  let ctxMenu = $state({ visible: false, x: 0, y: 0, item: null })
 
   // Inline rename
   let renamingPath = $state(null)
@@ -116,25 +114,12 @@
     }
   }
 
-  // --- Context menu ---
-
-  function showCtxMenu(e, item) {
-    e.preventDefault()
-    e.stopPropagation()
-    ctxMenu = { visible: true, x: e.clientX, y: e.clientY, item }
-  }
-
-  function hideCtxMenu() {
-    ctxMenu = { ...ctxMenu, visible: false }
-  }
-
   // --- Create new file / folder ---
 
   export function newFileAtRoot() { startCreate(rootPath(), 0, 'file') }
   export function newFolderAtRoot() { startCreate(rootPath(), 0, 'folder') }
 
   async function startCreate(parentPath, depth, type) {
-    hideCtxMenu()
     // Auto-expand the parent dir if it isn't already
     if (parentPath !== rootPath() && !expandedDirs.has(parentPath)) {
       const entry = findEntry(entries, parentPath)
@@ -177,7 +162,6 @@
   // --- Rename ---
 
   function startRename(item) {
-    hideCtxMenu()
     renamingPath = item.path
     renameValue = item.name
   }
@@ -217,7 +201,6 @@
   // --- Delete (soft — moves to .trash) ---
 
   async function deleteItem(item) {
-    hideCtxMenu()
     if (!item.isDir) {
       const contentPath = relContentPath(item.path)
       try {
@@ -250,7 +233,6 @@
   // --- Copy path ---
 
   function copyPath(item) {
-    hideCtxMenu()
     navigator.clipboard.writeText(item.path)
     addToast('info', 'Path copied to clipboard')
   }
@@ -338,11 +320,9 @@
   function isMd(name) { return name.endsWith('.md') }
 </script>
 
-<!-- Dismiss context menu on outside click -->
 <svelte:window
-  onclick={() => ctxMenu.visible && hideCtxMenu()}
   onkeydown={(e) => {
-    if (e.key === 'Escape') { hideCtxMenu(); creating && cancelCreate(); renamingPath && (renamingPath = null) }
+    if (e.key === 'Escape') { creating && cancelCreate(); renamingPath && (renamingPath = null) }
   }}
 />
 
@@ -378,54 +358,95 @@
     {#each items as item}
       <li class="tree-item">
         {#if item.isDir}
-          <button
-            class="tree-row tree-dir"
-            style="padding-left: {depth * 14 + 8}px"
-            onclick={() => toggleDir(item)}
-            oncontextmenu={(e) => showCtxMenu(e, item)}
-          >
-            <span class="tree-arrow" class:expanded={expandedDirs.has(item.path)}>
-              <ChevronRight size={12} strokeWidth={2.5} />
-            </span>
-            <span class="tree-icon">
-              {#if expandedDirs.has(item.path)}<FolderOpen size={16} />{:else}<Folder size={16} />{/if}
-            </span>
-            {#if renamingPath === item.path}
-              {@render renameInput(item)}
-            {:else}
-              <span class="tree-name">{item.name}</span>
-            {/if}
-          </button>
+          <ContextMenu.Root>
+            <ContextMenu.Trigger class="tree-ctx-trigger">
+              <button
+                class="tree-row tree-dir"
+                style="padding-left: {depth * 14 + 8}px"
+                onclick={() => toggleDir(item)}
+              >
+                <span class="tree-arrow" class:expanded={expandedDirs.has(item.path)}>
+                  <ChevronRight size={12} strokeWidth={2.5} />
+                </span>
+                <span class="tree-icon">
+                  {#if expandedDirs.has(item.path)}<FolderOpen size={16} />{:else}<Folder size={16} />{/if}
+                </span>
+                {#if renamingPath === item.path}
+                  {@render renameInput(item)}
+                {:else}
+                  <span class="tree-name">{item.name}</span>
+                {/if}
+              </button>
+            </ContextMenu.Trigger>
+            <ContextMenu.Portal>
+              <ContextMenu.Content class="ctx-menu">
+                <ContextMenu.Item class="ctx-item" onSelect={() => startCreate(item.path, depth + 1, 'file')}>
+                  <FilePlus size={14} /> New File
+                </ContextMenu.Item>
+                <ContextMenu.Item class="ctx-item" onSelect={() => startCreate(item.path, depth + 1, 'folder')}>
+                  <FolderPlus size={14} /> New Folder
+                </ContextMenu.Item>
+                <ContextMenu.Separator class="ctx-sep" />
+                <ContextMenu.Item class="ctx-item" onSelect={() => startRename(item)}>
+                  <Pencil size={14} /> Rename
+                </ContextMenu.Item>
+                <ContextMenu.Item class="ctx-item ctx-danger" onSelect={() => deleteItem(item)}>
+                  <Trash2 size={14} /> Delete
+                </ContextMenu.Item>
+                <ContextMenu.Separator class="ctx-sep" />
+                <ContextMenu.Item class="ctx-item" onSelect={() => copyPath(item)}>
+                  <Copy size={14} /> Copy Path
+                </ContextMenu.Item>
+              </ContextMenu.Content>
+            </ContextMenu.Portal>
+          </ContextMenu.Root>
 
           {#if expandedDirs.has(item.path) && item.children}
             {@render treeNode(item.children, depth + 1, item.path)}
           {/if}
 
         {:else}
-          <button
-            class="tree-row tree-file"
-            class:active={doc.filePath === item.path}
-            class:drag-over={dragOverPath === item.path}
-            style="padding-left: {depth * 14 + 8}px"
-            draggable="true"
-            onclick={() => openFile(item)}
-            oncontextmenu={(e) => showCtxMenu(e, item)}
-            ondragstart={(e) => onDragStart(e, item)}
-            ondragover={(e) => onDragOver(e, item, items)}
-            ondragleave={onDragLeave}
-            ondrop={(e) => onDrop(e, item, items)}
-            ondragend={() => { dragItem = null; dragOverPath = null }}
-          >
-            <span class="tree-arrow-placeholder"></span>
-            <span class="tree-icon">
-              {#if isMd(item.name)}<FileText size={16} />{:else}<File size={16} />{/if}
-            </span>
-            {#if renamingPath === item.path}
-              {@render renameInput(item)}
-            {:else}
-              <span class="tree-name">{item.name}</span>
-            {/if}
-          </button>
+          <ContextMenu.Root>
+            <ContextMenu.Trigger class="tree-ctx-trigger">
+              <button
+                class="tree-row tree-file"
+                class:active={doc.filePath === item.path}
+                class:drag-over={dragOverPath === item.path}
+                style="padding-left: {depth * 14 + 8}px"
+                draggable="true"
+                onclick={() => openFile(item)}
+                ondragstart={(e) => onDragStart(e, item)}
+                ondragover={(e) => onDragOver(e, item, items)}
+                ondragleave={onDragLeave}
+                ondrop={(e) => onDrop(e, item, items)}
+                ondragend={() => { dragItem = null; dragOverPath = null }}
+              >
+                <span class="tree-arrow-placeholder"></span>
+                <span class="tree-icon">
+                  {#if isMd(item.name)}<FileText size={16} />{:else}<File size={16} />{/if}
+                </span>
+                {#if renamingPath === item.path}
+                  {@render renameInput(item)}
+                {:else}
+                  <span class="tree-name">{item.name}</span>
+                {/if}
+              </button>
+            </ContextMenu.Trigger>
+            <ContextMenu.Portal>
+              <ContextMenu.Content class="ctx-menu">
+                <ContextMenu.Item class="ctx-item" onSelect={() => startRename(item)}>
+                  <Pencil size={14} /> Rename
+                </ContextMenu.Item>
+                <ContextMenu.Item class="ctx-item ctx-danger" onSelect={() => deleteItem(item)}>
+                  <Trash2 size={14} /> Delete
+                </ContextMenu.Item>
+                <ContextMenu.Separator class="ctx-sep" />
+                <ContextMenu.Item class="ctx-item" onSelect={() => copyPath(item)}>
+                  <Copy size={14} /> Copy Path
+                </ContextMenu.Item>
+              </ContextMenu.Content>
+            </ContextMenu.Portal>
+          </ContextMenu.Root>
         {/if}
       </li>
     {/each}
@@ -449,35 +470,6 @@
     {@render treeNode(entries, 0, rootPath())}
   {/if}
 </div>
-
-<!-- Context menu -->
-{#if ctxMenu.visible && ctxMenu.item}
-  <div
-    class="ctx-menu"
-    style="left: {ctxMenu.x}px; top: {ctxMenu.y}px"
-    role="menu"
-  >
-    {#if ctxMenu.item.isDir}
-      <button class="ctx-item" role="menuitem" onclick={() => startCreate(ctxMenu.item.path, 1, 'file')}>
-        <FilePlus size={14} /> New File
-      </button>
-      <button class="ctx-item" role="menuitem" onclick={() => startCreate(ctxMenu.item.path, 1, 'folder')}>
-        <FolderPlus size={14} /> New Folder
-      </button>
-      <div class="ctx-sep"></div>
-    {/if}
-    <button class="ctx-item" role="menuitem" onclick={() => startRename(ctxMenu.item)}>
-      <Pencil size={14} /> Rename
-    </button>
-    <button class="ctx-item ctx-danger" role="menuitem" onclick={() => deleteItem(ctxMenu.item)}>
-      <Trash2 size={14} /> Delete
-    </button>
-    <div class="ctx-sep"></div>
-    <button class="ctx-item" role="menuitem" onclick={() => copyPath(ctxMenu.item)}>
-      <Copy size={14} /> Copy Path
-    </button>
-  </div>
-{/if}
 
 <style>
   .file-tree {
@@ -503,6 +495,10 @@
   .tree-item {
     margin: 0;
     padding: 0;
+  }
+
+  :global(.tree-ctx-trigger) {
+    display: contents;
   }
 
   .tree-row {
@@ -586,14 +582,11 @@
   }
 
   .tree-rename {
-    /* Positioned inline inside the row */
     margin-left: 2px;
   }
 
-  /* Context menu */
-  .ctx-menu {
-    position: fixed;
-    z-index: 300;
+  /* Context menu (portaled — needs :global) */
+  :global(.ctx-menu) {
     min-width: 160px;
     background: var(--cr-bg-base);
     border: 1px solid var(--cr-border);
@@ -601,9 +594,10 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     padding: 4px;
     overflow: hidden;
+    z-index: 300;
   }
 
-  .ctx-item {
+  :global(.ctx-item) {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -619,19 +613,20 @@
     cursor: pointer;
   }
 
-  .ctx-item:hover {
+  :global(.ctx-item[data-highlighted]) {
     background: var(--cr-hover);
+    outline: none;
   }
 
-  .ctx-danger {
+  :global(.ctx-danger) {
     color: var(--cr-danger);
   }
 
-  .ctx-danger:hover {
+  :global(.ctx-danger[data-highlighted]) {
     background: rgba(243, 139, 168, 0.1);
   }
 
-  .ctx-sep {
+  :global(.ctx-sep) {
     height: 1px;
     background: var(--cr-border);
     margin: 3px 0;

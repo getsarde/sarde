@@ -1,5 +1,6 @@
 <script>
   import { FileText, BookOpen, Newspaper } from 'lucide-svelte'
+  import { RadioGroup } from 'bits-ui'
 
   let { template = 'empty', description = '', author = '', onTemplateChange, onDescriptionChange, onAuthorChange } = $props()
 
@@ -12,20 +13,16 @@
 
 <div class="section">
   <span class="section-label">Template</span>
-  <div class="template-grid">
+  <RadioGroup.Root value={template} onValueChange={(v) => onTemplateChange(v)} class="template-grid">
     {#each templates as t}
       {@const Icon = t.icon}
-      <button
-        class="template-card"
-        class:active={template === t.id}
-        onclick={() => onTemplateChange(t.id)}
-      >
+      <RadioGroup.Item value={t.id} class="template-card">
         <Icon size={20} />
         <span class="template-name">{t.name}</span>
         <span class="template-desc">{t.desc}</span>
-      </button>
+      </RadioGroup.Item>
     {/each}
-  </div>
+  </RadioGroup.Root>
 </div>
 
 <div class="field">
@@ -63,13 +60,13 @@
     margin-bottom: 8px;
   }
 
-  .template-grid {
+  :global(.template-grid) {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
   }
 
-  .template-card {
+  :global(.template-card) {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -85,12 +82,12 @@
     transition: border-color 0.15s, color 0.15s;
   }
 
-  .template-card:hover {
+  :global(.template-card:hover) {
     border-color: var(--cr-text-muted);
     color: var(--cr-text);
   }
 
-  .template-card.active {
+  :global(.template-card[data-state="checked"]) {
     border-color: var(--cr-accent);
     color: var(--cr-accent);
     background: var(--cr-accent-bg);

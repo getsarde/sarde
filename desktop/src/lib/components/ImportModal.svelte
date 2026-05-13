@@ -3,6 +3,8 @@
   import { ui, addToast } from '../stores/app.svelte.js'
   import { importObsidian } from '../api.js'
   import { X, Loader, FolderOpen, CheckCircle, AlertCircle, FileDown } from 'lucide-svelte'
+  import AppDialog from './primitives/AppDialog.svelte'
+  import AppButton from './primitives/AppButton.svelte'
 
   let status = $state('idle') // 'idle' | 'importing' | 'success' | 'error'
   let vaultPath = $state('')
@@ -26,10 +28,6 @@
 
   function close() {
     ui.importOpen = false
-  }
-
-  function onKeydown(e) {
-    if (e.key === 'Escape') close()
   }
 
   async function pickVault() {
@@ -56,127 +54,105 @@
   }
 </script>
 
-<svelte:window onkeydown={onKeydown} />
+<AppDialog
+  open={ui.importOpen}
+  onOpenChange={(v) => (ui.importOpen = v)}
+  ariaLabel="Import Obsidian Vault"
+  width="420px"
+>
+  <div class="modal-header">
+    <h2>Import Obsidian Vault</h2>
+    <AppButton variant="ghost" size="icon" onclick={close}>
+      <X size={16} />
+    </AppButton>
+  </div>
 
-<div class="modal-overlay" onclick={(e) => { if (e.target === e.currentTarget) close() }} onkeydown={onKeydown} role="dialog" aria-modal="true" aria-label="Import Obsidian Vault" tabindex="-1">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Import Obsidian Vault</h2>
-      <button class="modal-close" onclick={close} title="Close">
-        <X size={16} />
-      </button>
-    </div>
-
-    <div class="modal-body">
-      {#if status === 'idle'}
-        <div class="field">
-          <label class="field-label" for="vault-path">Vault Path</label>
-          <div class="location-row">
-            <input
-              id="vault-path"
-              type="text"
-              class="field-input"
-              placeholder="Select an Obsidian vault folder..."
-              value={vaultPath}
-              readonly
-            />
-            <button class="browse-btn" onclick={pickVault}>
-              <FolderOpen size={15} /> Browse
-            </button>
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="field-label" for="import-collection">Collection Name</label>
+  <div class="modal-body">
+    {#if status === 'idle'}
+      <div class="field">
+        <label class="field-label" for="vault-path">Vault Path</label>
+        <div class="location-row">
           <input
-            id="import-collection"
+            id="vault-path"
             type="text"
             class="field-input"
-            placeholder={vaultName || 'Optional — defaults to vault name'}
-            bind:value={collection}
+            placeholder="Select an Obsidian vault folder..."
+            value={vaultPath}
+            readonly
           />
-          <span class="field-hint">Leave blank to use the vault folder name.</span>
+          <button class="browse-btn" onclick={pickVault}>
+            <FolderOpen size={15} /> Browse
+          </button>
         </div>
+      </div>
 
-        <button class="btn btn-primary" onclick={doImport} disabled={!canImport}>
-          <FileDown size={15} /> Import
-        </button>
+      <div class="field">
+        <label class="field-label" for="import-collection">Collection Name</label>
+        <input
+          id="import-collection"
+          type="text"
+          class="field-input"
+          placeholder={vaultName || 'Optional — defaults to vault name'}
+          bind:value={collection}
+        />
+        <span class="field-hint">Leave blank to use the vault folder name.</span>
+      </div>
 
-      {:else if status === 'importing'}
-        <div class="status-state">
-          <div class="status-icon spinning">
-            <Loader size={32} />
-          </div>
-          <p class="status-message">Importing from {vaultName}...</p>
+      <AppButton variant="primary" fullWidth onclick={doImport} disabled={!canImport}>
+        <FileDown size={15} /> Import
+      </AppButton>
+
+    {:else if status === 'importing'}
+      <div class="status-state">
+        <div class="status-icon spinning">
+          <Loader size={32} />
         </div>
+        <p class="status-message">Importing from {vaultName}...</p>
+      </div>
 
-      {:else if status === 'success'}
-        <div class="status-state">
-          <div class="status-icon success">
-            <CheckCircle size={32} />
-          </div>
-          <p class="status-message">Import complete</p>
-          <div class="stats-grid">
-            <div class="stat">
-              <span class="stat-value">{result.notesConverted ?? 0}</span>
-              <span class="stat-label">Notes</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">{result.imagesCopied ?? 0}</span>
-              <span class="stat-label">Images</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">{result.linksConverted ?? 0}</span>
-              <span class="stat-label">Links</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">{result.itemsSkipped ?? 0}</span>
-              <span class="stat-label">Skipped</span>
-            </div>
-          </div>
-          <button class="btn btn-secondary" onclick={close}>Close</button>
+    {:else if status === 'success'}
+      <div class="status-state">
+        <div class="status-icon success">
+          <CheckCircle size={32} />
         </div>
-
-      {:else if status === 'error'}
-        <div class="status-state">
-          <div class="status-icon error">
-            <AlertCircle size={32} />
+        <p class="status-message">Import complete</p>
+        <div class="stats-grid">
+          <div class="stat">
+            <span class="stat-value">{result.notesConverted ?? 0}</span>
+            <span class="stat-label">Notes</span>
           </div>
-          <p class="status-message error-text">{errorMsg}</p>
-          <div class="btn-group">
-            <button class="btn btn-primary" onclick={() => { status = 'idle' }}>Try Again</button>
-            <button class="btn btn-secondary" onclick={close}>Close</button>
+          <div class="stat">
+            <span class="stat-value">{result.imagesCopied ?? 0}</span>
+            <span class="stat-label">Images</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{result.linksConverted ?? 0}</span>
+            <span class="stat-label">Links</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{result.itemsSkipped ?? 0}</span>
+            <span class="stat-label">Skipped</span>
           </div>
         </div>
-      {/if}
-    </div>
+        <AppButton variant="secondary" fullWidth onclick={close}>Close</AppButton>
+      </div>
+
+    {:else if status === 'error'}
+      <div class="status-state">
+        <div class="status-icon error">
+          <AlertCircle size={32} />
+        </div>
+        <p class="status-message error-text">{errorMsg}</p>
+        <div class="btn-group">
+          <AppButton variant="primary" onclick={() => { status = 'idle' }}>Try Again</AppButton>
+          <AppButton variant="secondary" onclick={close}>Close</AppButton>
+        </div>
+      </div>
+    {/if}
   </div>
-</div>
+</AppDialog>
 
 <style>
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-  }
-
-  .modal-content {
-    width: 420px;
-    max-width: 90vw;
-    display: flex;
-    flex-direction: column;
-    background: var(--cr-bg-base);
-    border: 1px solid var(--cr-border);
-    border-radius: 12px;
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
-    overflow: hidden;
-  }
-
   .modal-header {
     display: flex;
     align-items: center;
@@ -189,24 +165,6 @@
     margin: 0;
     font-size: 16px;
     font-weight: 600;
-    color: var(--cr-text);
-  }
-
-  .modal-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    border: none;
-    border-radius: var(--cr-radius);
-    background: transparent;
-    color: var(--cr-text-muted);
-    cursor: pointer;
-  }
-
-  .modal-close:hover {
-    background: var(--cr-hover);
     color: var(--cr-text);
   }
 
@@ -278,47 +236,13 @@
     border-color: var(--cr-accent);
   }
 
-  .btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    width: 100%;
-    padding: 10px 20px;
-    border: none;
-    border-radius: var(--cr-radius);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-
-  .btn:hover {
-    opacity: 0.9;
-  }
-
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .btn-primary {
-    background: var(--cr-accent);
-    color: #fff;
-  }
-
-  .btn-secondary {
-    background: var(--cr-hover);
-    color: var(--cr-text);
-  }
-
   .btn-group {
     display: flex;
     gap: 8px;
     width: 100%;
   }
 
-  .btn-group .btn {
+  :global(.btn-group .cr-btn) {
     flex: 1;
   }
 
