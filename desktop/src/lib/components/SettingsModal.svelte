@@ -5,6 +5,7 @@
   import { THEME_PRESETS } from './theme-presets.js'
   import { X, Loader, Code, Plus, Trash2, Monitor } from 'lucide-svelte'
   import YamlEditor from './YamlEditor.svelte'
+  import NavigationBuilder from './NavigationBuilder.svelte'
   import AppDialog from './primitives/AppDialog.svelte'
   import AppButton from './primitives/AppButton.svelte'
   import { RadioGroup, Tabs, Toggle, AlertDialog } from 'bits-ui'
@@ -89,6 +90,7 @@
     if (ui.settingsOpen && project.contentPath) {
       loadSiteConfig()
     }
+    return () => clearTimeout(saveTimer)
   })
 
   // Unsaved changes warning
@@ -489,59 +491,70 @@
 
       {:else if ui.settingsSection === 'navigation'}
         <h3>Navigation</h3>
-        <div class="field">
-          <label class="field-check">
-            <input type="checkbox"
-              checked={cfg.sidebar?.auto_generate ?? true}
-              onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.auto_generate = e.target.checked; immediateSave() }}
-            />
-            <span>Auto-generate sidebar from file structure</span>
-          </label>
+        <p class="section-desc">Configure site navigation structure. Drag items to reorder, or add custom links and groups.</p>
+
+        <NavigationBuilder />
+
+        <h4 class="nav-sub-heading">Sidebar Options</h4>
+        <div class="field-group">
+          <div class="field">
+            <label class="field-check">
+              <input type="checkbox"
+                checked={cfg.sidebar?.auto_generate ?? true}
+                onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.auto_generate = e.target.checked; immediateSave() }}
+              />
+              <span>Auto-generate sidebar</span>
+            </label>
+          </div>
+          <div class="field">
+            <label class="field-check">
+              <input type="checkbox"
+                checked={cfg.sidebar?.collapsed ?? false}
+                onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.collapsed = e.target.checked; immediateSave() }}
+              />
+              <span>Collapse by default</span>
+            </label>
+          </div>
+          <div class="field">
+            <label class="field-check">
+              <input type="checkbox"
+                checked={cfg.sidebar?.badges ?? true}
+                onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.badges = e.target.checked; immediateSave() }}
+              />
+              <span>Show badges</span>
+            </label>
+          </div>
+          <div class="field">
+            <label class="field-check">
+              <input type="checkbox"
+                checked={cfg.sidebar?.pagination ?? true}
+                onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.pagination = e.target.checked; immediateSave() }}
+              />
+              <span>Previous/next links</span>
+            </label>
+          </div>
         </div>
-        <div class="field">
-          <label class="field-check">
-            <input type="checkbox"
-              checked={cfg.sidebar?.collapsed ?? false}
-              onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.collapsed = e.target.checked; immediateSave() }}
-            />
-            <span>Collapse sidebar by default</span>
-          </label>
-        </div>
-        <div class="field">
-          <label class="field-check">
-            <input type="checkbox"
-              checked={cfg.sidebar?.badges ?? true}
-              onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.badges = e.target.checked; immediateSave() }}
-            />
-            <span>Show badges in sidebar</span>
-          </label>
-        </div>
-        <div class="field">
-          <label class="field-check">
-            <input type="checkbox"
-              checked={cfg.sidebar?.pagination ?? true}
-              onchange={(e) => { cfg.sidebar ??= {}; cfg.sidebar.pagination = e.target.checked; immediateSave() }}
-            />
-            <span>Show previous/next page links</span>
-          </label>
-        </div>
-        <div class="field">
-          <label class="field-check">
-            <input type="checkbox"
-              checked={cfg.header?.search ?? true}
-              onchange={(e) => { cfg.header ??= {}; cfg.header.search = e.target.checked; immediateSave() }}
-            />
-            <span>Header search bar</span>
-          </label>
-        </div>
-        <div class="field">
-          <label class="field-check">
-            <input type="checkbox"
-              checked={cfg.header?.theme_toggle ?? true}
-              onchange={(e) => { cfg.header ??= {}; cfg.header.theme_toggle = e.target.checked; immediateSave() }}
-            />
-            <span>Header theme toggle</span>
-          </label>
+
+        <h4 class="nav-sub-heading">Header & Footer</h4>
+        <div class="field-group">
+          <div class="field">
+            <label class="field-check">
+              <input type="checkbox"
+                checked={cfg.header?.search ?? true}
+                onchange={(e) => { cfg.header ??= {}; cfg.header.search = e.target.checked; immediateSave() }}
+              />
+              <span>Header search bar</span>
+            </label>
+          </div>
+          <div class="field">
+            <label class="field-check">
+              <input type="checkbox"
+                checked={cfg.header?.theme_toggle ?? true}
+                onchange={(e) => { cfg.header ??= {}; cfg.header.theme_toggle = e.target.checked; immediateSave() }}
+              />
+              <span>Header theme toggle</span>
+            </label>
+          </div>
         </div>
         <div class="field">
           <label class="field-label" for="footer-text">Footer Text</label>
@@ -810,6 +823,15 @@
     color: var(--cr-text-muted);
     margin: -8px 0 16px;
     line-height: 1.5;
+  }
+
+  .nav-sub-heading {
+    margin: 20px 0 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cr-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   .loading-state {

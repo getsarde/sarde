@@ -1,19 +1,32 @@
 <script>
-  import { buildLog, clearBuildLog, toggleBuildLog } from '../stores/app.svelte.js'
+  import { buildLog, clearBuildLog, toggleBuildLog, openFileAtLine } from '../stores/app.svelte.js'
   import { X, Trash2 } from 'lucide-svelte'
 
   let listEl = $state(null)
 
-  // Auto-scroll to bottom when new entries arrive
+  // Auto-scroll to bottom only if user is already near the bottom
   $effect(() => {
     if (listEl && buildLog.entries.length > 0) {
-      listEl.scrollTop = listEl.scrollHeight
+      const atBottom = listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight < 40
+      if (atBottom) listEl.scrollTop = listEl.scrollHeight
     }
   })
 
   function formatTime(ts) {
     const d = new Date(ts)
     return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  }
+
+  const FILE_REF_RE = /([^\s:]+\.(?:md|yaml|yml|html))(?::(\d+))?/
+
+  function parseFileRef(text) {
+    const m = text.match(FILE_REF_RE)
+    if (!m) return null
+    return { file: m[1], line: m[2] ? parseInt(m[2], 10) : 0 }
+  }
+
+  function handleFileClick(ref) {
+    if (ref) openFileAtLine(ref.file, ref.line)
   }
 </script>
 
@@ -31,9 +44,19 @@
         <div class="log-empty">No build output yet. Start the preview server to see logs here.</div>
       {:else}
         {#each buildLog.entries as entry}
+          {@const ref = parseFileRef(entry.text)}
           <div class="log-entry {entry.type}">
             <span class="log-time">{formatTime(entry.timestamp)}</span>
-            <span class="log-text">{entry.text}</span>
+            {#if ref}
+              <span class="log-text">
+                {entry.text.slice(0, entry.text.indexOf(ref.file))}<button
+                  class="log-file-link"
+                  onclick={() => handleFileClick(ref)}
+                >{ref.file}{ref.line ? `:${ref.line}` : ''}</button>{entry.text.slice(entry.text.indexOf(ref.file) + ref.file.length + (ref.line ? `:${ref.line}`.length : 0))}
+              </span>
+            {:else}
+              <span class="log-text">{entry.text}</span>
+            {/if}
           </div>
         {/each}
       {/if}
@@ -138,5 +161,24 @@
 
   .log-entry.warning .log-text {
     color: var(--cr-warning);
+  }
+
+  .log-file-link {
+    display: inline;
+    border: none;
+    background: transparent;
+    color: var(--cr-accent);
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+  }
+
+  .log-file-link:hover {
+    text-decoration-style: solid;
+    filter: brightness(1.2);
   }
 </style>

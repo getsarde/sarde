@@ -2,6 +2,7 @@
   import { open as openShell } from '@tauri-apps/plugin-shell'
   import { doc, preview, ui, addToast } from '../stores/app.svelte.js'
   import { startPreview, stopPreview } from '../api.js'
+  import { contentPathToUrl } from '../utils/url-mapping.js'
   import {
     Bold, Italic, Heading, Link, Image, Code, Braces, List, Table, ExternalLink, Play, Square, Eye,
   } from 'lucide-svelte'
@@ -11,8 +12,9 @@
   let { editor = null } = $props()
 
   let previewRunning = $derived(preview.port > 0)
-  let previewFullUrl = $derived(previewRunning ? `http://localhost:${preview.port}` : '')
-  let previewUrl = $derived(previewRunning ? `localhost:${preview.port}` : null)
+  let pageUrl = $derived(contentPathToUrl(doc.contentPath))
+  let previewFullUrl = $derived(previewRunning ? `http://localhost:${preview.port}${pageUrl}` : '')
+  let previewUrl = $derived(previewRunning ? `localhost:${preview.port}${pageUrl}` : null)
 
   let starting = $state(false)
 

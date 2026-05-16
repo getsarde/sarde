@@ -38,6 +38,14 @@
     }
   }
 
+  $effect(() => {
+    for (const asset of assets.items) {
+      if (isImageMime(asset.mimeType) && !thumbnailCache.has(asset.path)) {
+        loadThumbnail(asset.path)
+      }
+    }
+  })
+
   async function handleUpload(target) {
     if (uploading) return
     uploading = true
@@ -148,7 +156,7 @@
         <div class="asset-grid">
           {#each bundleAssets as asset (asset.path)}
             {@const thumb = thumbnailCache.get(asset.path)}
-            {@const _ = !thumb && isImageMime(asset.mimeType) ? loadThumbnail(asset.path) : null}
+
             <button
               class="asset-tile"
               class:selected={selectedAsset?.path === asset.path}
@@ -181,7 +189,7 @@
         <div class="asset-grid">
           {#each sharedAssets as asset (asset.path)}
             {@const thumb = thumbnailCache.get(asset.path)}
-            {@const _ = !thumb && isImageMime(asset.mimeType) ? loadThumbnail(asset.path) : null}
+
             <button
               class="asset-tile"
               class:selected={selectedAsset?.path === asset.path}

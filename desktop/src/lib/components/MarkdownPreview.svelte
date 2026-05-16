@@ -1,35 +1,119 @@
 <script>
   import { mdPreview } from '../stores/app.svelte.js'
-  import { Loader } from 'lucide-svelte'
+  import { Loader, Monitor, Tablet, Smartphone, Maximize } from 'lucide-svelte'
+
+  const VIEWPORTS = [
+    { id: 'auto', label: 'Auto', icon: Maximize, width: null },
+    { id: 'desktop', label: 'Desktop', icon: Monitor, width: 1280 },
+    { id: 'tablet', label: 'Tablet', icon: Tablet, width: 768 },
+    { id: 'mobile', label: 'Mobile', icon: Smartphone, width: 375 },
+  ]
+
+  let activeViewport = $state('auto')
+  let viewportWidth = $derived(VIEWPORTS.find(v => v.id === activeViewport)?.width)
 </script>
 
-<div class="preview-container">
-  {#if mdPreview.rendering && !mdPreview.html}
-    <div class="preview-loading">
-      <Loader size={20} />
-      <span>Rendering...</span>
+<div class="preview-wrapper">
+  <div class="viewport-bar">
+    {#each VIEWPORTS as vp}
+      {@const Icon = vp.icon}
+      <button
+        class="viewport-btn"
+        class:active={activeViewport === vp.id}
+        onclick={() => activeViewport = vp.id}
+        title="{vp.label}{vp.width ? ` (${vp.width}px)` : ''}"
+      >
+        <Icon size={13} />
+      </button>
+    {/each}
+    {#if viewportWidth}
+      <span class="viewport-label">{viewportWidth}px</span>
+    {/if}
+  </div>
+
+  <div class="preview-frame" style={viewportWidth ? `max-width: ${viewportWidth}px; margin: 0 auto;` : ''}>
+    <div class="preview-container">
+      {#if mdPreview.rendering && !mdPreview.html}
+        <div class="preview-loading">
+          <Loader size={20} />
+          <span>Rendering...</span>
+        </div>
+      {:else if mdPreview.error}
+        <div class="preview-error">
+          <p>Render error: {mdPreview.error}</p>
+        </div>
+      {:else if mdPreview.html}
+        <div class="prose">
+          {@html mdPreview.html}
+        </div>
+      {:else}
+        <div class="preview-empty">
+          <p>Start typing to see preview</p>
+        </div>
+      {/if}
     </div>
-  {:else if mdPreview.error}
-    <div class="preview-error">
-      <p>Render error: {mdPreview.error}</p>
-    </div>
-  {:else if mdPreview.html}
-    <div class="prose">
-      {@html mdPreview.html}
-    </div>
-  {:else}
-    <div class="preview-empty">
-      <p>Start typing to see preview</p>
-    </div>
-  {/if}
+  </div>
 </div>
 
 <style>
-  .preview-container {
+  .preview-wrapper {
+    display: flex;
+    flex-direction: column;
     flex: 1;
+    overflow: hidden;
+    background: var(--cr-bg-base);
+  }
+
+  .viewport-bar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--cr-border);
+    background: var(--cr-bg-surface);
+    flex-shrink: 0;
+  }
+
+  .viewport-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 22px;
+    border: none;
+    border-radius: var(--cr-radius-sm);
+    background: transparent;
+    color: var(--cr-text-muted);
+    cursor: pointer;
+  }
+
+  .viewport-btn:hover {
+    color: var(--cr-text);
+    background: var(--cr-hover);
+  }
+
+  .viewport-btn.active {
+    color: var(--cr-accent);
+    background: var(--cr-active);
+  }
+
+  .viewport-label {
+    font-size: 10px;
+    color: var(--cr-text-muted);
+    margin-left: 4px;
+    font-family: var(--cr-font-mono);
+  }
+
+  .preview-frame {
+    flex: 1;
+    overflow: hidden;
+    transition: max-width 0.2s ease;
+  }
+
+  .preview-container {
+    height: 100%;
     overflow-y: auto;
     padding: 24px 32px;
-    background: var(--cr-bg-base);
     color: var(--cr-text);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 15px;

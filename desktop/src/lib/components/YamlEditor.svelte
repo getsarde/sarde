@@ -12,6 +12,7 @@
   let containerEl = $state(null)
   let view = null
   let selfUpdate = false
+  let inboundSync = false
 
   onMount(() => {
     const state = EditorState.create({
@@ -44,6 +45,7 @@
 
   function handleUpdate(update) {
     if (!update.docChanged) return
+    if (inboundSync) return
 
     selfUpdate = true
     const text = update.state.doc.toString()
@@ -67,9 +69,11 @@
 
     const current = view.state.doc.toString()
     if (v !== current) {
+      inboundSync = true
       view.dispatch({
         changes: { from: 0, to: view.state.doc.length, insert: v },
       })
+      inboundSync = false
     }
   })
 </script>

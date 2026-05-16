@@ -1,23 +1,41 @@
 <script>
   import { onMount } from 'svelte'
   import { open as openDialog } from '@tauri-apps/plugin-dialog'
-  import { preview, project, setupPreviewListeners, doc, tabs } from './lib/stores/app.svelte.js'
+  import { preview, project, ui, setupPreviewListeners, setupWatcherListeners, doc, tabs } from './lib/stores/app.svelte.js'
   import { initTheme } from './lib/stores/theme.svelte.js'
   import { projectOpen, projectClose } from './lib/api.js'
+  import { restoreUiState, persistUiState } from './lib/stores/window-state.js'
   import './app.css'
 
   import WelcomeScreen from './lib/components/WelcomeScreen.svelte'
   import CreateProjectWizard from './lib/components/CreateProjectWizard.svelte'
   import EditorLayout from './lib/components/EditorLayout.svelte'
+  import OnboardingTour from './lib/components/OnboardingTour.svelte'
+
+  let showOnboarding = $state(false)
 
   onMount(() => {
     initTheme()
-    setupPreviewListeners()
+    const cleanupPreview = setupPreviewListeners()
+    const cleanupWatcher = setupWatcherListeners()
+    restoreUiState(ui)
+
+    if (!localStorage.getItem('coderoo-onboarding-done')) {
+      showOnboarding = true
+    }
+
     const openProjectHandler = (event) => {
       if (event.detail) openProject(event.detail)
     }
+    const beforeUnloadHandler = () => persistUiState(ui)
     window.addEventListener('coderoo:open-project', openProjectHandler)
-    return () => window.removeEventListener('coderoo:open-project', openProjectHandler)
+    window.addEventListener('beforeunload', beforeUnloadHandler)
+    return () => {
+      window.removeEventListener('coderoo:open-project', openProjectHandler)
+      window.removeEventListener('beforeunload', beforeUnloadHandler)
+      cleanupPreview.then(fn => fn())
+      cleanupWatcher.then(fn => fn())
+    }
   })
 
   let screen = $state('launcher') // 'launcher' | 'create' | 'starting' | 'ready' | 'error'
@@ -125,6 +143,10 @@
 
   {:else if screen === 'ready'}
     <EditorLayout {projectName} onClose={backToLauncher} />
+  {/if}
+
+  {#if showOnboarding}
+    <OnboardingTour onDismiss={() => { showOnboarding = false; localStorage.setItem('coderoo-onboarding-done', '1') }} />
   {/if}
 </div>
 

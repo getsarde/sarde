@@ -10,6 +10,7 @@
   import EnumField from './widgets/EnumField.svelte'
   import ListField from './widgets/ListField.svelte'
   import ColorField from './widgets/ColorField.svelte'
+  import ImageField from './widgets/ImageField.svelte'
 
   let { fields = {}, values = {}, onchange, order = null } = $props()
 
@@ -23,6 +24,7 @@
     enum: EnumField,
     list: ListField,
     color: ColorField,
+    image: ImageField,
   }
 
   let normalized = $derived(normalizeFields(fields, values))

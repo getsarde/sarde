@@ -53,9 +53,9 @@
   function updateField(key, value) {
     if (!parsed.fm) return
     const newFm = { ...parsed.fm, [key]: value }
-    const newYaml = yaml.dump(newFm, { lineWidth: -1, noRefs: true, quotingType: '"', forceQuotes: false })
+    const newYaml = yaml.dump(newFm, { lineWidth: -1, noRefs: true, quotingType: '"', forceQuotes: false }).trimEnd()
     const body = parsed.bodyStart >= 0 ? doc.content.slice(parsed.bodyStart) : ''
-    doc.content = `---\n${newYaml}---${body}`
+    doc.content = `---\n${newYaml}\n---${body}`
     doc.dirty = true
     doc.externalUpdate++
 

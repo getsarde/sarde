@@ -27,6 +27,9 @@ export const createContentFile = (path, content) => invoke('create_content_file'
 export const createContentDir = (path) => invoke('create_content_dir', { path })
 export const deleteContent = (path) => invoke('delete_content', { path })
 export const renameContent = (oldPath, newPath) => invoke('rename_content', { oldPath, newPath })
+export const listTaxonomies = () => invoke('list_taxonomies')
+export const renameTaxonomy = (taxonomy, oldName, newName) => invoke('rename_taxonomy', { taxonomy, oldName, newName })
+export const deleteTaxonomy = (taxonomy, name) => invoke('delete_taxonomy', { taxonomy, name })
 
 // ---------------------------------------------------------------------------
 // Config & schema
@@ -38,6 +41,9 @@ export const getCollections = () => invoke('get_collections')
 export const fetchSchema = (collection) => invoke('get_schema', { collection })
 export const createCollection = (name) => invoke('create_collection', { name })
 export const deleteCollection = (name) => invoke('delete_collection', { name })
+export const readNav = () => invoke('read_nav')
+export const saveNav = (items) => invoke('save_nav', { items })
+export const deleteNav = () => invoke('delete_nav')
 
 // ---------------------------------------------------------------------------
 // Build & preview
@@ -58,6 +64,9 @@ export const onBuildError = (cb) => listen('build:error', (e) => cb(e.payload))
 export const onPreviewReady = (cb) => listen('preview:ready', (e) => cb(e.payload))
 export const onPreviewStopped = (cb) => listen('preview:stopped', (e) => cb(e.payload))
 export const onPreviewCrashed = (cb) => listen('preview:crashed', (e) => cb(e.payload))
+
+// File system watcher events
+export const onFsChanged = (cb) => listen('fs:changed', (e) => cb(e.payload))
 
 // ---------------------------------------------------------------------------
 // Validate, deploy, import

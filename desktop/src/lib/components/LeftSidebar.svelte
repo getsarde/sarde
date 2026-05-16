@@ -3,8 +3,9 @@
   import { ui } from '../stores/app.svelte.js'
   import FileTree from './FileTree.svelte'
   import SearchPanel from './SearchPanel.svelte'
+  import TaxonomyPanel from './TaxonomyPanel.svelte'
   import AppTooltip from './primitives/AppTooltip.svelte'
-  import { Folder, Search, GitBranch, Settings, FilePlus, FolderPlus, FolderOpen } from 'lucide-svelte'
+  import { Folder, Search, GitBranch, Tags, Settings, FilePlus, FolderPlus, FolderOpen } from 'lucide-svelte'
 
   let fileTreeRef = $state(null)
 
@@ -35,6 +36,11 @@
     <AppTooltip content="Source Control">
       <button class="icon-btn" class:active={ui.leftPanel === 'git'} onclick={() => togglePanel('git')}>
         <GitBranch size={20} />
+      </button>
+    </AppTooltip>
+    <AppTooltip content="Tags & Categories">
+      <button class="icon-btn" class:active={ui.leftPanel === 'taxonomy'} onclick={() => togglePanel('taxonomy')}>
+        <Tags size={20} />
       </button>
     </AppTooltip>
 
@@ -85,6 +91,9 @@
         <div class="git-placeholder">
           <p>No changes detected.</p>
         </div>
+
+      {:else if ui.leftPanel === 'taxonomy'}
+        <TaxonomyPanel />
       {/if}
     </div>
   {/if}

@@ -18,6 +18,7 @@
   let view = $state(null)
   let currentFilePath = $state('')
   let saveTimer
+  let flashTimer
   let applyingExternal = false
 
   // Font size — persisted across sessions (Ctrl+= / Ctrl+-)
@@ -86,8 +87,13 @@
     const _tick = doc.externalUpdate
     if (_tick > 0 && view && doc.filePath === currentFilePath) {
       applyingExternal = true
+      const oldSel = view.state.selection.main
+      const newLen = doc.content.length
+      const anchor = Math.min(oldSel.anchor, newLen)
+      const head = Math.min(oldSel.head, newLen)
       view.dispatch({
         changes: { from: 0, to: view.state.doc.length, insert: doc.content },
+        selection: { anchor, head },
       })
       applyingExternal = false
       scheduleAutoSave()
@@ -108,7 +114,8 @@
         ],
       })
       doc.targetLine = 0
-      setTimeout(() => {
+      clearTimeout(flashTimer)
+      flashTimer = setTimeout(() => {
         view?.dispatch({ effects: flashClearEffect.of(null) })
       }, 1200)
     }
@@ -132,6 +139,7 @@
   // Auto-save: write to disk 5s after last edit
   async function saveFile() {
     if (!doc.contentPath || !doc.dirty) return
+    doc.pendingSave++
     try {
       const { frontmatter, body } = splitMarkdown(doc.content)
       await saveContent(doc.contentPath, frontmatter, body)
@@ -144,6 +152,8 @@
     } catch (e) {
       console.error('Failed to save file:', e)
       addToast('error', `Save failed: ${e}`)
+    } finally {
+      setTimeout(() => { if (doc.pendingSave > 0) doc.pendingSave-- }, 1500)
     }
   }
 
@@ -285,6 +295,7 @@
 
     return () => {
       clearTimeout(saveTimer)
+      clearTimeout(flashTimer)
       window.removeEventListener('coderoo:save', saveFile)
       view?.destroy()
     }

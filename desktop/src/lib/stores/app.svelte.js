@@ -35,47 +35,50 @@ export function toggleBuildLog() {
   buildLog.visible = !buildLog.visible
 }
 
-/** Register Tauri event listeners that keep preview + build state in sync. Call once on mount. */
-export function setupPreviewListeners() {
-  onPreviewReady((port) => {
-    preview.port = port
-    preview.running = true
-    pushLog(`Preview server ready on port ${port}`, 'success')
-    addToast('success', `Preview running at localhost:${port}`)
-  })
-  onPreviewStopped(() => {
-    preview.port = 0
-    preview.running = false
-    pushLog('Preview server stopped', 'info')
-  })
-  onPreviewCrashed((code) => {
-    preview.port = 0
-    preview.running = false
-    pushLog(`Preview server crashed (exit code: ${code})`, 'error')
-    addToast('error', 'Preview server crashed')
-  })
-  onBuildLog((msg) => {
-    pushLog(msg, 'info')
-  })
-  onBuildStarted(() => {
-    buildLog.building = true
-    buildLog.visible = true
-    pushLog('Build started', 'info')
-  })
-  onBuildComplete((result) => {
-    buildLog.building = false
-    if (result?.warnings) warnings.items = result.warnings
-    const text = result?.duration
-      ? `Build complete in ${result.duration}`
-      : 'Build complete'
-    pushLog(text, 'success')
-  })
-  onBuildError((err) => {
-    buildLog.building = false
-    const msg = typeof err === 'string' ? err : err?.message ?? 'Unknown error'
-    pushLog(`Build error: ${msg}`, 'error')
-    addToast('error', `Build failed: ${msg}`)
-  })
+/** Register Tauri event listeners that keep preview + build state in sync. Returns a cleanup function. */
+export async function setupPreviewListeners() {
+  const unlisteners = await Promise.all([
+    onPreviewReady((port) => {
+      preview.port = port
+      preview.running = true
+      pushLog(`Preview server ready on port ${port}`, 'success')
+      addToast('success', `Preview running at localhost:${port}`)
+    }),
+    onPreviewStopped(() => {
+      preview.port = 0
+      preview.running = false
+      pushLog('Preview server stopped', 'info')
+    }),
+    onPreviewCrashed((code) => {
+      preview.port = 0
+      preview.running = false
+      pushLog(`Preview server crashed (exit code: ${code})`, 'error')
+      addToast('error', 'Preview server crashed')
+    }),
+    onBuildLog((msg) => {
+      pushLog(msg, 'info')
+    }),
+    onBuildStarted(() => {
+      buildLog.building = true
+      buildLog.visible = true
+      pushLog('Build started', 'info')
+    }),
+    onBuildComplete((result) => {
+      buildLog.building = false
+      if (result?.warnings) warnings.items = result.warnings
+      const text = result?.duration
+        ? `Build complete in ${result.duration}`
+        : 'Build complete'
+      pushLog(text, 'success')
+    }),
+    onBuildError((err) => {
+      buildLog.building = false
+      const msg = typeof err === 'string' ? err : err?.message ?? 'Unknown error'
+      pushLog(`Build error: ${msg}`, 'error')
+      addToast('error', `Build failed: ${msg}`)
+    }),
+  ])
+  return () => unlisteners.forEach(fn => fn())
 }
 
 // ---------------------------------------------------------------------------
@@ -90,7 +93,7 @@ export const tabs = $state({
 // UI panel visibility and overlay state
 // ---------------------------------------------------------------------------
 export const ui = $state({
-  leftPanel: 'files',       // 'files' | 'search' | 'git' | null
+  leftPanel: 'files',       // 'files' | 'search' | 'git' | 'taxonomy' | null
   rightPanel: 'toc',        // 'toc' | 'properties' | 'assets' | 'stats' | null
   propertiesMode: 'form',   // 'form' | 'yaml'
   previewMode: 'editor',    // 'editor' | 'split' | 'preview'
@@ -99,6 +102,8 @@ export const ui = $state({
   commandPaletteOpen: false,
   deployOpen: false,
   importOpen: false,
+  createContentType: null,   // 'blog' | 'docs' | 'page' | null — when set, opens CreateContentDialog
+  shortcutsOpen: false,
 })
 
 // ---------------------------------------------------------------------------
@@ -125,6 +130,7 @@ export const doc = $state({
   targetLine: 0,  // set by search panel; CodeEditor scrolls to this line then resets to 0
   externalUpdate: 0, // bumped by PropertiesPanel to signal CodeEditor to reload content
   insertText: '',    // set by MediaPanel; CodeEditor inserts at cursor then clears
+  pendingSave: 0,    // tracks saves-in-flight to suppress watcher echo
 })
 
 // ---------------------------------------------------------------------------
@@ -153,7 +159,7 @@ export const fileTree = $state({
 // ---------------------------------------------------------------------------
 // Site configuration — loaded/saved via sarde IPC API
 // ---------------------------------------------------------------------------
-import { getConfig as apiGetConfig, updateConfig as apiUpdateConfig, onPreviewReady, onPreviewStopped, onPreviewCrashed, onBuildLog, onBuildStarted, onBuildComplete, onBuildError } from '../api.js'
+import { getConfig as apiGetConfig, updateConfig as apiUpdateConfig, readContent as apiReadContent, onPreviewReady, onPreviewStopped, onPreviewCrashed, onBuildLog, onBuildStarted, onBuildComplete, onBuildError, onFsChanged } from '../api.js'
 
 export const siteConfig = $state({
   loaded: false,
@@ -310,6 +316,74 @@ export function switchToTab(newId) {
   doc.readingTime = Math.max(1, Math.ceil(words / 250))
 }
 
+// ---------------------------------------------------------------------------
+// Pending close state — for dirty-tab save prompts
+// ---------------------------------------------------------------------------
+export const pendingClose = $state({
+  tabId: null,
+  tabName: '',
+  resolve: null,
+})
+
+/**
+ * Request closing a tab, prompting to save if dirty.
+ * Returns a promise that resolves to 'saved' | 'discarded' | 'cancelled'.
+ */
+export function requestCloseTab(id) {
+  const tab = tabs.items.find(t => t.id === id)
+  if (!tab) return Promise.resolve('discarded')
+
+  if (tab.dirty) {
+    return new Promise((resolve) => {
+      pendingClose.tabId = id
+      pendingClose.tabName = tab.name
+      pendingClose.resolve = resolve
+    })
+  }
+
+  closeTabById(id)
+  return Promise.resolve('discarded')
+}
+
+export function resolvePendingClose(action) {
+  const { resolve } = pendingClose
+  pendingClose.tabId = null
+  pendingClose.tabName = ''
+  pendingClose.resolve = null
+  if (resolve) resolve(action)
+}
+
+// ---------------------------------------------------------------------------
+// Open file at a specific line (used by build error navigation)
+// ---------------------------------------------------------------------------
+export async function openFileAtLine(contentPath, line) {
+  const existing = tabs.items.find(t => t.contentPath === contentPath)
+  if (existing) {
+    switchToTab(existing.id)
+    doc.targetLine = line || 0
+    return
+  }
+
+  try {
+    const file = await apiReadContent(contentPath)
+    const id = contentPath
+    tabs.items.push({
+      id,
+      name: file.title || contentPath.split('/').pop(),
+      path: (file.absPath || file.path).replace(/\\/g, '/'),
+      contentPath,
+      dirty: false,
+      cachedContent: file.raw || '',
+      savedCursorLine: 1,
+      savedCursorCol: 1,
+    })
+    switchToTab(id)
+    doc.targetLine = line || 0
+  } catch (e) {
+    addToast('error', `Failed to open file: ${e}`)
+  }
+}
+
 /** Close a tab by id, switching to an adjacent tab if it was active. */
 export function closeTabById(id) {
   const idx = tabs.items.findIndex(t => t.id === id)
@@ -342,4 +416,38 @@ export function closeTabById(id) {
       doc.readingTime = 0
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// File watcher event listeners — call once on mount alongside setupPreviewListeners
+// ---------------------------------------------------------------------------
+/** Register file watcher event listeners. Returns a cleanup function. */
+export async function setupWatcherListeners() {
+  const unlisten = await onFsChanged((event) => {
+    const changedPath = event.path.replace(/\\/g, '/')
+
+    // Refresh file tree on any content/config change.
+    fileTree.loading = false
+    fileTree.root = null // triggers re-load in FileTree's $effect
+
+    // If a config file changed, reload site config.
+    if (changedPath.endsWith('site.yaml') || changedPath.endsWith('site.yml')) {
+      loadSiteConfig()
+      return
+    }
+
+    // If the changed file is open in a tab, signal the editor to reload.
+    const openTab = tabs.items.find(t => {
+      const tabPath = (t.path || '').replace(/\\/g, '/')
+      return tabPath === changedPath
+    })
+    if (openTab && openTab.id !== tabs.activeId) {
+      // Background tab — update cached content on next switch.
+      // We can't easily reload it here without reading the file.
+    }
+    if (openTab && openTab.id === tabs.activeId && !doc.dirty && doc.pendingSave === 0) {
+      doc.externalUpdate = doc.externalUpdate + 1
+    }
+  })
+  return unlisten
 }

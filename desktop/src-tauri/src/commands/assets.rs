@@ -1,9 +1,7 @@
 use crate::state::AppState;
 use crate::yaml;
 use base64::Engine;
-use std::collections::hash_map::DefaultHasher;
 use std::fs;
-use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 
 const ASSET_EXTENSIONS: &[&str] = &[
@@ -128,10 +126,13 @@ pub fn asset_get_thumbnail(
         .unwrap_or_default();
 
     let cache_key = {
-        let mut hasher = DefaultHasher::new();
-        canonical.to_string_lossy().hash(&mut hasher);
-        mtime.hash(&mut hasher);
-        format!("{:016x}.jpg", hasher.finish())
+        let input = format!("{}|{}", canonical.to_string_lossy(), mtime);
+        let mut hash: u64 = 0xcbf29ce484222325; // FNV-1a offset basis
+        for byte in input.as_bytes() {
+            hash ^= *byte as u64;
+            hash = hash.wrapping_mul(0x100000001b3); // FNV-1a prime
+        }
+        format!("{:016x}.jpg", hash)
     };
     let cache_path = cache_dir.join(&cache_key);
 

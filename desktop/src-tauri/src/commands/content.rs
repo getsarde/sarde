@@ -147,8 +147,10 @@ pub fn save_content(
     let tmp_path = abs_path.with_extension("md.tmp");
     fs::write(&tmp_path, &content)
         .map_err(|e| format!("Writing temp file: {}", e))?;
-    fs::rename(&tmp_path, &abs_path)
-        .map_err(|e| format!("Renaming temp file: {}", e))?;
+    if let Err(e) = fs::rename(&tmp_path, &abs_path) {
+        let _ = fs::remove_file(&tmp_path);
+        return Err(format!("Renaming temp file: {}", e));
+    }
 
     Ok(())
 }
@@ -175,7 +177,7 @@ pub fn create_content(
 
     yaml::validate_content_path(&rel_path)?;
 
-    let abs_path = content_dir.join(rel_path.replace('/', std::path::MAIN_SEPARATOR_STR));
+    let abs_path = yaml::safe_join(&content_dir, &rel_path, false)?;
     if abs_path.exists() {
         return Err(format!("File already exists: {}", rel_path));
     }
@@ -276,7 +278,7 @@ pub fn rename_content(
     yaml::validate_content_path(&new_path)?;
 
     let abs_old = yaml::safe_join(&content_dir, &old_path, true)?;
-    let abs_new = content_dir.join(new_path.replace('/', std::path::MAIN_SEPARATOR_STR));
+    let abs_new = yaml::safe_join(&content_dir, &new_path, false)?;
 
     // Ensure target parent directory exists.
     if let Some(parent) = abs_new.parent() {
@@ -288,6 +290,199 @@ pub fn rename_content(
         .map_err(|e| format!("Renaming file: {}", e))?;
 
     Ok(())
+}
+
+/// List all taxonomy terms (tags, categories, etc.) with their usage counts.
+#[tauri::command]
+pub fn list_taxonomies(
+    state: tauri::State<AppState>,
+) -> Result<serde_json::Value, String> {
+    let content_dir = state.content_dir().ok_or("No project open")?;
+
+    let mut tags: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
+    let mut categories: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
+
+    let walker = walkdir::WalkDir::new(&content_dir)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            e.file_type().is_file()
+                && e.path()
+                    .extension()
+                    .map_or(false, |ext| ext == "md" || ext == "markdown")
+        });
+
+    for entry in walker {
+        let abs_path = entry.path();
+        let rel_path = abs_path
+            .strip_prefix(&content_dir)
+            .unwrap_or(abs_path)
+            .to_string_lossy()
+            .replace('\\', "/");
+
+        let raw = match fs::read_to_string(abs_path) {
+            Ok(r) => r,
+            Err(_) => continue,
+        };
+        let (fm, _) = yaml::parse_frontmatter(&raw);
+
+        if let Some(tag_list) = fm.get("tags").and_then(|v| v.as_sequence()) {
+            for tag in tag_list {
+                if let Some(t) = tag.as_str() {
+                    tags.entry(t.to_string()).or_default().push(rel_path.clone());
+                }
+            }
+        }
+
+        if let Some(cat_list) = fm.get("categories").and_then(|v| v.as_sequence()) {
+            for cat in cat_list {
+                if let Some(c) = cat.as_str() {
+                    categories.entry(c.to_string()).or_default().push(rel_path.clone());
+                }
+            }
+        }
+    }
+
+    let to_sorted_vec = |map: std::collections::HashMap<String, Vec<String>>| -> Vec<serde_json::Value> {
+        let mut items: Vec<_> = map.into_iter()
+            .map(|(name, files)| serde_json::json!({ "name": name, "count": files.len(), "files": files }))
+            .collect();
+        items.sort_by(|a, b| {
+            b["count"].as_u64().unwrap_or(0).cmp(&a["count"].as_u64().unwrap_or(0))
+        });
+        items
+    };
+
+    Ok(serde_json::json!({
+        "tags": to_sorted_vec(tags),
+        "categories": to_sorted_vec(categories),
+    }))
+}
+
+/// Rename a taxonomy term across all content files.
+#[tauri::command]
+pub fn rename_taxonomy(
+    taxonomy: String,
+    old_name: String,
+    new_name: String,
+    state: tauri::State<AppState>,
+) -> Result<u32, String> {
+    let content_dir = state.content_dir().ok_or("No project open")?;
+    let new_name = new_name.trim().to_string();
+    if new_name.is_empty() {
+        return Err("New name cannot be empty".into());
+    }
+
+    let key = match taxonomy.as_str() {
+        "tags" => "tags",
+        "categories" => "categories",
+        _ => return Err(format!("Unknown taxonomy: {}", taxonomy)),
+    };
+
+    let mut count = 0u32;
+
+    let walker = walkdir::WalkDir::new(&content_dir)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            e.file_type().is_file()
+                && e.path()
+                    .extension()
+                    .map_or(false, |ext| ext == "md" || ext == "markdown")
+        });
+
+    for entry in walker {
+        let abs_path = entry.path();
+        let raw = match fs::read_to_string(abs_path) {
+            Ok(r) => r,
+            Err(_) => continue,
+        };
+        let (mut fm, body) = yaml::parse_frontmatter(&raw);
+
+        let mut changed = false;
+        if let Some(seq) = fm.get_mut(key).and_then(|v| v.as_sequence_mut()) {
+            for item in seq.iter_mut() {
+                if item.as_str() == Some(&old_name) {
+                    *item = serde_yaml::Value::String(new_name.clone());
+                    changed = true;
+                }
+            }
+        }
+
+        if changed {
+            let content = yaml::serialize_frontmatter(&fm, &body);
+            let tmp_path = abs_path.with_extension("md.tmp");
+            if fs::write(&tmp_path, &content).is_ok() {
+                if let Err(_) = fs::rename(&tmp_path, abs_path) {
+                    let _ = fs::remove_file(&tmp_path);
+                } else {
+                    count += 1;
+                }
+            }
+        }
+    }
+
+    Ok(count)
+}
+
+/// Delete a taxonomy term from all content files.
+#[tauri::command]
+pub fn delete_taxonomy(
+    taxonomy: String,
+    name: String,
+    state: tauri::State<AppState>,
+) -> Result<u32, String> {
+    let content_dir = state.content_dir().ok_or("No project open")?;
+
+    let key = match taxonomy.as_str() {
+        "tags" => "tags",
+        "categories" => "categories",
+        _ => return Err(format!("Unknown taxonomy: {}", taxonomy)),
+    };
+
+    let mut count = 0u32;
+
+    let walker = walkdir::WalkDir::new(&content_dir)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            e.file_type().is_file()
+                && e.path()
+                    .extension()
+                    .map_or(false, |ext| ext == "md" || ext == "markdown")
+        });
+
+    for entry in walker {
+        let abs_path = entry.path();
+        let raw = match fs::read_to_string(abs_path) {
+            Ok(r) => r,
+            Err(_) => continue,
+        };
+        let (mut fm, body) = yaml::parse_frontmatter(&raw);
+
+        let mut changed = false;
+        if let Some(seq) = fm.get_mut(key).and_then(|v| v.as_sequence_mut()) {
+            let before_len = seq.len();
+            seq.retain(|item| item.as_str() != Some(&name));
+            if seq.len() < before_len {
+                changed = true;
+            }
+        }
+
+        if changed {
+            let content = yaml::serialize_frontmatter(&fm, &body);
+            let tmp_path = abs_path.with_extension("md.tmp");
+            if fs::write(&tmp_path, &content).is_ok() {
+                if let Err(_) = fs::rename(&tmp_path, abs_path) {
+                    let _ = fs::remove_file(&tmp_path);
+                } else {
+                    count += 1;
+                }
+            }
+        }
+    }
+
+    Ok(count)
 }
 
 // ---------------------------------------------------------------------------

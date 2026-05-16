@@ -1,6 +1,9 @@
 <script>
-  import { tabs, doc, switchToTab, closeTabById } from '../stores/app.svelte.js'
+  import { tabs, doc, switchToTab, closeTabById, requestCloseTab, pendingClose, resolvePendingClose } from '../stores/app.svelte.js'
+  import { saveContent } from '../api.js'
+  import yaml from 'js-yaml'
   import { ContextMenu } from 'bits-ui'
+  import ConfirmSaveDialog from './ConfirmSaveDialog.svelte'
 
   function ctxCloseOthers(id) {
     const keep = tabs.items.find(t => t.id === id)
@@ -31,6 +34,43 @@
     if (tab) await navigator.clipboard.writeText(tab.path).catch(() => {})
   }
 
+  async function handleSave() {
+    const tab = tabs.items.find(t => t.id === pendingClose.tabId)
+    if (tab) {
+      try {
+        const content = tab.id === tabs.activeId ? doc.content : (tab.cachedContent ?? '')
+        const fmMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/)
+        let frontmatter = {}
+        let body = content
+        if (fmMatch) {
+          const parsed = yaml.load(fmMatch[1])
+          frontmatter = (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {}
+          body = content.slice(fmMatch[0].length)
+        }
+        await saveContent(tab.contentPath || tab.path, frontmatter, body)
+        tab.dirty = false
+        if (tab.id === tabs.activeId) doc.dirty = false
+      } catch (e) {
+        // Save failed — don't close.
+        resolvePendingClose('cancelled')
+        return
+      }
+    }
+    const id = pendingClose.tabId
+    resolvePendingClose('saved')
+    closeTabById(id)
+  }
+
+  function handleDiscard() {
+    const id = pendingClose.tabId
+    resolvePendingClose('discarded')
+    closeTabById(id)
+  }
+
+  function handleCancel() {
+    resolvePendingClose('cancelled')
+  }
+
   function onGlobalKeydown(e) {
     const ctrl = e.ctrlKey || e.metaKey
     if (ctrl && e.key === 'Tab') {
@@ -41,7 +81,7 @@
       }
     } else if (ctrl && e.key === 'w') {
       e.preventDefault()
-      if (tabs.activeId) closeTabById(tabs.activeId)
+      if (tabs.activeId) requestCloseTab(tabs.activeId)
     }
   }
 </script>
@@ -66,14 +106,14 @@
             <span class="tab-name">{tab.name}</span>
             <button
               class="tab-close"
-              onclick={(e) => { e.stopPropagation(); closeTabById(tab.id) }}
+              onclick={(e) => { e.stopPropagation(); requestCloseTab(tab.id) }}
               aria-label="Close tab"
             >&times;</button>
           </div>
         </ContextMenu.Trigger>
         <ContextMenu.Portal>
           <ContextMenu.Content class="ctx-menu">
-            <ContextMenu.Item class="ctx-item" onSelect={() => closeTabById(tab.id)}>Close</ContextMenu.Item>
+            <ContextMenu.Item class="ctx-item" onSelect={() => requestCloseTab(tab.id)}>Close</ContextMenu.Item>
             <ContextMenu.Item class="ctx-item" onSelect={() => ctxCloseOthers(tab.id)}>Close Others</ContextMenu.Item>
             <ContextMenu.Item class="ctx-item" onSelect={ctxCloseAll}>Close All</ContextMenu.Item>
             <ContextMenu.Separator class="ctx-sep" />
@@ -84,6 +124,14 @@
     {/each}
   </div>
 </div>
+
+<ConfirmSaveDialog
+  open={!!pendingClose.tabId}
+  fileName={pendingClose.tabName}
+  onSave={handleSave}
+  onDiscard={handleDiscard}
+  onCancel={handleCancel}
+/>
 
 <style>
   .tab-bar {

@@ -2,6 +2,8 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri_plugin_shell::process::CommandChild;
 
+use crate::watcher;
+
 /// Application state shared across all Tauri IPC commands.
 pub struct AppState {
     /// Root directory of the currently open project.
@@ -16,6 +18,8 @@ pub struct AppState {
     pub preview_port: Mutex<u16>,
     /// Resolved path to the coderoo sidecar binary.
     pub sidecar_path: Mutex<Option<PathBuf>>,
+    /// File system watcher for content and config changes.
+    pub watcher: Mutex<Option<watcher::Debouncer>>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -34,6 +38,7 @@ impl AppState {
             preview_child: Mutex::new(None),
             preview_port: Mutex::new(0),
             sidecar_path: Mutex::new(None),
+            watcher: Mutex::new(None),
         }
     }
 

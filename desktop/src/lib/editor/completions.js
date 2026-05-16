@@ -140,7 +140,7 @@ function isInFrontmatter(state, pos) {
   if (!text.startsWith('---\n')) return false
   const fmEnd = text.search(/\n---(\n|$)/)
   if (fmEnd === -1) return true       // no closing delimiter yet — still inside
-  return pos <= fmEnd                  // stop before the \n that starts ---
+  return pos < fmEnd                   // stop before the \n that starts ---
 }
 
 // ---------------------------------------------------------------------------

@@ -129,15 +129,6 @@ pub async fn run_build(app: tauri::AppHandle) -> Result<BuildResult, String> {
 pub async fn start_preview(app: tauri::AppHandle) -> Result<u16, String> {
     let state = app.state::<AppState>();
 
-    // Check if preview already running.
-    {
-        let child = state.preview_child.lock().unwrap();
-        if child.is_some() {
-            let port = *state.preview_port.lock().unwrap();
-            return Ok(port);
-        }
-    }
-
     let project_dir = {
         let pd = state.project_dir.lock().unwrap();
         pd.as_ref()
@@ -151,12 +142,20 @@ pub async fn start_preview(app: tauri::AppHandle) -> Result<u16, String> {
         .sidecar("coderoo")
         .map_err(|e| format!("Failed to create sidecar: {}", e))?;
 
+    // Hold lock across check-and-spawn to prevent double-spawn race.
+    let mut child_guard = state.preview_child.lock().unwrap();
+    if child_guard.is_some() {
+        let port = *state.preview_port.lock().unwrap();
+        return Ok(port);
+    }
+
     let (mut rx, child) = cmd
         .args(["serve", &project_dir, "--port", "0"])
         .spawn()
         .map_err(|e| format!("Failed to spawn preview: {}", e))?;
 
-    *state.preview_child.lock().unwrap() = Some(child);
+    *child_guard = Some(child);
+    drop(child_guard);
 
     let app_handle = app.clone();
 

@@ -1,4 +1,5 @@
 use crate::state::{AppState, RecentProject};
+use crate::watcher;
 use std::fs;
 use std::path::PathBuf;
 
@@ -22,7 +23,7 @@ pub struct CollectionSummary {
 
 /// Open a project: read site.yaml, validate configured content dir, cache config.
 #[tauri::command]
-pub fn open_project(dir: String, state: tauri::State<AppState>) -> Result<ProjectInfo, String> {
+pub fn open_project(dir: String, app_handle: tauri::AppHandle, state: tauri::State<AppState>) -> Result<ProjectInfo, String> {
     let abs_dir = fs::canonicalize(&dir).map_err(|e| format!("Invalid path: {}", e))?;
 
     // Read and parse site.yaml before validating content/, since content.dir may override it.
@@ -45,6 +46,18 @@ pub fn open_project(dir: String, state: tauri::State<AppState>) -> Result<Projec
     // Cache config.
     *state.config.lock().unwrap() = Some(config);
     *state.project_dir.lock().unwrap() = Some(abs_dir.clone());
+
+    // Start file system watcher for content and config changes.
+    watcher::stop_watcher(&state.watcher);
+    let config_path = abs_dir.join("site.yaml");
+    match watcher::start_watcher(app_handle, content_dir.clone(), config_path) {
+        Ok(w) => {
+            *state.watcher.lock().unwrap() = Some(w);
+        }
+        Err(e) => {
+            eprintln!("Warning: could not start file watcher: {}", e);
+        }
+    }
 
     // Add to recent projects.
     {
@@ -85,6 +98,7 @@ pub fn create_project(
     template: Option<String>,
     description: Option<String>,
     author: Option<String>,
+    app_handle: tauri::AppHandle,
     state: tauri::State<AppState>,
 ) -> Result<ProjectInfo, String> {
     let abs_dir = PathBuf::from(&dir);
@@ -218,7 +232,7 @@ pub fn create_project(
         .map_err(|e| format!("Writing .gitignore: {}", e))?;
 
     // Open the newly created project.
-    open_project(abs_dir.to_string_lossy().to_string(), state)
+    open_project(abs_dir.to_string_lossy().to_string(), app_handle, state)
 }
 
 /// Close the current project: stop preview if running, clear state.
@@ -233,6 +247,9 @@ pub fn close_project(state: tauri::State<AppState>) -> Result<(), String> {
         *state.preview_port.lock().unwrap() = 0;
     }
 
+    // Stop file watcher.
+    watcher::stop_watcher(&state.watcher);
+
     *state.project_dir.lock().unwrap() = None;
     *state.config.lock().unwrap() = None;
     Ok(())
@@ -241,25 +258,28 @@ pub fn close_project(state: tauri::State<AppState>) -> Result<(), String> {
 /// Get info about the currently open project.
 #[tauri::command]
 pub fn get_project_info(state: tauri::State<AppState>) -> Result<ProjectInfo, String> {
-    let project_dir = state.project_dir.lock().unwrap();
-    let project_dir = project_dir
-        .as_ref()
-        .ok_or("No project open")?;
+    let dir_string;
+    let title;
+    {
+        let project_dir = state.project_dir.lock().unwrap();
+        let project_dir = project_dir.as_ref().ok_or("No project open")?;
+        dir_string = project_dir.to_string_lossy().to_string();
 
-    let config = state.config.lock().unwrap();
-    let title = config
-        .as_ref()
-        .and_then(|c| c.get("site"))
-        .and_then(|s| s.get("title"))
-        .and_then(|t| t.as_str())
-        .unwrap_or("Untitled")
-        .to_string();
+        let config = state.config.lock().unwrap();
+        title = config
+            .as_ref()
+            .and_then(|c| c.get("site"))
+            .and_then(|s| s.get("title"))
+            .and_then(|t| t.as_str())
+            .unwrap_or("Untitled")
+            .to_string();
+    }
 
     let content_dir = state.content_dir().ok_or("No project open")?;
     let collections = scan_collections(&content_dir);
 
     Ok(ProjectInfo {
-        dir: project_dir.to_string_lossy().to_string(),
+        dir: dir_string,
         content_dir: content_dir.to_string_lossy().to_string(),
         state: "open".into(),
         title,

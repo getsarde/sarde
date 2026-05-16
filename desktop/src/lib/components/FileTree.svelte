@@ -3,7 +3,7 @@
   import { doc, tabs, project, switchToTab, closeTabById, addToast } from '../stores/app.svelte.js'
   import { readContent, createContentFile, createContentDir, deleteContent, renameContent } from '../api.js'
   import { ContextMenu } from 'bits-ui'
-  import { ChevronRight, Folder, FolderOpen, FileText, File, FilePlus, FolderPlus, Pencil, Trash2, Copy } from 'lucide-svelte'
+  import { ChevronRight, Folder, FolderOpen, FileText, File, FilePlus, FolderPlus, Pencil, Trash2, Copy, CheckSquare } from 'lucide-svelte'
 
   let entries = $state([])
   let expandedDirs = $state(new Set())
@@ -19,10 +19,18 @@
   // Drag-and-drop
   let dragItem = $state(null)
   let dragOverPath = $state(null)
+  let dragOverDir = $state(null)
+
+  // Multi-select
+  let selectedPaths = $state(new Set())
+  let multiSelectMode = $state(false)
+  let lastClickedPath = $state(null)
 
   let { basePath = '' } = $props()
 
   function rootPath() { return basePath || project.contentPath }
+
+  let loadVersion = 0
 
   $effect(() => {
     const path = rootPath()
@@ -32,11 +40,13 @@
   // --- Tree loading ---
 
   async function loadTree(dir) {
+    const version = ++loadVersion
     try {
-      entries = buildTree(await readDir(dir), dir)
+      const result = buildTree(await readDir(dir), dir)
+      if (version === loadVersion) entries = result
     } catch (e) {
       console.error('Failed to read directory:', e)
-      entries = []
+      if (version === loadVersion) entries = []
     }
   }
 
@@ -92,23 +102,15 @@
       const content = file.raw ?? await readTextFile(item.path)
       const absPath = (file.absPath ?? item.path).replace(/\\/g, '/')
       const id = crypto.randomUUID()
-      tabs.items = [...tabs.items, {
+      tabs.items.push({
         id,
         name: item.name,
         path: absPath,
         contentPath: file.path ?? contentPath,
         dirty: false,
         cachedContent: content,
-      }]
-      tabs.activeId = id
-      doc.content = content
-      doc.filePath = absPath
-      doc.contentPath = file.path ?? contentPath
-      doc.dirty = false
-      doc.cursorLine = 1
-      doc.cursorCol = 1
-      doc.wordCount = content.split(/\s+/).filter(w => w).length
-      doc.readingTime = Math.max(1, Math.ceil(doc.wordCount / 250))
+      })
+      switchToTab(id)
     } catch (e) {
       addToast('error', 'Could not open file')
     }
@@ -237,39 +239,163 @@
     addToast('info', 'Path copied to clipboard')
   }
 
-  // --- Drag-and-drop (reorder within same directory) ---
+  // --- Multi-select ---
+
+  function toggleSelect(item, e) {
+    if (e.ctrlKey || e.metaKey) {
+      const next = new Set(selectedPaths)
+      if (next.has(item.path)) next.delete(item.path)
+      else next.add(item.path)
+      selectedPaths = next
+      lastClickedPath = item.path
+      return true
+    }
+    if (e.shiftKey && lastClickedPath) {
+      const flat = flattenTree(entries)
+      const startIdx = flat.findIndex(f => f.path === lastClickedPath)
+      const endIdx = flat.findIndex(f => f.path === item.path)
+      if (startIdx !== -1 && endIdx !== -1) {
+        const [lo, hi] = startIdx < endIdx ? [startIdx, endIdx] : [endIdx, startIdx]
+        const next = new Set(selectedPaths)
+        for (let i = lo; i <= hi; i++) {
+          if (!flat[i].isDir) next.add(flat[i].path)
+        }
+        selectedPaths = next
+        return true
+      }
+    }
+    return false
+  }
+
+  function flattenTree(items) {
+    const result = []
+    for (const item of items) {
+      result.push(item)
+      if (item.isDir && expandedDirs.has(item.path) && item.children) {
+        result.push(...flattenTree(item.children))
+      }
+    }
+    return result
+  }
+
+  function clearSelection() {
+    selectedPaths = new Set()
+    multiSelectMode = false
+  }
+
+  async function bulkDelete() {
+    const paths = [...selectedPaths]
+    if (paths.length === 0) return
+    let deleted = 0
+    for (const path of paths) {
+      const contentPath = relContentPath(path)
+      try {
+        await deleteContent(contentPath)
+        const tab = tabs.items.find(t => t.path === path || t.contentPath === contentPath)
+        if (tab) closeTabById(tab.id)
+        deleted++
+      } catch {}
+    }
+    addToast('info', `Deleted ${deleted} file${deleted !== 1 ? 's' : ''}`)
+    clearSelection()
+    await refreshTree()
+  }
+
+  async function bulkMoveTo(targetDirPath) {
+    const paths = [...selectedPaths]
+    if (paths.length === 0) return
+    let moved = 0
+    for (const path of paths) {
+      const name = path.substring(path.lastIndexOf('/') + 1)
+      const oldRel = relContentPath(path)
+      const newRel = relContentPath(targetDirPath + '/' + name)
+      try {
+        await renameContent(oldRel, newRel)
+        const tab = tabs.items.find(t => t.path === path || t.contentPath === oldRel)
+        if (tab) {
+          tab.path = targetDirPath + '/' + name
+          tab.contentPath = newRel
+        }
+        moved++
+      } catch {}
+    }
+    addToast('info', `Moved ${moved} file${moved !== 1 ? 's' : ''}`)
+    clearSelection()
+    await refreshTree()
+  }
+
+  // --- Drag-and-drop (within dir + cross-directory) ---
 
   function onDragStart(e, item) {
-    if (item.isDir) return
     dragItem = item
     e.dataTransfer.effectAllowed = 'move'
   }
 
-  function onDragOver(e, item, siblings) {
-    if (!dragItem || dragItem.path === item.path || item.isDir) return
-    const same = sameDir(dragItem.path, item.path)
-    if (!same) return
+  function onDragOverFile(e, item, siblings) {
+    if (!dragItem || dragItem.path === item.path) return
     e.preventDefault()
-    dragOverPath = item.path
+    if (sameDir(dragItem.path, item.path) && !item.isDir) {
+      dragOverPath = item.path
+      dragOverDir = null
+    }
+  }
+
+  function onDragOverDir(e, item) {
+    if (!dragItem || dragItem.path === item.path) return
+    if (dragItem.isDir) return
+    e.preventDefault()
+    dragOverDir = item.path
+    dragOverPath = null
   }
 
   function onDragLeave() {
     dragOverPath = null
+    dragOverDir = null
   }
 
   async function onDrop(e, item, siblings) {
     e.preventDefault()
     dragOverPath = null
+    dragOverDir = null
     if (!dragItem || dragItem.path === item.path) { dragItem = null; return }
-    if (!sameDir(dragItem.path, item.path)) { dragItem = null; return }
 
-    const dir = item.path.substring(0, item.path.lastIndexOf('/'))
-    const files = siblings.filter(s => !s.isDir)
-    const without = files.filter(f => f.path !== dragItem.path)
-    const idx = without.findIndex(f => f.path === item.path)
-    without.splice(idx === -1 ? without.length : idx, 0, dragItem)
+    if (sameDir(dragItem.path, item.path) && !item.isDir) {
+      const dir = item.path.substring(0, item.path.lastIndexOf('/'))
+      const files = siblings.filter(s => !s.isDir)
+      const without = files.filter(f => f.path !== dragItem.path)
+      const idx = without.findIndex(f => f.path === item.path)
+      without.splice(idx === -1 ? without.length : idx, 0, dragItem)
+      await renumberFiles(without, dir)
+    }
 
-    await renumberFiles(without, dir)
+    dragItem = null
+    await refreshTree()
+  }
+
+  async function onDropOnDir(e, dirItem) {
+    e.preventDefault()
+    dragOverPath = null
+    dragOverDir = null
+    if (!dragItem || dragItem.isDir) { dragItem = null; return }
+    if (sameDir(dragItem.path, dirItem.path + '/x')) { dragItem = null; return }
+
+    const oldRel = relContentPath(dragItem.path)
+    const newRel = relContentPath(dirItem.path + '/' + dragItem.name)
+    try {
+      await renameContent(oldRel, newRel)
+      const tab = tabs.items.find(t => t.path === dragItem.path || t.contentPath === oldRel)
+      if (tab) {
+        tab.path = dirItem.path + '/' + dragItem.name
+        tab.contentPath = newRel
+        if (doc.filePath === dragItem.path || doc.contentPath === oldRel) {
+          doc.filePath = dirItem.path + '/' + dragItem.name
+          doc.contentPath = newRel
+        }
+      }
+      addToast('info', `Moved "${dragItem.name}" to ${dirItem.name}/`)
+    } catch (err) {
+      addToast('error', `Move failed: ${err}`)
+    }
     dragItem = null
     await refreshTree()
   }
@@ -322,7 +448,11 @@
 
 <svelte:window
   onkeydown={(e) => {
-    if (e.key === 'Escape') { creating && cancelCreate(); renamingPath && (renamingPath = null) }
+    if (e.key === 'Escape') {
+      creating && cancelCreate()
+      renamingPath && (renamingPath = null)
+      if (selectedPaths.size > 0) clearSelection()
+    }
   }}
 />
 
@@ -336,7 +466,7 @@
         bind:value={createValue}
         use:autoFocus
         onkeydown={(e) => { if (e.key === 'Enter') onconfirm(); if (e.key === 'Escape') oncancel() }}
-        onblur={oncancel}
+        onblur={onconfirm}
       />
     </div>
   </li>
@@ -362,8 +492,12 @@
             <ContextMenu.Trigger class="tree-ctx-trigger">
               <button
                 class="tree-row tree-dir"
+                class:drop-target={dragOverDir === item.path}
                 style="padding-left: {depth * 14 + 8}px"
                 onclick={() => toggleDir(item)}
+                ondragover={(e) => onDragOverDir(e, item)}
+                ondragleave={onDragLeave}
+                ondrop={(e) => onDropOnDir(e, item)}
               >
                 <span class="tree-arrow" class:expanded={expandedDirs.has(item.path)}>
                   <ChevronRight size={12} strokeWidth={2.5} />
@@ -411,15 +545,16 @@
               <button
                 class="tree-row tree-file"
                 class:active={doc.filePath === item.path}
+                class:selected={selectedPaths.has(item.path)}
                 class:drag-over={dragOverPath === item.path}
                 style="padding-left: {depth * 14 + 8}px"
                 draggable="true"
-                onclick={() => openFile(item)}
+                onclick={(e) => { if (!toggleSelect(item, e)) openFile(item) }}
                 ondragstart={(e) => onDragStart(e, item)}
-                ondragover={(e) => onDragOver(e, item, items)}
+                ondragover={(e) => onDragOverFile(e, item, items)}
                 ondragleave={onDragLeave}
                 ondrop={(e) => onDrop(e, item, items)}
-                ondragend={() => { dragItem = null; dragOverPath = null }}
+                ondragend={() => { dragItem = null; dragOverPath = null; dragOverDir = null }}
               >
                 <span class="tree-arrow-placeholder"></span>
                 <span class="tree-icon">
@@ -464,6 +599,18 @@
 {/snippet}
 
 <div class="file-tree">
+  {#if selectedPaths.size > 0}
+    <div class="bulk-bar">
+      <span class="bulk-count">{selectedPaths.size} selected</span>
+      <button class="bulk-btn danger" onclick={bulkDelete} title="Delete selected">
+        <Trash2 size={12} /> Delete
+      </button>
+      <button class="bulk-btn" onclick={clearSelection} title="Clear selection">
+        Clear
+      </button>
+    </div>
+  {/if}
+
   {#if entries.length === 0 && !creating}
     <p class="empty-msg">No files found.</p>
   {:else}
@@ -528,8 +675,18 @@
     color: var(--cr-accent);
   }
 
+  .tree-file.selected {
+    background: rgba(137, 180, 250, 0.12);
+  }
+
   .tree-file.drag-over {
     border-top: 2px solid var(--cr-accent);
+  }
+
+  .tree-dir.drop-target {
+    background: var(--cr-active);
+    outline: 1px dashed var(--cr-accent);
+    outline-offset: -1px;
   }
 
   .tree-arrow {
@@ -630,5 +787,48 @@
     height: 1px;
     background: var(--cr-border);
     margin: 3px 0;
+  }
+
+  /* Bulk action bar */
+  .bulk-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    background: var(--cr-active);
+    border-bottom: 1px solid var(--cr-border);
+    flex-shrink: 0;
+  }
+
+  .bulk-count {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--cr-accent);
+    flex: 1;
+  }
+
+  .bulk-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-family: inherit;
+    border: 1px solid var(--cr-border);
+    border-radius: var(--cr-radius-sm);
+    background: var(--cr-bg-elevated);
+    color: var(--cr-text-muted);
+    cursor: pointer;
+  }
+
+  .bulk-btn:hover {
+    color: var(--cr-text);
+    border-color: var(--cr-text-muted);
+  }
+
+  .bulk-btn.danger:hover {
+    color: var(--cr-danger);
+    border-color: var(--cr-danger);
+    background: rgba(243, 139, 168, 0.1);
   }
 </style>

@@ -17,10 +17,11 @@ pub fn update_config(
     settings: serde_json::Value,
     state: tauri::State<AppState>,
 ) -> Result<(), String> {
-    let project_dir = state.project_dir.lock().unwrap();
-    let project_dir = project_dir.as_ref().ok_or("No project open")?;
-
-    let config_path = project_dir.join("site.yaml");
+    let config_path = {
+        let project_dir = state.project_dir.lock().unwrap();
+        let project_dir = project_dir.as_ref().ok_or("No project open")?;
+        project_dir.join("site.yaml")
+    };
 
     // Read current site.yaml.
     let data = fs::read_to_string(&config_path)
@@ -67,6 +68,10 @@ pub fn get_schema(
     collection: String,
     state: tauri::State<AppState>,
 ) -> Result<serde_json::Value, String> {
+    let collection = collection.trim().to_string();
+    if collection.is_empty() || collection.contains("..") || collection.contains('/') || collection.contains('\\') {
+        return Err("Invalid collection name".into());
+    }
     let content_dir = state.content_dir().ok_or("No project open")?;
     let col_dir = content_dir.join(&collection);
 
@@ -150,6 +155,163 @@ pub fn delete_collection(
 
     fs::remove_dir_all(&col_dir).map_err(|e| format!("Deleting collection: {}", e))?;
     Ok(())
+}
+
+/// Read the navigation configuration.
+/// Returns parsed nav.yaml if it exists, otherwise auto-generates from the content directory structure.
+#[tauri::command]
+pub fn read_nav(state: tauri::State<AppState>) -> Result<serde_json::Value, String> {
+    let project_dir = state.project_dir.lock().unwrap();
+    let project_dir = project_dir.as_ref().ok_or("No project open")?;
+
+    let nav_path = project_dir.join("nav.yaml");
+
+    if nav_path.exists() {
+        let data =
+            fs::read_to_string(&nav_path).map_err(|e| format!("Reading nav.yaml: {}", e))?;
+        let parsed: serde_yaml::Value =
+            serde_yaml::from_str(&data).map_err(|e| format!("Parsing nav.yaml: {}", e))?;
+        let json =
+            serde_json::to_value(&parsed).map_err(|e| format!("Converting nav.yaml: {}", e))?;
+        return Ok(serde_json::json!({ "source": "file", "items": json }));
+    }
+
+    // Auto-generate from content directory structure.
+    let content_dir = state.content_dir().ok_or("No project open")?;
+    let items = auto_generate_nav(&content_dir)?;
+    Ok(serde_json::json!({ "source": "auto", "items": items }))
+}
+
+/// Save navigation configuration to nav.yaml.
+#[tauri::command]
+pub fn save_nav(
+    items: serde_json::Value,
+    state: tauri::State<AppState>,
+) -> Result<(), String> {
+    let project_dir = state.project_dir.lock().unwrap();
+    let project_dir = project_dir.as_ref().ok_or("No project open")?;
+
+    let nav_path = project_dir.join("nav.yaml");
+    let yaml_val: serde_yaml::Value =
+        serde_yaml::to_value(&items).map_err(|e| format!("Converting to YAML: {}", e))?;
+    let output =
+        serde_yaml::to_string(&yaml_val).map_err(|e| format!("Serializing nav.yaml: {}", e))?;
+    fs::write(&nav_path, &output).map_err(|e| format!("Writing nav.yaml: {}", e))?;
+    Ok(())
+}
+
+/// Delete nav.yaml to reset to auto-generated navigation.
+#[tauri::command]
+pub fn delete_nav(state: tauri::State<AppState>) -> Result<(), String> {
+    let project_dir = state.project_dir.lock().unwrap();
+    let project_dir = project_dir.as_ref().ok_or("No project open")?;
+
+    let nav_path = project_dir.join("nav.yaml");
+    if nav_path.exists() {
+        fs::remove_file(&nav_path).map_err(|e| format!("Deleting nav.yaml: {}", e))?;
+    }
+    Ok(())
+}
+
+/// Auto-generate a navigation tree from content directory structure.
+fn auto_generate_nav(content_dir: &std::path::Path) -> Result<serde_json::Value, String> {
+    let mut items = Vec::new();
+
+    let mut entries: Vec<_> = fs::read_dir(content_dir)
+        .map_err(|e| format!("Reading content dir: {}", e))?
+        .filter_map(|e| e.ok())
+        .collect();
+    entries.sort_by_key(|e| e.file_name());
+
+    for entry in entries {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name.starts_with('.') || name.starts_with('_') {
+            continue;
+        }
+
+        let path = entry.path();
+        if path.is_dir() {
+            let label = extract_dir_title(&path).unwrap_or_else(|| capitalize_name(&name));
+            let children = auto_generate_nav_children(&path, &name)?;
+            items.push(serde_json::json!({
+                "label": label,
+                "path": format!("/{}/", name),
+                "children": children,
+                "auto": true,
+            }));
+        } else if name.ends_with(".md") && name != "_index.md" {
+            let stem = name.trim_end_matches(".md");
+            let label = capitalize_name(stem);
+            items.push(serde_json::json!({
+                "label": label,
+                "path": format!("/{}/", stem),
+                "auto": true,
+            }));
+        }
+    }
+
+    Ok(serde_json::Value::Array(items))
+}
+
+fn auto_generate_nav_children(
+    dir: &std::path::Path,
+    parent_slug: &str,
+) -> Result<Vec<serde_json::Value>, String> {
+    let mut items = Vec::new();
+
+    let mut entries: Vec<_> = fs::read_dir(dir)
+        .map_err(|e| format!("Reading dir: {}", e))?
+        .filter_map(|e| e.ok())
+        .collect();
+    entries.sort_by_key(|e| e.file_name());
+
+    for entry in entries {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name.starts_with('.') || name == "_index.md" {
+            continue;
+        }
+
+        let path = entry.path();
+        if path.is_dir() {
+            let label = extract_dir_title(&path).unwrap_or_else(|| capitalize_name(&name));
+            let slug = format!("{}/{}", parent_slug, name);
+            let children = auto_generate_nav_children(&path, &slug)?;
+            items.push(serde_json::json!({
+                "label": label,
+                "path": format!("/{}/", slug),
+                "children": children,
+                "auto": true,
+            }));
+        } else if name.ends_with(".md") {
+            let stem = name.trim_end_matches(".md");
+            let clean_stem = stem
+                .trim_start_matches(|c: char| c.is_ascii_digit() || c == '-')
+                .trim_start_matches('-');
+            let display_stem = if clean_stem.is_empty() { stem } else { clean_stem };
+            let label = capitalize_name(display_stem);
+            items.push(serde_json::json!({
+                "label": label,
+                "path": format!("/{}/{}/", parent_slug, stem),
+                "auto": true,
+            }));
+        }
+    }
+
+    Ok(items)
+}
+
+/// Try to extract title from _index.md in a directory.
+fn extract_dir_title(dir: &std::path::Path) -> Option<String> {
+    let index_path = dir.join("_index.md");
+    if let Ok(content) = fs::read_to_string(&index_path) {
+        let (fm, _) = crate::yaml::parse_frontmatter(&content);
+        if let Some(title) = fm.get("title").and_then(|v| v.as_str()) {
+            if !title.is_empty() {
+                return Some(title.to_string());
+            }
+        }
+    }
+    None
 }
 
 fn capitalize_name(s: &str) -> String {

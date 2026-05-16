@@ -1,12 +1,15 @@
 <script>
-  import { ui, tabs, preview, addToast, closeTabById, warnings } from '../stores/app.svelte.js'
+  import { ui, tabs, preview, doc, addToast, closeTabById, requestCloseTab, warnings } from '../stores/app.svelte.js'
   import { build as apiBuild, startPreview, stopPreview } from '../api.js'
+  import { contentPathToUrl } from '../utils/url-mapping.js'
   import { Dialog, Command } from 'bits-ui'
   import { Search } from 'lucide-svelte'
   import { open as openShell } from '@tauri-apps/plugin-shell'
 
   const commands = [
     { id: 'new-file', label: 'New File', category: 'File', shortcut: 'Ctrl+N' },
+    { id: 'new-blog-post', label: 'New Blog Post', category: 'File' },
+    { id: 'new-doc-page', label: 'New Doc Page', category: 'File' },
     { id: 'open-file', label: 'Open File', category: 'File', shortcut: 'Ctrl+O' },
     { id: 'save', label: 'Save', category: 'File', shortcut: 'Ctrl+S' },
     { id: 'save-all', label: 'Save All', category: 'File', shortcut: 'Ctrl+Shift+S' },
@@ -21,6 +24,8 @@
     { id: 'deploy', label: 'Deploy Site', category: 'Deploy' },
     { id: 'import-obsidian', label: 'Import Obsidian Vault', category: 'Import' },
     { id: 'find-in-files', label: 'Search in Files', category: 'Search', shortcut: 'Ctrl+Shift+F' },
+    { id: 'show-shortcuts', label: 'Keyboard Shortcuts', category: 'Help', shortcut: 'Ctrl+/' },
+    { id: 'show-onboarding', label: 'Welcome Tour', category: 'Help' },
   ]
 
   // Hide context-dependent commands
@@ -52,12 +57,23 @@
         addToast('info', 'All files saved')
         break
       case 'close-tab':
-        if (tabs.activeId) closeTabById(tabs.activeId)
+        if (tabs.activeId) requestCloseTab(tabs.activeId)
         break
-      case 'open-browser-preview':
-        if (preview.port > 0) openShell(`http://localhost:${preview.port}`)
-        else addToast('warning', 'Preview server not running')
+      case 'new-blog-post':
+        ui.createContentType = 'blog'
         break
+      case 'new-doc-page':
+        ui.createContentType = 'docs'
+        break
+      case 'open-browser-preview': {
+        if (preview.port > 0) {
+          const pageUrl = contentPathToUrl(doc.contentPath)
+          openShell(`http://localhost:${preview.port}${pageUrl}`)
+        } else {
+          addToast('warning', 'Preview server not running')
+        }
+        break
+      }
       case 'toggle-sidebar-left':
         ui.leftPanel = ui.leftPanel ? null : 'files'
         break
@@ -84,7 +100,8 @@
         break
       case 'preview-site':
         if (preview.port > 0) {
-          openShell(`http://localhost:${preview.port}`)
+          const previewPageUrl = contentPathToUrl(doc.contentPath)
+          openShell(`http://localhost:${preview.port}${previewPageUrl}`)
         } else {
           addToast('info', 'Starting preview server...')
           startPreview().catch(e => addToast('error', `Preview failed: ${e}`))
@@ -105,6 +122,13 @@
         break
       case 'find-in-files':
         ui.leftPanel = 'search'
+        break
+      case 'show-shortcuts':
+        ui.shortcutsOpen = true
+        break
+      case 'show-onboarding':
+        localStorage.removeItem('coderoo-onboarding-done')
+        window.location.reload()
         break
       default:
         console.log('Command executed:', cmd.id)

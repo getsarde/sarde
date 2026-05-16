@@ -1,6 +1,7 @@
 <script>
   import { ui, preview, tabs, doc, mdPreview } from '../stores/app.svelte.js'
   import { renderMarkdown } from '../api.js'
+  import { contentPathToUrl } from '../utils/url-mapping.js'
   import { open as openShell } from '@tauri-apps/plugin-shell'
 
   const PREVIEW_MODES = ['editor', 'split', 'preview']
@@ -27,15 +28,21 @@
       ui.settingsOpen = !ui.settingsOpen
     } else if (ctrl && e.shiftKey && e.key === 'V') {
       e.preventDefault()
-      if (preview.port > 0) openShell(`http://localhost:${preview.port}`)
+      if (preview.port > 0) {
+        const pageUrl = contentPathToUrl(doc.contentPath)
+        openShell(`http://localhost:${preview.port}${pageUrl}`)
+      }
     } else if (ctrl && e.shiftKey && e.key === 'M') {
       e.preventDefault()
       cyclePreviewMode()
+    } else if (ctrl && e.key === '/') {
+      e.preventDefault()
+      ui.shortcutsOpen = !ui.shortcutsOpen
     }
   }
 
   // Debounced markdown rendering when preview is visible
-  let renderTimer = null
+  let renderVersion = 0
 
   $effect(() => {
     const content = doc.content
@@ -43,8 +50,8 @@
 
     if (mode === 'editor') return
 
-    clearTimeout(renderTimer)
-    renderTimer = setTimeout(async () => {
+    const version = ++renderVersion
+    const timer = setTimeout(async () => {
       if (!content) {
         mdPreview.html = ''
         return
@@ -53,13 +60,17 @@
       mdPreview.error = null
       try {
         const result = await renderMarkdown(content)
+        if (version !== renderVersion) return
         mdPreview.html = result?.html ?? ''
       } catch (e) {
+        if (version !== renderVersion) return
         mdPreview.error = String(e)
       } finally {
-        mdPreview.rendering = false
+        if (version === renderVersion) mdPreview.rendering = false
       }
     }, 300)
+
+    return () => clearTimeout(timer)
   })
   import MarkdownPreview from './MarkdownPreview.svelte'
   import LeftSidebar from './LeftSidebar.svelte'
@@ -74,6 +85,8 @@
   import SettingsModal from './SettingsModal.svelte'
   import DeployModal from './DeployModal.svelte'
   import ImportModal from './ImportModal.svelte'
+  import CreateContentDialog from './CreateContentDialog.svelte'
+  import ShortcutsDialog from './ShortcutsDialog.svelte'
   import ToastContainer from './ToastContainer.svelte'
 
   let { projectName = '', onClose } = $props()
@@ -82,10 +95,10 @@
 
 <svelte:window onkeydown={onGlobalKeydown} />
 
-<div class="editor-layout">
+<div class="editor-layout" role="application" aria-label="Coderoo Editor">
   <LeftSidebar />
 
-  <div class="main-area">
+  <main class="main-area" aria-label="Editor">
     <TabBar />
     <EditorToolbar editor={editorRef} />
 
@@ -109,7 +122,7 @@
 
     <BuildLog />
     <StatusBar />
-  </div>
+  </main>
 
   <RightSidebar />
 
@@ -117,6 +130,8 @@
   <SettingsModal />
   <DeployModal />
   <ImportModal />
+  <CreateContentDialog />
+  <ShortcutsDialog />
   <ToastContainer />
 </div>
 

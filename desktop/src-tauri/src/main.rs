@@ -2,6 +2,7 @@
 
 mod commands;
 mod state;
+mod watcher;
 mod yaml;
 
 use state::AppState;
@@ -98,6 +99,9 @@ fn main() {
             commands::content::create_content_dir,
             commands::content::delete_content,
             commands::content::rename_content,
+            commands::content::list_taxonomies,
+            commands::content::rename_taxonomy,
+            commands::content::delete_taxonomy,
             // Config & schema
             commands::config::get_config,
             commands::config::update_config,
@@ -105,6 +109,9 @@ fn main() {
             commands::config::get_schema,
             commands::config::create_collection,
             commands::config::delete_collection,
+            commands::config::read_nav,
+            commands::config::save_nav,
+            commands::config::delete_nav,
             // Build & preview
             commands::build::run_build,
             commands::build::start_preview,

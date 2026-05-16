@@ -12,7 +12,7 @@ export const CANONICAL_TYPE = {
   list: 'list', tags: 'list',
   enum: 'enum', select: 'enum',
   color: 'color',
-  image: 'string',
+  image: 'image',
   url: 'string',
 }
 

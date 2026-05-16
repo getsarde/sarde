@@ -15,13 +15,15 @@
     if (!doc.content) return []
     const lines = doc.content.split('\n')
     const result = []
-    let inFrontmatter = false
+    let fmDashes = 0
+    let pastFrontmatter = false
     for (const line of lines) {
-      if (line.trim() === '---') {
-        inFrontmatter = !inFrontmatter
+      if (!pastFrontmatter && line.trim() === '---') {
+        fmDashes++
+        if (fmDashes >= 2) pastFrontmatter = true
         continue
       }
-      if (inFrontmatter) continue
+      if (!pastFrontmatter && fmDashes < 2) continue
       const match = line.match(/^(#{1,6})\s+(.+)/)
       if (match) {
         result.push({ level: match[1].length, text: match[2].replace(/[#*`[\]]/g, '').trim() })
