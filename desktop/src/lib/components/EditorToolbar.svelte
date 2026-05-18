@@ -4,10 +4,9 @@
   import { startPreview, stopPreview } from '../api.js'
   import { contentPathToUrl } from '../utils/url-mapping.js'
   import {
-    Bold, Italic, Heading, Link, Image, Code, Braces, List, Table, ExternalLink, Play, Square, Eye,
+    Bold, Italic, Heading, Link, Image, Code, Braces, List, Table, ExternalLink, Play, Square, Eye, Save, MonitorSmartphone, Tablet, Monitor,
   } from 'lucide-svelte'
   import AppTooltip from './primitives/AppTooltip.svelte'
-  import { Toggle } from 'bits-ui'
 
   let { editor = null } = $props()
 
@@ -58,6 +57,10 @@
 
 <div class="editor-toolbar">
   <div class="tool-group">
+    <AppTooltip content="Save (Ctrl+S)">
+      <button class="tool-btn" disabled={!hasFile || !doc.dirty} onclick={() => window.dispatchEvent(new CustomEvent('coderoo:save'))}><Save size={15} /></button>
+    </AppTooltip>
+    <div class="tool-sep"></div>
     <AppTooltip content="Bold (Ctrl+B)">
       <button class="tool-btn" disabled={!hasFile} onclick={() => editor?.wrapSelection('**', '**')}><Bold size={15} /></button>
     </AppTooltip>
@@ -79,7 +82,14 @@
       <button class="tool-btn" disabled={!hasFile} onclick={() => editor?.wrapSelection('`', '`')}><Code size={15} /></button>
     </AppTooltip>
     <AppTooltip content="Code block">
-      <button class="tool-btn" disabled={!hasFile} onclick={() => editor?.insertText('\n```\n\n```\n')}><Braces size={15} /></button>
+      <button class="tool-btn" disabled={!hasFile} onclick={() => {
+        const v = editor?.getView()
+        if (!v) return
+        const cursor = v.state.selection.main.head
+        const text = '\n```\n\n```\n'
+        v.dispatch({ changes: { from: cursor, insert: text }, selection: { anchor: cursor + 4 } })
+        v.focus()
+      }}><Braces size={15} /></button>
     </AppTooltip>
     <div class="tool-sep"></div>
     <AppTooltip content="Bullet list">
@@ -89,19 +99,17 @@
       <button class="tool-btn" disabled={!hasFile} onclick={() => editor?.insertText('\n| Col 1 | Col 2 | Col 3 |\n| ----- | ----- | ----- |\n| Cell  | Cell  | Cell  |\n')}><Table size={15} /></button>
     </AppTooltip>
     <div class="tool-sep"></div>
-    <AppTooltip content="Toggle preview (Ctrl+Shift+M)">
-      <Toggle.Root
-        pressed={ui.previewMode !== 'editor'}
-        onPressedChange={() => {
-          const modes = ['editor', 'split', 'preview']
-          const idx = modes.indexOf(ui.previewMode)
-          ui.previewMode = modes[(idx + 1) % modes.length]
-        }}
-        class="tool-btn"
-      >
-        <Eye size={15} />
-      </Toggle.Root>
-    </AppTooltip>
+    <div class="mode-group">
+      <AppTooltip content="Editor only">
+        <button class="mode-btn" class:active={ui.previewMode === 'editor'} onclick={() => ui.previewMode = 'editor'}><Code size={13} /></button>
+      </AppTooltip>
+      <AppTooltip content="Split view">
+        <button class="mode-btn" class:active={ui.previewMode === 'split'} onclick={() => ui.previewMode = 'split'}><Tablet size={13} /></button>
+      </AppTooltip>
+      <AppTooltip content="Preview only">
+        <button class="mode-btn" class:active={ui.previewMode === 'preview'} onclick={() => ui.previewMode = 'preview'}><Eye size={13} /></button>
+      </AppTooltip>
+    </div>
   </div>
 
   <div class="preview-area">
@@ -198,6 +206,30 @@
     background: var(--cr-active);
   }
 
+  .mode-group {
+    display: flex;
+    gap: 1px;
+    background: var(--cr-border);
+    border-radius: var(--cr-radius-sm);
+    overflow: hidden;
+  }
+
+  .mode-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 24px;
+    border: none;
+    background: var(--cr-bg-surface);
+    color: var(--cr-text-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .mode-btn:hover { background: var(--cr-bg-elevated); color: var(--cr-text); }
+  .mode-btn.active { background: var(--cr-active); color: var(--cr-accent); }
+
   .tool-sep {
     width: 1px;
     height: 16px;
@@ -287,6 +319,6 @@
   .preview-btn.stop:hover:not(:disabled) {
     color: var(--cr-danger);
     border-color: var(--cr-danger);
-    background: rgba(243, 139, 168, 0.1);
+    background: var(--cr-danger-bg);
   }
 </style>

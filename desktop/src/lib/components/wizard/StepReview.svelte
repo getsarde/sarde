@@ -91,7 +91,7 @@
     color: var(--cr-danger);
     margin: 0 0 12px;
     padding: 8px 10px;
-    background: rgba(243, 139, 168, 0.1);
+    background: var(--cr-danger-bg);
     border-radius: var(--cr-radius);
   }
 

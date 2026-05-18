@@ -1019,8 +1019,8 @@
     display: inline-block;
   }
 
-  .about-online  { background: rgba(166, 227, 161, 0.1); color: var(--cr-success); }
-  .about-offline { background: rgba(243, 139, 168, 0.1); color: var(--cr-danger); }
+  .about-online  { background: var(--cr-success-bg); color: var(--cr-success); }
+  .about-offline { background: var(--cr-danger-bg); color: var(--cr-danger); }
 
   /* YAML toggle button */
   :global(.yaml-toggle) {
@@ -1059,7 +1059,7 @@
     padding: 8px 12px;
     font-size: 12px;
     color: var(--cr-danger);
-    background: rgba(243, 139, 168, 0.08);
+    background: var(--cr-danger-bg);
     border-top: 1px solid var(--cr-border);
   }
 
@@ -1147,7 +1147,7 @@
 
   :global(.collection-delete:hover) {
     color: var(--cr-danger);
-    background: rgba(243, 139, 168, 0.1);
+    background: var(--cr-danger-bg);
   }
 
   /* AlertDialog for delete confirmation */
@@ -1304,7 +1304,7 @@
   }
 
   .dirty-btn.discard:hover {
-    background: rgba(243, 139, 168, 0.1);
+    background: var(--cr-danger-bg);
   }
 
   .dirty-btn.save {

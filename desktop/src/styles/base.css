@@ -82,7 +82,7 @@ body {
 }
 
 .btn-danger:hover {
-  background: rgba(243, 139, 168, 0.1);
+  background: var(--cr-danger-bg);
 }
 
 /* Icon button */
@@ -143,9 +143,9 @@ body {
 }
 
 .badge-info { background: rgba(137, 180, 250, 0.12); color: var(--cr-info); }
-.badge-success { background: rgba(166, 227, 161, 0.12); color: var(--cr-success); }
-.badge-warning { background: rgba(249, 226, 175, 0.12); color: var(--cr-warning); }
-.badge-danger { background: rgba(243, 139, 168, 0.12); color: var(--cr-danger); }
+.badge-success { background: var(--cr-success-bg); color: var(--cr-success); }
+.badge-warning { background: var(--cr-warning-bg); color: var(--cr-warning); }
+.badge-danger { background: var(--cr-danger-bg); color: var(--cr-danger); }
 
 /* Utility */
 .hidden { display: none !important; }

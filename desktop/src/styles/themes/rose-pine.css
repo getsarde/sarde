@@ -22,8 +22,11 @@
   --cr-border-focus: #c4a7e7;
 
   --cr-success: #9ccfd8;
+  --cr-success-bg: rgba(156, 207, 216, 0.1);
   --cr-warning: #f6c177;
+  --cr-warning-bg: rgba(246, 193, 119, 0.1);
   --cr-danger: #eb6f92;
+  --cr-danger-bg: rgba(235, 111, 146, 0.1);
   --cr-info: #31748f;
 
   --cr-hover: rgba(255, 255, 255, 0.05);

@@ -1,8 +1,8 @@
 <script>
   import { doc, ui, warnings, preview, buildLog, toggleBuildLog } from '../stores/app.svelte.js'
 
-  let saveLabel = $derived(doc.dirty ? 'Unsaved' : 'Saved')
-  let saveClass = $derived(doc.dirty ? 'unsaved' : 'saved')
+  let saveLabel = $derived(doc.pendingSave > 0 ? 'Saving...' : doc.dirty ? 'Unsaved' : 'Saved')
+  let saveClass = $derived(doc.pendingSave > 0 ? 'saving' : doc.dirty ? 'unsaved' : 'saved')
   let previewLabel = $derived(preview.running ? `Preview :${preview.port}` : 'Preview off')
   let previewClass = $derived(preview.running ? 'connected' : 'disconnected')
 </script>
@@ -80,6 +80,16 @@
 
   .unsaved .status-dot {
     background: var(--cr-warning);
+  }
+
+  .saving .status-dot {
+    background: var(--cr-info, var(--cr-accent));
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
   }
 
   .connected .status-dot {

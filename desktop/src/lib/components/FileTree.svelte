@@ -31,6 +31,7 @@
   function rootPath() { return basePath || project.contentPath }
 
   let loadVersion = 0
+  let treeLoading = $state(false)
 
   $effect(() => {
     const path = rootPath()
@@ -41,12 +42,15 @@
 
   async function loadTree(dir) {
     const version = ++loadVersion
+    treeLoading = true
     try {
       const result = buildTree(await readDir(dir), dir)
       if (version === loadVersion) entries = result
     } catch (e) {
       console.error('Failed to read directory:', e)
       if (version === loadVersion) entries = []
+    } finally {
+      if (version === loadVersion) treeLoading = false
     }
   }
 
@@ -216,6 +220,8 @@
       }
       return
     }
+
+    if (!confirm(`Delete folder "${item.name}" and all its contents?\n\nIt will be moved to .trash for recovery.`)) return
 
     const root = rootPath()
     const trashDir = root + '/.trash'
@@ -612,7 +618,7 @@
   {/if}
 
   {#if entries.length === 0 && !creating}
-    <p class="empty-msg">No files found.</p>
+    <p class="empty-msg">{treeLoading ? 'Loading...' : 'No files found.'}</p>
   {:else}
     {@render treeNode(entries, 0, rootPath())}
   {/if}
@@ -780,7 +786,7 @@
   }
 
   :global(.ctx-danger[data-highlighted]) {
-    background: rgba(243, 139, 168, 0.1);
+    background: var(--cr-danger-bg);
   }
 
   :global(.ctx-sep) {
@@ -829,6 +835,6 @@
   .bulk-btn.danger:hover {
     color: var(--cr-danger);
     border-color: var(--cr-danger);
-    background: rgba(243, 139, 168, 0.1);
+    background: var(--cr-danger-bg);
   }
 </style>

@@ -20,8 +20,11 @@
   --cr-border-focus: #1e66f5;
 
   --cr-success: #40a02b;
+  --cr-success-bg: rgba(64, 160, 43, 0.12);
   --cr-warning: #df8e1d;
+  --cr-warning-bg: rgba(223, 142, 29, 0.12);
   --cr-danger: #d20f39;
+  --cr-danger-bg: rgba(210, 15, 57, 0.12);
   --cr-info: #1e66f5;
 
   --cr-hover: rgba(0, 0, 0, 0.04);

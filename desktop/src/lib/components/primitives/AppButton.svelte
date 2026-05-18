@@ -97,7 +97,7 @@
   }
 
   :global(.cr-btn-danger:hover:not(:disabled)) {
-    background: rgba(243, 139, 168, 0.1);
+    background: var(--cr-danger-bg);
     opacity: 1;
   }
 

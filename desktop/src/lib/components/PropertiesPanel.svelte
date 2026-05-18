@@ -155,7 +155,7 @@
     padding: 6px 8px;
     font-size: 11px;
     color: var(--cr-danger);
-    background: rgba(243, 139, 168, 0.1);
+    background: var(--cr-danger-bg);
     border-top: 1px solid var(--cr-border);
     white-space: pre-wrap;
     word-break: break-word;

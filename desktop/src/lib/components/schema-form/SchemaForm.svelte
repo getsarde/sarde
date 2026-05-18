@@ -30,10 +30,7 @@
   let normalized = $derived(normalizeFields(fields, values))
 
   let sortedKeys = $derived.by(() => {
-    const keys = Object.keys(normalized)
-    // Only include keys that exist in values (don't show schema-only fields with no value)
-    const presentKeys = keys.filter(k => values?.[k] !== undefined)
-    return sortFieldKeys(presentKeys, order)
+    return sortFieldKeys(Object.keys(normalized), order)
   })
 
   let errors = $derived.by(() => {
@@ -52,7 +49,7 @@
     <Widget
       name={key}
       label={def.label}
-      value={values?.[key]}
+      value={values?.[key] ?? def.default ?? (def.type === 'bool' ? false : def.type === 'list' ? [] : '')}
       required={def.required}
       error={errors[key]}
       options={def.options}

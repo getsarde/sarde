@@ -23,8 +23,11 @@
 
   /* Semantic */
   --cr-success: #a6e3a1;
+  --cr-success-bg: rgba(166, 227, 161, 0.1);
   --cr-warning: #f9e2af;
+  --cr-warning-bg: rgba(249, 226, 175, 0.1);
   --cr-danger: #f38ba8;
+  --cr-danger-bg: rgba(243, 139, 168, 0.1);
   --cr-info: #89b4fa;
 
   /* Interactive states */

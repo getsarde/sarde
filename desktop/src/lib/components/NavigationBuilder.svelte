@@ -637,7 +637,7 @@
 
   .nav-action-btn.delete:hover {
     color: var(--cr-danger);
-    background: rgba(243, 139, 168, 0.1);
+    background: var(--cr-danger-bg);
   }
 
   .nav-action-btn.confirm:hover {

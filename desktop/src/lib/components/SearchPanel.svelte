@@ -21,6 +21,11 @@
   let replacing = $state(false)
   let collapsedFiles = $state(new Set())
 
+  let regexError = $derived.by(() => {
+    if (!useRegex || !query.trim()) return ''
+    try { new RegExp(query); return '' } catch (e) { return e.message?.split('\n')[0] ?? 'Invalid regex' }
+  })
+
   // Rebuild index when content path changes
   $effect(() => {
     const root = project.contentPath
@@ -381,9 +386,11 @@
       <Search size={14} class="search-icon" />
       <input
         class="search-input"
+        class:regex-error={!!regexError}
         type="text"
         placeholder="Search in files…"
         bind:value={query}
+        title={regexError || ''}
       />
       <button
         class="search-option-btn"
@@ -540,6 +547,10 @@
 
   .search-input::placeholder {
     color: var(--cr-text-muted);
+  }
+
+  .search-input.regex-error {
+    color: var(--cr-danger);
   }
 
   .toggle-replace-btn {
@@ -804,7 +815,7 @@
 
   .result-highlight {
     color: var(--cr-text);
-    background: rgba(137, 180, 250, 0.25);
+    background: var(--cr-selection);
     border-radius: 2px;
     padding: 0 1px;
   }
