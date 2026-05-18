@@ -54,7 +54,7 @@
         break
       case 'save-all':
         window.dispatchEvent(new CustomEvent('coderoo:save'))
-        addToast('info', 'All files saved')
+        window.dispatchEvent(new CustomEvent('coderoo:save-all'))
         break
       case 'close-tab':
         if (tabs.activeId) requestCloseTab(tabs.activeId)
@@ -127,8 +127,7 @@
         ui.shortcutsOpen = true
         break
       case 'show-onboarding':
-        localStorage.removeItem('coderoo-onboarding-done')
-        window.location.reload()
+        window.dispatchEvent(new CustomEvent('coderoo:show-onboarding'))
         break
       default:
         console.log('Command executed:', cmd.id)

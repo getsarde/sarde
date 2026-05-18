@@ -95,6 +95,7 @@
   }
 
   async function deleteAsset(asset) {
+    if (!confirm(`Delete "${asset.filename}"? This cannot be undone.`)) return
     try {
       await assetDelete(asset.path)
       addToast('info', `Deleted ${asset.filename}`)

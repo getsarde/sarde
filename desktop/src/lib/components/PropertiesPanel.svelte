@@ -95,7 +95,16 @@
     {/if}
   </div>
 {:else if !parsed.fm}
-  <p class="empty-msg">No frontmatter found.</p>
+  <div class="empty-msg">
+    <p>No frontmatter found.</p>
+    <button class="add-fm-btn" onclick={() => {
+      doc.content = '---\ntitle: \n---\n\n' + doc.content
+      doc.dirty = true
+      doc.externalUpdate++
+      const activeTab = tabs.items.find(t => t.id === tabs.activeId)
+      if (activeTab) { activeTab.cachedContent = doc.content; activeTab.dirty = true }
+    }}>Add Frontmatter</button>
+  </div>
 {:else}
   <div class="properties-form">
     <SchemaForm
@@ -112,6 +121,22 @@
     margin: 0;
     font-size: 12px;
     color: var(--cr-text-muted);
+  }
+
+  .empty-msg p { margin: 0 0 8px; }
+
+  .add-fm-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--cr-accent);
+    background: transparent;
+    border: 1px solid var(--cr-accent);
+    border-radius: var(--cr-radius-sm);
+    cursor: pointer;
+  }
+
+  .add-fm-btn:hover {
+    background: var(--cr-active);
   }
 
   .properties-form {

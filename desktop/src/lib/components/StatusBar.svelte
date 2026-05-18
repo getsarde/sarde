@@ -75,19 +75,19 @@
   }
 
   .saved .status-dot {
-    background: #22c55e;
+    background: var(--cr-success);
   }
 
   .unsaved .status-dot {
-    background: #f59e0b;
+    background: var(--cr-warning);
   }
 
   .connected .status-dot {
-    background: #22c55e;
+    background: var(--cr-success);
   }
 
   .disconnected .status-dot {
-    background: #ef4444;
+    background: var(--cr-danger);
   }
 
   .status-btn {
@@ -104,6 +104,6 @@
   }
 
   .warnings-indicator .status-dot {
-    background: #f59e0b;
+    background: var(--cr-warning);
   }
 </style>

@@ -17,7 +17,8 @@
     const result = []
     let fmDashes = 0
     let pastFrontmatter = false
-    for (const line of lines) {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
       if (!pastFrontmatter && line.trim() === '---') {
         fmDashes++
         if (fmDashes >= 2) pastFrontmatter = true
@@ -26,7 +27,7 @@
       if (!pastFrontmatter && fmDashes < 2) continue
       const match = line.match(/^(#{1,6})\s+(.+)/)
       if (match) {
-        result.push({ level: match[1].length, text: match[2].replace(/[#*`[\]]/g, '').trim() })
+        result.push({ level: match[1].length, text: match[2].replace(/[#*`[\]]/g, '').trim(), line: i + 1 })
       }
     }
     return result
@@ -64,7 +65,7 @@
           {:else}
             <ul class="toc-list">
               {#each headings as h}
-                <li class="toc-item" style="padding-left: {(h.level - 1) * 12 + 8}px">
+                <li class="toc-item" style="padding-left: {(h.level - 1) * 12 + 8}px" onclick={() => { doc.targetLine = h.line }}>
                   <span class="toc-level">H{h.level}</span>
                   <span class="toc-text">{h.text}</span>
                 </li>
@@ -377,7 +378,7 @@
     align-items: center;
     gap: 6px;
     padding: 24px 12px;
-    color: #22c55e;
+    color: var(--cr-success);
     font-size: 12px;
   }
 
@@ -409,7 +410,7 @@
     flex-direction: column;
     gap: 1px;
     padding: 4px 4px 4px 10px;
-    border-left: 2px solid #f59e0b;
+    border-left: 2px solid var(--cr-warning);
     margin: 2px 0;
     border-radius: 0 var(--cr-radius-sm) var(--cr-radius-sm) 0;
   }
@@ -446,9 +447,9 @@
     height: 14px;
     padding: 0 3px;
     border-radius: 7px;
-    background: #f59e0b;
-    color: #000;
-    font-size: 9px;
+    background: var(--cr-warning);
+    color: var(--cr-bg-base);
+    font-size: 10px;
     font-weight: 700;
     line-height: 14px;
     text-align: center;

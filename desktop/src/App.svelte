@@ -28,11 +28,14 @@
       if (event.detail) openProject(event.detail)
     }
     const beforeUnloadHandler = () => persistUiState(ui)
+    const showOnboardingHandler = () => { showOnboarding = true }
     window.addEventListener('coderoo:open-project', openProjectHandler)
     window.addEventListener('beforeunload', beforeUnloadHandler)
+    window.addEventListener('coderoo:show-onboarding', showOnboardingHandler)
     return () => {
       window.removeEventListener('coderoo:open-project', openProjectHandler)
       window.removeEventListener('beforeunload', beforeUnloadHandler)
+      window.removeEventListener('coderoo:show-onboarding', showOnboardingHandler)
       cleanupPreview.then(fn => fn())
       cleanupWatcher.then(fn => fn())
     }
@@ -64,7 +67,13 @@
 
       screen = 'ready'
     } catch (e) {
-      errorMsg = String(e)
+      const raw = String(e)
+      if (raw.includes('site.yaml') || raw.includes('No such file'))
+        errorMsg = 'This folder does not appear to be a Coderoo project.\nCreate one with "New Project" or pick a different folder.'
+      else if (raw.includes('Permission') || raw.includes('Access'))
+        errorMsg = 'Permission denied. Check that you have access to this folder.'
+      else
+        errorMsg = raw.replace(/^(invoke|Error):?\s*/i, '')
       screen = 'error'
     }
   }
@@ -87,8 +96,8 @@
     await startProject(path)
   }
 
-  function backToLauncher() {
-    projectClose().catch(() => {})
+  async function backToLauncher() {
+    await projectClose().catch(() => {})
     screen = 'launcher'
     preview.port = 0
     preview.running = false

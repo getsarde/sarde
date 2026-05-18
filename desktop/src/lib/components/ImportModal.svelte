@@ -260,7 +260,7 @@
   }
 
   .status-icon.success {
-    color: #22c55e;
+    color: var(--cr-success);
   }
 
   .status-icon.error {

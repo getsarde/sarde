@@ -1,6 +1,6 @@
 <script>
   import { open as openShell } from '@tauri-apps/plugin-shell'
-  import { doc, preview, ui, addToast } from '../stores/app.svelte.js'
+  import { doc, preview, ui, tabs, addToast } from '../stores/app.svelte.js'
   import { startPreview, stopPreview } from '../api.js'
   import { contentPathToUrl } from '../utils/url-mapping.js'
   import {
@@ -11,6 +11,7 @@
 
   let { editor = null } = $props()
 
+  let hasFile = $derived(tabs.items.length > 0)
   let previewRunning = $derived(preview.port > 0)
   let pageUrl = $derived(contentPathToUrl(doc.contentPath))
   let previewFullUrl = $derived(previewRunning ? `http://localhost:${preview.port}${pageUrl}` : '')
@@ -58,34 +59,34 @@
 <div class="editor-toolbar">
   <div class="tool-group">
     <AppTooltip content="Bold (Ctrl+B)">
-      <button class="tool-btn" onclick={() => editor?.wrapSelection('**', '**')}><Bold size={15} /></button>
+      <button class="tool-btn" disabled={!hasFile} onclick={() => editor?.wrapSelection('**', '**')}><Bold size={15} /></button>
     </AppTooltip>
     <AppTooltip content="Italic (Ctrl+I)">
-      <button class="tool-btn" onclick={() => editor?.wrapSelection('_', '_')}><Italic size={15} /></button>
+      <button class="tool-btn" disabled={!hasFile} onclick={() => editor?.wrapSelection('_', '_')}><Italic size={15} /></button>
     </AppTooltip>
     <AppTooltip content="Heading">
-      <button class="tool-btn" onclick={() => editor?.insertText('\n## ')}><Heading size={15} /></button>
+      <button class="tool-btn" disabled={!hasFile} onclick={() => editor?.insertText('\n## ')}><Heading size={15} /></button>
     </AppTooltip>
     <div class="tool-sep"></div>
     <AppTooltip content="Link (Ctrl+K)">
-      <button class="tool-btn" onclick={() => editor?.wrapSelection('[', '](url)')}><Link size={15} /></button>
+      <button class="tool-btn" disabled={!hasFile} onclick={() => editor?.wrapSelection('[', '](url)')}><Link size={15} /></button>
     </AppTooltip>
-    <AppTooltip content="Image">
-      <button class="tool-btn" onclick={() => editor?.insertText('\n![alt](url)\n')}><Image size={15} /></button>
+    <AppTooltip content="Insert image">
+      <button class="tool-btn" disabled={!hasFile} onclick={() => { ui.rightPanel = 'assets' }}><Image size={15} /></button>
     </AppTooltip>
     <div class="tool-sep"></div>
     <AppTooltip content="Inline code">
-      <button class="tool-btn" onclick={() => editor?.wrapSelection('`', '`')}><Code size={15} /></button>
+      <button class="tool-btn" disabled={!hasFile} onclick={() => editor?.wrapSelection('`', '`')}><Code size={15} /></button>
     </AppTooltip>
     <AppTooltip content="Code block">
-      <button class="tool-btn" onclick={() => editor?.insertText('\n```\n\n```\n')}><Braces size={15} /></button>
+      <button class="tool-btn" disabled={!hasFile} onclick={() => editor?.insertText('\n```\n\n```\n')}><Braces size={15} /></button>
     </AppTooltip>
     <div class="tool-sep"></div>
     <AppTooltip content="Bullet list">
-      <button class="tool-btn" onclick={() => editor?.insertText('\n- ')}><List size={15} /></button>
+      <button class="tool-btn" disabled={!hasFile} onclick={() => editor?.insertText('\n- ')}><List size={15} /></button>
     </AppTooltip>
     <AppTooltip content="Table">
-      <button class="tool-btn" onclick={() => editor?.insertText('\n| Col 1 | Col 2 | Col 3 |\n| ----- | ----- | ----- |\n| Cell  | Cell  | Cell  |\n')}><Table size={15} /></button>
+      <button class="tool-btn" disabled={!hasFile} onclick={() => editor?.insertText('\n| Col 1 | Col 2 | Col 3 |\n| ----- | ----- | ----- |\n| Cell  | Cell  | Cell  |\n')}><Table size={15} /></button>
     </AppTooltip>
     <div class="tool-sep"></div>
     <AppTooltip content="Toggle preview (Ctrl+Shift+M)">
@@ -187,6 +188,11 @@
     background: var(--cr-bg-base);
   }
 
+  .tool-btn:disabled {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
   :global(.tool-btn[data-state="on"]) {
     color: var(--cr-accent);
     background: var(--cr-active);
@@ -220,8 +226,8 @@
   }
 
   .server-indicator.live {
-    background: #22c55e;
-    box-shadow: 0 0 4px #22c55e88;
+    background: var(--cr-success);
+    box-shadow: 0 0 4px color-mix(in srgb, var(--cr-success) 50%, transparent);
   }
 
   .server-url {

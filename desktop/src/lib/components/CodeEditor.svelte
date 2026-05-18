@@ -67,7 +67,12 @@
   function insertLink(v) {
     const { from, to } = v.state.selection.main
     const selected = v.state.sliceDoc(from, to)
-    v.dispatch({ changes: { from, to, insert: selected ? `[${selected}](url)` : '[](url)' } })
+    const text = selected ? `[${selected}](url)` : '[](url)'
+    const urlStart = from + (selected ? selected.length + 2 : 2)
+    v.dispatch({
+      changes: { from, to, insert: text },
+      selection: { anchor: urlStart, head: urlStart + 3 },
+    })
     v.focus()
     return true
   }
@@ -172,8 +177,25 @@
     saveTimer = setTimeout(saveFile, 5000)
   }
 
+  async function saveAll() {
+    await saveFile()
+    for (const tab of tabs.items) {
+      if (!tab.dirty || tab.id === tabs.activeId) continue
+      try {
+        const content = tab.cachedContent ?? ''
+        const { frontmatter, body } = splitMarkdown(content)
+        await saveContent(tab.contentPath || tab.path, frontmatter, body)
+        tab.dirty = false
+      } catch (e) {
+        console.error(`Failed to save ${tab.name}:`, e)
+      }
+    }
+    addToast('success', 'All files saved')
+  }
+
   onMount(() => {
     window.addEventListener('coderoo:save', saveFile)
+    window.addEventListener('coderoo:save-all', saveAll)
 
     const state = EditorState.create({
       doc: doc.content,
@@ -297,6 +319,7 @@
       clearTimeout(saveTimer)
       clearTimeout(flashTimer)
       window.removeEventListener('coderoo:save', saveFile)
+      window.removeEventListener('coderoo:save-all', saveAll)
       view?.destroy()
     }
   })

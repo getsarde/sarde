@@ -45,6 +45,7 @@
   }
 
   async function deleteItem(item) {
+    if (!confirm(`Remove "${item.name}" from ${item.count} file${item.count !== 1 ? 's' : ''}?\n\nThis will modify the frontmatter of all affected pages.`)) return
     try {
       const count = await deleteTaxonomy(activeTab, item.name)
       addToast('success', `Removed "${item.name}" from ${count} file${count !== 1 ? 's' : ''}`)

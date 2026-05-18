@@ -89,7 +89,7 @@
           <span class="panel-title">Source Control</span>
         </div>
         <div class="git-placeholder">
-          <p>No changes detected.</p>
+          <p>Git integration coming soon.</p>
         </div>
 
       {:else if ui.leftPanel === 'taxonomy'}

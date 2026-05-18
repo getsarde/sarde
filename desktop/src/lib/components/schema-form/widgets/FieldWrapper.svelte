@@ -22,7 +22,6 @@
     font-weight: 600;
     color: var(--cr-text-muted);
     margin-bottom: 4px;
-    text-transform: capitalize;
   }
 
   .required {

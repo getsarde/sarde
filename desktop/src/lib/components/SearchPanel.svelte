@@ -285,6 +285,10 @@
     const q = query.trim()
     if (!q || results.length === 0) return
 
+    const matchCount = results.reduce((sum, r) => sum + r.matches.length, 0)
+    const fileCount = results.length
+    if (!confirm(`Replace ${matchCount} occurrence${matchCount !== 1 ? 's' : ''} in ${fileCount} file${fileCount !== 1 ? 's' : ''}?`)) return
+
     replacing = true
     try {
       let totalCount = 0

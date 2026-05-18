@@ -12,7 +12,7 @@
     {value}
     {disabled}
     maxlength={maxLength}
-    onchange={(e) => onchange(e.target.value)}
+    oninput={(e) => onchange(e.target.value)}
   ></textarea>
 </FieldWrapper>
 

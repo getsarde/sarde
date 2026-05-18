@@ -5,20 +5,26 @@
   import { ContextMenu } from 'bits-ui'
   import ConfirmSaveDialog from './ConfirmSaveDialog.svelte'
 
-  function ctxCloseOthers(id) {
+  async function ctxCloseOthers(id) {
     const keep = tabs.items.find(t => t.id === id)
     if (!keep) return
+    const dirtyOthers = tabs.items.filter(t => t.id !== id && t.dirty)
+    if (dirtyOthers.length > 0) {
+      const names = dirtyOthers.map(t => t.name).join(', ')
+      if (!confirm(`Unsaved changes in: ${names}\n\nDiscard and close?`)) return
+    }
     tabs.items.splice(0, tabs.items.length, keep)
     if (tabs.activeId !== id) {
-      tabs.activeId = id
-      doc.filePath = keep.path
-      doc.contentPath = keep.contentPath ?? ''
-      doc.content = keep.cachedContent ?? ''
-      doc.dirty = keep.dirty ?? false
+      switchToTab(id)
     }
   }
 
   function ctxCloseAll() {
+    const dirtyTabs = tabs.items.filter(t => t.dirty)
+    if (dirtyTabs.length > 0) {
+      const names = dirtyTabs.map(t => t.name).join(', ')
+      if (!confirm(`Unsaved changes in: ${names}\n\nDiscard and close all?`)) return
+    }
     tabs.items.splice(0, tabs.items.length)
     tabs.activeId = null
     doc.filePath = ''
@@ -183,6 +189,7 @@
   .tab.active {
     background: var(--cr-bg-base);
     color: var(--cr-text);
+    border-bottom: 2px solid var(--cr-accent);
   }
 
   .tab-dot {

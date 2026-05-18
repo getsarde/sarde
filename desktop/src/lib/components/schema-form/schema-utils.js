@@ -53,7 +53,7 @@ export function normalizeFields(schemaFields, values) {
 
     result[key] = {
       type,
-      label: schemaDef.label || key,
+      label: schemaDef.label || humanizeKey(key),
       required: schemaDef.required || false,
       options: schemaDef.options || [],
       min: schemaDef.min,
@@ -64,6 +64,14 @@ export function normalizeFields(schemaFields, values) {
   }
 
   return result
+}
+
+/** Convert a camelCase or snake_case key to a human-readable label. */
+export function humanizeKey(key) {
+  return key
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
 }
 
 /** Priority ordering for common frontmatter fields. */

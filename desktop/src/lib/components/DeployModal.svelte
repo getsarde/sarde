@@ -160,7 +160,7 @@
   }
 
   .deploy-icon.success {
-    color: #22c55e;
+    color: var(--cr-success);
   }
 
   .deploy-icon.error {

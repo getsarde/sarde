@@ -43,8 +43,13 @@
   }
 
   :global(.cr-btn:disabled) {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
+  }
+
+  :global(.cr-btn:focus-visible) {
+    outline: 2px solid var(--cr-accent);
+    outline-offset: 2px;
   }
 
   /* Sizes */
@@ -66,7 +71,7 @@
   /* Variants */
   :global(.cr-btn-primary) {
     background: var(--cr-accent);
-    color: #fff;
+    color: var(--cr-accent-text, #fff);
   }
 
   :global(.cr-btn-secondary) {

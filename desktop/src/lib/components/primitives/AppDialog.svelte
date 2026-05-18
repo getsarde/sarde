@@ -31,9 +31,15 @@
   :global(.cr-dialog-overlay) {
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: 199;
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(4px);
+    animation: overlayIn 0.15s ease;
+  }
+
+  @keyframes overlayIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   :global(.cr-dialog-content) {
@@ -41,7 +47,8 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 100;
+    z-index: 200;
+    animation: dialogIn 0.15s ease;
     width: var(--dialog-width);
     max-width: 90vw;
     max-height: 80vh;
@@ -53,5 +60,10 @@
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
     overflow: hidden;
     outline: none;
+  }
+
+  @keyframes dialogIn {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   }
 </style>
