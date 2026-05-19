@@ -43,7 +43,7 @@
 </div>
 
 {#if location && projectName.trim()}
-  <p class="path-preview">Project will be created at: <code>{location}/{projectName.trim()}</code></p>
+  <p class="path-preview">Project will be created at: <code title="{location}/{projectName.trim()}">{location}/{projectName.trim()}</code></p>
 {/if}
 
 <style>
@@ -99,12 +99,17 @@
   .path-preview {
     font-size: 12px;
     color: var(--cr-text-muted);
-    margin: -8px 0 0;
+    margin: -4px 0 0;
   }
 
   .path-preview code {
     color: var(--cr-accent);
+    font-family: var(--cr-font-mono);
     font-size: 11px;
-    word-break: break-all;
+    display: block;
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 </style>

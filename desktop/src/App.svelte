@@ -11,6 +11,7 @@
   import CreateProjectWizard from './lib/components/CreateProjectWizard.svelte'
   import EditorLayout from './lib/components/EditorLayout.svelte'
   import OnboardingTour from './lib/components/OnboardingTour.svelte'
+  import TitleBar from './lib/components/TitleBar.svelte'
 
   let showOnboarding = $state(false)
 
@@ -129,6 +130,8 @@
 </script>
 
 <div class="app">
+  <TitleBar showTabs={screen === 'ready'} />
+
   {#if screen === 'launcher'}
     <WelcomeScreen onOpen={openProject} onCreate={() => (screen = 'create')} />
 
@@ -163,6 +166,7 @@
   .app {
     height: 100vh;
     display: flex;
+    flex-direction: column;
     background: var(--cr-bg-base);
     color: var(--cr-text);
     font-family: var(--cr-font-ui);

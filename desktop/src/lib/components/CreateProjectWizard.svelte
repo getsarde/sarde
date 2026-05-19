@@ -34,11 +34,6 @@
     if (step < 3 && canNext) step++
   }
 
-  function back() {
-    if (step > 1) step--
-    else onBack()
-  }
-
   async function create() {
     creating = true
     error = ''
@@ -57,17 +52,13 @@
 
   function onKeydown(e) {
     if (e.key === 'Enter' && step < 3 && canNext) next()
-    if (e.key === 'Escape') back()
+    if (e.key === 'Escape') onBack()
   }
 </script>
 
 <svelte:window onkeydown={onKeydown} />
 
 <div class="wizard">
-  <button class="back-link" onclick={back}>
-    <ArrowLeft size={16} /> {step > 1 ? 'Back' : 'Home'}
-  </button>
-
   <div class="wizard-card">
     <h2>Create New Project</h2>
 
@@ -118,21 +109,20 @@
       {/if}
     </div>
 
-    <!-- Navigation buttons (steps 1-2 only; step 3 has its own Create button) -->
-    {#if step < 3}
-      <div class="nav-row">
-        {#if step > 1}
-          <button class="nav-btn secondary" onclick={() => step--}>
-            <ArrowLeft size={14} /> Back
-          </button>
-        {:else}
-          <div></div>
-        {/if}
+    <!-- Navigation -->
+    <div class="nav-row">
+      <button class="nav-btn secondary" onclick={onBack}>Cancel</button>
+      {#if step > 1}
+        <button class="nav-btn secondary" onclick={() => step--}>
+          <ArrowLeft size={14} /> Back
+        </button>
+      {/if}
+      {#if step < 3}
         <button class="nav-btn primary" onclick={next} disabled={!canNext}>
           Next <ArrowRight size={14} />
         </button>
-      </div>
-    {/if}
+      {/if}
+    </div>
   </div>
 </div>
 
@@ -147,27 +137,6 @@
     padding: 40px;
   }
 
-  .back-link {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    border: none;
-    background: transparent;
-    color: var(--cr-text-muted);
-    font-size: 13px;
-    cursor: pointer;
-    padding: 6px 10px;
-    border-radius: var(--cr-radius);
-  }
-
-  .back-link:hover {
-    color: var(--cr-text);
-    background: var(--cr-hover);
-  }
-
   .wizard-card {
     width: 440px;
     max-width: 90vw;
@@ -175,6 +144,7 @@
     border: 1px solid var(--cr-border);
     border-radius: var(--cr-radius-lg);
     background: var(--cr-bg-input);
+    box-shadow: var(--cr-shadow-md);
   }
 
   h2 {
@@ -256,14 +226,15 @@
 
   /* Step content area */
   .step-content {
-    margin-bottom: 4px;
+    margin-bottom: 16px;
   }
 
   /* Navigation row */
   .nav-row {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
+    gap: 8px;
     margin-top: 8px;
   }
 

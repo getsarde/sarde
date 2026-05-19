@@ -160,6 +160,58 @@ func TestSEO_CourseNode(t *testing.T) {
 	}
 }
 
+func TestSEO_PageImageUsedForOgImage(t *testing.T) {
+	page := &engine.Page{
+		Title:        "Post With Image",
+		RelPermalink: "/blog/post/",
+		Description:  "A post",
+		Image:        "/img/custom-cover.png",
+		Collection:   &engine.Collection{Name: "blog"},
+	}
+
+	ctx := &BeforeRenderContext{
+		Page:  page,
+		Site:  &engine.SiteContext{BaseURL: "https://example.com", Title: "My Site"},
+		store: NewStore(),
+	}
+
+	err := seoBeforeRender(ctx, nil)
+	if err != nil {
+		t.Fatalf("seoBeforeRender failed: %v", err)
+	}
+
+	seo := page.Params["seo"].(map[string]any)
+	if seo["og_image"] != "https://example.com/img/custom-cover.png" {
+		t.Errorf("og_image = %v, want page.Image-based URL", seo["og_image"])
+	}
+}
+
+func TestSEO_DefaultImageFallback(t *testing.T) {
+	page := &engine.Page{
+		Title:        "Post No Image",
+		RelPermalink: "/blog/post/",
+		Description:  "A post",
+		Collection:   &engine.Collection{Name: "blog"},
+	}
+
+	ctx := &BeforeRenderContext{
+		Page:  page,
+		Site:  &engine.SiteContext{BaseURL: "https://example.com", Title: "My Site"},
+		store: NewStore(),
+	}
+
+	cfg := map[string]any{"default_image": "/img/fallback.png"}
+	err := seoBeforeRender(ctx, cfg)
+	if err != nil {
+		t.Fatalf("seoBeforeRender failed: %v", err)
+	}
+
+	seo := page.Params["seo"].(map[string]any)
+	if seo["og_image"] != "https://example.com/img/fallback.png" {
+		t.Errorf("og_image = %v, want default_image fallback", seo["og_image"])
+	}
+}
+
 func TestSEO_DisableJSONLD(t *testing.T) {
 	page := &engine.Page{
 		Title:        "Test",

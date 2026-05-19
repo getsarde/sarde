@@ -5,6 +5,7 @@ import (
 	"fmt"
 	htmltemplate "html/template"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -65,7 +66,10 @@ func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
 		embeddedFS:  opts.EmbeddedFS,
 		devMode:     opts.DevMode,
 		scanner:     &content.Scanner{},
-		mdRenderer:  markdown.NewRenderer(),
+		mdRenderer: markdown.NewRendererFromConfig(markdown.RendererConfig{
+			BlockedHrefSchemes: opts.Config.Security.BlockedHrefSchemes,
+			HeadingLinks:       config.BoolVal(opts.Config.Site.HeadingLinks, true),
+		}),
 		tmplEngine:  coderootemplate.NewEngine(),
 		pluginMgr:   mgr,
 	}
@@ -221,7 +225,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		poolSize := runtime.NumCPU()
 		rendererPool := make(chan *markdown.Renderer, poolSize)
 		for i := 0; i < poolSize; i++ {
-			rendererPool <- markdown.NewRenderer()
+			rendererPool <- markdown.NewRendererFromConfig(markdown.RendererConfig{
+				BlockedHrefSchemes: b.config.Security.BlockedHrefSchemes,
+				HeadingLinks:       config.BoolVal(b.config.Site.HeadingLinks, true),
+			})
 		}
 
 		g, _ := errgroup.WithContext(context.Background())
@@ -468,8 +475,40 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	// Render 404 page(s).
 	render404 := func(lang, dir, outPath string) {
 		page404 := &engine.Page{Title: "Page Not Found", Kind: engine.KindPage, Lang: lang}
+		templateName := consts.DirDefault + "/404"
+
+		// Convention: auto-detect content/404.md (or content/404.<lang>.md).
+		candidates := []string{
+			filepath.Join(contentDir, "404."+lang+".md"),
+			filepath.Join(contentDir, "404.md"),
+		}
+		for _, path := range candidates {
+			raw, err := os.ReadFile(path)
+			if err != nil {
+				continue
+			}
+			fm, body, _ := content.ParseFrontmatter(raw)
+			if fm != nil && fm.Title != "" {
+				page404.Title = fm.Title
+			}
+			if fm != nil && fm.Description != "" {
+				page404.Description = fm.Description
+			}
+			if fm != nil && fm.Template != "" {
+				templateName = consts.DirDefault + "/" + fm.Template
+			}
+			if body != "" {
+				renderedHTML, headings, renderErr := b.mdRenderer.Render(body)
+				if renderErr == nil {
+					page404.Content = htmltemplate.HTML(renderedHTML)
+					page404.Headings = headings
+				}
+			}
+			break
+		}
+
 		rd404 := &engine.RouteData{
-			Template: consts.DirDefault + "/404",
+			Template: templateName,
 			Layout:   engine.LayoutDefault,
 			Site:     siteCtx,
 			Theme:    b.themeConfig,

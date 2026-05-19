@@ -1,1 +1,1 @@
-{{ if and .Site.EditURL .Page .Page.RelPath }}<a class="edit-link" href="{{ editURL .Site.EditURL .Page.RelPath }}" rel="noopener">{{ t "edit_this_page" }}</a>{{ end }}
+{{ if and .Site.EditURL .Page .Page.RelPath (boolParam .Page.Params "edit_url" true) }}<a class="edit-link" href="{{ editURL .Site.EditURL .Page.RelPath }}" rel="noopener">{{ t "edit_this_page" }}</a>{{ end }}

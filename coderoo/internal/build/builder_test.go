@@ -211,3 +211,76 @@ func assertFixtureFileContains(t *testing.T, base, rel, substr string) {
 		t.Errorf("file %s does not contain %q", rel, substr)
 	}
 }
+
+func TestBuild_Custom404(t *testing.T) {
+	projDir := createFixtureSite(t)
+	writeFixture(t, projDir, "content/404.md", "---\ntitle: Oops!\n---\n# Custom Not Found\n\nSorry, this page doesn't exist.\n")
+
+	cfg := config.Defaults()
+	themeCfg := buildThemeConfig()
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: themeCfg,
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+
+	_, err := builder.Build()
+	if err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(projDir, "dist")
+	assertFixtureFileExists(t, distDir, "404.html")
+	assertFixtureFileContains(t, distDir, "404.html", "Custom Not Found")
+	assertFixtureFileContains(t, distDir, "404.html", "this page")
+}
+
+func TestBuild_Custom404_TemplateVariant(t *testing.T) {
+	projDir := createFixtureSite(t)
+	writeFixture(t, projDir, "content/404.md", "---\ntitle: Gone\ntemplate: 404-minimal\n---\nMinimal error page.\n")
+
+	cfg := config.Defaults()
+	themeCfg := buildThemeConfig()
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: themeCfg,
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+
+	_, err := builder.Build()
+	if err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(projDir, "dist")
+	assertFixtureFileExists(t, distDir, "404.html")
+	assertFixtureFileContains(t, distDir, "404.html", "error-page--minimal")
+}
+
+func TestBuild_NoCustom404_UsesDefault(t *testing.T) {
+	projDir := createFixtureSite(t)
+	// No content/404.md — should use hardcoded fallback.
+
+	cfg := config.Defaults()
+	themeCfg := buildThemeConfig()
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: themeCfg,
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+
+	_, err := builder.Build()
+	if err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(projDir, "dist")
+	assertFixtureFileExists(t, distDir, "404.html")
+	assertFixtureFileContains(t, distDir, "404.html", "Page Not Found")
+}

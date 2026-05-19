@@ -81,3 +81,68 @@ func TestWirePrevNextFromTree_SinglePage(t *testing.T) {
 		t.Error("single page should have no prev/next")
 	}
 }
+
+func TestWirePrevNextFromTree_NextOverride(t *testing.T) {
+	pageA := &engine.Page{Title: "A", Slug: "a"}
+	pageB := &engine.Page{Title: "B", Slug: "b", Params: map[string]any{"next": "a"}}
+	pageC := &engine.Page{Title: "C", Slug: "c"}
+
+	tree := &engine.NavTree{
+		Flat: []*engine.NavNode{
+			{Page: pageA, Position: 0},
+			{Page: pageB, Position: 1},
+			{Page: pageC, Position: 2},
+		},
+		TotalPages: 3,
+	}
+
+	WirePrevNextFromTree(tree)
+
+	if pageB.NextPage != pageA {
+		t.Errorf("B.Next should be A (manual override), got %v", pageB.NextPage)
+	}
+}
+
+func TestWirePrevNextFromTree_BothOverrides(t *testing.T) {
+	pageA := &engine.Page{Title: "A", Slug: "a"}
+	pageB := &engine.Page{Title: "B", Slug: "b", Params: map[string]any{"prev": "c", "next": "a"}}
+	pageC := &engine.Page{Title: "C", Slug: "c"}
+
+	tree := &engine.NavTree{
+		Flat: []*engine.NavNode{
+			{Page: pageA, Position: 0},
+			{Page: pageB, Position: 1},
+			{Page: pageC, Position: 2},
+		},
+		TotalPages: 3,
+	}
+
+	WirePrevNextFromTree(tree)
+
+	if pageB.PrevPage != pageC {
+		t.Errorf("B.Prev should be C (override), got %v", pageB.PrevPage)
+	}
+	if pageB.NextPage != pageA {
+		t.Errorf("B.Next should be A (override), got %v", pageB.NextPage)
+	}
+}
+
+func TestWirePrevNextFromTree_MissingSlug(t *testing.T) {
+	pageA := &engine.Page{Title: "A", Slug: "a"}
+	pageB := &engine.Page{Title: "B", Slug: "b", Params: map[string]any{"prev": "nonexistent"}}
+
+	tree := &engine.NavTree{
+		Flat: []*engine.NavNode{
+			{Page: pageA, Position: 0},
+			{Page: pageB, Position: 1},
+		},
+		TotalPages: 2,
+	}
+
+	WirePrevNextFromTree(tree)
+
+	// Non-existent slug should not override the auto-wired prev.
+	if pageB.PrevPage != pageA {
+		t.Errorf("B.Prev should remain A when override slug is missing, got %v", pageB.PrevPage)
+	}
+}

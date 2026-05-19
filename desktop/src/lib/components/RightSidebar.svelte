@@ -65,9 +65,11 @@
           {:else}
             <ul class="toc-list">
               {#each headings as h}
-                <li class="toc-item" style="padding-left: {(h.level - 1) * 12 + 8}px" onclick={() => { doc.targetLine = h.line }}>
-                  <span class="toc-level">H{h.level}</span>
-                  <span class="toc-text">{h.text}</span>
+                <li>
+                  <button class="toc-item" style="padding-left: {(h.level - 1) * 12 + 8}px" onclick={() => { doc.targetLine = h.line }}>
+                    <span class="toc-level">H{h.level}</span>
+                    <span class="toc-text">{h.text}</span>
+                  </button>
                 </li>
               {/each}
             </ul>
@@ -284,11 +286,16 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    width: 100%;
     padding-top: 4px;
     padding-bottom: 4px;
     padding-right: 8px;
+    border: none;
+    background: transparent;
     font-size: 12px;
+    font-family: var(--cr-font-ui);
     color: var(--cr-text);
+    text-align: left;
     cursor: pointer;
     border-radius: var(--cr-radius-sm);
   }

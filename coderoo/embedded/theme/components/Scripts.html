@@ -7,3 +7,5 @@
 {{ end }}
 {{ range .InlineScripts }}<script>{{ . }}</script>
 {{ end }}
+{{ if .Site.Config.Analytics.Script }}<script defer src="{{ .Site.Config.Analytics.Script }}"></script>
+{{ end }}

@@ -1,0 +1,81 @@
+.cr-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: var(--cr-radius);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  font-family: inherit;
+}
+
+.cr-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.cr-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cr-btn:focus-visible {
+  outline: 2px solid var(--cr-accent);
+  outline-offset: 2px;
+}
+
+/* Sizes */
+.cr-btn-default {
+  padding: 8px 20px;
+}
+
+.cr-btn-sm {
+  padding: 5px 14px;
+  font-size: 12px;
+}
+
+.cr-btn-icon {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+/* Variants */
+.cr-btn-primary {
+  background: var(--cr-accent);
+  color: var(--cr-accent-text, #fff);
+}
+
+.cr-btn-secondary {
+  background: var(--cr-hover);
+  color: var(--cr-text);
+}
+
+.cr-btn-ghost {
+  background: transparent;
+  color: var(--cr-text-muted);
+}
+
+.cr-btn-ghost:hover:not(:disabled) {
+  background: var(--cr-hover);
+  color: var(--cr-text);
+  opacity: 1;
+}
+
+.cr-btn-danger {
+  background: transparent;
+  color: var(--cr-danger);
+  border: 1px solid var(--cr-danger);
+}
+
+.cr-btn-danger:hover:not(:disabled) {
+  background: var(--cr-danger-bg);
+  opacity: 1;
+}
+
+/* Full width */
+.cr-btn-full {
+  width: 100%;
+}

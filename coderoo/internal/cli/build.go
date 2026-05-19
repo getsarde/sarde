@@ -114,6 +114,9 @@ func resolveAll(cmd *cobra.Command, projectDir string) (*config.SiteConfig, *eng
 		thm, _ = theme.LoadFromFS(embedded.ThemeFS(), ".")
 	}
 
+	// Fold theme shortcut fields into overrides before token resolution.
+	foldThemeShortcuts(cfg)
+
 	// Resolve tokens.
 	lightTokens := theme.ResolveTokens(theme.DefaultTokens(), thm, cfg.Theme.Preset, cfg.Theme.Overrides)
 	lightTokens = theme.DeriveTokens(lightTokens)
@@ -157,4 +160,32 @@ func projectDirFromArgs(args []string) string {
 	}
 	dir, _ := os.Getwd()
 	return dir
+}
+
+// foldThemeShortcuts maps convenience theme config fields (primary_color, etc.)
+// into the Overrides map so they flow through the token resolution cascade.
+// Explicit Overrides entries take precedence over shortcuts.
+func foldThemeShortcuts(cfg *config.SiteConfig) {
+	shortcuts := map[string]string{
+		"primary":   cfg.Theme.PrimaryColor,
+		"accent":    cfg.Theme.AccentColor,
+		"font-sans": cfg.Theme.FontFamily,
+		"font-mono": cfg.Theme.FontMono,
+	}
+	if cfg.Theme.Overrides == nil {
+		cfg.Theme.Overrides = make(map[string]string)
+	}
+	for token, val := range shortcuts {
+		if val != "" {
+			if _, exists := cfg.Theme.Overrides[token]; !exists {
+				cfg.Theme.Overrides[token] = val
+			}
+		}
+	}
+	if cfg.Theme.CodeLight != "" && cfg.Markdown.Highlighting.LightTheme == "" {
+		cfg.Markdown.Highlighting.LightTheme = cfg.Theme.CodeLight
+	}
+	if cfg.Theme.CodeDark != "" && cfg.Markdown.Highlighting.DarkTheme == "" {
+		cfg.Markdown.Highlighting.DarkTheme = cfg.Theme.CodeDark
+	}
 }

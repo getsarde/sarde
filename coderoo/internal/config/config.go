@@ -58,6 +58,7 @@ type SiteConfig struct {
 	I18n           I18nSettings                  `yaml:"i18n"`
 	Content        ContentSettings               `yaml:"content"`
 	LlmsTxt        LlmsTxtSettings              `yaml:"llms_txt"`
+	Security       SecurityConfig               `yaml:"security"`
 }
 
 // ---------------------------------------------------------------------------
@@ -65,13 +66,16 @@ type SiteConfig struct {
 // ---------------------------------------------------------------------------
 
 type SiteIdentity struct {
-	Title       string `yaml:"title"`
-	Description string `yaml:"description"`
-	URL         string `yaml:"url"`
-	Logo        Logo   `yaml:"logo"`
-	Favicon     string `yaml:"favicon"`
-	Language    string `yaml:"language"`
-	EditURL     string `yaml:"edit_url"`
+	Title          string `yaml:"title"`
+	Description    string `yaml:"description"`
+	URL            string `yaml:"url"`
+	Logo           Logo   `yaml:"logo"`
+	Favicon        string `yaml:"favicon"`
+	Language       string `yaml:"language"`
+	EditURL        string `yaml:"edit_url"`
+	TitleDelimiter string `yaml:"title_delimiter"`
+	HeadingLinks   *bool  `yaml:"heading_links"`
+	Custom404      string `yaml:"custom_404"`
 }
 
 // Logo supports both string and object forms in YAML:
@@ -112,10 +116,16 @@ type SocialLink struct {
 // ---------------------------------------------------------------------------
 
 type ThemeSettings struct {
-	Name      string            `yaml:"name"`
-	Preset    string            `yaml:"preset"`
-	Dark      *bool             `yaml:"dark"`
-	Overrides map[string]string `yaml:"overrides"`
+	Name         string            `yaml:"name"`
+	Preset       string            `yaml:"preset"`
+	Dark         *bool             `yaml:"dark"`
+	Overrides    map[string]string `yaml:"overrides"`
+	PrimaryColor string            `yaml:"primary_color"`
+	AccentColor  string            `yaml:"accent_color"`
+	FontFamily   string            `yaml:"font_family"`
+	FontMono     string            `yaml:"font_mono"`
+	CodeLight    string            `yaml:"code_light"`
+	CodeDark     string            `yaml:"code_dark"`
 }
 
 // ---------------------------------------------------------------------------
@@ -133,9 +143,19 @@ type TOCSettings struct {
 // ---------------------------------------------------------------------------
 
 type SidebarSettings struct {
-	Collapsed  *bool `yaml:"collapsed"`
-	Badges     *bool `yaml:"badges"`
-	Pagination *bool `yaml:"pagination"`
+	Collapsed    *bool         `yaml:"collapsed"`
+	Badges       *bool         `yaml:"badges"`
+	Pagination   *bool         `yaml:"pagination"`
+	AutoGenerate *bool         `yaml:"auto_generate"`
+	Items        []SidebarItem `yaml:"items"`
+}
+
+// SidebarItem is a single entry in a manually-defined sidebar.
+type SidebarItem struct {
+	Label     string        `yaml:"label"`
+	Link      string        `yaml:"link,omitempty"`
+	Collapsed *bool         `yaml:"collapsed,omitempty"`
+	Items     []SidebarItem `yaml:"items,omitempty"`
 }
 
 // ---------------------------------------------------------------------------
@@ -150,14 +170,16 @@ type HeaderSettings struct {
 }
 
 type FooterSettings struct {
-	Text  string    `yaml:"text"`
-	Links []NavLink `yaml:"links"`
+	Text    string    `yaml:"text"`
+	Links   []NavLink `yaml:"links"`
+	Credits *bool     `yaml:"credits"`
 }
 
 // NavLink is a labeled URL used in header and footer navigation.
 type NavLink struct {
-	Label string `yaml:"label"`
-	URL   string `yaml:"url"`
+	Label    string `yaml:"label"`
+	URL      string `yaml:"url"`
+	External bool   `yaml:"external"`
 }
 
 // ---------------------------------------------------------------------------
@@ -324,6 +346,7 @@ type ContentLintRules struct {
 type AnalyticsSettings struct {
 	Provider string `yaml:"provider"`
 	SiteID   string `yaml:"site_id"`
+	Script   string `yaml:"script"`
 }
 
 // ---------------------------------------------------------------------------
@@ -477,4 +500,13 @@ type ContentSettings struct {
 type LlmsTxtSettings struct {
 	Enabled     *bool `yaml:"enabled"`
 	IncludeBlog *bool `yaml:"include_blog"`
+}
+
+// ---------------------------------------------------------------------------
+// Security
+// ---------------------------------------------------------------------------
+
+// SecurityConfig holds security-related settings for content rendering.
+type SecurityConfig struct {
+	BlockedHrefSchemes []string `yaml:"blocked_href_schemes"`
 }

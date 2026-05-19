@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
@@ -149,7 +150,17 @@ func BuildStandalonePages(
 		return nil, nil
 	}
 
-	pages, _, err := buildPages(rootFiles, contentDir, nil, nil, summaryLength, lastUpdatedStrategy)
+	// Exclude 404.md — it has its own render path in the builder.
+	filtered := rootFiles[:0]
+	for _, f := range rootFiles {
+		base := filepath.Base(f.FilePath)
+		if base == "404.md" || strings.HasPrefix(base, "404.") && strings.HasSuffix(base, ".md") {
+			continue
+		}
+		filtered = append(filtered, f)
+	}
+
+	pages, _, err := buildPages(filtered, contentDir, nil, nil, summaryLength, lastUpdatedStrategy)
 	return pages, err
 }
 
@@ -258,31 +269,66 @@ func buildPages(
 			page.RelPath = filepath.ToSlash(rel)
 		}
 
+		// Ensure Params map is initialized for field transfers.
+		if page.Params == nil {
+			page.Params = make(map[string]any)
+		}
+
 		// Transfer section-specific fields to Params for section builder
 		if fm.Transparent {
-			if page.Params == nil {
-				page.Params = make(map[string]any)
-			}
 			page.Params["transparent"] = true
 		}
 		if fm.Render != nil && !*fm.Render {
-			if page.Params == nil {
-				page.Params = make(map[string]any)
-			}
 			page.Params["render"] = false
 		}
 		// Transfer `featured` (unknown to typed Frontmatter) from the raw map.
 		if b, ok := fmMap["featured"].(bool); ok && b {
-			if page.Params == nil {
-				page.Params = make(map[string]any)
-			}
 			page.Params["featured"] = true
 		}
 		if fm.Template != "" {
-			if page.Params == nil {
-				page.Params = make(map[string]any)
-			}
 			page.Params["template"] = fm.Template
+		}
+		if fm.Summary != "" {
+			page.Summary = template.HTML(fm.Summary)
+		}
+		if fm.Prev != "" {
+			page.Params["prev"] = fm.Prev
+		}
+		if fm.Next != "" {
+			page.Params["next"] = fm.Next
+		}
+		if len(fm.SidebarAttrs) > 0 {
+			page.Params["sidebar_attrs"] = fm.SidebarAttrs
+		}
+		if fm.Pagefind != nil {
+			page.Params["pagefind"] = *fm.Pagefind
+		}
+		if fm.TOC != nil {
+			page.Params["toc"] = *fm.TOC
+		}
+		if fm.TOCMinLevel > 0 {
+			page.Params["toc_min_level"] = fm.TOCMinLevel
+		}
+		if fm.TOCMaxLevel > 0 {
+			page.Params["toc_max_level"] = fm.TOCMaxLevel
+		}
+		if fm.SidebarGroup != "" {
+			page.Params["sidebar_group"] = fm.SidebarGroup
+		}
+		if fm.Layout != "" {
+			page.Params["layout"] = fm.Layout
+		}
+		if fm.Type != "" {
+			page.Params["type"] = fm.Type
+		}
+		if fm.Hero != nil {
+			page.Params["hero"] = fm.Hero
+		}
+		if fm.EditURL != nil {
+			page.Params["edit_url"] = *fm.EditURL
+		}
+		if fm.ShowUpdated != nil {
+			page.Params["show_updated"] = *fm.ShowUpdated
 		}
 
 		// Infer defaults (title, date, slug, weight)

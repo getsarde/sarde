@@ -263,3 +263,37 @@ func TestBuildNavTree_NilCollection(t *testing.T) {
 		t.Error("expected nil for nil collection")
 	}
 }
+
+func TestBuildNavTree_SidebarAttrsOnNode(t *testing.T) {
+	col := &engine.Collection{
+		Name:   "docs",
+		Title:  "Docs",
+		Config: docsConfig(),
+		Pages: []*engine.Page{
+			{
+				Title:        "API Page",
+				Slug:         "api",
+				RelPermalink: "/docs/api/",
+				Weight:       1,
+				Kind:         engine.KindPage,
+				Params:       map[string]any{"sidebar_attrs": map[string]string{"icon": "star", "data-new": "true"}},
+			},
+		},
+	}
+
+	tree := BuildNavTree(col)
+
+	if len(tree.Root.Children) != 1 {
+		t.Fatalf("expected 1 child, got %d", len(tree.Root.Children))
+	}
+	node := tree.Root.Children[0]
+	if node.Attrs == nil {
+		t.Fatal("expected Attrs to be set on NavNode")
+	}
+	if node.Attrs["icon"] != "star" {
+		t.Errorf("Attrs[icon] = %q, want %q", node.Attrs["icon"], "star")
+	}
+	if node.Attrs["data-new"] != "true" {
+		t.Errorf("Attrs[data-new] = %q, want %q", node.Attrs["data-new"], "true")
+	}
+}

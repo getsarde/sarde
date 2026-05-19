@@ -1,0 +1,11 @@
+{{ define "content" }}
+<div class="error-page error-page--minimal">
+  <h1>{{ if .Page.Content }}{{ .Page.Title }}{{ else }}Page Not Found{{ end }}</h1>
+  {{ if .Page.Content }}
+    <div class="error-page__content">{{ .Page.Content }}</div>
+  {{ else }}
+    <p>The page you requested could not be found.</p>
+  {{ end }}
+  <a href="/">Go back home</a>
+</div>
+{{ end }}

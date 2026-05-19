@@ -75,7 +75,6 @@
   import MarkdownPreview from './MarkdownPreview.svelte'
   import LeftSidebar from './LeftSidebar.svelte'
   import RightSidebar from './RightSidebar.svelte'
-  import TabBar from './TabBar.svelte'
   import EditorToolbar from './EditorToolbar.svelte'
   import CodeEditor from './CodeEditor.svelte'
   import EmptyEditor from './EmptyEditor.svelte'
@@ -99,7 +98,6 @@
   <LeftSidebar />
 
   <main class="main-area" aria-label="Editor">
-    <TabBar />
     <EditorToolbar editor={editorRef} />
 
     <div class="editor-content">

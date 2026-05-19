@@ -110,6 +110,7 @@ func mergeConfig(base, over *SiteConfig) {
 	mergeI18n(&base.I18n, &over.I18n)
 	mergeContent(&base.Content, &over.Content)
 	mergeLlmsTxt(&base.LlmsTxt, &over.LlmsTxt)
+	mergeSecurity(&base.Security, &over.Security)
 }
 
 // ---------------------------------------------------------------------------
@@ -124,6 +125,9 @@ func mergeSiteIdentity(base, over *SiteIdentity) {
 	mergeStr(&base.Favicon, over.Favicon)
 	mergeStr(&base.Language, over.Language)
 	mergeStr(&base.EditURL, over.EditURL)
+	mergeStr(&base.TitleDelimiter, over.TitleDelimiter)
+	mergeBoolP(&base.HeadingLinks, over.HeadingLinks)
+	mergeStr(&base.Custom404, over.Custom404)
 }
 
 func mergeLogo(base, over *Logo) {
@@ -145,6 +149,12 @@ func mergeTheme(base, over *ThemeSettings) {
 	if len(over.Overrides) > 0 {
 		base.Overrides = over.Overrides
 	}
+	mergeStr(&base.PrimaryColor, over.PrimaryColor)
+	mergeStr(&base.AccentColor, over.AccentColor)
+	mergeStr(&base.FontFamily, over.FontFamily)
+	mergeStr(&base.FontMono, over.FontMono)
+	mergeStr(&base.CodeLight, over.CodeLight)
+	mergeStr(&base.CodeDark, over.CodeDark)
 }
 
 func mergeTOC(base, over *TOCSettings) {
@@ -157,6 +167,10 @@ func mergeSidebar(base, over *SidebarSettings) {
 	mergeBoolP(&base.Collapsed, over.Collapsed)
 	mergeBoolP(&base.Badges, over.Badges)
 	mergeBoolP(&base.Pagination, over.Pagination)
+	mergeBoolP(&base.AutoGenerate, over.AutoGenerate)
+	if len(over.Items) > 0 {
+		base.Items = over.Items
+	}
 }
 
 func mergeHeader(base, over *HeaderSettings) {
@@ -173,6 +187,7 @@ func mergeFooter(base, over *FooterSettings) {
 	if len(over.Links) > 0 {
 		base.Links = over.Links
 	}
+	mergeBoolP(&base.Credits, over.Credits)
 }
 
 func mergeHead(base, over *HeadSettings) {
@@ -269,6 +284,7 @@ func mergeContentLint(base, over *ContentLintSettings) {
 func mergeAnalytics(base, over *AnalyticsSettings) {
 	mergeStr(&base.Provider, over.Provider)
 	mergeStr(&base.SiteID, over.SiteID)
+	mergeStr(&base.Script, over.Script)
 }
 
 func mergeDeploy(base, over *DeployConfig) {
@@ -326,6 +342,12 @@ func mergeContent(base, over *ContentSettings) {
 func mergeLlmsTxt(base, over *LlmsTxtSettings) {
 	mergeBoolP(&base.Enabled, over.Enabled)
 	mergeBoolP(&base.IncludeBlog, over.IncludeBlog)
+}
+
+func mergeSecurity(base, over *SecurityConfig) {
+	if len(over.BlockedHrefSchemes) > 0 {
+		base.BlockedHrefSchemes = over.BlockedHrefSchemes
+	}
 }
 
 // ---------------------------------------------------------------------------

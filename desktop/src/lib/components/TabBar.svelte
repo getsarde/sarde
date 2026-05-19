@@ -1,5 +1,7 @@
 <script>
   import { tabs, doc, switchToTab, closeTabById, requestCloseTab, pendingClose, resolvePendingClose } from '../stores/app.svelte.js'
+
+  let { embedded = false } = $props()
   import { saveContent } from '../api.js'
   import yaml from 'js-yaml'
   import { ContextMenu } from 'bits-ui'
@@ -94,7 +96,7 @@
 
 <svelte:window onkeydown={onGlobalKeydown} />
 
-<div class="tab-bar">
+<div class="tab-bar" class:embedded>
   <div class="tab-list">
     {#each tabs.items as tab (tab.id)}
       <ContextMenu.Root>
@@ -231,6 +233,14 @@
   .tab-close:hover {
     background: var(--cr-bg-surface);
     color: var(--cr-text);
+  }
+
+  .tab-bar.embedded {
+    height: 100%;
+    border-bottom: none;
+    background: transparent;
+    flex: 1;
+    min-width: 0;
   }
 
   :global(.ctx-menu) {

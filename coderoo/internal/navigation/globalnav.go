@@ -3,25 +3,30 @@ package navigation
 import (
 	"sort"
 
+	"github.com/coderoo-dev/coderoo/internal/config"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 )
 
-// BuildGlobalNav auto-generates the top-level site navigation from collections.
-// Items are sorted alphabetically by collection name.
-// The active item is determined by matching the current page's collection.
-func BuildGlobalNav(site *engine.SiteContext, currentCollection *engine.Collection) *engine.GlobalNav {
-	if site == nil || len(site.Collections) == 0 {
+// BuildGlobalNav builds the top-level site navigation from collections and
+// optional header links from the site config. Collection items are sorted
+// alphabetically; header links are appended after collection items.
+func BuildGlobalNav(site *engine.SiteContext, currentCollection *engine.Collection, headerLinks []config.NavLink) *engine.GlobalNav {
+	if site == nil {
+		return nil
+	}
+	if len(site.Collections) == 0 && len(headerLinks) == 0 {
 		return nil
 	}
 
-	// Sort collection names for deterministic ordering.
+	var items []engine.GlobalNavItem
+
+	// Collection-generated items.
 	names := make([]string, 0, len(site.Collections))
 	for name := range site.Collections {
 		names = append(names, name)
 	}
 	sort.Strings(names)
 
-	items := make([]engine.GlobalNavItem, 0, len(names))
 	for _, name := range names {
 		col := site.Collections[name]
 		item := engine.GlobalNavItem{
@@ -33,6 +38,15 @@ func BuildGlobalNav(site *engine.SiteContext, currentCollection *engine.Collecti
 			item.IsActive = true
 		}
 		items = append(items, item)
+	}
+
+	// Config header links appended after collections.
+	for _, link := range headerLinks {
+		items = append(items, engine.GlobalNavItem{
+			Label:    link.Label,
+			URL:      link.URL,
+			External: link.External,
+		})
 	}
 
 	return &engine.GlobalNav{Items: items}

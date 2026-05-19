@@ -50,7 +50,7 @@
 </div>
 
 <style>
-  .section { margin-bottom: 18px; }
+  .section { margin-bottom: 20px; }
 
   .section-label {
     display: block;
@@ -79,18 +79,20 @@
     cursor: pointer;
     text-align: center;
     font-family: inherit;
-    transition: border-color 0.15s, color 0.15s;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
   }
 
   :global(.template-card:hover) {
     border-color: var(--cr-text-muted);
     color: var(--cr-text);
+    background: var(--cr-bg-elevated);
   }
 
   :global(.template-card[data-state="checked"]) {
     border-color: var(--cr-accent);
     color: var(--cr-accent);
     background: var(--cr-accent-bg);
+    box-shadow: 0 0 0 1px var(--cr-accent);
   }
 
   .template-name {
@@ -104,7 +106,7 @@
     opacity: 0.7;
   }
 
-  .field { margin-bottom: 18px; }
+  .field { margin-bottom: 16px; }
 
   .field-label {
     display: block;
@@ -116,7 +118,9 @@
 
   .optional {
     font-weight: 400;
-    opacity: 0.6;
+    font-size: 11px;
+    color: var(--cr-text-dim);
+    font-style: italic;
   }
 
   .field-input {
@@ -130,7 +134,7 @@
     outline: none;
     box-sizing: border-box;
     font-family: inherit;
-    resize: vertical;
+    resize: none;
   }
 
   .field-input:focus { border-color: var(--cr-accent); }

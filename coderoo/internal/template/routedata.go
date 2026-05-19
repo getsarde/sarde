@@ -125,8 +125,12 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 		rd.SidebarType = "none"
 	}
 
-	// GlobalNav (always populated when site has collections)
-	rd.GlobalNav = navigation.BuildGlobalNav(site, col)
+	// GlobalNav (collections + config header links)
+	var headerLinks []config.NavLink
+	if siteCfg, ok := site.Config.(*config.SiteConfig); ok && siteCfg != nil {
+		headerLinks = siteCfg.Header.Links
+	}
+	rd.GlobalNav = navigation.BuildGlobalNav(site, col, headerLinks)
 
 	return rd
 }

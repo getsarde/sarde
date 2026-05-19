@@ -17,7 +17,7 @@ func TestBuildGlobalNav_Basic(t *testing.T) {
 		},
 	}
 
-	nav := BuildGlobalNav(site, docs)
+	nav := BuildGlobalNav(site, docs, nil)
 
 	if nav == nil {
 		t.Fatal("expected non-nil")
@@ -48,7 +48,7 @@ func TestBuildGlobalNav_NilCurrentCollection(t *testing.T) {
 		},
 	}
 
-	nav := BuildGlobalNav(site, nil)
+	nav := BuildGlobalNav(site, nil, nil)
 	if nav == nil {
 		t.Fatal("expected non-nil")
 	}
@@ -58,7 +58,7 @@ func TestBuildGlobalNav_NilCurrentCollection(t *testing.T) {
 }
 
 func TestBuildGlobalNav_NilSite(t *testing.T) {
-	if BuildGlobalNav(nil, nil) != nil {
+	if BuildGlobalNav(nil, nil, nil) != nil {
 		t.Error("expected nil for nil site")
 	}
 }

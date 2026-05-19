@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"html/template"
 	"os"
 	"path/filepath"
 	"testing"
@@ -310,6 +311,40 @@ func containsBackslash(s string) bool {
 
 // unused suppress
 var _ = engine.KindPage
+var _ template.HTML
+
+// buildSinglePage creates a minimal docs collection with one page and returns it.
+func buildSinglePage(t *testing.T, frontmatter, body string) *engine.Page {
+	t.Helper()
+	dir := t.TempDir()
+	contentDir := filepath.Join(dir, "content")
+	writeTestFile(t, contentDir, filepath.Join("docs", "_index.md"), "---\ntitle: Docs\n---\n")
+	writeTestFile(t, contentDir, filepath.Join("docs", "page.md"), "---\n"+frontmatter+"\n---\n"+body+"\n")
+
+	scanner := &content.Scanner{}
+	files, err := scanner.DiscoverFiles(contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	collections, _, err := BuildCollections(files, config.Defaults(), contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	docs := collections["docs"]
+	if docs == nil {
+		t.Fatal("docs collection missing")
+	}
+
+	for _, p := range docs.Pages {
+		if p.Kind != engine.KindSection {
+			return p
+		}
+	}
+	t.Fatal("no non-section page found")
+	return nil
+}
 
 func TestBuildStandalonePages(t *testing.T) {
 	contentDir, files := createTestSite(t)
@@ -322,5 +357,179 @@ func TestBuildStandalonePages(t *testing.T) {
 	// Should have _index.md (home) + about.md (standalone)
 	if len(pages) != 2 {
 		t.Fatalf("standalone pages = %d, want 2", len(pages))
+	}
+}
+
+func TestBuildPages_ImageTransferred(t *testing.T) {
+	page := buildSinglePage(t, "title: Test\nimage: /img/cover.jpg", "Body content.")
+	if page.Image != "/img/cover.jpg" {
+		t.Errorf("Image = %q, want %q", page.Image, "/img/cover.jpg")
+	}
+}
+
+func TestBuildPages_SummaryFromFrontmatter(t *testing.T) {
+	page := buildSinglePage(t, "title: Test\nsummary: \"Manual summary.\"", "A very long paragraph that would normally be auto-summarized by the transformer.")
+	if string(page.Summary) != "Manual summary." {
+		t.Errorf("Summary = %q, want %q", page.Summary, "Manual summary.")
+	}
+}
+
+func TestBuildPages_RenderFalseTransferred(t *testing.T) {
+	dir := t.TempDir()
+	contentDir := filepath.Join(dir, "content")
+	writeTestFile(t, contentDir, filepath.Join("docs", "_index.md"), "---\ntitle: Docs\n---\n")
+	writeTestFile(t, contentDir, filepath.Join("docs", "hidden", "_index.md"), "---\ntitle: Hidden Section\nrender: false\n---\n")
+	writeTestFile(t, contentDir, filepath.Join("docs", "hidden", "page.md"), "---\ntitle: Inner Page\n---\nContent.\n")
+
+	scanner := &content.Scanner{}
+	files, err := scanner.DiscoverFiles(contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	collections, _, err := BuildCollections(files, config.Defaults(), contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	docs := collections["docs"]
+	if docs == nil {
+		t.Fatal("docs collection missing")
+	}
+
+	for _, p := range docs.Pages {
+		if p.Title == "Hidden Section" {
+			v, ok := p.Params["render"].(bool)
+			if !ok || v != false {
+				t.Errorf("expected Params[render] = false, got %v", p.Params["render"])
+			}
+			return
+		}
+	}
+	t.Error("Hidden Section page not found")
+}
+
+func TestBuildPages_TransparentTransferred(t *testing.T) {
+	dir := t.TempDir()
+	contentDir := filepath.Join(dir, "content")
+	writeTestFile(t, contentDir, filepath.Join("docs", "_index.md"), "---\ntitle: Docs\n---\n")
+	writeTestFile(t, contentDir, filepath.Join("docs", "flat", "_index.md"), "---\ntitle: Flat\ntransparent: true\n---\n")
+	writeTestFile(t, contentDir, filepath.Join("docs", "flat", "page.md"), "---\ntitle: Child\n---\nContent.\n")
+
+	scanner := &content.Scanner{}
+	files, err := scanner.DiscoverFiles(contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	collections, _, err := BuildCollections(files, config.Defaults(), contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	docs := collections["docs"]
+	for _, p := range docs.Pages {
+		if p.Title == "Flat" {
+			v, ok := p.Params["transparent"].(bool)
+			if !ok || v != true {
+				t.Errorf("expected Params[transparent] = true, got %v", p.Params["transparent"])
+			}
+			return
+		}
+	}
+	t.Error("Flat section page not found")
+}
+
+func TestBuildPages_PrevNextTransferred(t *testing.T) {
+	page := buildSinglePage(t, "title: Test\nprev: getting-started\nnext: advanced", "Body.")
+	if page.Params["prev"] != "getting-started" {
+		t.Errorf("Params[prev] = %v, want %q", page.Params["prev"], "getting-started")
+	}
+	if page.Params["next"] != "advanced" {
+		t.Errorf("Params[next] = %v, want %q", page.Params["next"], "advanced")
+	}
+}
+
+func TestBuildPages_SidebarAttrsTransferred(t *testing.T) {
+	page := buildSinglePage(t, "title: Test\nsidebar_attrs:\n  icon: book\n  color: blue", "Body.")
+	raw, ok := page.Params["sidebar_attrs"]
+	if !ok {
+		t.Fatal("expected Params[sidebar_attrs] to be set")
+	}
+	attrs, ok := raw.(map[string]string)
+	if !ok {
+		t.Fatalf("expected map[string]string, got %T", raw)
+	}
+	if attrs["icon"] != "book" {
+		t.Errorf("sidebar_attrs[icon] = %q, want %q", attrs["icon"], "book")
+	}
+	if attrs["color"] != "blue" {
+		t.Errorf("sidebar_attrs[color] = %q, want %q", attrs["color"], "blue")
+	}
+}
+
+func TestBuildPages_TOCFieldsTransferred(t *testing.T) {
+	page := buildSinglePage(t, "title: Test\ntoc: true\ntoc_min_level: 2\ntoc_max_level: 5", "Body.")
+	if page.Params["toc"] != true {
+		t.Errorf("Params[toc] = %v, want true", page.Params["toc"])
+	}
+	if page.Params["toc_min_level"] != 2 {
+		t.Errorf("Params[toc_min_level] = %v, want 2", page.Params["toc_min_level"])
+	}
+	if page.Params["toc_max_level"] != 5 {
+		t.Errorf("Params[toc_max_level] = %v, want 5", page.Params["toc_max_level"])
+	}
+}
+
+func TestBuildPages_PagefindTransferred(t *testing.T) {
+	page := buildSinglePage(t, "title: Test\npagefind: false", "Body.")
+	if page.Params["pagefind"] != false {
+		t.Errorf("Params[pagefind] = %v, want false", page.Params["pagefind"])
+	}
+}
+
+func TestBuildPages_SidebarGroupTransferred(t *testing.T) {
+	page := buildSinglePage(t, "title: Test\nsidebar_group: Reference", "Body.")
+	if page.Params["sidebar_group"] != "Reference" {
+		t.Errorf("Params[sidebar_group] = %v, want %q", page.Params["sidebar_group"], "Reference")
+	}
+}
+
+func TestBuildPages_LayoutTransferred(t *testing.T) {
+	page := buildSinglePage(t, "title: Test\nlayout: splash", "Body.")
+	if page.Params["layout"] != "splash" {
+		t.Errorf("Params[layout] = %v, want %q", page.Params["layout"], "splash")
+	}
+}
+
+func TestBuildPages_TypeTransferred(t *testing.T) {
+	page := buildSinglePage(t, "title: Test\ntype: tutorial", "Body.")
+	if page.Params["type"] != "tutorial" {
+		t.Errorf("Params[type] = %v, want %q", page.Params["type"], "tutorial")
+	}
+}
+
+func TestBuildPages_HeroTransferred(t *testing.T) {
+	fm := "title: Home\nhero:\n  title: Welcome\n  tagline: Fast sites\n  actions:\n    - text: Get Started\n      link: /docs/\n      variant: primary"
+	page := buildSinglePage(t, fm, "Body.")
+	raw, ok := page.Params["hero"]
+	if !ok {
+		t.Fatal("expected Params[hero] to be set")
+	}
+	hero, ok := raw.(*engine.HeroConfig)
+	if !ok {
+		t.Fatalf("expected *engine.HeroConfig, got %T", raw)
+	}
+	if hero.Title != "Welcome" {
+		t.Errorf("Hero.Title = %q, want %q", hero.Title, "Welcome")
+	}
+	if hero.Tagline != "Fast sites" {
+		t.Errorf("Hero.Tagline = %q, want %q", hero.Tagline, "Fast sites")
+	}
+	if len(hero.Actions) != 1 {
+		t.Fatalf("Hero.Actions len = %d, want 1", len(hero.Actions))
+	}
+	if hero.Actions[0].Variant != "primary" {
+		t.Errorf("Hero.Actions[0].Variant = %q, want %q", hero.Actions[0].Variant, "primary")
 	}
 }

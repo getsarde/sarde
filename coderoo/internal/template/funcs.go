@@ -106,6 +106,20 @@ func buildFuncMap(
 			}
 			return strings.TrimRight(base, "/") + "/" + strings.TrimLeft(filepath.ToSlash(relPath), "/")
 		},
+		"boolVal": func(p *bool, def bool) bool {
+			if p != nil {
+				return *p
+			}
+			return def
+		},
+		"boolParam": func(params map[string]any, key string, def bool) bool {
+			if v, ok := params[key]; ok {
+				if b, ok := v.(bool); ok {
+					return b
+				}
+			}
+			return def
+		},
 		"urlize": content.Slugify,
 		"ref": func(slug string) string {
 			if site == nil {

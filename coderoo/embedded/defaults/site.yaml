@@ -9,6 +9,8 @@ site:
   language: "en"
   favicon: ""
   edit_url: ""
+  title_delimiter: "|"
+  heading_links: true
 
 social: []
 
@@ -27,6 +29,7 @@ sidebar:
   collapsed: false
   badges: true
   pagination: true
+  auto_generate: true
 
 header:
   search: true
@@ -37,6 +40,7 @@ header:
 footer:
   text: ""
   links: []
+  credits: false
 
 head:
   tags: []
@@ -161,3 +165,9 @@ content:
 llms_txt:
   enabled: true
   include_blog: true
+
+security:
+  blocked_href_schemes:
+    - "javascript:"
+    - "data:"
+    - "vbscript:"

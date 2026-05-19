@@ -169,6 +169,8 @@ type Frontmatter struct {
 	TOCMaxLevel   int               `yaml:"toc_max_level"`
 	Prev          string            `yaml:"prev"`
 	Next          string            `yaml:"next"`
+	EditURL       *bool             `yaml:"edit_url"`
+	ShowUpdated   *bool             `yaml:"show_updated"`
 	Params        map[string]any    `yaml:"params"`
 }
 
