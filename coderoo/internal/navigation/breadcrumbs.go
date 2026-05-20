@@ -57,3 +57,43 @@ func BuildBreadcrumbs(page *engine.Page, collection *engine.Collection) []engine
 
 	return crumbs
 }
+
+// BuildBreadcrumbsTabbed constructs breadcrumbs for a tabbed docs page.
+// Adds the tab as a level between the collection root and section chain.
+func BuildBreadcrumbsTabbed(page *engine.Page, col *engine.Collection, tab *engine.DocsTab) []engine.BreadcrumbItem {
+	if page == nil || col == nil || tab == nil {
+		return nil
+	}
+
+	crumbs := []engine.BreadcrumbItem{
+		{Label: col.Title, URL: "/" + col.Name + "/"},
+		{Label: tab.Title, URL: tab.Permalink},
+	}
+
+	// Section chain — skip the tab's root section (already represented by the tab crumb)
+	var sections []*engine.Section
+	sec := page.Section
+	for sec != nil && sec != tab.Section {
+		sections = append(sections, sec)
+		sec = sec.Parent
+	}
+	for i := len(sections) - 1; i >= 0; i-- {
+		s := sections[i]
+		if s.Transparent {
+			continue
+		}
+		crumbs = append(crumbs, engine.BreadcrumbItem{Label: s.Title, URL: s.Permalink})
+	}
+
+	if page.Kind != engine.KindSection {
+		crumbs = append(crumbs, engine.BreadcrumbItem{
+			Label:   page.Title,
+			URL:     page.RelPermalink,
+			Current: true,
+		})
+	} else if len(crumbs) > 0 {
+		crumbs[len(crumbs)-1].Current = true
+	}
+
+	return crumbs
+}

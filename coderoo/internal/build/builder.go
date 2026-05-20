@@ -366,9 +366,15 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 						return err
 					}
 
-					html, err := b.tmplEngine.Render(rd.Template, rd)
-					if err != nil {
-						return fmt.Errorf("rendering %s (template %s): %w", page.FilePath, rd.Template, err)
+					var html []byte
+					if redirect := tabbedCollectionRedirect(page); redirect != "" {
+						html = []byte(buildRedirectHTML(redirect))
+					} else {
+						var err error
+						html, err = b.tmplEngine.Render(rd.Template, rd)
+						if err != nil {
+							return fmt.Errorf("rendering %s (template %s): %w", page.FilePath, rd.Template, err)
+						}
 					}
 
 					rp := RenderedPage{
@@ -399,9 +405,15 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				return nil, err
 			}
 
-			html, err := b.tmplEngine.Render(rd.Template, rd)
-			if err != nil {
-				return nil, fmt.Errorf("rendering %s (template %s): %w", page.FilePath, rd.Template, err)
+			var html []byte
+			if redirect := tabbedCollectionRedirect(page); redirect != "" {
+				html = []byte(buildRedirectHTML(redirect))
+			} else {
+				var err error
+				html, err = b.tmplEngine.Render(rd.Template, rd)
+				if err != nil {
+					return nil, fmt.Errorf("rendering %s (template %s): %w", page.FilePath, rd.Template, err)
+				}
 			}
 
 			rendered = append(rendered, RenderedPage{
@@ -587,6 +599,11 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		return nil, fmt.Errorf("writing embedded theme assets: %w", err)
 	}
 
+	// Write the embedded CSS bundle as an external file.
+	if err := WriteEmbeddedCSS(outputDir, b.tmplEngine.CachedCSS()); err != nil {
+		return nil, fmt.Errorf("writing embedded CSS bundle: %w", err)
+	}
+
 	// Plugin hook: BuildDone (parallel, after all files written).
 	var pluginWarnings []engine.ValidationWarning
 	buildDoneCtx := &plugin.BuildDoneContext{
@@ -706,4 +723,22 @@ func groupPagesByLang(pages []*engine.Page) langGrouping {
 		}
 	}
 	return result
+}
+
+// tabbedCollectionRedirect returns the redirect URL if the page is the root
+// index of a tabbed collection, or "" otherwise.
+func tabbedCollectionRedirect(page *engine.Page) string {
+	col := page.Collection
+	if col == nil || !col.IsTabbed || col.IndexPage != page || len(col.Tabs) == 0 {
+		return ""
+	}
+	return col.Tabs[0].Permalink
+}
+
+func buildRedirectHTML(target string) string {
+	return fmt.Sprintf(`<!DOCTYPE html><html><head>`+
+		`<meta http-equiv="refresh" content="0;url=%s">`+
+		`<link rel="canonical" href="%s">`+
+		`</head><body><p><a href="%s">Continue</a></p></body></html>`,
+		target, target, target)
 }

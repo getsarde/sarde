@@ -33,7 +33,7 @@ func testSite() *engine.SiteContext {
 
 func testFuncMapBuild() htmltemplate.FuncMap {
 	lang := "en"
-	return buildFuncMap(testSite(), &engine.ThemeResolver{}, nil, &sync.Map{}, "", nil, nil, nil, &lang, nil)
+	return buildFuncMap(testSite(), &engine.ThemeResolver{}, nil, &sync.Map{}, "", nil, nil, nil, nil, &lang, nil)
 }
 
 // ── String tests ──
@@ -291,7 +291,7 @@ func TestNavFor(t *testing.T) {
 			"docs": {Name: "docs", NavTree: tree},
 		},
 	}
-	fm := buildFuncMap(site, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	fm := buildFuncMap(site, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
 	navFor := fm["navFor"].(func(string) *engine.NavTree)
 
 	if got := navFor("docs"); got != tree {
@@ -303,7 +303,7 @@ func TestNavFor(t *testing.T) {
 }
 
 func TestBreadcrumbs(t *testing.T) {
-	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
 	breadcrumbs := fm["breadcrumbs"].(func(any) []engine.BreadcrumbItem)
 
 	items := []engine.BreadcrumbItem{
@@ -322,7 +322,7 @@ func TestBreadcrumbs(t *testing.T) {
 }
 
 func TestSiblings(t *testing.T) {
-	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
 	siblings := fm["siblings"].(func(*engine.Page) []*engine.Page)
 
 	pages := []*engine.Page{{Title: "A"}, {Title: "B"}}
@@ -341,7 +341,7 @@ func TestSiblings(t *testing.T) {
 }
 
 func TestTranslations(t *testing.T) {
-	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
 	translations := fm["translations"].(func(any) []engine.TranslationLink)
 
 	links := []engine.TranslationLink{
@@ -360,7 +360,7 @@ func TestTranslations(t *testing.T) {
 }
 
 func TestToString(t *testing.T) {
-	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
 	toString := fm["toString"].(func(any) string)
 
 	if got := toString(42); got != "42" {
@@ -372,7 +372,7 @@ func TestToString(t *testing.T) {
 }
 
 func TestToInt(t *testing.T) {
-	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
 	toInt := fm["toInt"].(func(any) int)
 
 	if got := toInt(42); got != 42 {
@@ -387,7 +387,7 @@ func TestToInt(t *testing.T) {
 }
 
 func TestLang(t *testing.T) {
-	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil)
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
 	lang := fm["lang"].(func(any) string)
 
 	rd := &engine.RouteData{Lang: "fr"}

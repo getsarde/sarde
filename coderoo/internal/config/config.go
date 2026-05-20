@@ -376,6 +376,7 @@ type CollectionSiteConfig struct {
 	Permalink string                   `yaml:"permalink"`
 	Paginate  int                      `yaml:"paginate"`
 	Feed      *bool                    `yaml:"feed"`
+	Tabs      *bool                    `yaml:"tabs"`
 	Sidebar   *CollectionSidebarConfig `yaml:"sidebar"`
 	TOC       *CollectionTOCConfig     `yaml:"toc"`
 	PrevNext  *CollectionPrevNextConfig `yaml:"prev_next"`

@@ -171,6 +171,7 @@ type Frontmatter struct {
 	Next          string            `yaml:"next"`
 	EditURL       *bool             `yaml:"edit_url"`
 	ShowUpdated   *bool             `yaml:"show_updated"`
+	Icon          string            `yaml:"icon"`
 	Params        map[string]any    `yaml:"params"`
 }
 
@@ -213,6 +214,8 @@ type Collection struct {
 	NavTree   *NavTree            // default language nav tree (backward compat)
 	NavTrees  map[string]*NavTree // per-language nav trees (i18n)
 	IndexPage *Page
+	IsTabbed  bool                // true when docs tabs are auto-detected or forced
+	Tabs      []*DocsTab          // ordered by weight, then title
 }
 
 // CollectionConfig holds per-collection settings (auto-detected or explicit).
@@ -226,6 +229,7 @@ type CollectionConfig struct {
 	Sidebar   *SidebarConfig
 	TOC       *TOCConfig
 	PrevNext  *PrevNextConfig
+	Tabs      *bool // nil = auto-detect, true = force tabs, false = disable tabs
 }
 
 // SidebarConfig controls sidebar behavior for docs-layout collections.
@@ -248,6 +252,26 @@ type TOCConfig struct {
 type PrevNextConfig struct {
 	Enabled bool
 	Labels  [2]string
+}
+
+// ---------------------------------------------------------------------------
+// DocsTab
+// ---------------------------------------------------------------------------
+
+// DocsTab represents one tab in a tabbed docs collection.
+// Each tab corresponds to a top-level subdirectory with its own nav tree.
+type DocsTab struct {
+	Title       string
+	Description string
+	Icon        string              // emoji, icon name, or SVG path
+	Slug        string              // directory name, used for URL prefix matching
+	Weight      int
+	Permalink   string              // URL of the tab's index page
+	Section     *Section            // the top-level section backing this tab
+	NavTree     *NavTree
+	NavTrees    map[string]*NavTree // per-language (i18n)
+	Pages       []*Page
+	IndexPage   *Page
 }
 
 // ---------------------------------------------------------------------------
@@ -460,6 +484,11 @@ type RouteData struct {
 	Dir          string
 	Translations []TranslationLink
 	Homepage     *HomepageData // only set for KindHome pages
+
+	// Docs tabs (tabbed docs collections)
+	IsTabbed  bool       // collection uses docs tabs
+	DocsTabs  []*DocsTab // all tabs (for the switcher component)
+	ActiveTab *DocsTab   // which tab the current page belongs to
 
 	// Per-page asset injection (populated by plugins via BeforeRender).
 	Scripts       []string        // root-relative script URLs (emitted as <script defer src>)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/coderoo-dev/coderoo/internal/collection"
 	"github.com/coderoo-dev/coderoo/internal/config"
 	"github.com/coderoo-dev/coderoo/internal/consts"
 	"github.com/coderoo-dev/coderoo/internal/engine"
@@ -94,17 +95,36 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 		if engine.LayoutHasSidebar(rd.Layout) {
 			rd.SidebarType = "nav"
 			rd.HasSidebar = true
-			// Use per-language nav tree if available, else fall back to default
-			navTree := col.NavTree
-			if col.NavTrees != nil && page.Lang != "" {
-				if langTree, ok := col.NavTrees[page.Lang]; ok {
-					navTree = langTree
+
+			if col.IsTabbed && len(col.Tabs) > 0 {
+				rd.IsTabbed = true
+				rd.DocsTabs = col.Tabs
+				rd.ActiveTab = collection.FindTabForPage(col.Tabs, page)
+
+				if rd.ActiveTab != nil {
+					navTree := rd.ActiveTab.NavTree
+					if rd.ActiveTab.NavTrees != nil && page.Lang != "" {
+						if langTree, ok := rd.ActiveTab.NavTrees[page.Lang]; ok {
+							navTree = langTree
+						}
+					}
+					if navTree != nil {
+						rd.Sidebar = navigation.MarkActive(navTree, page)
+					}
+					rd.Breadcrumbs = navigation.BuildBreadcrumbsTabbed(page, col, rd.ActiveTab)
 				}
+			} else {
+				navTree := col.NavTree
+				if col.NavTrees != nil && page.Lang != "" {
+					if langTree, ok := col.NavTrees[page.Lang]; ok {
+						navTree = langTree
+					}
+				}
+				if navTree != nil {
+					rd.Sidebar = navigation.MarkActive(navTree, page)
+				}
+				rd.Breadcrumbs = navigation.BuildBreadcrumbs(page, col)
 			}
-			if navTree != nil {
-				rd.Sidebar = navigation.MarkActive(navTree, page)
-			}
-			rd.Breadcrumbs = navigation.BuildBreadcrumbs(page, col)
 		} else {
 			rd.SidebarType = "none"
 		}

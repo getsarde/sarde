@@ -97,10 +97,17 @@ func BuildCollections(
 		}
 		setCollectionOnSections(sections, col)
 
-		// 9. Build nav tree (docs-layout) and wire prev/next
-		// When multi-language, build per-language trees; otherwise single tree.
+		// 9. Detect tabs or build standard nav tree
 		langs := collectLanguages(pages)
-		if len(langs) > 1 {
+		if DetectTabs(col) {
+			col.IsTabbed = true
+			if len(langs) > 1 {
+				col.Tabs = BuildTabsI18n(col, contentDir, langs)
+			} else {
+				col.Tabs = BuildTabs(col, contentDir)
+			}
+		} else if len(langs) > 1 {
+			// Multi-language, non-tabbed
 			col.NavTrees = make(map[string]*engine.NavTree)
 			for _, lang := range langs {
 				langPages := filterByLang(pages, lang)
@@ -329,6 +336,9 @@ func buildPages(
 		}
 		if fm.ShowUpdated != nil {
 			page.Params["show_updated"] = *fm.ShowUpdated
+		}
+		if fm.Icon != "" {
+			page.Params["icon"] = fm.Icon
 		}
 
 		// Infer defaults (title, date, slug, weight)

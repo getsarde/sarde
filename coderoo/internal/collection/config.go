@@ -40,6 +40,9 @@ func MergeCollectionConfig(inferred *engine.CollectionConfig, siteCfg *config.Co
 	if siteCfg.Feed != nil {
 		merged.Feed = *siteCfg.Feed
 	}
+	if siteCfg.Tabs != nil {
+		merged.Tabs = siteCfg.Tabs
+	}
 
 	// Sidebar merge
 	if siteCfg.Sidebar != nil {

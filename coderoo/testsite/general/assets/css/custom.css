@@ -1,0 +1,14 @@
+/* Velox testsite custom styles — tests head.custom_css injection */
+
+.code-line-numbers {
+  opacity: 0.5;
+}
+
+.aside.aside-note {
+  border-left-width: 3px;
+}
+
+.gallery-grid img {
+  object-fit: cover;
+  aspect-ratio: 16/9;
+}

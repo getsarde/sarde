@@ -1,0 +1,35 @@
+{{ if .IsTabbed }}
+<div class="docs-tab-switcher">
+  <button class="docs-tab-trigger" data-docs-tab-trigger aria-expanded="false" aria-haspopup="listbox">
+    {{ if .ActiveTab }}
+    <span class="docs-tab-active-label">
+      {{ if .ActiveTab.Icon }}<span class="docs-tab-icon">{{ .ActiveTab.Icon }}</span>{{ end }}
+      <span>{{ .ActiveTab.Title }}</span>
+    </span>
+    {{ else }}
+    <span>Select section</span>
+    {{ end }}
+    <svg class="docs-tab-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+  <ul class="docs-tab-menu" data-docs-tab-menu role="listbox" hidden>
+    {{ range .DocsTabs }}
+    <li role="option"{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} aria-selected="true"{{ end }}>
+      <a href="{{ .Permalink }}" class="docs-tab-option{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} is-active{{ end }}">
+        {{ if .Icon }}<span class="docs-tab-icon">{{ .Icon }}</span>{{ end }}
+        <span class="docs-tab-option-text">
+          <span class="docs-tab-option-title">{{ .Title }}</span>
+          {{ if .Description }}<span class="docs-tab-option-desc">{{ .Description }}</span>{{ end }}
+        </span>
+        {{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }}
+        <svg class="docs-tab-check" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        {{ end }}
+      </a>
+    </li>
+    {{ end }}
+  </ul>
+</div>
+{{ end }}

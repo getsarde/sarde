@@ -28,6 +28,7 @@ type Engine struct {
 	dataCache     sync.Map
 	site          *engine.SiteContext
 	cachedCSS     string // embedded CSS, loaded once
+	cssURL        string // external CSS bundle URL (set during Load)
 	assetResolver *asset.Resolver
 	assetManifest *asset.Manifest
 	pluginFuncs   map[string]any
@@ -75,6 +76,9 @@ func (e *Engine) SetCurrentLang(lang string) {
 	e.currentLang = lang
 }
 
+// CachedCSS returns the concatenated embedded CSS bundle.
+func (e *Engine) CachedCSS() string { return e.cachedCSS }
+
 // Load implements engine.TemplateEngine. It initializes the template system:
 // loads base templates for each layout, sets up the component registry,
 // and builds the FuncMap.
@@ -83,9 +87,10 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 
 	// Load and cache embedded CSS files.
 	e.cachedCSS = loadEmbeddedCSS(resolver.EmbeddedFS)
+	e.cssURL = "/assets/css/coderoo.css"
 
 	// Build a bootstrap FuncMap (without component support) for initial parsing.
-	bootstrapFM := buildFuncMap(e.site, resolver, nil, &e.dataCache, e.cachedCSS, e.assetResolver, e.assetManifest, e.pluginFuncs, &e.currentLang, e.i18nStrings)
+	bootstrapFM := buildFuncMap(e.site, resolver, nil, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.pluginFuncs, &e.currentLang, e.i18nStrings)
 
 	// Create the component registry with embedded defaults.
 	registry, err := component.NewRegistry(resolver.EmbeddedFS, bootstrapFM)
@@ -110,7 +115,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	e.components = registry
 
 	// Rebuild the final FuncMap with the real component registry.
-	e.funcMap = buildFuncMap(e.site, resolver, registry, &e.dataCache, e.cachedCSS, e.assetResolver, e.assetManifest, e.pluginFuncs, &e.currentLang, e.i18nStrings)
+	e.funcMap = buildFuncMap(e.site, resolver, registry, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.pluginFuncs, &e.currentLang, e.i18nStrings)
 
 	// Re-register all components with the final FuncMap so they can call
 	// template functions like `component`, `now`, etc.

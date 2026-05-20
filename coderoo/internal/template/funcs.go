@@ -29,6 +29,7 @@ func buildFuncMap(
 	registry *component.Registry,
 	dataCache *sync.Map,
 	cachedCSS string,
+	cssURLPtr *string,
 	assetResolver *asset.Resolver,
 	assetManifest *asset.Manifest,
 	pluginFuncs map[string]any,
@@ -158,16 +159,20 @@ func buildFuncMap(
 		"themeStyles": func(data any) htmltemplate.HTML {
 			rd, ok := data.(*engine.RouteData)
 			if !ok || rd == nil {
-				return htmltemplate.HTML(wrapCSS(cachedCSS))
+				return ""
 			}
 			var sb strings.Builder
-			// Token <style> block (dynamic, from theme resolution).
+			// Token <style> block (always inline — small, per-build).
 			if rd.Theme != nil && rd.Theme.StyleTag != "" {
 				sb.WriteString(string(rd.Theme.StyleTag))
 				sb.WriteByte('\n')
 			}
-			// Embedded CSS (static, cached at load time).
-			if cachedCSS != "" {
+			// Main CSS bundle: external <link> when URL is set, inline fallback otherwise.
+			if cssURLPtr != nil && *cssURLPtr != "" {
+				sb.WriteString(`<link rel="stylesheet" href="`)
+				sb.WriteString(*cssURLPtr)
+				sb.WriteString(`">`)
+			} else if cachedCSS != "" {
 				sb.WriteString(wrapCSS(cachedCSS))
 			}
 			return htmltemplate.HTML(sb.String())
@@ -345,7 +350,7 @@ func buildFuncMap(
 			if err != nil {
 				return "", err
 			}
-			tmpl, err := htmltemplate.New(name).Funcs(buildFuncMap(site, resolver, registry, dataCache, cachedCSS, assetResolver, assetManifest, pluginFuncs, currentLangPtr, i18nStrings)).Parse(string(content))
+			tmpl, err := htmltemplate.New(name).Funcs(buildFuncMap(site, resolver, registry, dataCache, cachedCSS, cssURLPtr, assetResolver, assetManifest, pluginFuncs, currentLangPtr, i18nStrings)).Parse(string(content))
 			if err != nil {
 				return "", fmt.Errorf("parsing partial %q: %w", name, err)
 			}

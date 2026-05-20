@@ -6,7 +6,7 @@
     {{ range $name, $col := $cols }}
     <div class="catalog-card">
       <h2><a href="/{{ $name }}/">{{ $col.Title }}</a></h2>
-      {{ if $col.Description }}<p>{{ $col.Description }}</p>{{ end }}
+      {{ if and $col.IndexPage $col.IndexPage.Description }}<p>{{ $col.IndexPage.Description }}</p>{{ end }}
       {{ $recent := recentEntries $name 3 }}
       {{ if $recent }}
       <ul>

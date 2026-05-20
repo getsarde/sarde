@@ -6,6 +6,16 @@ import (
 	"path/filepath"
 )
 
+// WriteEmbeddedCSS writes the concatenated embedded CSS bundle to an external
+// file at outputDir/assets/css/coderoo.css. Returns the root-relative URL.
+func WriteEmbeddedCSS(outputDir string, css string) error {
+	if css == "" {
+		return nil
+	}
+	destPath := filepath.Join(outputDir, "assets", "css", "coderoo.css")
+	return writeFile(destPath, []byte(css))
+}
+
 // WriteEmbeddedAssets walks the `assets/` subtree inside the given embedded
 // theme filesystem and writes every file to outputDir/assets/. It is a no-op
 // when the `assets/` directory is absent.

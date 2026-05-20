@@ -1,0 +1,48 @@
+site:
+  title: "Ocean Theme"
+  description: "Coderoo theme preview — ocean preset."
+  url: "http://localhost:4727"
+  language: "en"
+  heading_links: true
+
+theme:
+  preset: "ocean"
+  dark: true
+
+collections:
+  docs:
+    layout: "docs"
+    sort: "weight asc"
+    sidebar:
+      collapsible: true
+      max_depth: 3
+    toc:
+      enabled: true
+    prev_next:
+      enabled: true
+  blog:
+    sort: "date desc"
+    feed: true
+
+homepage:
+  template: "hero"
+  hero:
+    title: "Ocean Theme"
+    subtitle: "Sky blue primary with a clean, modern feel."
+    cta:
+      label: "Get Started"
+      url: "/docs/getting-started"
+
+plugins:
+  enabled: [sitemap, search, seo]
+
+build:
+  minify: false
+
+server:
+  port: 4727
+  live_reload: true
+
+markdown:
+  triple_colon_callouts: true
+  typographer: true
