@@ -25,7 +25,7 @@ type ContentTransformer interface {
 
 // MarkdownRenderer converts Markdown content to HTML via the Goldmark pipeline.
 type MarkdownRenderer interface {
-	Render(markdown string) (string, []Heading, error)
+	Render(markdown string) (RenderResult, error)
 }
 
 // TemplateEngine loads templates from the resolved lookup chain and renders pages to HTML.

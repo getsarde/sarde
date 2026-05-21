@@ -1,0 +1,20 @@
+fields:
+  min_font_size:
+    type: number
+    label: "Minimum Font Size (%)"
+    hint: "Smallest font size readers can select (100% = 16px)"
+    default: 75
+    min: 25
+    max: 200
+  max_font_size:
+    type: number
+    label: "Maximum Font Size (%)"
+    hint: "Largest font size readers can select (100% = 16px)"
+    default: 300
+    min: 100
+    max: 500
+  show_width_control:
+    type: toggle
+    label: "Show Content Width Control"
+    hint: "Allow readers to adjust the content column width"
+    default: true

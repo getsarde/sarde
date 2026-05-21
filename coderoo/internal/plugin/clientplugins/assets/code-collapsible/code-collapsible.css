@@ -1,0 +1,164 @@
+/* Code Block Collapsible Styles
+ * Collapse classes applied directly to .code-block — no wrapper element needed.
+ * JS reads data-lines / data-collapse attributes set by the Go renderer.
+ */
+
+/* ========================================
+   Collapsible Code Block
+   ======================================== */
+.code-block.cc-collapsible {
+  position: relative;
+  margin: var(--fb-space-6, 1.5rem) 0;
+}
+
+/* ========================================
+   Content Container (overflow control)
+   The .frame element is the overflow container
+   ======================================== */
+.code-block.cc-collapsible .frame {
+  position: relative;
+}
+
+.code-block.cc-collapsible.cc-collapsed .frame {
+  max-height: var(--cc-preview-height, 280px);
+  overflow: hidden;
+}
+
+.code-block.cc-collapsible.cc-expanded .frame {
+  max-height: none;
+  overflow: visible;
+}
+
+/* ========================================
+   Gradient Overlay
+   Injected by JS inside .frame, above pre.chroma
+   ======================================== */
+.cc-gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--cc-bg-color, #1e1e1e) 100%
+  );
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+  border-radius: 0 0 var(--fb-code-radius, 0.75rem) var(--fb-code-radius, 0.75rem);
+}
+
+.code-block.cc-collapsible.cc-expanded .cc-gradient {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ========================================
+   Toggle Button
+   ======================================== */
+.cc-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 auto;
+  padding: 6px 16px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  color: var(--fb-primary, #3b82f6);
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: var(--fb-font-system, system-ui, sans-serif);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Collapsed: float over the gradient */
+.code-block.cc-collapsible.cc-collapsed .cc-toggle {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  margin: 0;
+}
+
+/* Expanded: sit below the code block */
+.code-block.cc-collapsible.cc-expanded .cc-toggle {
+  position: relative;
+  margin: 8px auto;
+}
+
+.cc-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.cc-toggle:focus-visible {
+  outline: 2px solid var(--fb-primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* ========================================
+   Chevron Icon
+   ======================================== */
+.cc-icon {
+  display: inline-flex;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+.code-block.cc-collapsible.cc-expanded .cc-icon {
+  transform: rotate(180deg);
+}
+
+/* ========================================
+   Button Text Visibility
+   ======================================== */
+.cc-text-collapse {
+  display: none;
+}
+
+.code-block.cc-collapsible.cc-expanded .cc-text-expand {
+  display: none;
+}
+
+.code-block.cc-collapsible.cc-expanded .cc-text-collapse {
+  display: inline;
+}
+
+/* ========================================
+   Light Theme
+   ======================================== */
+:root:not(.dark) .cc-gradient {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--cc-bg-color, #ffffff) 100%
+  );
+}
+
+:root:not(.dark) .cc-toggle {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+:root:not(.dark) .cc-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+/* ========================================
+   Reduced Motion
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  .cc-gradient,
+  .cc-toggle,
+  .cc-icon {
+    transition: none;
+  }
+}

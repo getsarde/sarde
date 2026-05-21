@@ -18,9 +18,11 @@ type PageCache struct {
 
 // CacheEntry holds the cached result of rendering a page's markdown.
 type CacheEntry struct {
-	ContentHash string           `json:"content_hash"`
-	HTML        string           `json:"html"`
-	Headings    []engine.Heading `json:"headings"`
+	ContentHash   string           `json:"content_hash"`
+	HTML          string           `json:"html"`
+	Headings      []engine.Heading `json:"headings"`
+	HasCodeBlocks bool             `json:"has_code_blocks,omitempty"`
+	HasImages     bool             `json:"has_images,omitempty"`
 }
 
 // NewPageCache creates a PageCache in the given project directory.

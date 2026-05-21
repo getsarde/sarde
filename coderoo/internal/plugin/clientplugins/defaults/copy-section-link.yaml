@@ -1,0 +1,13 @@
+fields:
+  tooltip_text:
+    type: text
+    label: "Tooltip Text"
+    hint: "Message shown after copying a section link"
+    default: "Link copied!"
+  tooltip_duration:
+    type: number
+    label: "Tooltip Duration (ms)"
+    hint: "How long the tooltip stays visible"
+    default: 1500
+    min: 500
+    max: 5000

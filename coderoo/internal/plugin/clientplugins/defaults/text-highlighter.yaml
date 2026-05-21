@@ -1,0 +1,15 @@
+fields:
+  max_highlights_per_page:
+    type: number
+    label: "Max Highlights Per Page"
+    hint: "Maximum number of highlights allowed per page"
+    default: 50
+    min: 10
+    max: 200
+  context_chars:
+    type: number
+    label: "Context Characters"
+    hint: "Characters of surrounding text stored for matching highlights on revisit"
+    default: 40
+    min: 20
+    max: 80

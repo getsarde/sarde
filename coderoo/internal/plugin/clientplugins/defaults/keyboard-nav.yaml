@@ -1,0 +1,6 @@
+fields:
+  show_hint:
+    type: toggle
+    label: "Show Keyboard Hint"
+    hint: "Display a brief hint about arrow key navigation on first visit"
+    default: true

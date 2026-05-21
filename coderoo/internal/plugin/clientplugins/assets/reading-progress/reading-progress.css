@@ -1,0 +1,50 @@
+/* Reading Progress Plugin
+ * Scroll progress bar + reading time badge
+ */
+
+/* ========================================
+   Scroll Progress Bar
+   ======================================== */
+.reading-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--rp-bar-height, 3px);
+    background: transparent;
+    z-index: calc(var(--fb-z-sticky, 100) + 1);
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.reading-progress__bar {
+    height: 100%;
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+/* ========================================
+   Reading Time Badge
+   ======================================== */
+.reading-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.825rem;
+    color: var(--fb-text-muted, #6b7280);
+    margin-top: 0.25rem;
+}
+
+.reading-time__icon {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+/* ========================================
+   Reduced Motion
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+    .reading-progress__bar {
+        transition: none;
+    }
+}

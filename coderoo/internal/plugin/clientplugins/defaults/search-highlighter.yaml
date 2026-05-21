@@ -1,0 +1,21 @@
+fields:
+  highlight_color:
+    type: color
+    label: "Highlight Color"
+    hint: "Background color for highlighted search terms. Leave empty for theme default."
+    default: ""
+  active_outline_color:
+    type: color
+    label: "Active Match Outline Color"
+    hint: "Outline color for the currently selected match. Leave empty for default."
+    default: ""
+  auto_scroll:
+    type: toggle
+    label: "Auto-scroll to First Match"
+    hint: "Automatically scroll to the first matching term when the page loads"
+    default: true
+  show_badge:
+    type: toggle
+    label: "Show Match Count Badge"
+    hint: "Display a floating badge with match count and prev/next navigation"
+    default: true

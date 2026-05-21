@@ -1,0 +1,16 @@
+fields:
+  show_icon:
+    type: toggle
+    label: "Show External Icon"
+    hint: "Display a small arrow icon after external links"
+    default: true
+  open_in_new_tab:
+    type: toggle
+    label: "Open in New Tab"
+    hint: "External links open in a new browser tab"
+    default: true
+  exclude_domains:
+    type: text
+    label: "Exclude Domains"
+    hint: "Comma-separated domains to treat as internal (e.g. github.com, docs.example.com)"
+    default: ""

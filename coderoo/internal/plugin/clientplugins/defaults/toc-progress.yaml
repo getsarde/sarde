@@ -1,0 +1,25 @@
+fields:
+  indicator_color:
+    type: color
+    label: "Indicator Color"
+    hint: "Color of the animated scroll indicator line. Leave empty for theme accent."
+    default: ""
+  indicator_width:
+    type: number
+    label: "Indicator Width (px)"
+    hint: "Width of the indicator line in pixels"
+    default: 2
+    min: 1
+    max: 4
+  animation_duration:
+    type: number
+    label: "Animation Duration (ms)"
+    hint: "Duration of the clip-path transition animation in milliseconds"
+    default: 200
+    min: 0
+    max: 1000
+  highlight_all_visible:
+    type: toggle
+    label: "Highlight All Visible Sections"
+    hint: "Color the text of all currently visible sections, not just the active one"
+    default: true

@@ -10,6 +10,7 @@
     {{ block "content" . }}{{ .Page.Content }}{{ end }}
   </main>
   {{ component "Footer" . }}
+  {{ announcementBanner }}
   {{ component "Scripts" . }}
 </body>
 </html>

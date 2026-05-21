@@ -1,0 +1,25 @@
+/* External Links Plugin */
+
+/* Icon placed after external link text */
+.external-link-icon {
+    display: inline-block;
+    width: 0.75em;
+    height: 0.75em;
+    margin-inline-start: 0.15em;
+    vertical-align: baseline;
+    opacity: 0.5;
+    transition: opacity 0.15s ease;
+}
+
+a:hover .external-link-icon {
+    opacity: 0.8;
+}
+
+/* Don't show icon on image links or button-styled links */
+a:has(> img) .external-link-icon,
+.link-button .external-link-icon,
+.link-card .external-link-icon,
+.nav-link .external-link-icon,
+.brand-link .external-link-icon {
+    display: none;
+}

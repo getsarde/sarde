@@ -1,0 +1,120 @@
+plugins:
+  scroll-to-top:
+    description: "Floating scroll-to-top button with optional progress ring"
+    inject_when: always
+    assets:
+      css: scroll-to-top/scroll-to-top.css
+      js: scroll-to-top/scroll-to-top.js
+    module: true
+
+  copy-section-link:
+    description: "Click heading anchors to copy shareable section links"
+    inject_when: has_headings
+    assets:
+      css: copy-section-link/copy-section-link.css
+      js: copy-section-link/copy-section-link.js
+    module: true
+
+  external-links:
+    description: "Mark external links with icons and open in new tabs"
+    inject_when: always
+    assets:
+      css: external-links/external-links.css
+      js: external-links/external-links.js
+    module: true
+
+  image-lightbox:
+    description: "Click images to view full-size in a lightbox overlay"
+    inject_when: has_images
+    assets:
+      css: image-lightbox/image-lightbox.css
+      js: image-lightbox/image-lightbox.js
+    module: true
+
+  keyboard-nav:
+    description: "Arrow key navigation between prev/next pages"
+    inject_when: has_prev_next
+    assets:
+      css: keyboard-nav/keyboard-nav.css
+      js: keyboard-nav/keyboard-nav.js
+    module: true
+
+  focus-mode:
+    description: "Distraction-free reading by hiding sidebar and ToC"
+    inject_when: has_sidebar
+    assets:
+      css: focus-mode/focus-mode.css
+      js: focus-mode/focus-mode.js
+    module: true
+
+  reading-progress:
+    description: "Scroll progress bar and reading time estimate"
+    inject_when: is_content_page
+    assets:
+      css: reading-progress/reading-progress.css
+      js: reading-progress/reading-progress.js
+    module: true
+
+  search-highlighter:
+    description: "Highlight search terms from query params in page content"
+    inject_when: always
+    assets:
+      css: search-highlighter/search-highlighter.css
+      js: search-highlighter/search-highlighter.js
+    module: true
+
+  text-highlighter:
+    description: "Selection-based text highlighting with localStorage persistence"
+    inject_when: is_content_page
+    assets:
+      css: text-highlighter/text-highlighter.css
+      js: text-highlighter/text-highlighter.js
+    module: true
+
+  toc-progress:
+    description: "Animated progress indicator in the Table of Contents"
+    inject_when: has_toc
+    assets:
+      css: toc-progress/toc-progress.css
+      js: toc-progress/toc-progress.js
+    module: true
+
+  last-updated:
+    description: "Last updated badge with relative or absolute time"
+    inject_when: has_updated
+    assets:
+      css: last-updated/last-updated.css
+      js: last-updated/last-updated.js
+    module: true
+
+  reading-position-memory:
+    description: "Remember and offer to restore scroll position per page"
+    inject_when: is_content_page
+    assets:
+      css: reading-position-memory/reading-position-memory.css
+      js: reading-position-memory/reading-position-memory.js
+    module: true
+
+  reading-preferences:
+    description: "User-adjustable font size, spacing, and content width"
+    inject_when: has_sidebar
+    assets:
+      css: reading-preferences/reading-preferences.css
+      js: reading-preferences/reading-preferences.js
+    module: true
+
+  code-fullscreen:
+    description: "Click-to-fullscreen on code blocks with keyboard support"
+    inject_when: has_code_blocks
+    assets:
+      css: code-fullscreen/code-fullscreen.css
+      js: code-fullscreen/code-fullscreen.js
+    module: true
+
+  code-collapsible:
+    description: "Auto-collapse long code blocks with expand/collapse toggle"
+    inject_when: has_code_blocks
+    assets:
+      css: code-collapsible/code-collapsible.css
+      js: code-collapsible/code-collapsible.js
+    module: true

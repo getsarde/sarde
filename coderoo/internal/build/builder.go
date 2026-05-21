@@ -24,6 +24,8 @@ import (
 	"github.com/coderoo-dev/coderoo/internal/engine"
 	"github.com/coderoo-dev/coderoo/internal/i18n"
 	"github.com/coderoo-dev/coderoo/internal/plugin"
+	"github.com/coderoo-dev/coderoo/internal/plugin/announcements"
+	"github.com/coderoo-dev/coderoo/internal/plugin/clientplugins"
 	"github.com/coderoo-dev/coderoo/internal/plugin/katex"
 	"github.com/coderoo-dev/coderoo/internal/plugin/mermaid"
 	"github.com/coderoo-dev/coderoo/internal/taxonomy"
@@ -244,6 +246,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 					if entry := pageCache.Get(hash); entry != nil {
 						page.Content = htmltemplate.HTML(entry.HTML)
 						page.Headings = entry.Headings
+						page.HasCodeBlocks = entry.HasCodeBlocks
+						page.HasImages = entry.HasImages
 						return nil
 					}
 				}
@@ -253,20 +257,24 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor())
 				renderer.SetImageLookup(lookup)
 
-				html, headings, err := renderer.Render(page.RawContent)
+				result, err := renderer.Render(page.RawContent)
 				rendererPool <- renderer // return to pool
 				if err != nil {
 					return fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
 				}
-				page.Content = htmltemplate.HTML(html)
-				page.Headings = headings
+				page.Content = htmltemplate.HTML(result.HTML)
+				page.Headings = result.Headings
+				page.HasCodeBlocks = result.HasCodeBlocks
+				page.HasImages = result.HasImages
 
 				// Store in cache.
 				if pageCache != nil {
 					pageCache.Put(hash, &CacheEntry{
-						ContentHash: hash,
-						HTML:        string(html),
-						Headings:    headings,
+						ContentHash:   hash,
+						HTML:          result.HTML,
+						Headings:      result.Headings,
+						HasCodeBlocks: result.HasCodeBlocks,
+						HasImages:     result.HasImages,
 					})
 				}
 				return nil
@@ -286,6 +294,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				if entry := pageCache.Get(hash); entry != nil {
 					page.Content = htmltemplate.HTML(entry.HTML)
 					page.Headings = entry.Headings
+					page.HasCodeBlocks = entry.HasCodeBlocks
+					page.HasImages = entry.HasImages
 					continue
 				}
 			}
@@ -293,18 +303,22 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor())
 			b.mdRenderer.SetImageLookup(lookup)
 
-			html, headings, err := b.mdRenderer.Render(page.RawContent)
+			result, err := b.mdRenderer.Render(page.RawContent)
 			if err != nil {
 				return nil, fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
 			}
-			page.Content = htmltemplate.HTML(html)
-			page.Headings = headings
+			page.Content = htmltemplate.HTML(result.HTML)
+			page.Headings = result.Headings
+			page.HasCodeBlocks = result.HasCodeBlocks
+			page.HasImages = result.HasImages
 
 			if pageCache != nil {
 				pageCache.Put(hash, &CacheEntry{
-					ContentHash: hash,
-					HTML:        string(html),
-					Headings:    headings,
+					ContentHash:   hash,
+					HTML:          result.HTML,
+					Headings:      result.Headings,
+					HasCodeBlocks: result.HasCodeBlocks,
+					HasImages:     result.HasImages,
 				})
 			}
 		}
@@ -511,10 +525,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				templateName = consts.DirDefault + "/" + fm.Template
 			}
 			if body != "" {
-				renderedHTML, headings, renderErr := b.mdRenderer.Render(body)
+				renderResult, renderErr := b.mdRenderer.Render(body)
 				if renderErr == nil {
-					page404.Content = htmltemplate.HTML(renderedHTML)
-					page404.Headings = headings
+					page404.Content = htmltemplate.HTML(renderResult.HTML)
+					page404.Headings = renderResult.Headings
 				}
 			}
 			break
@@ -708,8 +722,11 @@ func registerSubpackagePlugins(mgr *plugin.Manager, enabled []string, configs ma
 			mgr.Register(katex.New(configs[name]))
 		case "mermaid":
 			mgr.Register(mermaid.New(configs[name]))
+		case "announcements":
+			mgr.Register(announcements.New(configs[name]))
 		}
 	}
+	clientplugins.RegisterAll(mgr, enabled, configs)
 }
 
 func groupPagesByLang(pages []*engine.Page) langGrouping {

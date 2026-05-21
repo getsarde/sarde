@@ -1,0 +1,35 @@
+fields:
+  bar_height:
+    type: number
+    label: "Bar Height (px)"
+    hint: "Height of the scroll progress bar in pixels"
+    default: 3
+    min: 1
+    max: 10
+  bar_color:
+    type: color
+    label: "Bar Color"
+    hint: "Base color for the progress bar"
+    default: "#6366f1"
+  use_gradient:
+    type: toggle
+    label: "Use Gradient"
+    hint: "Apply a multi-color gradient effect instead of a solid color"
+    default: true
+  lesson_pages_only:
+    type: toggle
+    label: "Content Pages Only"
+    hint: "Only show the progress bar on content pages (not home or list pages)"
+    default: true
+  show_reading_time:
+    type: toggle
+    label: "Show Reading Time"
+    hint: "Display estimated reading time below the page title"
+    default: true
+  words_per_minute:
+    type: number
+    label: "Words Per Minute"
+    hint: "Average reading speed used to calculate estimated reading time"
+    default: 200
+    min: 50
+    max: 600

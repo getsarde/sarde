@@ -392,6 +392,10 @@ func buildFuncMap(
 		},
 	}
 
+	// Default no-op for optional plugin template functions.
+	// Plugins override these via ConfigSetup.AddTemplateFunc.
+	fm["announcementBanner"] = func() htmltemplate.HTML { return "" }
+
 	// Merge plugin-provided template functions.
 	for k, v := range pluginFuncs {
 		fm[k] = v

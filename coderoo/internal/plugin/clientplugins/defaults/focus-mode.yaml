@@ -1,0 +1,26 @@
+fields:
+  enable_hotkey:
+    type: toggle
+    label: "Enable Hotkey"
+    hint: "Press F to toggle focus mode on/off"
+    default: true
+  show_button:
+    type: toggle
+    label: "Show Toggle Button"
+    hint: "Display a floating button to toggle focus mode"
+    default: true
+  button_position:
+    type: select
+    label: "Button Position"
+    hint: "Where the focus mode toggle button appears"
+    default: bottom-right
+    options:
+      - { value: bottom-right, label: "Bottom Right" }
+      - { value: bottom-left, label: "Bottom Left" }
+  animation_speed:
+    type: number
+    label: "Animation Speed (ms)"
+    hint: "Transition duration in milliseconds"
+    default: 300
+    min: 0
+    max: 1000

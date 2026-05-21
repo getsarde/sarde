@@ -130,6 +130,7 @@ homepage:
 
 plugins:
   enabled:
+    # Core plugins
     - sitemap
     - robots
     - rss
@@ -143,12 +144,41 @@ plugins:
     - llms_txt
     - katex
     - mermaid
+    # Reading/UX plugins (ported from PHP Coderoo)
+    - scroll-to-top
+    - copy-section-link
+    - external-links
+    - image-lightbox
+    - keyboard-nav
+    - focus-mode
+    - reading-progress
+    - search-highlighter
+    - text-highlighter
+    - toc-progress
+    - last-updated
+    - reading-position-memory
+    - reading-preferences
+    - code-fullscreen
+    - code-collapsible
+    - announcements
   config:
     robots:
       user_agent: "*"
       disallow: ["/drafts/"]
     rss:
       full_content: true
+    scroll-to-top:
+      showProgressRing: true
+      threshold: 25
+    code-collapsible:
+      line_threshold: 12
+      preview_lines: 6
+    announcements:
+      message: "Velox v2.0 is now available — check the release notes!"
+      type: info
+      active: true
+      dismissible: true
+      id: "v2-release"
 
 head:
   custom_css:

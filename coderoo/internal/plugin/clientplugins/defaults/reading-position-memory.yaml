@@ -1,0 +1,29 @@
+fields:
+  toast_duration:
+    type: number
+    label: "Toast Duration (seconds)"
+    hint: "How long the \"Continue where you left off?\" toast stays visible"
+    default: 8
+    min: 3
+    max: 30
+  toast_position:
+    type: select
+    label: "Toast Position"
+    hint: "Where the toast appears on screen"
+    default: bottom-center
+    options:
+      - { value: bottom-center, label: "Bottom Center" }
+      - { value: bottom-left, label: "Bottom Left" }
+      - { value: bottom-right, label: "Bottom Right" }
+  scroll_threshold:
+    type: number
+    label: "Scroll Threshold (%)"
+    hint: "Minimum scroll percentage before position is saved"
+    default: 5
+    min: 1
+    max: 50
+  lesson_pages_only:
+    type: toggle
+    label: "Content Pages Only"
+    hint: "Only save position on content pages"
+    default: true

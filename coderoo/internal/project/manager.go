@@ -692,7 +692,7 @@ func (pm *ProjectManager) RenderMarkdown(md string) (*RenderResult, error) {
 	pm.mu.RLock()
 	defer pm.mu.RUnlock()
 
-	html, headings, err := pm.mdRenderer.Render(md)
+	result, err := pm.mdRenderer.Render(md)
 	if err != nil {
 		return nil, err
 	}
@@ -707,8 +707,8 @@ func (pm *ProjectManager) RenderMarkdown(md string) (*RenderResult, error) {
 	}
 
 	return &RenderResult{
-		HTML:        html,
-		Headings:    headings,
+		HTML:        result.HTML,
+		Headings:    result.Headings,
 		WordCount:   wc,
 		ReadingTime: rt,
 	}, nil

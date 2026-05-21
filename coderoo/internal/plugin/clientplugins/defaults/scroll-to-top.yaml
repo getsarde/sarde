@@ -1,0 +1,35 @@
+fields:
+  threshold:
+    type: number
+    label: "Scroll Threshold (%)"
+    hint: "How far down the page before the button appears"
+    default: 30
+    min: 0
+    max: 100
+  showTooltip:
+    type: toggle
+    label: "Show Tooltip"
+    hint: "Display a \"Back to top\" tooltip on hover"
+    default: false
+  showProgressRing:
+    type: toggle
+    label: "Show Progress Ring"
+    hint: "Show a circular progress indicator around the button"
+    default: false
+  borderRadius:
+    type: number
+    label: "Border Radius"
+    hint: "Corner rounding in pixels (0 = square, 50 = circle)"
+    default: 15
+    min: 0
+    max: 50
+  smoothScroll:
+    type: toggle
+    label: "Smooth Scroll"
+    hint: "Use smooth scrolling animation when returning to top"
+    default: true
+  progressRingColor:
+    type: color
+    label: "Progress Ring Color"
+    hint: "Custom color for the progress ring. Leave empty for theme default."
+    default: ""

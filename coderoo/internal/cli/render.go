@@ -34,14 +34,14 @@ func runRender(cmd *cobra.Command, args []string) error {
 	}
 
 	r := markdown.NewRenderer()
-	html, headings, err := r.Render(string(input))
+	mdResult, err := r.Render(string(input))
 	if err != nil {
 		return fmt.Errorf("rendering markdown: %w", err)
 	}
 
 	result := renderResult{
-		HTML:     html,
-		Headings: headings,
+		HTML:     mdResult.HTML,
+		Headings: mdResult.Headings,
 	}
 
 	return json.NewEncoder(os.Stdout).Encode(result)

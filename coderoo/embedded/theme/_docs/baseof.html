@@ -19,7 +19,7 @@
         <div class="docs-content">
           {{ if .Breadcrumbs }}{{ component "Breadcrumbs" . }}{{ end }}
           {{ component "MobileTableOfContents" . }}
-          <article class="fb-markdown-content">
+          <article class="fb-markdown-content"{{ if and .Page .Page.Updated (not .Page.Updated.IsZero) }} data-last-modified="{{ .Page.Updated.Unix }}"{{ end }}>
             {{ block "content" . }}{{ .Page.Content }}{{ end }}
           </article>
           {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
@@ -35,6 +35,7 @@
     </main>
     {{ component "Footer" . }}
   </div>
+  {{ announcementBanner }}
   {{ component "Scripts" . }}
 </body>
 </html>

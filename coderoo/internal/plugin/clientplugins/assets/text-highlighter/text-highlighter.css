@@ -1,0 +1,193 @@
+/* ── Highlight Marks ──────────────────────────────────────── */
+
+.text-hl {
+    color: inherit;
+    padding: 1px 2px;
+    border-radius: 2px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+}
+
+.text-hl:hover {
+    filter: brightness(0.88);
+}
+
+/* Color variants via data attribute */
+.text-hl[data-color="yellow"] { background-color: hsla(48, 96%, 53%, 0.35); }
+.text-hl[data-color="green"]  { background-color: hsla(142, 71%, 45%, 0.3); }
+.text-hl[data-color="blue"]   { background-color: hsla(217, 91%, 60%, 0.3); }
+.text-hl[data-color="pink"]   { background-color: hsla(330, 81%, 60%, 0.3); }
+.text-hl[data-color="orange"] { background-color: hsla(25, 95%, 53%, 0.35); }
+
+/* ── Floating Toolbar ────────────────────────────────────── */
+
+.thl-toolbar {
+    position: fixed;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.5rem;
+    background: var(--fb-bg-surface, #fff);
+    border: 1px solid var(--fb-border, rgba(0, 0, 0, 0.1));
+    border-radius: var(--fb-radius-lg, 0.5rem);
+    box-shadow: var(--fb-shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.15));
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    pointer-events: none;
+}
+
+.thl-toolbar--visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* ── Color Swatch Buttons ────────────────────────────────── */
+
+.thl-toolbar__color {
+    width: 1.375rem;
+    height: 1.375rem;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+    flex-shrink: 0;
+}
+
+.thl-toolbar__color:hover {
+    transform: scale(1.2);
+    border-color: var(--fb-text-muted, #6b7280);
+}
+
+.thl-toolbar__color[data-color="yellow"] { background-color: hsla(48, 96%, 53%, 0.6); }
+.thl-toolbar__color[data-color="green"]  { background-color: hsla(142, 71%, 45%, 0.55); }
+.thl-toolbar__color[data-color="blue"]   { background-color: hsla(217, 91%, 60%, 0.55); }
+.thl-toolbar__color[data-color="pink"]   { background-color: hsla(330, 81%, 60%, 0.55); }
+.thl-toolbar__color[data-color="orange"] { background-color: hsla(25, 95%, 53%, 0.6); }
+
+/* ── Separator & Clear Button ────────────────────────────── */
+
+.thl-toolbar__sep {
+    width: 1px;
+    height: 1rem;
+    background: var(--fb-border, rgba(0, 0, 0, 0.1));
+    margin: 0 0.125rem;
+    flex-shrink: 0;
+}
+
+.thl-toolbar__clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--fb-text-muted, #6b7280);
+    border-radius: var(--fb-radius-sm, 0.25rem);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    flex-shrink: 0;
+}
+
+.thl-toolbar__clear:hover {
+    background: var(--fb-hover, rgba(0, 0, 0, 0.05));
+    color: var(--fb-text, inherit);
+}
+
+.thl-toolbar__clear svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ── Remove Popup ────────────────────────────────────────── */
+
+.thl-remove {
+    position: fixed;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--fb-bg-surface, #fff);
+    border: 1px solid var(--fb-border, rgba(0, 0, 0, 0.1));
+    border-radius: var(--fb-radius-md, 0.375rem);
+    box-shadow: var(--fb-shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.15));
+    font-size: 0.75rem;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    pointer-events: none;
+}
+
+.thl-remove--visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.thl-remove__btn {
+    padding: 0.2rem 0.5rem;
+    border: none;
+    background: transparent;
+    color: var(--fb-text-muted, #6b7280);
+    font-size: 0.75rem;
+    cursor: pointer;
+    border-radius: var(--fb-radius-sm, 0.25rem);
+    transition: background-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+}
+
+.thl-remove__btn:hover {
+    background: var(--fb-hover, rgba(0, 0, 0, 0.05));
+    color: var(--fb-text, inherit);
+}
+
+.thl-remove__btn--danger:hover {
+    background: hsla(0, 72%, 51%, 0.1);
+    color: hsl(0, 72%, 51%);
+}
+
+/* ── Mobile ──────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .thl-toolbar {
+        gap: 0.375rem;
+        padding: 0.5rem 0.625rem;
+    }
+
+    .thl-toolbar__color {
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+}
+
+/* ── Print ───────────────────────────────────────────────── */
+
+@media print {
+    .thl-toolbar,
+    .thl-remove {
+        display: none !important;
+    }
+}
+
+/* ── Reduced Motion ──────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .thl-toolbar,
+    .thl-remove,
+    .text-hl {
+        transition: none;
+    }
+}

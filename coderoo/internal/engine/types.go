@@ -93,6 +93,10 @@ type Page struct {
 	ReadingTime int
 	Headings    []Heading
 
+	// Content feature flags (set by markdown renderers during conversion).
+	HasCodeBlocks bool
+	HasImages     bool
+
 	// Metadata
 	Draft       bool
 	Weight      int
@@ -417,6 +421,14 @@ type Heading struct {
 	Text  string
 }
 
+// RenderResult holds the output of a markdown-to-HTML conversion.
+type RenderResult struct {
+	HTML          string
+	Headings      []Heading
+	HasCodeBlocks bool
+	HasImages     bool
+}
+
 // ---------------------------------------------------------------------------
 // Build Result
 // ---------------------------------------------------------------------------
@@ -500,6 +512,7 @@ type RouteData struct {
 	Scripts       []string        // root-relative script URLs (emitted as <script defer src>)
 	Styles        []string        // root-relative stylesheet URLs (emitted as <link rel="stylesheet">)
 	InlineScripts []template.HTML // inline <script> bodies (already-escaped template.HTML)
+	ModuleScripts []string        // root-relative URLs emitted as <script type="module" src>
 }
 
 // HomepageData exposes homepage settings to templates.
