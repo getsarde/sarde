@@ -215,6 +215,18 @@ func TestBuildRouteData_PaginatorOnListPage(t *testing.T) {
 	if rd.Paginator.NextURL != "/blog/page/2/" {
 		t.Errorf("NextURL = %q, want /blog/page/2/", rd.Paginator.NextURL)
 	}
+	if rd.Paginator.TotalItems != 12 {
+		t.Errorf("TotalItems = %d, want 12", rd.Paginator.TotalItems)
+	}
+	if rd.Paginator.BaseURL != "/blog/" {
+		t.Errorf("BaseURL = %q, want /blog/", rd.Paginator.BaseURL)
+	}
+	if rd.Paginator.FirstURL != "/blog/" {
+		t.Errorf("FirstURL = %q, want /blog/", rd.Paginator.FirstURL)
+	}
+	if rd.Paginator.LastURL != "/blog/page/3/" {
+		t.Errorf("LastURL = %q, want /blog/page/3/", rd.Paginator.LastURL)
+	}
 }
 
 func TestBuildRouteData_PaginatorCurrentFromParams(t *testing.T) {

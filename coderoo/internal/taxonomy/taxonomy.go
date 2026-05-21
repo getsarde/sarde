@@ -2,34 +2,48 @@
 package taxonomy
 
 import (
+	"github.com/coderoo-dev/coderoo/internal/config"
 	"github.com/coderoo-dev/coderoo/internal/content"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 )
 
 // BuildTaxonomies walks all pages and aggregates taxonomy terms.
 // Returns a map of taxonomy name → Taxonomy (e.g., "tags", "categories").
-func BuildTaxonomies(pages []*engine.Page) map[string]*engine.Taxonomy {
-	taxonomies := map[string]*engine.Taxonomy{
-		"tags": {
-			Name:      "tags",
-			Singular:  "tag",
-			Terms:     make(map[string]*engine.TaxonomyTerm),
-			Permalink: "/tags/",
-		},
-		"categories": {
-			Name:      "categories",
-			Singular:  "category",
-			Terms:     make(map[string]*engine.TaxonomyTerm),
-			Permalink: "/categories/",
-		},
+// The taxCfg map drives which taxonomies are built; if nil or empty, defaults
+// to tags + categories for backward compatibility.
+func BuildTaxonomies(pages []*engine.Page, taxCfg map[string]config.TaxonomyConfig) map[string]*engine.Taxonomy {
+	if len(taxCfg) == 0 {
+		taxCfg = map[string]config.TaxonomyConfig{
+			"tags":       {Singular: "tag"},
+			"categories": {Singular: "category"},
+		}
+	}
+
+	taxonomies := make(map[string]*engine.Taxonomy, len(taxCfg))
+	for name, tc := range taxCfg {
+		singular := tc.Singular
+		if singular == "" {
+			singular = name
+		}
+		taxonomies[name] = &engine.Taxonomy{
+			Name:       name,
+			Singular:   singular,
+			Terms:      make(map[string]*engine.TaxonomyTerm),
+			Permalink:  "/" + name + "/",
+			PaginateBy: tc.PaginateBy,
+		}
 	}
 
 	for _, page := range pages {
-		for _, tag := range page.Tags {
-			addTerm(taxonomies["tags"], tag, page)
+		if tax, ok := taxonomies["tags"]; ok {
+			for _, tag := range page.Tags {
+				addTerm(tax, tag, page)
+			}
 		}
-		for _, cat := range page.Categories {
-			addTerm(taxonomies["categories"], cat, page)
+		if tax, ok := taxonomies["categories"]; ok {
+			for _, cat := range page.Categories {
+				addTerm(tax, cat, page)
+			}
 		}
 	}
 

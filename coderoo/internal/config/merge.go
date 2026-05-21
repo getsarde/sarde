@@ -104,7 +104,7 @@ func mergeConfig(base, over *SiteConfig) {
 	mergeCollections(&base.Collections, over.Collections)
 	mergeHomepage(&base.Homepage, &over.Homepage)
 	mergePlugins(&base.Plugins, &over.Plugins)
-	mergeStringMap(&base.Taxonomies, over.Taxonomies)
+	mergeTaxonomies(&base.Taxonomies, over.Taxonomies)
 	mergeServer(&base.Server, &over.Server)
 	mergeStringMap(&base.Permalinks, over.Permalinks)
 	mergeI18n(&base.I18n, &over.I18n)
@@ -375,5 +375,28 @@ func mergeBoolP(base **bool, over *bool) {
 func mergeStringMap(base *map[string]string, over map[string]string) {
 	if len(over) > 0 {
 		*base = over
+	}
+}
+
+func mergeTaxonomies(base *map[string]TaxonomyConfig, over map[string]TaxonomyConfig) {
+	if len(over) == 0 {
+		return
+	}
+	if *base == nil {
+		*base = make(map[string]TaxonomyConfig)
+	}
+	for k, v := range over {
+		existing, ok := (*base)[k]
+		if !ok {
+			(*base)[k] = v
+			continue
+		}
+		if v.Singular != "" {
+			existing.Singular = v.Singular
+		}
+		if v.PaginateBy != 0 {
+			existing.PaginateBy = v.PaginateBy
+		}
+		(*base)[k] = existing
 	}
 }

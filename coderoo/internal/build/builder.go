@@ -163,7 +163,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	}
 
 	// Build taxonomies.
-	taxonomies := taxonomy.BuildTaxonomies(allPages)
+	taxonomies := taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies)
 
 	// Build SiteContext.
 	siteCtx := &engine.SiteContext{

@@ -364,6 +364,10 @@ type Paginator struct {
 	HasNext      bool
 	PrevURL      string
 	NextURL      string
+	TotalItems   int    // Total content items across all pagers
+	BaseURL      string // Collection base URL for constructing custom pagination links
+	FirstURL     string // Permalink to the first pagination page
+	LastURL      string // Permalink to the last pagination page
 }
 
 // ---------------------------------------------------------------------------
@@ -372,10 +376,11 @@ type Paginator struct {
 
 // Taxonomy represents a grouping dimension (tags, categories, authors, etc.).
 type Taxonomy struct {
-	Name      string
-	Singular  string
-	Terms     map[string]*TaxonomyTerm
-	Permalink string
+	Name       string
+	Singular   string
+	Terms      map[string]*TaxonomyTerm
+	Permalink  string
+	PaginateBy int // 0 = no pagination for term listing pages
 }
 
 // TaxonomyTerm is a single term within a taxonomy with its associated pages.

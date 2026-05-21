@@ -79,3 +79,37 @@ func TestSitemap_ExcludePatterns(t *testing.T) {
 		t.Error("excluded page should not appear in sitemap")
 	}
 }
+
+func TestSitemap_ExcludesPaginatedURLs(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+
+	ctx := &BuildDoneContext{
+		Config:    config.Defaults(),
+		OutputDir: outDir,
+		Site:      &engine.SiteContext{BaseURL: "https://example.com"},
+		Pages: []*engine.Page{
+			{Title: "Blog", RelPermalink: "/blog/"},
+			{Title: "Blog Page 2", RelPermalink: "/blog/page/2/"},
+			{Title: "Blog Page 3", RelPermalink: "/blog/page/3/"},
+		},
+	}
+	ctx.SetWarnings(&warnings)
+
+	err := sitemapBuildDone(ctx, nil)
+	if err != nil {
+		t.Fatalf("sitemapBuildDone failed: %v", err)
+	}
+
+	data, _ := readTestFile(outDir, "sitemap.xml")
+	content := string(data)
+	if !strings.Contains(content, "/blog/") {
+		t.Error("expected blog index URL in sitemap")
+	}
+	if strings.Contains(content, "/blog/page/2/") {
+		t.Error("paginated URL /blog/page/2/ should be excluded from sitemap")
+	}
+	if strings.Contains(content, "/blog/page/3/") {
+		t.Error("paginated URL /blog/page/3/ should be excluded from sitemap")
+	}
+}

@@ -52,7 +52,7 @@ type SiteConfig struct {
 	Collections    map[string]*CollectionSiteConfig `yaml:"collections"`
 	Homepage       HomepageSettings              `yaml:"homepage"`
 	Plugins        PluginSettings                `yaml:"plugins"`
-	Taxonomies     map[string]string             `yaml:"taxonomies"`
+	Taxonomies     map[string]TaxonomyConfig     `yaml:"taxonomies"`
 	Server         ServerSettings                `yaml:"server"`
 	Permalinks     map[string]string             `yaml:"permalinks"`
 	I18n           I18nSettings                  `yaml:"i18n"`
@@ -398,6 +398,26 @@ type CollectionTOCConfig struct {
 type CollectionPrevNextConfig struct {
 	Enabled *bool    `yaml:"enabled"`
 	Labels  []string `yaml:"labels"`
+}
+
+// ---------------------------------------------------------------------------
+// Taxonomy
+// ---------------------------------------------------------------------------
+
+// TaxonomyConfig holds per-taxonomy settings.
+// Accepts both short form ("tag") and full form ({singular: "tag", paginate_by: 20}) in YAML.
+type TaxonomyConfig struct {
+	Singular   string `yaml:"singular"`
+	PaginateBy int    `yaml:"paginate_by"`
+}
+
+func (tc *TaxonomyConfig) UnmarshalYAML(value *yaml.Node) error {
+	if value.Kind == yaml.ScalarNode {
+		tc.Singular = value.Value
+		return nil
+	}
+	type raw TaxonomyConfig
+	return value.Decode((*raw)(tc))
 }
 
 // ---------------------------------------------------------------------------

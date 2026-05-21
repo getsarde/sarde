@@ -12,7 +12,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/tdewolff/minify/v2 v2.24.11
 	github.com/yuin/goldmark v1.8.2
-	golang.org/x/image v0.38.0
+	golang.org/x/image v0.40.0
 	golang.org/x/net v0.52.0
 	golang.org/x/sync v0.20.0
 	gopkg.in/yaml.v3 v3.0.1

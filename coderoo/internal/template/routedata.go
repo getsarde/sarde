@@ -232,6 +232,10 @@ func buildPaginator(col *engine.Collection, current int) *engine.Paginator {
 		CurrentPages: pages[start:end],
 		Current:      current,
 		Total:        total,
+		TotalItems:   len(pages),
+		BaseURL:      base,
+		FirstURL:     paginationURL(base, 1),
+		LastURL:      paginationURL(base, total),
 	}
 	p.Pages = make([]engine.PaginationLink, 0, total)
 	for i := 1; i <= total; i++ {

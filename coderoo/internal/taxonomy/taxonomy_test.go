@@ -13,7 +13,7 @@ func TestBuildTaxonomies_Tags(t *testing.T) {
 		{Title: "Post C", Tags: []string{"Testing"}},
 	}
 
-	taxonomies := BuildTaxonomies(pages)
+	taxonomies := BuildTaxonomies(pages, nil)
 
 	tags, ok := taxonomies["tags"]
 	if !ok {
@@ -45,7 +45,7 @@ func TestBuildTaxonomies_Categories(t *testing.T) {
 		{Title: "Post A", Categories: []string{"Tutorials"}},
 	}
 
-	taxonomies := BuildTaxonomies(pages)
+	taxonomies := BuildTaxonomies(pages, nil)
 
 	cats := taxonomies["categories"]
 	if cats == nil {
@@ -62,7 +62,7 @@ func TestBuildTaxonomies_EmptyRemoved(t *testing.T) {
 		// No categories.
 	}
 
-	taxonomies := BuildTaxonomies(pages)
+	taxonomies := BuildTaxonomies(pages, nil)
 
 	if _, ok := taxonomies["categories"]; ok {
 		t.Error("expected empty categories taxonomy to be removed")
@@ -70,7 +70,7 @@ func TestBuildTaxonomies_EmptyRemoved(t *testing.T) {
 }
 
 func TestBuildTaxonomies_NoPages(t *testing.T) {
-	taxonomies := BuildTaxonomies(nil)
+	taxonomies := BuildTaxonomies(nil, nil)
 	if len(taxonomies) != 0 {
 		t.Errorf("expected 0 taxonomies, got %d", len(taxonomies))
 	}

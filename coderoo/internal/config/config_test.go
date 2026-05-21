@@ -51,14 +51,67 @@ func TestDefaults_ReturnsPopulatedConfig(t *testing.T) {
 	if cfg.Markdown.Highlighting.Style != "class" {
 		t.Errorf("Markdown.Highlighting.Style = %q, want %q", cfg.Markdown.Highlighting.Style, "class")
 	}
-	if cfg.Taxonomies["tags"] != "tags" {
-		t.Errorf("Taxonomies[tags] = %q, want %q", cfg.Taxonomies["tags"], "tags")
+	if cfg.Taxonomies["tags"].Singular != "tags" {
+		t.Errorf("Taxonomies[tags].Singular = %q, want %q", cfg.Taxonomies["tags"].Singular, "tags")
 	}
 }
 
 func TestDefaults_NoPanic(t *testing.T) {
 	// Should not panic — if it does, the test fails.
 	_ = Defaults()
+}
+
+// ---------------------------------------------------------------------------
+// TaxonomyConfig YAML parsing
+// ---------------------------------------------------------------------------
+
+func TestTaxonomyConfig_ScalarForm(t *testing.T) {
+	input := []byte("taxonomies:\n  tags: tag\n  categories: category\n")
+	var cfg SiteConfig
+	if err := yaml.Unmarshal(input, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Taxonomies["tags"].Singular != "tag" {
+		t.Errorf("tags.Singular = %q, want %q", cfg.Taxonomies["tags"].Singular, "tag")
+	}
+	if cfg.Taxonomies["categories"].Singular != "category" {
+		t.Errorf("categories.Singular = %q, want %q", cfg.Taxonomies["categories"].Singular, "category")
+	}
+}
+
+func TestTaxonomyConfig_MapForm(t *testing.T) {
+	input := []byte("taxonomies:\n  tags:\n    singular: tag\n    paginate_by: 20\n")
+	var cfg SiteConfig
+	if err := yaml.Unmarshal(input, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	tc := cfg.Taxonomies["tags"]
+	if tc.Singular != "tag" {
+		t.Errorf("Singular = %q, want %q", tc.Singular, "tag")
+	}
+	if tc.PaginateBy != 20 {
+		t.Errorf("PaginateBy = %d, want 20", tc.PaginateBy)
+	}
+}
+
+func TestMergeTaxonomies(t *testing.T) {
+	base := map[string]TaxonomyConfig{
+		"tags": {Singular: "tag", PaginateBy: 10},
+	}
+	over := map[string]TaxonomyConfig{
+		"tags":       {PaginateBy: 20},
+		"categories": {Singular: "category"},
+	}
+	mergeTaxonomies(&base, over)
+	if base["tags"].Singular != "tag" {
+		t.Errorf("tags.Singular = %q, want %q (should keep base)", base["tags"].Singular, "tag")
+	}
+	if base["tags"].PaginateBy != 20 {
+		t.Errorf("tags.PaginateBy = %d, want 20 (should override)", base["tags"].PaginateBy)
+	}
+	if base["categories"].Singular != "category" {
+		t.Errorf("categories.Singular = %q, want %q (should add new)", base["categories"].Singular, "category")
+	}
 }
 
 // ---------------------------------------------------------------------------

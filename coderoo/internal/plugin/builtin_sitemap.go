@@ -46,6 +46,9 @@ func sitemapBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		if page.Draft {
 			continue
 		}
+		if strings.Contains(page.RelPermalink, "/page/") {
+			continue
+		}
 		if shouldExclude(page.RelPermalink, excludePatterns) {
 			continue
 		}
