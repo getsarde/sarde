@@ -2,10 +2,18 @@ package template
 
 import (
 	htmltemplate "html/template"
+	"image"
+	"image/color"
+	"image/png"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/coderoo-dev/coderoo/internal/asset"
+	"github.com/coderoo-dev/coderoo/internal/config"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 )
 
@@ -33,7 +41,7 @@ func testSite() *engine.SiteContext {
 
 func testFuncMapBuild() htmltemplate.FuncMap {
 	lang := "en"
-	return buildFuncMap(testSite(), &engine.ThemeResolver{}, nil, &sync.Map{}, "", nil, nil, nil, nil, &lang, nil)
+	return buildFuncMap(testSite(), &engine.ThemeResolver{}, nil, &sync.Map{}, "", nil, nil, nil, nil, nil, &lang, nil)
 }
 
 // ── String tests ──
@@ -291,7 +299,7 @@ func TestNavFor(t *testing.T) {
 			"docs": {Name: "docs", NavTree: tree},
 		},
 	}
-	fm := buildFuncMap(site, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
+	fm := buildFuncMap(site, nil, nil, nil, "", nil, nil, nil, nil, nil, nil, nil)
 	navFor := fm["navFor"].(func(string) *engine.NavTree)
 
 	if got := navFor("docs"); got != tree {
@@ -303,7 +311,7 @@ func TestNavFor(t *testing.T) {
 }
 
 func TestBreadcrumbs(t *testing.T) {
-	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil, nil)
 	breadcrumbs := fm["breadcrumbs"].(func(any) []engine.BreadcrumbItem)
 
 	items := []engine.BreadcrumbItem{
@@ -322,7 +330,7 @@ func TestBreadcrumbs(t *testing.T) {
 }
 
 func TestSiblings(t *testing.T) {
-	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil, nil)
 	siblings := fm["siblings"].(func(*engine.Page) []*engine.Page)
 
 	pages := []*engine.Page{{Title: "A"}, {Title: "B"}}
@@ -341,7 +349,7 @@ func TestSiblings(t *testing.T) {
 }
 
 func TestTranslations(t *testing.T) {
-	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil, nil)
 	translations := fm["translations"].(func(any) []engine.TranslationLink)
 
 	links := []engine.TranslationLink{
@@ -360,7 +368,7 @@ func TestTranslations(t *testing.T) {
 }
 
 func TestToString(t *testing.T) {
-	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil, nil)
 	toString := fm["toString"].(func(any) string)
 
 	if got := toString(42); got != "42" {
@@ -372,7 +380,7 @@ func TestToString(t *testing.T) {
 }
 
 func TestToInt(t *testing.T) {
-	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil, nil)
 	toInt := fm["toInt"].(func(any) int)
 
 	if got := toInt(42); got != 42 {
@@ -387,7 +395,7 @@ func TestToInt(t *testing.T) {
 }
 
 func TestLang(t *testing.T) {
-	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil)
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil, nil)
 	lang := fm["lang"].(func(any) string)
 
 	rd := &engine.RouteData{Lang: "fr"}
@@ -397,4 +405,79 @@ func TestLang(t *testing.T) {
 	if got := lang(nil); got != "" {
 		t.Errorf("lang(nil) = %q, want empty", got)
 	}
+}
+
+func TestResizeImageFunc_NilProcessor(t *testing.T) {
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, nil, nil, nil, nil)
+	resizeImage := fm["resize_image"].(func(engine.Resource, string) htmltemplate.HTML)
+
+	res := engine.Resource{
+		Name:         "hero.jpg",
+		RelPermalink: "/blog/post/hero.jpg",
+		Width:        1200,
+		Height:       800,
+		Title:        "Hero",
+	}
+
+	got := resizeImage(res, "width=800&op=fill")
+	if got == "" {
+		t.Error("expected non-empty HTML from resize_image fallback")
+	}
+	// With nil processor, should fall back to simple image rendering.
+	if !strings.Contains(string(got), `src="/blog/post/hero.jpg"`) {
+		t.Errorf("expected fallback src, got %s", got)
+	}
+}
+
+func TestResizeImageFunc_WithProcessor(t *testing.T) {
+	srcDir := t.TempDir()
+	srcPath := createTestPNGForTemplate(t, srcDir, "hero.png", 1600, 900)
+
+	processor := &asset.ImageProcessor{
+		Config: &config.ImageSettings{
+			Widths:  []int{400, 800},
+			Quality: 80,
+		},
+		Cache: asset.NewCache(t.TempDir()),
+	}
+
+	fm := buildFuncMap(nil, nil, nil, nil, "", nil, nil, nil, processor, nil, nil, nil)
+	resizeImage := fm["resize_image"].(func(engine.Resource, string) htmltemplate.HTML)
+
+	res := engine.Resource{
+		Name:         "hero.png",
+		RelPermalink: "/blog/post/hero.png",
+		Width:        1600,
+		Height:       900,
+		Title:        "Hero",
+		SrcPath:      srcPath,
+	}
+
+	got := resizeImage(res, "width=800&format=jpeg")
+	html := string(got)
+
+	if !strings.Contains(html, "<picture>") {
+		t.Error("expected <picture> element from resize_image with processor")
+	}
+	if !strings.Contains(html, "srcset=") {
+		t.Error("expected srcset attribute")
+	}
+}
+
+func createTestPNGForTemplate(t *testing.T, dir, name string, width, height int) string {
+	t.Helper()
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			img.Set(x, y, color.RGBA{R: 100, G: 150, B: 200, A: 255})
+		}
+	}
+	p := filepath.Join(dir, name)
+	f, err := os.Create(p)
+	if err != nil {
+		t.Fatalf("creating test image: %v", err)
+	}
+	defer f.Close()
+	png.Encode(f, img)
+	return p
 }

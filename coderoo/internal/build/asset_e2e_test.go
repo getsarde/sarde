@@ -139,14 +139,16 @@ func TestBuild_AssetPipeline_EndToEnd(t *testing.T) {
 	}
 
 	// Should have multiple variants (400w + original 800w = at least 2).
-	pngCount := 0
+	// Default config format is WebP (from embedded defaults).
+	variantCount := 0
 	for _, e := range entries {
-		if strings.HasSuffix(e.Name(), ".png") {
-			pngCount++
+		name := e.Name()
+		if strings.HasSuffix(name, ".webp") || strings.HasSuffix(name, ".jpg") || strings.HasSuffix(name, ".png") {
+			variantCount++
 		}
 	}
-	if pngCount < 2 {
-		t.Errorf("expected at least 2 PNG variants, got %d", pngCount)
+	if variantCount < 2 {
+		t.Errorf("expected at least 2 image variants, got %d", variantCount)
 	}
 
 	// ── Bundle resource copying (non-image) ──

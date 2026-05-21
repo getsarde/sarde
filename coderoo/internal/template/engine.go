@@ -20,21 +20,22 @@ import (
 
 // Engine implements engine.TemplateEngine using Go's html/template.
 type Engine struct {
-	resolver      *engine.ThemeResolver
-	components    *component.Registry
-	baseCache     map[string]*htmltemplate.Template // layout key → baseof+partials
-	templates     map[string]*htmltemplate.Template // "default:blog/single" → cloned template
-	funcMap       htmltemplate.FuncMap
-	dataCache     sync.Map
-	site          *engine.SiteContext
-	cachedCSS     string // embedded CSS, loaded once
-	cssURL        string // external CSS bundle URL (set during Load)
-	assetResolver *asset.Resolver
-	assetManifest *asset.Manifest
-	pluginFuncs   map[string]any
-	i18nStrings   *i18n.StringTable
-	currentLang   string // set per-page before render, captured by t() closure
-	mu            sync.RWMutex
+	resolver       *engine.ThemeResolver
+	components     *component.Registry
+	baseCache      map[string]*htmltemplate.Template // layout key → baseof+partials
+	templates      map[string]*htmltemplate.Template // "default:blog/single" → cloned template
+	funcMap        htmltemplate.FuncMap
+	dataCache      sync.Map
+	site           *engine.SiteContext
+	cachedCSS      string // embedded CSS, loaded once
+	cssURL         string // external CSS bundle URL (set during Load)
+	assetResolver  *asset.Resolver
+	assetManifest  *asset.Manifest
+	imageProcessor *asset.ImageProcessor
+	pluginFuncs    map[string]any
+	i18nStrings    *i18n.StringTable
+	currentLang    string // set per-page before render, captured by t() closure
+	mu             sync.RWMutex
 }
 
 // NewEngine creates a new template Engine.
@@ -56,6 +57,12 @@ func (e *Engine) SetSiteContext(site *engine.SiteContext) {
 func (e *Engine) SetAssetPipeline(resolver *asset.Resolver, manifest *asset.Manifest) {
 	e.assetResolver = resolver
 	e.assetManifest = manifest
+}
+
+// SetImageProcessor sets the image processor used by the resize_image template function.
+// Must be called before Load().
+func (e *Engine) SetImageProcessor(p *asset.ImageProcessor) {
+	e.imageProcessor = p
 }
 
 // SetPluginFuncs sets additional template functions provided by plugins.
@@ -90,7 +97,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	e.cssURL = "/assets/css/coderoo.css"
 
 	// Build a bootstrap FuncMap (without component support) for initial parsing.
-	bootstrapFM := buildFuncMap(e.site, resolver, nil, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.pluginFuncs, &e.currentLang, e.i18nStrings)
+	bootstrapFM := buildFuncMap(e.site, resolver, nil, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings)
 
 	// Create the component registry with embedded defaults.
 	registry, err := component.NewRegistry(resolver.EmbeddedFS, bootstrapFM)
@@ -115,7 +122,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	e.components = registry
 
 	// Rebuild the final FuncMap with the real component registry.
-	e.funcMap = buildFuncMap(e.site, resolver, registry, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.pluginFuncs, &e.currentLang, e.i18nStrings)
+	e.funcMap = buildFuncMap(e.site, resolver, registry, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings)
 
 	// Re-register all components with the final FuncMap so they can call
 	// template functions like `component`, `now`, etc.

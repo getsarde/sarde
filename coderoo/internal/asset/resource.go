@@ -50,10 +50,14 @@ func (e *ResourceEnhancer) EnhancePageResources(page *engine.Page) error {
 			res.RelPermalink = pageURL + res.Name
 		}
 
+		// Set absolute source path for image processing.
+		if res.SrcPath == "" {
+			res.SrcPath = filepath.Join(pageDir, res.Name)
+		}
+
 		// Read image dimensions (cheap — only decodes header).
 		if IsImage(res.Name) && res.Width == 0 {
-			absPath := filepath.Join(pageDir, res.Name)
-			w, h, err := imageSize(absPath)
+			w, h, err := imageSize(res.SrcPath)
 			if err == nil {
 				res.Width = w
 				res.Height = h

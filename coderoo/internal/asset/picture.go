@@ -6,12 +6,27 @@ import (
 	"strings"
 )
 
+// PictureOptions controls optional rendering behavior for <picture> elements.
+type PictureOptions struct {
+	IncludeDimensions bool  // when false, omit width/height from <img>
+	Widths            []int // configured widths for dynamic sizes attribute
+}
+
 // RenderPicture generates HTML for a responsive <picture> element.
 // If no variants are provided, falls back to a simple <img> tag.
-func RenderPicture(src, alt string, width, height int, variants []ImageVariant, lqip string, lazy bool) string {
-	if len(variants) == 0 {
-		return renderSimpleImg(src, alt, width, height, lazy)
+func RenderPicture(src, alt string, width, height int, variants []ImageVariant, lqip string, lazy bool, opts ...PictureOptions) string {
+	var o PictureOptions
+	if len(opts) > 0 {
+		o = opts[0]
+	} else {
+		o = PictureOptions{IncludeDimensions: true}
 	}
+
+	if len(variants) == 0 {
+		return renderSimpleImg(src, alt, width, height, lazy, o.IncludeDimensions)
+	}
+
+	sizes := buildSizesAttr(o.Widths)
 
 	var sb strings.Builder
 
@@ -23,7 +38,7 @@ func RenderPicture(src, alt string, width, height int, variants []ImageVariant, 
 		fmtVariants := byFormat[format]
 		srcset := RenderSrcset(fmtVariants)
 		mimeType := formatToMIME(format)
-		sb.WriteString(fmt.Sprintf(`  <source type="%s" srcset="%s" sizes="(max-width: 600px) 400px, (max-width: 1024px) 800px, 1200px">`, mimeType, srcset))
+		sb.WriteString(fmt.Sprintf(`  <source type="%s" srcset="%s" sizes="%s">`, mimeType, srcset, sizes))
 		sb.WriteByte('\n')
 	}
 
@@ -37,11 +52,13 @@ func RenderPicture(src, alt string, width, height int, variants []ImageVariant, 
 	sb.WriteString("  <img")
 	sb.WriteString(fmt.Sprintf(` src="%s"`, fallbackSrc))
 	sb.WriteString(fmt.Sprintf(` alt="%s"`, escapeAttr(alt)))
-	if width > 0 {
-		sb.WriteString(fmt.Sprintf(` width="%d"`, width))
-	}
-	if height > 0 {
-		sb.WriteString(fmt.Sprintf(` height="%d"`, height))
+	if o.IncludeDimensions {
+		if width > 0 {
+			sb.WriteString(fmt.Sprintf(` width="%d"`, width))
+		}
+		if height > 0 {
+			sb.WriteString(fmt.Sprintf(` height="%d"`, height))
+		}
 	}
 	if lazy {
 		sb.WriteString(` loading="lazy" decoding="async"`)
@@ -69,22 +86,48 @@ func RenderSrcset(variants []ImageVariant) string {
 	return strings.Join(parts, ", ")
 }
 
-func renderSimpleImg(src, alt string, width, height int, lazy bool) string {
+func renderSimpleImg(src, alt string, width, height int, lazy, includeDimensions bool) string {
 	var sb strings.Builder
 	sb.WriteString("<img")
 	sb.WriteString(fmt.Sprintf(` src="%s"`, src))
 	sb.WriteString(fmt.Sprintf(` alt="%s"`, escapeAttr(alt)))
-	if width > 0 {
-		sb.WriteString(fmt.Sprintf(` width="%d"`, width))
-	}
-	if height > 0 {
-		sb.WriteString(fmt.Sprintf(` height="%d"`, height))
+	if includeDimensions {
+		if width > 0 {
+			sb.WriteString(fmt.Sprintf(` width="%d"`, width))
+		}
+		if height > 0 {
+			sb.WriteString(fmt.Sprintf(` height="%d"`, height))
+		}
 	}
 	if lazy {
 		sb.WriteString(` loading="lazy" decoding="async"`)
 	}
 	sb.WriteString(">")
 	return sb.String()
+}
+
+// buildSizesAttr generates a sizes attribute from configured widths.
+// Falls back to a sensible default when no widths are provided.
+func buildSizesAttr(widths []int) string {
+	if len(widths) == 0 {
+		return "(max-width: 600px) 400px, (max-width: 1024px) 800px, 1200px"
+	}
+
+	sorted := make([]int, len(widths))
+	copy(sorted, widths)
+	sort.Ints(sorted)
+
+	if len(sorted) == 1 {
+		return fmt.Sprintf("%dpx", sorted[0])
+	}
+
+	var parts []string
+	for i := 0; i < len(sorted)-1; i++ {
+		breakpoint := sorted[i] + sorted[i]*50/100
+		parts = append(parts, fmt.Sprintf("(max-width: %dpx) %dpx", breakpoint, sorted[i]))
+	}
+	parts = append(parts, fmt.Sprintf("%dpx", sorted[len(sorted)-1]))
+	return strings.Join(parts, ", ")
 }
 
 func groupByFormat(variants []ImageVariant) map[string][]ImageVariant {

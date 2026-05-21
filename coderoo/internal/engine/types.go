@@ -403,6 +403,7 @@ type Resource struct {
 	RelPermalink string
 	Width        int
 	Height       int
+	SrcPath      string // absolute filesystem path for image processing
 }
 
 // ---------------------------------------------------------------------------

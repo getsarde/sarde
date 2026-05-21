@@ -32,6 +32,7 @@ func buildFuncMap(
 	cssURLPtr *string,
 	assetResolver *asset.Resolver,
 	assetManifest *asset.Manifest,
+	imageProcessor *asset.ImageProcessor,
 	pluginFuncs map[string]any,
 	currentLangPtr *string,
 	i18nStrings *i18n.StringTable,
@@ -241,6 +242,29 @@ func buildFuncMap(
 				nil, "", true,
 			))
 		},
+		"resize_image": func(res engine.Resource, params string) htmltemplate.HTML {
+			if imageProcessor == nil || res.SrcPath == "" {
+				return htmltemplate.HTML(asset.RenderPicture(
+					res.RelPermalink, res.Title,
+					res.Width, res.Height,
+					nil, "", true,
+				))
+			}
+			opts := asset.ParseImageOptionsFromQuery(params)
+			variants, lqip, err := imageProcessor.ProcessImage(res.SrcPath, opts)
+			if err != nil {
+				return htmltemplate.HTML(asset.RenderPicture(
+					res.RelPermalink, res.Title,
+					res.Width, res.Height,
+					nil, "", true,
+				))
+			}
+			return htmltemplate.HTML(asset.RenderPicture(
+				res.RelPermalink, res.Title,
+				res.Width, res.Height,
+				variants, lqip, true,
+			))
+		},
 
 		// ── i18n ──
 		"t": func(key string) string {
@@ -350,7 +374,7 @@ func buildFuncMap(
 			if err != nil {
 				return "", err
 			}
-			tmpl, err := htmltemplate.New(name).Funcs(buildFuncMap(site, resolver, registry, dataCache, cachedCSS, cssURLPtr, assetResolver, assetManifest, pluginFuncs, currentLangPtr, i18nStrings)).Parse(string(content))
+			tmpl, err := htmltemplate.New(name).Funcs(buildFuncMap(site, resolver, registry, dataCache, cachedCSS, cssURLPtr, assetResolver, assetManifest, imageProcessor, pluginFuncs, currentLangPtr, i18nStrings)).Parse(string(content))
 			if err != nil {
 				return "", fmt.Errorf("parsing partial %q: %w", name, err)
 			}

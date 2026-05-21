@@ -5,6 +5,7 @@ import "sync"
 // ImageVariant represents a single processed image variant (width + format).
 type ImageVariant struct {
 	Width    int    `json:"width"`
+	Height   int    `json:"height"`   // output height (computed from resize op)
 	Format   string `json:"format"`   // "jpeg", "png", "webp"
 	URL      string `json:"url"`      // output URL path
 	FileSize int64  `json:"fileSize"` // bytes

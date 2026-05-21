@@ -86,6 +86,80 @@ func TestRenderPicture_EscapesAlt(t *testing.T) {
 	}
 }
 
+func TestRenderPicture_NoDimensions(t *testing.T) {
+	variants := []ImageVariant{
+		{Width: 400, Format: "jpeg", URL: "/img/hero-400w.jpg"},
+	}
+
+	html := RenderPicture("/img/hero.jpg", "Hero", 1200, 800, variants, "", true, PictureOptions{
+		IncludeDimensions: false,
+	})
+
+	if strings.Contains(html, `width="1200"`) {
+		t.Error("should not contain width when IncludeDimensions=false")
+	}
+	if strings.Contains(html, `height="800"`) {
+		t.Error("should not contain height when IncludeDimensions=false")
+	}
+}
+
+func TestRenderPicture_NoDimensions_SimpleImg(t *testing.T) {
+	html := RenderPicture("/img/photo.jpg", "A photo", 800, 600, nil, "", true, PictureOptions{
+		IncludeDimensions: false,
+	})
+
+	if strings.Contains(html, `width="800"`) {
+		t.Error("simple img should not contain width when IncludeDimensions=false")
+	}
+	if strings.Contains(html, `height="600"`) {
+		t.Error("simple img should not contain height when IncludeDimensions=false")
+	}
+}
+
+func TestBuildSizesAttr_Default(t *testing.T) {
+	sizes := buildSizesAttr(nil)
+	if sizes == "" {
+		t.Error("default sizes should not be empty")
+	}
+	if !strings.Contains(sizes, "1200px") {
+		t.Errorf("default sizes should contain 1200px, got %q", sizes)
+	}
+}
+
+func TestBuildSizesAttr_CustomWidths(t *testing.T) {
+	sizes := buildSizesAttr([]int{400, 800, 1200})
+	if !strings.Contains(sizes, "400px") {
+		t.Errorf("sizes should reference 400px, got %q", sizes)
+	}
+	if !strings.Contains(sizes, "1200px") {
+		t.Errorf("sizes should reference 1200px as largest, got %q", sizes)
+	}
+}
+
+func TestBuildSizesAttr_SingleWidth(t *testing.T) {
+	sizes := buildSizesAttr([]int{600})
+	if sizes != "600px" {
+		t.Errorf("single-width sizes = %q, want 600px", sizes)
+	}
+}
+
+func TestRenderPicture_DynamicSizes(t *testing.T) {
+	variants := []ImageVariant{
+		{Width: 400, Format: "jpeg", URL: "/img/hero-400w.jpg"},
+		{Width: 800, Format: "jpeg", URL: "/img/hero-800w.jpg"},
+	}
+
+	html := RenderPicture("/img/hero.jpg", "Hero", 1200, 800, variants, "", true, PictureOptions{
+		IncludeDimensions: true,
+		Widths:            []int{400, 800},
+	})
+
+	// Should use dynamic sizes based on widths, not the hardcoded default.
+	if !strings.Contains(html, "800px") {
+		t.Errorf("expected dynamic sizes to contain 800px, got %s", html)
+	}
+}
+
 func TestRenderPicture_MultiFormat(t *testing.T) {
 	variants := []ImageVariant{
 		{Width: 400, Format: "webp", URL: "/img/hero-400w.webp"},

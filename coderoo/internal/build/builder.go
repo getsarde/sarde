@@ -250,7 +250,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 
 				// Borrow a renderer from the pool.
 				renderer := <-rendererPool
-				lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor(), outputDir)
+				lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor())
 				renderer.SetImageLookup(lookup)
 
 				html, headings, err := renderer.Render(page.RawContent)
@@ -290,7 +290,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				}
 			}
 
-			lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor(), outputDir)
+			lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor())
 			b.mdRenderer.SetImageLookup(lookup)
 
 			html, headings, err := b.mdRenderer.Render(page.RawContent)
@@ -318,6 +318,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	// Load template engine (needs SiteContext + asset pipeline + plugin funcs + i18n for funcMap closures).
 	b.tmplEngine.SetSiteContext(siteCtx)
 	b.tmplEngine.SetAssetPipeline(assetPipeline.Resolver(), assetPipeline.Manifest())
+	b.tmplEngine.SetImageProcessor(assetPipeline.ImageProcessor())
 	b.tmplEngine.SetPluginFuncs(b.pluginMgr.TemplateFuncs())
 	if stringTable != nil {
 		b.tmplEngine.SetI18nStrings(stringTable)
