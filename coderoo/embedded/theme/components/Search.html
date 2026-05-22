@@ -1,6 +1,8 @@
 {{ if or (not .Site.Config) (ne .Site.Config.Search.Provider "disabled") }}
 <button type="button" class="search-trigger" data-search-trigger aria-label="{{ t "nav.search" }}" title="{{ t "nav.search" }}">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+  <span class="search-trigger-text">{{ t "nav.search" }}</span>
+  <span class="search-kbd" aria-hidden="true"><kbd>⌘</kbd><kbd>K</kbd></span>
 </button>
 <div id="search-modal" class="search-modal" role="dialog" aria-modal="true" aria-label="{{ t "nav.search" }}" hidden>
   <div class="search-modal-backdrop" data-search-close></div>
@@ -8,6 +10,11 @@
     <input id="search-input" type="search" autocomplete="off" spellcheck="false" placeholder="{{ t "nav.search" }}" aria-label="{{ t "nav.search" }}">
     <ul id="search-results" role="listbox" aria-label="{{ t "search.results" }}"></ul>
     <div id="search-empty" class="search-empty" hidden>{{ t "search.no_results" }}</div>
+    <div class="search-footer" aria-hidden="true">
+      <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> Navigate</span>
+      <span><kbd>&crarr;</kbd> Open</span>
+      <span><kbd>Esc</kbd> Close</span>
+    </div>
   </div>
 </div>
 {{ end }}

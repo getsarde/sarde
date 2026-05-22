@@ -292,7 +292,7 @@
 	    position: relative;
 	    border-radius: var(--fb-code-radius, 0.75rem);
 	    overflow: hidden;
-	    box-shadow: var(--fb-shadow-sm);
+	    box-shadow: var(--fb-shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 	    border: 1px solid var(--fb-border);
 	    transition: box-shadow var(--fb-transition-normal) var(--fb-ease-default),
 	                border-color var(--fb-transition-normal) var(--fb-ease-default);
@@ -307,7 +307,8 @@
 	}
 
 	.code-block:hover .frame {
-	    box-shadow: var(--fb-shadow-md);
+	    box-shadow: var(--fb-shadow-md),
+	                0 0 0 1px color-mix(in srgb, var(--fb-text-accent) 25%, transparent);
 	    border-color: var(--fb-border-accent);
 	}
 

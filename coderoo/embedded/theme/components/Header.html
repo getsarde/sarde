@@ -1,7 +1,9 @@
 <header class="site-header">
-  <a href="/" class="site-title">{{ .Site.Title }}</a>
+  {{ component "SiteTitle" . }}
   {{ component "GlobalNav" . }}
   <div class="header-actions">
+    {{ component "Search" . }}
     {{ component "LanguageSwitcher" . }}
+    {{ component "ThemeToggle" . }}
   </div>
 </header>

@@ -71,7 +71,7 @@
 	  --fb-border: var(--fb-gray-3);
 	  --fb-border-muted: var(--fb-gray-3);
 	  --fb-border-accent: var(--fb-primary, #6366f1);
-	  --fb-hairline: var(--fb-gray-3);
+	  --fb-hairline: color-mix(in srgb, var(--fb-gray-5) 20%, transparent);
 
 	  /* ── Interactive ── */
 	  --fb-focus-ring: var(--fb-primary, #6366f1);

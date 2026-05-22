@@ -10,6 +10,29 @@
 	  margin-top: var(--fb-space-8);
 	  margin-bottom: var(--fb-space-3);
 	  scroll-margin-top: calc(var(--fb-nav-height) + var(--fb-space-4));
+	  position: relative;
+	}
+
+	.heading-anchor {
+	  display: inline-flex;
+	  align-items: center;
+	  margin-left: var(--fb-space-2);
+	  color: var(--fb-text-subtle);
+	  opacity: 0;
+	  text-decoration: none;
+	  vertical-align: middle;
+	  transition: opacity var(--fb-transition-fast);
+	}
+
+	.heading-anchor:hover {
+	  color: var(--fb-text-accent);
+	}
+
+	h1:hover .heading-anchor,
+	h2:hover .heading-anchor,
+	h3:hover .heading-anchor,
+	h4:hover .heading-anchor {
+	  opacity: 1;
 	}
 
 	h1 { font-size: var(--fb-text-3xl); letter-spacing: -0.025em; margin-top: 0; }

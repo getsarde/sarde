@@ -28,7 +28,9 @@
 	  align-items: center;
 	  padding: 0 var(--fb-space-4);
 	  background: var(--fb-bg);
-	  border-bottom: 1px solid var(--fb-border);
+	  background: color-mix(in srgb, var(--fb-bg) 85%, transparent);
+	  border-bottom: 1px solid var(--fb-hairline);
+	  -webkit-backdrop-filter: blur(8px);
 	  backdrop-filter: blur(8px);
 	}
 
@@ -94,7 +96,7 @@
 	  display: none;
 	  flex-direction: column;
 	  background: var(--fb-bg-surface, var(--fb-bg));
-	  border-right: 1px solid var(--fb-border);
+	  border-right: 1px solid var(--fb-hairline);
 	}
 
 	.docs-sidebar-nav {
