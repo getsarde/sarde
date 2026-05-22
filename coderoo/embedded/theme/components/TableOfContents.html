@@ -1,6 +1,6 @@
 {{ if .Page.Headings }}
 <nav class="toc" aria-label="Table of contents">
-  <h2>On this page</h2>
+  <h2>{{ t "nav.toc" }}</h2>
   <ul>
   {{ range .Page.Headings }}
     <li class="toc-level-{{ .Level }}"><a href="#{{ .ID }}">{{ .Text }}</a></li>

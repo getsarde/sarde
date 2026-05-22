@@ -9,6 +9,7 @@ nav:
   search: "Search"
   draft: "Draft"
   reading_time: "{{ .Minutes }} min read"
+  language: "Language"
 
 blog:
   featured: "Featured"

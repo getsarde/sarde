@@ -1,5 +1,5 @@
 {{ if .Page }}{{ if .Page.IsFallback }}
 <div class="fallback-notice" role="alert">
-  <p>{{ t "fallback.notice" }}</p>
+  <p>{{ tWithData "fallback.notice" . }}</p>
 </div>
 {{ end }}{{ end }}

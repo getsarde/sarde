@@ -537,9 +537,12 @@ type HeroCTAData struct {
 
 // TranslationLink points to the same page in another language.
 type TranslationLink struct {
-	Lang  string
-	URL   string
-	Title string
+	Lang       string
+	Name       string // display name (e.g. "Français"), falls back to Lang code
+	Dir        string // "ltr" or "rtl"
+	URL        string
+	Title      string
+	IsFallback bool
 }
 
 // ThemeConfig holds metadata, token values, and pre-rendered CSS for the active theme.

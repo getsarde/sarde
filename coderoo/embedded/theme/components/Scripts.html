@@ -4,6 +4,7 @@
 <script defer src="/assets/js/toc-scrollspy.js"></script>
 <script defer src="/assets/js/prefetch.js"></script>
 {{ if .IsTabbed }}<script defer src="/assets/js/docs-tab-switcher.js"></script>{{ end }}
+{{ if .Translations }}<script defer src="/assets/js/lang-switcher.js"></script>{{ end }}
 {{ range .Scripts }}<script defer src="{{ . }}"></script>
 {{ end }}
 {{ range .InlineScripts }}<script>{{ . }}</script>

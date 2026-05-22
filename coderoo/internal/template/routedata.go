@@ -29,18 +29,24 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 
 	// Build translation links from page.Translations
 	if len(page.Translations) > 0 {
+		langMap := buildLangMap(site)
 		rd.Translations = make([]engine.TranslationLink, 0, len(page.Translations)+1)
-		// Include current page in translations list
 		rd.Translations = append(rd.Translations, engine.TranslationLink{
-			Lang:  page.Lang,
-			URL:   page.RelPermalink,
-			Title: page.Title,
+			Lang:       page.Lang,
+			Name:       langName(langMap, page.Lang),
+			Dir:        langDir(langMap, page.Lang),
+			URL:        page.RelPermalink,
+			Title:      page.Title,
+			IsFallback: page.IsFallback,
 		})
 		for _, tr := range page.Translations {
 			rd.Translations = append(rd.Translations, engine.TranslationLink{
-				Lang:  tr.Lang,
-				URL:   tr.RelPermalink,
-				Title: tr.Title,
+				Lang:       tr.Lang,
+				Name:       langName(langMap, tr.Lang),
+				Dir:        langDir(langMap, tr.Lang),
+				URL:        tr.RelPermalink,
+				Title:      tr.Title,
+				IsFallback: tr.IsFallback,
 			})
 		}
 	}
@@ -276,6 +282,31 @@ func paginationURL(base string, n int) string {
 		base += "/"
 	}
 	return fmt.Sprintf("%spage/%d/", base, n)
+}
+
+func buildLangMap(site *engine.SiteContext) map[string]engine.Language {
+	if site == nil {
+		return nil
+	}
+	m := make(map[string]engine.Language, len(site.Languages))
+	for _, l := range site.Languages {
+		m[l.Code] = l
+	}
+	return m
+}
+
+func langName(m map[string]engine.Language, code string) string {
+	if l, ok := m[code]; ok && l.Name != "" {
+		return l.Name
+	}
+	return code
+}
+
+func langDir(m map[string]engine.Language, code string) string {
+	if l, ok := m[code]; ok && l.Dir != "" {
+		return l.Dir
+	}
+	return "ltr"
 }
 
 // mapHomepageSettings converts config.HomepageSettings to engine.HomepageData.

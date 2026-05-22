@@ -395,4 +395,83 @@
 	  color: var(--fb-accent);
 	}
 
+	/* Header Actions */
+	.header-actions {
+	  margin-left: auto;
+	  display: flex;
+	  align-items: center;
+	  gap: var(--fb-space-2);
+	}
+
+	/* Language Switcher */
+	.lang-switcher {
+	  position: relative;
+	}
+
+	.lang-switcher-trigger {
+	  display: flex;
+	  align-items: center;
+	  gap: var(--fb-space-1);
+	  padding: var(--fb-space-1) var(--fb-space-2);
+	  background: transparent;
+	  border: 1px solid var(--fb-border);
+	  border-radius: var(--fb-radius);
+	  cursor: pointer;
+	  font: inherit;
+	  font-size: var(--fb-text-sm);
+	  color: var(--fb-text-muted);
+	  transition: border-color var(--fb-transition-fast), color var(--fb-transition-fast);
+	}
+	.lang-switcher-trigger:hover { border-color: var(--fb-accent); color: var(--fb-text); }
+	.lang-switcher-trigger[aria-expanded="true"] { border-color: var(--fb-accent); }
+	.lang-switcher-trigger[aria-expanded="true"] .lang-switcher-chevron { transform: rotate(180deg); }
+
+	.lang-switcher-chevron { transition: transform var(--fb-transition-fast); }
+
+	.lang-switcher-menu {
+	  position: absolute;
+	  top: calc(100% + var(--fb-space-1));
+	  right: 0;
+	  min-width: 10rem;
+	  list-style: none;
+	  margin: 0;
+	  padding: var(--fb-space-1);
+	  background: var(--fb-bg);
+	  border: 1px solid var(--fb-border);
+	  border-radius: var(--fb-radius);
+	  box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+	  z-index: 50;
+	}
+
+	.lang-switcher-option {
+	  display: flex;
+	  align-items: center;
+	  padding: var(--fb-space-2) var(--fb-space-3);
+	  border-radius: var(--fb-radius-sm);
+	  text-decoration: none;
+	  color: var(--fb-text);
+	  font-size: var(--fb-text-sm);
+	  transition: background var(--fb-transition-fast);
+	}
+	.lang-switcher-option:hover { background: var(--fb-hover); }
+	.lang-switcher-option.is-active { background: var(--fb-active); font-weight: var(--fb-weight-medium); }
+	.lang-switcher-option.is-fallback { opacity: 0.5; }
+
+	/* Fallback Notice */
+	.fallback-notice {
+	  background: var(--fb-amber-low, #fef3c7);
+	  color: var(--fb-gray-7, #1e293b);
+	  border: 1px solid var(--fb-amber, #f59e0b);
+	  border-radius: var(--fb-radius);
+	  padding: var(--fb-space-3) var(--fb-space-4);
+	  margin-bottom: var(--fb-space-4);
+	  font-size: var(--fb-text-sm);
+	}
+	.fallback-notice p { margin: 0; }
+	:root.dark .fallback-notice {
+	  background: hsl(38, 50%, 18%);
+	  color: hsl(38, 80%, 90%);
+	  border-color: hsl(38, 60%, 40%);
+	}
+
 }

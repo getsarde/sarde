@@ -1,0 +1,15 @@
+nav:
+  previous: "Précédent"
+  next: "Suivant"
+  toc: "Sur cette page"
+  search: "Rechercher"
+  language: "Langue"
+
+fallback:
+  notice: "Cette page n'est pas encore disponible en {{ .Lang }}. Version originale affichée."
+
+search:
+  results: "Résultats de recherche"
+  no_results: "Aucun résultat."
+
+edit_this_page: "Modifier cette page"
