@@ -1,28 +1,59 @@
 (function () {
   'use strict';
-  function activate(container, tabIdx, buttonSel, panelSel) {
-    var buttons = container.querySelectorAll(buttonSel);
-    var panels = container.querySelectorAll(panelSel);
+  var STORAGE_KEY = 'coderoo-tabs';
+
+  function getStore() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch (e) { return {}; }
+  }
+
+  function saveLabel(label) {
+    var s = getStore();
+    s[label] = 1;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) {}
+  }
+
+  function activateTab(container, btnSel, panelSel, label) {
+    var buttons = container.querySelectorAll(btnSel);
+    var found = false;
     buttons.forEach(function (b) {
-      var active = b.getAttribute('data-tab') === tabIdx;
-      b.setAttribute('aria-selected', active ? 'true' : 'false');
-      b.classList.toggle('active', active);
+      if (b.dataset.tabLabel === label) { found = true; }
     });
-    panels.forEach(function (p) {
-      var active = p.getAttribute('data-tab') === tabIdx;
-      p.classList.toggle('active', active);
-      if (active) p.removeAttribute('hidden');
-      else p.setAttribute('hidden', '');
+    if (!found) return;
+    buttons.forEach(function (b) {
+      var match = b.dataset.tabLabel === label;
+      b.setAttribute('aria-selected', match ? 'true' : 'false');
+      b.classList.toggle('active', match);
+    });
+    container.querySelectorAll(panelSel).forEach(function (p) {
+      var match = p.dataset.tabLabel === label;
+      p.classList.toggle('active', match);
+      if (match) p.removeAttribute('hidden'); else p.setAttribute('hidden', '');
     });
   }
+
+  function syncAll(label) {
+    document.querySelectorAll('.tabs').forEach(function (c) {
+      activateTab(c, '.tab-button', '.tab-panel', label);
+    });
+    document.querySelectorAll('.code-group').forEach(function (c) {
+      activateTab(c, '.code-group-tab', '.code-group-panel', label);
+    });
+  }
+
   document.addEventListener('click', function (e) {
     if (!e.target.matches) return;
-    if (e.target.matches('.tabs .tab-button')) {
-      var container = e.target.closest('.tabs');
-      activate(container, e.target.getAttribute('data-tab'), '.tab-button', '.tab-panel');
-    } else if (e.target.matches('.code-group .code-group-tab')) {
-      var cg = e.target.closest('.code-group');
-      activate(cg, e.target.getAttribute('data-tab'), '.code-group-tab', '.code-group-panel');
+    if (e.target.matches('.tabs .tab-button') || e.target.matches('.code-group .code-group-tab')) {
+      var label = e.target.dataset.tabLabel;
+      if (label) {
+        saveLabel(label);
+        syncAll(label);
+      }
     }
   });
+
+  var stored = getStore();
+  var labels = Object.keys(stored);
+  for (var i = 0; i < labels.length; i++) {
+    syncAll(labels[i]);
+  }
 })();

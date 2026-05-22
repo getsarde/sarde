@@ -12,7 +12,6 @@ var builtinRegistry = map[string]func(cfg map[string]any) *Plugin{
 	"rss":          newRSSPlugin,
 	"atom":         newAtomPlugin,
 	"seo":          newSEOPlugin,
-	"reading_time": newReadingTimePlugin,
 	"search":       newSearchPlugin,
 	"link_validator": newLinkValidatorPlugin,
 	"redirects":    newRedirectsPlugin,

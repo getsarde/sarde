@@ -138,7 +138,6 @@ plugins:
     - search
     - seo
     - redirects
-    - reading_time
     - link_checker
     - content_lint
     - llms_txt

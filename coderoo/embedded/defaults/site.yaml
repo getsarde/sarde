@@ -137,7 +137,6 @@ plugins:
     - robots
     - rss
     - atom
-    - reading_time
     - content_lint
     - link_validator
     - redirects
