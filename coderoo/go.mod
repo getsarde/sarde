@@ -27,4 +27,5 @@ require (
 	github.com/tdewolff/parse/v2 v2.8.11 // indirect
 	github.com/tetratelabs/wazero v1.9.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 )

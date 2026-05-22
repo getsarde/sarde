@@ -24,10 +24,12 @@ import (
 	"github.com/coderoo-dev/coderoo/internal/engine"
 	"github.com/coderoo-dev/coderoo/internal/i18n"
 	"github.com/coderoo-dev/coderoo/internal/plugin"
+	"github.com/coderoo-dev/coderoo/internal/shortcode"
 	"github.com/coderoo-dev/coderoo/internal/plugin/announcements"
 	"github.com/coderoo-dev/coderoo/internal/plugin/clientplugins"
 	"github.com/coderoo-dev/coderoo/internal/plugin/katex"
 	"github.com/coderoo-dev/coderoo/internal/plugin/mermaid"
+	"github.com/coderoo-dev/coderoo/internal/plugin/socialcards"
 	"github.com/coderoo-dev/coderoo/internal/taxonomy"
 	coderootemplate "github.com/coderoo-dev/coderoo/internal/template"
 )
@@ -226,6 +228,38 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	pageIndex := content.BuildPageIndex(allPages)
 	pageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
 
+	// Build shortcode registry (three-layer overlay: embedded → theme → user).
+	var scDataCache sync.Map
+	scFuncMap := coderootemplate.BuildShortcodeFuncMap(
+		siteCtx,
+		&engine.ThemeResolver{
+			ProjectDir: b.projectDir,
+			ThemeName:  b.config.Theme.Name,
+			EmbeddedFS: b.embeddedFS,
+		},
+		&scDataCache,
+		assetPipeline.Resolver(),
+		assetPipeline.Manifest(),
+		assetPipeline.ImageProcessor(),
+		pageIndex,
+	)
+	scRegistry, err := shortcode.NewRegistry(b.embeddedFS, scFuncMap)
+	if err != nil {
+		return nil, fmt.Errorf("loading shortcode registry: %w", err)
+	}
+	if b.config.Theme.Name != "" {
+		themeScDir := filepath.Join(b.projectDir, consts.DirThemes, b.config.Theme.Name, consts.DirLayouts, consts.DirShortcodes)
+		if err := scRegistry.LoadOverridesFromDir(themeScDir); err != nil {
+			return nil, fmt.Errorf("loading theme shortcode overrides: %w", err)
+		}
+	}
+	userScDir := filepath.Join(b.projectDir, consts.DirLayouts, consts.DirShortcodes)
+	if err := scRegistry.LoadOverridesFromDir(userScDir); err != nil {
+		return nil, fmt.Errorf("loading user shortcode overrides: %w", err)
+	}
+	scProcessor := shortcode.NewProcessor(scRegistry)
+	shortcodesHash := scRegistry.TemplateHash()
+
 	// Markdown render cache (dev mode only — production builds have image processing side effects).
 	var pageCache *PageCache
 	if b.devMode && config.BoolVal(b.config.Build.Cache, true) {
@@ -257,8 +291,19 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				continue
 			}
 			g.Go(func() error {
+				// Borrow a renderer from the pool (needed for both shortcode inner rendering and main render).
+				renderer := <-rendererPool
+
+				// Pre-process shortcodes before Goldmark.
+				processed, scWarns := scProcessor.Process(page.RawContent, page, siteCtx, renderer)
+				if len(scWarns) > 0 {
+					validationMu.Lock()
+					warnings = append(warnings, scWarns...)
+					validationMu.Unlock()
+				}
+
 				// Check cache first.
-				hash := ContentHash(page.RawContent)
+				hash := ContentHash(processed + shortcodesHash)
 				if pageCache != nil {
 					if entry := pageCache.Get(hash); entry != nil {
 						page.Content = htmltemplate.HTML(entry.HTML)
@@ -270,16 +315,15 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 							validationData[page.RelPermalink] = engine.ValidationEntry{Links: entry.Links, FilePath: page.FilePath}
 							validationMu.Unlock()
 						}
+						rendererPool <- renderer
 						return nil
 					}
 				}
 
-				// Borrow a renderer from the pool.
-				renderer := <-rendererPool
 				lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor())
 				renderer.SetImageLookup(lookup)
 
-				result, err := renderer.Render(page.RawContent)
+				result, err := renderer.Render(processed)
 				rendererPool <- renderer // return to pool
 				if err != nil {
 					return fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
@@ -317,7 +361,11 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				continue
 			}
 
-			hash := ContentHash(page.RawContent)
+			// Pre-process shortcodes before Goldmark.
+			processed, scWarns := scProcessor.Process(page.RawContent, page, siteCtx, b.mdRenderer)
+			warnings = append(warnings, scWarns...)
+
+			hash := ContentHash(processed + shortcodesHash)
 			if pageCache != nil {
 				if entry := pageCache.Get(hash); entry != nil {
 					page.Content = htmltemplate.HTML(entry.HTML)
@@ -334,7 +382,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor())
 			b.mdRenderer.SetImageLookup(lookup)
 
-			result, err := b.mdRenderer.Render(page.RawContent)
+			result, err := b.mdRenderer.Render(processed)
 			if err != nil {
 				return nil, fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
 			}
@@ -885,6 +933,8 @@ func registerSubpackagePlugins(mgr *plugin.Manager, enabled []string, configs ma
 			mgr.Register(mermaid.New(configs[name]))
 		case "announcements":
 			mgr.Register(announcements.New(configs[name]))
+		case "social_cards":
+			mgr.Register(socialcards.New(configs[name]))
 		}
 	}
 	clientplugins.RegisterAll(mgr, enabled, configs)

@@ -16,6 +16,7 @@ const (
 	DirTaxonomy   = "_taxonomy"
 	DirComponents = "components"
 	DirPartials   = "partials"
+	DirShortcodes = "shortcodes"
 
 	// Internal Params keys shared between builder and template packages.
 	PaginationCurrentKey = "__pagination_current"

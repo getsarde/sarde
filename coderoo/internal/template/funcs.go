@@ -458,6 +458,25 @@ func buildFuncMap(
 	return fm
 }
 
+// BuildShortcodeFuncMap constructs a FuncMap suitable for shortcode templates.
+// Component registry, plugin funcs, and i18n are excluded (nil) to avoid
+// concurrency issues during parallel markdown rendering.
+func BuildShortcodeFuncMap(
+	site *engine.SiteContext,
+	resolver *engine.ThemeResolver,
+	dataCache *sync.Map,
+	assetResolver *asset.Resolver,
+	assetManifest *asset.Manifest,
+	imageProcessor *asset.ImageProcessor,
+	pageIndex *content.PageIndex,
+) htmltemplate.FuncMap {
+	return buildFuncMap(
+		site, resolver, nil, dataCache, "", nil,
+		assetResolver, assetManifest, imageProcessor,
+		nil, nil, nil, pageIndex,
+	)
+}
+
 // ── String function implementations ──
 
 func fnTitle(s string) string {
