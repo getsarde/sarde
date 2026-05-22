@@ -1,0 +1,21 @@
+{{ define "content" }}
+<div class="taxonomy-container">
+  <h1 class="taxonomy-title">{{ .Taxonomy.Name | title }}</h1>
+
+  {{ if .Page.Content }}
+  <div class="fb-markdown-content">{{ .Page.Content }}</div>
+  {{ end }}
+
+  {{ if .TermEntries }}
+  <div class="taxonomy-cloud">
+    {{ range .TermEntries }}
+    <a href="{{ .Permalink }}" class="taxonomy-pill taxonomy-tier-{{ .PopTier }}"{{ if .Color }} style="--term-color: {{ .Color }}"{{ end }}>
+      {{ if .Icon }}<span class="term-icon">{{ .Icon }}</span>{{ end }}
+      <span class="term-label">{{ .Label }}</span>
+      <span class="term-count">{{ .Count }}</span>
+    </a>
+    {{ end }}
+  </div>
+  {{ end }}
+</div>
+{{ end }}

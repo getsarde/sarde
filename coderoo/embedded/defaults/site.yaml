@@ -145,8 +145,7 @@ plugins:
   config: {}
 
 taxonomies:
-  tags: "tags"
-  categories: "categories"
+  tags: "tag"
 
 server:
   port: 4727

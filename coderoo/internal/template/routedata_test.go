@@ -3,6 +3,7 @@ package template
 import (
 	"testing"
 
+	"github.com/coderoo-dev/coderoo/internal/consts"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 )
 
@@ -243,7 +244,7 @@ func TestBuildRouteData_PaginatorCurrentFromParams(t *testing.T) {
 		Kind:         engine.KindSection,
 		Collection:   col,
 		RelPermalink: "/blog/",
-		Params:       map[string]any{paginationCurrentKey: 2},
+		Params:       map[string]any{consts.PaginationCurrentKey: 2},
 	}
 	col.IndexPage = indexPage
 

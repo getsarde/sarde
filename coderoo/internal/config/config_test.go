@@ -51,8 +51,8 @@ func TestDefaults_ReturnsPopulatedConfig(t *testing.T) {
 	if cfg.Markdown.Highlighting.Style != "class" {
 		t.Errorf("Markdown.Highlighting.Style = %q, want %q", cfg.Markdown.Highlighting.Style, "class")
 	}
-	if cfg.Taxonomies["tags"].Singular != "tags" {
-		t.Errorf("Taxonomies[tags].Singular = %q, want %q", cfg.Taxonomies["tags"].Singular, "tags")
+	if cfg.Taxonomies["tags"].Singular != "tag" {
+		t.Errorf("Taxonomies[tags].Singular = %q, want %q", cfg.Taxonomies["tags"].Singular, "tag")
 	}
 }
 

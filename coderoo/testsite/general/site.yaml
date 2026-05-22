@@ -111,8 +111,8 @@ collections:
       max_depth: 3
 
 taxonomies:
-  tags: "tags"
-  categories: "categories"
+  tags: "tag"
+  categories: "category"
 
 redirects:
   /perf: /blog/2024-06-10-performance-tips

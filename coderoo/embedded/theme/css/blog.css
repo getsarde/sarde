@@ -35,7 +35,9 @@
 	.post-tag {
 	  display: inline-block; padding: 0.125rem 0.5rem; border-radius: 9999px;
 	  font-size: 0.75rem; font-weight: 500; background: var(--fb-bg-surface); color: var(--fb-text-muted);
+	  text-decoration: none; transition: background 0.15s, color 0.15s;
 	}
+	.post-tag:hover { background: var(--fb-border); color: var(--fb-text); }
 	.post-card.featured { background: var(--fb-bg-accent-subtle); margin: 0 -1rem; padding: 1.25rem 1rem; border-radius: 0.5rem; border: none; }
 	.post-grid { display: grid; gap: 1rem; margin-bottom: 1rem; }
 	.section-heading { font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fb-text-muted); margin: 0 0 1rem; }

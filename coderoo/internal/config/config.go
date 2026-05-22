@@ -407,8 +407,16 @@ type CollectionPrevNextConfig struct {
 // TaxonomyConfig holds per-taxonomy settings.
 // Accepts both short form ("tag") and full form ({singular: "tag", paginate_by: 20}) in YAML.
 type TaxonomyConfig struct {
-	Singular   string `yaml:"singular"`
-	PaginateBy int    `yaml:"paginate_by"`
+	Singular      string `yaml:"singular"`
+	PaginateBy    int    `yaml:"paginate_by"`
+	UndefinedTags string `yaml:"undefined_tags"`
+	Render        *bool  `yaml:"render"`
+}
+
+// ShouldRender returns true if this taxonomy should generate pages.
+// Default is true when Render is nil (not explicitly set).
+func (tc TaxonomyConfig) ShouldRender() bool {
+	return tc.Render == nil || *tc.Render
 }
 
 func (tc *TaxonomyConfig) UnmarshalYAML(value *yaml.Node) error {

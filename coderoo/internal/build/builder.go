@@ -167,6 +167,15 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	// Build taxonomies.
 	taxonomies := taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies)
 
+	// Enrich taxonomies with metadata from data/*.yml and validate.
+	taxWarnings, err := taxonomy.EnrichTaxonomies(taxonomies, b.config.Taxonomies, b.projectDir)
+	if err != nil {
+		return nil, fmt.Errorf("enriching taxonomies: %w", err)
+	}
+	for _, w := range taxWarnings {
+		fmt.Fprintf(os.Stderr, "WARNING: %s\n", w)
+	}
+
 	// Build SiteContext.
 	siteCtx := &engine.SiteContext{
 		Title:       b.config.Site.Title,
@@ -479,7 +488,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				Section:      idx.Section,
 				Lang:         idx.Lang,
 				Params: map[string]any{
-					"__pagination_current": n,
+					consts.PaginationCurrentKey: n,
 				},
 			}
 			rd := coderootemplate.BuildRouteData(stub, siteCtx, b.themeConfig)
@@ -498,6 +507,118 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			})
 		}
 	}
+
+	// Synthesize taxonomy index and term pages.
+	var taxonomyPages []*engine.Page
+	for taxName, tax := range taxonomies {
+		cfg := b.config.Taxonomies[taxName]
+		if !cfg.ShouldRender() {
+			continue
+		}
+
+		termEntries := taxonomy.ComputeTermEntries(tax)
+
+		// Taxonomy index page (e.g. /tags/).
+		taxStub := &engine.Page{
+			Title:        tax.Name,
+			Kind:         engine.KindTaxonomy,
+			Permalink:    tax.Permalink,
+			RelPermalink: tax.Permalink,
+			Params: map[string]any{
+				"__taxonomy":     tax,
+				"__term_entries": termEntries,
+			},
+		}
+		rd := coderootemplate.BuildRouteData(taxStub, siteCtx, b.themeConfig)
+		b.tmplEngine.SetCurrentLang(rd.Lang)
+		if err := b.pluginMgr.RunBeforeRender(b.config, taxStub, rd, siteCtx); err != nil {
+			return nil, err
+		}
+		html, err := b.tmplEngine.Render(rd.Template, rd)
+		if err != nil {
+			return nil, fmt.Errorf("rendering taxonomy index %s: %w", tax.Permalink, err)
+		}
+		rendered = append(rendered, RenderedPage{
+			Page:    taxStub,
+			HTML:    html,
+			OutPath: PageOutputPath(tax.Permalink),
+		})
+		taxonomyPages = append(taxonomyPages, taxStub)
+
+		// Per-term pages (e.g. /tags/go/, /tags/go/page/2/).
+		paginateBy := cfg.PaginateBy
+		if paginateBy <= 0 {
+			paginateBy = 10
+		}
+		for _, term := range tax.Terms {
+			totalTermPages := (len(term.Pages) + paginateBy - 1) / paginateBy
+			if totalTermPages < 1 {
+				totalTermPages = 1
+			}
+
+			// Page 1.
+			termStub := &engine.Page{
+				Title:        term.Label,
+				Kind:         engine.KindTerm,
+				Permalink:    term.Permalink,
+				RelPermalink: term.Permalink,
+				Params: map[string]any{
+					"__taxonomy":      tax,
+					"__taxonomy_term": term,
+				},
+			}
+			rd := coderootemplate.BuildRouteData(termStub, siteCtx, b.themeConfig)
+			b.tmplEngine.SetCurrentLang(rd.Lang)
+			if err := b.pluginMgr.RunBeforeRender(b.config, termStub, rd, siteCtx); err != nil {
+				return nil, err
+			}
+			html, err := b.tmplEngine.Render(rd.Template, rd)
+			if err != nil {
+				return nil, fmt.Errorf("rendering term page %s: %w", term.Permalink, err)
+			}
+			rendered = append(rendered, RenderedPage{
+				Page:    termStub,
+				HTML:    html,
+				OutPath: PageOutputPath(term.Permalink),
+			})
+			taxonomyPages = append(taxonomyPages, termStub)
+
+			// Pages 2..N.
+			for n := 2; n <= totalTermPages; n++ {
+				permalink := fmt.Sprintf("%spage/%d/", term.Permalink, n)
+				paginatedStub := &engine.Page{
+					Title:        term.Label,
+					Kind:         engine.KindTerm,
+					Permalink:    permalink,
+					RelPermalink: permalink,
+					Params: map[string]any{
+						"__taxonomy":              tax,
+						"__taxonomy_term":          term,
+						consts.PaginationCurrentKey: n,
+					},
+				}
+				rd := coderootemplate.BuildRouteData(paginatedStub, siteCtx, b.themeConfig)
+				b.tmplEngine.SetCurrentLang(rd.Lang)
+				if err := b.pluginMgr.RunBeforeRender(b.config, paginatedStub, rd, siteCtx); err != nil {
+					return nil, err
+				}
+				html, err := b.tmplEngine.Render(rd.Template, rd)
+				if err != nil {
+					return nil, fmt.Errorf("rendering paginated term %s: %w", permalink, err)
+				}
+				rendered = append(rendered, RenderedPage{
+					Page:    paginatedStub,
+					HTML:    html,
+					OutPath: PageOutputPath(permalink),
+				})
+				taxonomyPages = append(taxonomyPages, paginatedStub)
+			}
+		}
+	}
+
+	// Include taxonomy pages in allPages for sitemap and search index.
+	allPages = append(allPages, taxonomyPages...)
+	siteCtx.Pages = allPages
 
 	// Render 404 page(s).
 	render404 := func(lang, dir, outPath string) {

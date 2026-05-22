@@ -106,7 +106,7 @@ func buildTemplateCandidates(resolver *engine.ThemeResolver, collection string, 
 	theme := resolver.ThemeName
 
 	// Layer 1-2: Collection-specific (user, then theme)
-	if collection != "" {
+	if collection != "" && collection != consts.DirTaxonomy {
 		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, collection, name)))
 		if theme != "" {
 			candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirThemes, theme, consts.DirLayouts, collection, name)))
@@ -129,6 +129,14 @@ func buildTemplateCandidates(resolver *engine.ThemeResolver, collection string, 
 		}
 	}
 
+	// Layer: _taxonomy/ specific (taxonomy pages)
+	if collection == consts.DirTaxonomy {
+		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, consts.DirTaxonomy, name)))
+		if theme != "" {
+			candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirThemes, theme, consts.DirLayouts, consts.DirTaxonomy, name)))
+		}
+	}
+
 	// Layer 5-6: _default (user, then theme)
 	candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, consts.DirDefault, name)))
 	if theme != "" {
@@ -142,6 +150,9 @@ func buildTemplateCandidates(resolver *engine.ThemeResolver, collection string, 
 		}
 		if collection != "" && collectionpkg.IsBlogName(collection) {
 			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirBlog, name)))
+		}
+		if collection == consts.DirTaxonomy {
+			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirTaxonomy, name)))
 		}
 		candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirDefault, name)))
 	}

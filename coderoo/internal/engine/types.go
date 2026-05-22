@@ -19,6 +19,8 @@ const (
 	KindPage       NodeKind = "page"
 	KindBundle     NodeKind = "bundle"
 	KindStandalone NodeKind = "standalone"
+	KindTaxonomy   NodeKind = "taxonomy"
+	KindTerm       NodeKind = "term"
 )
 
 // ---------------------------------------------------------------------------
@@ -389,10 +391,23 @@ type Taxonomy struct {
 
 // TaxonomyTerm is a single term within a taxonomy with its associated pages.
 type TaxonomyTerm struct {
-	Name      string
-	Slug      string
-	Permalink string
-	Pages     []*Page
+	Name        string
+	Slug        string
+	Permalink   string
+	Pages       []*Page
+	Label       string
+	Description string
+	Color       string
+	Icon        string
+	Hidden      bool
+	Priority    int
+}
+
+// TermEntry wraps a TaxonomyTerm with computed tag-cloud data.
+type TermEntry struct {
+	*TaxonomyTerm
+	Count   int
+	PopTier int // 1-5 popularity quintile
 }
 
 // ---------------------------------------------------------------------------
@@ -502,6 +517,11 @@ type RouteData struct {
 	Dir          string
 	Translations []TranslationLink
 	Homepage     *HomepageData // only set for KindHome pages
+
+	// Taxonomy pages (KindTaxonomy / KindTerm)
+	Taxonomy     *Taxonomy     // set for KindTaxonomy and KindTerm
+	TaxonomyTerm *TaxonomyTerm // set for KindTerm only
+	TermEntries  []*TermEntry  // set for KindTaxonomy (sorted terms with PopTier)
 
 	// Docs tabs (tabbed docs collections)
 	IsTabbed  bool       // collection uses docs tabs

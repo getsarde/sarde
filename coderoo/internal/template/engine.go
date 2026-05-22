@@ -330,6 +330,7 @@ func loadEmbeddedCSS(efs fs.FS) string {
 		"css/extensions.css",
 		"css/style.css",
 		"css/blog.css",
+		"css/taxonomy.css",
 		"css/search.css",
 		"css/homepage.css",
 		"css/utilities.css",

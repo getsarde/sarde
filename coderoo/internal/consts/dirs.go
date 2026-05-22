@@ -13,8 +13,12 @@ const (
 	DirDefault    = "_default"
 	DirDocs       = "_docs"
 	DirBlog       = "_blog"
+	DirTaxonomy   = "_taxonomy"
 	DirComponents = "components"
 	DirPartials   = "partials"
+
+	// Internal Params keys shared between builder and template packages.
+	PaginationCurrentKey = "__pagination_current"
 
 	// Collection type names.
 	CollectionBlog    = "blog"

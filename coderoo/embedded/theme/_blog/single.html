@@ -14,7 +14,7 @@
       </div>
       {{ if .Page.Tags }}
       <div class="post-tags">
-        {{ range .Page.Tags }}<span class="post-tag">{{ . }}</span>{{ end }}
+        {{ range .Page.Tags }}<a href="{{ termURL "tags" . }}" class="post-tag">{{ . }}</a>{{ end }}
       </div>
       {{ end }}
     </header>

@@ -1,0 +1,14 @@
+{{ $tags := topTerms "tags" 20 }}
+{{ if $tags }}
+<aside class="tag-sidebar">
+  <h3 class="tag-sidebar-title">{{ t "taxonomy.tags" }}</h3>
+  <div class="tag-sidebar-list">
+    {{ range $tags }}
+    <a href="{{ .Permalink }}" class="tag-sidebar-item">
+      <span class="tag-sidebar-label">{{ .Label }}</span>
+      <span class="tag-sidebar-count">{{ len .Pages }}</span>
+    </a>
+    {{ end }}
+  </div>
+</aside>
+{{ end }}

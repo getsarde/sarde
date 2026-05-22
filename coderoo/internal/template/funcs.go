@@ -368,6 +368,45 @@ func buildFuncMap(
 			return site.Collections
 		},
 
+		// ── Taxonomy helpers ──
+
+		"termURL": func(taxonomyName, termName string) string {
+			slug := content.Slugify(termName)
+			if site != nil {
+				if tax, ok := site.Taxonomies[taxonomyName]; ok && tax != nil {
+					if term, ok := tax.Terms[slug]; ok {
+						return term.Permalink
+					}
+				}
+			}
+			return "/" + taxonomyName + "/" + slug + "/"
+		},
+		"topTerms": func(taxonomyName string, n int) []*engine.TaxonomyTerm {
+			if site == nil {
+				return nil
+			}
+			tax, ok := site.Taxonomies[taxonomyName]
+			if !ok || tax == nil {
+				return nil
+			}
+			terms := make([]*engine.TaxonomyTerm, 0, len(tax.Terms))
+			for _, t := range tax.Terms {
+				if !t.Hidden {
+					terms = append(terms, t)
+				}
+			}
+			sort.Slice(terms, func(i, j int) bool {
+				if len(terms[i].Pages) != len(terms[j].Pages) {
+					return len(terms[i].Pages) > len(terms[j].Pages)
+				}
+				return terms[i].Slug < terms[j].Slug
+			})
+			if n > 0 && n < len(terms) {
+				terms = terms[:n]
+			}
+			return terms
+		},
+
 		// ── Special: partial & component ──
 		"partial": func(name string, data any) (htmltemplate.HTML, error) {
 			content, _, err := resolvePartial(resolver, name)

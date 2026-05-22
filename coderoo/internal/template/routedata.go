@@ -11,10 +11,6 @@ import (
 	"github.com/coderoo-dev/coderoo/internal/navigation"
 )
 
-// paginationCurrentKey is an internal Params sentinel set by the builder on
-// synthesized pagination pages (e.g. /blog/page/2/) so BuildRouteData knows
-// which page index to render.
-const paginationCurrentKey = "__pagination_current"
 
 // BuildRouteData constructs the unified RouteData context for a page render.
 func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.ThemeConfig) *engine.RouteData {
@@ -90,7 +86,7 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 		if rd.IsSection && col.Config != nil && col.Config.Paginate > 0 {
 			current := 1
 			if page.Params != nil {
-				if n, ok := page.Params[paginationCurrentKey].(int); ok && n > 0 {
+				if n, ok := page.Params[consts.PaginationCurrentKey].(int); ok && n > 0 {
 					current = n
 				}
 			}
@@ -135,7 +131,7 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 			rd.SidebarType = "none"
 		}
 	} else {
-		// No collection — standalone or home page
+		// No collection — standalone, home, or taxonomy page
 		switch page.Kind {
 		case engine.KindHome:
 			rd.Template = "home"
@@ -144,6 +140,35 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 				if cfg, ok := site.Config.(*config.SiteConfig); ok {
 					rd.Homepage = mapHomepageSettings(&cfg.Homepage)
 				}
+			}
+		case engine.KindTaxonomy:
+			rd.Template = consts.DirTaxonomy + "/list"
+			rd.Layout = engine.LayoutDefault
+			if tax, ok := page.Params["__taxonomy"].(*engine.Taxonomy); ok {
+				rd.Taxonomy = tax
+			}
+			if entries, ok := page.Params["__term_entries"].([]*engine.TermEntry); ok {
+				rd.TermEntries = entries
+			}
+		case engine.KindTerm:
+			rd.Template = consts.DirTaxonomy + "/term"
+			rd.Layout = engine.LayoutDefault
+			if tax, ok := page.Params["__taxonomy"].(*engine.Taxonomy); ok {
+				rd.Taxonomy = tax
+			}
+			if term, ok := page.Params["__taxonomy_term"].(*engine.TaxonomyTerm); ok {
+				rd.TaxonomyTerm = term
+			}
+			if rd.TaxonomyTerm != nil && rd.Taxonomy != nil {
+				current := 1
+				if n, ok := page.Params[consts.PaginationCurrentKey].(int); ok && n > 0 {
+					current = n
+				}
+				paginateBy := rd.Taxonomy.PaginateBy
+				if paginateBy <= 0 {
+					paginateBy = 10
+				}
+				rd.Paginator = buildTermPaginator(rd.TaxonomyTerm, paginateBy, current)
 			}
 		default:
 			rd.Template = consts.DirDefault + "/single"
@@ -270,6 +295,53 @@ func paginationBaseURL(col *engine.Collection) string {
 		return col.IndexPage.RelPermalink
 	}
 	return "/" + col.Name + "/"
+}
+
+// buildTermPaginator builds the Paginator for a taxonomy term page.
+func buildTermPaginator(term *engine.TaxonomyTerm, perPage, current int) *engine.Paginator {
+	pages := term.Pages
+	total := (len(pages) + perPage - 1) / perPage
+	if total < 1 {
+		total = 1
+	}
+	if current < 1 {
+		current = 1
+	}
+	if current > total {
+		current = total
+	}
+	start := (current - 1) * perPage
+	end := start + perPage
+	if end > len(pages) {
+		end = len(pages)
+	}
+
+	base := term.Permalink
+	p := &engine.Paginator{
+		CurrentPages: pages[start:end],
+		Current:      current,
+		Total:        total,
+		TotalItems:   len(pages),
+		BaseURL:      base,
+		FirstURL:     paginationURL(base, 1),
+		LastURL:      paginationURL(base, total),
+	}
+	p.Pages = make([]engine.PaginationLink, 0, total)
+	for i := 1; i <= total; i++ {
+		p.Pages = append(p.Pages, engine.PaginationLink{
+			URL:   paginationURL(base, i),
+			Title: fmt.Sprintf("%d", i),
+		})
+	}
+	if current > 1 {
+		p.HasPrev = true
+		p.PrevURL = paginationURL(base, current-1)
+	}
+	if current < total {
+		p.HasNext = true
+		p.NextURL = paginationURL(base, current+1)
+	}
+	return p
 }
 
 // paginationURL returns the URL for the Nth pagination page of a collection.

@@ -21,7 +21,7 @@
         {{ if .Summary }}<p class="post-card-excerpt">{{ .Summary }}</p>{{ end }}
       </a>
       {{ if .Tags }}
-      <div class="post-card-tags">{{ range .Tags }}<span class="post-tag">{{ . }}</span>{{ end }}</div>
+      <div class="post-card-tags">{{ range .Tags }}<a href="{{ termURL "tags" . }}" class="post-tag">{{ . }}</a>{{ end }}</div>
       {{ end }}
     </div>
     {{ end }}
@@ -43,7 +43,7 @@
         {{ if .Summary }}<p class="post-card-excerpt">{{ .Summary }}</p>{{ end }}
       </a>
       {{ if .Tags }}
-      <div class="post-card-tags">{{ range .Tags }}<span class="post-tag">{{ . }}</span>{{ end }}</div>
+      <div class="post-card-tags">{{ range .Tags }}<a href="{{ termURL "tags" . }}" class="post-tag">{{ . }}</a>{{ end }}</div>
       {{ end }}
     </div>
     {{ end }}

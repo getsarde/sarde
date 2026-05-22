@@ -29,5 +29,10 @@ search:
   results: "Search results"
   no_results: "No results found."
 
+taxonomy:
+  post: "post"
+  posts: "posts"
+  tags: "Tags"
+
 edit_this_page: "Edit this page"
 last_updated: "Last updated: {{ .Date }}"

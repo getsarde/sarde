@@ -1,0 +1,26 @@
+announcement:
+  label: "Announcement"
+  description: "Official announcements and news"
+  color: "#2563eb"
+  icon: "megaphone"
+  priority: 10
+
+open-source:
+  label: "Open Source"
+  description: "Open-source projects and contributions"
+  color: "#16a34a"
+
+release:
+  label: "Release"
+  color: "#dc2626"
+  priority: 5
+
+performance:
+  label: "Performance"
+  description: "Tips and benchmarks for optimization"
+  color: "#ea580c"
+
+middleware:
+  label: "Middleware"
+  color: "#7c3aed"
+  hidden: true
