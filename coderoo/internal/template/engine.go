@@ -14,6 +14,7 @@ import (
 	"github.com/coderoo-dev/coderoo/internal/asset"
 	"github.com/coderoo-dev/coderoo/internal/component"
 	"github.com/coderoo-dev/coderoo/internal/consts"
+	"github.com/coderoo-dev/coderoo/internal/content"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 	"github.com/coderoo-dev/coderoo/internal/i18n"
 )
@@ -34,6 +35,7 @@ type Engine struct {
 	imageProcessor *asset.ImageProcessor
 	pluginFuncs    map[string]any
 	i18nStrings    *i18n.StringTable
+	pageIndex      *content.PageIndex
 	currentLang    string // set per-page before render, captured by t() closure
 	mu             sync.RWMutex
 }
@@ -77,6 +79,12 @@ func (e *Engine) SetI18nStrings(st *i18n.StringTable) {
 	e.i18nStrings = st
 }
 
+// SetPageIndex sets the page index for O(1) ref/relref lookups.
+// Must be called before Load().
+func (e *Engine) SetPageIndex(idx *content.PageIndex) {
+	e.pageIndex = idx
+}
+
 // SetCurrentLang sets the current language for the t() template function.
 // Must be called before each Render() call.
 func (e *Engine) SetCurrentLang(lang string) {
@@ -97,7 +105,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	e.cssURL = "/assets/css/coderoo.css"
 
 	// Build a bootstrap FuncMap (without component support) for initial parsing.
-	bootstrapFM := buildFuncMap(e.site, resolver, nil, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings)
+	bootstrapFM := buildFuncMap(e.site, resolver, nil, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, e.pageIndex)
 
 	// Create the component registry with embedded defaults.
 	registry, err := component.NewRegistry(resolver.EmbeddedFS, bootstrapFM)
@@ -122,7 +130,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	e.components = registry
 
 	// Rebuild the final FuncMap with the real component registry.
-	e.funcMap = buildFuncMap(e.site, resolver, registry, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings)
+	e.funcMap = buildFuncMap(e.site, resolver, registry, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, e.pageIndex)
 
 	// Re-register all components with the final FuncMap so they can call
 	// template functions like `component`, `now`, etc.

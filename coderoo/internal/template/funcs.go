@@ -36,6 +36,7 @@ func buildFuncMap(
 	pluginFuncs map[string]any,
 	currentLangPtr *string,
 	i18nStrings *i18n.StringTable,
+	pageIndex *content.PageIndex,
 ) htmltemplate.FuncMap {
 	fm := htmltemplate.FuncMap{
 		// ── Strings ──
@@ -124,23 +125,37 @@ func buildFuncMap(
 		},
 		"urlize": content.Slugify,
 		"ref": func(slug string) string {
-			if site == nil {
-				return slug
-			}
-			for _, p := range site.Pages {
-				if p.Slug == slug || p.RelPermalink == slug {
+			if pageIndex != nil {
+				if p := pageIndex.LookupByPermalink(slug); p != nil {
 					return p.Permalink
+				}
+				if p := pageIndex.LookupBySlug(slug); p != nil {
+					return p.Permalink
+				}
+			}
+			if site != nil {
+				for _, p := range site.Pages {
+					if p.Slug == slug || p.RelPermalink == slug {
+						return p.Permalink
+					}
 				}
 			}
 			return slug
 		},
 		"relref": func(slug string) string {
-			if site == nil {
-				return slug
-			}
-			for _, p := range site.Pages {
-				if p.Slug == slug || p.RelPermalink == slug {
+			if pageIndex != nil {
+				if p := pageIndex.LookupByPermalink(slug); p != nil {
 					return p.RelPermalink
+				}
+				if p := pageIndex.LookupBySlug(slug); p != nil {
+					return p.RelPermalink
+				}
+			}
+			if site != nil {
+				for _, p := range site.Pages {
+					if p.Slug == slug || p.RelPermalink == slug {
+						return p.RelPermalink
+					}
 				}
 			}
 			return slug
@@ -413,7 +428,7 @@ func buildFuncMap(
 			if err != nil {
 				return "", err
 			}
-			tmpl, err := htmltemplate.New(name).Funcs(buildFuncMap(site, resolver, registry, dataCache, cachedCSS, cssURLPtr, assetResolver, assetManifest, imageProcessor, pluginFuncs, currentLangPtr, i18nStrings)).Parse(string(content))
+			tmpl, err := htmltemplate.New(name).Funcs(buildFuncMap(site, resolver, registry, dataCache, cachedCSS, cssURLPtr, assetResolver, assetManifest, imageProcessor, pluginFuncs, currentLangPtr, i18nStrings, pageIndex)).Parse(string(content))
 			if err != nil {
 				return "", fmt.Errorf("parsing partial %q: %w", name, err)
 			}

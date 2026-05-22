@@ -222,6 +222,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		}
 	}
 
+	// Build page index for link validation and O(1) ref/relref lookups.
+	pageIndex := content.BuildPageIndex(allPages)
+	pageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
+
 	// Markdown render cache (dev mode only — production builds have image processing side effects).
 	var pageCache *PageCache
 	if b.devMode && config.BoolVal(b.config.Build.Cache, true) {
@@ -333,6 +337,17 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		}
 	}
 
+	// Populate heading index from rendered pages.
+	for _, page := range allPages {
+		if len(page.Headings) > 0 {
+			ids := make([]string, len(page.Headings))
+			for i, h := range page.Headings {
+				ids[i] = h.ID
+			}
+			pageIndex.SetHeadings(page.RelPermalink, ids)
+		}
+	}
+
 	// Bundle global CSS/JS assets (processes head.custom_css/custom_js from config).
 	if err := assetPipeline.BundleGlobalAssets(); err != nil {
 		return nil, fmt.Errorf("bundling global assets: %w", err)
@@ -343,6 +358,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	b.tmplEngine.SetAssetPipeline(assetPipeline.Resolver(), assetPipeline.Manifest())
 	b.tmplEngine.SetImageProcessor(assetPipeline.ImageProcessor())
 	b.tmplEngine.SetPluginFuncs(b.pluginMgr.TemplateFuncs())
+	b.tmplEngine.SetPageIndex(pageIndex)
 	if stringTable != nil {
 		b.tmplEngine.SetI18nStrings(stringTable)
 	}
