@@ -436,12 +436,25 @@ type Heading struct {
 	Text  string
 }
 
+// CollectedLink represents a link found during markdown rendering.
+type CollectedLink struct {
+	Href    string
+	IsImage bool
+}
+
+// ValidationEntry holds collected links for a single page, used by the link validator.
+type ValidationEntry struct {
+	Links    []CollectedLink
+	FilePath string
+}
+
 // RenderResult holds the output of a markdown-to-HTML conversion.
 type RenderResult struct {
 	HTML          string
 	Headings      []Heading
 	HasCodeBlocks bool
 	HasImages     bool
+	Links         []CollectedLink
 }
 
 // ---------------------------------------------------------------------------

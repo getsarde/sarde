@@ -264,7 +264,12 @@ func mergeLinkValidation(base, over *LinkValidationSettings) {
 	mergeBoolP(&base.CheckAnchors, over.CheckAnchors)
 	mergeBoolP(&base.CheckImages, over.CheckImages)
 	mergeBoolP(&base.WarnRelativeLinks, over.WarnRelativeLinks)
-	mergeBoolP(&base.CheckExternal, over.CheckExternal)
+	mergeBoolP(&base.WarnLocalLinks, over.WarnLocalLinks)
+	mergeStr(&base.SameSitePolicy, over.SameSitePolicy)
+	mergeBoolP(&base.FailBuild, over.FailBuild)
+	if len(over.Exclude) > 0 {
+		base.Exclude = over.Exclude
+	}
 	if len(over.Ignore) > 0 {
 		base.Ignore = over.Ignore
 	}

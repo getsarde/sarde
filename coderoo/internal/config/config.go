@@ -318,8 +318,11 @@ type LinkValidationSettings struct {
 	CheckAnchors      *bool    `yaml:"check_anchors"`
 	CheckImages       *bool    `yaml:"check_images"`
 	WarnRelativeLinks *bool    `yaml:"warn_relative_links"`
-	CheckExternal     *bool    `yaml:"check_external"`
+	WarnLocalLinks    *bool    `yaml:"warn_local_links"`
+	SameSitePolicy    string   `yaml:"same_site_policy"`
+	Exclude           []string `yaml:"exclude"`
 	Ignore            []string `yaml:"ignore"`
+	FailBuild         *bool    `yaml:"fail_build"`
 }
 
 // ---------------------------------------------------------------------------

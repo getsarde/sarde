@@ -232,6 +232,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		pageCache = NewPageCache(b.projectDir)
 	}
 
+	// Validation data: collected links per page for post-build link validation.
+	var validationMu sync.Mutex
+	validationData := make(map[string]engine.ValidationEntry)
+
 	// Render markdown for all pages (after asset enhancement so image
 	// renderer can access processed resource data for <picture> generation).
 	parallel := config.BoolVal(b.config.Build.Parallel, true)
@@ -261,6 +265,11 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 						page.Headings = entry.Headings
 						page.HasCodeBlocks = entry.HasCodeBlocks
 						page.HasImages = entry.HasImages
+						if len(entry.Links) > 0 {
+							validationMu.Lock()
+							validationData[page.RelPermalink] = engine.ValidationEntry{Links: entry.Links, FilePath: page.FilePath}
+							validationMu.Unlock()
+						}
 						return nil
 					}
 				}
@@ -279,6 +288,11 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				page.Headings = result.Headings
 				page.HasCodeBlocks = result.HasCodeBlocks
 				page.HasImages = result.HasImages
+				if len(result.Links) > 0 {
+					validationMu.Lock()
+					validationData[page.RelPermalink] = engine.ValidationEntry{Links: result.Links, FilePath: page.FilePath}
+					validationMu.Unlock()
+				}
 
 				// Store in cache.
 				if pageCache != nil {
@@ -288,6 +302,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 						Headings:      result.Headings,
 						HasCodeBlocks: result.HasCodeBlocks,
 						HasImages:     result.HasImages,
+						Links:         result.Links,
 					})
 				}
 				return nil
@@ -309,6 +324,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 					page.Headings = entry.Headings
 					page.HasCodeBlocks = entry.HasCodeBlocks
 					page.HasImages = entry.HasImages
+					if len(entry.Links) > 0 {
+						validationData[page.RelPermalink] = engine.ValidationEntry{Links: entry.Links, FilePath: page.FilePath}
+					}
 					continue
 				}
 			}
@@ -324,6 +342,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			page.Headings = result.Headings
 			page.HasCodeBlocks = result.HasCodeBlocks
 			page.HasImages = result.HasImages
+			if len(result.Links) > 0 {
+				validationData[page.RelPermalink] = engine.ValidationEntry{Links: result.Links, FilePath: page.FilePath}
+			}
 
 			if pageCache != nil {
 				pageCache.Put(hash, &CacheEntry{
@@ -332,6 +353,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 					Headings:      result.Headings,
 					HasCodeBlocks: result.HasCodeBlocks,
 					HasImages:     result.HasImages,
+					Links:         result.Links,
 				})
 			}
 		}
@@ -759,11 +781,13 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	// Plugin hook: BuildDone (parallel, after all files written).
 	var pluginWarnings []engine.ValidationWarning
 	buildDoneCtx := &plugin.BuildDoneContext{
-		Config:      b.config,
-		OutputDir:   outputDir,
-		Pages:       allPages,
-		Collections: collections,
-		Site:        siteCtx,
+		Config:         b.config,
+		OutputDir:      outputDir,
+		Pages:          allPages,
+		Collections:    collections,
+		Site:           siteCtx,
+		PageIndex:      pageIndex,
+		ValidationData: validationData,
 	}
 	buildDoneCtx.SetWarnings(&pluginWarnings)
 	if err := b.pluginMgr.RunBuildDone(buildDoneCtx); err != nil {

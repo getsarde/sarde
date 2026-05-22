@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/coderoo-dev/coderoo/internal/config"
+	"github.com/coderoo-dev/coderoo/internal/content"
 	"github.com/coderoo-dev/coderoo/internal/engine"
 )
 
@@ -87,14 +88,16 @@ func (c *BeforeRenderContext) Get(key string) any { return c.store.Get(key) }
 
 // BuildDoneContext is available after all files are written. Thread-safe for parallel use.
 type BuildDoneContext struct {
-	Config       *config.SiteConfig
-	PluginConfig map[string]any
-	OutputDir    string
-	Pages        []*engine.Page
-	Collections  map[string]*engine.Collection
-	Site         *engine.SiteContext
-	mu           sync.Mutex
-	warnings     *[]engine.ValidationWarning
+	Config         *config.SiteConfig
+	PluginConfig   map[string]any
+	OutputDir      string
+	Pages          []*engine.Page
+	Collections    map[string]*engine.Collection
+	Site           *engine.SiteContext
+	PageIndex      *content.PageIndex                // page index for link validation
+	ValidationData map[string]engine.ValidationEntry // permalink -> collected links per page
+	mu             sync.Mutex
+	warnings       *[]engine.ValidationWarning
 }
 
 // WriteFile writes a file to the output directory. Thread-safe.

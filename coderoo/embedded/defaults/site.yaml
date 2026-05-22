@@ -100,8 +100,10 @@ link_validation:
   check_anchors: true
   check_images: true
   warn_relative_links: true
-  check_external: false
-  ignore: []
+  warn_local_links: true
+  same_site_policy: "ignore"
+  exclude: []
+  fail_build: false
 
 content_lint:
   enabled: true
@@ -137,7 +139,7 @@ plugins:
     - atom
     - reading_time
     - content_lint
-    - link_checker
+    - link_validator
     - redirects
     - llms_txt
     - katex
