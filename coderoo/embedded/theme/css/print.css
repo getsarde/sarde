@@ -6,6 +6,8 @@
 	  .docs-sidebar, .site-header, .docs-toc, .mobile-toc,
 	  .search-modal, .search-trigger, .theme-toggle,
 	  .copy-btn, .heading-anchor, .mobile-menu-toggle,
+	  .docs-menu-toggle, .docs-sidebar-backdrop,
+	  .docs-sidebar-footer, .sidebar-mobile-nav,
 	  .spoiler-toggle, .skip-link, .pagination,
 	  .post-navigation, .blog-pagination,
 	  .header, .navbar, .footer { display: none !important; }

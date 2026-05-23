@@ -6,11 +6,24 @@
 </head>
 <body class="layout-{{ .Layout }}">
   {{ if .HasSidebar }}
-  <aside class="docs-sidebar">
-    <div class="docs-sidebar-nav">
-      {{ component "Sidebar" . }}
-    </div>
-  </aside>
+  <nav class="sidebar-mobile-nav" aria-label="Section navigation">
+    <button class="docs-menu-toggle" id="docs-menu-toggle"
+            aria-expanded="false" aria-label="Menu"
+            aria-controls="docs-sidebar" type="button">
+      <svg class="docs-menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      <svg class="docs-menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <div class="docs-sidebar-nav">
+        {{ component "Sidebar" . }}
+      </div>
+      <div class="docs-sidebar-footer">
+        {{ component "ThemeToggle" . }}
+        {{ component "LanguageSwitcher" . }}
+      </div>
+    </aside>
+  </nav>
+  <div class="docs-sidebar-backdrop" id="docs-sidebar-backdrop"></div>
   {{ end }}
   <div class="docs-main">
     {{ component "Header" . }}
