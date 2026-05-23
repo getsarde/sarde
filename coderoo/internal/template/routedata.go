@@ -97,6 +97,9 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 		if engine.LayoutHasSidebar(rd.Layout) {
 			rd.SidebarType = "nav"
 			rd.HasSidebar = true
+			if col.Config != nil && col.Config.Sidebar != nil {
+				rd.SidebarCollapsedByDefault = col.Config.Sidebar.CollapsedByDefault
+			}
 
 			if col.IsTabbed && len(col.Tabs) > 0 {
 				rd.IsTabbed = true

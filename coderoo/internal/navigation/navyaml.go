@@ -121,6 +121,11 @@ func buildNodeFromYAMLItem(item navYAMLItem, lookup map[string]*engine.Page, dep
 	}
 	// Otherwise: group node (label only, no URL).
 
+	// Per-group open control: collapsed: false means open by default.
+	if item.Collapsed != nil && !*item.Collapsed {
+		node.DefaultOpen = true
+	}
+
 	// Process children.
 	for _, child := range item.Items {
 		childNode := buildNodeFromYAMLItem(child, lookup, depth+1)

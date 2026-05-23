@@ -322,8 +322,9 @@ type NavNode struct {
 	Depth     int
 	IsActive  bool
 	IsOpen    bool
-	HasActive bool
-	Page      *Page
+	HasActive   bool
+	DefaultOpen bool
+	Page        *Page
 	Attrs     map[string]string
 }
 
@@ -519,7 +520,8 @@ type RouteData struct {
 	Breadcrumbs  []BreadcrumbItem
 	Pagination   *PaginationLinks
 	Paginator    *Paginator // numbered list-page pagination (section/list pages only)
-	HasSidebar   bool
+	HasSidebar                bool
+	SidebarCollapsedByDefault bool
 	Section      *Section
 	IsSection    bool
 	Layout       LayoutType

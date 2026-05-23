@@ -100,6 +100,14 @@ func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int) *engine.
 		}
 	}
 
+	// Copy sidebar_attrs and DefaultOpen from section index page.
+	if sec.IndexPage != nil {
+		group.Attrs = copyAttrs(sec.IndexPage.Params)
+		if group.Attrs != nil && group.Attrs["open"] == "true" {
+			group.DefaultOpen = true
+		}
+	}
+
 	// Fallback label from directory name.
 	if group.Label == "" {
 		group.Label = content.FilenameToTitle(sec.Slug + ".md")
