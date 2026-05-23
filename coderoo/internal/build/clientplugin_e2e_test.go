@@ -291,11 +291,15 @@ func TestBuild_Announcements_BannerRendered(t *testing.T) {
 	cfg.Plugins.Enabled = []string{"announcements"}
 	cfg.Plugins.Config = map[string]map[string]any{
 		"announcements": {
-			"message":     "Site under maintenance",
-			"type":        "warning",
-			"active":      true,
-			"dismissible": true,
-			"id":          "maint-1",
+			"items": []any{
+				map[string]any{
+					"message":     "Site under maintenance",
+					"type":        "warning",
+					"active":      true,
+					"dismissible": true,
+					"id":          "maint-1",
+				},
+			},
 		},
 	}
 	themeCfg := buildThemeConfig()
@@ -315,6 +319,9 @@ func TestBuild_Announcements_BannerRendered(t *testing.T) {
 	distDir := filepath.Join(projDir, "dist")
 	guideHTML := readFixture(t, distDir, "docs/guide/index.html")
 
+	if !strings.Contains(guideHTML, "announcement-container") {
+		t.Error("expected announcement-container wrapper")
+	}
 	if !strings.Contains(guideHTML, "announcement-banner") {
 		t.Error("expected announcement banner in page HTML")
 	}
@@ -330,6 +337,9 @@ func TestBuild_Announcements_BannerRendered(t *testing.T) {
 	if !strings.Contains(guideHTML, "announcement-dismiss") {
 		t.Error("expected dismiss button")
 	}
+	if !strings.Contains(guideHTML, `aria-label="Dismiss announcement"`) {
+		t.Error("expected i18n dismiss label")
+	}
 }
 
 func TestBuild_Announcements_InactiveNoBanner(t *testing.T) {
@@ -338,8 +348,12 @@ func TestBuild_Announcements_InactiveNoBanner(t *testing.T) {
 	cfg.Plugins.Enabled = []string{"announcements"}
 	cfg.Plugins.Config = map[string]map[string]any{
 		"announcements": {
-			"message": "Hidden",
-			"active":  false,
+			"items": []any{
+				map[string]any{
+					"message": "Hidden",
+					"active":  false,
+				},
+			},
 		},
 	}
 	themeCfg := buildThemeConfig()
@@ -364,6 +378,111 @@ func TestBuild_Announcements_InactiveNoBanner(t *testing.T) {
 	}
 }
 
+func TestBuild_Announcements_RotateMode(t *testing.T) {
+	projDir := createRichFixtureSite(t)
+	cfg := config.Defaults()
+	cfg.Plugins.Enabled = []string{"announcements"}
+	cfg.Plugins.Config = map[string]map[string]any{
+		"announcements": {
+			"display_mode":    "rotate",
+			"rotate_interval": 3000,
+			"items": []any{
+				map[string]any{
+					"id":      "first",
+					"message": "First announcement",
+					"type":    "info",
+					"active":  true,
+				},
+				map[string]any{
+					"id":      "second",
+					"message": "Second announcement",
+					"type":    "warning",
+					"active":  true,
+				},
+			},
+		},
+	}
+	themeCfg := buildThemeConfig()
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: themeCfg,
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+
+	_, err := builder.Build()
+	if err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(projDir, "dist")
+	guideHTML := readFixture(t, distDir, "docs/guide/index.html")
+
+	if !strings.Contains(guideHTML, `data-display-mode="rotate"`) {
+		t.Error("expected rotate display mode on container")
+	}
+	if !strings.Contains(guideHTML, `data-rotate-interval="3000"`) {
+		t.Error("expected rotate interval on container")
+	}
+	if !strings.Contains(guideHTML, `data-announcement-id="first"`) {
+		t.Error("expected first announcement")
+	}
+	if !strings.Contains(guideHTML, `data-announcement-id="second"`) {
+		t.Error("expected second announcement")
+	}
+}
+
+func TestBuild_Announcements_DateAndPageTargeting(t *testing.T) {
+	projDir := createRichFixtureSite(t)
+	cfg := config.Defaults()
+	cfg.Plugins.Enabled = []string{"announcements"}
+	cfg.Plugins.Config = map[string]map[string]any{
+		"announcements": {
+			"items": []any{
+				map[string]any{
+					"id":         "dated",
+					"message":    "Scheduled announcement",
+					"active":     true,
+					"start_date": "2025-01-01T00:00:00Z",
+					"end_date":   "2027-12-31T23:59:59Z",
+					"show_on":    []any{"/docs/**"},
+					"hide_on":    []any{"/admin/**"},
+				},
+			},
+		},
+	}
+	themeCfg := buildThemeConfig()
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: themeCfg,
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+
+	_, err := builder.Build()
+	if err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(projDir, "dist")
+	guideHTML := readFixture(t, distDir, "docs/guide/index.html")
+
+	if !strings.Contains(guideHTML, `data-start-date="2025-01-01T00:00:00Z"`) {
+		t.Error("expected start date attribute")
+	}
+	if !strings.Contains(guideHTML, `data-end-date="2027-12-31T23:59:59Z"`) {
+		t.Error("expected end date attribute")
+	}
+	if !strings.Contains(guideHTML, `data-show-on="/docs/**"`) {
+		t.Error("expected show-on attribute")
+	}
+	if !strings.Contains(guideHTML, `data-hide-on="/admin/**"`) {
+		t.Error("expected hide-on attribute")
+	}
+}
+
 func TestBuild_AllClientPlugins(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
@@ -377,8 +496,12 @@ func TestBuild_AllClientPlugins(t *testing.T) {
 	}
 	cfg.Plugins.Config = map[string]map[string]any{
 		"announcements": {
-			"message": "Test banner",
-			"active":  true,
+			"items": []any{
+				map[string]any{
+					"message": "Test banner",
+					"active":  true,
+				},
+			},
 		},
 	}
 	themeCfg := buildThemeConfig()

@@ -36,3 +36,6 @@ taxonomy:
 
 edit_this_page: "Edit this page"
 last_updated: "Last updated: {{ .Date }}"
+
+announcements:
+  dismiss: "Dismiss announcement"

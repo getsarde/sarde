@@ -173,11 +173,29 @@ plugins:
       line_threshold: 12
       preview_lines: 6
     announcements:
-      message: "Velox v2.0 is now available — check the release notes!"
-      type: info
-      active: true
-      dismissible: true
-      id: "v2-release"
+      display_mode: rotate
+      rotate_interval: 6000
+      show_rotate_indicator: true
+      items:
+        - id: "v2-release"
+          type: info
+          message: "announcements.v2_release"
+          dismissible: true
+          active: true
+          start_date: "2025-01-01T00:00:00Z"
+          end_date: "2027-12-31T23:59:59Z"
+        - id: "docs-update"
+          type: success
+          message: "announcements.docs_update"
+          dismissible: true
+          active: true
+          show_on: ["/docs/**"]
+        - id: "maintenance"
+          type: warning
+          message: "announcements.maintenance"
+          dismissible: false
+          active: true
+          hide_on: ["/blog/**"]
 
 head:
   custom_css:
@@ -185,6 +203,17 @@ head:
 
 i18n:
   default_language: "en"
+  languages:
+    en:
+      name: "English"
+      weight: 1
+    fr:
+      name: "Français"
+      weight: 2
+    ar:
+      name: "العربية"
+      weight: 3
+      dir: "rtl"
 
 server:
   port: 4727

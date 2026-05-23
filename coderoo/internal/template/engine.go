@@ -91,6 +91,12 @@ func (e *Engine) SetCurrentLang(lang string) {
 	e.currentLang = lang
 }
 
+// CurrentLangPtr returns a pointer to the current language field,
+// suitable for capture by plugin closures that resolve i18n strings at render time.
+func (e *Engine) CurrentLangPtr() *string {
+	return &e.currentLang
+}
+
 // CachedCSS returns the concatenated embedded CSS bundle.
 func (e *Engine) CachedCSS() string { return e.cachedCSS }
 

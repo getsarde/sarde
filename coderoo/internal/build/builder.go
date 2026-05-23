@@ -116,6 +116,18 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		b.scanner.DefaultLang = defaultLang
 	}
 
+	// Register announcements plugin after stringTable is available (needs i18n).
+	for _, name := range b.config.Plugins.Enabled {
+		if name == "announcements" {
+			b.pluginMgr.Register(announcements.New(
+				b.config.Plugins.Config[name],
+				stringTable,
+				b.tmplEngine.CurrentLangPtr(),
+			))
+			break
+		}
+	}
+
 	// Plugin hook: ConfigSetup (serial, after config resolved).
 	if err := b.pluginMgr.RunConfigSetup(b.config); err != nil {
 		return nil, err
@@ -932,7 +944,7 @@ func registerSubpackagePlugins(mgr *plugin.Manager, enabled []string, configs ma
 		case "mermaid":
 			mgr.Register(mermaid.New(configs[name]))
 		case "announcements":
-			mgr.Register(announcements.New(configs[name]))
+			// Registered in Build() after stringTable is available (needs i18n).
 		case "social_cards":
 			mgr.Register(socialcards.New(configs[name]))
 		}
