@@ -2,13 +2,16 @@
 package build
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/frostybee/sarde/internal/engine"
+	"golang.org/x/sync/errgroup"
 )
 
 // RenderedPage holds a rendered page and its output path.
@@ -34,21 +37,45 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 		os.RemoveAll(w.OutputDir)
 	}
 
-	// Write rendered HTML pages.
+	// Pre-create all output directories in a single pass to avoid
+	// redundant MkdirAll syscalls during parallel writes.
+	dirs := make(map[string]struct{}, len(pages)/4)
 	for _, rp := range pages {
-		outPath := filepath.Join(w.OutputDir, filepath.FromSlash(rp.OutPath))
-		if err := writeFile(outPath, rp.HTML); err != nil {
-			return 0, fmt.Errorf("writing %s: %w", rp.OutPath, err)
+		dir := filepath.Dir(filepath.Join(w.OutputDir, filepath.FromSlash(rp.OutPath)))
+		dirs[dir] = struct{}{}
+	}
+	for aliasPath := range aliases {
+		dir := filepath.Dir(filepath.Join(w.OutputDir, filepath.FromSlash(PageOutputPath(aliasPath))))
+		dirs[dir] = struct{}{}
+	}
+	for dir := range dirs {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return 0, fmt.Errorf("creating directory %s: %w", dir, err)
 		}
 	}
 
-	// Write alias redirects.
+	// Write rendered HTML pages in parallel.
+	g, _ := errgroup.WithContext(context.Background())
+	g.SetLimit(runtime.NumCPU())
+	for _, rp := range pages {
+		g.Go(func() error {
+			outPath := filepath.Join(w.OutputDir, filepath.FromSlash(rp.OutPath))
+			return os.WriteFile(outPath, rp.HTML, 0o644)
+		})
+	}
+	if err := g.Wait(); err != nil {
+		return 0, fmt.Errorf("writing pages: %w", err)
+	}
+
+	// Write alias redirects in parallel.
 	for aliasPath, target := range aliases {
-		outPath := filepath.Join(w.OutputDir, filepath.FromSlash(PageOutputPath(aliasPath)))
-		html := redirectHTML(target)
-		if err := writeFile(outPath, []byte(html)); err != nil {
-			return 0, fmt.Errorf("writing alias %s: %w", aliasPath, err)
-		}
+		g.Go(func() error {
+			outPath := filepath.Join(w.OutputDir, filepath.FromSlash(PageOutputPath(aliasPath)))
+			return os.WriteFile(outPath, []byte(redirectHTML(target)), 0o644)
+		})
+	}
+	if err := g.Wait(); err != nil {
+		return 0, fmt.Errorf("writing aliases: %w", err)
 	}
 
 	// Copy static files.
@@ -66,28 +93,42 @@ func (w *Writer) copyStatic() (int, error) {
 	staticDir := filepath.Join(w.ProjectDir, "static")
 	info, err := os.Stat(staticDir)
 	if err != nil || !info.IsDir() {
-		return 0, nil // no static dir — zero-config behavior
+		return 0, nil
 	}
 
-	count := 0
+	type filePair struct{ src, dst string }
+	var pairs []filePair
 	err = filepath.Walk(staticDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
+		if err != nil || info.IsDir() {
 			return err
 		}
-		if info.IsDir() {
-			return nil
-		}
-
 		relPath, _ := filepath.Rel(staticDir, path)
-		destPath := filepath.Join(w.OutputDir, relPath)
-
-		if err := copyFile(path, destPath); err != nil {
-			return err
-		}
-		count++
+		pairs = append(pairs, filePair{path, filepath.Join(w.OutputDir, relPath)})
 		return nil
 	})
-	return count, err
+	if err != nil {
+		return 0, err
+	}
+
+	dirs := make(map[string]struct{}, len(pairs)/4)
+	for _, p := range pairs {
+		dirs[filepath.Dir(p.dst)] = struct{}{}
+	}
+	for dir := range dirs {
+		os.MkdirAll(dir, 0o755)
+	}
+
+	g, _ := errgroup.WithContext(context.Background())
+	g.SetLimit(runtime.NumCPU())
+	for _, p := range pairs {
+		g.Go(func() error {
+			return copyFile(p.src, p.dst)
+		})
+	}
+	if err := g.Wait(); err != nil {
+		return 0, err
+	}
+	return len(pairs), nil
 }
 
 // PageOutputPath converts a RelPermalink to an output file path.
@@ -129,12 +170,9 @@ func writeFile(path string, data []byte) error {
 	return os.WriteFile(path, data, 0o644)
 }
 
-// copyFile copies a single file from src to dst, creating parent dirs.
+// copyFile copies a single file from src to dst.
+// Parent directories must already exist.
 func copyFile(src, dst string) error {
-	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
-		return err
-	}
-
 	in, err := os.Open(src)
 	if err != nil {
 		return err

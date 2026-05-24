@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
-	"regexp"
 	"strings"
 )
 
@@ -58,7 +57,11 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 			continue
 		}
 
-		content := stripHTML(string(page.Content))
+		raw := string(page.Content)
+		if cutoff := maxLen * 3; len(raw) > cutoff {
+			raw = raw[:cutoff]
+		}
+		content := stripHTML(raw)
 		if len(content) > maxLen {
 			content = content[:maxLen]
 		}
@@ -80,7 +83,7 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		})
 	}
 
-	data, err := json.MarshalIndent(docs, "", "  ")
+	data, err := json.Marshal(docs)
 	if err != nil {
 		return err
 	}
@@ -130,11 +133,38 @@ func appendUniqueScript(list []string, item string) []string {
 	return append(list, item)
 }
 
-var htmlTagRegex = regexp.MustCompile(`<[^>]*>`)
-
 // stripHTML removes HTML tags and collapses whitespace.
 func stripHTML(s string) string {
-	s = htmlTagRegex.ReplaceAllString(s, " ")
-	s = strings.Join(strings.Fields(s), " ")
-	return strings.TrimSpace(s)
+	var b strings.Builder
+	b.Grow(len(s))
+	inTag := false
+	lastSpace := true
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c == '<' {
+			inTag = true
+			if !lastSpace {
+				b.WriteByte(' ')
+				lastSpace = true
+			}
+			continue
+		}
+		if c == '>' {
+			inTag = false
+			continue
+		}
+		if inTag {
+			continue
+		}
+		if c <= ' ' {
+			if !lastSpace {
+				b.WriteByte(' ')
+				lastSpace = true
+			}
+			continue
+		}
+		b.WriteByte(c)
+		lastSpace = false
+	}
+	return strings.TrimSpace(b.String())
 }
