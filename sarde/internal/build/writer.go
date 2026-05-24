@@ -27,16 +27,12 @@ type Writer struct {
 	ProjectDir string
 	Clean      bool
 	DevMode    bool
+	Tracker    *OutputTracker
 }
 
 // Write outputs all rendered pages, alias redirects, and static files.
 // Returns the number of static files copied.
 func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, error) {
-	// Clean output directory if configured (skipped in dev mode to avoid NTFS overhead).
-	if w.Clean && !w.DevMode {
-		os.RemoveAll(w.OutputDir)
-	}
-
 	// Pre-create all output directories in a single pass to avoid
 	// redundant MkdirAll syscalls during parallel writes.
 	dirs := make(map[string]struct{}, len(pages)/4)
@@ -60,6 +56,9 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 	for _, rp := range pages {
 		g.Go(func() error {
 			outPath := filepath.Join(w.OutputDir, filepath.FromSlash(rp.OutPath))
+			if w.Tracker != nil {
+				w.Tracker.Track(outPath)
+			}
 			return os.WriteFile(outPath, rp.HTML, 0o644)
 		})
 	}
@@ -71,6 +70,9 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 	for aliasPath, target := range aliases {
 		g.Go(func() error {
 			outPath := filepath.Join(w.OutputDir, filepath.FromSlash(PageOutputPath(aliasPath)))
+			if w.Tracker != nil {
+				w.Tracker.Track(outPath)
+			}
 			return os.WriteFile(outPath, []byte(redirectHTML(target)), 0o644)
 		})
 	}
@@ -122,6 +124,9 @@ func (w *Writer) copyStatic() (int, error) {
 	g.SetLimit(runtime.NumCPU())
 	for _, p := range pairs {
 		g.Go(func() error {
+			if w.Tracker != nil {
+				w.Tracker.Track(p.dst)
+			}
 			return copyFile(p.src, p.dst)
 		})
 	}

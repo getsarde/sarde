@@ -130,7 +130,7 @@ pub async fn run_build(app: tauri::AppHandle, verbose: Option<bool>) -> Result<B
     Ok(parse_build_output(&stdout_lines.join("\n")))
 }
 
-/// Start the preview server: spawn `sarde serve`, parse port from stdout.
+/// Start the preview server: spawn `sarde dev`, parse port from stdout.
 #[tauri::command]
 pub async fn start_preview(app: tauri::AppHandle) -> Result<u16, String> {
     let state = app.state::<AppState>();
@@ -156,7 +156,7 @@ pub async fn start_preview(app: tauri::AppHandle) -> Result<u16, String> {
     }
 
     let (mut rx, child) = cmd
-        .args(["serve", &project_dir, "--port", "0"])
+        .args(["dev", &project_dir, "--port", "0"])
         .spawn()
         .map_err(|e| format!("Failed to spawn preview: {}", e))?;
 

@@ -97,6 +97,7 @@ type BuildDoneContext struct {
 	PageIndex      *content.PageIndex                // page index for link validation
 	ValidationData map[string]engine.ValidationEntry // permalink -> collected links per page
 	DevMode        bool
+	TrackFn        func(string)
 	mu             sync.Mutex
 	warnings       *[]engine.ValidationWarning
 	logger         *engine.BuildLogger
@@ -122,6 +123,9 @@ func (c *BuildDoneContext) WriteFile(relPath string, data []byte) error {
 	defer c.mu.Unlock()
 	if err := os.MkdirAll(filepath.Dir(absPath), 0o755); err != nil {
 		return err
+	}
+	if c.TrackFn != nil {
+		c.TrackFn(absPath)
 	}
 	return os.WriteFile(absPath, data, 0o644)
 }
@@ -255,18 +259,19 @@ func (m *Manager) RunBuildDone(ctx *BuildDoneContext) error {
 			defer wg.Done()
 			// Each plugin gets a context with its own PluginConfig.
 			pCtx := &BuildDoneContext{
-				Config:       ctx.Config,
-				PluginConfig: m.pluginConfig(plug.Name, ctx.Config),
-				OutputDir:    ctx.OutputDir,
-				Pages:        ctx.Pages,
-				Collections:  ctx.Collections,
-				Site:         ctx.Site,
-				PageIndex:    ctx.PageIndex,
+				Config:         ctx.Config,
+				PluginConfig:   m.pluginConfig(plug.Name, ctx.Config),
+				OutputDir:      ctx.OutputDir,
+				Pages:          ctx.Pages,
+				Collections:    ctx.Collections,
+				Site:           ctx.Site,
+				PageIndex:      ctx.PageIndex,
 				ValidationData: ctx.ValidationData,
-				DevMode:      ctx.DevMode,
-				warnings:     ctx.warnings,
-				logger:       ctx.logger,
-				pluginName:   plug.Name,
+				DevMode:        ctx.DevMode,
+				TrackFn:        ctx.TrackFn,
+				warnings:       ctx.warnings,
+				logger:         ctx.logger,
+				pluginName:     plug.Name,
 			}
 			if err := plug.Hooks.BuildDone(pCtx); err != nil {
 				errCh <- fmt.Errorf("plugin %q BuildDone: %w", plug.Name, err)

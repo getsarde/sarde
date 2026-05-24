@@ -8,18 +8,21 @@ import (
 
 // WriteEmbeddedCSS writes the concatenated embedded CSS bundle to an external
 // file at outputDir/assets/css/sarde.css. Returns the root-relative URL.
-func WriteEmbeddedCSS(outputDir string, css string) error {
+func WriteEmbeddedCSS(outputDir string, css string, tracker *OutputTracker) error {
 	if css == "" {
 		return nil
 	}
 	destPath := filepath.Join(outputDir, "assets", "css", "sarde.css")
+	if tracker != nil {
+		tracker.Track(destPath)
+	}
 	return writeFile(destPath, []byte(css))
 }
 
 // WriteEmbeddedAssets walks the `assets/` subtree inside the given embedded
 // theme filesystem and writes every file to outputDir/assets/. It is a no-op
 // when the `assets/` directory is absent.
-func WriteEmbeddedAssets(embeddedFS fs.FS, outputDir string) error {
+func WriteEmbeddedAssets(embeddedFS fs.FS, outputDir string, tracker *OutputTracker) error {
 	if embeddedFS == nil {
 		return nil
 	}
@@ -39,6 +42,9 @@ func WriteEmbeddedAssets(embeddedFS fs.FS, outputDir string) error {
 			return fmt.Errorf("reading embedded asset %s: %w", path, err)
 		}
 		destPath := filepath.Join(outputDir, filepath.FromSlash(path))
+		if tracker != nil {
+			tracker.Track(destPath)
+		}
 		return writeFile(destPath, data)
 	})
 }

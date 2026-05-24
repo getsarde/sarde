@@ -12,7 +12,7 @@ pub struct AppState {
     pub config: Mutex<Option<serde_yaml::Value>>,
     /// List of recently opened project directories.
     pub recent_projects: Mutex<Vec<RecentProject>>,
-    /// Child process handle for `sarde serve`.
+    /// Child process handle for `sarde dev`.
     pub preview_child: Mutex<Option<CommandChild>>,
     /// Port the preview server is listening on.
     pub preview_port: Mutex<u16>,

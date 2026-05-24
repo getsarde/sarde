@@ -301,9 +301,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	scProcessor := shortcode.NewProcessor(scRegistry)
 	shortcodesHash := scRegistry.TemplateHash()
 
-	// Markdown render cache (dev mode only — production builds have image processing side effects).
 	var pageCache *PageCache
-	if b.devMode && config.BoolVal(b.config.Build.Cache, true) {
+	if config.BoolVal(b.config.Build.Cache, true) {
 		pageCache = NewPageCache(b.projectDir)
 	}
 
@@ -844,11 +843,23 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	phaseStart = time.Now()
 
 	// Phase 6: WRITE
+	clean := config.BoolVal(b.config.Build.Clean, true)
+	var tracker *OutputTracker
+	if clean && !b.devMode {
+		tracker = NewOutputTracker(len(rendered) + 256)
+	}
+	trackFn := func(path string) {
+		if tracker != nil {
+			tracker.Track(path)
+		}
+	}
+
 	writer := &Writer{
 		OutputDir:  outputDir,
 		ProjectDir: b.projectDir,
-		Clean:      config.BoolVal(b.config.Build.Clean, true),
+		Clean:      clean,
 		DevMode:    b.devMode,
+		Tracker:    tracker,
 	}
 	staticFiles, err := writer.Write(rendered, aliases)
 	if err != nil {
@@ -856,28 +867,28 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	}
 
 	// Write bundle assets (images, PDFs, etc. co-located with content).
-	if err := assetPipeline.WriteBundleAssets(allPages, outputDir); err != nil {
+	if err := assetPipeline.WriteBundleAssets(allPages, outputDir, trackFn); err != nil {
 		return nil, fmt.Errorf("writing bundle assets: %w", err)
 	}
 
 	// Copy processed image variants from cache to output.
-	processedImages, err := assetPipeline.WriteProcessedImages(outputDir)
+	processedImages, err := assetPipeline.WriteProcessedImages(outputDir, trackFn)
 	if err != nil {
 		return nil, fmt.Errorf("writing processed images: %w", err)
 	}
 
 	// Write bundled CSS/JS files to output.
-	if err := assetPipeline.WriteBundledFiles(outputDir); err != nil {
+	if err := assetPipeline.WriteBundledFiles(outputDir, trackFn); err != nil {
 		return nil, fmt.Errorf("writing bundled files: %w", err)
 	}
 
 	// Write embedded theme-level static assets (JS helpers like copy-code, spoiler, tabs, prefetch).
-	if err := WriteEmbeddedAssets(b.embeddedFS, outputDir); err != nil {
+	if err := WriteEmbeddedAssets(b.embeddedFS, outputDir, tracker); err != nil {
 		return nil, fmt.Errorf("writing embedded theme assets: %w", err)
 	}
 
 	// Write the embedded CSS bundle as an external file.
-	if err := WriteEmbeddedCSS(outputDir, b.tmplEngine.CachedCSS()); err != nil {
+	if err := WriteEmbeddedCSS(outputDir, b.tmplEngine.CachedCSS(), tracker); err != nil {
 		return nil, fmt.Errorf("writing embedded CSS bundle: %w", err)
 	}
 
@@ -895,11 +906,17 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		PageIndex:      pageIndex,
 		ValidationData: validationData,
 		DevMode:        b.devMode,
+		TrackFn:        trackFn,
 	}
 	buildDoneCtx.SetWarnings(&pluginWarnings)
 	buildDoneCtx.SetLogger(buildLogger)
 	if err := b.pluginMgr.RunBuildDone(buildDoneCtx); err != nil {
 		return nil, err
+	}
+
+	// Prune orphaned files from previous builds.
+	if tracker != nil {
+		tracker.Prune(outputDir)
 	}
 	warnings = append(warnings, pluginWarnings...)
 

@@ -131,8 +131,8 @@ func (p *Pipeline) BundleGlobalAssets() error {
 }
 
 // WriteBundledFiles writes bundled CSS/JS files to the output directory.
-// Must be called after the writer has cleaned and written HTML files.
-func (p *Pipeline) WriteBundledFiles(outputDir string) error {
+// If trackFn is non-nil, each written path is reported for orphan tracking.
+func (p *Pipeline) WriteBundledFiles(outputDir string, trackFn func(string)) error {
 	for _, f := range p.bundledFiles {
 		outPath := filepath.Join(outputDir, filepath.FromSlash(f.OutputURL))
 		if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
@@ -141,20 +141,23 @@ func (p *Pipeline) WriteBundledFiles(outputDir string) error {
 		if err := os.WriteFile(outPath, f.Content, 0o644); err != nil {
 			return err
 		}
+		if trackFn != nil {
+			trackFn(outPath)
+		}
 	}
 	return nil
 }
 
 // WriteProcessedImages copies cached image variants to the output directory.
-// Must be called after the writer has cleaned and written HTML files.
+// If trackFn is non-nil, each written path is reported for orphan tracking.
 // Returns the number of image variants written.
-func (p *Pipeline) WriteProcessedImages(outputDir string) (int, error) {
-	return p.processor.WriteProcessedImages(outputDir)
+func (p *Pipeline) WriteProcessedImages(outputDir string, trackFn func(string)) (int, error) {
+	return p.processor.WriteProcessedImages(outputDir, trackFn)
 }
 
 // WriteBundleAssets copies bundle assets from their source locations to the output directory.
-// Each resource is written to the path matching its RelPermalink.
-func (p *Pipeline) WriteBundleAssets(pages []*engine.Page, outputDir string) error {
+// If trackFn is non-nil, each written path is reported for orphan tracking.
+func (p *Pipeline) WriteBundleAssets(pages []*engine.Page, outputDir string, trackFn func(string)) error {
 	for _, page := range pages {
 		if len(page.Resources) == 0 {
 			continue
@@ -164,22 +167,21 @@ func (p *Pipeline) WriteBundleAssets(pages []*engine.Page, outputDir string) err
 
 		for _, res := range page.Resources {
 			srcPath := filepath.Join(pageDir, res.Name)
-
-			// Derive output path from RelPermalink.
 			outPath := filepath.Join(outputDir, filepath.FromSlash(res.RelPermalink))
 
-			// Ensure parent directory exists.
 			if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
 				return err
 			}
 
-			// Copy the file.
 			data, err := os.ReadFile(srcPath)
 			if err != nil {
-				continue // skip missing resources
+				continue
 			}
 			if err := os.WriteFile(outPath, data, 0o644); err != nil {
 				return err
+			}
+			if trackFn != nil {
+				trackFn(outPath)
 			}
 		}
 	}

@@ -16,21 +16,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var serveCmd = &cobra.Command{
-	Use:   "serve",
+var devCmd = &cobra.Command{
+	Use:   "dev",
 	Short: "Start development server with live reload",
 	Long:  "Build the site and start a local dev server. Watches for changes and reloads the browser automatically.",
 	RunE:  runServe,
 }
 
 func init() {
-	serveCmd.Flags().IntP("port", "p", 0, "Server port (default: from config or 4727)")
-	serveCmd.Flags().String("host", "", "Host to bind to (default: 127.0.0.1, use 0.0.0.0 for LAN access)")
-	serveCmd.Flags().Bool("no-drafts", false, "Exclude draft content")
-	serveCmd.Flags().String("base-path", "", "Override URL base path (e.g. /docs/)")
-	serveCmd.Flags().String("content", "", "Override content directory path")
-	serveCmd.Flags().Bool("watch-stdin", false, "Exit when stdin closes (sidecar/child-process mode)")
-	rootCmd.AddCommand(serveCmd)
+	devCmd.Flags().IntP("port", "p", 0, "Server port (default: from config or 4727)")
+	devCmd.Flags().String("host", "", "Host to bind to (default: 127.0.0.1, use 0.0.0.0 for LAN access)")
+	devCmd.Flags().Bool("no-drafts", false, "Exclude draft content")
+	devCmd.Flags().String("base-path", "", "Override URL base path (e.g. /docs/)")
+	devCmd.Flags().String("content", "", "Override content directory path")
+	devCmd.Flags().Bool("watch-stdin", false, "Exit when stdin closes (sidecar/child-process mode)")
+	rootCmd.AddCommand(devCmd)
 }
 
 func runServe(cmd *cobra.Command, args []string) error {

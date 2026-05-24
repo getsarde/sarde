@@ -198,7 +198,7 @@ func (p *ImageProcessor) ProcessImage(srcPath string, opts ImageOptions) ([]Imag
 
 // WriteProcessedImages copies all cached image variants to the output directory.
 // Call this after the writer has cleaned and written HTML files.
-func (p *ImageProcessor) WriteProcessedImages(outputDir string) (int, error) {
+func (p *ImageProcessor) WriteProcessedImages(outputDir string, trackFn func(string)) (int, error) {
 	if p.DevMode {
 		return 0, nil
 	}
@@ -207,7 +207,7 @@ func (p *ImageProcessor) WriteProcessedImages(outputDir string) (int, error) {
 	entries, err := os.ReadDir(cacheImagesDir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return 0, nil // no variants processed
+			return 0, nil
 		}
 		return 0, err
 	}
@@ -231,6 +231,9 @@ func (p *ImageProcessor) WriteProcessedImages(outputDir string) (int, error) {
 		}
 		if err := os.WriteFile(dst, data, 0o644); err != nil {
 			return 0, err
+		}
+		if trackFn != nil {
+			trackFn(dst)
 		}
 		count++
 	}

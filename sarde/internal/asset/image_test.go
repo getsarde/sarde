@@ -91,7 +91,7 @@ func TestImageProcessor_ResizesImage(t *testing.T) {
 	}
 
 	// Verify files are in cache, then copy to output via WriteProcessedImages.
-	if _, err := p.WriteProcessedImages(outDir); err != nil {
+	if _, err := p.WriteProcessedImages(outDir, nil); err != nil {
 		t.Fatalf("WriteProcessedImages failed: %v", err)
 	}
 	for _, v := range variants {

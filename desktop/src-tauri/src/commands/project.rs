@@ -155,7 +155,7 @@ pub fn create_project(
         .map_err(|e| format!("Writing sarde.yaml: {}", e))?;
 
     // Write content/_index.md.
-    let index_md = "---\ntitle: Welcome\n---\n\n# Welcome to your new site\n\nEdit this page at `content/_index.md`, then run `sarde serve` to see your changes.\n";
+    let index_md = "---\ntitle: Welcome\n---\n\n# Welcome to your new site\n\nEdit this page at `content/_index.md`, then run `sarde dev` to see your changes.\n";
     fs::write(abs_dir.join("content/_index.md"), index_md)
         .map_err(|e| format!("Writing _index.md: {}", e))?;
 

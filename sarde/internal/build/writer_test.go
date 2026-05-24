@@ -99,7 +99,8 @@ func TestWriter_CleanFlag(t *testing.T) {
 	os.MkdirAll(outDir, 0o755)
 	os.WriteFile(filepath.Join(outDir, "old-file.html"), []byte("stale"), 0o644)
 
-	w := &Writer{OutputDir: outDir, ProjectDir: t.TempDir(), Clean: true}
+	tracker := NewOutputTracker(8)
+	w := &Writer{OutputDir: outDir, ProjectDir: t.TempDir(), Clean: true, Tracker: tracker}
 	pages := []RenderedPage{
 		{OutPath: "index.html", HTML: []byte("<html>Fresh</html>")},
 	}
@@ -107,8 +108,9 @@ func TestWriter_CleanFlag(t *testing.T) {
 	if _, err := w.Write(pages, nil); err != nil {
 		t.Fatal(err)
 	}
+	tracker.Prune(outDir)
 
-	// Old file should be gone.
+	// Old file should be gone after prune.
 	if _, err := os.Stat(filepath.Join(outDir, "old-file.html")); !os.IsNotExist(err) {
 		t.Error("old file should have been removed by clean")
 	}

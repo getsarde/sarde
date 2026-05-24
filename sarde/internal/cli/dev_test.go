@@ -3,7 +3,7 @@ package cli
 import "testing"
 
 func TestWatchStdinFlagRegistered(t *testing.T) {
-	flag := serveCmd.Flags().Lookup("watch-stdin")
+	flag := devCmd.Flags().Lookup("watch-stdin")
 	if flag == nil {
 		t.Fatal("--watch-stdin flag not registered on serve command")
 	}
