@@ -34,13 +34,13 @@
 	  a[href^="/"]::after { content: none; }
 
 	  /* Simplified asides */
-	  .aside { border: 1px solid #ccc; border-inline-start: 4px solid #666; background: none !important; }
-	  .aside-icon { display: none; }
+	  .sarde-aside { border: 1px solid #ccc; border-inline-start: 4px solid #666; background: none !important; }
+	  .sarde-aside-icon { display: none; }
 
 	  /* Code blocks */
 	  pre { white-space: pre-wrap; word-wrap: break-word; border: 1px solid #ccc; background: #f5f5f5 !important; }
-	  .code-title { background: #eee !important; border-bottom: 1px solid #ccc; }
-	  .code-block { border: 1px solid #ccc; }
+	  .sarde-code-title { background: #eee !important; border-bottom: 1px solid #ccc; }
+	  .sarde-code-block { border: 1px solid #ccc; }
 
 	  /* Images */
 	  img { max-width: 100%; }

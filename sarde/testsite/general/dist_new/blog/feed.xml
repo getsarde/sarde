@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Velox Blog</title>
+    <link>http://localhost:4727/blog/</link>
+    <description>Latest from Velox Blog</description>
+    <lastBuildDate>Sat, 23 May 2026 21:10:17 -0400</lastBuildDate>
+    <item>
+      <title>Velox Blog</title>
+      <link>http://localhost:4727/blog/</link>
+      <description>News, tutorials, and updates from the Velox project.</description>
+      <pubDate>Sat, 23 May 2026 21:10:17 -0400</pubDate>
+      <guid>http://localhost:4727/blog/</guid>
+    </item>
+    <item>
+      <title>Writing Velox Middleware</title>
+      <link>http://localhost:4727/blog/09-01-middleware-guide/</link>
+      <description>A practical guide to writing reusable middleware for Velox.</description>
+      <pubDate>Sun, 01 Sep 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:4727/blog/09-01-middleware-guide/</guid>
+    </item>
+    <item>
+      <title>10 Performance Tips for Velox</title>
+      <link>http://localhost:4727/blog/06-10-performance-tips/</link>
+      <description>How to squeeze every last nanosecond out of your Velox application.</description>
+      <pubDate>Mon, 10 Jun 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:4727/blog/06-10-performance-tips/</guid>
+    </item>
+    <item>
+      <title>Velox v1.0 Released</title>
+      <link>http://localhost:4727/blog/03-20-v1-release/</link>
+      <description>The stable release of Velox is here.</description>
+      <pubDate>Wed, 20 Mar 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:4727/blog/03-20-v1-release/</guid>
+    </item>
+    <item>
+      <title>Hello, Velox!</title>
+      <link>http://localhost:4727/blog/01-15-hello-velox/</link>
+      <description>Introducing the Velox Go HTTP router.</description>
+      <pubDate>Mon, 15 Jan 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:4727/blog/01-15-hello-velox/</guid>
+    </item>
+    <item>
+      <title>Bonjour, Velox !</title>
+      <link>http://localhost:4727/fr/blog/01-15-hello-velox/</link>
+      <description>Présentation du routeur HTTP Go Velox.</description>
+      <pubDate>Mon, 15 Jan 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:4727/fr/blog/01-15-hello-velox/</guid>
+    </item>
+  </channel>
+</rss>

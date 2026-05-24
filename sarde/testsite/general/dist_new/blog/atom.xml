@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Velox Blog</title>
+  <link href="http://localhost:4727/blog/" rel="alternate" type="text/html"></link>
+  <link href="http://localhost:4727/blog/atom.xml" rel="self" type="application/atom+xml"></link>
+  <updated>2026-05-24T01:10:17Z</updated>
+  <id>http://localhost:4727/blog/</id>
+  <entry>
+    <title>Velox Blog</title>
+    <link href="http://localhost:4727/blog/"></link>
+    <id>http://localhost:4727/blog/</id>
+    <updated>2026-05-24T01:10:17Z</updated>
+    <summary>News, tutorials, and updates from the Velox project.</summary>
+  </entry>
+  <entry>
+    <title>Writing Velox Middleware</title>
+    <link href="http://localhost:4727/blog/09-01-middleware-guide/"></link>
+    <id>http://localhost:4727/blog/09-01-middleware-guide/</id>
+    <updated>2026-05-24T01:10:17Z</updated>
+    <summary>A practical guide to writing reusable middleware for Velox.</summary>
+  </entry>
+  <entry>
+    <title>10 Performance Tips for Velox</title>
+    <link href="http://localhost:4727/blog/06-10-performance-tips/"></link>
+    <id>http://localhost:4727/blog/06-10-performance-tips/</id>
+    <updated>2026-05-24T01:10:17Z</updated>
+    <summary>How to squeeze every last nanosecond out of your Velox application.</summary>
+  </entry>
+  <entry>
+    <title>Velox v1.0 Released</title>
+    <link href="http://localhost:4727/blog/03-20-v1-release/"></link>
+    <id>http://localhost:4727/blog/03-20-v1-release/</id>
+    <updated>2026-05-24T01:10:17Z</updated>
+    <summary>The stable release of Velox is here.</summary>
+    <author>
+      <name>Jane Doe</name>
+    </author>
+  </entry>
+  <entry>
+    <title>Hello, Velox!</title>
+    <link href="http://localhost:4727/blog/01-15-hello-velox/"></link>
+    <id>http://localhost:4727/blog/01-15-hello-velox/</id>
+    <updated>2026-05-24T01:10:17Z</updated>
+    <summary>Introducing the Velox Go HTTP router.</summary>
+    <author>
+      <name>Jane Doe</name>
+    </author>
+  </entry>
+  <entry>
+    <title>Bonjour, Velox !</title>
+    <link href="http://localhost:4727/fr/blog/01-15-hello-velox/"></link>
+    <id>http://localhost:4727/fr/blog/01-15-hello-velox/</id>
+    <updated>2026-05-24T01:10:17Z</updated>
+    <summary>Présentation du routeur HTTP Go Velox.</summary>
+    <author>
+      <name>Jane Doe</name>
+    </author>
+  </entry>
+</feed>

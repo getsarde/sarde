@@ -3,7 +3,7 @@ my-docs/
 docs/
 
 coderoo-go/content/
-content/
+/content/
 
 # Go binaries
 *.exe

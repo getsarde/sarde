@@ -139,18 +139,18 @@ body.focus-mode .sarde-focus-mode-btn.pos-bottom-left {
 
 /* ── Focus Mode Layout Changes ────────────────────────────────── */
 
-body.focus-mode aside.docs-sidebar {
+body.focus-mode aside.sarde-sidebar {
     transform: translateX(-100%);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
 }
 
-[dir="rtl"] body.focus-mode aside.docs-sidebar {
+[dir="rtl"] body.focus-mode aside.sarde-sidebar {
     transform: translateX(100%);
 }
 
-body.focus-mode aside.docs-toc {
+body.focus-mode aside.sarde-toc {
     transform: translateX(100%);
     opacity: 0;
     visibility: hidden;
@@ -158,37 +158,37 @@ body.focus-mode aside.docs-toc {
     position: absolute;
 }
 
-[dir="rtl"] body.focus-mode aside.docs-toc {
+[dir="rtl"] body.focus-mode aside.sarde-toc {
     transform: translateX(-100%);
 }
 
-body.focus-mode .docs-main {
+body.focus-mode .sarde-content-area {
     padding-inline-start: 0;
 }
 
-body.focus-mode div.docs-content {
+body.focus-mode div.sarde-content-panel {
     max-width: 55rem;
     margin: 0 auto;
 }
 
 /* Smooth transitions for entering/exiting focus mode */
-aside.docs-sidebar {
+aside.sarde-sidebar {
     transition: transform var(--focus-mode-speed, 300ms) ease,
                 opacity var(--focus-mode-speed, 300ms) ease,
                 visibility var(--focus-mode-speed, 300ms) ease;
 }
 
-aside.docs-toc {
+aside.sarde-toc {
     transition: transform var(--focus-mode-speed, 300ms) ease,
                 opacity var(--focus-mode-speed, 300ms) ease,
                 visibility var(--focus-mode-speed, 300ms) ease;
 }
 
-.docs-main {
+.sarde-content-area {
     transition: padding-inline-start var(--focus-mode-speed, 300ms) ease;
 }
 
-div.docs-content {
+div.sarde-content-panel {
     transition: max-width var(--focus-mode-speed, 300ms) ease,
                 margin var(--focus-mode-speed, 300ms) ease;
 }

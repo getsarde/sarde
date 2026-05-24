@@ -93,7 +93,7 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 			}
 
 			banners.WriteString(fmt.Sprintf(
-				`<div class="sarde-announcement-banner announcement-%s" data-announcement-id="%s"`,
+				`<div class="sarde-announcement-banner sarde-announcement-%s" data-announcement-id="%s"`,
 				bt, html.EscapeString(item.id),
 			))
 			if item.startDate != "" {

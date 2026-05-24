@@ -198,7 +198,7 @@ function onKeyDown(e) {
 
 function init() {
     // Only activate on pages where sidebar exists
-    if (!document.querySelector('aside.docs-sidebar')) return;
+    if (!document.querySelector('aside.sarde-sidebar')) return;
 
     createButton();
     document.addEventListener('keydown', onKeyDown);

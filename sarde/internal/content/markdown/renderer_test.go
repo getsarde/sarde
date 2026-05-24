@@ -1,0 +1,321 @@
+package markdown
+
+import (
+	"strings"
+	"testing"
+
+	"github.com/frostybee/sarde/internal/engine"
+)
+
+func TestRender_BasicMarkdown(t *testing.T) {
+	r := NewRenderer()
+	result, err := r.Render("Hello **world**!")
+	if err != nil {
+		t.Fatalf("Render error: %v", err)
+	}
+	if !strings.Contains(result.HTML, "<strong>world</strong>") {
+		t.Errorf("expected <strong>, got: %s", result.HTML)
+	}
+}
+
+func TestRender_GFM_Table(t *testing.T) {
+	r := NewRenderer()
+	md := "| A | B |\n|---|---|\n| 1 | 2 |\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "<table>") {
+		t.Errorf("expected <table>, got: %s", result.HTML)
+	}
+}
+
+func TestRender_GFM_TaskList(t *testing.T) {
+	r := NewRenderer()
+	md := "- [x] Done\n- [ ] Todo\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "checked") {
+		t.Errorf("expected checked checkbox, got: %s", result.HTML)
+	}
+}
+
+func TestRender_GFM_Strikethrough(t *testing.T) {
+	r := NewRenderer()
+	result, err := r.Render("~~deleted~~")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "<del>deleted</del>") {
+		t.Errorf("expected <del>, got: %s", result.HTML)
+	}
+}
+
+func TestRender_Footnote(t *testing.T) {
+	r := NewRenderer()
+	md := "Text[^1]\n\n[^1]: Footnote content\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "footnote") {
+		t.Errorf("expected footnote, got: %s", result.HTML)
+	}
+}
+
+func TestRender_HeadingExtraction(t *testing.T) {
+	r := NewRenderer()
+	md := "## First Heading\n\nSome text.\n\n### Sub Heading\n\nMore text.\n\n## Another H2\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(result.Headings) != 3 {
+		t.Fatalf("headings = %d, want 3", len(result.Headings))
+	}
+
+	if result.Headings[0].Level != 2 || result.Headings[0].Text != "First Heading" {
+		t.Errorf("headings[0] = %+v, want Level=2 Text='First Heading'", result.Headings[0])
+	}
+	if result.Headings[1].Level != 3 || result.Headings[1].Text != "Sub Heading" {
+		t.Errorf("headings[1] = %+v, want Level=3 Text='Sub Heading'", result.Headings[1])
+	}
+	if result.Headings[2].Level != 2 || result.Headings[2].Text != "Another H2" {
+		t.Errorf("headings[2] = %+v, want Level=2 Text='Another H2'", result.Headings[2])
+	}
+
+	// Verify IDs are injected
+	if !strings.Contains(result.HTML, `id="first-heading"`) {
+		t.Errorf("expected id='first-heading' in HTML")
+	}
+	if !strings.Contains(result.HTML, `id="sub-heading"`) {
+		t.Errorf("expected id='sub-heading' in HTML")
+	}
+}
+
+func TestRender_HeadingIDCollision(t *testing.T) {
+	r := NewRenderer()
+	md := "## Same Title\n\n## Same Title\n\n## Same Title\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Headings) != 3 {
+		t.Fatalf("headings = %d, want 3", len(result.Headings))
+	}
+	ids := map[string]bool{}
+	for _, h := range result.Headings {
+		if ids[h.ID] {
+			t.Errorf("duplicate heading ID: %q", h.ID)
+		}
+		ids[h.ID] = true
+	}
+}
+
+func TestRender_HeadingAnchorLink(t *testing.T) {
+	r := NewRenderer()
+	md := "## My Section\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, `class="sarde-heading-anchor"`) {
+		t.Errorf("expected heading-anchor, got: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, `href="#my-section"`) {
+		t.Errorf("expected anchor href, got: %s", result.HTML)
+	}
+}
+
+func TestRender_H1NotInTOC(t *testing.T) {
+	r := NewRenderer()
+	md := "# Title\n\n## Section\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Only h2-h4 should be in headings
+	for _, h := range result.Headings {
+		if h.Level == 1 {
+			t.Error("h1 should not be in headings (ToC is h2-h4)")
+		}
+	}
+}
+
+func TestRender_Aside(t *testing.T) {
+	r := NewRenderer()
+	md := ":::note\nThis is a note.\n:::\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "sarde-aside") {
+		t.Errorf("expected aside element, got: %s", result.HTML)
+	}
+}
+
+func TestRender_CodeBlockSyntaxHighlighting(t *testing.T) {
+	r := NewRenderer()
+	md := "```go\nfunc main() {}\n```\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Should have syntax highlighting classes
+	if !strings.Contains(result.HTML, "sarde-code-block") || !strings.Contains(result.HTML, "pre") {
+		// At minimum, should be wrapped in code/pre tags
+		if !strings.Contains(result.HTML, "<code") {
+			t.Errorf("expected code block, got: %s", result.HTML)
+		}
+	}
+}
+
+func TestRender_Badge(t *testing.T) {
+	r := NewRenderer()
+	md := ":::badge{type=\"success\"}\nNew\n:::\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "sarde-badge") {
+		t.Errorf("expected badge, got: %s", result.HTML)
+	}
+}
+
+func TestRender_Kbd(t *testing.T) {
+	r := NewRenderer()
+	md := "Press ::kbd[Ctrl+S] to save.\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "<kbd") {
+		t.Errorf("expected <kbd>, got: %s", result.HTML)
+	}
+}
+
+func TestRender_Highlight(t *testing.T) {
+	r := NewRenderer()
+	md := "This is ==highlighted== text.\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "<mark") {
+		t.Errorf("expected <mark>, got: %s", result.HTML)
+	}
+}
+
+func TestRender_Tabs(t *testing.T) {
+	r := NewRenderer()
+	md := ":::tabs\n== Tab 1\nContent 1\n== Tab 2\nContent 2\n:::\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "tablist") || !strings.Contains(result.HTML, "tabpanel") {
+		t.Errorf("expected tablist/tabpanel, got: %s", result.HTML)
+	}
+}
+
+func TestRender_Steps(t *testing.T) {
+	r := NewRenderer()
+	md := ":::steps\n### Step 1\nDo this.\n### Step 2\nDo that.\n:::\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "sarde-steps") {
+		t.Errorf("expected steps, got: %s", result.HTML)
+	}
+}
+
+func TestRender_Details(t *testing.T) {
+	r := NewRenderer()
+	md := ":::details[Click to expand]\nHidden content.\n:::\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "<details") {
+		t.Errorf("expected <details>, got: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, "<summary") {
+		t.Errorf("expected <summary>, got: %s", result.HTML)
+	}
+}
+
+func TestRender_MathInline(t *testing.T) {
+	r := NewRenderer()
+	md := "Inline math $E = mc^2$ here.\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "math") {
+		t.Errorf("expected math class, got: %s", result.HTML)
+	}
+}
+
+func TestRender_EmptyInput(t *testing.T) {
+	r := NewRenderer()
+	result, err := r.Render("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Headings) != 0 {
+		t.Errorf("headings = %d, want 0", len(result.Headings))
+	}
+}
+
+func TestRender_ImplementsInterface(t *testing.T) {
+	var _ engine.MarkdownRenderer = NewRenderer()
+	r := NewRenderer()
+	_, err := r.Render("test")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestRender_HasCodeBlocks(t *testing.T) {
+	r := NewRenderer()
+
+	result, err := r.Render("```go\nfunc main() {}\n```\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.HasCodeBlocks {
+		t.Error("expected HasCodeBlocks=true for fenced code block")
+	}
+
+	result, err = r.Render("Hello world\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.HasCodeBlocks {
+		t.Error("expected HasCodeBlocks=false for plain text")
+	}
+}
+
+func TestRender_HasImages(t *testing.T) {
+	r := NewRenderer()
+
+	result, err := r.Render("![alt](image.png)\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.HasImages {
+		t.Error("expected HasImages=true for image")
+	}
+
+	result, err = r.Render("Hello world\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.HasImages {
+		t.Error("expected HasImages=false for plain text")
+	}
+}

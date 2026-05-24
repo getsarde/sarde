@@ -4,11 +4,11 @@
   opacity: 0.5;
 }
 
-.aside.aside-note {
+.sarde-aside.sarde-aside-note {
   border-left-width: 3px;
 }
 
-.gallery-grid img {
+.sarde-gallery-grid img {
   object-fit: cover;
   aspect-ratio: 16/9;
 }

@@ -1,0 +1,11 @@
+/* assets/css/custom.css */
+.code-line-numbers {
+  opacity: 0.5;
+}
+.sarde-aside.sarde-aside-note {
+  border-left-width: 3px;
+}
+.sarde-gallery-grid img {
+  object-fit: cover;
+  aspect-ratio: 16/9;
+}

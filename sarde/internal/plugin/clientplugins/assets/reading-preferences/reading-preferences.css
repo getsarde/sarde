@@ -271,8 +271,8 @@ article.sarde-markdown-content p {
     margin-bottom: var(--rp-paragraph-spacing, 1.25em);
 }
 
-div.docs-content,
-body.focus-mode div.docs-content {
+div.sarde-content-panel,
+body.focus-mode div.sarde-content-panel {
     max-width: var(--rp-content-width, var(--sarde-content-width));
 }
 

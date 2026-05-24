@@ -1,0 +1,143 @@
+package content
+
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+
+	"github.com/frostybee/sarde/internal/engine"
+)
+
+// PageIndex provides O(1) lookups of pages by permalink, slug, and heading ID.
+// It also tracks static assets and heading IDs for link validation.
+type PageIndex struct {
+	byPermalink map[string]*engine.Page
+	bySlug      map[string]*engine.Page
+	headings    map[string][]string
+	assets      map[string]bool
+
+	mu sync.Mutex // protects headings (written concurrently during parallel render)
+}
+
+// BuildPageIndex constructs a PageIndex from all pages.
+// The bySlug map uses first-match semantics for duplicate slugs.
+func BuildPageIndex(pages []*engine.Page) *PageIndex {
+	idx := &PageIndex{
+		byPermalink: make(map[string]*engine.Page, len(pages)),
+		bySlug:      make(map[string]*engine.Page, len(pages)),
+		headings:    make(map[string][]string),
+		assets:      make(map[string]bool),
+	}
+	for _, p := range pages {
+		if p.RelPermalink != "" {
+			idx.byPermalink[p.RelPermalink] = p
+		}
+		if p.Slug != "" {
+			if _, exists := idx.bySlug[p.Slug]; !exists {
+				idx.bySlug[p.Slug] = p
+			}
+		}
+	}
+	return idx
+}
+
+// HasPage reports whether a page with the given permalink exists.
+func (idx *PageIndex) HasPage(permalink string) bool {
+	_, ok := idx.byPermalink[permalink]
+	return ok
+}
+
+// LookupByPermalink returns the page with the given permalink, or nil.
+func (idx *PageIndex) LookupByPermalink(permalink string) *engine.Page {
+	return idx.byPermalink[permalink]
+}
+
+// LookupBySlug returns the first page matching the given slug, or nil.
+func (idx *PageIndex) LookupBySlug(slug string) *engine.Page {
+	return idx.bySlug[slug]
+}
+
+// SetHeadings stores heading IDs for a page. "_top" is always prepended.
+// Safe for concurrent use.
+func (idx *PageIndex) SetHeadings(permalink string, headingIDs []string) {
+	ids := make([]string, 0, len(headingIDs)+1)
+	ids = append(ids, "_top")
+	ids = append(ids, headingIDs...)
+
+	idx.mu.Lock()
+	idx.headings[permalink] = ids
+	idx.mu.Unlock()
+}
+
+// HasHeading reports whether the given heading ID exists on the page.
+// Safe for concurrent use.
+func (idx *PageIndex) HasHeading(permalink, headingID string) bool {
+	idx.mu.Lock()
+	ids, ok := idx.headings[permalink]
+	idx.mu.Unlock()
+	if !ok {
+		return false
+	}
+	for _, id := range ids {
+		if id == headingID {
+			return true
+		}
+	}
+	return false
+}
+
+// AddAssets walks a static directory and indexes all files as root-relative paths.
+func (idx *PageIndex) AddAssets(staticDir string) {
+	filepath.Walk(staticDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() {
+			return nil
+		}
+		rel, err := filepath.Rel(staticDir, path)
+		if err != nil {
+			return nil
+		}
+		idx.assets["/"+filepath.ToSlash(rel)] = true
+		return nil
+	})
+}
+
+// HasAsset reports whether a static asset with the given root-relative path exists.
+func (idx *PageIndex) HasAsset(path string) bool {
+	return idx.assets[path]
+}
+
+// PageCount returns the number of indexed pages.
+func (idx *PageIndex) PageCount() int {
+	return len(idx.byPermalink)
+}
+
+// Permalinks returns all indexed permalinks. Used for testing and debugging.
+func (idx *PageIndex) Permalinks() []string {
+	out := make([]string, 0, len(idx.byPermalink))
+	for k := range idx.byPermalink {
+		out = append(out, k)
+	}
+	return out
+}
+
+// HeadingsFor returns the heading IDs for a page, or nil if not set.
+func (idx *PageIndex) HeadingsFor(permalink string) []string {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+	return idx.headings[permalink]
+}
+
+// NormalizePermalink ensures a permalink has a trailing slash (unless it's a file path with extension).
+func NormalizePermalink(permalink string) string {
+	if permalink == "" || permalink == "/" {
+		return permalink
+	}
+	if strings.Contains(filepath.Base(permalink), ".") {
+		return permalink
+	}
+	if !strings.HasSuffix(permalink, "/") {
+		return permalink + "/"
+	}
+	return permalink
+}

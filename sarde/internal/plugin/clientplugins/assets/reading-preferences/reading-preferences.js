@@ -300,7 +300,7 @@ function createButton() {
 }
 
 function init() {
-    if (!document.querySelector('aside.docs-sidebar')) return;
+    if (!document.querySelector('aside.sarde-sidebar')) return;
     createButton();
     applyPrefs();
 }
