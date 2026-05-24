@@ -811,6 +811,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		OutputDir:  outputDir,
 		ProjectDir: b.projectDir,
 		Clean:      config.BoolVal(b.config.Build.Clean, true),
+		DevMode:    b.devMode,
 	}
 	if err := writer.Write(rendered, aliases); err != nil {
 		return nil, fmt.Errorf("writing output: %w", err)
@@ -851,6 +852,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		Site:           siteCtx,
 		PageIndex:      pageIndex,
 		ValidationData: validationData,
+		DevMode:        b.devMode,
 	}
 	buildDoneCtx.SetWarnings(&pluginWarnings)
 	if err := b.pluginMgr.RunBuildDone(buildDoneCtx); err != nil {

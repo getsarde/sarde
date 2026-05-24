@@ -23,12 +23,13 @@ type Writer struct {
 	OutputDir  string
 	ProjectDir string
 	Clean      bool
+	DevMode    bool
 }
 
 // Write outputs all rendered pages, alias redirects, and static files.
 func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) error {
-	// Clean output directory if configured.
-	if w.Clean {
+	// Clean output directory if configured (skipped in dev mode to avoid NTFS overhead).
+	if w.Clean && !w.DevMode {
 		os.RemoveAll(w.OutputDir)
 	}
 

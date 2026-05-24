@@ -25,6 +25,7 @@ type Engine struct {
 	components     *component.Registry
 	baseCache      map[string]*htmltemplate.Template // layout key → baseof+partials
 	templates      map[string]*htmltemplate.Template // "default:blog/single" → cloned template
+	partialCache   map[string]*htmltemplate.Template // partial name → pre-parsed template
 	funcMap        htmltemplate.FuncMap
 	dataCache      sync.Map
 	site           *engine.SiteContext
@@ -110,8 +111,8 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	e.cachedCSS = loadEmbeddedCSS(resolver.EmbeddedFS)
 	e.cssURL = "/assets/css/sarde.css"
 
-	// Build a bootstrap FuncMap (without component support) for initial parsing.
-	bootstrapFM := buildFuncMap(e.site, resolver, nil, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, e.pageIndex)
+	// Build a bootstrap FuncMap (without component support or partial cache) for initial parsing.
+	bootstrapFM := buildFuncMap(e.site, resolver, nil, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, e.pageIndex, nil)
 
 	// Create the component registry with embedded defaults.
 	registry, err := component.NewRegistry(resolver.EmbeddedFS, bootstrapFM)
@@ -135,8 +136,20 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 
 	e.components = registry
 
-	// Rebuild the final FuncMap with the real component registry.
-	e.funcMap = buildFuncMap(e.site, resolver, registry, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, e.pageIndex)
+	// Pre-parse all partials into a cache (read once, parsed once, reused on every render).
+	e.partialCache = make(map[string]*htmltemplate.Template)
+	partialData := resolveAllPartials(resolver)
+
+	// Rebuild the final FuncMap with the real component registry and partial cache.
+	e.funcMap = buildFuncMap(e.site, resolver, registry, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, e.pageIndex, e.partialCache)
+
+	for name, data := range partialData {
+		tmpl, err := htmltemplate.New(name).Funcs(e.funcMap).Parse(string(data))
+		if err != nil {
+			return fmt.Errorf("parsing partial %q: %w", name, err)
+		}
+		e.partialCache[name] = tmpl
+	}
 
 	// Re-register all components with the final FuncMap so they can call
 	// template functions like `component`, `now`, etc.
@@ -329,38 +342,47 @@ func (e *Engine) reregisterFromOSDir(dir string) error {
 	return nil
 }
 
+var (
+	embeddedCSSOnce   sync.Once
+	embeddedCSSResult string
+)
+
 // loadEmbeddedCSS reads and concatenates all CSS files from the embedded FS.
+// The result is cached after the first call since embedded FS content is immutable.
 func loadEmbeddedCSS(efs fs.FS) string {
 	if efs == nil {
 		return ""
 	}
 
-	cssOrder := []string{
-		"css/tokens.css",
-		"css/base.css",
-		"css/layout.css",
-		"css/content.css",
-		"css/components.css",
-		"css/extensions.css",
-		"css/style.css",
-		"css/blog.css",
-		"css/taxonomy.css",
-		"css/search.css",
-		"css/homepage.css",
-		"css/utilities.css",
-		"css/print.css",
-		"css/dark.css",
-	}
-
-	var sb strings.Builder
-	sb.WriteString("@layer sarde.base, sarde.reset, sarde.core, sarde.content, sarde.components, sarde.variants, sarde.utils;\n")
-	for _, name := range cssOrder {
-		data, err := fs.ReadFile(efs, name)
-		if err != nil {
-			continue
+	embeddedCSSOnce.Do(func() {
+		cssOrder := []string{
+			"css/tokens.css",
+			"css/base.css",
+			"css/layout.css",
+			"css/content.css",
+			"css/components.css",
+			"css/extensions.css",
+			"css/style.css",
+			"css/blog.css",
+			"css/taxonomy.css",
+			"css/search.css",
+			"css/homepage.css",
+			"css/utilities.css",
+			"css/print.css",
+			"css/dark.css",
 		}
-		sb.Write(data)
-		sb.WriteByte('\n')
-	}
-	return sb.String()
+
+		var sb strings.Builder
+		sb.WriteString("@layer sarde.base, sarde.reset, sarde.core, sarde.content, sarde.components, sarde.variants, sarde.utils;\n")
+		for _, name := range cssOrder {
+			data, err := fs.ReadFile(efs, name)
+			if err != nil {
+				continue
+			}
+			sb.Write(data)
+			sb.WriteByte('\n')
+		}
+		embeddedCSSResult = sb.String()
+	})
+	return embeddedCSSResult
 }

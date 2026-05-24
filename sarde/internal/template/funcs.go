@@ -37,6 +37,7 @@ func buildFuncMap(
 	currentLangPtr *string,
 	i18nStrings *i18n.StringTable,
 	pageIndex *content.PageIndex,
+	partialCache map[string]*htmltemplate.Template,
 ) htmltemplate.FuncMap {
 	fm := htmltemplate.FuncMap{
 		// ── Strings ──
@@ -437,13 +438,12 @@ func buildFuncMap(
 
 		// ── Special: partial & component ──
 		"partial": func(name string, data any) (htmltemplate.HTML, error) {
-			content, _, err := resolvePartial(resolver, name)
-			if err != nil {
-				return "", err
+			if partialCache == nil {
+				return "", fmt.Errorf("partial %q: partial cache not initialized", name)
 			}
-			tmpl, err := htmltemplate.New(name).Funcs(buildFuncMap(site, resolver, registry, dataCache, cachedCSS, cssURLPtr, assetResolver, assetManifest, imageProcessor, pluginFuncs, currentLangPtr, i18nStrings, pageIndex)).Parse(string(content))
-			if err != nil {
-				return "", fmt.Errorf("parsing partial %q: %w", name, err)
+			tmpl := partialCache[name]
+			if tmpl == nil {
+				return "", fmt.Errorf("partial %q not found", name)
 			}
 			var buf strings.Builder
 			if err := tmpl.Execute(&buf, data); err != nil {
@@ -486,7 +486,7 @@ func BuildShortcodeFuncMap(
 	return buildFuncMap(
 		site, resolver, nil, dataCache, "", nil,
 		assetResolver, assetManifest, imageProcessor,
-		nil, nil, nil, pageIndex,
+		nil, nil, nil, pageIndex, nil,
 	)
 }
 

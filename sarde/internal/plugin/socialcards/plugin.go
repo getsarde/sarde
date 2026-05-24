@@ -83,6 +83,10 @@ func beforeRender(ctx *plugin.BeforeRenderContext, cfg map[string]any, pending *
 }
 
 func buildDone(ctx *plugin.BuildDoneContext, cfg map[string]any, pending *sync.Map) error {
+	if ctx.DevMode {
+		return nil
+	}
+
 	type job struct {
 		relPath string
 		page    *engine.Page

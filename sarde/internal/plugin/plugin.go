@@ -96,6 +96,7 @@ type BuildDoneContext struct {
 	Site           *engine.SiteContext
 	PageIndex      *content.PageIndex                // page index for link validation
 	ValidationData map[string]engine.ValidationEntry // permalink -> collected links per page
+	DevMode        bool
 	mu             sync.Mutex
 	warnings       *[]engine.ValidationWarning
 }

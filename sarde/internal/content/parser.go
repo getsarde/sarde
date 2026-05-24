@@ -121,23 +121,30 @@ found:
 // a typed Frontmatter struct and the Markdown body. It handles all three
 // frontmatter formats (YAML, TOML, JSON) uniformly by converting through YAML.
 func ParseFrontmatter(raw []byte) (*engine.Frontmatter, string, error) {
+	_, fm, body, err := ParseAll(raw)
+	return fm, body, err
+}
+
+// ParseAll parses raw file bytes into both an untyped map (for schema validation)
+// and a typed Frontmatter struct in a single pass, avoiding the double-parse that
+// occurs when calling Parser.Parse and ParseFrontmatter separately.
+func ParseAll(raw []byte) (map[string]interface{}, *engine.Frontmatter, string, error) {
 	p := &Parser{}
 	fmMap, body, err := p.Parse(raw)
 	if err != nil {
-		return nil, "", err
+		return nil, nil, "", err
 	}
 
-	// Convert the map to typed Frontmatter via YAML round-trip
 	fm := &engine.Frontmatter{}
 	if len(fmMap) > 0 {
 		yamlBytes, err := yaml.Marshal(fmMap)
 		if err != nil {
-			return nil, "", err
+			return nil, nil, "", err
 		}
 		if err := yaml.Unmarshal(yamlBytes, fm); err != nil {
-			return nil, "", err
+			return nil, nil, "", err
 		}
 	}
 
-	return fm, body, nil
+	return fmMap, fm, body, nil
 }

@@ -2,6 +2,7 @@ package collection
 
 import (
 	"html/template"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -223,7 +224,6 @@ func buildPages(
 	summaryLength int,
 	lastUpdatedStrategy string,
 ) ([]*engine.Page, []engine.ValidationWarning, error) {
-	parser := &content.Parser{}
 	inferrer := &content.Inferrer{LastUpdatedStrategy: lastUpdatedStrategy}
 	transformer := &content.Transformer{SummaryLength: summaryLength}
 	validator := &content.Validator{}
@@ -232,13 +232,19 @@ func buildPages(
 	var warnings []engine.ValidationWarning
 
 	for _, cf := range files {
-		raw, err := os.ReadFile(cf.FilePath)
+		f, err := os.Open(cf.FilePath)
+		if err != nil {
+			return nil, nil, err
+		}
+		fi, _ := f.Stat()
+		raw, err := io.ReadAll(f)
+		f.Close()
 		if err != nil {
 			return nil, nil, err
 		}
 
-		// Parse frontmatter
-		fmMap, body, err := parser.Parse(raw)
+		// Parse frontmatter: single pass produces both untyped map and typed struct.
+		fmMap, fm, body, err := content.ParseAll(raw)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -255,12 +261,6 @@ func buildPages(
 				w[i].File = cf.RelPath
 			}
 			warnings = append(warnings, w...)
-		}
-
-		// Parse typed frontmatter
-		fm, _, err := content.ParseFrontmatter(raw)
-		if err != nil {
-			return nil, nil, err
 		}
 
 		// Build Page
@@ -354,6 +354,12 @@ func buildPages(
 		}
 		if fm.Icon != "" {
 			page.Params["icon"] = fm.Icon
+		}
+
+		// Pre-populate Date from the already-opened FileInfo to avoid a
+		// redundant os.Stat inside Infer.
+		if page.Date.IsZero() && fi != nil {
+			page.Date = fi.ModTime()
 		}
 
 		// Infer defaults (title, date, slug, weight)
