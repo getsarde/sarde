@@ -80,7 +80,7 @@
 }
 
 .search-hl-badge__btn--dismiss {
-    margin-left: 0.125rem;
+    margin-inline-start: 0.125rem;
 }
 
 .search-hl-badge__btn svg {

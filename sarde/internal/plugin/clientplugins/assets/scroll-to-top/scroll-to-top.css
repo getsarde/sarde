@@ -1,7 +1,7 @@
 .scroll-to-top {
     position: fixed;
     bottom: 40px;
-    right: 35px;
+    inset-inline-end: 35px;
     z-index: 102;
     width: 47px;
     height: 47px;
@@ -63,7 +63,7 @@
 /* Tooltip */
 .scroll-to-top-tooltip {
     position: absolute;
-    right: -22px;
+    inset-inline-end: -22px;
     top: -47px;
     background-color: var(--fb-gray-7, #1e293b);
     color: var(--fb-text-invert, #fff);
@@ -130,7 +130,7 @@
 @media (max-width: 768px) {
     .scroll-to-top {
         bottom: 1.25rem;
-        right: 1.25rem;
+        inset-inline-end: 1.25rem;
         width: 40px;
         height: 40px;
     }

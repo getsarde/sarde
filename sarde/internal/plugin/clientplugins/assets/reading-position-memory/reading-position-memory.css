@@ -34,12 +34,12 @@
 
 .rpm-toast--bottom-left {
     bottom: 4.5rem;
-    left: 1.5rem;
+    inset-inline-start: 1.5rem;
 }
 
 .rpm-toast--bottom-right {
     bottom: 4.5rem;
-    right: 1.5rem;
+    inset-inline-end: 1.5rem;
 }
 
 .rpm-toast__message {

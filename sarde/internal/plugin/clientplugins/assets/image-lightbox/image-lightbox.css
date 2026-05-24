@@ -75,7 +75,7 @@ article.fb-markdown-content img:not(.gallery-item img):not(.no-lightbox) {
 .image-lightbox__toolbar {
     position: absolute;
     top: 1rem;
-    right: 1rem;
+    inset-inline-end: 1rem;
     display: flex;
     align-items: center;
     gap: 0.375rem;
@@ -138,7 +138,7 @@ article.fb-markdown-content img:not(.gallery-item img):not(.no-lightbox) {
 
     .image-lightbox__toolbar {
         top: 0.75rem;
-        right: 0.75rem;
+        inset-inline-end: 0.75rem;
     }
 
     .image-lightbox__btn {

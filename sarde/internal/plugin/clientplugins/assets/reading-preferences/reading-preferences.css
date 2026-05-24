@@ -4,7 +4,7 @@
 .reading-prefs-btn {
     position: fixed;
     bottom: 152px;
-    right: 35px;
+    inset-inline-end: 35px;
     z-index: 100;
     width: 47px;
     height: 47px;
@@ -70,7 +70,7 @@
 .reading-prefs-panel {
     position: fixed;
     bottom: 152px;
-    right: 92px;
+    inset-inline-end: 92px;
     z-index: 101;
     width: 280px;
     padding: 1rem;
@@ -153,7 +153,7 @@
     font-weight: 600;
     color: var(--fb-text, inherit);
     min-width: 2.5rem;
-    text-align: right;
+    text-align: end;
 }
 
 /* Range Slider */
@@ -264,7 +264,7 @@ article.fb-markdown-content {
     line-height: var(--rp-line-height, 1.85);
     font-family: var(--rp-font-family, var(--fb-font-sans));
     letter-spacing: var(--rp-letter-spacing, normal);
-    text-align: var(--rp-text-align, left);
+    text-align: var(--rp-text-align, start);
 }
 
 article.fb-markdown-content p {
@@ -280,7 +280,7 @@ body.focus-mode div.docs-content {
 @media (max-width: 1023px) {
     .reading-prefs-btn {
         bottom: 1.25rem;
-        right: 1.25rem;
+        inset-inline-end: 1.25rem;
         width: 40px;
         height: 40px;
     }
@@ -292,8 +292,8 @@ body.focus-mode div.docs-content {
 
     .reading-prefs-panel {
         bottom: auto;
-        right: 0.75rem;
-        left: 0.75rem;
+        inset-inline-end: 0.75rem;
+        inset-inline-start: 0.75rem;
         top: calc(var(--fb-nav-height, 60px) + 0.5rem);
         width: auto;
     }

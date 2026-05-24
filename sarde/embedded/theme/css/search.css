@@ -57,7 +57,7 @@
 	.search-result-excerpt { font-size: 0.8125rem; color: var(--fb-text-muted); line-height: 1.5; }
 	.search-result-excerpt mark { background: #fef08a; color: inherit; padding: 0 0.125em; border-radius: 0.125rem; }
 	.search-result-type {
-	  position: absolute; top: 0.75rem; right: 1rem;
+	  position: absolute; top: 0.75rem; inset-inline-end: 1rem;
 	  font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
 	  color: var(--fb-text-muted);
 	}
@@ -78,7 +78,7 @@
 	  font-size: 0.8125rem; cursor: pointer; transition: border-color 0.15s;
 	}
 	.search-trigger:hover { border-color: var(--fb-text-muted); }
-	.search-trigger .search-kbd { font-size: 0.6875rem; margin-left: 0.5rem; opacity: 0.6; }
+	.search-trigger .search-kbd { font-size: 0.6875rem; margin-inline-start: 0.5rem; opacity: 0.6; }
 	.search-trigger .search-kbd kbd {
 	  font-size: 0.6875rem;
 	  padding: 0.0625rem 0.3rem;

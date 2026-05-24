@@ -69,7 +69,7 @@
 	.skip-link {
 	  position: absolute;
 	  top: -100%;
-	  left: var(--fb-space-4);
+	  inset-inline-start: var(--fb-space-4);
 	  padding: var(--fb-space-2) var(--fb-space-4);
 	  background: var(--fb-bg-accent);
 	  color: var(--fb-text-invert);

@@ -3,7 +3,7 @@
 .focus-mode-btn {
     position: fixed;
     bottom: 96px;
-    right: 35px;
+    inset-inline-end: 35px;
     z-index: 101;
     width: 47px;
     height: 47px;
@@ -82,21 +82,21 @@ body.focus-mode .focus-mode-btn:hover {
 
 /* Left position variant — offset by sidebar width so it's not hidden behind it */
 .focus-mode-btn.pos-bottom-left {
-    right: auto;
-    left: calc(var(--fb-sidebar-width) + 20px);
-    transition: opacity 0.3s ease, visibility 0.3s ease, background-color 0.3s ease, transform 0.3s ease, color 0.3s ease, left var(--focus-mode-speed, 300ms) ease;
+    inset-inline-end: auto;
+    inset-inline-start: calc(var(--fb-sidebar-width) + 20px);
+    transition: opacity 0.3s ease, visibility 0.3s ease, background-color 0.3s ease, transform 0.3s ease, color 0.3s ease, inset-inline-start var(--focus-mode-speed, 300ms) ease;
 }
 
 /* When sidebar is hidden, slide button to the true left edge */
 body.focus-mode .focus-mode-btn.pos-bottom-left {
-    left: 35px;
+    inset-inline-start: 35px;
 }
 
 /* ── Tooltip ──────────────────────────────────────────────────── */
 
 .focus-mode-tooltip {
     position: absolute;
-    right: -10px;
+    inset-inline-end: -10px;
     top: -42px;
     background-color: var(--fb-gray-7, #1e293b);
     color: var(--fb-text-invert, #fff);
@@ -146,6 +146,10 @@ body.focus-mode aside.docs-sidebar {
     pointer-events: none;
 }
 
+[dir="rtl"] body.focus-mode aside.docs-sidebar {
+    transform: translateX(100%);
+}
+
 body.focus-mode aside.docs-toc {
     transform: translateX(100%);
     opacity: 0;
@@ -154,8 +158,12 @@ body.focus-mode aside.docs-toc {
     position: absolute;
 }
 
+[dir="rtl"] body.focus-mode aside.docs-toc {
+    transform: translateX(-100%);
+}
+
 body.focus-mode .docs-main {
-    padding-left: 0;
+    padding-inline-start: 0;
 }
 
 body.focus-mode div.docs-content {
@@ -177,7 +185,7 @@ aside.docs-toc {
 }
 
 .docs-main {
-    transition: padding-left var(--focus-mode-speed, 300ms) ease;
+    transition: padding-inline-start var(--focus-mode-speed, 300ms) ease;
 }
 
 div.docs-content {
@@ -192,14 +200,14 @@ div.docs-content {
        only hides the header toggle and gives a wider content area */
     .focus-mode-btn {
         bottom: 1.25rem;
-        right: 1.25rem;
+        inset-inline-end: 1.25rem;
         width: 40px;
         height: 40px;
     }
 
     .focus-mode-btn.pos-bottom-left {
-        right: auto;
-        left: 1.25rem;
+        inset-inline-end: auto;
+        inset-inline-start: 1.25rem;
     }
 
     .focus-mode-btn svg {

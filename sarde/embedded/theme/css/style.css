@@ -563,7 +563,7 @@
 	  color: var(--fb-text-muted);
 	  border-radius: var(--fb-radius-full);
 	  font-size: var(--fb-text-xs);
-	  margin-right: var(--fb-space-2);
+	  margin-inline-end: var(--fb-space-2);
 	  margin-bottom: var(--fb-space-1);
 	}
 

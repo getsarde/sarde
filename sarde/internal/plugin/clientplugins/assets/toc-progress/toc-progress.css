@@ -8,11 +8,11 @@
 
 /* Suppress Alpine's single-item active border — plugin handles range */
 .toc-progress-active .toc a.active {
-    border-left-color: transparent;
+    border-inline-start-color: transparent;
 }
 
 /* All links in the visible range get colored border + text */
 .toc a.toc-progress-visible {
-    border-left-color: var(--fb-text-accent);
+    border-inline-start-color: var(--fb-text-accent);
     color: var(--fb-text-accent);
 }

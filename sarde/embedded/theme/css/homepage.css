@@ -503,7 +503,7 @@
 	  font-size: var(--fb-text-xs);
 	  color: var(--fb-text-muted);
 	  white-space: nowrap;
-	  margin-left: var(--fb-space-4);
+	  margin-inline-start: var(--fb-space-4);
 	}
 
 	/* ── Responsive ── */

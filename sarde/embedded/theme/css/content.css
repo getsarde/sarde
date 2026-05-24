@@ -16,7 +16,7 @@
 	.heading-anchor {
 	  display: inline-flex;
 	  align-items: center;
-	  margin-left: var(--fb-space-2);
+	  margin-inline-start: var(--fb-space-2);
 	  color: var(--fb-text-subtle);
 	  opacity: 0;
 	  text-decoration: none;
@@ -50,7 +50,7 @@
 
 	article ul, article ol,
 	.content ul, .content ol {
-	  padding-left: var(--fb-space-6);
+	  padding-inline-start: var(--fb-space-6);
 	  margin-bottom: var(--fb-space-4);
 	}
 
@@ -67,7 +67,7 @@
 
 	article blockquote,
 	.content blockquote {
-	  border-left: 4px solid var(--fb-border);
+	  border-inline-start: 4px solid var(--fb-border);
 	  padding: var(--fb-space-1) var(--fb-space-4);
 	  color: var(--fb-text-muted);
 	  margin: var(--fb-space-6) 0;
@@ -121,7 +121,7 @@
 
 	article th,
 	.content th {
-	  text-align: left;
+	  text-align: start;
 	  font-weight: var(--fb-weight-semibold);
 	  padding: var(--fb-space-2) var(--fb-space-3);
 	  border-bottom: 2px solid var(--fb-border);

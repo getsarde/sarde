@@ -45,16 +45,30 @@
 	  position: relative;
 	}
 
+	[dir="rtl"] .sidebar-nav a.active,
+	[dir="rtl"] .sidebar-nav a[aria-current="page"] {
+	  background: linear-gradient(
+	    to left,
+	    color-mix(in srgb, var(--fb-text-accent) 12%, transparent),
+	    color-mix(in srgb, var(--fb-text-accent) 5%, transparent)
+	  );
+	}
+
 	.sidebar-nav a.active::before,
 	.sidebar-nav a[aria-current="page"]::before {
 	  content: "";
 	  position: absolute;
-	  left: 0;
+	  inset-inline-start: 0;
 	  top: 15%;
 	  bottom: 15%;
 	  width: 2px;
 	  border-radius: 0 var(--fb-radius-full) var(--fb-radius-full) 0;
 	  background: var(--fb-text-accent);
+	}
+
+	[dir="rtl"] .sidebar-nav a.active::before,
+	[dir="rtl"] .sidebar-nav a[aria-current="page"]::before {
+	  border-radius: var(--fb-radius-full) 0 0 var(--fb-radius-full);
 	}
 
 	.sidebar-nav details > summary {
@@ -79,10 +93,10 @@
 	}
 
 	.sidebar-nav details > ul {
-	  padding-left: var(--fb-space-4);
+	  padding-inline-start: var(--fb-space-4);
 	  margin-top: var(--fb-space-1);
-	  margin-left: var(--fb-space-2);
-	  border-left: 1px solid var(--fb-border);
+	  margin-inline-start: var(--fb-space-2);
+	  border-inline-start: 1px solid var(--fb-border);
 	  animation: sidebar-reveal var(--fb-duration-200) var(--fb-ease-out);
 	}
 
@@ -94,7 +108,7 @@
 	.sidebar-nav details > summary::after {
 	  content: "";
 	  display: inline-block;
-	  margin-left: auto;
+	  margin-inline-start: auto;
 	  width: 0.75rem;
 	  height: 0.75rem;
 	  background-color: currentColor;
@@ -107,6 +121,14 @@
 	.sidebar-nav details[open] > summary::after {
 	  transform: rotate(90deg);
 	  opacity: 0.7;
+	}
+
+	[dir="rtl"] .sidebar-nav details > summary::after {
+	  transform: scaleX(-1);
+	}
+
+	[dir="rtl"] .sidebar-nav details[open] > summary::after {
+	  transform: rotate(-90deg);
 	}
 
 	/* ── Breadcrumbs ── */
@@ -144,7 +166,7 @@
 	.breadcrumbs li + li::before {
 	  content: "/";
 	  color: var(--fb-text-subtle);
-	  margin-right: var(--fb-space-1);
+	  margin-inline-end: var(--fb-space-1);
 	}
 
 	/* ── Pagination (Prev/Next) ── */
@@ -182,7 +204,7 @@
 	}
 
 	.pagination-next {
-	  text-align: right;
+	  text-align: end;
 	}
 
 	.pagination-dir {
@@ -209,7 +231,11 @@
 	}
 
 	.pagination-next .pagination-title {
-	  text-align: right;
+	  text-align: end;
+	}
+
+	[dir="rtl"] .pagination-dir svg {
+	  transform: scaleX(-1);
 	}
 
 	@media (max-width: 639px) {
@@ -238,7 +264,7 @@
 	  list-style: none;
 	  padding: 0;
 	  margin: 0;
-	  border-left: 2px solid var(--fb-border);
+	  border-inline-start: 2px solid var(--fb-border);
 	}
 
 	.toc a {
@@ -246,8 +272,8 @@
 	  padding: var(--fb-space-1) var(--fb-space-3);
 	  color: var(--fb-text-muted);
 	  text-decoration: none;
-	  border-left: 2px solid transparent;
-	  margin-left: -2px;
+	  border-inline-start: 2px solid transparent;
+	  margin-inline-start: -2px;
 	  transition: color var(--fb-transition-fast),
 	             border-color var(--fb-transition-fast),
 	             background-color var(--fb-transition-normal);
@@ -259,14 +285,18 @@
 
 	.toc a.active {
 	  color: var(--fb-text-accent);
-	  border-left-color: var(--fb-text-accent);
+	  border-inline-start-color: var(--fb-text-accent);
 	  font-weight: var(--fb-weight-medium);
 	  background: color-mix(in srgb, var(--fb-text-accent) 8%, transparent);
 	  border-radius: 0 var(--fb-radius-sm) var(--fb-radius-sm) 0;
 	}
 
+	[dir="rtl"] .toc a.active {
+	  border-radius: var(--fb-radius-sm) 0 0 var(--fb-radius-sm);
+	}
+
 	.toc .toc-level-3 a {
-	  padding-left: var(--fb-space-6);
+	  padding-inline-start: var(--fb-space-6);
 	}
 
 	.toc-top {
@@ -479,7 +509,7 @@
 
 	/* Header Actions */
 	.header-actions {
-	  margin-left: auto;
+	  margin-inline-start: auto;
 	  display: flex;
 	  align-items: center;
 	  gap: var(--fb-space-2);
@@ -513,7 +543,7 @@
 	.lang-switcher-menu {
 	  position: absolute;
 	  top: calc(100% + var(--fb-space-1));
-	  right: 0;
+	  inset-inline-end: 0;
 	  min-width: 10rem;
 	  list-style: none;
 	  margin: 0;
@@ -584,7 +614,7 @@
 	.version-switcher-menu {
 	  position: absolute;
 	  top: calc(100% + var(--fb-space-1));
-	  right: 0;
+	  inset-inline-end: 0;
 	  min-width: 10rem;
 	  list-style: none;
 	  margin: 0;

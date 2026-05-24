@@ -13,7 +13,7 @@
 	  .header, .navbar, .footer { display: none !important; }
 
 	  /* Full-width content */
-	  .docs-main { padding-left: 0 !important; }
+	  .docs-main { padding-inline-start: 0 !important; }
 	  .docs-content { max-width: none !important; }
 	  .docs-content-area { padding: 0 !important; }
 	  .docs-content-grid { display: block !important; }
@@ -34,7 +34,7 @@
 	  a[href^="/"]::after { content: none; }
 
 	  /* Simplified asides */
-	  .aside { border: 1px solid #ccc; border-left: 4px solid #666; background: none !important; }
+	  .aside { border: 1px solid #ccc; border-inline-start: 4px solid #666; background: none !important; }
 	  .aside-icon { display: none; }
 
 	  /* Code blocks */

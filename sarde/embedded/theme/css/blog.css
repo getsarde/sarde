@@ -70,7 +70,7 @@
 	  text-decoration: none; color: inherit; transition: border-color 0.15s;
 	}
 	.post-navigation .nav-link:hover { border-color: var(--fb-text-accent); }
-	.post-navigation .nav-next { text-align: right; }
+	.post-navigation .nav-next { text-align: end; }
 	.post-navigation .nav-direction { display: block; font-size: 0.8125rem; color: var(--fb-text-muted); margin-bottom: 0.25rem; }
 	.post-navigation .nav-title { font-weight: 600; color: var(--fb-text); }
 
@@ -96,7 +96,7 @@
 	}
 	.post-list-minimal a { font-weight: 500; color: var(--fb-text); text-decoration: none; }
 	.post-list-minimal a:hover { color: var(--fb-text-accent); }
-	.post-list-minimal time { font-size: 0.8125rem; color: var(--fb-text-muted); white-space: nowrap; margin-left: 1rem; }
+	.post-list-minimal time { font-size: 0.8125rem; color: var(--fb-text-muted); white-space: nowrap; margin-inline-start: 1rem; }
 
 	/* ── Wide Single Variant ── */
 	.blog-post-container-wide { max-width: 56rem; margin: 0 auto; }
