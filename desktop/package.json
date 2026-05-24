@@ -1,5 +1,5 @@
 {
-  "name": "coderoo-desktop",
+  "name": "sarde-desktop",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "tauri": "tauri",
-    "build:sidecar": "cd ../coderoo && go build -o ../desktop/src-tauri/binaries/coderoo-x86_64-pc-windows-msvc.exe ./cmd/coderoo",
+    "build:sidecar": "cd ../sarde && go build -o ../desktop/src-tauri/binaries/sarde-x86_64-pc-windows-msvc.exe ./cmd/sarde",
     "tauri:dev": "pnpm build:sidecar && pnpm tauri dev"
   },
   "dependencies": {

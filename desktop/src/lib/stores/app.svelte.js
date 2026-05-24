@@ -1,8 +1,8 @@
-// Coderoo Desktop — shared reactive state (Svelte 5 runes)
+// Sarde Desktop — shared reactive state (Svelte 5 runes)
 // This file uses the .svelte.js extension to enable rune syntax at module level.
 
 // ---------------------------------------------------------------------------
-// Preview server state (Go `coderoo serve` process managed by Rust)
+// Preview server state (Go `sarde serve` process managed by Rust)
 // ---------------------------------------------------------------------------
 export const preview = $state({
   port: 0,        // port the preview server is listening on (0 = not running)
@@ -431,7 +431,7 @@ export async function setupWatcherListeners() {
     fileTree.root = null // triggers re-load in FileTree's $effect
 
     // If a config file changed, reload site config.
-    if (changedPath.endsWith('site.yaml') || changedPath.endsWith('site.yml')) {
+    if (changedPath.endsWith('sarde.yaml') || changedPath.endsWith('sarde.yml')) {
       loadSiteConfig()
       return
     }

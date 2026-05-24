@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicedoc/tauri/main/crates/tauri-schema-generator/schemas/config.schema.json",
-  "productName": "Coderoo",
+  "productName": "Sarde",
   "version": "0.1.0",
-  "identifier": "com.coderoo.app",
+  "identifier": "com.sarde.app",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:5173",
@@ -11,7 +11,7 @@
   "app": {
     "windows": [
       {
-        "title": "Coderoo",
+        "title": "Sarde",
         "width": 1200,
         "height": 800,
         "minWidth": 800,
@@ -25,7 +25,7 @@
     }
   },
   "bundle": {
-    "externalBin": ["binaries/coderoo"]
+    "externalBin": ["binaries/sarde"]
   },
   "plugins": {
     "shell": {

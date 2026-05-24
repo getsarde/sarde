@@ -16,7 +16,7 @@
   async function openFolder() {
     const selected = await open({ directory: true, multiple: false, title: 'Open Project Folder' })
     if (selected) {
-      window.dispatchEvent(new CustomEvent('coderoo:open-project', { detail: selected }))
+      window.dispatchEvent(new CustomEvent('sarde:open-project', { detail: selected }))
     }
   }
 </script>

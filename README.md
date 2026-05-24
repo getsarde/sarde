@@ -1,50 +1,50 @@
-# Coderoo
+# Sarde
 
 A zero-config, Go-based static site generator that ships as a single binary. Drop Markdown files into a `content/` folder and get a fully-themed, production-ready static site.
 
 ## Quick Start
 
 ```bash
-cd coderoo
-go run ./cmd/coderoo init my-site
+cd sarde
+go run ./cmd/sarde init my-site
 cd my-site
-go run ../cmd/coderoo serve
+go run ../cmd/sarde serve
 ```
 
 ## Commands
 
 ```bash
-coderoo build                        # Production build (with minification)
-coderoo serve                        # Dev server with live reload (port 4727)
-coderoo init [path]                  # Scaffold a new project
-coderoo new <collection> <title>     # Create new content file
-coderoo new course <name>            # Scaffold a new course
-coderoo new lesson <course> <name>   # Add an auto-numbered lesson to a course
-coderoo validate                     # Validate content without building
-coderoo render                       # Render markdown from stdin to JSON
-coderoo deploy                       # Deploy the built site
-coderoo import obsidian <vault>      # Import an Obsidian vault
-coderoo sidecar                      # Start IPC server for desktop app
-coderoo version                      # Print version info
+sarde build                        # Production build (with minification)
+sarde serve                        # Dev server with live reload (port 4727)
+sarde init [path]                  # Scaffold a new project
+sarde new <collection> <title>     # Create new content file
+sarde new course <name>            # Scaffold a new course
+sarde new lesson <course> <name>   # Add an auto-numbered lesson to a course
+sarde validate                     # Validate content without building
+sarde render                       # Render markdown from stdin to JSON
+sarde deploy                       # Deploy the built site
+sarde import obsidian <vault>      # Import an Obsidian vault
+sarde sidecar                      # Start IPC server for desktop app
+sarde version                      # Print version info
 ```
 
 ## Building
 
-All build commands must be run from the `coderoo/` directory (where `go.mod` lives):
+All build commands must be run from the `sarde/` directory (where `go.mod` lives):
 
 ```bash
-cd coderoo
+cd sarde
 
-# Build the binary (output: coderoo or coderoo.exe)
-go build -o ../dist/coderoo ./cmd/coderoo
+# Build the binary (output: sarde or sarde.exe)
+go build -o ../dist/sarde ./cmd/sarde
 
 # Build with a version tag
-go build -ldflags "-X github.com/coderoo-dev/coderoo/internal/cli.Version=1.0.0" -o ../dist/coderoo ./cmd/coderoo
+go build -ldflags "-X github.com/frostybee/sarde/internal/cli.Version=1.0.0" -o ../dist/sarde ./cmd/sarde
 
 # Cross-compile examples
-GOOS=linux   GOARCH=amd64 go build -o ../dist/coderoo-linux   ./cmd/coderoo
-GOOS=darwin  GOARCH=arm64 go build -o ../dist/coderoo-macos   ./cmd/coderoo
-GOOS=windows GOARCH=amd64 go build -o ../dist/coderoo.exe     ./cmd/coderoo
+GOOS=linux   GOARCH=amd64 go build -o ../dist/sarde-linux   ./cmd/sarde
+GOOS=darwin  GOARCH=arm64 go build -o ../dist/sarde-macos   ./cmd/sarde
+GOOS=windows GOARCH=amd64 go build -o ../dist/sarde.exe     ./cmd/sarde
 ```
 
 ## Development

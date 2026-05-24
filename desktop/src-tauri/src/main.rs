@@ -59,7 +59,7 @@ fn main() {
         .setup(|app| {
             // Resolve sidecar binary path for std::process::Command usage.
             // Tauri strips the target triple when copying externalBin to the output dir,
-            // so the binary is just "coderoo[.exe]" next to our exe.
+            // so the binary is just "sarde[.exe]" next to our exe.
             let state = app.state::<AppState>();
             let target_triple = env!("TAURI_ENV_TARGET_TRIPLE", "x86_64-pc-windows-msvc");
             let ext = if cfg!(windows) { ".exe" } else { "" };
@@ -69,10 +69,10 @@ fn main() {
                     .map(|d| d.to_path_buf())
                     .ok_or(std::io::Error::new(std::io::ErrorKind::NotFound, "no parent"))
             }) {
-                // Tauri copies externalBin as "coderoo[.exe]" (triple stripped)
+                // Tauri copies externalBin as "sarde[.exe]" (triple stripped)
                 let candidates = [
-                    exe_dir.join(format!("coderoo{}", ext)),
-                    exe_dir.join(format!("coderoo-{}{}", target_triple, ext)),
+                    exe_dir.join(format!("sarde{}", ext)),
+                    exe_dir.join(format!("sarde-{}{}", target_triple, ext)),
                 ];
                 for candidate in &candidates {
                     if candidate.exists() {

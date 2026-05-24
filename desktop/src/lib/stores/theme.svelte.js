@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'coderoo_theme'
+const STORAGE_KEY = 'sarde_theme'
 
 export const THEMES = [
   { id: 'system', name: 'System', category: 'auto' },

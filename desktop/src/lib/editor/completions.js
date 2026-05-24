@@ -1,5 +1,5 @@
 /**
- * CodeMirror 6 completion sources for Coderoo's markdown editor.
+ * CodeMirror 6 completion sources for Sarde's markdown editor.
  *
  * Provides:
  *  1. Slash commands  — triggered when the line starts with "/"
@@ -34,7 +34,7 @@ const BASIC_COMMANDS = [
 ]
 
 /**
- * Coderoo custom block extensions.
+ * Sarde custom block extensions.
  */
 const BLOCK_EXTENSIONS = [
   // Content
@@ -268,7 +268,7 @@ export function frontmatterSource(context) {
 // Extension bundle
 // ---------------------------------------------------------------------------
 
-export function coderooCompletions() {
+export function sardeCompletions() {
   return autocompletion({
     override: [
       slashCommandSource,

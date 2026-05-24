@@ -1,4 +1,4 @@
-// Coderoo Desktop — Tauri IPC API client.
+// Sarde Desktop — Tauri IPC API client.
 // All calls go directly to the Rust backend via invoke().
 
 import { invoke } from '@tauri-apps/api/core'

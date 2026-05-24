@@ -1,7 +1,7 @@
 use crate::state::AppState;
 use std::fs;
 
-/// Get the current site configuration (parsed site.yaml).
+/// Get the current site configuration (parsed sarde.yaml).
 #[tauri::command]
 pub fn get_config(state: tauri::State<AppState>) -> Result<serde_json::Value, String> {
     let config = state.config.lock().unwrap();
@@ -11,7 +11,7 @@ pub fn get_config(state: tauri::State<AppState>) -> Result<serde_json::Value, St
     serde_json::to_value(config).map_err(|e| format!("Serializing config: {}", e))
 }
 
-/// Update site config: read site.yaml, merge provided top-level sections, write back.
+/// Update site config: read sarde.yaml, merge provided top-level sections, write back.
 #[tauri::command]
 pub fn update_config(
     settings: serde_json::Value,
@@ -20,19 +20,19 @@ pub fn update_config(
     let config_path = {
         let project_dir = state.project_dir.lock().unwrap();
         let project_dir = project_dir.as_ref().ok_or("No project open")?;
-        project_dir.join("site.yaml")
+        project_dir.join("sarde.yaml")
     };
 
-    // Read current site.yaml.
+    // Read current sarde.yaml.
     let data = fs::read_to_string(&config_path)
-        .map_err(|e| format!("Reading site.yaml: {}", e))?;
+        .map_err(|e| format!("Reading sarde.yaml: {}", e))?;
     let mut raw: serde_yaml::Value =
         serde_yaml::from_str(&data).unwrap_or(serde_yaml::Value::Mapping(Default::default()));
 
     // Merge each top-level key from settings into the root mapping.
     let root = raw
         .as_mapping_mut()
-        .ok_or("Invalid site.yaml format")?;
+        .ok_or("Invalid sarde.yaml format")?;
 
     if let Some(obj) = settings.as_object() {
         for (key, val) in obj {
@@ -44,8 +44,8 @@ pub fn update_config(
     }
 
     // Write back.
-    let output = serde_yaml::to_string(&raw).map_err(|e| format!("Serializing site.yaml: {}", e))?;
-    fs::write(&config_path, &output).map_err(|e| format!("Writing site.yaml: {}", e))?;
+    let output = serde_yaml::to_string(&raw).map_err(|e| format!("Serializing sarde.yaml: {}", e))?;
+    fs::write(&config_path, &output).map_err(|e| format!("Writing sarde.yaml: {}", e))?;
 
     // Update cached config.
     *state.config.lock().unwrap() = Some(raw);

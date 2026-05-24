@@ -19,7 +19,7 @@
       ui.commandPaletteOpen = true
     } else if (ctrl && e.key === 's') {
       e.preventDefault()
-      window.dispatchEvent(new CustomEvent('coderoo:save'))
+      window.dispatchEvent(new CustomEvent('sarde:save'))
     } else if (ctrl && e.key === '\\') {
       e.preventDefault()
       ui.leftPanel = ui.leftPanel ? null : 'files'
@@ -94,7 +94,7 @@
 
 <svelte:window onkeydown={onGlobalKeydown} />
 
-<div class="editor-layout" role="application" aria-label="Coderoo Editor">
+<div class="editor-layout" role="application" aria-label="Sarde Editor">
   <LeftSidebar />
 
   <main class="main-area" aria-label="Editor">

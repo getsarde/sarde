@@ -1,0 +1,248 @@
+site:
+  title: "Velox Docs"
+  description: "Documentation, guides, and tutorials for the Velox Go HTTP router."
+  url: "http://localhost:4727"
+  language: "en"
+  edit_url: "https://github.com/example/velox/edit/main/content"
+  title_delimiter: "|"
+  heading_links: true
+
+social:
+  - label: "GitHub"
+    url: "https://github.com/example/velox"
+    icon: "github"
+  - label: "Discord"
+    url: "https://discord.gg/velox"
+    icon: "message-circle"
+
+theme:
+  preset: "docs"
+  dark: true
+  overrides:
+    primary: "#7c3aed"
+
+toc:
+  enabled: true
+  min_level: 2
+  max_level: 4
+
+sidebar:
+  collapsed: false
+  badges: true
+  pagination: true
+  auto_generate: true
+
+header:
+  search: true
+  theme_toggle: true
+  social: true
+  links:
+    - label: "Changelog"
+      url: "/blog"
+    - label: "GitHub"
+      url: "https://github.com/example/velox"
+      external: true
+
+footer:
+  text: "2025 The Velox Project. MIT License."
+  links:
+    - label: "Privacy"
+      url: "/about"
+    - label: "Contributing"
+      url: "/docs/guide/advanced/middleware"
+  credits: true
+
+build:
+  output: "dist"
+  clean: true
+  drafts: false
+  future: false
+  last_updated: "mtime"
+  feed: true
+  minify: false
+
+markdown:
+  katex: true
+  mermaid: true
+  unsafe: false
+  typographer: true
+  github_alerts: true
+  triple_colon_callouts: true
+
+images:
+  widths: [400, 800, 1200]
+  formats: ["webp"]
+  quality: 85
+  lazy_loading: true
+
+search:
+  enabled: true
+  provider: "orama"
+
+collections:
+  docs:
+    layout: "docs"
+    sort: "weight asc"
+    tabs: true
+    sidebar:
+      collapsible: true
+      collapsed_by_default: false
+      max_depth: 4
+      search: true
+    toc:
+      enabled: true
+      depth: 4
+      scroll_highlight: true
+    prev_next:
+      enabled: true
+      labels: ["Previous", "Next"]
+    versioning:
+      enabled: true
+      versions:
+        - id: v1
+          label: "v1.x"
+          banner: unmaintained
+          redirect: root
+
+  blog:
+    layout: "default"
+    sort: "date desc"
+    paginate: 3
+    feed: true
+
+  courses:
+    layout: "docs"
+    sort: "weight asc"
+    sidebar:
+      collapsible: true
+      max_depth: 3
+
+taxonomies:
+  tags: "tag"
+  categories: "category"
+
+redirects:
+  /perf: /blog/2024-06-10-performance-tips
+  /start: /docs/guide/introduction
+
+homepage:
+  template: "hero"
+  hero:
+    title: "Velox"
+    subtitle: "A blazing-fast Go HTTP router with zero allocations on the hot path."
+    cta:
+      label: "Get Started"
+      url: "/docs/guide/introduction"
+    background: "gradient"
+
+plugins:
+  enabled:
+    # Core plugins
+    - sitemap
+    - robots
+    - rss
+    - atom
+    - search
+    - seo
+    - redirects
+    - link_checker
+    - content_lint
+    - llms_txt
+    - katex
+    - mermaid
+    # Reading/UX plugins (ported from PHP Sarde)
+    - scroll-to-top
+    - copy-section-link
+    - external-links
+    - image-lightbox
+    - keyboard-nav
+    - focus-mode
+    - reading-progress
+    - search-highlighter
+    - text-highlighter
+    - toc-progress
+    - last-updated
+    - reading-position-memory
+    - reading-preferences
+    - code-fullscreen
+    - code-collapsible
+    - announcements
+  config:
+    robots:
+      user_agent: "*"
+      disallow: ["/drafts/"]
+    rss:
+      full_content: true
+    scroll-to-top:
+      showProgressRing: true
+      threshold: 25
+    code-collapsible:
+      line_threshold: 12
+      preview_lines: 6
+    announcements:
+      display_mode: rotate
+      rotate_interval: 6000
+      show_rotate_indicator: true
+      items:
+        - id: "v2-release"
+          type: info
+          message: "announcements.v2_release"
+          dismissible: true
+          active: true
+          start_date: "2025-01-01T00:00:00Z"
+          end_date: "2027-12-31T23:59:59Z"
+        - id: "docs-update"
+          type: success
+          message: "announcements.docs_update"
+          dismissible: true
+          active: true
+          show_on: ["/docs/**"]
+        - id: "maintenance"
+          type: warning
+          message: "announcements.maintenance"
+          dismissible: false
+          active: true
+          hide_on: ["/blog/**"]
+
+head:
+  custom_css:
+    - "/css/custom.css"
+
+i18n:
+  default_language: "en"
+  languages:
+    en:
+      name: "English"
+      weight: 1
+    fr:
+      name: "Français"
+      weight: 2
+    ar:
+      name: "العربية"
+      weight: 3
+      dir: "rtl"
+
+server:
+  port: 4727
+  live_reload: true
+
+link_validation:
+  enabled: true
+  level: "warn"
+  check_anchors: true
+  ignore:
+    - "https://discord.gg/"
+    - "https://github.com/"
+
+content_lint:
+  enabled: true
+  rules:
+    heading_max_length: 70
+    heading_increment: true
+    image_alt_required: true
+    no_empty_links: true
+    frontmatter_required: ["title"]
+
+llms_txt:
+  enabled: true
+  include_blog: true

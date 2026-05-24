@@ -21,7 +21,7 @@
     const cleanupWatcher = setupWatcherListeners()
     restoreUiState(ui)
 
-    if (!localStorage.getItem('coderoo-onboarding-done')) {
+    if (!localStorage.getItem('sarde-onboarding-done')) {
       showOnboarding = true
     }
 
@@ -30,13 +30,13 @@
     }
     const beforeUnloadHandler = () => persistUiState(ui)
     const showOnboardingHandler = () => { showOnboarding = true }
-    window.addEventListener('coderoo:open-project', openProjectHandler)
+    window.addEventListener('sarde:open-project', openProjectHandler)
     window.addEventListener('beforeunload', beforeUnloadHandler)
-    window.addEventListener('coderoo:show-onboarding', showOnboardingHandler)
+    window.addEventListener('sarde:show-onboarding', showOnboardingHandler)
     return () => {
-      window.removeEventListener('coderoo:open-project', openProjectHandler)
+      window.removeEventListener('sarde:open-project', openProjectHandler)
       window.removeEventListener('beforeunload', beforeUnloadHandler)
-      window.removeEventListener('coderoo:show-onboarding', showOnboardingHandler)
+      window.removeEventListener('sarde:show-onboarding', showOnboardingHandler)
       cleanupPreview.then(fn => fn())
       cleanupWatcher.then(fn => fn())
     }
@@ -69,8 +69,8 @@
       screen = 'ready'
     } catch (e) {
       const raw = String(e)
-      if (raw.includes('site.yaml') || raw.includes('No such file'))
-        errorMsg = 'This folder does not appear to be a Coderoo project.\nCreate one with "New Project" or pick a different folder.'
+      if (raw.includes('sarde.yaml') || raw.includes('No such file'))
+        errorMsg = 'This folder does not appear to be a Sarde project.\nCreate one with "New Project" or pick a different folder.'
       else if (raw.includes('Permission') || raw.includes('Access'))
         errorMsg = 'Permission denied. Check that you have access to this folder.'
       else
@@ -87,7 +87,7 @@
     }
     const selected = await openDialog({
       directory: true,
-      title: 'Select Coderoo Project Folder',
+      title: 'Select Sarde Project Folder',
     })
     if (selected) await startProject(selected)
   }
@@ -120,11 +120,11 @@
 
   function addRecent(path, name) {
     try {
-      let recents = JSON.parse(localStorage.getItem('coderoo-recent-projects') || '[]')
+      let recents = JSON.parse(localStorage.getItem('sarde-recent-projects') || '[]')
       recents = recents.filter(r => r.path !== path)
       recents.unshift({ name, path, lastOpened: new Date().toISOString() })
       if (recents.length > 10) recents.length = 10
-      localStorage.setItem('coderoo-recent-projects', JSON.stringify(recents))
+      localStorage.setItem('sarde-recent-projects', JSON.stringify(recents))
     } catch {}
   }
 </script>
@@ -141,7 +141,7 @@
   {:else if screen === 'starting'}
     <div class="center-screen">
       <div class="spinner"></div>
-      <h2>Starting Coderoo...</h2>
+      <h2>Starting Sarde...</h2>
       <p class="sub">{projectName}</p>
     </div>
 
@@ -158,7 +158,7 @@
   {/if}
 
   {#if showOnboarding}
-    <OnboardingTour onDismiss={() => { showOnboarding = false; localStorage.setItem('coderoo-onboarding-done', '1') }} />
+    <OnboardingTour onDismiss={() => { showOnboarding = false; localStorage.setItem('sarde-onboarding-done', '1') }} />
   {/if}
 </div>
 

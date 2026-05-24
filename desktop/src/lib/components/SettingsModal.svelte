@@ -147,33 +147,33 @@
     saveSiteConfig()
   }
 
-  // ---- Editor prefs (localStorage only — not in site.yaml) ----
-  let editorFontSize = $state(parseInt(localStorage.getItem('coderoo-font-size') || '14'))
-  let editorLineNumbers = $state(localStorage.getItem('coderoo-line-numbers') !== 'false')
-  let editorWordWrap = $state(localStorage.getItem('coderoo-word-wrap') === 'true')
-  let editorAutoSave = $state(localStorage.getItem('coderoo-auto-save') !== 'false')
+  // ---- Editor prefs (localStorage only — not in sarde.yaml) ----
+  let editorFontSize = $state(parseInt(localStorage.getItem('sarde-font-size') || '14'))
+  let editorLineNumbers = $state(localStorage.getItem('sarde-line-numbers') !== 'false')
+  let editorWordWrap = $state(localStorage.getItem('sarde-word-wrap') === 'true')
+  let editorAutoSave = $state(localStorage.getItem('sarde-auto-save') !== 'false')
 
   function setFontSize(val) {
     editorFontSize = Math.max(10, Math.min(24, val))
-    localStorage.setItem('coderoo-font-size', String(editorFontSize))
-    window.dispatchEvent(new CustomEvent('coderoo:pref-changed', { detail: { key: 'font-size', value: editorFontSize } }))
+    localStorage.setItem('sarde-font-size', String(editorFontSize))
+    window.dispatchEvent(new CustomEvent('sarde:pref-changed', { detail: { key: 'font-size', value: editorFontSize } }))
   }
 
   function toggleLineNumbers(val) {
     editorLineNumbers = val
-    localStorage.setItem('coderoo-line-numbers', String(val))
-    window.dispatchEvent(new CustomEvent('coderoo:pref-changed', { detail: { key: 'line-numbers', value: val } }))
+    localStorage.setItem('sarde-line-numbers', String(val))
+    window.dispatchEvent(new CustomEvent('sarde:pref-changed', { detail: { key: 'line-numbers', value: val } }))
   }
 
   function toggleWordWrap(val) {
     editorWordWrap = val
-    localStorage.setItem('coderoo-word-wrap', String(val))
-    window.dispatchEvent(new CustomEvent('coderoo:pref-changed', { detail: { key: 'word-wrap', value: val } }))
+    localStorage.setItem('sarde-word-wrap', String(val))
+    window.dispatchEvent(new CustomEvent('sarde:pref-changed', { detail: { key: 'word-wrap', value: val } }))
   }
 
   function toggleAutoSave(val) {
     editorAutoSave = val
-    localStorage.setItem('coderoo-auto-save', String(val))
+    localStorage.setItem('sarde-auto-save', String(val))
   }
 
   // Shorthand: cfg = siteConfig.data (null while loading)
@@ -570,7 +570,7 @@
               checked={cfg.footer?.credits ?? false}
               onchange={(e) => { cfg.footer ??= {}; cfg.footer.credits = e.target.checked; immediateSave() }}
             />
-            <span>Show "Built with Coderoo" in footer</span>
+            <span>Show "Built with Sarde" in footer</span>
           </label>
         </div>
 
@@ -705,7 +705,7 @@
       {:else if ui.settingsSection === 'about'}
         <h3>About</h3>
         <div class="about-block">
-          <p class="about-name">Coderoo Desktop</p>
+          <p class="about-name">Sarde Desktop</p>
           <p class="about-version">v0.1.0</p>
           <p class="about-detail">Built with Tauri v2 + Svelte 5</p>
           <p class="about-detail">Go CLI for SSG build &amp; preview</p>

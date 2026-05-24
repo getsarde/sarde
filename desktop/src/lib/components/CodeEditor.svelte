@@ -9,7 +9,7 @@
   import { foldGutter, foldKeymap, bracketMatching, indentOnInput } from '@codemirror/language'
   import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
   import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
-  import { coderooCompletions } from '../editor/completions.js'
+  import { sardeCompletions } from '../editor/completions.js'
   import { doc, tabs, addToast } from '../stores/app.svelte.js'
   import { saveContent } from '../api.js'
   import yaml from 'js-yaml'
@@ -22,7 +22,7 @@
   let applyingExternal = false
 
   // Font size — persisted across sessions (Ctrl+= / Ctrl+-)
-  let fontSize = $state(parseInt(localStorage.getItem('coderoo-font-size') || '14'))
+  let fontSize = $state(parseInt(localStorage.getItem('sarde-font-size') || '14'))
   const fontComp = new Compartment()
 
   // Transient line highlight for search navigation
@@ -51,7 +51,7 @@
 
   function adjustFontSize(delta) {
     fontSize = Math.max(10, Math.min(24, fontSize + delta))
-    localStorage.setItem('coderoo-font-size', String(fontSize))
+    localStorage.setItem('sarde-font-size', String(fontSize))
     view?.dispatch({ effects: fontComp.reconfigure(fontTheme(fontSize)) })
   }
 
@@ -194,8 +194,8 @@
   }
 
   onMount(() => {
-    window.addEventListener('coderoo:save', saveFile)
-    window.addEventListener('coderoo:save-all', saveAll)
+    window.addEventListener('sarde:save', saveFile)
+    window.addEventListener('sarde:save-all', saveAll)
 
     const state = EditorState.create({
       doc: doc.content,
@@ -207,7 +207,7 @@
         indentOnInput(),
         bracketMatching(),
         closeBrackets(),
-        coderooCompletions(),
+        sardeCompletions(),
         history(),
         markdown(),
         highlightSelectionMatches(),
@@ -318,8 +318,8 @@
     return () => {
       clearTimeout(saveTimer)
       clearTimeout(flashTimer)
-      window.removeEventListener('coderoo:save', saveFile)
-      window.removeEventListener('coderoo:save-all', saveAll)
+      window.removeEventListener('sarde:save', saveFile)
+      window.removeEventListener('sarde:save-all', saveAll)
       view?.destroy()
     }
   })

@@ -52,7 +52,7 @@ pub struct ImportResult {
     pub raw_output: String,
 }
 
-/// Run `coderoo build` on the current project. Streams stdout/stderr as Tauri events.
+/// Run `sarde build` on the current project. Streams stdout/stderr as Tauri events.
 #[tauri::command]
 pub async fn run_build(app: tauri::AppHandle) -> Result<BuildResult, String> {
     let state = app.state::<AppState>();
@@ -66,7 +66,7 @@ pub async fn run_build(app: tauri::AppHandle) -> Result<BuildResult, String> {
 
     let shell = app.shell();
     let cmd = shell
-        .sidecar("coderoo")
+        .sidecar("sarde")
         .map_err(|e| format!("Failed to create sidecar: {}", e))?;
 
     let (mut rx, _child) = cmd
@@ -124,7 +124,7 @@ pub async fn run_build(app: tauri::AppHandle) -> Result<BuildResult, String> {
     Ok(parse_build_output(&stdout_lines.join("\n")))
 }
 
-/// Start the preview server: spawn `coderoo serve`, parse port from stdout.
+/// Start the preview server: spawn `sarde serve`, parse port from stdout.
 #[tauri::command]
 pub async fn start_preview(app: tauri::AppHandle) -> Result<u16, String> {
     let state = app.state::<AppState>();
@@ -139,7 +139,7 @@ pub async fn start_preview(app: tauri::AppHandle) -> Result<u16, String> {
 
     let shell = app.shell();
     let cmd = shell
-        .sidecar("coderoo")
+        .sidecar("sarde")
         .map_err(|e| format!("Failed to create sidecar: {}", e))?;
 
     // Hold lock across check-and-spawn to prevent double-spawn race.
@@ -219,7 +219,7 @@ pub fn stop_preview(state: tauri::State<AppState>) -> Result<(), String> {
     Ok(())
 }
 
-/// Run `coderoo validate` on the current project.
+/// Run `sarde validate` on the current project.
 #[tauri::command]
 pub async fn validate_project(app: tauri::AppHandle) -> Result<ValidationResult, String> {
     let state = app.state::<AppState>();
@@ -233,7 +233,7 @@ pub async fn validate_project(app: tauri::AppHandle) -> Result<ValidationResult,
 
     let shell = app.shell();
     let output = shell
-        .sidecar("coderoo")
+        .sidecar("sarde")
         .map_err(|e| format!("Failed to create sidecar: {}", e))?
         .args(["validate", &project_dir])
         .output()
@@ -252,7 +252,7 @@ pub async fn validate_project(app: tauri::AppHandle) -> Result<ValidationResult,
     }
 }
 
-/// Run `coderoo deploy` on the current project.
+/// Run `sarde deploy` on the current project.
 #[tauri::command]
 pub async fn deploy(
     app: tauri::AppHandle,
@@ -279,7 +279,7 @@ pub async fn deploy(
 
     let str_args: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
     let output = shell
-        .sidecar("coderoo")
+        .sidecar("sarde")
         .map_err(|e| format!("Failed to create sidecar: {}", e))?
         .args(&str_args)
         .output()
@@ -303,7 +303,7 @@ pub async fn deploy(
     }
 }
 
-/// Render markdown to HTML via `coderoo render` (stdin → JSON stdout).
+/// Render markdown to HTML via `sarde render` (stdin → JSON stdout).
 #[tauri::command]
 pub async fn render_markdown(
     markdown: String,
@@ -356,7 +356,7 @@ pub async fn render_markdown(
     serde_json::from_str(stdout.trim()).map_err(|e| format!("Parsing render output: {}", e))
 }
 
-/// Run `coderoo import obsidian` to import an Obsidian vault.
+/// Run `sarde import obsidian` to import an Obsidian vault.
 #[tauri::command]
 pub async fn import_obsidian(
     app: tauri::AppHandle,
@@ -401,7 +401,7 @@ pub async fn import_obsidian(
 
     let str_args: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
     let output = shell
-        .sidecar("coderoo")
+        .sidecar("sarde")
         .map_err(|e| format!("Failed to create sidecar: {}", e))?
         .args(&str_args)
         .output()

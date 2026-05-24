@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'coderoo-ui-state'
+const STORAGE_KEY = 'sarde-ui-state'
 
 const PERSISTED_KEYS = [
   'leftPanel',

@@ -58,7 +58,7 @@
     {#if showTabs}
       <TabBar embedded={true} />
     {:else}
-      <span class="app-title">Coderoo</span>
+      <span class="app-title">Sarde</span>
     {/if}
   </div>
 

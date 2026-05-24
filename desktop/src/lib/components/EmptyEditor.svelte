@@ -3,7 +3,7 @@
   import { FilePlus, Search } from 'lucide-svelte'
 
   function newFile() {
-    window.dispatchEvent(new CustomEvent('coderoo:new-file'))
+    window.dispatchEvent(new CustomEvent('sarde:new-file'))
   }
 
   function openSearch() {

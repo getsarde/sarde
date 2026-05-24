@@ -44,17 +44,17 @@
     close()
     switch (cmd.id) {
       case 'new-file':
-        window.dispatchEvent(new CustomEvent('coderoo:new-file'))
+        window.dispatchEvent(new CustomEvent('sarde:new-file'))
         break
       case 'open-file':
-        window.dispatchEvent(new CustomEvent('coderoo:open-file'))
+        window.dispatchEvent(new CustomEvent('sarde:open-file'))
         break
       case 'save':
-        window.dispatchEvent(new CustomEvent('coderoo:save'))
+        window.dispatchEvent(new CustomEvent('sarde:save'))
         break
       case 'save-all':
-        window.dispatchEvent(new CustomEvent('coderoo:save'))
-        window.dispatchEvent(new CustomEvent('coderoo:save-all'))
+        window.dispatchEvent(new CustomEvent('sarde:save'))
+        window.dispatchEvent(new CustomEvent('sarde:save-all'))
         break
       case 'close-tab':
         if (tabs.activeId) requestCloseTab(tabs.activeId)
@@ -127,7 +127,7 @@
         ui.shortcutsOpen = true
         break
       case 'show-onboarding':
-        window.dispatchEvent(new CustomEvent('coderoo:show-onboarding'))
+        window.dispatchEvent(new CustomEvent('sarde:show-onboarding'))
         break
       default:
         console.log('Command executed:', cmd.id)

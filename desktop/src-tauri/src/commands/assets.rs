@@ -425,7 +425,7 @@ fn unique_path(dir: &Path, name: &str) -> PathBuf {
 }
 
 fn thumb_cache_dir() -> PathBuf {
-    std::env::temp_dir().join("coderoo-thumbs")
+    std::env::temp_dir().join("sarde-thumbs")
 }
 
 fn remove_cached_thumbnail(abs_path: &Path) -> Result<(), std::io::Error> {

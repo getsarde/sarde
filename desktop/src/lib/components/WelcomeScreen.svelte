@@ -7,7 +7,7 @@
 
   function loadRecents() {
     try {
-      return JSON.parse(localStorage.getItem('coderoo-recent-projects') || '[]')
+      return JSON.parse(localStorage.getItem('sarde-recent-projects') || '[]')
     } catch { return [] }
   }
 
@@ -18,7 +18,7 @@
   function removeRecent(e, idx) {
     e.stopPropagation()
     recentProjects.splice(idx, 1)
-    localStorage.setItem('coderoo-recent-projects', JSON.stringify(recentProjects))
+    localStorage.setItem('sarde-recent-projects', JSON.stringify(recentProjects))
     recentProjects = [...recentProjects]
   }
 
@@ -36,7 +36,7 @@
 <div class="welcome">
   <div class="welcome-header">
     <div class="logo">C</div>
-    <h1>Coderoo</h1>
+    <h1>Sarde</h1>
     <p class="tagline">Build beautiful documentation sites</p>
   </div>
 

@@ -58,7 +58,7 @@
 <div class="editor-toolbar">
   <div class="tool-group">
     <AppTooltip content="Save (Ctrl+S)">
-      <button class="tool-btn" disabled={!hasFile || !doc.dirty} onclick={() => window.dispatchEvent(new CustomEvent('coderoo:save'))}><Save size={15} /></button>
+      <button class="tool-btn" disabled={!hasFile || !doc.dirty} onclick={() => window.dispatchEvent(new CustomEvent('sarde:save'))}><Save size={15} /></button>
     </AppTooltip>
     <div class="tool-sep"></div>
     <AppTooltip content="Bold (Ctrl+B)">

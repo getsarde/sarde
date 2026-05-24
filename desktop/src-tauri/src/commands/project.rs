@@ -21,12 +21,12 @@ pub struct CollectionSummary {
     pub page_count: usize,
 }
 
-/// Open a project: read site.yaml, validate configured content dir, cache config.
+/// Open a project: read sarde.yaml, validate configured content dir, cache config.
 #[tauri::command]
 pub fn open_project(dir: String, app_handle: tauri::AppHandle, state: tauri::State<AppState>) -> Result<ProjectInfo, String> {
     let abs_dir = fs::canonicalize(&dir).map_err(|e| format!("Invalid path: {}", e))?;
 
-    // Read and parse site.yaml before validating content/, since content.dir may override it.
+    // Read and parse sarde.yaml before validating content/, since content.dir may override it.
     let config = read_site_config(&abs_dir)?;
     let content_dir = resolve_content_dir(&abs_dir, &config);
     if !content_dir.is_dir() {
@@ -49,7 +49,7 @@ pub fn open_project(dir: String, app_handle: tauri::AppHandle, state: tauri::Sta
 
     // Start file system watcher for content and config changes.
     watcher::stop_watcher(&state.watcher);
-    let config_path = abs_dir.join("site.yaml");
+    let config_path = abs_dir.join("sarde.yaml");
     match watcher::start_watcher(app_handle, content_dir.clone(), config_path) {
         Ok(w) => {
             *state.watcher.lock().unwrap() = Some(w);
@@ -89,7 +89,7 @@ pub fn open_project(dir: String, app_handle: tauri::AppHandle, state: tauri::Sta
     })
 }
 
-/// Create a new project: scaffold directories, write site.yaml, _index.md, .gitignore.
+/// Create a new project: scaffold directories, write sarde.yaml, _index.md, .gitignore.
 /// Template determines the initial collection structure.
 #[tauri::command]
 pub fn create_project(
@@ -104,8 +104,8 @@ pub fn create_project(
     let abs_dir = PathBuf::from(&dir);
 
     // Check if site already exists.
-    if abs_dir.join("site.yaml").exists() {
-        return Err(format!("site.yaml already exists in {}", abs_dir.display()));
+    if abs_dir.join("sarde.yaml").exists() {
+        return Err(format!("sarde.yaml already exists in {}", abs_dir.display()));
     }
 
     let title = if title.is_empty() {
@@ -121,7 +121,7 @@ pub fn create_project(
             .map_err(|e| format!("Creating directory: {}", e))?;
     }
 
-    // Build site.yaml content.
+    // Build sarde.yaml content.
     let mut yaml_parts = vec![format!(
         "site:\n  title: \"{}\"\n  url: \"http://localhost:4727\"",
         title.replace('"', "\\\"")
@@ -151,11 +151,11 @@ pub fn create_project(
     }
 
     yaml_parts.push(String::new()); // trailing newline
-    fs::write(abs_dir.join("site.yaml"), yaml_parts.join("\n"))
-        .map_err(|e| format!("Writing site.yaml: {}", e))?;
+    fs::write(abs_dir.join("sarde.yaml"), yaml_parts.join("\n"))
+        .map_err(|e| format!("Writing sarde.yaml: {}", e))?;
 
     // Write content/_index.md.
-    let index_md = "---\ntitle: Welcome\n---\n\n# Welcome to your new site\n\nEdit this page at `content/_index.md`, then run `coderoo serve` to see your changes.\n";
+    let index_md = "---\ntitle: Welcome\n---\n\n# Welcome to your new site\n\nEdit this page at `content/_index.md`, then run `sarde serve` to see your changes.\n";
     fs::write(abs_dir.join("content/_index.md"), index_md)
         .map_err(|e| format!("Writing _index.md: {}", e))?;
 
@@ -298,14 +298,14 @@ pub fn list_recent_projects(state: tauri::State<AppState>) -> Vec<RecentProject>
 // ---------------------------------------------------------------------------
 
 fn read_site_config(project_dir: &PathBuf) -> Result<serde_yaml::Value, String> {
-    let config_path = project_dir.join("site.yaml");
+    let config_path = project_dir.join("sarde.yaml");
     if !config_path.exists() {
-        // Return empty config if no site.yaml.
+        // Return empty config if no sarde.yaml.
         return Ok(serde_yaml::Value::Mapping(Default::default()));
     }
     let data = fs::read_to_string(&config_path)
-        .map_err(|e| format!("Reading site.yaml: {}", e))?;
-    serde_yaml::from_str(&data).map_err(|e| format!("Parsing site.yaml: {}", e))
+        .map_err(|e| format!("Reading sarde.yaml: {}", e))?;
+    serde_yaml::from_str(&data).map_err(|e| format!("Parsing sarde.yaml: {}", e))
 }
 
 fn resolve_content_dir(project_dir: &PathBuf, config: &serde_yaml::Value) -> PathBuf {

@@ -8,15 +8,15 @@ use crate::watcher;
 pub struct AppState {
     /// Root directory of the currently open project.
     pub project_dir: Mutex<Option<PathBuf>>,
-    /// Parsed site.yaml as a serde_yaml Value (preserves unknown fields).
+    /// Parsed sarde.yaml as a serde_yaml Value (preserves unknown fields).
     pub config: Mutex<Option<serde_yaml::Value>>,
     /// List of recently opened project directories.
     pub recent_projects: Mutex<Vec<RecentProject>>,
-    /// Child process handle for `coderoo serve`.
+    /// Child process handle for `sarde serve`.
     pub preview_child: Mutex<Option<CommandChild>>,
     /// Port the preview server is listening on.
     pub preview_port: Mutex<u16>,
-    /// Resolved path to the coderoo sidecar binary.
+    /// Resolved path to the sarde sidecar binary.
     pub sidecar_path: Mutex<Option<PathBuf>>,
     /// File system watcher for content and config changes.
     pub watcher: Mutex<Option<watcher::Debouncer>>,
