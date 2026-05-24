@@ -24,7 +24,7 @@ import (
 // Closures capture runtime state (site context, resolver, registry, data cache).
 // cachedCSS is the pre-loaded embedded CSS (empty string if not yet loaded).
 func buildFuncMap(
-	site *engine.SiteContext,
+	sitePtr **engine.SiteContext,
 	resolver *engine.ThemeResolver,
 	registry *component.Registry,
 	dataCache *sync.Map,
@@ -36,7 +36,7 @@ func buildFuncMap(
 	pluginFuncs map[string]any,
 	currentLangPtr *string,
 	i18nStrings *i18n.StringTable,
-	pageIndex *content.PageIndex,
+	pageIndexPtr **content.PageIndex,
 	partialCache map[string]*htmltemplate.Template,
 ) htmltemplate.FuncMap {
 	fm := htmltemplate.FuncMap{
@@ -88,20 +88,22 @@ func buildFuncMap(
 
 		// ── URLs ──
 		"absURL": func(relPath string) string {
-			if site == nil || site.BaseURL == "" {
+			s := *sitePtr
+			if s == nil || s.BaseURL == "" {
 				return relPath
 			}
-			base := strings.TrimRight(site.BaseURL, "/")
+			base := strings.TrimRight(s.BaseURL, "/")
 			if strings.HasPrefix(relPath, "/") {
 				return base + relPath
 			}
 			return base + "/" + relPath
 		},
 		"relURL": func(absPath string) string {
-			if site == nil || site.BaseURL == "" {
+			s := *sitePtr
+			if s == nil || s.BaseURL == "" {
 				return absPath
 			}
-			base := strings.TrimRight(site.BaseURL, "/")
+			base := strings.TrimRight(s.BaseURL, "/")
 			return strings.TrimPrefix(absPath, base)
 		},
 		"editURL": func(base, relPath string) string {
@@ -126,16 +128,18 @@ func buildFuncMap(
 		},
 		"urlize": content.Slugify,
 		"ref": func(slug string) string {
-			if pageIndex != nil {
-				if p := pageIndex.LookupByPermalink(slug); p != nil {
+			pi := *pageIndexPtr
+			if pi != nil {
+				if p := pi.LookupByPermalink(slug); p != nil {
 					return p.Permalink
 				}
-				if p := pageIndex.LookupBySlug(slug); p != nil {
+				if p := pi.LookupBySlug(slug); p != nil {
 					return p.Permalink
 				}
 			}
-			if site != nil {
-				for _, p := range site.Pages {
+			s := *sitePtr
+			if s != nil {
+				for _, p := range s.Pages {
 					if p.Slug == slug || p.RelPermalink == slug {
 						return p.Permalink
 					}
@@ -144,16 +148,18 @@ func buildFuncMap(
 			return slug
 		},
 		"relref": func(slug string) string {
-			if pageIndex != nil {
-				if p := pageIndex.LookupByPermalink(slug); p != nil {
+			pi := *pageIndexPtr
+			if pi != nil {
+				if p := pi.LookupByPermalink(slug); p != nil {
 					return p.RelPermalink
 				}
-				if p := pageIndex.LookupBySlug(slug); p != nil {
+				if p := pi.LookupBySlug(slug); p != nil {
 					return p.RelPermalink
 				}
 			}
-			if site != nil {
-				for _, p := range site.Pages {
+			s := *sitePtr
+			if s != nil {
+				for _, p := range s.Pages {
 					if p.Slug == slug || p.RelPermalink == slug {
 						return p.RelPermalink
 					}
@@ -298,10 +304,11 @@ func buildFuncMap(
 
 		// ── Navigation helpers ──
 		"navFor": func(colName string) *engine.NavTree {
-			if site == nil {
+			s := *sitePtr
+			if s == nil {
 				return nil
 			}
-			col, ok := site.Collections[colName]
+			col, ok := s.Collections[colName]
 			if !ok || col == nil {
 				return nil
 			}
@@ -362,10 +369,11 @@ func buildFuncMap(
 
 		// ── Cross-collection ──
 		"recentEntries": func(colName string, n int) []*engine.Page {
-			if site == nil {
+			s := *sitePtr
+			if s == nil {
 				return nil
 			}
-			col, ok := site.Collections[colName]
+			col, ok := s.Collections[colName]
 			if !ok || col == nil {
 				return nil
 			}
@@ -376,10 +384,11 @@ func buildFuncMap(
 			return pages[:n]
 		},
 		"findEntry": func(colName, slug string) *engine.Page {
-			if site == nil {
+			s := *sitePtr
+			if s == nil {
 				return nil
 			}
-			col, ok := site.Collections[colName]
+			col, ok := s.Collections[colName]
 			if !ok || col == nil {
 				return nil
 			}
@@ -391,18 +400,20 @@ func buildFuncMap(
 			return nil
 		},
 		"allCollections": func() map[string]*engine.Collection {
-			if site == nil {
+			s := *sitePtr
+			if s == nil {
 				return nil
 			}
-			return site.Collections
+			return s.Collections
 		},
 
 		// ── Taxonomy helpers ──
 
 		"termURL": func(taxonomyName, termName string) string {
 			slug := content.Slugify(termName)
-			if site != nil {
-				if tax, ok := site.Taxonomies[taxonomyName]; ok && tax != nil {
+			s := *sitePtr
+			if s != nil {
+				if tax, ok := s.Taxonomies[taxonomyName]; ok && tax != nil {
 					if term, ok := tax.Terms[slug]; ok {
 						return term.Permalink
 					}
@@ -411,10 +422,11 @@ func buildFuncMap(
 			return "/" + taxonomyName + "/" + slug + "/"
 		},
 		"topTerms": func(taxonomyName string, n int) []*engine.TaxonomyTerm {
-			if site == nil {
+			s := *sitePtr
+			if s == nil {
 				return nil
 			}
-			tax, ok := site.Taxonomies[taxonomyName]
+			tax, ok := s.Taxonomies[taxonomyName]
 			if !ok || tax == nil {
 				return nil
 			}
@@ -475,18 +487,18 @@ func buildFuncMap(
 // Component registry, plugin funcs, and i18n are excluded (nil) to avoid
 // concurrency issues during parallel markdown rendering.
 func BuildShortcodeFuncMap(
-	site *engine.SiteContext,
+	sitePtr **engine.SiteContext,
 	resolver *engine.ThemeResolver,
 	dataCache *sync.Map,
 	assetResolver *asset.Resolver,
 	assetManifest *asset.Manifest,
 	imageProcessor *asset.ImageProcessor,
-	pageIndex *content.PageIndex,
+	pageIndexPtr **content.PageIndex,
 ) htmltemplate.FuncMap {
 	return buildFuncMap(
-		site, resolver, nil, dataCache, "", nil,
+		sitePtr, resolver, nil, dataCache, "", nil,
 		assetResolver, assetManifest, imageProcessor,
-		nil, nil, nil, pageIndex, nil,
+		nil, nil, nil, pageIndexPtr, nil,
 	)
 }
 

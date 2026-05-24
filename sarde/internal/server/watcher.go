@@ -25,25 +25,26 @@ const (
 
 // FileChange represents a detected filesystem change.
 type FileChange struct {
-	Path string
-	Kind ChangeKind
+	Path  string
+	Paths []string   // all changed file paths in the batch (populated for content changes)
+	Kind  ChangeKind
 }
 
 // Watcher monitors project directories for changes and triggers a callback.
 type Watcher struct {
 	projectDir string
-	onChange   func(FileChange)
+	onChange   func([]FileChange)
 	debounce   time.Duration
 	watcher    *fsnotify.Watcher
 
 	mu      sync.Mutex
 	timer   *time.Timer
-	pending *FileChange
+	pending []FileChange
 	done    chan struct{}
 }
 
 // NewWatcher creates a file watcher for the given project directory.
-func NewWatcher(projectDir string, debounce time.Duration, onChange func(FileChange)) *Watcher {
+func NewWatcher(projectDir string, debounce time.Duration, onChange func([]FileChange)) *Watcher {
 	return &Watcher{
 		projectDir: projectDir,
 		onChange:   onChange,
@@ -132,21 +133,35 @@ func (w *Watcher) debounceChange(change FileChange) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	w.pending = &change
+	// Dedup by path: if this path is already pending, replace with the latest event.
+	found := false
+	for i, p := range w.pending {
+		if p.Path == change.Path {
+			w.pending[i] = change
+			found = true
+			break
+		}
+	}
+	if !found {
+		w.pending = append(w.pending, change)
+	}
 
 	if w.timer != nil {
 		w.timer.Stop()
 	}
-	w.timer = time.AfterFunc(w.debounce, func() {
-		w.mu.Lock()
-		pending := w.pending
-		w.pending = nil
-		w.mu.Unlock()
+	w.timer = time.AfterFunc(w.debounce, w.firePending)
+}
 
-		if pending != nil {
-			w.onChange(*pending)
-		}
-	})
+// firePending drains the pending batch under the lock and calls onChange.
+func (w *Watcher) firePending() {
+	w.mu.Lock()
+	batch := w.pending
+	w.pending = nil
+	w.mu.Unlock()
+
+	if len(batch) > 0 {
+		w.onChange(batch)
+	}
 }
 
 func (w *Watcher) addRecursive(root string) {

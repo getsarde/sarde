@@ -99,6 +99,20 @@ type BuildDoneContext struct {
 	DevMode        bool
 	mu             sync.Mutex
 	warnings       *[]engine.ValidationWarning
+	logger         *engine.BuildLogger
+	pluginName     string
+}
+
+// Log emits a build log message prefixed with the plugin's name.
+func (c *BuildDoneContext) Log(message string) {
+	if c.logger != nil {
+		c.logger.Log(c.pluginName, message)
+	}
+}
+
+// SetLogger sets the build logger. Must be called before RunBuildDone.
+func (c *BuildDoneContext) SetLogger(l *engine.BuildLogger) {
+	c.logger = l
 }
 
 // WriteFile writes a file to the output directory. Thread-safe.
@@ -247,7 +261,12 @@ func (m *Manager) RunBuildDone(ctx *BuildDoneContext) error {
 				Pages:        ctx.Pages,
 				Collections:  ctx.Collections,
 				Site:         ctx.Site,
+				PageIndex:    ctx.PageIndex,
+				ValidationData: ctx.ValidationData,
+				DevMode:      ctx.DevMode,
 				warnings:     ctx.warnings,
+				logger:       ctx.logger,
+				pluginName:   plug.Name,
 			}
 			if err := plug.Hooks.BuildDone(pCtx); err != nil {
 				errCh <- fmt.Errorf("plugin %q BuildDone: %w", plug.Name, err)

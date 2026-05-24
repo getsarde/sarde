@@ -138,7 +138,7 @@ func BuildCollections(
 					col.NavTrees[lang] = tree
 					navigation.WirePrevNextFromTree(tree)
 				} else {
-					wirePrevNext(langPages)
+					WirePrevNext(langPages)
 				}
 			}
 			// Set default NavTree for backward compat
@@ -150,7 +150,7 @@ func BuildCollections(
 				col.NavTree = navigation.BuildNavTree(col)
 				navigation.WirePrevNextFromTree(col.NavTree)
 			} else {
-				wirePrevNext(pages)
+				WirePrevNext(pages)
 			}
 		}
 
@@ -185,6 +185,23 @@ func BuildStandalonePages(
 
 	pages, _, err := buildPages(filtered, contentDir, nil, nil, summaryLength, lastUpdatedStrategy)
 	return pages, err
+}
+
+// BuildSinglePage parses, infers, and transforms a single ContentFile into a Page.
+// Used by incremental rebuild to re-parse a changed file without rebuilding all collections.
+func BuildSinglePage(
+	cf content.ContentFile,
+	contentDir string,
+	collCfg *engine.CollectionConfig,
+	schema *engine.FrontmatterSchema,
+	summaryLength int,
+	lastUpdatedStrategy string,
+) (*engine.Page, []engine.ValidationWarning, error) {
+	pages, warnings, err := buildPages([]content.ContentFile{cf}, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy)
+	if err != nil || len(pages) == 0 {
+		return nil, warnings, err
+	}
+	return pages[0], warnings, nil
 }
 
 // extractFeatured returns the subset of pages whose frontmatter Params has
@@ -427,7 +444,7 @@ func filterExcluded(pages []*engine.Page, includeDrafts, includeFuture bool, now
 	return result
 }
 
-func wirePrevNext(pages []*engine.Page) {
+func WirePrevNext(pages []*engine.Page) {
 	// Only wire non-section pages
 	var contentPages []*engine.Page
 	for _, p := range pages {

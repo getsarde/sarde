@@ -3,6 +3,7 @@ package plugin
 import (
 	"embed"
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"regexp"
 	"strings"
@@ -87,7 +88,11 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		return err
 	}
 
-	return writeSearchAssets(ctx)
+	if err := writeSearchAssets(ctx); err != nil {
+		return err
+	}
+	ctx.Log(fmt.Sprintf("Built search index (%d pages)", len(docs)))
+	return nil
 }
 
 func writeSearchAssets(ctx *BuildDoneContext) error {

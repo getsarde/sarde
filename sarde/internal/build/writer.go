@@ -27,7 +27,8 @@ type Writer struct {
 }
 
 // Write outputs all rendered pages, alias redirects, and static files.
-func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) error {
+// Returns the number of static files copied.
+func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, error) {
 	// Clean output directory if configured (skipped in dev mode to avoid NTFS overhead).
 	if w.Clean && !w.DevMode {
 		os.RemoveAll(w.OutputDir)
@@ -37,7 +38,7 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) error {
 	for _, rp := range pages {
 		outPath := filepath.Join(w.OutputDir, filepath.FromSlash(rp.OutPath))
 		if err := writeFile(outPath, rp.HTML); err != nil {
-			return fmt.Errorf("writing %s: %w", rp.OutPath, err)
+			return 0, fmt.Errorf("writing %s: %w", rp.OutPath, err)
 		}
 	}
 
@@ -46,27 +47,30 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) error {
 		outPath := filepath.Join(w.OutputDir, filepath.FromSlash(PageOutputPath(aliasPath)))
 		html := redirectHTML(target)
 		if err := writeFile(outPath, []byte(html)); err != nil {
-			return fmt.Errorf("writing alias %s: %w", aliasPath, err)
+			return 0, fmt.Errorf("writing alias %s: %w", aliasPath, err)
 		}
 	}
 
 	// Copy static files.
-	if err := w.copyStatic(); err != nil {
-		return fmt.Errorf("copying static files: %w", err)
+	staticCount, err := w.copyStatic()
+	if err != nil {
+		return 0, fmt.Errorf("copying static files: %w", err)
 	}
 
-	return nil
+	return staticCount, nil
 }
 
 // copyStatic copies the ProjectDir/static/ tree to OutputDir/ preserving structure.
-func (w *Writer) copyStatic() error {
+// Returns the number of files copied.
+func (w *Writer) copyStatic() (int, error) {
 	staticDir := filepath.Join(w.ProjectDir, "static")
 	info, err := os.Stat(staticDir)
 	if err != nil || !info.IsDir() {
-		return nil // no static dir — zero-config behavior
+		return 0, nil // no static dir — zero-config behavior
 	}
 
-	return filepath.Walk(staticDir, func(path string, info os.FileInfo, err error) error {
+	count := 0
+	err = filepath.Walk(staticDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -77,8 +81,13 @@ func (w *Writer) copyStatic() error {
 		relPath, _ := filepath.Rel(staticDir, path)
 		destPath := filepath.Join(w.OutputDir, relPath)
 
-		return copyFile(path, destPath)
+		if err := copyFile(path, destPath); err != nil {
+			return err
+		}
+		count++
+		return nil
 	})
+	return count, err
 }
 
 // PageOutputPath converts a RelPermalink to an output file path.

@@ -85,7 +85,7 @@
         break
       case 'build-site':
         addToast('info', 'Build started...')
-        apiBuild().then(resp => {
+        apiBuild(localStorage.getItem('sarde-verbose-build') === 'true').then(resp => {
           const w = resp?.warnings ?? []
           warnings.items = w
           const wCount = w.length

@@ -478,6 +478,31 @@ type BuildResult struct {
 	Duration  time.Duration
 	Warnings  []ValidationWarning
 	OutputDir string
+
+	// Summary stats (populated by full Build(), zero for incremental ContentRebuild).
+	PaginatorPages  int
+	Collections     int
+	BundleAssets    int
+	StaticFiles     int
+	ProcessedImages int
+	AliasCount      int
+	SitemapCount    int
+
+	// Build logging.
+	LogMessages  []BuildLogEntry
+	PhaseTimings []PhaseTiming
+}
+
+// PhaseTiming records the duration of a single build pipeline phase.
+type PhaseTiming struct {
+	Phase    string
+	Duration time.Duration
+}
+
+// BuildLogEntry is a single log message emitted during the build.
+type BuildLogEntry struct {
+	Source  string // e.g. "sitemap", "search", "social-cards"
+	Message string
 }
 
 // ValidationWarning represents a non-fatal issue found during frontmatter validation.

@@ -80,5 +80,9 @@ func sitemapBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 	}
 
 	output := []byte(xml.Header + string(data))
-	return ctx.WriteFile("sitemap.xml", output)
+	if err := ctx.WriteFile("sitemap.xml", output); err != nil {
+		return err
+	}
+	ctx.Log("Generated sitemap.xml")
+	return nil
 }

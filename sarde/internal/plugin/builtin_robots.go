@@ -28,5 +28,9 @@ func robotsBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		sb.WriteString(fmt.Sprintf("Sitemap: %s/sitemap.xml\n", baseURL))
 	}
 
-	return ctx.WriteFile("robots.txt", []byte(sb.String()))
+	if err := ctx.WriteFile("robots.txt", []byte(sb.String())); err != nil {
+		return err
+	}
+	ctx.Log("Generated robots.txt")
+	return nil
 }

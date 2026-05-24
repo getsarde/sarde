@@ -36,6 +36,7 @@ func redirectsBuildDone(ctx *BuildDoneContext) error {
 	}
 
 	if len(redirects) == 0 {
+		ctx.Log("No redirects to generate")
 		return nil
 	}
 
@@ -88,6 +89,7 @@ func redirectsBuildDone(ctx *BuildDoneContext) error {
 		}
 	}
 
+	ctx.Log(fmt.Sprintf("Generated %d redirect(s)", len(redirects)))
 	return nil
 }
 

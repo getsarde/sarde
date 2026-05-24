@@ -35,7 +35,7 @@ func TestWriter_WritePages(t *testing.T) {
 		{OutPath: "docs/intro/index.html", HTML: []byte("<html>Intro</html>")},
 	}
 
-	if err := w.Write(pages, nil); err != nil {
+	if _, err := w.Write(pages, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -52,7 +52,7 @@ func TestWriter_Aliases(t *testing.T) {
 		"/old-path/": "/docs/new-path/",
 	}
 
-	if err := w.Write(nil, aliases); err != nil {
+	if _, err := w.Write(nil, aliases); err != nil {
 		t.Fatal(err)
 	}
 
@@ -76,7 +76,7 @@ func TestWriter_StaticCopy(t *testing.T) {
 	os.WriteFile(filepath.Join(projDir, "static", "favicon.ico"), []byte("icon-data"), 0o644)
 
 	w := &Writer{OutputDir: outDir, ProjectDir: projDir}
-	if err := w.Write(nil, nil); err != nil {
+	if _, err := w.Write(nil, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -89,7 +89,7 @@ func TestWriter_NoStaticDir(t *testing.T) {
 	w := &Writer{OutputDir: outDir, ProjectDir: t.TempDir()}
 
 	// Should not error when static/ doesn't exist.
-	if err := w.Write(nil, nil); err != nil {
+	if _, err := w.Write(nil, nil); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -104,7 +104,7 @@ func TestWriter_CleanFlag(t *testing.T) {
 		{OutPath: "index.html", HTML: []byte("<html>Fresh</html>")},
 	}
 
-	if err := w.Write(pages, nil); err != nil {
+	if _, err := w.Write(pages, nil); err != nil {
 		t.Fatal(err)
 	}
 

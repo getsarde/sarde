@@ -69,5 +69,9 @@ func llmsTxtBuildDone(ctx *BuildDoneContext) error {
 		fmt.Fprintf(&sb, "- [%s](%s)\n", page.Title, url)
 	}
 
-	return ctx.WriteFile("llms.txt", []byte(sb.String()))
+	if err := ctx.WriteFile("llms.txt", []byte(sb.String())); err != nil {
+		return err
+	}
+	ctx.Log("Generated llms.txt")
+	return nil
 }

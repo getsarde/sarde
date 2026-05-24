@@ -170,6 +170,77 @@ func ClassifyNode(contentDir, filePath string) engine.NodeKind {
 	return classifyKind(base, dir, filePath, dirAssets)
 }
 
+// ClassifyFile constructs a ContentFile for a single file path without walking
+// the entire content directory. Used by incremental rebuild.
+func (s *Scanner) ClassifyFile(contentDir, filePath string) (ContentFile, error) {
+	contentDir = filepath.Clean(contentDir)
+
+	rel, err := filepath.Rel(contentDir, filePath)
+	if err != nil {
+		return ContentFile{}, err
+	}
+	rel = filepath.ToSlash(rel)
+
+	lastSlash := strings.LastIndex(rel, "/")
+	var base, dir string
+	if lastSlash < 0 {
+		base = rel
+		dir = ""
+	} else {
+		base = rel[lastSlash+1:]
+		dir = rel[:lastSlash]
+	}
+
+	collectionName := ""
+	if dir != "" {
+		parts := strings.SplitN(dir, "/", 2)
+		collectionName = parts[0]
+	}
+
+	// Check for sibling assets (for bundle detection).
+	dirAssets := make(map[string][]string)
+	absDir := filepath.Dir(filePath)
+	entries, _ := os.ReadDir(absDir)
+	for _, e := range entries {
+		if !e.IsDir() && strings.ToLower(filepath.Ext(e.Name())) != ".md" {
+			dirAssets[absDir] = append(dirAssets[absDir], filepath.Join(absDir, e.Name()))
+		}
+	}
+
+	kind := classifyKind(base, dir, filePath, dirAssets)
+	slug, weight := FilenameSlug(base)
+
+	if base == "_index.md" || base == "index.md" {
+		if dir != "" {
+			parts := strings.Split(dir, "/")
+			dirSlug, dirWeight := FilenameSlug(parts[len(parts)-1] + ".md")
+			slug = dirSlug
+			if dirWeight > 0 && weight == 0 {
+				weight = dirWeight
+			}
+		} else {
+			slug = ""
+		}
+	}
+
+	cf := ContentFile{
+		FilePath:       filePath,
+		RelPath:        rel,
+		Kind:           kind,
+		CollectionName: collectionName,
+		Slug:           slug,
+		Weight:         weight,
+		IsBundle:       kind == engine.KindBundle,
+	}
+	if cf.IsBundle {
+		cf.BundleAssets = dirAssets[absDir]
+	}
+	if len(s.Languages) > 0 {
+		ClassifyLang(&cf, s.Languages, s.DefaultLang)
+	}
+	return cf, nil
+}
+
 func classifyKind(base, dir, absPath string, dirAssets map[string][]string) engine.NodeKind {
 	switch {
 	case base == "_index.md" && dir == "":

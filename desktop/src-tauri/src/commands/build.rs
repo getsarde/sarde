@@ -54,7 +54,7 @@ pub struct ImportResult {
 
 /// Run `sarde build` on the current project. Streams stdout/stderr as Tauri events.
 #[tauri::command]
-pub async fn run_build(app: tauri::AppHandle) -> Result<BuildResult, String> {
+pub async fn run_build(app: tauri::AppHandle, verbose: Option<bool>) -> Result<BuildResult, String> {
     let state = app.state::<AppState>();
     let project_dir = {
         let pd = state.project_dir.lock().unwrap();
@@ -69,8 +69,14 @@ pub async fn run_build(app: tauri::AppHandle) -> Result<BuildResult, String> {
         .sidecar("sarde")
         .map_err(|e| format!("Failed to create sidecar: {}", e))?;
 
+    let mut args = vec!["build".to_string(), project_dir];
+    if verbose.unwrap_or(false) {
+        args.push("--verbose".to_string());
+    }
+    let str_args: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
+
     let (mut rx, _child) = cmd
-        .args(["build", &project_dir])
+        .args(&str_args)
         .spawn()
         .map_err(|e| format!("Failed to spawn build: {}", e))?;
 
@@ -427,18 +433,36 @@ fn parse_build_output(raw: &str) -> BuildResult {
         ..Default::default()
     };
 
+    // Old format: "Built 15 pages in 45ms"
     let built_re = Regex::new(r"^Built\s+(\d+)\s+pages?\s+in\s+(.+)$").unwrap();
+    // New format: "Built in 2086 ms"
+    let built_in_re = Regex::new(r"^Built in (\d+) ms$").unwrap();
+    // New table format: "  Pages            |   48"
+    let pages_re = Regex::new(r"^\s*Pages\s+\|\s*(\d+)").unwrap();
     let warning_re = Regex::new(r"^\s+(.+?):\s+(.+)$").unwrap();
 
     let mut in_warnings = false;
     for line in raw.lines() {
         let trimmed = line.trim();
-        if result.summary.is_empty() && trimmed.starts_with("Built ") {
-            result.summary = trimmed.to_string();
-        }
+
+        // Old one-liner format.
         if let Some(caps) = built_re.captures(trimmed) {
             result.page_count = caps.get(1).and_then(|m| m.as_str().parse().ok()).unwrap_or(0);
             result.duration = caps.get(2).map(|m| m.as_str().to_string()).unwrap_or_default();
+            if result.summary.is_empty() {
+                result.summary = trimmed.to_string();
+            }
+        }
+        // New table format — duration from footer.
+        else if let Some(caps) = built_in_re.captures(trimmed) {
+            result.duration = format!("{}ms", caps.get(1).map(|m| m.as_str()).unwrap_or("0"));
+            if result.summary.is_empty() {
+                result.summary = format!("Built {} pages", result.page_count);
+            }
+        }
+        // New table format — page count from table row.
+        else if let Some(caps) = pages_re.captures(trimmed) {
+            result.page_count = caps.get(1).and_then(|m| m.as_str().parse().ok()).unwrap_or(0);
         } else if let Some(output) = trimmed.strip_prefix("Output:") {
             result.output_dir = output.trim().to_string();
         } else if trimmed.contains("warning(s):") {
@@ -455,8 +479,13 @@ fn parse_build_output(raw: &str) -> BuildResult {
         }
     }
 
+    // Finalize summary.
     if result.summary.is_empty() {
-        result.summary = "Build complete".into();
+        if result.page_count > 0 {
+            result.summary = format!("Built {} pages", result.page_count);
+        } else {
+            result.summary = "Build complete".into();
+        }
     }
 
     result
@@ -550,6 +579,46 @@ fn parse_import_output(raw: &str) -> ImportResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parses_new_build_table_format() {
+        let output = r#"
+Start building sites ...
+sarde v0.1.0 windows/amd64
+
+                   | Total
+-------------------+-------
+  Pages            |   48
+  Paginator pages  |    0
+  Collections      |    3
+  Bundle assets    |    1
+  Static files     |  106
+  Processed images |    9
+  Aliases          |    7
+  Sitemaps         |    1
+
+[sitemap] Generated sitemap.xml
+[search] Built search index (48 pages)
+
+Built in 2086 ms
+  Output: dist/
+"#;
+        let result = parse_build_output(output);
+        assert_eq!(result.status, "complete");
+        assert_eq!(result.page_count, 48);
+        assert_eq!(result.duration, "2086ms");
+        assert_eq!(result.output_dir, "dist/");
+        assert_eq!(result.summary, "Built 48 pages");
+    }
+
+    #[test]
+    fn parses_old_build_one_liner() {
+        let output = "Built 15 pages in 45ms\n  Output: dist/\n";
+        let result = parse_build_output(output);
+        assert_eq!(result.page_count, 15);
+        assert_eq!(result.duration, "45ms");
+        assert_eq!(result.output_dir, "dist/");
+    }
 
     #[test]
     fn parses_validation_warnings() {

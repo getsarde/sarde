@@ -71,6 +71,16 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 		}
 	}
 
+	if errorCount > 0 {
+		ctx.Log(fmt.Sprintf("Found %d broken link(s)", errorCount))
+	} else {
+		linkCount := 0
+		for _, entry := range ctx.ValidationData {
+			linkCount += len(entry.Links)
+		}
+		ctx.Log(fmt.Sprintf("Validated %d links", linkCount))
+	}
+
 	if config.BoolVal(settings.FailBuild, false) && errorCount > 0 {
 		return fmt.Errorf("link validation failed: %d broken link(s) found", errorCount)
 	}

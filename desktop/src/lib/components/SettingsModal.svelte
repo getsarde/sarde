@@ -197,7 +197,7 @@
     editor: ['font', 'size', 'line', 'wrap', 'auto', 'save'],
     navigation: ['sidebar', 'footer', 'header', 'search', 'pagination', 'badge', 'credits'],
     collections: ['collection', 'content', 'directory'],
-    build: ['output', 'sitemap', 'feed', 'rss', 'minify', 'katex', 'mermaid', 'cdn', 'link', 'llms'],
+    build: ['output', 'sitemap', 'feed', 'rss', 'minify', 'katex', 'mermaid', 'cdn', 'link', 'llms', 'verbose'],
     deploy: ['provider', 'branch', 'netlify', 'github', 'cloudflare', 'vercel', 'site id'],
     about: ['version', 'about'],
   }
@@ -667,6 +667,17 @@
               </label>
             </div>
           {/each}
+        </div>
+        <h4>Output</h4>
+        <div class="field">
+          <label class="field-check">
+            <input type="checkbox"
+              checked={localStorage.getItem('sarde-verbose-build') === 'true'}
+              onchange={(e) => { localStorage.setItem('sarde-verbose-build', e.target.checked ? 'true' : 'false') }}
+            />
+            <span>Verbose build output</span>
+          </label>
+          <p class="field-hint">Show per-phase timing and detailed stats when building</p>
         </div>
 
       {:else if ui.settingsSection === 'deploy'}

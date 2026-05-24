@@ -64,8 +64,8 @@ func New(opts Options) *DevServer {
 // Start runs the initial build, starts the file watcher, and serves HTTP.
 // It blocks until the server is stopped.
 func (ds *DevServer) Start() error {
-	// Initial build.
-	result := ds.rebuilder.Rebuild()
+	// Initial build (treated as a config change to force full init).
+	result := ds.rebuilder.Rebuild(FileChange{Kind: ChangeConfig})
 	if result.Error != nil {
 		log.Printf("Initial build failed: %v", result.Error)
 		log.Println("Serving stale output (if any). Waiting for file changes...")
@@ -131,25 +131,35 @@ func (ds *DevServer) Stop() error {
 	return ds.server.Shutdown(ctx)
 }
 
-func (ds *DevServer) onFileChange(change FileChange) {
-	rel, _ := filepath.Rel(ds.projectDir, change.Path)
-	rel = filepath.ToSlash(rel)
-	log.Printf("Changed [%s]: %s", change.Kind, rel)
+func (ds *DevServer) onFileChange(changes []FileChange) {
+	// Log all changes in the batch.
+	for _, c := range changes {
+		rel, _ := filepath.Rel(ds.projectDir, c.Path)
+		rel = filepath.ToSlash(rel)
+		log.Printf("Changed [%s]: %s", c.Kind, rel)
+	}
 
-	// CSS changes in static/ don't need a rebuild — files are served from disk.
-	if change.Kind == ChangeCSS {
-		ds.hub.Broadcast(ReloadMessage{Type: ReloadCSS, Path: rel})
+	// Classify the batch to decide how to handle it.
+	representative := classifyBatch(changes)
+
+	// All CSS → hot-swap each without rebuilding.
+	if representative.Kind == ChangeCSS {
+		for _, c := range changes {
+			rel, _ := filepath.Rel(ds.projectDir, c.Path)
+			ds.hub.Broadcast(ReloadMessage{Type: ReloadCSS, Path: filepath.ToSlash(rel)})
+		}
 		return
 	}
 
-	result := ds.rebuilder.Rebuild()
+	// Any non-CSS change triggers a rebuild.
+	result := ds.rebuilder.Rebuild(representative)
 	if result.Error != nil {
 		log.Printf("Rebuild failed: %v", result.Error)
 	} else {
 		log.Printf("Rebuilt %d pages in %s", result.PageCount, result.Duration)
 	}
 
-	msg := ToReloadMessage(change, result, ds.projectDir)
+	msg := ToReloadMessage(representative, result, ds.projectDir)
 	ds.hub.Broadcast(msg)
 
 	// Send a follow-up warning if there are warnings after a successful rebuild.
@@ -163,6 +173,35 @@ func (ds *DevServer) onFileChange(change FileChange) {
 			Error: fmt.Sprintf("%d warnings: %s", len(result.Warnings), strings.Join(parts, ", ")),
 		})
 	}
+}
+
+// classifyBatch picks the most significant change from a batch to drive rebuild routing.
+// Priority: config > template > content > static > css.
+// For content changes, all content paths are collected into Paths.
+func classifyBatch(changes []FileChange) FileChange {
+	priority := map[ChangeKind]int{
+		ChangeConfig:   5,
+		ChangeTemplate: 4,
+		ChangeContent:  3,
+		ChangeStatic:   2,
+		ChangeCSS:      1,
+	}
+	best := changes[0]
+	for _, c := range changes[1:] {
+		if priority[c.Kind] > priority[best.Kind] {
+			best = c
+		}
+	}
+	// Collect all content paths so ContentRebuild knows which files changed.
+	for _, c := range changes {
+		if c.Kind == ChangeContent {
+			best.Paths = append(best.Paths, c.Path)
+		}
+	}
+	if len(best.Paths) == 0 {
+		best.Paths = []string{best.Path}
+	}
+	return best
 }
 
 // fileHandler returns an HTTP handler that serves static files with clean URL support.

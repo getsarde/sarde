@@ -185,6 +185,7 @@ func buildDone(ctx *plugin.BuildDoneContext, cfg map[string]any, pending *sync.M
 	for err := range errCh {
 		return err
 	}
+	ctx.Log(fmt.Sprintf("Generated %d social card(s)", len(jobs)))
 	return nil
 }
 

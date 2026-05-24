@@ -49,7 +49,7 @@ export const deleteNav = () => invoke('delete_nav')
 // Build & preview
 // ---------------------------------------------------------------------------
 
-export const build = () => invoke('run_build')
+export const build = (verbose = false) => invoke('run_build', { verbose })
 export const startPreview = () => invoke('start_preview')
 export const stopPreview = () => invoke('stop_preview')
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	htmltemplate "html/template"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -23,6 +24,7 @@ import (
 	"github.com/frostybee/sarde/internal/content/markdown"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/i18n"
+	"github.com/frostybee/sarde/internal/navigation"
 	"github.com/frostybee/sarde/internal/plugin"
 	"github.com/frostybee/sarde/internal/shortcode"
 	"github.com/frostybee/sarde/internal/plugin/announcements"
@@ -51,10 +53,25 @@ type SiteBuilder struct {
 	embeddedFS  fs.FS
 	devMode     bool
 
-	scanner    *content.Scanner
-	mdRenderer *markdown.Renderer
-	tmplEngine *sardetemplate.Engine
-	pluginMgr  *plugin.Manager
+	scanner      *content.Scanner
+	mdRenderer   *markdown.Renderer
+	tmplEngine   *sardetemplate.Engine
+	pluginMgr    *plugin.Manager
+	rendererPool chan *markdown.Renderer // lazily initialized pool, persisted across rebuilds
+	built        bool                    // true after first Build(); gates one-time registrations
+
+	// Last-build state for incremental rebuild.
+	lastCollections    map[string]*engine.Collection
+	lastAllPages       []*engine.Page
+	lastSiteCtx        *engine.SiteContext
+	lastTaxonomies     map[string]*engine.Taxonomy
+	lastPageIndex      *content.PageIndex
+	lastOutputDir      string
+	lastAssetPipeline  *asset.Pipeline
+	lastScProcessor    *shortcode.Processor
+	lastShortcodesHash string
+	lastPageCache      *PageCache
+	lastValidationData map[string]engine.ValidationEntry
 }
 
 // NewSiteBuilder creates a SiteBuilder with all dependencies initialized.
@@ -82,6 +99,8 @@ func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
 // Build executes the full six-phase pipeline and writes output to disk.
 func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	start := time.Now()
+	var timings []engine.PhaseTiming
+	phaseStart := time.Now()
 
 	// Phase 1: INITIALIZE
 	contentDir := filepath.Join(b.projectDir, "content")
@@ -116,21 +135,24 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		b.scanner.DefaultLang = defaultLang
 	}
 
-	// Register announcements plugin after stringTable is available (needs i18n).
-	for _, name := range b.config.Plugins.Enabled {
-		if name == "announcements" {
-			b.pluginMgr.Register(announcements.New(
-				b.config.Plugins.Config[name],
-				stringTable,
-				b.tmplEngine.CurrentLangPtr(),
-			))
-			break
+	// Register announcements plugin and run ConfigSetup only on first build.
+	// Manager.Register appends without dedup — re-running would double-register hooks.
+	if !b.built {
+		for _, name := range b.config.Plugins.Enabled {
+			if name == "announcements" {
+				b.pluginMgr.Register(announcements.New(
+					b.config.Plugins.Config[name],
+					stringTable,
+					b.tmplEngine.CurrentLangPtr(),
+				))
+				break
+			}
 		}
-	}
 
-	// Plugin hook: ConfigSetup (serial, after config resolved).
-	if err := b.pluginMgr.RunConfigSetup(b.config); err != nil {
-		return nil, err
+		// Plugin hook: ConfigSetup (serial, after config resolved).
+		if err := b.pluginMgr.RunConfigSetup(b.config); err != nil {
+			return nil, err
+		}
 	}
 
 	// Phase 2: DISCOVER
@@ -138,6 +160,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("discovering content: %w", err)
 	}
+	timings = append(timings, engine.PhaseTiming{Phase: "Discovering content", Duration: time.Since(phaseStart)})
+	phaseStart = time.Now()
 
 	// Phase 3: PARSE (collections + standalone)
 	collections, warnings, err := collection.BuildCollections(files, b.config, contentDir)
@@ -149,6 +173,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building standalone pages: %w", err)
 	}
+	timings = append(timings, engine.PhaseTiming{Phase: "Parsing markdown", Duration: time.Since(phaseStart)})
+	phaseStart = time.Now()
 
 	// Phase 4: ASSEMBLE
 
@@ -246,7 +272,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	// Build shortcode registry (three-layer overlay: embedded → theme → user).
 	var scDataCache sync.Map
 	scFuncMap := sardetemplate.BuildShortcodeFuncMap(
-		siteCtx,
+		&siteCtx,
 		&engine.ThemeResolver{
 			ProjectDir: b.projectDir,
 			ThemeName:  b.config.Theme.Name,
@@ -256,7 +282,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		assetPipeline.Resolver(),
 		assetPipeline.Manifest(),
 		assetPipeline.ImageProcessor(),
-		pageIndex,
+		&pageIndex,
 	)
 	scRegistry, err := shortcode.NewRegistry(b.embeddedFS, scFuncMap)
 	if err != nil {
@@ -289,14 +315,16 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	// renderer can access processed resource data for <picture> generation).
 	parallel := config.BoolVal(b.config.Build.Parallel, true)
 	if parallel {
-		// Create a pool of renderers (Goldmark construction is expensive).
+		// Lazily initialize the renderer pool (Goldmark construction is expensive).
 		poolSize := runtime.NumCPU()
-		rendererPool := make(chan *markdown.Renderer, poolSize)
-		for i := 0; i < poolSize; i++ {
-			rendererPool <- markdown.NewRendererFromConfig(markdown.RendererConfig{
-				BlockedHrefSchemes: b.config.Security.BlockedHrefSchemes,
-				HeadingLinks:       config.BoolVal(b.config.Site.HeadingLinks, true),
-			})
+		if b.rendererPool == nil {
+			b.rendererPool = make(chan *markdown.Renderer, poolSize)
+			for i := 0; i < poolSize; i++ {
+				b.rendererPool <- markdown.NewRendererFromConfig(markdown.RendererConfig{
+					BlockedHrefSchemes: b.config.Security.BlockedHrefSchemes,
+					HeadingLinks:       config.BoolVal(b.config.Site.HeadingLinks, true),
+				})
+			}
 		}
 
 		g, _ := errgroup.WithContext(context.Background())
@@ -307,7 +335,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			}
 			g.Go(func() error {
 				// Borrow a renderer from the pool (needed for both shortcode inner rendering and main render).
-				renderer := <-rendererPool
+				renderer := <-b.rendererPool
 
 				// Pre-process shortcodes before Goldmark.
 				processed, scWarns := scProcessor.Process(page.RawContent, page, siteCtx, renderer)
@@ -330,7 +358,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 							validationData[page.RelPermalink] = engine.ValidationEntry{Links: entry.Links, FilePath: page.FilePath}
 							validationMu.Unlock()
 						}
-						rendererPool <- renderer
+						b.rendererPool <- renderer
 						return nil
 					}
 				}
@@ -339,7 +367,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				renderer.SetImageLookup(lookup)
 
 				result, err := renderer.Render(processed)
-				rendererPool <- renderer // return to pool
+				b.rendererPool <- renderer // return to pool
 				if err != nil {
 					return fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
 				}
@@ -456,9 +484,13 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		return nil, fmt.Errorf("loading templates: %w", err)
 	}
 
+	timings = append(timings, engine.PhaseTiming{Phase: "Assembling site", Duration: time.Since(phaseStart)})
+	phaseStart = time.Now()
+
 	// Phase 5: RENDER
 	var rendered []RenderedPage
 	aliases := make(map[string]string)
+	var paginatorPages int
 
 	// Filter to renderable pages.
 	var renderablePages []*engine.Page
@@ -606,6 +638,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				HTML:    html,
 				OutPath: PageOutputPath(permalink),
 			})
+			paginatorPages++
 		}
 	}
 
@@ -713,6 +746,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 					OutPath: PageOutputPath(permalink),
 				})
 				taxonomyPages = append(taxonomyPages, paginatedStub)
+				paginatorPages++
 			}
 		}
 	}
@@ -806,6 +840,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		}
 	}
 
+	timings = append(timings, engine.PhaseTiming{Phase: "Rendering templates", Duration: time.Since(phaseStart)})
+	phaseStart = time.Now()
+
 	// Phase 6: WRITE
 	writer := &Writer{
 		OutputDir:  outputDir,
@@ -813,7 +850,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		Clean:      config.BoolVal(b.config.Build.Clean, true),
 		DevMode:    b.devMode,
 	}
-	if err := writer.Write(rendered, aliases); err != nil {
+	staticFiles, err := writer.Write(rendered, aliases)
+	if err != nil {
 		return nil, fmt.Errorf("writing output: %w", err)
 	}
 
@@ -823,7 +861,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	}
 
 	// Copy processed image variants from cache to output.
-	if err := assetPipeline.WriteProcessedImages(outputDir); err != nil {
+	processedImages, err := assetPipeline.WriteProcessedImages(outputDir)
+	if err != nil {
 		return nil, fmt.Errorf("writing processed images: %w", err)
 	}
 
@@ -842,7 +881,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		return nil, fmt.Errorf("writing embedded CSS bundle: %w", err)
 	}
 
+	timings = append(timings, engine.PhaseTiming{Phase: "Writing output", Duration: time.Since(phaseStart)})
+
 	// Plugin hook: BuildDone (parallel, after all files written).
+	buildLogger := engine.NewBuildLogger()
 	var pluginWarnings []engine.ValidationWarning
 	buildDoneCtx := &plugin.BuildDoneContext{
 		Config:         b.config,
@@ -855,17 +897,549 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		DevMode:        b.devMode,
 	}
 	buildDoneCtx.SetWarnings(&pluginWarnings)
+	buildDoneCtx.SetLogger(buildLogger)
 	if err := b.pluginMgr.RunBuildDone(buildDoneCtx); err != nil {
 		return nil, err
 	}
 	warnings = append(warnings, pluginWarnings...)
 
+	// Snapshot last-build state for incremental rebuild.
+	b.lastCollections = collections
+	b.lastAllPages = allPages
+	b.lastSiteCtx = siteCtx
+	b.lastTaxonomies = taxonomies
+	b.lastPageIndex = pageIndex
+	b.lastOutputDir = outputDir
+	b.lastAssetPipeline = assetPipeline
+	b.lastScProcessor = scProcessor
+	b.lastShortcodesHash = shortcodesHash
+	b.lastPageCache = pageCache
+	b.lastValidationData = validationData
+	b.built = true
+
+	// Compute summary stats.
+	bundleAssets := 0
+	for _, p := range allPages {
+		bundleAssets += len(p.Resources)
+	}
+	sitemapCount := 0
+	for _, name := range b.config.Plugins.Enabled {
+		if name == "sitemap" {
+			sitemapCount = 1
+			break
+		}
+	}
+
 	return &engine.BuildResult{
-		PageCount: len(rendered),
-		Duration:  time.Since(start),
-		Warnings:  warnings,
-		OutputDir: outputDir,
+		PageCount:       len(rendered),
+		Duration:        time.Since(start),
+		Warnings:        warnings,
+		OutputDir:       outputDir,
+		PaginatorPages:  paginatorPages,
+		Collections:     len(collections),
+		BundleAssets:    bundleAssets,
+		StaticFiles:     staticFiles,
+		ProcessedImages: processedImages,
+		AliasCount:      len(aliases),
+		SitemapCount:    sitemapCount,
+		LogMessages:     buildLogger.Messages(),
+		PhaseTimings:    timings,
 	}, nil
+}
+
+// ContentRebuild performs an incremental rebuild for content-only changes.
+// It re-parses only the changed files, patches them into the existing collections,
+// and renders/writes only the dirty pages. Falls back to full Build() on edge cases.
+func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult, error) {
+	start := time.Now()
+
+	if !b.built || b.lastCollections == nil || b.lastAssetPipeline == nil {
+		return b.Build()
+	}
+
+	contentDir := filepath.Join(b.projectDir, "content")
+	if b.config.Content.Dir != "" {
+		if filepath.IsAbs(b.config.Content.Dir) {
+			contentDir = b.config.Content.Dir
+		} else {
+			contentDir = filepath.Join(b.projectDir, b.config.Content.Dir)
+		}
+	}
+
+	// ── Edge case detection ────────────────────────────────────────────
+	for _, p := range changedPaths {
+		base := filepath.Base(p)
+		if base == "_index.md" {
+			log.Printf("ContentRebuild: section index changed, falling back to full rebuild")
+			return b.Build()
+		}
+	}
+	// ── Build lookup for old pages by file path ────────────────────────
+	// Skip fallback pages: they share FilePath with their source page and
+	// would overwrite the real page entry in the map.
+	oldByPath := make(map[string]*engine.Page, len(b.lastAllPages))
+	for _, p := range b.lastAllPages {
+		if p.FilePath != "" && !p.IsFallback {
+			oldByPath[p.FilePath] = p
+		}
+	}
+
+	// ── Classify and re-parse changed files ────────────────────────────
+	type parsedEntry struct {
+		filePath string
+		newPage  *engine.Page
+		old      *engine.Page
+	}
+	var parsed []parsedEntry
+
+	for _, path := range changedPaths {
+		// Check if file still exists (deletion → fallback).
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			log.Printf("ContentRebuild: file deleted, falling back to full rebuild")
+			return b.Build()
+		}
+
+		cf, err := b.scanner.ClassifyFile(contentDir, path)
+		if err != nil {
+			log.Printf("ContentRebuild: ClassifyFile error: %v, falling back", err)
+			return b.Build()
+		}
+
+		old := oldByPath[path]
+		if old == nil {
+			log.Printf("ContentRebuild: new file detected, falling back to full rebuild")
+			return b.Build()
+		}
+
+		// Determine collection config for parsing.
+		var collCfg *engine.CollectionConfig
+		var schema *engine.FrontmatterSchema
+		if cf.CollectionName != "" {
+			inferred := collection.InferCollection(cf.CollectionName)
+			if b.config.Collections != nil {
+				if scfg, ok := b.config.Collections[cf.CollectionName]; ok {
+					inferred = collection.MergeCollectionConfig(inferred, scfg)
+				}
+			}
+			collCfg = inferred
+			schema, _ = content.LoadSchema(filepath.Join(contentDir, cf.CollectionName))
+		}
+
+		newPage, _, err := collection.BuildSinglePage(
+			cf, contentDir, collCfg, schema,
+			b.config.Content.SummaryLength,
+			string(b.config.Build.LastUpdated),
+		)
+		if err != nil {
+			log.Printf("ContentRebuild: parse error for %s: %v, falling back", path, err)
+			return b.Build()
+		}
+
+		// Check draft/publish status change → fallback.
+		includeDrafts := config.BoolVal(b.config.Build.Drafts, false)
+		includeFuture := config.BoolVal(b.config.Build.Future, false)
+		now := time.Now()
+		wasExcluded := content.ShouldExclude(old.Draft, old.PublishDate, includeDrafts, includeFuture, now)
+		isExcluded := content.ShouldExclude(newPage.Draft, newPage.PublishDate, includeDrafts, includeFuture, now)
+		if wasExcluded != isExcluded {
+			log.Printf("ContentRebuild: draft/publish status changed, falling back to full rebuild")
+			return b.Build()
+		}
+
+		parsed = append(parsed, parsedEntry{filePath: path, newPage: newPage, old: old})
+	}
+
+	// ── Patch allPages (shallow copy) ──────────────────────────────────
+	patchedAllPages := make([]*engine.Page, len(b.lastAllPages))
+	copy(patchedAllPages, b.lastAllPages)
+
+	indexByPath := make(map[string]int, len(patchedAllPages))
+	for i, p := range patchedAllPages {
+		if p.FilePath != "" && !p.IsFallback {
+			indexByPath[p.FilePath] = i
+		}
+	}
+
+	dirtyPermalinks := make(map[string]struct{})
+
+	for _, e := range parsed {
+		idx, ok := indexByPath[e.filePath]
+		if !ok {
+			return b.Build()
+		}
+
+		// Preserve backrefs from the old page.
+		e.newPage.Collection = e.old.Collection
+		e.newPage.Section = e.old.Section
+
+		// Detect what changed for dirty set computation.
+		titleChanged := e.old.Title != e.newPage.Title
+		weightChanged := e.old.Weight != e.newPage.Weight
+		sidebarChanged := e.old.SidebarLabel != e.newPage.SidebarLabel ||
+			e.old.SidebarHidden != e.newPage.SidebarHidden
+
+		// Replace in allPages.
+		patchedAllPages[idx] = e.newPage
+
+		// Patch collection.Pages.
+		col := e.old.Collection
+		if col != nil {
+			for i, cp := range col.Pages {
+				if cp.FilePath == e.filePath {
+					col.Pages[i] = e.newPage
+					break
+				}
+			}
+
+			// Re-sort and re-wire prev/next if sort-affecting fields changed.
+			if weightChanged || titleChanged {
+				sortBy := "weight"
+				sortOrder := ""
+				if col.Config != nil {
+					if col.Config.SortBy != "" {
+						sortBy = col.Config.SortBy
+					}
+					sortOrder = col.Config.SortOrder
+				}
+				collection.SortPages(col.Pages, sortBy, sortOrder)
+				if col.Config != nil && engine.LayoutHasSidebar(col.Config.Layout) {
+					navigation.WirePrevNextFromTree(col.NavTree)
+				} else {
+					collection.WirePrevNext(col.Pages)
+				}
+			}
+		}
+
+		// ── Dirty set computation ──────────────────────────────────────
+		dirtyPermalinks[e.newPage.RelPermalink] = struct{}{}
+
+		if titleChanged {
+			if e.newPage.PrevPage != nil {
+				dirtyPermalinks[e.newPage.PrevPage.RelPermalink] = struct{}{}
+			}
+			if e.newPage.NextPage != nil {
+				dirtyPermalinks[e.newPage.NextPage.RelPermalink] = struct{}{}
+			}
+		}
+
+		if sidebarChanged || weightChanged {
+			if col != nil {
+				for _, cp := range col.Pages {
+					dirtyPermalinks[cp.RelPermalink] = struct{}{}
+				}
+			}
+		}
+	}
+
+	// ── Strip stale synthetic pages ────────────────────────────────────
+	// Fallback pages are regenerated below; taxonomy stubs are rendered
+	// separately in the taxonomy section. Keeping them in patchedAllPages
+	// would double-render and cause the dirty set to grow across rebuilds.
+	{
+		n := 0
+		for _, p := range patchedAllPages {
+			if !p.IsFallback && p.Kind != engine.KindTaxonomy && p.Kind != engine.KindTerm {
+				patchedAllPages[n] = p
+				n++
+			}
+		}
+		patchedAllPages = patchedAllPages[:n]
+	}
+
+	// ── i18n: regenerate fallbacks and re-link translations ────────────
+	isMultiLang := b.config.I18n.IsMultiLang()
+	if isMultiLang {
+		defaultLang := b.config.I18n.GetDefaultLanguage()
+
+		// Regenerate fallbacks from the updated real pages.
+		langCodes := b.config.I18n.LanguageCodes()
+		fallbacks := i18n.GenerateFallbacks(patchedAllPages, langCodes, defaultLang)
+		patchedAllPages = append(patchedAllPages, fallbacks...)
+
+		// Mark new fallback pages of changed files as dirty.
+		changedSet := make(map[string]struct{}, len(parsed))
+		for _, e := range parsed {
+			changedSet[e.filePath] = struct{}{}
+		}
+		for _, fb := range fallbacks {
+			if fb.FilePath != "" {
+				if _, ok := changedSet[fb.FilePath]; ok {
+					dirtyPermalinks[fb.RelPermalink] = struct{}{}
+				}
+			}
+		}
+
+		// Re-link translations.
+		weights := make(map[string]int)
+		for code, lc := range b.config.I18n.Languages {
+			weights[code] = lc.Weight
+		}
+		i18n.LinkTranslations(patchedAllPages, weights)
+	}
+
+	log.Printf("[diag] after strip+fallback: patchedAllPages=%d, dirtyPermalinks=%d", len(patchedAllPages), len(dirtyPermalinks))
+
+	// ── Rebuild lightweight global state (all O(n), fast) ──────────────
+	newTaxonomies := taxonomy.BuildTaxonomies(patchedAllPages, b.config.Taxonomies)
+	if _, err := taxonomy.EnrichTaxonomies(newTaxonomies, b.config.Taxonomies, b.projectDir); err != nil {
+		return b.Build()
+	}
+
+	collection.LinkVersions(patchedAllPages)
+
+	newPageIndex := content.BuildPageIndex(patchedAllPages)
+	newPageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
+
+	// Mark dirty taxonomy permalinks for changed pages.
+	for _, e := range parsed {
+		for taxName, tax := range newTaxonomies {
+			cfg := b.config.Taxonomies[taxName]
+			if !cfg.ShouldRender() {
+				continue
+			}
+			for _, term := range tax.Terms {
+				for _, tp := range term.Pages {
+					if tp.FilePath == e.filePath {
+						dirtyPermalinks[term.Permalink] = struct{}{}
+						dirtyPermalinks[tax.Permalink] = struct{}{}
+						break
+					}
+				}
+			}
+		}
+	}
+
+	log.Printf("[diag] after taxonomy dirty: dirtyPermalinks=%d", len(dirtyPermalinks))
+
+	// ── Update SiteContext in-place ────────────────────────────────────
+	b.lastSiteCtx.Collections = b.lastCollections
+	b.lastSiteCtx.Taxonomies = newTaxonomies
+	b.lastSiteCtx.Pages = patchedAllPages
+	b.lastSiteCtx.BuildTime = time.Now()
+	b.tmplEngine.SetSiteContext(b.lastSiteCtx)
+	b.tmplEngine.SetPageIndex(newPageIndex)
+
+	// Load template engine (skips re-parsing via loaded flag, just clears caches).
+	resolver := &engine.ThemeResolver{
+		ProjectDir: b.projectDir,
+		ThemeName:  b.config.Theme.Name,
+		EmbeddedFS: b.embeddedFS,
+	}
+	if err := b.tmplEngine.Load(resolver); err != nil {
+		return b.Build()
+	}
+
+	// ── Markdown render for changed pages only ─────────────────────────
+	for _, e := range parsed {
+		if e.newPage.RawContent == "" {
+			continue
+		}
+		processed, _ := b.lastScProcessor.Process(
+			e.newPage.RawContent, e.newPage, b.lastSiteCtx, b.mdRenderer,
+		)
+		hash := ContentHash(processed + b.lastShortcodesHash)
+		if b.lastPageCache != nil {
+			if entry := b.lastPageCache.Get(hash); entry != nil {
+				e.newPage.Content = htmltemplate.HTML(entry.HTML)
+				e.newPage.Headings = entry.Headings
+				e.newPage.HasCodeBlocks = entry.HasCodeBlocks
+				e.newPage.HasImages = entry.HasImages
+				continue
+			}
+		}
+		lookup := markdown.ImageLookupForPage(e.newPage, b.lastAssetPipeline.ImageProcessor())
+		b.mdRenderer.SetImageLookup(lookup)
+		result, err := b.mdRenderer.Render(processed)
+		if err != nil {
+			log.Printf("ContentRebuild: markdown render error: %v, falling back", err)
+			return b.Build()
+		}
+		e.newPage.Content = htmltemplate.HTML(result.HTML)
+		e.newPage.Headings = result.Headings
+		e.newPage.HasCodeBlocks = result.HasCodeBlocks
+		e.newPage.HasImages = result.HasImages
+		if b.lastPageCache != nil {
+			b.lastPageCache.Put(hash, &CacheEntry{
+				ContentHash:   hash,
+				HTML:          result.HTML,
+				Headings:      result.Headings,
+				HasCodeBlocks: result.HasCodeBlocks,
+				HasImages:     result.HasImages,
+			})
+		}
+		if len(e.newPage.Headings) > 0 {
+			ids := make([]string, len(e.newPage.Headings))
+			for i, h := range e.newPage.Headings {
+				ids[i] = h.ID
+			}
+			newPageIndex.SetHeadings(e.newPage.RelPermalink, ids)
+		}
+	}
+
+	// ── Template render for dirty set only ─────────────────────────────
+	var dirtyRendered []RenderedPage
+	dirtyAliases := make(map[string]string)
+
+	for _, page := range patchedAllPages {
+		if _, isDirty := dirtyPermalinks[page.RelPermalink]; !isDirty {
+			continue
+		}
+		if page.Params != nil {
+			if r, ok := page.Params["render"].(bool); ok && !r {
+				continue
+			}
+		}
+		rd := sardetemplate.BuildRouteData(page, b.lastSiteCtx, b.themeConfig)
+		b.tmplEngine.SetCurrentLang(rd.Lang)
+		if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, b.lastSiteCtx); err != nil {
+			return b.Build()
+		}
+		var html []byte
+		if redirect := tabbedCollectionRedirect(page); redirect != "" {
+			html = []byte(buildRedirectHTML(redirect))
+		} else {
+			var err error
+			html, err = b.tmplEngine.Render(rd.Template, rd)
+			if err != nil {
+				log.Printf("ContentRebuild: template render error: %v, falling back", err)
+				return b.Build()
+			}
+		}
+		dirtyRendered = append(dirtyRendered, RenderedPage{
+			Page: page, HTML: html,
+			OutPath: PageOutputPath(page.RelPermalink),
+		})
+		for _, alias := range page.Aliases {
+			dirtyAliases[alias] = page.RelPermalink
+		}
+	}
+
+	// Render dirty taxonomy pages.
+	for taxName, tax := range newTaxonomies {
+		cfg := b.config.Taxonomies[taxName]
+		if !cfg.ShouldRender() {
+			continue
+		}
+		if _, isDirty := dirtyPermalinks[tax.Permalink]; isDirty {
+			termEntries := taxonomy.ComputeTermEntries(tax)
+			taxStub := &engine.Page{
+				Title: tax.Name, Kind: engine.KindTaxonomy,
+				Permalink: tax.Permalink, RelPermalink: tax.Permalink,
+				Params: map[string]any{
+					"__taxonomy": tax, "__term_entries": termEntries,
+				},
+			}
+			rd := sardetemplate.BuildRouteData(taxStub, b.lastSiteCtx, b.themeConfig)
+			b.tmplEngine.SetCurrentLang(rd.Lang)
+			html, err := b.tmplEngine.Render(rd.Template, rd)
+			if err != nil {
+				return b.Build()
+			}
+			dirtyRendered = append(dirtyRendered, RenderedPage{
+				Page: taxStub, HTML: html,
+				OutPath: PageOutputPath(tax.Permalink),
+			})
+		}
+		for _, term := range tax.Terms {
+			if _, isDirty := dirtyPermalinks[term.Permalink]; !isDirty {
+				continue
+			}
+			termStub := &engine.Page{
+				Title: term.Label, Kind: engine.KindTerm,
+				Permalink: term.Permalink, RelPermalink: term.Permalink,
+				Params: map[string]any{"__taxonomy": tax, "__taxonomy_term": term},
+			}
+			rd := sardetemplate.BuildRouteData(termStub, b.lastSiteCtx, b.themeConfig)
+			b.tmplEngine.SetCurrentLang(rd.Lang)
+			html, err := b.tmplEngine.Render(rd.Template, rd)
+			if err != nil {
+				return b.Build()
+			}
+			dirtyRendered = append(dirtyRendered, RenderedPage{
+				Page: termStub, HTML: html,
+				OutPath: PageOutputPath(term.Permalink),
+			})
+		}
+	}
+
+	// ── Write dirty pages only ─────────────────────────────────────────
+	for _, rp := range dirtyRendered {
+		outPath := filepath.Join(b.lastOutputDir, filepath.FromSlash(rp.OutPath))
+		if err := writeFile(outPath, rp.HTML); err != nil {
+			return nil, fmt.Errorf("incremental write %s: %w", rp.OutPath, err)
+		}
+	}
+	for aliasPath, target := range dirtyAliases {
+		outPath := filepath.Join(b.lastOutputDir, filepath.FromSlash(PageOutputPath(aliasPath)))
+		if err := writeFile(outPath, []byte(redirectHTML(target))); err != nil {
+			return nil, fmt.Errorf("incremental write alias %s: %w", aliasPath, err)
+		}
+	}
+
+	// Re-add taxonomy stubs to patchedAllPages so BuildDone plugins
+	// (sitemap, search, RSS) see all pages including taxonomy pages.
+	for _, tax := range newTaxonomies {
+		patchedAllPages = append(patchedAllPages, &engine.Page{
+			Title: tax.Name, Kind: engine.KindTaxonomy,
+			Permalink: tax.Permalink, RelPermalink: tax.Permalink,
+		})
+		for _, term := range tax.Terms {
+			patchedAllPages = append(patchedAllPages, &engine.Page{
+				Title: term.Label, Kind: engine.KindTerm,
+				Permalink: term.Permalink, RelPermalink: term.Permalink,
+			})
+		}
+	}
+	b.lastSiteCtx.Pages = patchedAllPages
+
+	// ── BuildDone plugins — always over full page set ──────────────────
+	mergedValidation := make(map[string]engine.ValidationEntry, len(b.lastValidationData))
+	for k, v := range b.lastValidationData {
+		mergedValidation[k] = v
+	}
+	rebuildLogger := engine.NewBuildLogger()
+	var pluginWarnings []engine.ValidationWarning
+	buildDoneCtx := &plugin.BuildDoneContext{
+		Config:         b.config,
+		OutputDir:      b.lastOutputDir,
+		Pages:          patchedAllPages,
+		Collections:    b.lastCollections,
+		Site:           b.lastSiteCtx,
+		PageIndex:      newPageIndex,
+		ValidationData: mergedValidation,
+		DevMode:        b.devMode,
+	}
+	buildDoneCtx.SetWarnings(&pluginWarnings)
+	buildDoneCtx.SetLogger(rebuildLogger)
+	if err := b.pluginMgr.RunBuildDone(buildDoneCtx); err != nil {
+		return nil, err
+	}
+
+	// ── Persist updated state ──────────────────────────────────────────
+	b.lastAllPages = patchedAllPages
+	b.lastTaxonomies = newTaxonomies
+	b.lastPageIndex = newPageIndex
+	b.lastValidationData = mergedValidation
+
+	return &engine.BuildResult{
+		PageCount:   len(dirtyRendered),
+		Duration:    time.Since(start),
+		Warnings:    pluginWarnings,
+		OutputDir:   b.lastOutputDir,
+		LogMessages: rebuildLogger.Messages(),
+	}, nil
+}
+
+func stringSlicesEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
 
 // Validate runs phases 1-4 (Initialize, Discover, Parse, Assemble) without rendering or writing.

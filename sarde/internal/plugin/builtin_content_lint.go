@@ -36,6 +36,9 @@ func contentLintBuildDone(ctx *BuildDoneContext) error {
 		ctx.AddWarning(w)
 	}
 
+	if len(warnings) > 0 {
+		ctx.Log(fmt.Sprintf("Found %d lint issue(s)", len(warnings)))
+	}
 	return nil
 }
 

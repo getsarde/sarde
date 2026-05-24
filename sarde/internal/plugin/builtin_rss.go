@@ -59,6 +59,7 @@ func rssBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		}
 	}
 
+	feedCount := 0
 	for _, colName := range feedCollections {
 		col, ok := ctx.Collections[colName]
 		if !ok || col == nil {
@@ -91,8 +92,12 @@ func rssBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		if err := ctx.WriteFile(path, output); err != nil {
 			return err
 		}
+		feedCount++
 	}
 
+	if feedCount > 0 {
+		ctx.Log(fmt.Sprintf("Generated %d RSS feed(s)", feedCount))
+	}
 	return nil
 }
 

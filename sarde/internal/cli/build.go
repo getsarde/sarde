@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
+	"time"
 
 	"github.com/frostybee/sarde/embedded"
 	"github.com/frostybee/sarde/internal/build"
@@ -71,22 +73,70 @@ func runBuild(cmd *cobra.Command, args []string) error {
 	quiet, _ := cmd.Flags().GetBool("quiet")
 	verbose, _ := cmd.Flags().GetBool("verbose")
 	if !quiet {
-		fmt.Printf("Built %d pages in %s\n", result.PageCount, result.Duration.Round(1e6))
+		printBuildSummary(result, verbose, cfg)
 		if len(result.Warnings) > 0 {
-			fmt.Printf("  %d warning(s):\n", len(result.Warnings))
+			fmt.Printf("\n  %d warning(s):\n", len(result.Warnings))
 			for _, w := range result.Warnings {
 				fmt.Printf("    %s: %s\n", w.File, w.Message)
 			}
 		}
-		fmt.Printf("  Output: %s\n", result.OutputDir)
-		if verbose {
-			fmt.Printf("  Theme: %s\n", cfg.Theme.Name)
-			fmt.Printf("  Base path: %q\n", cfg.Build.BasePath)
-			fmt.Printf("  Content dir: %s\n", cfg.Content.Dir)
-		}
 	}
 
 	return nil
+}
+
+func printBuildSummary(result *engine.BuildResult, verbose bool, cfg *config.SiteConfig) {
+	fmt.Printf("\nStart building sites ...\n")
+	fmt.Printf("sarde v%s %s/%s\n", Version, runtime.GOOS, runtime.GOARCH)
+
+	if verbose {
+		fmt.Println()
+		for _, pt := range result.PhaseTimings {
+			fmt.Printf("[build] %s... done (%s)\n", pt.Phase, pt.Duration.Round(time.Millisecond))
+		}
+	}
+
+	fmt.Println()
+	printStatsTable(result)
+
+	if len(result.LogMessages) > 0 {
+		fmt.Println()
+		for _, msg := range result.LogMessages {
+			fmt.Printf("[%s] %s\n", msg.Source, msg.Message)
+		}
+	}
+
+	fmt.Printf("\nBuilt in %d ms\n", result.Duration.Milliseconds())
+	fmt.Printf("  Output: %s\n", result.OutputDir)
+
+	if verbose {
+		fmt.Printf("  Theme: %s\n", cfg.Theme.Name)
+		fmt.Printf("  Base path: %q\n", cfg.Build.BasePath)
+		fmt.Printf("  Content dir: %s\n", cfg.Content.Dir)
+	}
+}
+
+func printStatsTable(result *engine.BuildResult) {
+	type row struct {
+		label string
+		value int
+	}
+	rows := []row{
+		{"Pages", result.PageCount},
+		{"Paginator pages", result.PaginatorPages},
+		{"Collections", result.Collections},
+		{"Bundle assets", result.BundleAssets},
+		{"Static files", result.StaticFiles},
+		{"Processed images", result.ProcessedImages},
+		{"Aliases", result.AliasCount},
+		{"Sitemaps", result.SitemapCount},
+	}
+
+	fmt.Printf("%19s | Total\n", "")
+	fmt.Printf("-------------------+-------\n")
+	for _, r := range rows {
+		fmt.Printf("  %-17s|%5d\n", r.label, r.value)
+	}
 }
 
 // resolveAll resolves site config and theme config from the project directory.

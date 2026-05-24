@@ -38,6 +38,7 @@ type Engine struct {
 	i18nStrings    *i18n.StringTable
 	pageIndex      *content.PageIndex
 	currentLang    string // set per-page before render, captured by t() closure
+	loaded         bool   // true after first Load(); subsequent calls skip template re-parsing
 	mu             sync.RWMutex
 }
 
@@ -107,12 +108,24 @@ func (e *Engine) CachedCSS() string { return e.cachedCSS }
 func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	e.resolver = resolver
 
+	// On subsequent loads (same engine reused across rebuilds), skip the
+	// expensive template/component re-parsing. Only clear render caches so
+	// new pages get fresh template clones with the updated SiteContext.
+	if e.loaded {
+		e.mu.Lock()
+		e.templates = make(map[string]*htmltemplate.Template)
+		e.mu.Unlock()
+		e.dataCache = sync.Map{}
+		return nil
+	}
+
 	// Load and cache embedded CSS files.
 	e.cachedCSS = loadEmbeddedCSS(resolver.EmbeddedFS)
 	e.cssURL = "/assets/css/sarde.css"
 
 	// Build a bootstrap FuncMap (without component support or partial cache) for initial parsing.
-	bootstrapFM := buildFuncMap(e.site, resolver, nil, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, e.pageIndex, nil)
+	// Uses &e.site / &e.pageIndex so closures always see the latest values across rebuilds.
+	bootstrapFM := buildFuncMap(&e.site, resolver, nil, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, &e.pageIndex, nil)
 
 	// Create the component registry with embedded defaults.
 	registry, err := component.NewRegistry(resolver.EmbeddedFS, bootstrapFM)
@@ -141,7 +154,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	partialData := resolveAllPartials(resolver)
 
 	// Rebuild the final FuncMap with the real component registry and partial cache.
-	e.funcMap = buildFuncMap(e.site, resolver, registry, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, e.pageIndex, e.partialCache)
+	e.funcMap = buildFuncMap(&e.site, resolver, registry, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, &e.pageIndex, e.partialCache)
 
 	for name, data := range partialData {
 		tmpl, err := htmltemplate.New(name).Funcs(e.funcMap).Parse(string(data))
@@ -164,7 +177,14 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 		}
 	}
 
+	e.loaded = true
 	return nil
+}
+
+// ForceReload resets the loaded flag so the next Load() call
+// re-parses all templates, components, and partials from disk.
+func (e *Engine) ForceReload() {
+	e.loaded = false
 }
 
 // Render implements engine.TemplateEngine. It renders a page using its

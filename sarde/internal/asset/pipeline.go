@@ -147,7 +147,8 @@ func (p *Pipeline) WriteBundledFiles(outputDir string) error {
 
 // WriteProcessedImages copies cached image variants to the output directory.
 // Must be called after the writer has cleaned and written HTML files.
-func (p *Pipeline) WriteProcessedImages(outputDir string) error {
+// Returns the number of image variants written.
+func (p *Pipeline) WriteProcessedImages(outputDir string) (int, error) {
 	return p.processor.WriteProcessedImages(outputDir)
 }
 

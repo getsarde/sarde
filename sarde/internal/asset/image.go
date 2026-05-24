@@ -198,25 +198,26 @@ func (p *ImageProcessor) ProcessImage(srcPath string, opts ImageOptions) ([]Imag
 
 // WriteProcessedImages copies all cached image variants to the output directory.
 // Call this after the writer has cleaned and written HTML files.
-func (p *ImageProcessor) WriteProcessedImages(outputDir string) error {
+func (p *ImageProcessor) WriteProcessedImages(outputDir string) (int, error) {
 	if p.DevMode {
-		return nil
+		return 0, nil
 	}
 
 	cacheImagesDir := filepath.Join(p.Cache.Dir, "variants")
 	entries, err := os.ReadDir(cacheImagesDir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil // no variants processed
+			return 0, nil // no variants processed
 		}
-		return err
+		return 0, err
 	}
 
 	outImagesDir := filepath.Join(outputDir, "assets", "images")
 	if err := os.MkdirAll(outImagesDir, 0o755); err != nil {
-		return err
+		return 0, err
 	}
 
+	count := 0
 	for _, e := range entries {
 		if e.IsDir() {
 			continue
@@ -229,11 +230,12 @@ func (p *ImageProcessor) WriteProcessedImages(outputDir string) error {
 			continue
 		}
 		if err := os.WriteFile(dst, data, 0o644); err != nil {
-			return err
+			return 0, err
 		}
+		count++
 	}
 
-	return nil
+	return count, nil
 }
 
 // generateLQIP creates a tiny blurred JPEG placeholder, base64-encoded.
