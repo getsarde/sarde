@@ -53,7 +53,7 @@ function saveHighlights() {
 // ── Prose Container ──────────────────────────────────────────
 
 function getProseContainer() {
-    return document.querySelector('article.fb-markdown-content');
+    return document.querySelector('article.sarde-markdown-content');
 }
 
 function isInSkipTag(node, container) {
@@ -61,7 +61,7 @@ function isInSkipTag(node, container) {
     while (el && el !== container) {
         if (SKIP_TAGS.indexOf(el.tagName) !== -1) return true;
         // Skip search-highlighter marks but not our own
-        if (el.tagName === 'MARK' && el.classList.contains('search-hl')) return true;
+        if (el.tagName === 'MARK' && el.classList.contains('sarde-search-hl')) return true;
         el = el.parentElement;
     }
     return false;
@@ -243,14 +243,14 @@ function wrapRange(range, color, hlId) {
 
 function createMark(color, hlId) {
     var mark = document.createElement('mark');
-    mark.className = 'text-hl';
+    mark.className = 'sarde-text-hl';
     mark.setAttribute('data-color', color);
     mark.setAttribute('data-thl-id', String(hlId));
     return mark;
 }
 
 function unwrapHighlight(hlId) {
-    var marks = document.querySelectorAll('mark.text-hl[data-thl-id="' + hlId + '"]');
+    var marks = document.querySelectorAll('mark.sarde-text-hl[data-thl-id="' + hlId + '"]');
     for (var i = 0; i < marks.length; i++) {
         var mark = marks[i];
         var parent = mark.parentNode;
@@ -265,7 +265,7 @@ function unwrapHighlight(hlId) {
 }
 
 function unwrapAll() {
-    var marks = document.querySelectorAll('mark.text-hl');
+    var marks = document.querySelectorAll('mark.sarde-text-hl');
     for (var i = 0; i < marks.length; i++) {
         var mark = marks[i];
         var parent = mark.parentNode;
@@ -314,14 +314,14 @@ function ensureToolbar() {
     if (toolbar) return;
 
     toolbar = document.createElement('div');
-    toolbar.className = 'thl-toolbar';
+    toolbar.className = 'sarde-thl-toolbar';
     toolbar.setAttribute('role', 'toolbar');
     toolbar.setAttribute('aria-label', 'Highlight colors');
 
     for (var i = 0; i < COLORS.length; i++) {
         var btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'thl-toolbar__color';
+        btn.className = 'sarde-thl-toolbar__color';
         btn.setAttribute('data-color', COLORS[i]);
         btn.setAttribute('aria-label', COLORS[i] + ' highlight');
         btn.addEventListener('click', onColorClick);
@@ -330,13 +330,13 @@ function ensureToolbar() {
 
     // Separator
     var sep = document.createElement('span');
-    sep.className = 'thl-toolbar__sep';
+    sep.className = 'sarde-thl-toolbar__sep';
     toolbar.appendChild(sep);
 
     // Clear all button
     var clearBtn = document.createElement('button');
     clearBtn.type = 'button';
-    clearBtn.className = 'thl-toolbar__clear';
+    clearBtn.className = 'sarde-thl-toolbar__clear';
     clearBtn.setAttribute('aria-label', 'Clear all highlights');
     clearBtn.title = 'Clear all highlights';
     clearBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
@@ -354,7 +354,7 @@ function showToolbar(rect) {
     toolbar.style.visibility = 'hidden';
     toolbar.style.opacity = '0';
     toolbar.style.pointerEvents = 'none';
-    toolbar.classList.add('thl-toolbar--visible');
+    toolbar.classList.add('sarde-thl-toolbar--visible');
 
     var tw = toolbar.offsetWidth;
     var th = toolbar.offsetHeight;
@@ -378,7 +378,7 @@ function showToolbar(rect) {
 }
 
 function hideToolbar() {
-    if (toolbar) toolbar.classList.remove('thl-toolbar--visible');
+    if (toolbar) toolbar.classList.remove('sarde-thl-toolbar--visible');
     toolbarVisible = false;
 }
 
@@ -388,11 +388,11 @@ function showRemovePopup(markEl) {
     hideRemovePopup();
 
     removePopup = document.createElement('div');
-    removePopup.className = 'thl-remove';
+    removePopup.className = 'sarde-thl-remove';
 
     var removeBtn = document.createElement('button');
     removeBtn.type = 'button';
-    removeBtn.className = 'thl-remove__btn thl-remove__btn--danger';
+    removeBtn.className = 'sarde-thl-remove__btn thl-remove__btn--danger';
     removeBtn.textContent = 'Remove';
     removeBtn.addEventListener('click', function () {
         var hlId = parseInt(markEl.getAttribute('data-thl-id') || '-1', 10);
@@ -421,7 +421,7 @@ function showRemovePopup(markEl) {
     removePopup.style.left = left + 'px';
 
     removePopup.offsetHeight;
-    removePopup.classList.add('thl-remove--visible');
+    removePopup.classList.add('sarde-thl-remove--visible');
     removeVisible = true;
 }
 
@@ -479,7 +479,7 @@ function onColorClick(e) {
 }
 
 function removeOverlapping(range) {
-    var marks = document.querySelectorAll('mark.text-hl');
+    var marks = document.querySelectorAll('mark.sarde-text-hl');
     var idsToRemove = {};
 
     for (var i = 0; i < marks.length; i++) {
@@ -548,8 +548,8 @@ function onMouseDown(e) {
     var target =  (e.target);
 
     // Clicking a highlight mark — show remove popup
-    if (target.closest && target.closest('mark.text-hl')) {
-        var mark =  (target.closest('mark.text-hl'));
+    if (target.closest && target.closest('mark.sarde-text-hl')) {
+        var mark =  (target.closest('mark.sarde-text-hl'));
         // Only show remove if no text is being selected
         setTimeout(function () {
             var sel = window.getSelection();
@@ -598,7 +598,7 @@ function maybePrune() {
 // ── Init ─────────────────────────────────────────────────────
 
 function init() {
-    if (!document.querySelector('article.fb-markdown-content')) return;
+    if (!document.querySelector('article.sarde-markdown-content')) return;
 
     restoreAllHighlights();
     maybePrune();

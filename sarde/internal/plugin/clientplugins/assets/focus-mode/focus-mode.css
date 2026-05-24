@@ -1,6 +1,6 @@
 /* ── Focus Mode Toggle Button ─────────────────────────────────── */
 
-.focus-mode-btn {
+.sarde-focus-mode-btn {
     position: fixed;
     bottom: 96px;
     inset-inline-end: 35px;
@@ -8,10 +8,10 @@
     width: 47px;
     height: 47px;
     box-sizing: border-box;
-    border: 1px solid var(--fb-border-accent, var(--fb-blue));
+    border: 1px solid var(--sarde-border-accent, var(--sarde-blue));
     border-radius: 15%;
-    background-color: var(--fb-bg-accent, var(--fb-blue));
-    color: var(--fb-text-invert, #fff);
+    background-color: var(--sarde-bg-accent, var(--sarde-blue));
+    color: var(--sarde-text-invert, #fff);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -21,36 +21,36 @@
     transform: scale(0);
     transform-origin: center;
     transition: opacity 0.3s ease, visibility 0.3s ease, background-color 0.3s ease, transform 0.3s ease, color 0.3s ease;
-    box-shadow: var(--fb-shadow-md, 0 4px 6px -1px rgba(0,0,0,0.08));
+    box-shadow: var(--sarde-shadow-md, 0 4px 6px -1px rgba(0,0,0,0.08));
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
 }
 
-.focus-mode-btn.visible {
+.sarde-focus-mode-btn.visible {
     opacity: 1;
     visibility: visible;
     transform: scale(1);
 }
 
-.focus-mode-btn:hover {
-    background-color: var(--fb-bg-accent-subtle, var(--fb-blue-low));
-    color: var(--fb-text-accent, var(--fb-blue));
-    border-color: var(--fb-border-accent, var(--fb-blue));
-    box-shadow: var(--fb-shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.08));
+.sarde-focus-mode-btn:hover {
+    background-color: var(--sarde-bg-accent-subtle, var(--sarde-blue-low));
+    color: var(--sarde-text-accent, var(--sarde-blue));
+    border-color: var(--sarde-border-accent, var(--sarde-blue));
+    box-shadow: var(--sarde-shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.08));
 }
 
-.focus-mode-btn:active {
-    background-color: var(--fb-blue-high);
-    color: var(--fb-text-invert, #fff);
+.sarde-focus-mode-btn:active {
+    background-color: var(--sarde-blue-high);
+    color: var(--sarde-text-invert, #fff);
     transition: background-color 0.1s ease, transform 0.1s ease;
 }
 
-.focus-mode-btn.keyboard-focus {
-    outline: var(--fb-focus-ring-width, 2px) solid var(--fb-focus-ring, var(--fb-blue));
-    outline-offset: var(--fb-focus-ring-offset, 2px);
+.sarde-focus-mode-btn.keyboard-focus {
+    outline: var(--sarde-focus-ring-width, 2px) solid var(--sarde-focus-ring, var(--sarde-blue));
+    outline-offset: var(--sarde-focus-ring-offset, 2px);
 }
 
-.focus-mode-btn svg {
+.sarde-focus-mode-btn svg {
     width: 24px;
     height: 24px;
     fill: none;
@@ -62,48 +62,48 @@
 }
 
 /* Icon swap: show compress when not in focus mode, expand when in focus mode */
-.focus-mode-btn .icon-enter { display: block; }
-.focus-mode-btn .icon-exit  { display: none; }
+.sarde-focus-mode-btn .sarde-icon-enter { display: block; }
+.sarde-focus-mode-btn .sarde-icon-exit  { display: none; }
 
-body.focus-mode .focus-mode-btn .icon-enter { display: none; }
-body.focus-mode .focus-mode-btn .icon-exit  { display: block; }
+body.focus-mode .sarde-focus-mode-btn .sarde-icon-enter { display: none; }
+body.focus-mode .sarde-focus-mode-btn .sarde-icon-exit  { display: block; }
 
 /* Active state styling */
-body.focus-mode .focus-mode-btn {
-    background-color: var(--fb-bg-accent-subtle, var(--fb-blue-low));
-    color: var(--fb-text-accent, var(--fb-blue));
-    border-color: var(--fb-border-accent, var(--fb-blue));
+body.focus-mode .sarde-focus-mode-btn {
+    background-color: var(--sarde-bg-accent-subtle, var(--sarde-blue-low));
+    color: var(--sarde-text-accent, var(--sarde-blue));
+    border-color: var(--sarde-border-accent, var(--sarde-blue));
 }
 
-body.focus-mode .focus-mode-btn:hover {
-    background-color: var(--fb-bg-accent, var(--fb-blue));
-    color: var(--fb-text-invert, #fff);
+body.focus-mode .sarde-focus-mode-btn:hover {
+    background-color: var(--sarde-bg-accent, var(--sarde-blue));
+    color: var(--sarde-text-invert, #fff);
 }
 
 /* Left position variant — offset by sidebar width so it's not hidden behind it */
-.focus-mode-btn.pos-bottom-left {
+.sarde-focus-mode-btn.pos-bottom-left {
     inset-inline-end: auto;
-    inset-inline-start: calc(var(--fb-sidebar-width) + 20px);
+    inset-inline-start: calc(var(--sarde-sidebar-width) + 20px);
     transition: opacity 0.3s ease, visibility 0.3s ease, background-color 0.3s ease, transform 0.3s ease, color 0.3s ease, inset-inline-start var(--focus-mode-speed, 300ms) ease;
 }
 
 /* When sidebar is hidden, slide button to the true left edge */
-body.focus-mode .focus-mode-btn.pos-bottom-left {
+body.focus-mode .sarde-focus-mode-btn.pos-bottom-left {
     inset-inline-start: 35px;
 }
 
 /* ── Tooltip ──────────────────────────────────────────────────── */
 
-.focus-mode-tooltip {
+.sarde-focus-mode-tooltip {
     position: absolute;
     inset-inline-end: -10px;
     top: -42px;
-    background-color: var(--fb-gray-7, #1e293b);
-    color: var(--fb-text-invert, #fff);
+    background-color: var(--sarde-gray-7, #1e293b);
+    color: var(--sarde-text-invert, #fff);
     padding: 5px 10px;
-    border-radius: var(--fb-radius-sm, 4px);
-    font-weight: var(--fb-weight-normal, 400);
-    font-size: var(--fb-text-sm, 14px);
+    border-radius: var(--sarde-radius-sm, 4px);
+    font-weight: var(--sarde-weight-normal, 400);
+    font-size: var(--sarde-text-sm, 14px);
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
@@ -111,12 +111,12 @@ body.focus-mode .focus-mode-btn.pos-bottom-left {
     pointer-events: none;
 }
 
-.focus-mode-tooltip.visible {
+.sarde-focus-mode-tooltip.visible {
     opacity: 1;
     visibility: visible;
 }
 
-.focus-mode-tooltip-arrow {
+.sarde-focus-mode-tooltip-arrow {
     position: absolute;
     top: 100%;
     left: 50%;
@@ -125,16 +125,16 @@ body.focus-mode .focus-mode-btn.pos-bottom-left {
     height: 0;
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-top: 6px solid var(--fb-gray-7, #1e293b);
+    border-top: 6px solid var(--sarde-gray-7, #1e293b);
 }
 
-:root.dark .focus-mode-tooltip {
-    background-color: var(--fb-gray-7);
-    color: var(--fb-gray-1);
+:root.dark .sarde-focus-mode-tooltip {
+    background-color: var(--sarde-gray-7);
+    color: var(--sarde-gray-1);
 }
 
-:root.dark .focus-mode-tooltip-arrow {
-    border-top-color: var(--fb-gray-7);
+:root.dark .sarde-focus-mode-tooltip-arrow {
+    border-top-color: var(--sarde-gray-7);
 }
 
 /* ── Focus Mode Layout Changes ────────────────────────────────── */
@@ -198,19 +198,19 @@ div.docs-content {
 @media (max-width: 1023px) {
     /* Sidebar and TOC are already hidden on mobile, so focus mode
        only hides the header toggle and gives a wider content area */
-    .focus-mode-btn {
+    .sarde-focus-mode-btn {
         bottom: 1.25rem;
         inset-inline-end: 1.25rem;
         width: 40px;
         height: 40px;
     }
 
-    .focus-mode-btn.pos-bottom-left {
+    .sarde-focus-mode-btn.pos-bottom-left {
         inset-inline-end: auto;
         inset-inline-start: 1.25rem;
     }
 
-    .focus-mode-btn svg {
+    .sarde-focus-mode-btn svg {
         width: 20px;
         height: 20px;
     }
@@ -219,7 +219,7 @@ div.docs-content {
 /* ── Print ────────────────────────────────────────────────────── */
 
 @media print {
-    .focus-mode-btn {
+    .sarde-focus-mode-btn {
         display: none !important;
     }
 }

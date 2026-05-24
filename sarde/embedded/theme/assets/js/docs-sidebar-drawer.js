@@ -3,9 +3,9 @@
 
   var BREAKPOINT = 1024;
 
-  var toggle = document.getElementById('docs-menu-toggle');
-  var sidebar = document.getElementById('docs-sidebar');
-  var backdrop = document.getElementById('docs-sidebar-backdrop');
+  var toggle = document.getElementById('sarde-menu-toggle');
+  var sidebar = document.getElementById('sarde-sidebar');
+  var backdrop = document.getElementById('sarde-sidebar-backdrop');
 
   if (!toggle || !sidebar) return;
 
@@ -19,7 +19,7 @@
     toggle.setAttribute('aria-expanded', 'true');
     sidebar.classList.add('is-open');
     sidebar.removeAttribute('aria-hidden');
-    document.body.classList.add('docs-sidebar-open');
+    document.body.classList.add('sarde-sidebar-open');
 
     if (backdrop) {
       backdrop.style.display = 'block';
@@ -40,7 +40,7 @@
     toggle.setAttribute('aria-expanded', 'false');
     sidebar.classList.remove('is-open');
     sidebar.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('docs-sidebar-open');
+    document.body.classList.remove('sarde-sidebar-open');
 
     if (backdrop) {
       backdrop.classList.remove('is-visible');
@@ -58,7 +58,7 @@
     toggle.setAttribute('aria-expanded', 'false');
     sidebar.classList.remove('is-open');
     sidebar.removeAttribute('aria-hidden');
-    document.body.classList.remove('docs-sidebar-open');
+    document.body.classList.remove('sarde-sidebar-open');
     if (backdrop) {
       backdrop.classList.remove('is-visible');
       backdrop.style.display = 'none';

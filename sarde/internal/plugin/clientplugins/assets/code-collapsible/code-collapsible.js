@@ -16,10 +16,10 @@ const FALLBACK_PADDING = 56;
 // ========================================
 
 function getOrCreateLiveRegion() {
-  let region = document.getElementById('cc-live-region');
+  let region = document.getElementById('sarde-cc-live-region');
   if (!region) {
     region = document.createElement('div');
-    region.id = 'cc-live-region';
+    region.id = 'sarde-cc-live-region';
     region.setAttribute('aria-live', 'polite');
     region.setAttribute('aria-atomic', 'true');
     region.style.cssText =
@@ -77,14 +77,14 @@ function detectAndSetBgColor(codeBlock) {
 // ========================================
 
 function toggleCollapse(codeBlock) {
-  const isCollapsed = codeBlock.classList.contains('cc-collapsed');
+  const isCollapsed = codeBlock.classList.contains('sarde-cc-collapsed');
 
   if (isCollapsed) {
-    codeBlock.classList.remove('cc-collapsed');
-    codeBlock.classList.add('cc-expanded');
+    codeBlock.classList.remove('sarde-cc-collapsed');
+    codeBlock.classList.add('sarde-cc-expanded');
   } else {
-    codeBlock.classList.remove('cc-expanded');
-    codeBlock.classList.add('cc-collapsed');
+    codeBlock.classList.remove('sarde-cc-expanded');
+    codeBlock.classList.add('sarde-cc-collapsed');
 
     // If collapsing and block is above viewport, scroll it back into view
     const rect = codeBlock.getBoundingClientRect();
@@ -97,8 +97,8 @@ function toggleCollapse(codeBlock) {
     }
   }
 
-  const expanded = codeBlock.classList.contains('cc-expanded');
-  codeBlock.querySelectorAll('.cc-toggle').forEach(btn => {
+  const expanded = codeBlock.classList.contains('sarde-cc-expanded');
+  codeBlock.querySelectorAll('.sarde-cc-toggle').forEach(btn => {
     btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
   });
 
@@ -129,22 +129,22 @@ function createChevronSvg() {
 
 function createToggleButton(codeBlock) {
   const btn = document.createElement('button');
-  btn.className = 'cc-toggle';
+  btn.className = 'sarde-cc-toggle';
   btn.setAttribute('aria-expanded', config.defaultCollapsed ? 'false' : 'true');
   btn.setAttribute('type', 'button');
 
   const icon = document.createElement('span');
-  icon.className = 'cc-icon';
+  icon.className = 'sarde-cc-icon';
   icon.appendChild(createChevronSvg());
   btn.appendChild(icon);
 
   const textExpand = document.createElement('span');
-  textExpand.className = 'cc-text-expand';
+  textExpand.className = 'sarde-cc-text-expand';
   textExpand.textContent = config.expandButtonText;
   btn.appendChild(textExpand);
 
   const textCollapse = document.createElement('span');
-  textCollapse.className = 'cc-text-collapse';
+  textCollapse.className = 'sarde-cc-text-collapse';
   textCollapse.textContent = config.collapseButtonText;
   btn.appendChild(textCollapse);
 
@@ -158,7 +158,7 @@ function createToggleButton(codeBlock) {
 
 function createGradientOverlay() {
   const grad = document.createElement('div');
-  grad.className = 'cc-gradient';
+  grad.className = 'sarde-cc-gradient';
   grad.setAttribute('aria-hidden', 'true');
   return grad;
 }
@@ -182,7 +182,7 @@ function initCodeBlock(codeBlock) {
   const shouldCollapse = collapseAttr === 'force' || lineCount >= config.lineThreshold;
   if (!shouldCollapse) return;
 
-  codeBlock.classList.add('cc-collapsible');
+  codeBlock.classList.add('sarde-cc-collapsible');
 
   // Set preview height and bg color
   const previewHeight = calcPreviewHeight(codeBlock, config.previewLines);
@@ -201,9 +201,9 @@ function initCodeBlock(codeBlock) {
 
   // Set initial state
   if (config.defaultCollapsed) {
-    codeBlock.classList.add('cc-collapsed');
+    codeBlock.classList.add('sarde-cc-collapsed');
   } else {
-    codeBlock.classList.add('cc-expanded');
+    codeBlock.classList.add('sarde-cc-expanded');
   }
 }
 

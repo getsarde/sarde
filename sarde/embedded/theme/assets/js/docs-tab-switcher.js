@@ -2,7 +2,7 @@
   'use strict';
 
   function closeAll() {
-    document.querySelectorAll('[data-docs-tab-trigger][aria-expanded="true"]').forEach(function (trigger) {
+    document.querySelectorAll('[data-sarde-tab-trigger][aria-expanded="true"]').forEach(function (trigger) {
       trigger.setAttribute('aria-expanded', 'false');
       var menu = trigger.nextElementSibling;
       if (menu) menu.setAttribute('hidden', '');
@@ -10,7 +10,7 @@
   }
 
   document.addEventListener('click', function (e) {
-    var trigger = e.target.closest('[data-docs-tab-trigger]');
+    var trigger = e.target.closest('[data-sarde-tab-trigger]');
     if (trigger) {
       e.stopPropagation();
       var expanded = trigger.getAttribute('aria-expanded') === 'true';
@@ -22,7 +22,7 @@
       }
       return;
     }
-    if (!e.target.closest('[data-docs-tab-menu]')) {
+    if (!e.target.closest('[data-sarde-tab-menu]')) {
       closeAll();
     }
   });

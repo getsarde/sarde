@@ -319,10 +319,10 @@ func TestBuild_Announcements_BannerRendered(t *testing.T) {
 	distDir := filepath.Join(projDir, "dist")
 	guideHTML := readFixture(t, distDir, "docs/guide/index.html")
 
-	if !strings.Contains(guideHTML, "announcement-container") {
+	if !strings.Contains(guideHTML, "sarde-announcement-container") {
 		t.Error("expected announcement-container wrapper")
 	}
-	if !strings.Contains(guideHTML, "announcement-banner") {
+	if !strings.Contains(guideHTML, "sarde-announcement-banner") {
 		t.Error("expected announcement banner in page HTML")
 	}
 	if !strings.Contains(guideHTML, "Site under maintenance") {
@@ -334,7 +334,7 @@ func TestBuild_Announcements_BannerRendered(t *testing.T) {
 	if !strings.Contains(guideHTML, `data-announcement-id="maint-1"`) {
 		t.Error("expected announcement ID attribute")
 	}
-	if !strings.Contains(guideHTML, "announcement-dismiss") {
+	if !strings.Contains(guideHTML, "sarde-announcement-dismiss") {
 		t.Error("expected dismiss button")
 	}
 	if !strings.Contains(guideHTML, `aria-label="Dismiss announcement"`) {
@@ -373,7 +373,7 @@ func TestBuild_Announcements_InactiveNoBanner(t *testing.T) {
 	distDir := filepath.Join(projDir, "dist")
 	guideHTML := readFixture(t, distDir, "docs/guide/index.html")
 
-	if strings.Contains(guideHTML, "announcement-banner") {
+	if strings.Contains(guideHTML, "sarde-announcement-banner") {
 		t.Error("inactive announcement should not render banner")
 	}
 }

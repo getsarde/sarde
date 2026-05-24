@@ -76,10 +76,10 @@ func TestBadge_CSSClass(t *testing.T) {
 		variant BadgeVariant
 		want    string
 	}{
-		{BadgeVariantDefault, "badge-default"},
-		{BadgeVariantTip, "badge-tip"},
-		{BadgeVariantDanger, "badge-danger"},
-		{"", "badge-default"},
+		{BadgeVariantDefault, "sarde-badge-default"},
+		{BadgeVariantTip, "sarde-badge-tip"},
+		{BadgeVariantDanger, "sarde-badge-danger"},
+		{"", "sarde-badge-default"},
 	}
 	for _, tt := range tests {
 		b := Badge{Text: "X", Variant: tt.variant}

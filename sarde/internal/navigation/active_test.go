@@ -42,7 +42,7 @@ func TestMarkActive_LeafNode(t *testing.T) {
 	// Cloned tree should have active node.
 	nodeA := marked.Root.Children[0]
 	if !nodeA.IsActive {
-		t.Error("expected Page A to be active")
+		t.Error("expected Page A to be is-active")
 	}
 }
 
@@ -62,12 +62,12 @@ func TestMarkActive_NestedNode(t *testing.T) {
 
 	nodeB := group.Children[0]
 	if !nodeB.IsActive {
-		t.Error("expected Page B to be active")
+		t.Error("expected Page B to be is-active")
 	}
 
 	nodeC := group.Children[1]
 	if nodeC.IsActive {
-		t.Error("expected Page C to not be active")
+		t.Error("expected Page C to not be is-active")
 	}
 }
 
@@ -95,10 +95,10 @@ func TestMarkActive_CloneIndependence(t *testing.T) {
 
 	// m1 and m2 should be independent.
 	if m1.Root.Children[0].IsActive != true {
-		t.Error("m1: expected Page A active")
+		t.Error("m1: expected Page A is-active")
 	}
 	if m2.Root.Children[0].IsActive != false {
-		t.Error("m2: Page A should not be active")
+		t.Error("m2: Page A should not be is-active")
 	}
 	if m2.Root.Children[1].IsOpen != true {
 		t.Error("m2: Guides should be open")

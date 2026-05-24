@@ -108,9 +108,9 @@ function resetPrefs() {
         if (wasVisible) {
             createPanel();
             panelOpen = true;
-            if (btn) btn.classList.add('panel-open');
+            if (btn) btn.classList.add('is-panel-open');
             panel.offsetHeight;
-            panel.classList.add('reading-prefs-panel--visible');
+            panel.classList.add('sarde-reading-prefs-panel--visible');
         }
     }
 }
@@ -120,14 +120,14 @@ function togglePanel() { panelOpen ? closePanel() : openPanel(); }
 function openPanel() {
     if (!panel) createPanel();
     panelOpen = true;
-    if (btn) btn.classList.add('panel-open');
-    if (panel) { panel.offsetHeight; panel.classList.add('reading-prefs-panel--visible'); }
+    if (btn) btn.classList.add('is-panel-open');
+    if (panel) { panel.offsetHeight; panel.classList.add('sarde-reading-prefs-panel--visible'); }
 }
 
 function closePanel() {
     panelOpen = false;
-    if (btn) btn.classList.remove('panel-open');
-    if (panel) panel.classList.remove('reading-prefs-panel--visible');
+    if (btn) btn.classList.remove('is-panel-open');
+    if (panel) panel.classList.remove('sarde-reading-prefs-panel--visible');
 }
 
 function formatValue(val, unit) {
@@ -140,20 +140,20 @@ function formatValue(val, unit) {
 
 function createSlider(label, id, min, max, step, value, unit, onChange) {
     const group = document.createElement('div');
-    group.className = 'reading-prefs-group';
+    group.className = 'sarde-reading-prefs-group';
     const labelRow = document.createElement('div');
-    labelRow.className = 'reading-prefs-label';
+    labelRow.className = 'sarde-reading-prefs-label';
     const labelText = document.createElement('span');
     labelText.textContent = label;
     labelRow.appendChild(labelText);
     const valueText = document.createElement('span');
-    valueText.className = 'reading-prefs-value';
+    valueText.className = 'sarde-reading-prefs-value';
     valueText.textContent = formatValue(value, unit);
     labelRow.appendChild(valueText);
     group.appendChild(labelRow);
     const range = document.createElement('input');
     range.type = 'range';
-    range.className = 'reading-prefs-range';
+    range.className = 'sarde-reading-prefs-range';
     range.id = 'rp-' + id;
     range.min = String(min);
     range.max = String(max);
@@ -171,24 +171,24 @@ function createSlider(label, id, min, max, step, value, unit, onChange) {
 
 function createButtonGroup(label, options, activeValue, onChange) {
     const group = document.createElement('div');
-    group.className = 'reading-prefs-group';
+    group.className = 'sarde-reading-prefs-group';
     const labelEl = document.createElement('div');
-    labelEl.className = 'reading-prefs-label';
+    labelEl.className = 'sarde-reading-prefs-label';
     const labelText = document.createElement('span');
     labelText.textContent = label;
     labelEl.appendChild(labelText);
     group.appendChild(labelEl);
     const btnGroup = document.createElement('div');
-    btnGroup.className = 'reading-prefs-btngroup';
+    btnGroup.className = 'sarde-reading-prefs-btngroup';
     for (const key of Object.keys(options)) {
         const item = document.createElement('button');
-        item.className = 'reading-prefs-btngroup__item';
-        if (key === activeValue) item.classList.add('active');
+        item.className = 'sarde-reading-prefs-btngroup__item';
+        if (key === activeValue) item.classList.add('is-active');
         item.textContent = options[key];
         item.setAttribute('aria-label', options[key]);
         item.addEventListener('click', () => {
-            for (const s of btnGroup.querySelectorAll('.reading-prefs-btngroup__item')) s.classList.remove('active');
-            item.classList.add('active');
+            for (const s of btnGroup.querySelectorAll('.sarde-reading-prefs-btngroup-item')) s.classList.remove('is-active');
+            item.classList.add('is-active');
             onChange(key);
         });
         btnGroup.appendChild(item);
@@ -199,23 +199,23 @@ function createButtonGroup(label, options, activeValue, onChange) {
 
 function createDivider() {
     const hr = document.createElement('hr');
-    hr.className = 'reading-prefs-divider';
+    hr.className = 'sarde-reading-prefs-divider';
     return hr;
 }
 
 function createPanel() {
     panel = document.createElement('div');
-    panel.className = 'reading-prefs-panel';
+    panel.className = 'sarde-reading-prefs-panel';
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-label', 'Reading preferences');
     const header = document.createElement('div');
-    header.className = 'reading-prefs-header';
+    header.className = 'sarde-reading-prefs-header';
     const title = document.createElement('span');
-    title.className = 'reading-prefs-title';
+    title.className = 'sarde-reading-prefs-title';
     title.textContent = 'Reading';
     header.appendChild(title);
     const resetBtn = document.createElement('button');
-    resetBtn.className = 'reading-prefs-reset';
+    resetBtn.className = 'sarde-reading-prefs-reset';
     resetBtn.textContent = 'Reset';
     resetBtn.setAttribute('aria-label', 'Reset to defaults');
     resetBtn.addEventListener('click', resetPrefs);
@@ -254,9 +254,9 @@ function onEscape(e) {
 }
 
 function createButton() {
-    if (document.querySelector('.reading-prefs-btn')) return;
+    if (document.querySelector('.sarde-reading-prefs-btn')) return;
     btn = document.createElement('button');
-    btn.className = 'reading-prefs-btn';
+    btn.className = 'sarde-reading-prefs-btn';
     btn.setAttribute('aria-label', 'Reading preferences');
     btn.setAttribute('aria-haspopup', 'dialog');
     btn.setAttribute('aria-expanded', 'false');
@@ -279,7 +279,7 @@ function createButton() {
 
     document.body.appendChild(btn);
     requestAnimationFrame(() => {
-        requestAnimationFrame(() => { if (btn) btn.classList.add('visible'); });
+        requestAnimationFrame(() => { if (btn) btn.classList.add('is-visible'); });
     });
 
     btn.addEventListener('click', (e) => {
@@ -290,12 +290,12 @@ function createButton() {
     });
     btn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        if (btn) btn.classList.add('active');
+        if (btn) btn.classList.add('is-active');
     }, { passive: false });
     btn.addEventListener('touchend', (e) => {
         e.preventDefault();
         togglePanel();
-        if (btn) btn.classList.remove('active');
+        if (btn) btn.classList.remove('is-active');
     }, { passive: false });
 }
 

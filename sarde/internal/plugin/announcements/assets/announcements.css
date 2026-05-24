@@ -1,4 +1,4 @@
-.announcement-container {
+.sarde-announcement-container {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -8,7 +8,7 @@
     flex-direction: column;
 }
 
-.announcement-banner {
+.sarde-announcement-banner {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -20,60 +20,60 @@
     transition: opacity 0.3s ease;
 }
 
-.announcement-banner.dismissed {
+.sarde-announcement-banner.dismissed {
     display: none;
 }
 
-.announcement-info {
-    background: var(--fb-blue-low, #dbeafe);
-    color: var(--fb-gray-7, #1e293b);
-    border-top: 2px solid var(--fb-blue, #3b82f6);
+.sarde-announcement-info {
+    background: var(--sarde-blue-low, #dbeafe);
+    color: var(--sarde-gray-7, #1e293b);
+    border-top: 2px solid var(--sarde-blue, #3b82f6);
 }
 
-.announcement-warning {
-    background: var(--fb-amber-low, #fef3c7);
-    color: var(--fb-gray-7, #1e293b);
-    border-top: 2px solid var(--fb-amber, #f59e0b);
+.sarde-announcement-warning {
+    background: var(--sarde-amber-low, #fef3c7);
+    color: var(--sarde-gray-7, #1e293b);
+    border-top: 2px solid var(--sarde-amber, #f59e0b);
 }
 
-.announcement-success {
-    background: var(--fb-green-low, #dcfce7);
-    color: var(--fb-gray-7, #1e293b);
-    border-top: 2px solid var(--fb-green, #22c55e);
+.sarde-announcement-success {
+    background: var(--sarde-green-low, #dcfce7);
+    color: var(--sarde-gray-7, #1e293b);
+    border-top: 2px solid var(--sarde-green, #22c55e);
 }
 
-.announcement-danger {
-    background: var(--fb-red-low, #fee2e2);
-    color: var(--fb-gray-7, #1e293b);
-    border-top: 2px solid var(--fb-red, #ef4444);
+.sarde-announcement-danger {
+    background: var(--sarde-red-low, #fee2e2);
+    color: var(--sarde-gray-7, #1e293b);
+    border-top: 2px solid var(--sarde-red, #ef4444);
 }
 
-:root.dark .announcement-info {
+:root.dark .sarde-announcement-info {
     background: hsl(224, 50%, 18%);
     color: hsl(224, 80%, 90%);
 }
 
-:root.dark .announcement-warning {
+:root.dark .sarde-announcement-warning {
     background: hsl(38, 50%, 18%);
     color: hsl(38, 80%, 90%);
 }
 
-:root.dark .announcement-success {
+:root.dark .sarde-announcement-success {
     background: hsl(150, 40%, 15%);
     color: hsl(150, 60%, 85%);
 }
 
-:root.dark .announcement-danger {
+:root.dark .sarde-announcement-danger {
     background: hsl(0, 45%, 18%);
     color: hsl(0, 70%, 88%);
 }
 
-.announcement-content {
+.sarde-announcement-content {
     flex: 1;
     text-align: center;
 }
 
-.announcement-dismiss {
+.sarde-announcement-dismiss {
     background: none;
     border: none;
     cursor: pointer;
@@ -86,17 +86,17 @@
     flex-shrink: 0;
 }
 
-.announcement-dismiss:hover {
+.sarde-announcement-dismiss:hover {
     opacity: 1;
 }
 
 /* ── Rotate mode ── */
 
-.announcement-container[data-display-mode="rotate"] {
+.sarde-announcement-container[data-display-mode="rotate"] {
     position: relative;
 }
 
-.announcement-container[data-display-mode="rotate"] .announcement-banner {
+.sarde-announcement-container[data-display-mode="rotate"] .sarde-announcement-banner {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -106,7 +106,7 @@
     visibility: visible;
 }
 
-.announcement-container[data-display-mode="rotate"] .announcement-banner.dismissed {
+.sarde-announcement-container[data-display-mode="rotate"] .sarde-announcement-banner.dismissed {
     display: flex;
     opacity: 0;
     visibility: hidden;
@@ -115,7 +115,7 @@
 
 /* ── Dot indicator ── */
 
-.announcement-dots {
+.sarde-announcement-dots {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -123,7 +123,7 @@
     padding: 0.25rem 0.5rem;
 }
 
-.announcement-dot {
+.sarde-announcement-dot {
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 50%;
@@ -136,13 +136,13 @@
     transition: opacity 0.2s, transform 0.2s;
 }
 
-.announcement-dot.is-active {
+.sarde-announcement-dot.is-active {
     background: currentColor;
     opacity: 1;
     transform: scale(1.25);
 }
 
-.announcement-dot:focus-visible {
+.sarde-announcement-dot:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 2px;
 }
@@ -150,13 +150,13 @@
 /* ── Accessibility ── */
 
 @media (prefers-reduced-motion: reduce) {
-    .announcement-container[data-display-mode="rotate"] .announcement-banner {
+    .sarde-announcement-container[data-display-mode="rotate"] .sarde-announcement-banner {
         transition: none;
     }
 }
 
 @media print {
-    .announcement-container {
+    .sarde-announcement-container {
         display: none !important;
     }
 }

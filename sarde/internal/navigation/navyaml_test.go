@@ -147,10 +147,10 @@ func TestBuildNavTreeFromYAML_Badge_ScalarWithLegacyColor(t *testing.T) {
 
 	page := tree.Root.Children[0].Page
 	if page.Badge.Text != "New" {
-		t.Errorf("badge text: got %q", page.Badge.Text)
+		t.Errorf("sarde-badge text: got %q", page.Badge.Text)
 	}
 	if page.Badge.Variant != engine.BadgeVariantTip {
-		t.Errorf("badge variant: got %q, want %q (green→tip alias)", page.Badge.Variant, engine.BadgeVariantTip)
+		t.Errorf("sarde-badge variant: got %q, want %q (green→tip alias)", page.Badge.Variant, engine.BadgeVariantTip)
 	}
 }
 
@@ -169,10 +169,10 @@ func TestBuildNavTreeFromYAML_Badge_ScalarOnly(t *testing.T) {
 
 	page := tree.Root.Children[0].Page
 	if page.Badge.Text != "Beta" {
-		t.Errorf("badge text: got %q", page.Badge.Text)
+		t.Errorf("sarde-badge text: got %q", page.Badge.Text)
 	}
 	if page.Badge.Variant != engine.BadgeVariantDefault {
-		t.Errorf("badge variant: got %q, want %q", page.Badge.Variant, engine.BadgeVariantDefault)
+		t.Errorf("sarde-badge variant: got %q, want %q", page.Badge.Variant, engine.BadgeVariantDefault)
 	}
 }
 
@@ -193,10 +193,10 @@ func TestBuildNavTreeFromYAML_Badge_Mapping(t *testing.T) {
 
 	page := tree.Root.Children[0].Page
 	if page.Badge.Text != "WIP" {
-		t.Errorf("badge text: got %q", page.Badge.Text)
+		t.Errorf("sarde-badge text: got %q", page.Badge.Text)
 	}
 	if page.Badge.Variant != engine.BadgeVariantCaution {
-		t.Errorf("badge variant: got %q, want %q", page.Badge.Variant, engine.BadgeVariantCaution)
+		t.Errorf("sarde-badge variant: got %q, want %q", page.Badge.Variant, engine.BadgeVariantCaution)
 	}
 }
 

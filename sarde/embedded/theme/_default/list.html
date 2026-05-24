@@ -2,7 +2,7 @@
 <h1>{{ .Page.Title }}</h1>
 {{ if .Page.Content }}{{ .Page.Content }}{{ end }}
 {{ if .Collection }}
-<ul class="page-list">
+<ul class="sarde-page-list">
 {{ $pages := .Collection.Pages }}
 {{ if and .Paginator .Paginator.CurrentPages }}{{ $pages = .Paginator.CurrentPages }}{{ end }}
 {{ range $pages }}
@@ -13,13 +13,13 @@
 {{ end }}
 </ul>
 {{ if .Paginator }}
-<nav class="pagination" aria-label="Pagination">
-  {{ if .Paginator.HasPrev }}<a class="pagination-prev" href="{{ .Paginator.PrevURL }}" rel="prev">{{ t "nav.previous" }}</a>{{ end }}
-  <ol class="pagination-pages">
-    {{ range .Paginator.Pages }}<li{{ if eq .URL $.Page.RelPermalink }} class="current"{{ end }}><a href="{{ .URL }}">{{ .Title }}</a></li>
+<nav class="sarde-pagination" aria-label="Pagination">
+  {{ if .Paginator.HasPrev }}<a class="sarde-pagination-prev" href="{{ .Paginator.PrevURL }}" rel="prev">{{ t "nav.previous" }}</a>{{ end }}
+  <ol class="sarde-pagination-pages">
+    {{ range .Paginator.Pages }}<li{{ if eq .URL $.Page.RelPermalink }} class="sarde-current"{{ end }}><a href="{{ .URL }}">{{ .Title }}</a></li>
     {{ end }}
   </ol>
-  {{ if .Paginator.HasNext }}<a class="pagination-next" href="{{ .Paginator.NextURL }}" rel="next">{{ t "nav.next" }}</a>{{ end }}
+  {{ if .Paginator.HasNext }}<a class="sarde-pagination-next" href="{{ .Paginator.NextURL }}" rel="next">{{ t "nav.next" }}</a>{{ end }}
 </nav>
 {{ end }}
 {{ end }}

@@ -1,18 +1,18 @@
 {{ define "content" }}
-<div class="taxonomy-container">
-  <h1 class="taxonomy-title">{{ .Taxonomy.Name | title }}</h1>
+<div class="sarde-taxonomy-container">
+  <h1 class="sarde-taxonomy-title">{{ .Taxonomy.Name | title }}</h1>
 
   {{ if .Page.Content }}
-  <div class="fb-markdown-content">{{ .Page.Content }}</div>
+  <div class="sarde-markdown-content">{{ .Page.Content }}</div>
   {{ end }}
 
   {{ if .TermEntries }}
-  <div class="taxonomy-cloud">
+  <div class="sarde-taxonomy-cloud">
     {{ range .TermEntries }}
-    <a href="{{ .Permalink }}" class="taxonomy-pill taxonomy-tier-{{ .PopTier }}"{{ if .Color }} style="--term-color: {{ .Color }}"{{ end }}>
-      {{ if .Icon }}<span class="term-icon">{{ .Icon }}</span>{{ end }}
-      <span class="term-label">{{ .Label }}</span>
-      <span class="term-count">{{ .Count }}</span>
+    <a href="{{ .Permalink }}" class="sarde-taxonomy-pill taxonomy-tier-{{ .PopTier }}"{{ if .Color }} style="--term-color: {{ .Color }}"{{ end }}>
+      {{ if .Icon }}<span class="sarde-term-icon">{{ .Icon }}</span>{{ end }}
+      <span class="sarde-term-label">{{ .Label }}</span>
+      <span class="sarde-term-count">{{ .Count }}</span>
     </a>
     {{ end }}
   </div>

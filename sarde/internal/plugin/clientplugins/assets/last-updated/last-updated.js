@@ -56,9 +56,9 @@ function formatAbsolute(timestamp, format) {
 }
 
 function init() {
-    if (document.querySelector('.last-updated')) return;
+    if (document.querySelector('.sarde-last-updated')) return;
 
-    const article = document.querySelector('article.fb-markdown-content[data-last-modified]');
+    const article = document.querySelector('article.sarde-markdown-content[data-last-modified]');
     if (!article) return;
 
     const timestamp = parseInt(article.dataset.lastModified || '', 10);
@@ -85,7 +85,7 @@ function init() {
     }
 
     if (config.position === 'top') {
-        const readingTime = document.querySelector('.reading-time');
+        const readingTime = document.querySelector('.sarde-reading-time');
         if (readingTime && readingTime.parentNode) {
             if (!readingTime.parentNode.classList.contains('last-updated-row')) {
                 const row = document.createElement('div');

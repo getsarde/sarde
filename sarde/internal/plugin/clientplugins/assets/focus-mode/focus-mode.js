@@ -42,15 +42,15 @@ function save(enabled) {
 
 function applyFocusMode(enabled) {
     if (enabled) {
-        document.body.classList.add('focus-mode');
+        document.body.classList.add('is-focus-mode');
     } else {
-        document.body.classList.remove('focus-mode');
+        document.body.classList.remove('is-focus-mode');
     }
     updateTooltip(enabled);
 }
 
 function toggle() {
-    const next = !document.body.classList.contains('focus-mode');
+    const next = !document.body.classList.contains('is-focus-mode');
     applyFocusMode(next);
     save(next);
 }
@@ -78,16 +78,16 @@ function updateTooltip(enabled) {
 }
 
 function showTooltip() {
-    if (tooltip) tooltip.classList.add('visible');
+    if (tooltip) tooltip.classList.add('is-visible');
 }
 
 function hideTooltip() {
-    if (tooltip) tooltip.classList.remove('visible');
+    if (tooltip) tooltip.classList.remove('is-visible');
 }
 
 function createButton() {
     if (!config.showButton) return;
-    if (document.querySelector('.focus-mode-btn')) return;
+    if (document.querySelector('.sarde-focus-mode-btn')) return;
 
     btn = document.createElement('button');
     btn.className = 'focus-mode-btn pos-' + config.buttonPosition;
@@ -99,8 +99,8 @@ function createButton() {
 
     // Tooltip
     tooltip = document.createElement('div');
-    tooltip.className = 'focus-mode-tooltip';
-    tooltip.id = 'focus-mode-tooltip';
+    tooltip.className = 'sarde-focus-mode-tooltip';
+    tooltip.id = 'sarde-focus-mode-tooltip';
     tooltip.textContent = 'Focus mode';
 
     const arrow = document.createElement('div');
@@ -108,14 +108,14 @@ function createButton() {
     tooltip.appendChild(arrow);
 
     btn.appendChild(tooltip);
-    btn.setAttribute('aria-describedby', 'focus-mode-tooltip');
+    btn.setAttribute('aria-describedby', 'sarde-focus-mode-tooltip');
 
     document.body.appendChild(btn);
 
     // Show button after a short delay (matches scroll-to-top pattern)
     requestAnimationFrame(function () {
         requestAnimationFrame(function () {
-            if (btn) btn.classList.add('visible');
+            if (btn) btn.classList.add('is-visible');
         });
     });
 
@@ -133,20 +133,20 @@ function createButton() {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             toggle();
-            btn.classList.remove('keyboard-focus');
+            btn.classList.remove('is-keyboard-focus');
         }
     });
 
     btn.addEventListener('focus', function () {
         if (isKeyboard) {
             showTooltip();
-            if (btn) btn.classList.add('keyboard-focus');
+            if (btn) btn.classList.add('is-keyboard-focus');
         }
     });
 
     btn.addEventListener('blur', function () {
         hideTooltip();
-        if (btn) btn.classList.remove('keyboard-focus');
+        if (btn) btn.classList.remove('is-keyboard-focus');
     });
 
     btn.addEventListener('mousedown', function () {
@@ -156,13 +156,13 @@ function createButton() {
     // Touch
     btn.addEventListener('touchstart', function (e) {
         e.preventDefault();
-        if (btn) btn.classList.add('active');
+        if (btn) btn.classList.add('is-active');
     }, { passive: false });
 
     btn.addEventListener('touchend', function (e) {
         e.preventDefault();
         toggle();
-        if (btn) btn.classList.remove('active');
+        if (btn) btn.classList.remove('is-active');
     }, { passive: false });
 }
 

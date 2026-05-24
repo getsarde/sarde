@@ -93,7 +93,7 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 			}
 
 			banners.WriteString(fmt.Sprintf(
-				`<div class="announcement-banner announcement-%s" data-announcement-id="%s"`,
+				`<div class="sarde-announcement-banner announcement-%s" data-announcement-id="%s"`,
 				bt, html.EscapeString(item.id),
 			))
 			if item.startDate != "" {
@@ -111,13 +111,13 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 			banners.WriteString(`>`)
 
 			banners.WriteString(fmt.Sprintf(
-				`<span class="announcement-content">%s</span>`,
+				`<span class="sarde-announcement-content">%s</span>`,
 				html.EscapeString(msg),
 			))
 			if item.dismissible {
 				dismissLabel := resolveString(st, langPtr, "announcements.dismiss")
 				banners.WriteString(fmt.Sprintf(
-					`<button class="announcement-dismiss" data-announcement-id="%s" aria-label="%s">&times;</button>`,
+					`<button class="sarde-announcement-dismiss" data-announcement-id="%s" aria-label="%s">&times;</button>`,
 					html.EscapeString(item.id), html.EscapeString(dismissLabel),
 				))
 			}
@@ -129,7 +129,7 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 		}
 
 		var container strings.Builder
-		container.WriteString(`<div class="announcement-container"`)
+		container.WriteString(`<div class="sarde-announcement-container"`)
 		container.WriteString(fmt.Sprintf(` data-display-mode="%s"`, html.EscapeString(pcfg.displayMode)))
 		if pcfg.displayMode == "rotate" {
 			container.WriteString(fmt.Sprintf(` data-rotate-interval="%d"`, pcfg.rotateInterval))

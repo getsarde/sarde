@@ -22,27 +22,27 @@
     buttons.forEach(function (b) {
       var match = b.dataset.tabLabel === label;
       b.setAttribute('aria-selected', match ? 'true' : 'false');
-      b.classList.toggle('active', match);
+      b.classList.toggle('is-active', match);
     });
     container.querySelectorAll(panelSel).forEach(function (p) {
       var match = p.dataset.tabLabel === label;
-      p.classList.toggle('active', match);
+      p.classList.toggle('is-active', match);
       if (match) p.removeAttribute('hidden'); else p.setAttribute('hidden', '');
     });
   }
 
   function syncAll(label) {
-    document.querySelectorAll('.tabs').forEach(function (c) {
-      activateTab(c, '.tab-button', '.tab-panel', label);
+    document.querySelectorAll('.sarde-tabs').forEach(function (c) {
+      activateTab(c, '.sarde-tab-button', '.sarde-tab-panel', label);
     });
-    document.querySelectorAll('.code-group').forEach(function (c) {
-      activateTab(c, '.code-group-tab', '.code-group-panel', label);
+    document.querySelectorAll('.sarde-code-group').forEach(function (c) {
+      activateTab(c, '.sarde-code-group-tab', '.sarde-code-group-panel', label);
     });
   }
 
   document.addEventListener('click', function (e) {
     if (!e.target.matches) return;
-    if (e.target.matches('.tabs .tab-button') || e.target.matches('.code-group .code-group-tab')) {
+    if (e.target.matches('.sarde-tabs .tab-button') || e.target.matches('.sarde-code-group .code-group-tab')) {
       var label = e.target.dataset.tabLabel;
       if (label) {
         saveLabel(label);

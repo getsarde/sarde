@@ -1,11 +1,11 @@
 (function () {
-  var selectors = '.docs-content h1[id], .docs-content h2[id], .docs-content h3[id], .docs-content h4[id]';
+  var selectors = '.sarde-content-panel h1[id], .sarde-content-panel h2[id], .sarde-content-panel h3[id], .sarde-content-panel h4[id]';
   var headings = document.querySelectorAll(selectors);
   var svgNS = 'http://www.w3.org/2000/svg';
 
   headings.forEach(function (h) {
     var a = document.createElement('a');
-    a.className = 'heading-anchor';
+    a.className = 'sarde-heading-anchor';
     a.href = '#' + h.id;
     a.setAttribute('aria-label', 'Link to section: ' + h.textContent.trim());
 

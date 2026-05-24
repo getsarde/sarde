@@ -1,6 +1,6 @@
 /* ── Highlight Marks ──────────────────────────────────────── */
 
-.search-hl {
+.sarde-search-hl {
     background-color: var(--search-hl-color, hsla(38, 80%, 60%, 0.3));
     color: inherit;
     padding: 1px 2px;
@@ -10,7 +10,7 @@
     transition: background-color 0.2s ease;
 }
 
-.search-hl--active {
+.sarde-search-hl.is-active {
     background-color: var(--search-hl-active-color, hsla(38, 85%, 50%, 0.55));
     outline: 2px solid var(--search-hl-active-outline, hsl(38, 85%, 50%));
     outline-offset: 1px;
@@ -18,9 +18,9 @@
 
 /* ── Search Badge (sticky bar at top of content) ─────────── */
 
-.search-hl-badge {
+.sarde-search-hl-badge {
     position: sticky;
-    top: var(--fb-nav-height, 60px);
+    top: var(--sarde-nav-height, 60px);
     z-index: 50;
     display: flex;
     align-items: center;
@@ -28,34 +28,34 @@
     gap: 0.5rem;
     padding: 0.375rem 0.75rem;
     margin-bottom: 0.75rem;
-    background: var(--fb-bg-surface, #fff);
-    border: 1px solid var(--fb-border, rgba(0, 0, 0, 0.1));
-    border-radius: var(--fb-radius-md, 0.375rem);
-    box-shadow: var(--fb-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
-    font-size: var(--fb-text-sm, 0.875rem);
+    background: var(--sarde-bg-surface, #fff);
+    border: 1px solid var(--sarde-border, rgba(0, 0, 0, 0.1));
+    border-radius: var(--sarde-radius-md, 0.375rem);
+    box-shadow: var(--sarde-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+    font-size: var(--sarde-text-sm, 0.875rem);
     opacity: 0;
     transform: translateY(-0.5rem);
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.search-hl-badge--visible {
+.sarde-search-hl-badge.is-visible {
     opacity: 1;
     transform: translateY(0);
 }
 
-.search-hl-badge__count {
-    color: var(--fb-text, inherit);
+.sarde-search-hl-badge-count {
+    color: var(--sarde-text, inherit);
     white-space: nowrap;
     font-weight: 500;
 }
 
-.search-hl-badge__sep {
+.sarde-search-hl-badge-sep {
     width: 1px;
     height: 1rem;
-    background: var(--fb-border, rgba(0, 0, 0, 0.1));
+    background: var(--sarde-border, rgba(0, 0, 0, 0.1));
 }
 
-.search-hl-badge__btn {
+.sarde-search-hl-badge-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -64,26 +64,26 @@
     padding: 0;
     border: none;
     background: transparent;
-    color: var(--fb-text-muted, #6b7280);
-    border-radius: var(--fb-radius-sm, 0.25rem);
+    color: var(--sarde-text-muted, #6b7280);
+    border-radius: var(--sarde-radius-sm, 0.25rem);
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.search-hl-badge__btn:hover {
-    background: var(--fb-hover, rgba(0, 0, 0, 0.05));
-    color: var(--fb-text, inherit);
+.sarde-search-hl-badge-btn:hover {
+    background: var(--sarde-hover, rgba(0, 0, 0, 0.05));
+    color: var(--sarde-text, inherit);
 }
 
-.search-hl-badge__btn:active {
-    background: var(--fb-hover, rgba(0, 0, 0, 0.08));
+.sarde-search-hl-badge-btn:active {
+    background: var(--sarde-hover, rgba(0, 0, 0, 0.08));
 }
 
-.search-hl-badge__btn--dismiss {
+.sarde-search-hl-badge-btn-dismiss {
     margin-inline-start: 0.125rem;
 }
 
-.search-hl-badge__btn svg {
+.sarde-search-hl-badge-btn svg {
     width: 14px;
     height: 14px;
     fill: none;
@@ -96,7 +96,7 @@
 /* ── Mobile ──────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
-    .search-hl-badge {
+    .sarde-search-hl-badge {
         gap: 0.375rem;
         padding: 0.25rem 0.5rem;
         font-size: 0.8125rem;
@@ -106,10 +106,10 @@
 /* ── Print ───────────────────────────────────────────────── */
 
 @media print {
-    .search-hl-badge {
+    .sarde-search-hl-badge {
         display: none !important;
     }
-    .search-hl {
+    .sarde-search-hl {
         background: none !important;
         outline: none !important;
     }
@@ -118,8 +118,8 @@
 /* ── Reduced Motion ──────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-    .search-hl-badge,
-    .search-hl {
+    .sarde-search-hl-badge,
+    .sarde-search-hl {
         transition: none;
     }
 }

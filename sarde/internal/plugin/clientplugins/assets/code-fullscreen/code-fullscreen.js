@@ -103,9 +103,9 @@ const fontManager = {
 // ========================================
 
 function createFullscreenContainer() {
-  if (document.querySelector('.code-fullscreen__container')) return;
+  if (document.querySelector('.sarde-code-fullscreen-container')) return;
   const container = document.createElement('div');
-  container.className = 'code-fullscreen__container';
+  container.className = 'sarde-code-fullscreen-container';
   container.setAttribute('role', 'dialog');
   container.setAttribute('aria-modal', 'true');
   container.setAttribute('aria-label', 'Code block in fullscreen view');
@@ -127,17 +127,17 @@ function createFullscreenButton() {
 
 function createFontSizeControls() {
   const controls = document.createElement('div');
-  controls.className = 'code-fullscreen__font-controls';
+  controls.className = 'sarde-code-fullscreen-font-controls';
 
   const decreaseBtn = document.createElement('button');
-  decreaseBtn.className = 'code-fullscreen__font-btn code-fullscreen__font-btn--decrease';
+  decreaseBtn.className = 'sarde-code-fullscreen-font-btn code-fullscreen__font-btn--decrease';
   decreaseBtn.setAttribute('aria-label', 'Decrease font size');
   decreaseBtn.title = 'Decrease font size (Double-click to reset)';
   decreaseBtn.appendChild(makeSvg('M5 12h14'));
   controls.appendChild(decreaseBtn);
 
   const increaseBtn = document.createElement('button');
-  increaseBtn.className = 'code-fullscreen__font-btn code-fullscreen__font-btn--increase';
+  increaseBtn.className = 'sarde-code-fullscreen-font-btn code-fullscreen__font-btn--increase';
   increaseBtn.setAttribute('aria-label', 'Increase font size');
   increaseBtn.title = 'Increase font size';
   increaseBtn.appendChild(makeSvg('M12 5v14m-7-7h14'));
@@ -148,7 +148,7 @@ function createFontSizeControls() {
 
 function createFullscreenHint() {
   const hint = document.createElement('div');
-  hint.className = 'code-fullscreen__hint';
+  hint.className = 'sarde-code-fullscreen-hint';
   hint.textContent = 'Press ';
   const kbd = document.createElement('kbd');
   kbd.textContent = 'Esc';
@@ -159,7 +159,7 @@ function createFullscreenHint() {
 
 function createCloseButton(container) {
   const btn = document.createElement('button');
-  btn.className = 'code-fullscreen__close';
+  btn.className = 'sarde-code-fullscreen-close';
   btn.setAttribute('aria-label', 'Exit fullscreen');
   btn.appendChild(makeSvg('M18 6L6 18M6 6l12 12', 20));
   btn.addEventListener('click', () => exitFullscreen(container));
@@ -205,7 +205,7 @@ function initializeCodeBlocks() {
 // ========================================
 
 function toggleFullscreen(codeBlock) {
-  const container = document.querySelector('.code-fullscreen__container');
+  const container = document.querySelector('.sarde-code-fullscreen-container');
   if (state.isFullscreenActive) {
     exitFullscreen(container);
   } else {
@@ -221,25 +221,25 @@ function enterFullscreen(codeBlock, container) {
 
   // Clone the entire .code-block wrapper
   const clonedBlock = codeBlock.cloneNode(true);
-  clonedBlock.classList.add('code-fullscreen__active');
+  clonedBlock.classList.add('sarde-code-fullscreen-active');
   clonedBlock.querySelectorAll('.fullscreen-btn').forEach(btn => btn.remove());
 
   const contentWrapper = document.createElement('div');
-  contentWrapper.className = 'code-fullscreen__content';
+  contentWrapper.className = 'sarde-code-fullscreen-content';
 
   // Toolbar: spacer | font controls | close button
   const toolbar = document.createElement('div');
-  toolbar.className = 'code-fullscreen__toolbar';
+  toolbar.className = 'sarde-code-fullscreen-toolbar';
 
   const spacer = document.createElement('div');
-  spacer.className = 'code-fullscreen__toolbar-spacer';
+  spacer.className = 'sarde-code-fullscreen-toolbar-spacer';
   toolbar.appendChild(spacer);
 
   const fontControls = createFontSizeControls();
   toolbar.appendChild(fontControls);
 
   const toolbarEnd = document.createElement('div');
-  toolbarEnd.className = 'code-fullscreen__toolbar-end';
+  toolbarEnd.className = 'sarde-code-fullscreen-toolbar-end';
   toolbarEnd.appendChild(createCloseButton(container));
   toolbar.appendChild(toolbarEnd);
 
@@ -262,7 +262,7 @@ function enterFullscreen(codeBlock, container) {
     }, CONSTANTS.HINT_DISPLAY_TIME);
   }
 
-  container.classList.add('code-fullscreen__container--open');
+  container.classList.add('sarde-code-fullscreen-container--open');
   state.isFullscreenActive = true;
   container.focus();
 
@@ -290,7 +290,7 @@ function exitFullscreen(container) {
 
   removeFocusTrap();
 
-  container.classList.remove('code-fullscreen__container--open');
+  container.classList.remove('sarde-code-fullscreen-container--open');
   container.innerHTML = '';
   state.isFullscreenActive = false;
 
@@ -311,7 +311,7 @@ function exitFullscreen(container) {
 
 function handleKeyup(event) {
   if (event.key === 'Escape' && state.isFullscreenActive) {
-    const container = document.querySelector('.code-fullscreen__container');
+    const container = document.querySelector('.sarde-code-fullscreen-container');
     if (container) exitFullscreen(container);
   }
 }
@@ -319,7 +319,7 @@ function handleKeyup(event) {
 function handlePopState() {
   if (!state.isFullscreenActive) return;
 
-  const container = document.querySelector('.code-fullscreen__container');
+  const container = document.querySelector('.sarde-code-fullscreen-container');
   if (!container) return;
 
   window.removeEventListener('popstate', handlePopState);
@@ -328,7 +328,7 @@ function handlePopState() {
 
   removeFocusTrap();
 
-  container.classList.remove('code-fullscreen__container--open');
+  container.classList.remove('sarde-code-fullscreen-container--open');
   container.innerHTML = '';
   state.isFullscreenActive = false;
 
@@ -368,7 +368,7 @@ function addFocusTrap(container) {
 }
 
 function removeFocusTrap() {
-  const container = document.querySelector('.code-fullscreen__container');
+  const container = document.querySelector('.sarde-code-fullscreen-container');
   if (container && state.focusTrapHandler) {
     container.removeEventListener('keydown', state.focusTrapHandler);
     state.focusTrapHandler = null;
@@ -380,8 +380,8 @@ function removeFocusTrap() {
 // ========================================
 
 function addFontControlListeners(fontControls, codeBlock) {
-  const decreaseBtn = fontControls.querySelector('.code-fullscreen__font-btn--decrease');
-  const increaseBtn = fontControls.querySelector('.code-fullscreen__font-btn--increase');
+  const decreaseBtn = fontControls.querySelector('.sarde-code-fullscreen-font-btn--decrease');
+  const increaseBtn = fontControls.querySelector('.sarde-code-fullscreen-font-btn--increase');
   let decreaseClickData = { lastClickTime: 0, clickCount: 0 };
 
   if (decreaseBtn) {

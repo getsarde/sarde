@@ -61,8 +61,8 @@ function ensureLightbox() {
     if (lightbox) return;
 
     lightbox = document.createElement('div');
-    lightbox.className = 'image-lightbox';
-    lightbox.id = 'image-lightbox';
+    lightbox.className = 'sarde-image-lightbox';
+    lightbox.id = 'sarde-image-lightbox';
     lightbox.style.setProperty('--il-bg-opacity', String(config.bgOpacity));
 
     const toolbar = document.createElement('div');
@@ -182,7 +182,7 @@ function ensureLightbox() {
     });
 
     lightbox.addEventListener('wheel', function (e) {
-        if (!lightbox.classList.contains('active')) return;
+        if (!lightbox.classList.contains('is-active')) return;
         e.preventDefault();
         if (e.deltaY < 0) { zoomIn(); } else { zoomOut(); }
     }, { passive: false });
@@ -200,22 +200,22 @@ function openLightbox(src, alt) {
     lightboxImg.src = src;
     lightboxImg.alt = alt;
     lightboxCaption.textContent = alt;
-    lightbox.classList.add('active');
+    lightbox.classList.add('is-active');
     document.body.style.overflow = 'hidden';
 }
 
 function closeLightbox() {
     if (!lightbox) return;
-    lightbox.classList.remove('active');
+    lightbox.classList.remove('is-active');
     document.body.style.overflow = '';
 }
 
 // -- Event Handlers --
 
 function isLightboxable(img) {
-    if (!img.closest('article.fb-markdown-content')) return false;
+    if (!img.closest('article.sarde-markdown-content')) return false;
     if (img.closest('.markdown-gallery')) return false;
-    if (img.closest('.gallery-item')) return false;
+    if (img.closest('.sarde-gallery-item')) return false;
     if (img.classList.contains('no-lightbox')) return false;
     if (img.naturalWidth > 0 && img.naturalWidth < 80) return false;
     return true;
@@ -231,7 +231,7 @@ function onClick(e) {
 }
 
 function onKeyDown(e) {
-    if (!lightbox || !lightbox.classList.contains('active')) return;
+    if (!lightbox || !lightbox.classList.contains('is-active')) return;
     if (e.key === 'Escape') { e.preventDefault(); closeLightbox(); }
     else if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn(); }
     else if (e.key === '-') { e.preventDefault(); zoomOut(); }

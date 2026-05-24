@@ -1,48 +1,48 @@
 <!DOCTYPE html>
 <html lang="{{ .Lang }}" dir="{{ .Dir }}">
 <head>
-  <script>if(localStorage.getItem('fb-theme')==='dark'||(localStorage.getItem('fb-theme')!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')</script>
+  <script>if(localStorage.getItem('sarde-theme')==='dark'||(localStorage.getItem('sarde-theme')!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')</script>
   {{ component "Head" . }}
 </head>
-<body class="layout-{{ .Layout }}">
+<body class="sarde-layout-{{ .Layout }}">
   {{ if .HasSidebar }}
-  <nav class="sidebar-mobile-nav" aria-label="Section navigation">
-    <button class="docs-menu-toggle" id="docs-menu-toggle"
+  <nav class="sarde-mobile-nav" aria-label="Section navigation">
+    <button class="sarde-menu-toggle" id="sarde-menu-toggle"
             aria-expanded="false" aria-label="Menu"
-            aria-controls="docs-sidebar" type="button">
-      <svg class="docs-menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-      <svg class="docs-menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            aria-controls="sarde-sidebar" type="button">
+      <svg class="sarde-menu-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      <svg class="sarde-menu-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>
-    <aside class="docs-sidebar" id="docs-sidebar">
-      <div class="docs-sidebar-nav">
+    <aside class="sarde-sidebar" id="sarde-sidebar">
+      <div class="sarde-sidebar-content">
         {{ component "Sidebar" . }}
       </div>
-      <div class="docs-sidebar-footer">
+      <div class="sarde-sidebar-footer">
         {{ component "ThemeToggle" . }}
         {{ component "VersionSwitcher" . }}
         {{ component "LanguageSwitcher" . }}
       </div>
     </aside>
   </nav>
-  <div class="docs-sidebar-backdrop" id="docs-sidebar-backdrop"></div>
+  <div class="sarde-sidebar-backdrop" id="sarde-sidebar-backdrop"></div>
   {{ end }}
-  <div class="docs-main">
+  <div class="sarde-main-frame">
     {{ component "Header" . }}
-    <main class="docs-content-area">
-      <div class="docs-content-grid">
-        <div class="docs-content">
+    <main class="sarde-content-area">
+      <div class="sarde-content-grid">
+        <div class="sarde-content-panel">
           {{ if .Breadcrumbs }}{{ component "Breadcrumbs" . }}{{ end }}
           {{ component "FallbackNotice" . }}
           {{ component "VersionBanner" . }}
           {{ component "MobileTableOfContents" . }}
-          <article class="fb-markdown-content"{{ if and .Page .Page.Updated (not .Page.Updated.IsZero) }} data-last-modified="{{ .Page.Updated.Unix }}"{{ end }}>
+          <article class="sarde-markdown-content"{{ if and .Page .Page.Updated (not .Page.Updated.IsZero) }} data-last-modified="{{ .Page.Updated.Unix }}"{{ end }}>
             {{ block "content" . }}{{ .Page.Content }}{{ end }}
           </article>
           {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
         </div>
         {{ if .Page.Headings }}
-        <aside class="docs-toc">
-          <div class="docs-toc-inner">
+        <aside class="sarde-toc">
+          <div class="sarde-toc-inner">
             {{ component "TableOfContents" . }}
           </div>
         </aside>

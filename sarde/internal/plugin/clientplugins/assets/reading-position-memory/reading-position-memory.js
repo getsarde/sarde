@@ -22,7 +22,7 @@ function getPageKey() {
 }
 
 function isContentPage() {
-    return !!document.querySelector('article.fb-markdown-content');
+    return !!document.querySelector('article.sarde-markdown-content');
 }
 
 function getScrollPercent() {

@@ -1,24 +1,24 @@
 /* Last Updated Badge Plugin */
 
-.last-updated {
+.sarde-last-updated {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
     font-size: 0.825rem;
-    color: var(--fb-text-muted, #6b7280);
+    color: var(--sarde-text-muted, #6b7280);
 }
 
-.last-updated__icon {
+.sarde-last-updated-icon {
     flex-shrink: 0;
     opacity: 0.6;
 }
 
 /* Top position (next to reading time) */
-.last-updated--top {
+.sarde-last-updated-top {
     margin-top: 0.25rem;
 }
 
-.last-updated-row {
+.sarde-last-updated-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -26,16 +26,16 @@
     margin-top: 0.25rem;
 }
 
-.last-updated-row .reading-time,
-.last-updated-row .last-updated {
+.sarde-last-updated-row .sarde-reading-time,
+.sarde-last-updated-row .sarde-last-updated {
     margin-top: 0;
 }
 
 /* Bottom position */
-.last-updated--bottom {
+.sarde-last-updated-bottom {
     display: flex;
     justify-content: flex-end;
     padding: 0.75rem 0;
-    border-top: 1px solid var(--fb-border, rgba(128, 128, 128, 0.2));
+    border-top: 1px solid var(--sarde-border, rgba(128, 128, 128, 0.2));
     margin-top: 2rem;
 }

@@ -11,11 +11,11 @@ func TestGenerateCSS_LightOnly(t *testing.T) {
 	if !strings.Contains(css, ":root {") {
 		t.Error("expected :root block")
 	}
-	if !strings.Contains(css, "--fb-primary: #6366f1") {
-		t.Error("expected --fb-primary")
+	if !strings.Contains(css, "--sarde-primary: #6366f1") {
+		t.Error("expected --sarde-primary")
 	}
-	if !strings.Contains(css, "--fb-bg: #ffffff") {
-		t.Error("expected --fb-bg")
+	if !strings.Contains(css, "--sarde-bg: #ffffff") {
+		t.Error("expected --sarde-bg")
 	}
 	if strings.Contains(css, ":root.dark") {
 		t.Error("should not have dark block with nil dark tokens")
@@ -33,8 +33,8 @@ func TestGenerateCSS_LightAndDark(t *testing.T) {
 	if !strings.Contains(css, ":root.dark {") {
 		t.Error("expected :root.dark block")
 	}
-	if !strings.Contains(css, "--fb-bg: #0f172a") {
-		t.Error("expected dark --fb-bg")
+	if !strings.Contains(css, "--sarde-bg: #0f172a") {
+		t.Error("expected dark --sarde-bg")
 	}
 }
 
@@ -46,9 +46,9 @@ func TestGenerateCSS_SortedKeys(t *testing.T) {
 	}
 	css := GenerateCSS(tokens, nil)
 
-	bgIdx := strings.Index(css, "--fb-bg")
-	primaryIdx := strings.Index(css, "--fb-primary")
-	textIdx := strings.Index(css, "--fb-text")
+	bgIdx := strings.Index(css, "--sarde-bg")
+	primaryIdx := strings.Index(css, "--sarde-primary")
+	textIdx := strings.Index(css, "--sarde-text")
 
 	if bgIdx > primaryIdx || primaryIdx > textIdx {
 		t.Error("keys should be sorted alphabetically")
@@ -72,7 +72,7 @@ func TestGenerateStyleTag(t *testing.T) {
 	if !strings.HasSuffix(s, "</style>") {
 		t.Error("expected </style> suffix")
 	}
-	if !strings.Contains(s, "--fb-primary") {
+	if !strings.Contains(s, "--sarde-primary") {
 		t.Error("expected token in style tag")
 	}
 }
@@ -102,10 +102,10 @@ func TestGenerateCSS_FullPipeline(t *testing.T) {
 
 	css := GenerateCSS(light, dark)
 
-	if !strings.Contains(css, "--fb-primary: #0ea5e9") {
+	if !strings.Contains(css, "--sarde-primary: #0ea5e9") {
 		t.Error("expected ocean primary")
 	}
-	if !strings.Contains(css, "--fb-primary-hover:") {
+	if !strings.Contains(css, "--sarde-primary-hover:") {
 		t.Error("expected derived primary-hover")
 	}
 	if !strings.Contains(css, ":root.dark {") {

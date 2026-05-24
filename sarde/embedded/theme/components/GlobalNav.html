@@ -1,5 +1,5 @@
 {{ if .GlobalNav }}
-<nav class="global-nav">
+<nav class="sarde-header-nav">
   {{ range .GlobalNav.Items }}
   <a href="{{ .URL }}"{{ if .IsActive }} class="active"{{ end }}{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}</a>
   {{ end }}

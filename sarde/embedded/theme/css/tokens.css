@@ -1,201 +1,201 @@
 @layer sarde.base {
 	/* Sarde Default Theme — Token Definitions
-	   Primitives and semantic aliases. Dynamic tokens (--fb-primary, --fb-bg, etc.)
-	   are injected via <style id="fb-theme"> from theme.yaml resolution. */
+	   Primitives and semantic aliases. Dynamic tokens (--sarde-primary, --sarde-bg, etc.)
+	   are injected via <style id="sarde-theme"> from theme.yaml resolution. */
 
 	:root {
 	  /* ── White/Black ── */
-	  --fb-white: #ffffff;
-	  --fb-black: #09090b;
+	  --sarde-white: #ffffff;
+	  --sarde-black: #09090b;
 
 	  /* ── Gray Scale ── */
-	  --fb-gray-1: #fafafa;
-	  --fb-gray-2: #f4f4f5;
-	  --fb-gray-3: #e4e4e7;
-	  --fb-gray-4: #a1a1aa;
-	  --fb-gray-5: #71717a;
-	  --fb-gray-6: #52525b;
-	  --fb-gray-7: #3f3f46;
-	  --fb-gray-8: #27272a;
-	  --fb-gray-9: #18181b;
+	  --sarde-gray-1: #fafafa;
+	  --sarde-gray-2: #f4f4f5;
+	  --sarde-gray-3: #e4e4e7;
+	  --sarde-gray-4: #a1a1aa;
+	  --sarde-gray-5: #71717a;
+	  --sarde-gray-6: #52525b;
+	  --sarde-gray-7: #3f3f46;
+	  --sarde-gray-8: #27272a;
+	  --sarde-gray-9: #18181b;
 
 	  /* ── Status Hues ── */
-	  --fb-hue-green: 150;
-	  --fb-hue-amber: 38;
-	  --fb-hue-red: 0;
-	  --fb-hue-cyan: 185;
+	  --sarde-hue-green: 150;
+	  --sarde-hue-amber: 38;
+	  --sarde-hue-red: 0;
+	  --sarde-hue-cyan: 185;
 
-	  --fb-green: hsl(var(--fb-hue-green), 60%, 40%);
-	  --fb-green-low: hsl(var(--fb-hue-green), 50%, 92%);
-	  --fb-green-high: hsl(var(--fb-hue-green), 70%, 50%);
-	  --fb-amber: hsl(var(--fb-hue-amber), 90%, 50%);
-	  --fb-amber-low: hsl(var(--fb-hue-amber), 90%, 92%);
-	  --fb-amber-high: hsl(var(--fb-hue-amber), 90%, 55%);
-	  --fb-red: hsl(var(--fb-hue-red), 70%, 50%);
-	  --fb-red-low: hsl(var(--fb-hue-red), 70%, 94%);
-	  --fb-red-high: hsl(var(--fb-hue-red), 80%, 60%);
-	  --fb-blue: #3b82f6;
-	  --fb-blue-low: #eff6ff;
-	  --fb-blue-high: #60a5fa;
-	  --fb-purple: #8b5cf6;
-	  --fb-purple-low: #f5f3ff;
-	  --fb-purple-high: #a78bfa;
+	  --sarde-green: hsl(var(--sarde-hue-green), 60%, 40%);
+	  --sarde-green-low: hsl(var(--sarde-hue-green), 50%, 92%);
+	  --sarde-green-high: hsl(var(--sarde-hue-green), 70%, 50%);
+	  --sarde-amber: hsl(var(--sarde-hue-amber), 90%, 50%);
+	  --sarde-amber-low: hsl(var(--sarde-hue-amber), 90%, 92%);
+	  --sarde-amber-high: hsl(var(--sarde-hue-amber), 90%, 55%);
+	  --sarde-red: hsl(var(--sarde-hue-red), 70%, 50%);
+	  --sarde-red-low: hsl(var(--sarde-hue-red), 70%, 94%);
+	  --sarde-red-high: hsl(var(--sarde-hue-red), 80%, 60%);
+	  --sarde-blue: #3b82f6;
+	  --sarde-blue-low: #eff6ff;
+	  --sarde-blue-high: #60a5fa;
+	  --sarde-purple: #8b5cf6;
+	  --sarde-purple-low: #f5f3ff;
+	  --sarde-purple-high: #a78bfa;
 
 	  /* ── Extended Hues ── */
-	  --fb-hue-blue: 217;
-	  --fb-hue-indigo: 245;
-	  --fb-hue-purple: 270;
-	  --fb-cyan: hsl(var(--fb-hue-cyan), 70%, 40%);
-	  --fb-cyan-low: hsl(var(--fb-hue-cyan), 50%, 92%);
-	  --fb-cyan-high: hsl(var(--fb-hue-cyan), 80%, 50%);
-	  --fb-indigo: hsl(var(--fb-hue-indigo), 65%, 55%);
-	  --fb-indigo-low: hsl(var(--fb-hue-indigo), 50%, 94%);
-	  --fb-indigo-high: hsl(var(--fb-hue-indigo), 75%, 65%);
+	  --sarde-hue-blue: 217;
+	  --sarde-hue-indigo: 245;
+	  --sarde-hue-purple: 270;
+	  --sarde-cyan: hsl(var(--sarde-hue-cyan), 70%, 40%);
+	  --sarde-cyan-low: hsl(var(--sarde-hue-cyan), 50%, 92%);
+	  --sarde-cyan-high: hsl(var(--sarde-hue-cyan), 80%, 50%);
+	  --sarde-indigo: hsl(var(--sarde-hue-indigo), 65%, 55%);
+	  --sarde-indigo-low: hsl(var(--sarde-hue-indigo), 50%, 94%);
+	  --sarde-indigo-high: hsl(var(--sarde-hue-indigo), 75%, 65%);
 
 	  /* ── Semantic Text ── */
-	  --fb-text: var(--fb-gray-9);
-	  --fb-text-muted: var(--fb-gray-6);
-	  --fb-text-subtle: var(--fb-gray-5);
-	  --fb-text-accent: var(--fb-primary, #6366f1);
-	  --fb-text-invert: var(--fb-white);
+	  --sarde-text: var(--sarde-gray-9);
+	  --sarde-text-muted: var(--sarde-gray-6);
+	  --sarde-text-subtle: var(--sarde-gray-5);
+	  --sarde-text-accent: var(--sarde-primary, #6366f1);
+	  --sarde-text-invert: var(--sarde-white);
 
 	  /* ── Semantic Backgrounds ── */
-	  --fb-bg: var(--fb-white);
-	  --fb-bg-surface: var(--fb-gray-1);
-	  --fb-bg-inline-code: var(--fb-gray-2);
-	  --fb-bg-accent: var(--fb-primary, #6366f1);
-	  --fb-bg-accent-subtle: var(--fb-primary-low, rgba(99, 102, 241, 0.1));
-	  --fb-hover: var(--fb-gray-2);
+	  --sarde-bg: var(--sarde-white);
+	  --sarde-bg-surface: var(--sarde-gray-1);
+	  --sarde-bg-inline-code: var(--sarde-gray-2);
+	  --sarde-bg-accent: var(--sarde-primary, #6366f1);
+	  --sarde-bg-accent-subtle: var(--sarde-primary-low, rgba(99, 102, 241, 0.1));
+	  --sarde-hover: var(--sarde-gray-2);
 
 	  /* ── Semantic Borders ── */
-	  --fb-border: var(--fb-gray-3);
-	  --fb-border-muted: var(--fb-gray-3);
-	  --fb-border-accent: var(--fb-primary, #6366f1);
-	  --fb-hairline: color-mix(in srgb, var(--fb-gray-5) 20%, transparent);
+	  --sarde-border: var(--sarde-gray-3);
+	  --sarde-border-muted: var(--sarde-gray-3);
+	  --sarde-border-accent: var(--sarde-primary, #6366f1);
+	  --sarde-hairline: color-mix(in srgb, var(--sarde-gray-5) 20%, transparent);
 
 	  /* ── Interactive ── */
-	  --fb-focus-ring: var(--fb-primary, #6366f1);
+	  --sarde-focus-ring: var(--sarde-primary, #6366f1);
 
 	  /* ── Typography ── */
-	  --fb-font-sans: var(--fb-font-sans, 'Inter', system-ui, -apple-system, sans-serif);
-	  --fb-font-mono: var(--fb-font-mono, 'JetBrains Mono', ui-monospace, monospace);
+	  --sarde-font-sans: var(--sarde-font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+	  --sarde-font-mono: var(--sarde-font-mono, 'JetBrains Mono', ui-monospace, monospace);
 
-	  --fb-text-xs: 0.75rem;
-	  --fb-text-sm: 0.875rem;
-	  --fb-text-base: 1rem;
-	  --fb-text-lg: 1.125rem;
-	  --fb-text-xl: 1.25rem;
-	  --fb-text-2xl: 1.5rem;
-	  --fb-text-3xl: 1.875rem;
-	  --fb-text-4xl: 2.25rem;
+	  --sarde-text-xs: 0.75rem;
+	  --sarde-text-sm: 0.875rem;
+	  --sarde-text-base: 1rem;
+	  --sarde-text-lg: 1.125rem;
+	  --sarde-text-xl: 1.25rem;
+	  --sarde-text-2xl: 1.5rem;
+	  --sarde-text-3xl: 1.875rem;
+	  --sarde-text-4xl: 2.25rem;
 
-	  --fb-line-height: 1.75;
-	  --fb-line-height-headings: 1.2;
-	  --fb-weight-normal: 400;
-	  --fb-weight-medium: 500;
-	  --fb-weight-semibold: 600;
-	  --fb-weight-bold: 700;
+	  --sarde-line-height: 1.75;
+	  --sarde-line-height-headings: 1.2;
+	  --sarde-weight-normal: 400;
+	  --sarde-weight-medium: 500;
+	  --sarde-weight-semibold: 600;
+	  --sarde-weight-bold: 700;
 
 	  /* ── Spacing ── */
-	  --fb-space-1: 0.25rem;
-	  --fb-space-2: 0.5rem;
-	  --fb-space-3: 0.75rem;
-	  --fb-space-4: 1rem;
-	  --fb-space-5: 1.25rem;
-	  --fb-space-6: 1.5rem;
-	  --fb-space-8: 2rem;
-	  --fb-space-10: 2.5rem;
-	  --fb-space-12: 3rem;
+	  --sarde-space-1: 0.25rem;
+	  --sarde-space-2: 0.5rem;
+	  --sarde-space-3: 0.75rem;
+	  --sarde-space-4: 1rem;
+	  --sarde-space-5: 1.25rem;
+	  --sarde-space-6: 1.5rem;
+	  --sarde-space-8: 2rem;
+	  --sarde-space-10: 2.5rem;
+	  --sarde-space-12: 3rem;
 
 	  /* ── Radius ── */
-	  --fb-radius-sm: 0.25rem;
-	  --fb-radius-md: var(--fb-radius, 0.375rem);
-	  --fb-radius-lg: 0.5rem;
-	  --fb-radius-xl: 0.75rem;
-	  --fb-radius-full: 9999px;
+	  --sarde-radius-sm: 0.25rem;
+	  --sarde-radius-md: var(--sarde-radius, 0.375rem);
+	  --sarde-radius-lg: 0.5rem;
+	  --sarde-radius-xl: 0.75rem;
+	  --sarde-radius-full: 9999px;
 
 	  /* ── Layout ── */
-	  --fb-nav-height: 4rem;
-	  --fb-sidebar-width: 280px;
-	  --fb-toc-width: 240px;
-	  --fb-content-width: 768px;
+	  --sarde-nav-height: 4rem;
+	  --sarde-sidebar-width: 280px;
+	  --sarde-toc-width: 240px;
+	  --sarde-content-width: 768px;
 
 	  /* ── Z-index ── */
-	  --fb-z-header: 20;
-	  --fb-z-sidebar: 30;
-	  --fb-z-overlay: 40;
-	  --fb-z-modal: 50;
-	  --fb-z-toast: 400;
+	  --sarde-z-header: 20;
+	  --sarde-z-sidebar: 30;
+	  --sarde-z-overlay: 40;
+	  --sarde-z-modal: 50;
+	  --sarde-z-toast: 400;
 
 	  /* ── Transitions ── */
-	  --fb-transition-fast: 150ms ease;
-	  --fb-transition-normal: 200ms ease;
-	  --fb-duration-100: 100ms;
-	  --fb-duration-150: 150ms;
-	  --fb-duration-200: 200ms;
-	  --fb-duration-700: 700ms;
-	  --fb-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
-	  --fb-ease-out: cubic-bezier(0, 0, 0.2, 1);
+	  --sarde-transition-fast: 150ms ease;
+	  --sarde-transition-normal: 200ms ease;
+	  --sarde-duration-100: 100ms;
+	  --sarde-duration-150: 150ms;
+	  --sarde-duration-200: 200ms;
+	  --sarde-duration-700: 700ms;
+	  --sarde-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+	  --sarde-ease-out: cubic-bezier(0, 0, 0.2, 1);
 
 	  /* ── Shadows ── */
-	  --fb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-	  --fb-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-	  --fb-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+	  --sarde-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+	  --sarde-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+	  --sarde-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 
 	  /* ── Code ── */
-	  --fb-code-bg: var(--fb-bg-surface);
-	  --fb-code-text: var(--fb-text);
-	  --fb-code-border: var(--fb-border);
-	  --fb-code-font: var(--fb-font-mono);
-	  --fb-code-font-size: var(--fb-text-sm);
-	  --fb-code-line-height: 1.7;
-	  --fb-code-padding: var(--fb-space-4);
-	  --fb-code-radius: var(--fb-radius-lg);
+	  --sarde-code-bg: var(--sarde-bg-surface);
+	  --sarde-code-text: var(--sarde-text);
+	  --sarde-code-border: var(--sarde-border);
+	  --sarde-code-font: var(--sarde-font-mono);
+	  --sarde-code-font-size: var(--sarde-text-sm);
+	  --sarde-code-line-height: 1.7;
+	  --sarde-code-padding: var(--sarde-space-4);
+	  --sarde-code-radius: var(--sarde-radius-lg);
 
 	  /* ── Additional Shadows ── */
-	  --fb-shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.04);
-	  --fb-shadow-accent: 0 4px 14px -2px rgba(99, 102, 241, 0.25);
+	  --sarde-shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.04);
+	  --sarde-shadow-accent: 0 4px 14px -2px rgba(99, 102, 241, 0.25);
 
 	  /* ── Additional Transitions ── */
-	  --fb-transition-slow: 300ms ease;
+	  --sarde-transition-slow: 300ms ease;
 
 	  /* ── Easing ── */
-	  --fb-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+	  --sarde-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 
 	  /* ── Motion / Transform Presets ── */
-	  --fb-motion-lift: translateY(-2px);
-	  --fb-motion-lift-lg: translateY(-4px);
-	  --fb-motion-scale-sm: scale(1.02);
+	  --sarde-motion-lift: translateY(-2px);
+	  --sarde-motion-lift-lg: translateY(-4px);
+	  --sarde-motion-scale-sm: scale(1.02);
 
 	  /* ── Glass ── */
-	  --fb-glass-bg: rgba(255, 255, 255, 0.8);
-	  --fb-glass-blur: 12px;
-	  --fb-glass-border: rgba(255, 255, 255, 0.2);
+	  --sarde-glass-bg: rgba(255, 255, 255, 0.8);
+	  --sarde-glass-blur: 12px;
+	  --sarde-glass-border: rgba(255, 255, 255, 0.2);
 
 	  /* ── Typography Extras ── */
-	  --fb-tracking-tight: -0.025em;
-	  --fb-tracking-wide: 0.05em;
-	  --fb-line-height-relaxed: 1.8;
+	  --sarde-tracking-tight: -0.025em;
+	  --sarde-tracking-wide: 0.05em;
+	  --sarde-line-height-relaxed: 1.8;
 
 	  /* ── Z-index Extras ── */
-	  --fb-z-sticky: 10;
+	  --sarde-z-sticky: 10;
 
 	  /* ── Code Button ── */
-	  --fb-code-btn-size: 2rem;
-	  --fb-code-btn-bg: transparent;
-	  --fb-code-btn-text: var(--fb-text-muted);
-	  --fb-code-btn-bg-hover: var(--fb-hover);
-	  --fb-code-btn-text-hover: var(--fb-text);
+	  --sarde-code-btn-size: 2rem;
+	  --sarde-code-btn-bg: transparent;
+	  --sarde-code-btn-text: var(--sarde-text-muted);
+	  --sarde-code-btn-bg-hover: var(--sarde-hover);
+	  --sarde-code-btn-text-hover: var(--sarde-text);
 
 	  /* ── Asides ── */
-	  --fb-aside-note: var(--fb-blue);
-	  --fb-aside-note-bg: var(--fb-blue-low);
-	  --fb-aside-tip: var(--fb-green);
-	  --fb-aside-tip-bg: var(--fb-green-low);
-	  --fb-aside-caution: var(--fb-amber);
-	  --fb-aside-caution-bg: var(--fb-amber-low);
-	  --fb-aside-danger: var(--fb-red);
-	  --fb-aside-danger-bg: var(--fb-red-low);
+	  --sarde-aside-note: var(--sarde-blue);
+	  --sarde-aside-note-bg: var(--sarde-blue-low);
+	  --sarde-aside-tip: var(--sarde-green);
+	  --sarde-aside-tip-bg: var(--sarde-green-low);
+	  --sarde-aside-caution: var(--sarde-amber);
+	  --sarde-aside-caution-bg: var(--sarde-amber-low);
+	  --sarde-aside-danger: var(--sarde-red);
+	  --sarde-aside-danger-bg: var(--sarde-red-low);
 	}
 
 }

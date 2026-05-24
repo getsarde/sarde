@@ -31,13 +31,13 @@ func TestBuildGlobalNav_Basic(t *testing.T) {
 		t.Errorf("item 0: got %q", nav.Items[0].Label)
 	}
 	if nav.Items[0].IsActive {
-		t.Error("blog should not be active")
+		t.Error("blog should not be is-active")
 	}
 	if nav.Items[1].Label != "Documentation" {
 		t.Errorf("item 1: got %q", nav.Items[1].Label)
 	}
 	if !nav.Items[1].IsActive {
-		t.Error("docs should be active")
+		t.Error("docs should be is-active")
 	}
 }
 
@@ -53,7 +53,7 @@ func TestBuildGlobalNav_NilCurrentCollection(t *testing.T) {
 		t.Fatal("expected non-nil")
 	}
 	if nav.Items[0].IsActive {
-		t.Error("no collection should be active")
+		t.Error("no collection should be is-active")
 	}
 }
 

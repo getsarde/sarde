@@ -1,5 +1,5 @@
 {{ define "content" }}
-<div class="home">
+<div class="sarde-home">
   {{ if .Homepage }}
     {{ if eq .Homepage.Template "catalog" }}
       {{ partial "home-catalog.html" . }}
@@ -22,12 +22,12 @@
     {{ partial "home-hero.html" . }}
   {{ end }}
   {{ if and .Page.Content (not .Homepage) }}
-  <div class="home-content">
+  <div class="sarde-home-content">
     {{ .Page.Content }}
   </div>
   {{ else if and .Page.Content .Homepage }}
     {{ if not (or (eq .Homepage.Template "portfolio") (eq .Homepage.Template "landing") (eq .Homepage.Template "marketing") (eq .Homepage.Template "blog")) }}
-    <div class="home-content">
+    <div class="sarde-home-content">
       {{ .Page.Content }}
     </div>
     {{ end }}

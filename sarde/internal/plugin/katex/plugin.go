@@ -82,7 +82,7 @@ func buildDone(ctx *plugin.BuildDoneContext) error {
 }
 
 func needsKatex(content string) bool {
-	return strings.Contains(content, `class="math`)
+	return strings.Contains(content, `class="sarde-math`)
 }
 
 func appendUnique(list []string, item string) []string {

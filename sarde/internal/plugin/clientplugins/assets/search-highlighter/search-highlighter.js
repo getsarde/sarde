@@ -126,7 +126,7 @@ function highlightTerms(container, terms) {
             }
             // Wrap the match in <mark>
             var mark = document.createElement('mark');
-            mark.className = 'search-hl';
+            mark.className = 'sarde-search-hl';
             mark.textContent = match[0];
             if (config.highlightColor) {
                 mark.style.backgroundColor = config.highlightColor;
@@ -174,7 +174,7 @@ function goToMatch(index) {
 
 function updateBadgeCount() {
     if (!badge) return;
-    var countEl = badge.querySelector('.search-hl-badge__count');
+    var countEl = badge.querySelector('.sarde-search-hl-badge-count');
     if (!countEl) return;
 
     if (currentIndex >= 0) {
@@ -238,7 +238,7 @@ function createBadge() {
     badge.appendChild(dismiss);
 
     // Insert at the top of the content area (before the prose div)
-    var content = document.querySelector('article.fb-markdown-content');
+    var content = document.querySelector('article.sarde-markdown-content');
     if (content && content.parentNode) {
         content.parentNode.insertBefore(badge, content);
     } else {
@@ -258,7 +258,7 @@ function init() {
     var query = getSearchQuery();
     if (!query) return;
 
-    var container = document.querySelector('article.fb-markdown-content');
+    var container = document.querySelector('article.sarde-markdown-content');
     if (!container) return;
 
     // Split query into terms, filter out single-char terms

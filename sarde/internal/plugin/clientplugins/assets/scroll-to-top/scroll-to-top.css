@@ -1,4 +1,4 @@
-.scroll-to-top {
+.sarde-scroll-to-top {
     position: fixed;
     bottom: 40px;
     inset-inline-end: 35px;
@@ -6,10 +6,10 @@
     width: 47px;
     height: 47px;
     box-sizing: border-box;
-    border: 1px solid var(--fb-border-accent, var(--fb-blue));
+    border: 1px solid var(--sarde-border-accent, var(--sarde-blue));
     border-radius: 15%;
-    background-color: var(--fb-bg-accent, var(--fb-blue));
-    color: var(--fb-text-invert, #fff);
+    background-color: var(--sarde-bg-accent, var(--sarde-blue));
+    color: var(--sarde-text-invert, #fff);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -19,36 +19,36 @@
     transform: scale(0);
     transform-origin: center;
     transition: opacity 0.3s ease, visibility 0.3s ease, background-color 0.3s ease, transform 0.3s ease, color 0.3s ease;
-    box-shadow: var(--fb-shadow-md, 0 4px 6px -1px rgba(0,0,0,0.08));
+    box-shadow: var(--sarde-shadow-md, 0 4px 6px -1px rgba(0,0,0,0.08));
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
 }
 
-.scroll-to-top.visible {
+.sarde-scroll-to-top.visible {
     opacity: 1;
     visibility: visible;
     transform: scale(1);
 }
 
-.scroll-to-top:hover {
-    background-color: var(--fb-bg-accent-subtle, var(--fb-blue-low));
-    color: var(--fb-text-accent, var(--fb-blue));
-    border-color: var(--fb-border-accent, var(--fb-blue));
-    box-shadow: var(--fb-shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.08));
+.sarde-scroll-to-top:hover {
+    background-color: var(--sarde-bg-accent-subtle, var(--sarde-blue-low));
+    color: var(--sarde-text-accent, var(--sarde-blue));
+    border-color: var(--sarde-border-accent, var(--sarde-blue));
+    box-shadow: var(--sarde-shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.08));
 }
 
-.scroll-to-top:active {
-    background-color: var(--fb-blue-high);
-    color: var(--fb-text-invert, #fff);
+.sarde-scroll-to-top:active {
+    background-color: var(--sarde-blue-high);
+    color: var(--sarde-text-invert, #fff);
     transition: background-color 0.1s ease, transform 0.1s ease;
 }
 
-.scroll-to-top.keyboard-focus {
-    outline: var(--fb-focus-ring-width, 2px) solid var(--fb-focus-ring, var(--fb-blue));
-    outline-offset: var(--fb-focus-ring-offset, 2px);
+.sarde-scroll-to-top.keyboard-focus {
+    outline: var(--sarde-focus-ring-width, 2px) solid var(--sarde-focus-ring, var(--sarde-blue));
+    outline-offset: var(--sarde-focus-ring-offset, 2px);
 }
 
-.scroll-to-top svg:not(.scroll-progress-ring) {
+.sarde-scroll-to-top svg:not(.sarde-scroll-progress-ring) {
     width: 35px;
     height: 35px;
     fill: none;
@@ -61,16 +61,16 @@
 }
 
 /* Tooltip */
-.scroll-to-top-tooltip {
+.sarde-scroll-to-top-tooltip {
     position: absolute;
     inset-inline-end: -22px;
     top: -47px;
-    background-color: var(--fb-gray-7, #1e293b);
-    color: var(--fb-text-invert, #fff);
+    background-color: var(--sarde-gray-7, #1e293b);
+    color: var(--sarde-text-invert, #fff);
     padding: 5px 10px;
-    border-radius: var(--fb-radius-sm, 4px);
-    font-weight: var(--fb-weight-normal, 400);
-    font-size: var(--fb-text-sm, 14px);
+    border-radius: var(--sarde-radius-sm, 4px);
+    font-weight: var(--sarde-weight-normal, 400);
+    font-size: var(--sarde-text-sm, 14px);
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
@@ -78,12 +78,12 @@
     pointer-events: none;
 }
 
-.scroll-to-top-tooltip.visible {
+.sarde-scroll-to-top-tooltip.visible {
     opacity: 1;
     visibility: visible;
 }
 
-.scroll-to-top-tooltip-arrow {
+.sarde-scroll-to-top-tooltip-arrow {
     position: absolute;
     top: 100%;
     left: 50%;
@@ -92,20 +92,20 @@
     height: 0;
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-top: 6px solid var(--fb-gray-7, #1e293b);
+    border-top: 6px solid var(--sarde-gray-7, #1e293b);
 }
 
-:root.dark .scroll-to-top-tooltip {
-    background-color: var(--fb-gray-7);
-    color: var(--fb-gray-1);
+:root.dark .sarde-scroll-to-top-tooltip {
+    background-color: var(--sarde-gray-7);
+    color: var(--sarde-gray-1);
 }
 
-:root.dark .scroll-to-top-tooltip-arrow {
-    border-top-color: var(--fb-gray-7);
+:root.dark .sarde-scroll-to-top-tooltip-arrow {
+    border-top-color: var(--sarde-gray-7);
 }
 
 /* Progress ring */
-.scroll-progress-ring {
+.sarde-scroll-progress-ring {
     pointer-events: none;
     position: absolute;
     top: 0;
@@ -114,12 +114,12 @@
     height: 100%;
 }
 
-.scroll-progress-track {
+.sarde-scroll-progress-track {
     stroke: var(--scroll-progress-color, currentColor);
     opacity: 0.2;
 }
 
-.scroll-progress-circle {
+.sarde-scroll-progress-circle {
     stroke: var(--scroll-progress-color, currentColor);
     stroke-dasharray: 138.23;
     stroke-dashoffset: 138.23;
@@ -128,21 +128,21 @@
 
 /* Mobile */
 @media (max-width: 768px) {
-    .scroll-to-top {
+    .sarde-scroll-to-top {
         bottom: 1.25rem;
         inset-inline-end: 1.25rem;
         width: 40px;
         height: 40px;
     }
 
-    .scroll-to-top svg {
+    .sarde-scroll-to-top svg {
         width: 28px;
         height: 28px;
     }
 }
 
 @media print {
-    .scroll-to-top {
+    .sarde-scroll-to-top {
         display: none !important;
     }
 }

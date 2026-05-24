@@ -10,7 +10,7 @@
     }, 1500);
   }
   document.addEventListener('click', function (e) {
-    var btn = e.target.closest && e.target.closest('.copy-btn');
+    var btn = e.target.closest && e.target.closest('.sarde-copy-btn');
     if (!btn) return;
     var code = btn.getAttribute('data-code') || '';
     if (navigator.clipboard && navigator.clipboard.writeText) {

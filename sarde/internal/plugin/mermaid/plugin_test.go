@@ -14,7 +14,7 @@ func TestBeforeRender_InjectsOnMermaidContent(t *testing.T) {
 	p := New(nil)
 	rd := &engine.RouteData{}
 	ctx := &plugin.BeforeRenderContext{
-		Page:      &engine.Page{Content: template.HTML(`<pre class="mermaid">graph TD</pre>`)},
+		Page:      &engine.Page{Content: template.HTML(`<pre class="sarde-mermaid">graph TD</pre>`)},
 		RouteData: rd,
 	}
 	if err := p.Hooks.BeforeRender(ctx); err != nil {

@@ -36,12 +36,12 @@ type Badge struct {
 
 func (b Badge) IsEmpty() bool { return b.Text == "" }
 
-// CSSClass returns the CSS class for the badge variant (e.g. "badge-tip").
+// CSSClass returns the CSS class for the badge variant (e.g. "sarde-badge-tip").
 func (b Badge) CSSClass() string {
 	if b.Variant == "" {
-		return "badge-default"
+		return "sarde-badge-default"
 	}
-	return "badge-" + string(b.Variant)
+	return "sarde-badge-" + string(b.Variant)
 }
 
 func (b *Badge) UnmarshalYAML(value *yaml.Node) error {

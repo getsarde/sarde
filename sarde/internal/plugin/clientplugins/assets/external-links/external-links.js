@@ -74,7 +74,7 @@ function processLinks(container) {
 
 // Process links in the main content area.
 function init() {
-    const content = document.querySelector('article.fb-markdown-content');
+    const content = document.querySelector('article.sarde-markdown-content');
     if (content) {
         processLinks(content);
     }

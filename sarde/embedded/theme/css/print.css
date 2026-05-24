@@ -3,20 +3,20 @@
 
 	@media print {
 	  /* Hide non-content elements */
-	  .docs-sidebar, .site-header, .docs-toc, .mobile-toc,
-	  .search-modal, .search-trigger, .theme-toggle,
+	  .sarde-sidebar, .sarde-header, .sarde-toc, .sarde-mobile-toc,
+	  .sarde-search-modal, .sarde-search-trigger, .sarde-theme-toggle,
 	  .copy-btn, .heading-anchor, .mobile-menu-toggle,
-	  .docs-menu-toggle, .docs-sidebar-backdrop,
-	  .docs-sidebar-footer, .sidebar-mobile-nav,
-	  .spoiler-toggle, .skip-link, .pagination,
+	  .sarde-menu-toggle, .sarde-sidebar-backdrop,
+	  .sarde-sidebar-footer, .sarde-mobile-nav,
+	  .spoiler-toggle, .sarde-skip-link, .sarde-pagination,
 	  .post-navigation, .blog-pagination,
 	  .header, .navbar, .footer { display: none !important; }
 
 	  /* Full-width content */
-	  .docs-main { padding-inline-start: 0 !important; }
-	  .docs-content { max-width: none !important; }
-	  .docs-content-area { padding: 0 !important; }
-	  .docs-content-grid { display: block !important; }
+	  .sarde-main-frame { padding-inline-start: 0 !important; }
+	  .sarde-content-panel { max-width: none !important; }
+	  .sarde-content-area { padding: 0 !important; }
+	  .sarde-content-grid { display: block !important; }
 	  body { font-size: 12pt; line-height: 1.6; color: #000; background: #fff; }
 
 	  /* Typography */

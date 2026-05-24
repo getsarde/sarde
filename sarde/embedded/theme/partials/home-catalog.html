@@ -1,10 +1,10 @@
-<section class="catalog">
-  <h1 class="catalog-title">{{ .Site.Title }}</h1>
+<section class="sarde-catalog">
+  <h1 class="sarde-catalog-title">{{ .Site.Title }}</h1>
   {{ $cols := allCollections }}
   {{ if $cols }}
-  <div class="catalog-grid">
+  <div class="sarde-catalog-grid">
     {{ range $name, $col := $cols }}
-    <div class="catalog-card">
+    <div class="sarde-catalog-card">
       <h2><a href="/{{ $name }}/">{{ $col.Title }}</a></h2>
       {{ if and $col.IndexPage $col.IndexPage.Description }}<p>{{ $col.IndexPage.Description }}</p>{{ end }}
       {{ $recent := recentEntries $name 3 }}

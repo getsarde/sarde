@@ -15,7 +15,7 @@ func TestBeforeRender_InjectsOnMathContent(t *testing.T) {
 	rd := &engine.RouteData{}
 	ctx := &plugin.BeforeRenderContext{
 		Page: &engine.Page{
-			Content: template.HTML(`<p class="math display">x^2</p>`),
+			Content: template.HTML(`<p class="sarde-math display">x^2</p>`),
 		},
 		RouteData: rd,
 	}

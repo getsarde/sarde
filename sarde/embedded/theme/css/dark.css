@@ -1,45 +1,45 @@
 @layer sarde.reset {
 	/* Sarde Default Theme — Dark Mode Overrides
 	   Token-based dark mode swaps are handled by :root.dark in the generated
-	   <style id="fb-theme"> block. This file handles non-token overrides. */
+	   <style id="sarde-theme"> block. This file handles non-token overrides. */
 
 	:root.dark {
 	  /* ── Semantic Remaps ── */
-	  --fb-text: var(--fb-gray-3);
-	  --fb-text-muted: var(--fb-gray-4);
-	  --fb-text-subtle: var(--fb-gray-5);
-	  --fb-text-accent: var(--fb-primary-high, var(--fb-primary, #818cf8));
-	  --fb-text-invert: var(--fb-black);
+	  --sarde-text: var(--sarde-gray-3);
+	  --sarde-text-muted: var(--sarde-gray-4);
+	  --sarde-text-subtle: var(--sarde-gray-5);
+	  --sarde-text-accent: var(--sarde-primary-high, var(--sarde-primary, #818cf8));
+	  --sarde-text-invert: var(--sarde-black);
 
-	  --fb-bg: var(--fb-black);
-	  --fb-bg-surface: var(--fb-gray-9);
-	  --fb-bg-inline-code: var(--fb-gray-8);
-	  --fb-bg-accent-subtle: var(--fb-primary-low, rgba(99, 102, 241, 0.15));
-	  --fb-hover: var(--fb-gray-8);
+	  --sarde-bg: var(--sarde-black);
+	  --sarde-bg-surface: var(--sarde-gray-9);
+	  --sarde-bg-inline-code: var(--sarde-gray-8);
+	  --sarde-bg-accent-subtle: var(--sarde-primary-low, rgba(99, 102, 241, 0.15));
+	  --sarde-hover: var(--sarde-gray-8);
 
-	  --fb-border: var(--fb-gray-8);
-	  --fb-border-muted: var(--fb-gray-7);
-	  --fb-border-accent: var(--fb-primary-high, var(--fb-primary, #818cf8));
-	  --fb-hairline: var(--fb-gray-8);
+	  --sarde-border: var(--sarde-gray-8);
+	  --sarde-border-muted: var(--sarde-gray-7);
+	  --sarde-border-accent: var(--sarde-primary-high, var(--sarde-primary, #818cf8));
+	  --sarde-hairline: var(--sarde-gray-8);
 
-	  --fb-code-bg: var(--fb-gray-9);
-	  --fb-code-border: var(--fb-gray-7);
+	  --sarde-code-bg: var(--sarde-gray-9);
+	  --sarde-code-border: var(--sarde-gray-7);
 
 	  /* ── Shadows ── */
-	  --fb-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
-	  --fb-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-	  --fb-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
-	  --fb-shadow-accent: 0 4px 14px -2px rgba(129, 140, 248, 0.2);
+	  --sarde-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+	  --sarde-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+	  --sarde-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
+	  --sarde-shadow-accent: 0 4px 14px -2px rgba(129, 140, 248, 0.2);
 
 	  /* ── Glass ── */
-	  --fb-glass-bg: rgba(0, 0, 0, 0.6);
-	  --fb-glass-border: rgba(255, 255, 255, 0.08);
+	  --sarde-glass-bg: rgba(0, 0, 0, 0.6);
+	  --sarde-glass-border: rgba(255, 255, 255, 0.08);
 
 	  /* ── Dark aside variants ── */
-	  --fb-aside-note-bg: rgba(59, 130, 246, 0.1);
-	  --fb-aside-tip-bg: rgba(34, 197, 94, 0.1);
-	  --fb-aside-caution-bg: rgba(245, 158, 11, 0.1);
-	  --fb-aside-danger-bg: rgba(239, 68, 68, 0.1);
+	  --sarde-aside-note-bg: rgba(59, 130, 246, 0.1);
+	  --sarde-aside-tip-bg: rgba(34, 197, 94, 0.1);
+	  --sarde-aside-caution-bg: rgba(245, 158, 11, 0.1);
+	  --sarde-aside-danger-bg: rgba(239, 68, 68, 0.1);
 
 	  color-scheme: dark;
 	}

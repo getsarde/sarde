@@ -1,17 +1,17 @@
 {{ if .Translations }}
-<div class="lang-switcher" data-lang-switcher>
-  <button class="lang-switcher-trigger" data-lang-switcher-trigger
+<div class="sarde-lang-switcher" data-lang-switcher>
+  <button class="sarde-lang-switcher-trigger" data-lang-switcher-trigger
     aria-expanded="false" aria-haspopup="true" aria-label="{{ t "nav.language" }}">
-    <span class="lang-switcher-current" lang="{{ .Lang }}" dir="{{ .Dir }}">{{ (index .Translations 0).Name }}</span>
-    <svg class="lang-switcher-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <span class="sarde-lang-switcher-current" lang="{{ .Lang }}" dir="{{ .Dir }}">{{ (index .Translations 0).Name }}</span>
+    <svg class="sarde-lang-switcher-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
   </button>
-  <ul class="lang-switcher-menu" data-lang-switcher-menu hidden role="menu">
+  <ul class="sarde-lang-switcher-menu" data-lang-switcher-menu hidden role="menu">
     {{ range .Translations }}
     <li role="none">
       <a href="{{ .URL }}" role="menuitem" lang="{{ .Lang }}" dir="{{ .Dir }}"
-        class="lang-switcher-option{{ if eq .Lang $.Lang }} is-active{{ end }}{{ if .IsFallback }} is-fallback{{ end }}"
+        class="sarde-lang-switcher-option{{ if eq .Lang $.Lang }} is-active{{ end }}{{ if .IsFallback }} is-fallback{{ end }}"
         {{ if eq .Lang $.Lang }}aria-current="true"{{ end }}>
-        <span class="lang-switcher-name">{{ .Name }}</span>
+        <span class="sarde-lang-switcher-name">{{ .Name }}</span>
       </a>
     </li>
     {{ end }}

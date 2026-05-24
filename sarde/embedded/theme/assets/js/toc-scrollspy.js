@@ -1,5 +1,5 @@
 (function () {
-  var tocLinks = document.querySelectorAll('.toc a');
+  var tocLinks = document.querySelectorAll('.sarde-toc-nav a');
   if (tocLinks.length === 0) return;
 
   var headingIds = [];
@@ -11,9 +11,9 @@
   var observer = new IntersectionObserver(function (entries) {
     entries.forEach(function (entry) {
       if (entry.isIntersecting) {
-        tocLinks.forEach(function (link) { link.classList.remove('active'); });
-        var active = document.querySelector('.toc a[href="#' + entry.target.id + '"]');
-        if (active) active.classList.add('active');
+        tocLinks.forEach(function (link) { link.classList.remove('is-active'); });
+        var active = document.querySelector('.sarde-toc-nav a[href="#' + entry.target.id + '"]');
+        if (active) active.classList.add('is-active');
       }
     });
   }, { rootMargin: '-80px 0px -60% 0px' });

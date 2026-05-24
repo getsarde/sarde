@@ -1,17 +1,17 @@
 {{ define "content" }}
-<div class="taxonomy-term-container">
-  <header class="taxonomy-term-header">
-    <h1 class="taxonomy-term-title">
-      {{ if .TaxonomyTerm.Icon }}<span class="term-icon">{{ .TaxonomyTerm.Icon }}</span> {{ end }}{{ .TaxonomyTerm.Label }}
+<div class="sarde-taxonomy-term-container">
+  <header class="sarde-taxonomy-term-header">
+    <h1 class="sarde-taxonomy-term-title">
+      {{ if .TaxonomyTerm.Icon }}<span class="sarde-term-icon">{{ .TaxonomyTerm.Icon }}</span> {{ end }}{{ .TaxonomyTerm.Label }}
     </h1>
     {{ if .TaxonomyTerm.Description }}
-    <p class="taxonomy-term-description">{{ .TaxonomyTerm.Description }}</p>
+    <p class="sarde-taxonomy-term-description">{{ .TaxonomyTerm.Description }}</p>
     {{ end }}
     {{ if .Page.Content }}
-    <div class="fb-markdown-content">{{ .Page.Content }}</div>
+    <div class="sarde-markdown-content">{{ .Page.Content }}</div>
     {{ end }}
     {{ if .Paginator }}
-    <p class="taxonomy-term-count">{{ .Paginator.TotalItems }} {{ if eq .Paginator.TotalItems 1 }}{{ t "taxonomy.post" }}{{ else }}{{ t "taxonomy.posts" }}{{ end }}</p>
+    <p class="sarde-taxonomy-term-count">{{ .Paginator.TotalItems }} {{ if eq .Paginator.TotalItems 1 }}{{ t "taxonomy.post" }}{{ else }}{{ t "taxonomy.posts" }}{{ end }}</p>
     {{ end }}
   </header>
 
@@ -34,9 +34,9 @@
 
   {{ if .Paginator }}
   <nav class="blog-pagination" aria-label="Pagination">
-    {{ if .Paginator.HasPrev }}<a class="pagination-link" href="{{ .Paginator.PrevURL }}" rel="prev">&larr; {{ t "nav.newer_posts" }}</a>{{ else }}<span></span>{{ end }}
-    <span class="pagination-info">{{ t "blog.page" }} {{ .Paginator.Current }} {{ t "blog.of" }} {{ .Paginator.Total }}</span>
-    {{ if .Paginator.HasNext }}<a class="pagination-link" href="{{ .Paginator.NextURL }}" rel="next">{{ t "nav.older_posts" }} &rarr;</a>{{ else }}<span></span>{{ end }}
+    {{ if .Paginator.HasPrev }}<a class="sarde-pagination-link" href="{{ .Paginator.PrevURL }}" rel="prev">&larr; {{ t "nav.newer_posts" }}</a>{{ else }}<span></span>{{ end }}
+    <span class="sarde-pagination-info">{{ t "blog.page" }} {{ .Paginator.Current }} {{ t "blog.of" }} {{ .Paginator.Total }}</span>
+    {{ if .Paginator.HasNext }}<a class="sarde-pagination-link" href="{{ .Paginator.NextURL }}" rel="next">{{ t "nav.older_posts" }} &rarr;</a>{{ else }}<span></span>{{ end }}
   </nav>
   {{ end }}
 </div>

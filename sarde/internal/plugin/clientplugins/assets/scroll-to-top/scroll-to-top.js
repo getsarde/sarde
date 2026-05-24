@@ -11,7 +11,7 @@ let isKeyboard = false;
 
 // Create button
 const btn = document.createElement('button');
-btn.className = 'scroll-to-top';
+btn.className = 'sarde-scroll-to-top';
 btn.style.borderRadius = BORDER_RADIUS;
 if (PROGRESS_RING_COLOR) btn.style.setProperty('--scroll-progress-color', PROGRESS_RING_COLOR);
 btn.setAttribute('aria-label', 'Scroll to top');
@@ -46,17 +46,17 @@ if (SHOW_TOOLTIP) {
 }
 
 function showTooltip() {
-    if (tooltip) tooltip.classList.add('visible');
+    if (tooltip) tooltip.classList.add('is-visible');
 }
 
 function hideTooltip() {
-    if (tooltip) tooltip.classList.remove('visible');
+    if (tooltip) tooltip.classList.remove('is-visible');
 }
 
 function doScrollToTop() {
     hideTooltip();
     window.scrollTo({ top: 0, behavior: SMOOTH_SCROLL ? 'smooth' : 'auto' });
-    btn.classList.remove('active');
+    btn.classList.remove('is-active');
 }
 
 // Throttle for scroll performance (~60fps)
@@ -80,7 +80,7 @@ function onScroll() {
 
     // Update progress ring
     if (SHOW_PROGRESS_RING) {
-        const circle = btn.querySelector('.scroll-progress-circle');
+        const circle = btn.querySelector('.sarde-scroll-progress-circle');
         if (circle) {
             const progress = Math.min(Math.max(scrollPct * 100, 0), 100);
             const circumference = 138.23;
@@ -90,9 +90,9 @@ function onScroll() {
 
     const thresholdVal = THRESHOLD >= 10 && THRESHOLD <= 99 ? THRESHOLD : 30;
     if (scrollPct > thresholdVal / 100) {
-        btn.classList.add('visible');
+        btn.classList.add('is-visible');
     } else {
-        btn.classList.remove('visible');
+        btn.classList.remove('is-visible');
     }
 }
 
@@ -116,29 +116,29 @@ btn.addEventListener('mousedown', function () { isKeyboard = false; });
 btn.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
         doScrollToTop();
-        btn.classList.remove('keyboard-focus');
+        btn.classList.remove('is-keyboard-focus');
     }
 });
 
 btn.addEventListener('focus', function () {
-    if (isKeyboard) { showTooltip(); btn.classList.add('keyboard-focus'); }
+    if (isKeyboard) { showTooltip(); btn.classList.add('is-keyboard-focus'); }
 });
 
 btn.addEventListener('blur', function () {
     hideTooltip();
-    btn.classList.remove('keyboard-focus');
+    btn.classList.remove('is-keyboard-focus');
 });
 
 // Touch handlers
 btn.addEventListener('touchstart', function (e) {
     e.preventDefault();
-    btn.classList.add('active');
+    btn.classList.add('is-active');
 }, { passive: false });
 
 btn.addEventListener('touchend', function (e) {
     e.preventDefault();
     doScrollToTop();
-    btn.classList.remove('active');
+    btn.classList.remove('is-active');
 }, { passive: false });
 
 // Tooltip hover

@@ -8,24 +8,24 @@ const config = {
 // Show a tooltip above the anchor element.
 function showTooltip(anchor) {
     // Remove any existing tooltip
-    const old = anchor.querySelector('.copy-section-tooltip');
+    const old = anchor.querySelector('.sarde-copy-section-tooltip');
     if (old) old.remove();
 
     const tip = document.createElement('span');
-    tip.className = 'copy-section-tooltip';
+    tip.className = 'sarde-copy-section-tooltip';
     tip.textContent = config.tooltipText;
     anchor.appendChild(tip);
 
     // Animate in
     requestAnimationFrame(function () {
         requestAnimationFrame(function () {
-            tip.classList.add('visible');
+            tip.classList.add('is-visible');
         });
     });
 
     // Fade out and remove
     setTimeout(function () {
-        tip.classList.remove('visible');
+        tip.classList.remove('is-visible');
         setTimeout(function () {
             tip.remove();
         }, 200);

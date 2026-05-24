@@ -39,7 +39,7 @@ function update() {
     // Fallback: Alpine's single active link
     if (firstIdx === -1) {
         for (var k = 0; k < allLinks.length; k++) {
-            if (allLinks[k].classList.contains('active')) {
+            if (allLinks[k].classList.contains('is-active')) {
                 firstIdx = k;
                 lastIdx = k;
                 break;

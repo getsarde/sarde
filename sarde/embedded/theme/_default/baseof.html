@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="{{ .Lang }}" dir="{{ .Dir }}">
 <head>
-  <script>if(localStorage.getItem('fb-theme')==='dark'||(localStorage.getItem('fb-theme')!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')</script>
+  <script>if(localStorage.getItem('sarde-theme')==='dark'||(localStorage.getItem('sarde-theme')!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')</script>
   {{ component "Head" . }}
 </head>
-<body class="layout-{{ .Layout }}">
+<body class="sarde-layout-{{ .Layout }}">
   {{ component "Header" . }}
   <main>
     {{ component "FallbackNotice" . }}

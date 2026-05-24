@@ -64,7 +64,7 @@ function resolveBarColor() {
 // ── Helpers ────────────────────────────────────────────────────
 
 function isLessonPage() {
-    return !!document.querySelector('article.fb-markdown-content');
+    return !!document.querySelector('article.sarde-markdown-content');
 }
 
 function countWords(el) {
@@ -85,16 +85,16 @@ let progressBarEl = null;
 
 function createProgressBar() {
     // Remove existing bar if present
-    const existing = document.getElementById('reading-progress');
+    const existing = document.getElementById('sarde-reading-progress');
     if (existing) existing.remove();
 
     const container = document.createElement('div');
-    container.className = 'reading-progress';
-    container.id = 'reading-progress';
+    container.className = 'sarde-reading-progress';
+    container.id = 'sarde-reading-progress';
     container.style.setProperty('--rp-bar-height', config.barHeight + 'px');
 
     const bar = document.createElement('div');
-    bar.className = 'reading-progress__bar';
+    bar.className = 'sarde-reading-progress-bar';
     bar.id = 'reading-progress-bar';
     bar.style.background = resolveBarColor();
 
@@ -120,9 +120,9 @@ function updateProgress() {
 
 function injectReadingTime() {
     // Don't duplicate
-    if (document.querySelector('.reading-time')) return;
+    if (document.querySelector('.sarde-reading-time')) return;
 
-    const contentEl = document.querySelector('article.fb-markdown-content');
+    const contentEl = document.querySelector('article.sarde-markdown-content');
     if (!contentEl) return;
 
     const words = countWords(contentEl);
@@ -133,7 +133,7 @@ function injectReadingTime() {
     const clockSvg = '<svg class="reading-time__icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
 
     const badge = document.createElement('div');
-    badge.className = 'reading-time';
+    badge.className = 'sarde-reading-time';
     badge.innerHTML = clockSvg + '<span>' + timeText + '</span>';
 
     // Insert after .page-description or .page-title
@@ -158,7 +158,7 @@ function init() {
         }
     } else {
         // Remove bar if on a non-lesson page
-        const existing = document.getElementById('reading-progress');
+        const existing = document.getElementById('sarde-reading-progress');
         if (existing) existing.remove();
         progressBarEl = null;
     }

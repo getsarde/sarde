@@ -3,14 +3,14 @@
 /* ========================================
    Zoom cursor on clickable images
    ======================================== */
-article.fb-markdown-content img:not(.gallery-item img):not(.no-lightbox) {
+article.sarde-markdown-content img:not(.sarde-gallery-item img):not(.no-lightbox) {
     cursor: zoom-in;
 }
 
 /* ========================================
    Lightbox Overlay
    ======================================== */
-.image-lightbox {
+.sarde-image-lightbox {
     display: none;
     position: fixed;
     inset: 0;
@@ -24,7 +24,7 @@ article.fb-markdown-content img:not(.gallery-item img):not(.no-lightbox) {
     cursor: zoom-out;
 }
 
-.image-lightbox.active {
+.sarde-image-lightbox.active {
     display: flex;
     animation: il-fade-in 0.2s ease;
 }
@@ -37,11 +37,11 @@ article.fb-markdown-content img:not(.gallery-item img):not(.no-lightbox) {
 /* ========================================
    Lightbox Image
    ======================================== */
-.image-lightbox__img {
+.sarde-image-lightbox-img {
     max-width: 90vw;
     max-height: 80vh;
     object-fit: contain;
-    border-radius: var(--fb-radius-md, 0.375rem);
+    border-radius: var(--sarde-radius-md, 0.375rem);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     cursor: default;
     user-select: none;
@@ -50,29 +50,29 @@ article.fb-markdown-content img:not(.gallery-item img):not(.no-lightbox) {
 }
 
 /* Remove transform transition while dragging to avoid lag */
-.image-lightbox.is-dragging .image-lightbox__img {
+.sarde-image-lightbox.is-dragging .sarde-image-lightbox-img {
     transition: none;
 }
 
 /* ========================================
    Caption (from alt text)
    ======================================== */
-.image-lightbox__caption {
+.sarde-image-lightbox-caption {
     color: rgba(255, 255, 255, 0.8);
     font-size: 0.875rem;
-    font-family: var(--fb-font-system, system-ui, sans-serif);
+    font-family: var(--sarde-font-system, system-ui, sans-serif);
     text-align: center;
     max-width: 60ch;
 }
 
-.image-lightbox__caption:empty {
+.sarde-image-lightbox-caption:empty {
     display: none;
 }
 
 /* ========================================
    Toolbar (zoom controls + close)
    ======================================== */
-.image-lightbox__toolbar {
+.sarde-image-lightbox-toolbar {
     position: absolute;
     top: 1rem;
     inset-inline-end: 1rem;
@@ -82,7 +82,7 @@ article.fb-markdown-content img:not(.gallery-item img):not(.no-lightbox) {
     z-index: 1;
 }
 
-.image-lightbox__btn {
+.sarde-image-lightbox-btn {
     width: 40px;
     height: 40px;
     display: flex;
@@ -101,23 +101,23 @@ article.fb-markdown-content img:not(.gallery-item img):not(.no-lightbox) {
     line-height: 1;
 }
 
-.image-lightbox__btn:hover {
+.sarde-image-lightbox-btn:hover {
     background: rgba(255, 255, 255, 0.2);
 }
 
-.image-lightbox__btn:focus-visible {
+.sarde-image-lightbox-btn:focus-visible {
     outline: 2px solid #fff;
     outline-offset: 2px;
 }
 
-.image-lightbox__btn--close {
+.sarde-image-lightbox-btn-close {
     font-size: 1.25rem;
 }
 
-.image-lightbox__zoom-level {
+.sarde-image-lightbox-zoom-level {
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.75rem;
-    font-family: var(--fb-font-system, system-ui, sans-serif);
+    font-family: var(--sarde-font-system, system-ui, sans-serif);
     min-width: 3ch;
     text-align: center;
     user-select: none;
@@ -127,21 +127,21 @@ article.fb-markdown-content img:not(.gallery-item img):not(.no-lightbox) {
    Responsive
    ======================================== */
 @media (max-width: 768px) {
-    .image-lightbox {
+    .sarde-image-lightbox {
         padding: 1rem;
     }
 
-    .image-lightbox__img {
+    .sarde-image-lightbox-img {
         max-width: 95vw;
         max-height: 75vh;
     }
 
-    .image-lightbox__toolbar {
+    .sarde-image-lightbox-toolbar {
         top: 0.75rem;
         inset-inline-end: 0.75rem;
     }
 
-    .image-lightbox__btn {
+    .sarde-image-lightbox-btn {
         width: 36px;
         height: 36px;
     }
@@ -151,11 +151,11 @@ article.fb-markdown-content img:not(.gallery-item img):not(.no-lightbox) {
    Reduced Motion
    ======================================== */
 @media (prefers-reduced-motion: reduce) {
-    .image-lightbox.active {
+    .sarde-image-lightbox.active {
         animation: none;
     }
 
-    .image-lightbox__img {
+    .sarde-image-lightbox-img {
         transition: none;
     }
 }

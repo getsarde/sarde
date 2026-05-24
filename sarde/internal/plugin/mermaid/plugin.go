@@ -71,7 +71,7 @@ func buildDone(ctx *plugin.BuildDoneContext) error {
 }
 
 func needsMermaid(content string) bool {
-	return strings.Contains(content, `class="mermaid`)
+	return strings.Contains(content, `class="sarde-mermaid`)
 }
 
 func appendUnique(list []string, item string) []string {

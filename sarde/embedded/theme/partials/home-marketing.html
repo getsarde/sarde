@@ -1,23 +1,23 @@
-<section class="marketing-hero hero-bg-{{ if .Homepage }}{{ .Homepage.Hero.Background }}{{ else }}gradient{{ end }}">
-  <div class="marketing-hero-inner">
-    <h1 class="marketing-title">
+<section class="sarde-marketing-hero hero-bg-{{ if .Homepage }}{{ .Homepage.Hero.Background }}{{ else }}gradient{{ end }}">
+  <div class="sarde-marketing-hero-inner">
+    <h1 class="sarde-marketing-title">
       {{- if and .Homepage .Homepage.Hero.Title }}{{ .Homepage.Hero.Title }}{{ else }}{{ .Site.Title }}{{ end -}}
     </h1>
     {{ if and .Homepage .Homepage.Hero.Subtitle }}
-    <p class="marketing-subtitle">{{ .Homepage.Hero.Subtitle }}</p>
+    <p class="sarde-marketing-subtitle">{{ .Homepage.Hero.Subtitle }}</p>
     {{ end }}
     {{ if and .Homepage .Homepage.Hero.CTA }}
-    <div class="hero-actions">
-      <a href="{{ .Homepage.Hero.CTA.URL }}" class="hero-cta">{{ .Homepage.Hero.CTA.Label }}</a>
+    <div class="sarde-hero-actions">
+      <a href="{{ .Homepage.Hero.CTA.URL }}" class="sarde-hero-cta">{{ .Homepage.Hero.CTA.Label }}</a>
     </div>
     {{ end }}
   </div>
   {{ with allCollections }}
-  <div class="marketing-stats">
+  <div class="sarde-marketing-stats">
     {{ range $name, $col := . }}
-    <div class="marketing-stat">
-      <span class="marketing-stat-number">{{ len $col.Pages }}</span>
-      <span class="marketing-stat-label">{{ $col.Title }}</span>
+    <div class="sarde-marketing-stat">
+      <span class="sarde-marketing-stat-number">{{ len $col.Pages }}</span>
+      <span class="sarde-marketing-stat-label">{{ $col.Title }}</span>
     </div>
     {{ end }}
   </div>
@@ -25,13 +25,13 @@
 </section>
 
 {{ with allCollections }}
-<section class="marketing-collections">
-  <div class="marketing-collections-inner">
-    <div class="catalog-grid">
+<section class="sarde-marketing-collections">
+  <div class="sarde-marketing-collections-inner">
+    <div class="sarde-catalog-grid">
       {{ range $name, $col := . }}
-      <a class="marketing-collection-card" href="/{{ $name }}/">
+      <a class="sarde-marketing-collection-card" href="/{{ $name }}/">
         <h3>{{ $col.Title }}</h3>
-        <span class="marketing-collection-count">{{ len $col.Pages }} entries</span>
+        <span class="sarde-marketing-collection-count">{{ len $col.Pages }} entries</span>
       </a>
       {{ end }}
     </div>
@@ -40,7 +40,7 @@
 {{ end }}
 
 {{ if .Page.Content }}
-<div class="marketing-content fb-markdown-content">
+<div class="sarde-marketing-content sarde-markdown-content">
   {{ .Page.Content }}
 </div>
 {{ end }}
@@ -48,17 +48,17 @@
 {{ range $name, $col := allCollections }}
 {{ $recent := recentEntries $name 3 }}
 {{ if $recent }}
-<section class="marketing-recent">
-  <div class="marketing-recent-inner">
-    <div class="section-header-row">
-      <h2 class="section-label">{{ $col.Title }}</h2>
-      <a class="section-link" href="/{{ $name }}/">{{ t "home.all_posts" }} &rarr;</a>
+<section class="sarde-marketing-recent">
+  <div class="sarde-marketing-recent-inner">
+    <div class="sarde-section-header-row">
+      <h2 class="sarde-section-label">{{ $col.Title }}</h2>
+      <a class="sarde-section-link" href="/{{ $name }}/">{{ t "home.all_posts" }} &rarr;</a>
     </div>
-    <div class="recent-grid">
+    <div class="sarde-recent-grid">
       {{ range $recent }}
-      <a class="recent-card" href="{{ .RelPermalink }}">
-        <span class="recent-card-title">{{ .Title }}</span>
-        {{ if not .Date.IsZero }}<time class="recent-card-date">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
+      <a class="sarde-recent-card" href="{{ .RelPermalink }}">
+        <span class="sarde-recent-card-title">{{ .Title }}</span>
+        {{ if not .Date.IsZero }}<time class="sarde-recent-card-date">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
       </a>
       {{ end }}
     </div>

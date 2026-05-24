@@ -29,7 +29,7 @@ function getNextUrl() {
 function navigateTo(linkClass) {
     const link = document.querySelector('nav.pagination .' + linkClass);
     if (!link) return;
-    link.classList.add('kbd-nav-active');
+    link.classList.add('sarde-kbd-nav-active');
     setTimeout(function () { link.click(); }, 80);
 }
 
@@ -47,12 +47,12 @@ function onKeyDown(e) {
 
 function showHint() {
     if (!config.showHint) return;
-    const old = document.querySelector('.kbd-nav-hint');
+    const old = document.querySelector('.sarde-kbd-nav-hint');
     if (old) old.remove();
     const hasNav = document.querySelector('nav.pagination .pagination-prev, nav.pagination .pagination-next');
     if (!hasNav) return;
     const hint = document.createElement('div');
-    hint.className = 'kbd-nav-hint';
+    hint.className = 'sarde-kbd-nav-hint';
     hint.setAttribute('role', 'status');
     hint.innerHTML =
         '<span class="kbd-nav-hint__keys">' +
@@ -62,7 +62,7 @@ function showHint() {
         '<span>Navigate between pages</span>';
     document.body.appendChild(hint);
     requestAnimationFrame(function () {
-        requestAnimationFrame(function () { hint.classList.add('visible'); });
+        requestAnimationFrame(function () { hint.classList.add('is-visible'); });
     });
 }
 

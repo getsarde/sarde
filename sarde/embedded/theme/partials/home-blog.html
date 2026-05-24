@@ -8,7 +8,7 @@
 </section>
 
 {{ if .Page.Content }}
-<div class="blog-home-content fb-markdown-content">
+<div class="sarde-blog-home-content sarde-markdown-content">
   {{ .Page.Content }}
 </div>
 {{ end }}
@@ -18,9 +18,9 @@
 {{ if $recent }}
 <section class="blog-recent">
   <div class="blog-recent-inner">
-    <div class="section-header-row">
-      <h2 class="section-label">{{ $col.Title }}</h2>
-      <a class="section-link" href="/{{ $name }}/">{{ t "home.all_posts" }} &rarr;</a>
+    <div class="sarde-section-header-row">
+      <h2 class="sarde-section-label">{{ $col.Title }}</h2>
+      <a class="sarde-section-link" href="/{{ $name }}/">{{ t "home.all_posts" }} &rarr;</a>
     </div>
     <ul class="blog-recent-list">
       {{ range $recent }}

@@ -92,7 +92,7 @@ func TestNew_MultipleActiveItems(t *testing.T) {
 	result := string(bannerFunc())
 
 	for _, want := range []string{
-		"announcement-container",
+		"sarde-announcement-container",
 		`data-announcement-id="maint"`,
 		`data-announcement-id="feature"`,
 		"Site under maintenance",

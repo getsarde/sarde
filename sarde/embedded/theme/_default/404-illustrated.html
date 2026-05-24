@@ -1,6 +1,6 @@
 {{ define "content" }}
-<div class="error-page error-page--illustrated">
-  <svg class="error-page__illustration" viewBox="0 0 200 200" width="200" height="200" aria-hidden="true">
+<div class="sarde-error-page error-page--illustrated">
+  <svg class="sarde-error-page__illustration" viewBox="0 0 200 200" width="200" height="200" aria-hidden="true">
     <circle cx="100" cy="100" r="90" fill="none" stroke="currentColor" stroke-width="2" opacity="0.2"/>
     <text x="100" y="115" text-anchor="middle" font-size="72" font-weight="bold" fill="currentColor" opacity="0.15">404</text>
     <circle cx="100" cy="60" r="4" fill="currentColor" opacity="0.4"/>
@@ -9,10 +9,10 @@
   </svg>
   <h1>{{ if .Page.Content }}{{ .Page.Title }}{{ else }}Lost in Space{{ end }}</h1>
   {{ if .Page.Content }}
-    <div class="error-page__content">{{ .Page.Content }}</div>
+    <div class="sarde-error-page__content">{{ .Page.Content }}</div>
   {{ else }}
     <p>We couldn't find the page you're looking for.</p>
   {{ end }}
-  <a href="/" class="error-page__home">Navigate Home</a>
+  <a href="/" class="sarde-error-page__home">Navigate Home</a>
 </div>
 {{ end }}

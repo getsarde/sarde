@@ -6,25 +6,25 @@
 /* ========================================
    Collapsible Code Block
    ======================================== */
-.code-block.cc-collapsible {
+.code-block.sarde-cc-collapsible {
   position: relative;
-  margin: var(--fb-space-6, 1.5rem) 0;
+  margin: var(--sarde-space-6, 1.5rem) 0;
 }
 
 /* ========================================
    Content Container (overflow control)
    The .frame element is the overflow container
    ======================================== */
-.code-block.cc-collapsible .frame {
+.code-block.sarde-cc-collapsible .frame {
   position: relative;
 }
 
-.code-block.cc-collapsible.cc-collapsed .frame {
+.code-block.sarde-cc-collapsible.sarde-cc-collapsed .frame {
   max-height: var(--cc-preview-height, 280px);
   overflow: hidden;
 }
 
-.code-block.cc-collapsible.cc-expanded .frame {
+.code-block.sarde-cc-collapsible.sarde-cc-expanded .frame {
   max-height: none;
   overflow: visible;
 }
@@ -33,7 +33,7 @@
    Gradient Overlay
    Injected by JS inside .frame, above pre.chroma
    ======================================== */
-.cc-gradient {
+.sarde-cc-gradient {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -48,10 +48,10 @@
   opacity: 1;
   transition: opacity 0.3s ease;
   z-index: 10;
-  border-radius: 0 0 var(--fb-code-radius, 0.75rem) var(--fb-code-radius, 0.75rem);
+  border-radius: 0 0 var(--sarde-code-radius, 0.75rem) var(--sarde-code-radius, 0.75rem);
 }
 
-.code-block.cc-collapsible.cc-expanded .cc-gradient {
+.code-block.sarde-cc-collapsible.sarde-cc-expanded .sarde-cc-gradient {
   opacity: 0;
   pointer-events: none;
 }
@@ -59,7 +59,7 @@
 /* ========================================
    Toggle Button
    ======================================== */
-.cc-toggle {
+.sarde-cc-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -69,16 +69,16 @@
   background-color: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
-  color: var(--fb-primary, #3b82f6);
+  color: var(--sarde-primary, #3b82f6);
   font-size: 0.85rem;
   font-weight: 500;
-  font-family: var(--fb-font-system, system-ui, sans-serif);
+  font-family: var(--sarde-font-system, system-ui, sans-serif);
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 /* Collapsed: float over the gradient */
-.code-block.cc-collapsible.cc-collapsed .cc-toggle {
+.code-block.sarde-cc-collapsible.sarde-cc-collapsed .sarde-cc-toggle {
   position: absolute;
   bottom: 12px;
   left: 50%;
@@ -88,53 +88,53 @@
 }
 
 /* Expanded: sit below the code block */
-.code-block.cc-collapsible.cc-expanded .cc-toggle {
+.code-block.sarde-cc-collapsible.sarde-cc-expanded .sarde-cc-toggle {
   position: relative;
   margin: 8px auto;
 }
 
-.cc-toggle:hover {
+.sarde-cc-toggle:hover {
   background-color: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.3);
 }
 
-.cc-toggle:focus-visible {
-  outline: 2px solid var(--fb-primary, #3b82f6);
+.sarde-cc-toggle:focus-visible {
+  outline: 2px solid var(--sarde-primary, #3b82f6);
   outline-offset: 2px;
 }
 
 /* ========================================
    Chevron Icon
    ======================================== */
-.cc-icon {
+.sarde-cc-icon {
   display: inline-flex;
   align-items: center;
   transition: transform 0.3s ease;
 }
 
-.code-block.cc-collapsible.cc-expanded .cc-icon {
+.code-block.sarde-cc-collapsible.sarde-cc-expanded .sarde-cc-icon {
   transform: rotate(180deg);
 }
 
 /* ========================================
    Button Text Visibility
    ======================================== */
-.cc-text-collapse {
+.sarde-cc-text-collapse {
   display: none;
 }
 
-.code-block.cc-collapsible.cc-expanded .cc-text-expand {
+.code-block.sarde-cc-collapsible.sarde-cc-expanded .sarde-cc-text-expand {
   display: none;
 }
 
-.code-block.cc-collapsible.cc-expanded .cc-text-collapse {
+.code-block.sarde-cc-collapsible.sarde-cc-expanded .sarde-cc-text-collapse {
   display: inline;
 }
 
 /* ========================================
    Light Theme
    ======================================== */
-:root:not(.dark) .cc-gradient {
+:root:not(.dark) .sarde-cc-gradient {
   background: linear-gradient(
     to bottom,
     transparent 0%,
@@ -142,12 +142,12 @@
   );
 }
 
-:root:not(.dark) .cc-toggle {
+:root:not(.dark) .sarde-cc-toggle {
   background-color: rgba(0, 0, 0, 0.05);
   border-color: rgba(0, 0, 0, 0.15);
 }
 
-:root:not(.dark) .cc-toggle:hover {
+:root:not(.dark) .sarde-cc-toggle:hover {
   background-color: rgba(0, 0, 0, 0.08);
   border-color: rgba(0, 0, 0, 0.25);
 }
@@ -156,9 +156,9 @@
    Reduced Motion
    ======================================== */
 @media (prefers-reduced-motion: reduce) {
-  .cc-gradient,
-  .cc-toggle,
-  .cc-icon {
+  .sarde-cc-gradient,
+  .sarde-cc-toggle,
+  .sarde-cc-icon {
     transition: none;
   }
 }
