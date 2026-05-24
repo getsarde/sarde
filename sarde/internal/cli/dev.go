@@ -137,6 +137,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 	devlog.Log("sarde", "%s", cfg.Site.Title)
 	devlog.Log("sarde", "Theme: %s | Content: %s", themeName, contentDir)
 	devlog.Log("sarde", "Live reload: %v", liveReload)
+	devlog.Log("sarde", "Environment: development | Version: v%s", Version)
 
 	if watchStdin, _ := cmd.Flags().GetBool("watch-stdin"); watchStdin {
 		go func() {

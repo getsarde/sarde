@@ -216,9 +216,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("enriching taxonomies: %w", err)
 	}
-	for _, w := range taxWarnings {
-		devlog.Warn("taxonomy", "%s", w)
-	}
+	emitTaxonomyWarnings(taxWarnings)
 
 	// Build SiteContext.
 	siteCtx := &engine.SiteContext{
@@ -1201,9 +1199,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	if taxWarnings, err := taxonomy.EnrichTaxonomies(newTaxonomies, b.config.Taxonomies, b.projectDir); err != nil {
 		return b.Build()
 	} else {
-		for _, w := range taxWarnings {
-			devlog.Warn("taxonomy", "%s", w)
-		}
+		emitTaxonomyWarnings(taxWarnings)
 	}
 
 	collection.LinkVersions(patchedAllPages)
@@ -1581,4 +1577,56 @@ func buildRedirectHTML(target string) string {
 		`<link rel="canonical" href="%s">`+
 		`</head><body><p><a href="%s">Continue</a></p></body></html>`,
 		target, target, target)
+}
+
+const warnCollapseThreshold = 3
+
+func emitTaxonomyWarnings(warnings []string) {
+	if len(warnings) == 0 {
+		return
+	}
+
+	type group struct {
+		taxName string
+		terms   []string
+	}
+	groups := make(map[string]*group)
+	var order []string
+
+	for _, w := range warnings {
+		// Warnings follow: taxonomy "<name>": term "<term>" is not defined in ...
+		taxPart, termPart, ok := strings.Cut(w, ": term ")
+		if !ok {
+			devlog.Warn("taxonomy", "%s", w)
+			continue
+		}
+		taxName := strings.TrimPrefix(taxPart, "taxonomy ")
+		taxName = strings.Trim(taxName, "\"")
+
+		term := termPart
+		if idx := strings.Index(term, "\" "); idx >= 0 {
+			term = term[1:idx] // strip surrounding quote and trailing text
+		} else {
+			term = strings.Trim(term, "\"")
+		}
+
+		g, exists := groups[taxName]
+		if !exists {
+			g = &group{taxName: taxName}
+			groups[taxName] = g
+			order = append(order, taxName)
+		}
+		g.terms = append(g.terms, term)
+	}
+
+	for _, name := range order {
+		g := groups[name]
+		if len(g.terms) <= warnCollapseThreshold {
+			for _, t := range g.terms {
+				devlog.Warn("taxonomy", "%q: term %q is not defined in data/%s.yml", name, t, name)
+			}
+		} else {
+			devlog.Warn("taxonomy", "%q: %d undefined terms (define in data/%s.yml) — %s", name, len(g.terms), name, strings.Join(g.terms, ", "))
+		}
+	}
 }
