@@ -1,0 +1,9 @@
+{{ if .VersionBanner }}
+<div class="version-banner{{ if eq .VersionBanner "unmaintained" }} is-unmaintained{{ end }}{{ if eq .VersionBanner "unreleased" }} is-unreleased{{ end }}" role="alert">
+  {{ if eq .VersionBanner "unmaintained" }}
+  <p>{{ t "version.unmaintained_notice" }}{{ range .Versions }}{{ if .IsLatest }} <a href="{{ .URL }}">{{ t "version.unmaintained_link" }}</a>{{ end }}{{ end }}</p>
+  {{ else if eq .VersionBanner "unreleased" }}
+  <p>{{ t "version.unreleased_notice" }}{{ range .Versions }}{{ if .IsLatest }} <a href="{{ .URL }}">{{ t "version.unreleased_link" }}</a>{{ end }}{{ end }}</p>
+  {{ end }}
+</div>
+{{ end }}

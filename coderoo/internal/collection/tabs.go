@@ -196,6 +196,8 @@ func buildTabNavTree(tabCol *engine.Collection, colName, tabSlug, contentDir str
 
 // topLevelSections returns sections that are direct children of the root section,
 // or have no parent if no root _index.md exists.
+// When versioning is enabled, sections matching version IDs are excluded so they
+// aren't misdetected as tabs.
 func topLevelSections(col *engine.Collection) []*engine.Section {
 	// Find root section (the one representing the collection root directory)
 	var rootSection *engine.Section
@@ -206,18 +208,33 @@ func topLevelSections(col *engine.Collection) []*engine.Section {
 		}
 	}
 
+	var raw []*engine.Section
 	if rootSection != nil {
-		return rootSection.Sections
-	}
-
-	// No root section: top-level sections are those with no parent
-	var top []*engine.Section
-	for _, sec := range col.Sections {
-		if sec.Parent == nil {
-			top = append(top, sec)
+		raw = rootSection.Sections
+	} else {
+		for _, sec := range col.Sections {
+			if sec.Parent == nil {
+				raw = append(raw, sec)
+			}
 		}
 	}
-	return top
+
+	// Filter out version directories when versioning is active.
+	if col.Config != nil && col.Config.Versioning != nil && col.Config.Versioning.Enabled {
+		versionIDs := make(map[string]bool, len(col.Config.Versioning.Versions))
+		for _, v := range col.Config.Versioning.Versions {
+			versionIDs[v.ID] = true
+		}
+		filtered := make([]*engine.Section, 0, len(raw))
+		for _, sec := range raw {
+			if !versionIDs[sec.Slug] {
+				filtered = append(filtered, sec)
+			}
+		}
+		return filtered
+	}
+
+	return raw
 }
 
 // isRootSection returns true if the section is the collection's root section.

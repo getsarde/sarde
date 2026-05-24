@@ -15,7 +15,7 @@
     ]).then(function (arr) {
       var orama = arr[0], docs = arr[1];
       return orama.create({
-        schema: { id: "string", title: "string", url: "string", content: "string", section: "string" }
+        schema: { id: "string", title: "string", url: "string", content: "string", section: "string", version: "string" }
       }).then(function (db) {
         return orama.insertMultiple(db, docs).then(function () { return { orama: orama, db: db }; });
       });
@@ -62,6 +62,8 @@
     debounceId = setTimeout(function () { runSearch(term); }, 120);
   });
 
+  var searchVersion = modal.getAttribute("data-search-version") || "";
+
   function runSearch(term) {
     if (!term) {
       clearChildren(results);
@@ -69,7 +71,11 @@
       return;
     }
     loadIndex().then(function (ctx) {
-      return ctx.orama.search(ctx.db, { term: term, properties: ["title", "content", "section"], limit: 20 });
+      var opts = { term: term, properties: ["title", "content", "section"], limit: 20 };
+      if (searchVersion) {
+        opts.where = { version: { eq: searchVersion } };
+      }
+      return ctx.orama.search(ctx.db, opts);
     }).then(function (res) {
       render(res && res.hits ? res.hits : []);
     }).catch(function () {

@@ -10,6 +10,8 @@ nav:
   draft: "Draft"
   reading_time: "{{ .Minutes }} min read"
   language: "Language"
+  version: "Version"
+  version_latest: "Latest"
 
 blog:
   featured: "Featured"
@@ -36,6 +38,12 @@ taxonomy:
 
 edit_this_page: "Edit this page"
 last_updated: "Last updated: {{ .Date }}"
+
+version:
+  unmaintained_notice: "You are viewing documentation for an older version."
+  unreleased_notice: "You are viewing documentation for an unreleased version."
+  unmaintained_link: "View the latest stable version."
+  unreleased_link: "View the latest stable version."
 
 announcements:
   dismiss: "Dismiss announcement"

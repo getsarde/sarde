@@ -22,6 +22,8 @@ const (
 	SlotLastUpdated           = "LastUpdated"
 	SlotFallbackNotice        = "FallbackNotice"
 	SlotDocsTabSwitcher       = "DocsTabSwitcher"
+	SlotVersionSwitcher       = "VersionSwitcher"
+	SlotVersionBanner         = "VersionBanner"
 )
 
 // AllSlots returns all built-in component slot names.
@@ -32,5 +34,6 @@ func AllSlots() []string {
 		SlotMobileTableOfContents, SlotBreadcrumbs, SlotPagination,
 		SlotPageTitle, SlotContentPanel, SlotFooter, SlotEditLink,
 		SlotLastUpdated, SlotFallbackNotice, SlotDocsTabSwitcher,
+		SlotVersionSwitcher, SlotVersionBanner,
 	}
 }

@@ -98,6 +98,36 @@ func MergeCollectionConfig(inferred *engine.CollectionConfig, siteCfg *config.Co
 		merged.PrevNext = &pn
 	}
 
+	// Versioning merge
+	if siteCfg.Versioning != nil && config.BoolVal(siteCfg.Versioning.Enabled, false) {
+		vc := &engine.VersionConfig{
+			Enabled:     true,
+			LastVersion: siteCfg.Versioning.LastVersion,
+		}
+		for _, v := range siteCfg.Versioning.Versions {
+			path := v.Path
+			if path == "" {
+				path = v.ID
+			}
+			banner := string(v.Banner)
+			if banner == "" {
+				banner = "none"
+			}
+			redirect := string(v.Redirect)
+			if redirect == "" {
+				redirect = "same-page"
+			}
+			vc.Versions = append(vc.Versions, engine.VersionDef{
+				ID:       v.ID,
+				Label:    v.Label,
+				Path:     path,
+				Banner:   banner,
+				Redirect: redirect,
+			})
+		}
+		merged.Versioning = vc
+	}
+
 	return &merged
 }
 

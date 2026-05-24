@@ -97,8 +97,23 @@ func BuildCollections(
 		}
 		setCollectionOnSections(sections, col)
 
-		// 9. Detect tabs or build standard nav tree
+		// 9. Build navigation (versioned, tabbed, or standard)
 		langs := collectLanguages(pages)
+
+		// Versioning annotation runs first (sets Page.Version, rewrites URLs).
+		if collCfg.Versioning != nil && collCfg.Versioning.Enabled {
+			col.Versioning = collCfg.Versioning
+			AnnotateVersions(col)
+			col.VersionNavTrees = BuildVersionedNavTrees(col)
+			if lv := collCfg.Versioning.LastVersion; lv != "" {
+				col.NavTree = col.VersionNavTrees[lv]
+			}
+			if col.NavTree == nil {
+				col.NavTree = col.VersionNavTrees[""]
+			}
+		}
+
+		// Tab detection runs after versioning (topLevelSections filters out version dirs).
 		if DetectTabs(col) {
 			col.IsTabbed = true
 			if len(langs) > 1 {

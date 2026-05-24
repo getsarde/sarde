@@ -371,19 +371,55 @@ type DeployConfig struct {
 // ---------------------------------------------------------------------------
 
 type CollectionSiteConfig struct {
-	Enabled   *bool                    `yaml:"enabled"`
-	Path      string                   `yaml:"path"`
-	URLPrefix string                   `yaml:"url_prefix"`
-	Sort      string                   `yaml:"sort"`
-	Layout    string                   `yaml:"layout"`
-	Permalink string                   `yaml:"permalink"`
-	Paginate  int                      `yaml:"paginate"`
-	Feed      *bool                    `yaml:"feed"`
-	Tabs      *bool                    `yaml:"tabs"`
-	Sidebar   *CollectionSidebarConfig `yaml:"sidebar"`
-	TOC       *CollectionTOCConfig     `yaml:"toc"`
-	PrevNext  *CollectionPrevNextConfig `yaml:"prev_next"`
+	Enabled    *bool                     `yaml:"enabled"`
+	Path       string                    `yaml:"path"`
+	URLPrefix  string                    `yaml:"url_prefix"`
+	Sort       string                    `yaml:"sort"`
+	Layout     string                    `yaml:"layout"`
+	Permalink  string                    `yaml:"permalink"`
+	Paginate   int                       `yaml:"paginate"`
+	Feed       *bool                     `yaml:"feed"`
+	Tabs       *bool                     `yaml:"tabs"`
+	Sidebar    *CollectionSidebarConfig  `yaml:"sidebar"`
+	TOC        *CollectionTOCConfig      `yaml:"toc"`
+	PrevNext   *CollectionPrevNextConfig `yaml:"prev_next"`
+	Versioning *VersioningConfig         `yaml:"versioning"`
 }
+
+// ---------------------------------------------------------------------------
+// Versioning
+// ---------------------------------------------------------------------------
+
+// VersioningConfig controls docs versioning for a collection.
+type VersioningConfig struct {
+	Enabled     *bool          `yaml:"enabled"`
+	LastVersion string         `yaml:"last_version"`
+	Versions    []VersionEntry `yaml:"versions"`
+}
+
+// VersionEntry describes one version of a versioned docs collection.
+type VersionEntry struct {
+	ID       string          `yaml:"id"`
+	Label    string          `yaml:"label"`
+	Path     string          `yaml:"path"`
+	Banner   VersionBanner   `yaml:"banner"`
+	Redirect VersionRedirect `yaml:"redirect"`
+}
+
+type VersionBanner string
+
+const (
+	BannerNone         VersionBanner = "none"
+	BannerUnmaintained VersionBanner = "unmaintained"
+	BannerUnreleased   VersionBanner = "unreleased"
+)
+
+type VersionRedirect string
+
+const (
+	RedirectSamePage VersionRedirect = "same-page"
+	RedirectRoot     VersionRedirect = "root"
+)
 
 type CollectionSidebarConfig struct {
 	Collapsible        *bool `yaml:"collapsible"`

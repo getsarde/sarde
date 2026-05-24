@@ -327,6 +327,19 @@ func buildFuncMap(
 			return rd.Translations
 		},
 
+		// ── Versioning ──
+		"versionOf": func(page *engine.Page, versionID string) *engine.Page {
+			if page == nil {
+				return nil
+			}
+			for _, peer := range page.VersionPeers {
+				if peer.Version == versionID {
+					return peer
+				}
+			}
+			return nil
+		},
+
 		// ── Type conversion ──
 		"toString": func(v any) string { return fmt.Sprint(v) },
 		"toInt": func(v any) int {

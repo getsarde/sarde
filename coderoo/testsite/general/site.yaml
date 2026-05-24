@@ -96,6 +96,13 @@ collections:
     prev_next:
       enabled: true
       labels: ["Previous", "Next"]
+    versioning:
+      enabled: true
+      versions:
+        - id: v1
+          label: "v1.x"
+          banner: unmaintained
+          redirect: root
 
   blog:
     layout: "default"

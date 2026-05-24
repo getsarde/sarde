@@ -178,6 +178,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		i18n.LinkTranslations(allPages, weights)
 	}
 
+	// Versioning: link version peers across versioned collections.
+	collection.LinkVersions(allPages)
+
 	// Build taxonomies.
 	taxonomies := taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies)
 

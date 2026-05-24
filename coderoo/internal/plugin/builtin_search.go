@@ -41,6 +41,7 @@ type searchDocument struct {
 	Content     string   `json:"content,omitempty"`
 	Section     string   `json:"section,omitempty"`
 	Tags        []string `json:"tags,omitempty"`
+	Version     string   `json:"version,omitempty"`
 }
 
 func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
@@ -74,6 +75,7 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 			Content:     content,
 			Section:     section,
 			Tags:        page.Tags,
+			Version:     page.Version,
 		})
 	}
 

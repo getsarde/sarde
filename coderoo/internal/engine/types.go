@@ -135,6 +135,11 @@ type Page struct {
 	Translations []*Page
 	IsFallback   bool
 
+	// Versioning
+	Version        string  // version ID (e.g. "v1"), empty for unversioned/latest
+	VersionRelPath string  // path relative to version root, for cross-version linking
+	VersionPeers   []*Page // same page in other versions
+
 	// User data
 	Params map[string]any
 }
@@ -222,20 +227,25 @@ type Collection struct {
 	IndexPage *Page
 	IsTabbed  bool                // true when docs tabs are auto-detected or forced
 	Tabs      []*DocsTab          // ordered by weight, then title
+
+	// Versioning
+	Versioning      *VersionConfig
+	VersionNavTrees map[string]*NavTree // per-version nav trees, key = version ID ("" for unversioned)
 }
 
 // CollectionConfig holds per-collection settings (auto-detected or explicit).
 type CollectionConfig struct {
-	SortBy    string
-	SortOrder string
-	Layout    LayoutType
-	Permalink string
-	Paginate  int
-	Feed      bool
-	Sidebar   *SidebarConfig
-	TOC       *TOCConfig
-	PrevNext  *PrevNextConfig
-	Tabs      *bool // nil = auto-detect, true = force tabs, false = disable tabs
+	SortBy     string
+	SortOrder  string
+	Layout     LayoutType
+	Permalink  string
+	Paginate   int
+	Feed       bool
+	Sidebar    *SidebarConfig
+	TOC        *TOCConfig
+	PrevNext   *PrevNextConfig
+	Tabs       *bool          // nil = auto-detect, true = force tabs, false = disable tabs
+	Versioning *VersionConfig // nil = no versioning
 }
 
 // SidebarConfig controls sidebar behavior for docs-layout collections.
@@ -543,6 +553,13 @@ type RouteData struct {
 	DocsTabs  []*DocsTab // all tabs (for the switcher component)
 	ActiveTab *DocsTab   // which tab the current page belongs to
 
+	// Versioning (docs collections with version subdirs)
+	Version       string        // current page's version ID, empty for latest/unversioned
+	VersionLabel  string        // display label of current version
+	Versions      []VersionLink // all versions for the VersionSwitcher dropdown
+	IsLatest      bool          // true if current page is in the last_version
+	VersionBanner string        // "unmaintained" / "unreleased" / "" (empty = no banner)
+
 	// Per-page asset injection (populated by plugins via BeforeRender).
 	Scripts       []string        // root-relative script URLs (emitted as <script defer src>)
 	Styles        []string        // root-relative stylesheet URLs (emitted as <link rel="stylesheet">)
@@ -578,6 +595,39 @@ type TranslationLink struct {
 	URL        string
 	Title      string
 	IsFallback bool
+}
+
+// ---------------------------------------------------------------------------
+// Versioning
+// ---------------------------------------------------------------------------
+
+// VersionConfig holds versioning settings for a collection (engine-level mirror
+// of config.VersioningConfig to avoid import cycles).
+type VersionConfig struct {
+	Enabled     bool
+	LastVersion string // version ID that serves the root URL (no prefix)
+	Versions    []VersionDef
+}
+
+// VersionDef describes one version of a versioned docs collection.
+type VersionDef struct {
+	ID       string
+	Label    string
+	Path     string // URL path segment (defaults to ID)
+	Banner   string // "none" / "unmaintained" / "unreleased"
+	Redirect string // "same-page" / "root"
+}
+
+// VersionLink points to the same page in another version (mirrors TranslationLink).
+type VersionLink struct {
+	ID        string
+	Label     string
+	URL       string // target URL (peer page or version root, based on redirect strategy)
+	Title     string
+	IsCurrent bool
+	IsLatest  bool   // true if this is the last_version
+	Banner    string // "none" / "unmaintained" / "unreleased"
+	Redirect  string // "same-page" / "root"
 }
 
 // ThemeConfig holds metadata, token values, and pre-rendered CSS for the active theme.

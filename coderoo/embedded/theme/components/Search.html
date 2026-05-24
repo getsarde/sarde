@@ -4,7 +4,7 @@
   <span class="search-trigger-text">{{ t "nav.search" }}</span>
   <span class="search-kbd" aria-hidden="true"><kbd>⌘</kbd><kbd>K</kbd></span>
 </button>
-<div id="search-modal" class="search-modal" role="dialog" aria-modal="true" aria-label="{{ t "nav.search" }}" hidden>
+<div id="search-modal" class="search-modal" role="dialog" aria-modal="true" aria-label="{{ t "nav.search" }}" data-search-version="{{ .Version }}" hidden>
   <div class="search-modal-backdrop" data-search-close></div>
   <div class="search-modal-panel">
     <input id="search-input" type="search" autocomplete="off" spellcheck="false" placeholder="{{ t "nav.search" }}" aria-label="{{ t "nav.search" }}">
