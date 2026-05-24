@@ -2,10 +2,10 @@ package server
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"sync"
 
+	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/gorilla/websocket"
 )
 
@@ -51,7 +51,7 @@ func NewHub() *Hub {
 func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	conn, err := h.upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Printf("WebSocket upgrade error: %v", err)
+		devlog.Error("ws", "WebSocket upgrade error: %v", err)
 		return
 	}
 
@@ -76,7 +76,7 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 func (h *Hub) Broadcast(msg ReloadMessage) {
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Printf("Failed to marshal reload message: %v", err)
+		devlog.Error("ws", "Failed to marshal reload message: %v", err)
 		return
 	}
 

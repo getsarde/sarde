@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -13,9 +12,12 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/term"
+
 	"github.com/frostybee/sarde/embedded"
 	"github.com/frostybee/sarde/internal/build"
 	"github.com/frostybee/sarde/internal/consts"
+	"github.com/frostybee/sarde/internal/devlog"
 )
 
 // Options configures the dev server.
@@ -25,6 +27,7 @@ type Options struct {
 	Host           string
 	Port           int
 	LiveReload     bool
+	Version        string
 	BuilderFactory func() *build.SiteBuilder
 }
 
@@ -35,6 +38,7 @@ type DevServer struct {
 	host       string
 	port       int
 	liveReload bool
+	version    string
 	hub        *Hub
 	watcher    *Watcher
 	rebuilder  *Rebuilder
@@ -47,12 +51,17 @@ func New(opts Options) *DevServer {
 	if host == "" {
 		host = consts.DefaultHost
 	}
+	version := opts.Version
+	if version == "" {
+		version = "vdev"
+	}
 	ds := &DevServer{
 		projectDir: opts.ProjectDir,
 		outputDir:  opts.OutputDir,
 		host:       host,
 		port:       opts.Port,
 		liveReload: opts.LiveReload,
+		version:    version,
 		hub:        NewHub(),
 		rebuilder:  NewRebuilder(opts.BuilderFactory, opts.ProjectDir),
 	}
@@ -67,10 +76,10 @@ func (ds *DevServer) Start() error {
 	// Initial build (treated as a config change to force full init).
 	result := ds.rebuilder.Rebuild(FileChange{Kind: ChangeConfig})
 	if result.Error != nil {
-		log.Printf("Initial build failed: %v", result.Error)
-		log.Println("Serving stale output (if any). Waiting for file changes...")
+		devlog.Error("build", "Initial build failed: %v", result.Error)
+		devlog.Warn("build", "Serving stale output (if any). Waiting for file changes...")
 	} else {
-		log.Printf("Built %d pages in %s", result.PageCount, result.Duration)
+		devlog.Log("build", "Built %d pages in %s", result.PageCount, result.Duration)
 	}
 
 	// Start file watcher.
@@ -90,9 +99,11 @@ func (ds *DevServer) Start() error {
 	}
 	mux.Handle("/", handler)
 
+	var devHandler http.Handler = mux
+	devHandler = devRequestLogger(devHandler)
 	ds.server = &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", ds.host, ds.port),
-		Handler: mux,
+		Handler: devHandler,
 	}
 
 	// Bind the listener, retrying up to 10 consecutive ports on EADDRINUSE.
@@ -109,15 +120,17 @@ func (ds *DevServer) Start() error {
 		if i == 9 {
 			return fmt.Errorf("could not bind to any port in range %d–%d: %w", basePort, basePort+9, listenErr)
 		}
-		log.Printf("Port %d in use, trying %d...", basePort+i, basePort+i+1)
+		devlog.Warn("server", "Port %d in use, trying %d...", basePort+i, basePort+i+1)
 	}
 	actualPort := ln.Addr().(*net.TCPAddr).Port
 
-	log.Printf("Dev server running at http://localhost:%d", actualPort)
-	log.Printf("Watching: content/, layouts/, assets/, data/")
+	devlog.Banner(ds.version, fmt.Sprintf("http://localhost:%d", actualPort), ds.host, result.Duration)
+	devlog.Log("watch", "Watching: content/, layouts/, assets/, data/")
 
 	// Emit JSON ready signal on stdout for the Tauri desktop app to detect.
-	fmt.Fprintf(os.Stdout, "{\"ready\":true,\"port\":%d}\n", actualPort)
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		fmt.Fprintf(os.Stdout, "{\"ready\":true,\"port\":%d}\n", actualPort)
+	}
 
 	return ds.server.Serve(ln)
 }
@@ -136,7 +149,7 @@ func (ds *DevServer) onFileChange(changes []FileChange) {
 	for _, c := range changes {
 		rel, _ := filepath.Rel(ds.projectDir, c.Path)
 		rel = filepath.ToSlash(rel)
-		log.Printf("Changed [%s]: %s", c.Kind, rel)
+		devlog.Log("watch", "Changed [%s]: %s", c.Kind, rel)
 	}
 
 	// Classify the batch to decide how to handle it.
@@ -154,9 +167,9 @@ func (ds *DevServer) onFileChange(changes []FileChange) {
 	// Any non-CSS change triggers a rebuild.
 	result := ds.rebuilder.Rebuild(representative)
 	if result.Error != nil {
-		log.Printf("Rebuild failed: %v", result.Error)
+		devlog.Error("build", "Rebuild failed: %v", result.Error)
 	} else {
-		log.Printf("Rebuilt %d pages in %s", result.PageCount, result.Duration)
+		devlog.Log("build", "Rebuilt %d pages in %s", result.PageCount, result.Duration)
 	}
 
 	msg := ToReloadMessage(representative, result, ds.projectDir)
@@ -202,6 +215,20 @@ func classifyBatch(changes []FileChange) FileChange {
 		best.Paths = []string{best.Path}
 	}
 	return best
+}
+
+// devRequestLogger wraps an HTTP handler to log requests with colored status codes.
+func devRequestLogger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/ws" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		start := time.Now()
+		sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(sw, r)
+		devlog.Request(r.Method, r.URL.Path, sw.status, time.Since(start))
+	})
 }
 
 // fileHandler returns an HTTP handler that serves static files with clean URL support.

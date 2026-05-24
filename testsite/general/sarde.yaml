@@ -1,248 +1,236 @@
 site:
-  title: "Velox Docs"
-  description: "Documentation, guides, and tutorials for the Velox Go HTTP router."
-  url: "http://localhost:4727"
-  language: "en"
-  edit_url: "https://github.com/example/velox/edit/main/content"
-  title_delimiter: "|"
+  description: Documentation, guides, and tutorials for the Velox Go HTTP router.
+  edit_url: https://github.com/example/velox/edit/main/content
   heading_links: true
-
+  language: en
+  title: Velox Docs
+  title_delimiter: '|'
+  url: http://localhost:4727
 social:
-  - label: "GitHub"
-    url: "https://github.com/example/velox"
-    icon: "github"
-  - label: "Discord"
-    url: "https://discord.gg/velox"
-    icon: "message-circle"
-
+- icon: github
+  label: GitHub
+  url: https://github.com/example/velox
+- icon: message-circle
+  label: Discord
+  url: https://discord.gg/velox
 theme:
-  preset: "docs"
+  accent_color: '#fb7185'
   dark: true
+  name: docs
   overrides:
-    primary: "#7c3aed"
-
+    primary: '#7c3aed'
+  preset: rose
+  primary_color: '#f43f5e'
 toc:
   enabled: true
-  min_level: 2
   max_level: 4
-
+  min_level: 2
 sidebar:
-  collapsed: false
-  badges: true
-  pagination: true
   auto_generate: true
-
+  badges: true
+  collapsed: false
+  pagination: true
 header:
+  links:
+  - label: Changelog
+    url: /blog
+  - external: true
+    label: GitHub
+    url: https://github.com/example/velox
   search: true
-  theme_toggle: true
   social: true
-  links:
-    - label: "Changelog"
-      url: "/blog"
-    - label: "GitHub"
-      url: "https://github.com/example/velox"
-      external: true
-
+  theme_toggle: true
 footer:
-  text: "2025 The Velox Project. MIT License."
-  links:
-    - label: "Privacy"
-      url: "/about"
-    - label: "Contributing"
-      url: "/docs/guide/advanced/middleware"
   credits: true
-
+  links:
+  - label: Privacy
+    url: /about
+  - label: Contributing
+    url: /docs/guide/advanced/middleware
+  text: 2025 The Velox Project. MIT License.
 build:
-  output: "dist"
   clean: true
   drafts: false
-  future: false
-  last_updated: "mtime"
   feed: true
+  future: false
+  last_updated: mtime
   minify: false
-
+  output: dist
 markdown:
+  github_alerts: true
   katex: true
   mermaid: true
-  unsafe: false
-  typographer: true
-  github_alerts: true
   triple_colon_callouts: true
-
+  typographer: true
+  unsafe: false
 images:
-  widths: [400, 800, 1200]
-  formats: ["webp"]
-  quality: 85
+  formats:
+  - webp
   lazy_loading: true
-
+  quality: 85
+  widths:
+  - 400
+  - 800
+  - 1200
 search:
   enabled: true
-  provider: "orama"
-
+  provider: orama
 collections:
-  docs:
-    layout: "docs"
-    sort: "weight asc"
-    tabs: true
-    sidebar:
-      collapsible: true
-      collapsed_by_default: false
-      max_depth: 4
-      search: true
-    toc:
-      enabled: true
-      depth: 4
-      scroll_highlight: true
-    prev_next:
-      enabled: true
-      labels: ["Previous", "Next"]
-    versioning:
-      enabled: true
-      versions:
-        - id: v1
-          label: "v1.x"
-          banner: unmaintained
-          redirect: root
-
   blog:
-    layout: "default"
-    sort: "date desc"
-    paginate: 3
     feed: true
-
+    layout: default
+    paginate: 3
+    sort: date desc
   courses:
-    layout: "docs"
-    sort: "weight asc"
+    layout: docs
     sidebar:
       collapsible: true
       max_depth: 3
-
+    sort: weight asc
+  docs:
+    layout: docs
+    prev_next:
+      enabled: true
+      labels:
+      - Previous
+      - Next
+    sidebar:
+      collapsed_by_default: false
+      collapsible: true
+      max_depth: 4
+      search: true
+    sort: weight asc
+    tabs: true
+    toc:
+      depth: 4
+      enabled: true
+      scroll_highlight: true
+    versioning:
+      enabled: true
+      versions:
+      - banner: unmaintained
+        id: v1
+        label: v1.x
+        redirect: root
 taxonomies:
-  tags: "tag"
-  categories: "category"
-
+  categories: category
+  tags: tag
 redirects:
   /perf: /blog/2024-06-10-performance-tips
   /start: /docs/guide/introduction
-
 homepage:
-  template: "hero"
   hero:
-    title: "Velox"
-    subtitle: "A blazing-fast Go HTTP router with zero allocations on the hot path."
+    background: gradient
     cta:
-      label: "Get Started"
-      url: "/docs/guide/introduction"
-    background: "gradient"
-
+      label: Get Started
+      url: /docs/guide/introduction
+    subtitle: A blazing-fast Go HTTP router with zero allocations on the hot path.
+    title: Velox
+  template: hero
 plugins:
-  enabled:
-    # Core plugins
-    - sitemap
-    - robots
-    - rss
-    - atom
-    - search
-    - seo
-    - redirects
-    - link_checker
-    - content_lint
-    - llms_txt
-    - katex
-    - mermaid
-    # Reading/UX plugins (ported from PHP Sarde)
-    - scroll-to-top
-    - copy-section-link
-    - external-links
-    - image-lightbox
-    - keyboard-nav
-    - focus-mode
-    - reading-progress
-    - search-highlighter
-    - text-highlighter
-    - toc-progress
-    - last-updated
-    - reading-position-memory
-    - reading-preferences
-    - code-fullscreen
-    - code-collapsible
-    - announcements
   config:
+    announcements:
+      display_mode: rotate
+      items:
+      - active: true
+        dismissible: true
+        end_date: 2027-12-31T23:59:59Z
+        id: v2-release
+        message: announcements.v2_release
+        start_date: 2025-01-01T00:00:00Z
+        type: info
+      - active: true
+        dismissible: true
+        id: docs-update
+        message: announcements.docs_update
+        show_on:
+        - /docs/**
+        type: success
+      - active: true
+        dismissible: false
+        hide_on:
+        - /blog/**
+        id: maintenance
+        message: announcements.maintenance
+        type: warning
+      rotate_interval: 6000
+      show_rotate_indicator: true
+    code-collapsible:
+      line_threshold: 12
+      preview_lines: 6
     robots:
-      user_agent: "*"
-      disallow: ["/drafts/"]
+      disallow:
+      - /drafts/
+      user_agent: '*'
     rss:
       full_content: true
     scroll-to-top:
       showProgressRing: true
       threshold: 25
-    code-collapsible:
-      line_threshold: 12
-      preview_lines: 6
-    announcements:
-      display_mode: rotate
-      rotate_interval: 6000
-      show_rotate_indicator: true
-      items:
-        - id: "v2-release"
-          type: info
-          message: "announcements.v2_release"
-          dismissible: true
-          active: true
-          start_date: "2025-01-01T00:00:00Z"
-          end_date: "2027-12-31T23:59:59Z"
-        - id: "docs-update"
-          type: success
-          message: "announcements.docs_update"
-          dismissible: true
-          active: true
-          show_on: ["/docs/**"]
-        - id: "maintenance"
-          type: warning
-          message: "announcements.maintenance"
-          dismissible: false
-          active: true
-          hide_on: ["/blog/**"]
-
+  enabled:
+  - sitemap
+  - robots
+  - rss
+  - atom
+  - search
+  - seo
+  - redirects
+  - link_checker
+  - content_lint
+  - llms_txt
+  - katex
+  - mermaid
+  - scroll-to-top
+  - copy-section-link
+  - external-links
+  - image-lightbox
+  - keyboard-nav
+  - focus-mode
+  - reading-progress
+  - search-highlighter
+  - text-highlighter
+  - toc-progress
+  - last-updated
+  - reading-position-memory
+  - reading-preferences
+  - code-fullscreen
+  - code-collapsible
+  - announcements
 head:
   custom_css:
-    - "/css/custom.css"
-
+  - /css/custom.css
 i18n:
-  default_language: "en"
+  default_language: en
   languages:
+    ar:
+      dir: rtl
+      name: العربية
+      weight: 3
     en:
-      name: "English"
+      name: English
       weight: 1
     fr:
-      name: "Français"
+      name: Français
       weight: 2
-    ar:
-      name: "العربية"
-      weight: 3
-      dir: "rtl"
-
 server:
-  port: 4727
   live_reload: true
-
+  port: 4727
 link_validation:
-  enabled: true
-  level: "warn"
   check_anchors: true
+  enabled: true
   ignore:
-    - "https://discord.gg/"
-    - "https://github.com/"
-
+  - https://discord.gg/
+  - https://github.com/
+  level: warn
 content_lint:
   enabled: true
   rules:
-    heading_max_length: 70
+    frontmatter_required:
+    - title
     heading_increment: true
+    heading_max_length: 70
     image_alt_required: true
     no_empty_links: true
-    frontmatter_required: ["title"]
-
 llms_txt:
   enabled: true
   include_blog: true

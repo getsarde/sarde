@@ -22,6 +22,7 @@ import (
 	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/content/markdown"
+	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/i18n"
 	"github.com/frostybee/sarde/internal/navigation"
@@ -216,7 +217,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		return nil, fmt.Errorf("enriching taxonomies: %w", err)
 	}
 	for _, w := range taxWarnings {
-		fmt.Fprintf(os.Stderr, "WARNING: %s\n", w)
+		devlog.Warn("taxonomy", "%s", w)
 	}
 
 	// Build SiteContext.
@@ -1194,12 +1195,15 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		i18n.LinkTranslations(patchedAllPages, weights)
 	}
 
-	log.Printf("[diag] after strip+fallback: patchedAllPages=%d, dirtyPermalinks=%d", len(patchedAllPages), len(dirtyPermalinks))
 
 	// ── Rebuild lightweight global state (all O(n), fast) ──────────────
 	newTaxonomies := taxonomy.BuildTaxonomies(patchedAllPages, b.config.Taxonomies)
-	if _, err := taxonomy.EnrichTaxonomies(newTaxonomies, b.config.Taxonomies, b.projectDir); err != nil {
+	if taxWarnings, err := taxonomy.EnrichTaxonomies(newTaxonomies, b.config.Taxonomies, b.projectDir); err != nil {
 		return b.Build()
+	} else {
+		for _, w := range taxWarnings {
+			devlog.Warn("taxonomy", "%s", w)
+		}
 	}
 
 	collection.LinkVersions(patchedAllPages)
@@ -1226,7 +1230,6 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		}
 	}
 
-	log.Printf("[diag] after taxonomy dirty: dirtyPermalinks=%d", len(dirtyPermalinks))
 
 	// ── Update SiteContext in-place ────────────────────────────────────
 	b.lastSiteCtx.Collections = b.lastCollections

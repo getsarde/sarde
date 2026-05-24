@@ -12,6 +12,7 @@ import (
 	"github.com/frostybee/sarde/internal/build"
 	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/consts"
+	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/server"
 	"github.com/spf13/cobra"
 )
@@ -125,13 +126,17 @@ func runServe(cmd *cobra.Command, args []string) error {
 
 	liveReload := config.BoolVal(cfg.Server.LiveReload, true)
 
-	if verbose, _ := cmd.Flags().GetBool("verbose"); verbose {
-		log.Printf("Config: %s", cfg.Site.Title)
-		log.Printf("Theme: %s", cfg.Theme.Name)
-		log.Printf("Content dir: %s", cfg.Content.Dir)
-		log.Printf("Base path: %q", cfg.Build.BasePath)
-		log.Printf("Live reload: %v", liveReload)
+	themeName := cfg.Theme.Name
+	if themeName == "" {
+		themeName = "default"
 	}
+	contentDir := cfg.Content.Dir
+	if contentDir == "" {
+		contentDir = "content"
+	}
+	devlog.Log("sarde", "%s", cfg.Site.Title)
+	devlog.Log("sarde", "Theme: %s | Content: %s", themeName, contentDir)
+	devlog.Log("sarde", "Live reload: %v", liveReload)
 
 	if watchStdin, _ := cmd.Flags().GetBool("watch-stdin"); watchStdin {
 		go func() {
@@ -148,6 +153,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 		Host:           host,
 		Port:           port,
 		LiveReload:     liveReload,
+		Version:        "v" + Version,
 		BuilderFactory: builderFactory,
 	})
 

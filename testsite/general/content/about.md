@@ -1,9 +1,9 @@
 ---
-title: "About Velox"
-description: "The story behind the Velox project and its contributors."
-toc: false
+description: The story behind the Velox project and its contributors.
 params:
-  author: "Velox Team"
+  author: Velox Team
+title: About Velox
+toc: true
 ---
 
 Velox started as an internal routing library at a mid-size SaaS company. After years of using the standard library's `http.ServeMux` and finding it too limited, the team built a purpose-built router optimized for API servers.

@@ -1,12 +1,13 @@
 package server
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/frostybee/sarde/internal/devlog"
 
 	"github.com/frostybee/sarde/internal/consts"
 	"github.com/fsnotify/fsnotify"
@@ -124,7 +125,7 @@ func (w *Watcher) loop() {
 			if !ok {
 				return
 			}
-			log.Printf("Watcher error: %v", err)
+			devlog.Error("watch", "%v", err)
 		}
 	}
 }

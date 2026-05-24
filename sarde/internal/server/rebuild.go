@@ -1,11 +1,11 @@
 package server
 
 import (
-	"log"
 	"sync"
 	"time"
 
 	"github.com/frostybee/sarde/internal/build"
+	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 )
 
@@ -46,7 +46,7 @@ func (r *Rebuilder) Rebuild(change FileChange) *RebuildResult {
 
 	switch change.Kind {
 	case ChangeConfig, ChangeTemplate:
-		log.Printf("Full rebuild (%s change) — new builder", change.Kind)
+		devlog.Log("build", "Full rebuild (%s change) — new builder", change.Kind)
 		r.builder = r.builderFactory()
 
 	case ChangeContent:
@@ -55,7 +55,7 @@ func (r *Rebuilder) Rebuild(change FileChange) *RebuildResult {
 			if len(paths) == 0 {
 				paths = []string{change.Path}
 			}
-			log.Printf("Incremental content rebuild — %d file(s)", len(paths))
+			devlog.Log("build", "Incremental content rebuild — %d file(s)", len(paths))
 			result, err := r.builder.ContentRebuild(paths)
 			if err != nil {
 				return &RebuildResult{
@@ -77,7 +77,7 @@ func (r *Rebuilder) Rebuild(change FileChange) *RebuildResult {
 		if r.builder == nil {
 			r.builder = r.builderFactory()
 		} else {
-			log.Printf("Incremental rebuild (%s change) — reusing builder", change.Kind)
+			devlog.Log("build", "Incremental rebuild (%s change) — reusing builder", change.Kind)
 		}
 	}
 
