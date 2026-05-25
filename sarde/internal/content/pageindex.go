@@ -17,7 +17,7 @@ type PageIndex struct {
 	headings    map[string][]string
 	assets      map[string]bool
 
-	mu sync.Mutex // protects headings (written concurrently during parallel render)
+	mu sync.RWMutex // protects headings (written concurrently during parallel render)
 }
 
 // BuildPageIndex constructs a PageIndex from all pages.
@@ -73,9 +73,9 @@ func (idx *PageIndex) SetHeadings(permalink string, headingIDs []string) {
 // HasHeading reports whether the given heading ID exists on the page.
 // Safe for concurrent use.
 func (idx *PageIndex) HasHeading(permalink, headingID string) bool {
-	idx.mu.Lock()
+	idx.mu.RLock()
 	ids, ok := idx.headings[permalink]
-	idx.mu.Unlock()
+	idx.mu.RUnlock()
 	if !ok {
 		return false
 	}
@@ -123,8 +123,8 @@ func (idx *PageIndex) Permalinks() []string {
 
 // HeadingsFor returns the heading IDs for a page, or nil if not set.
 func (idx *PageIndex) HeadingsFor(permalink string) []string {
-	idx.mu.Lock()
-	defer idx.mu.Unlock()
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
 	return idx.headings[permalink]
 }
 

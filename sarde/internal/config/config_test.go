@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"gopkg.in/yaml.v3"
@@ -111,6 +112,52 @@ func TestMergeTaxonomies(t *testing.T) {
 	}
 	if base["categories"].Singular != "category" {
 		t.Errorf("categories.Singular = %q, want %q (should add new)", base["categories"].Singular, "category")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Homepage
+// ---------------------------------------------------------------------------
+
+func TestHomepageHeroOptionalFields_Unmarshal(t *testing.T) {
+	input := []byte(`
+homepage:
+  hero:
+    eyebrow: Go HTTP Router
+    secondary_cta:
+      label: GitHub
+      url: https://github.com/example/velox
+    stats:
+      - value: "0"
+        label: heap allocations
+    code:
+      title: Quick start
+      language: go
+      body: |
+        r := velox.New()
+        r.GET("/users/:id", getUser)
+`)
+
+	var cfg SiteConfig
+	if err := yaml.Unmarshal(input, &cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	hero := cfg.Homepage.Hero
+	if hero.Eyebrow != "Go HTTP Router" {
+		t.Errorf("Eyebrow = %q, want Go HTTP Router", hero.Eyebrow)
+	}
+	if hero.SecondaryCTA == nil || hero.SecondaryCTA.Label != "GitHub" || hero.SecondaryCTA.URL != "https://github.com/example/velox" {
+		t.Fatalf("SecondaryCTA = %#v, want GitHub link", hero.SecondaryCTA)
+	}
+	if len(hero.Stats) != 1 || hero.Stats[0].Value != "0" || hero.Stats[0].Label != "heap allocations" {
+		t.Fatalf("Stats = %#v, want one heap allocations stat", hero.Stats)
+	}
+	if hero.Code == nil || hero.Code.Title != "Quick start" || hero.Code.Language != "go" {
+		t.Fatalf("Code = %#v, want Go quick start", hero.Code)
+	}
+	if !strings.Contains(hero.Code.Body, `r.GET("/users/:id", getUser)`) {
+		t.Errorf("Code.Body = %q, want router sample", hero.Code.Body)
 	}
 }
 
@@ -310,6 +357,30 @@ func TestMerge_SliceReplace(t *testing.T) {
 	}
 	if base.Social[0].Label != "GitHub" {
 		t.Errorf("Social[0].Label = %q, want %q", base.Social[0].Label, "GitHub")
+	}
+}
+
+func TestMerge_HomepageHeroOptionalFields(t *testing.T) {
+	base := Defaults()
+	over := &SiteConfig{}
+	over.Homepage.Hero.Eyebrow = "Go HTTP Router"
+	over.Homepage.Hero.SecondaryCTA = &HeroCTA{Label: "GitHub", URL: "https://github.com/example/velox"}
+	over.Homepage.Hero.Stats = []HeroStat{{Value: "0", Label: "heap allocations"}}
+	over.Homepage.Hero.Code = &HeroCode{Title: "Quick start", Language: "go", Body: "r := velox.New()"}
+
+	mergeConfig(base, over)
+
+	if base.Homepage.Hero.Eyebrow != "Go HTTP Router" {
+		t.Errorf("Eyebrow = %q, want Go HTTP Router", base.Homepage.Hero.Eyebrow)
+	}
+	if base.Homepage.Hero.SecondaryCTA == nil || base.Homepage.Hero.SecondaryCTA.Label != "GitHub" {
+		t.Fatalf("SecondaryCTA = %#v, want GitHub", base.Homepage.Hero.SecondaryCTA)
+	}
+	if len(base.Homepage.Hero.Stats) != 1 || base.Homepage.Hero.Stats[0].Label != "heap allocations" {
+		t.Fatalf("Stats = %#v, want heap allocations stat", base.Homepage.Hero.Stats)
+	}
+	if base.Homepage.Hero.Code == nil || base.Homepage.Hero.Code.Body != "r := velox.New()" {
+		t.Fatalf("Code = %#v, want code panel", base.Homepage.Hero.Code)
 	}
 }
 

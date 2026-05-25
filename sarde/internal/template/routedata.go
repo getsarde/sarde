@@ -526,6 +526,7 @@ func mapHomepageSettings(s *config.HomepageSettings) *engine.HomepageData {
 	d := &engine.HomepageData{
 		Template: s.Template,
 		Hero: engine.HeroData{
+			Eyebrow:    s.Hero.Eyebrow,
 			Title:      s.Hero.Title,
 			Subtitle:   s.Hero.Subtitle,
 			Background: s.Hero.Background,
@@ -535,6 +536,28 @@ func mapHomepageSettings(s *config.HomepageSettings) *engine.HomepageData {
 		d.Hero.CTA = &engine.HeroCTAData{
 			Label: s.Hero.CTA.Label,
 			URL:   s.Hero.CTA.URL,
+		}
+	}
+	if s.Hero.SecondaryCTA != nil {
+		d.Hero.SecondaryCTA = &engine.HeroCTAData{
+			Label: s.Hero.SecondaryCTA.Label,
+			URL:   s.Hero.SecondaryCTA.URL,
+		}
+	}
+	if len(s.Hero.Stats) > 0 {
+		d.Hero.Stats = make([]engine.HeroStatData, 0, len(s.Hero.Stats))
+		for _, stat := range s.Hero.Stats {
+			d.Hero.Stats = append(d.Hero.Stats, engine.HeroStatData{
+				Value: stat.Value,
+				Label: stat.Label,
+			})
+		}
+	}
+	if s.Hero.Code != nil {
+		d.Hero.Code = &engine.HeroCodeData{
+			Title:    s.Hero.Code.Title,
+			Language: s.Hero.Code.Language,
+			Body:     s.Hero.Code.Body,
 		}
 	}
 	return d

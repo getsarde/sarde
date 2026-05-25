@@ -124,6 +124,25 @@ homepage:
     cta:
       label: Get Started
       url: /docs/guide/introduction
+    code:
+      body: |
+        r := velox.New()
+        r.Use(middleware.Recoverer())
+        r.GET("/users/:id", getUser)
+        http.ListenAndServe(":8080", r)
+      language: go
+      title: Quick start
+    eyebrow: Go HTTP Router
+    secondary_cta:
+      label: GitHub
+      url: https://github.com/example/velox
+    stats:
+    - label: heap allocations
+      value: "0"
+    - label: route matching
+      value: "<1us"
+    - label: registered routes
+      value: 10k+
     subtitle: A blazing-fast Go HTTP router with zero allocations on the hot path.
     title: Velox
   template: hero

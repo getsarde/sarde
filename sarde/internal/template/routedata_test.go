@@ -3,6 +3,7 @@ package template
 import (
 	"testing"
 
+	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/engine"
 )
@@ -94,6 +95,62 @@ func TestBuildRouteData_HomePage(t *testing.T) {
 	}
 	if rd.HasSidebar {
 		t.Error("HasSidebar should be false for home")
+	}
+}
+
+func TestBuildRouteData_HomePageHeroOptionalFields(t *testing.T) {
+	page := &engine.Page{
+		Title: "Welcome",
+		Kind:  engine.KindHome,
+	}
+	site := baseSite()
+	site.Config = &config.SiteConfig{
+		Homepage: config.HomepageSettings{
+			Template: "hero",
+			Hero: config.HeroSettings{
+				Eyebrow: "Go HTTP Router",
+				Title:   "Velox",
+				CTA: &config.HeroCTA{
+					Label: "Get Started",
+					URL:   "/docs/",
+				},
+				SecondaryCTA: &config.HeroCTA{
+					Label: "GitHub",
+					URL:   "https://github.com/example/velox",
+				},
+				Stats: []config.HeroStat{
+					{Value: "0", Label: "heap allocations"},
+					{Value: "<1us", Label: "route matching"},
+				},
+				Code: &config.HeroCode{
+					Title:    "Quick start",
+					Language: "go",
+					Body:     "r := velox.New()",
+				},
+			},
+		},
+	}
+
+	rd := BuildRouteData(page, site, nil)
+
+	if rd.Homepage == nil {
+		t.Fatal("Homepage should be populated")
+	}
+	hero := rd.Homepage.Hero
+	if hero.Eyebrow != "Go HTTP Router" || hero.Title != "Velox" {
+		t.Fatalf("Hero = %#v, want mapped eyebrow and title", hero)
+	}
+	if hero.CTA == nil || hero.CTA.Label != "Get Started" {
+		t.Fatalf("CTA = %#v, want primary CTA", hero.CTA)
+	}
+	if hero.SecondaryCTA == nil || hero.SecondaryCTA.Label != "GitHub" {
+		t.Fatalf("SecondaryCTA = %#v, want GitHub CTA", hero.SecondaryCTA)
+	}
+	if len(hero.Stats) != 2 || hero.Stats[1].Value != "<1us" {
+		t.Fatalf("Stats = %#v, want mapped stats", hero.Stats)
+	}
+	if hero.Code == nil || hero.Code.Body != "r := velox.New()" {
+		t.Fatalf("Code = %#v, want mapped code panel", hero.Code)
 	}
 }
 

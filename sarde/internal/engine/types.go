@@ -600,16 +600,33 @@ type HomepageData struct {
 
 // HeroData holds hero section settings for the homepage.
 type HeroData struct {
-	Title      string
-	Subtitle   string
-	CTA        *HeroCTAData
-	Background string
+	Eyebrow      string
+	Title        string
+	Subtitle     string
+	CTA          *HeroCTAData
+	SecondaryCTA *HeroCTAData
+	Stats        []HeroStatData
+	Code         *HeroCodeData
+	Background   string
 }
 
 // HeroCTAData holds the call-to-action button settings.
 type HeroCTAData struct {
 	Label string
 	URL   string
+}
+
+// HeroStatData holds a short proof point for the homepage hero.
+type HeroStatData struct {
+	Value string
+	Label string
+}
+
+// HeroCodeData holds the optional code sample shown in the homepage hero.
+type HeroCodeData struct {
+	Title    string
+	Language string
+	Body     string
 }
 
 // TranslationLink points to the same page in another language.
@@ -694,4 +711,3 @@ type ThemeResolver struct {
 	ThemeName  string // active theme name (for themes/<name>/layouts/)
 	EmbeddedFS fs.FS  // compiled-in embedded/theme/ filesystem
 }
-

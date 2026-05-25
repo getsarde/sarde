@@ -1288,48 +1288,23 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	}
 	copyRenderedContentToFallbacks(patchedAllPages, changedByPath, newPageIndex)
 
-	var dirtyRendered []RenderedPage
-	dirtyAliases := make(map[string]string)
-
-	renderPage := func(page *engine.Page) error {
-		if page.Params != nil {
-			if r, ok := page.Params["render"].(bool); ok && !r {
-				return nil
-			}
-		}
-		rd := sardetemplate.BuildRouteData(page, b.lastSiteCtx, b.themeConfig)
-		b.tmplEngine.SetCurrentLang(rd.Lang)
-		if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, b.lastSiteCtx); err != nil {
-			return err
-		}
-		var html []byte
-		if redirect := tabbedCollectionRedirect(page); redirect != "" {
-			html = []byte(buildRedirectHTML(redirect))
-		} else {
-			var err error
-			html, err = b.tmplEngine.Render(rd.Template, rd)
-			if err != nil {
-				return err
-			}
-		}
-		dirtyRendered = append(dirtyRendered, RenderedPage{
-			Page: page, HTML: html,
-			OutPath: PageOutputPath(page.RelPermalink),
-		})
-		for _, alias := range page.Aliases {
-			dirtyAliases[alias] = page.RelPermalink
-		}
-		return nil
-	}
-
+	var dirtyPages []*engine.Page
 	for _, page := range patchedAllPages {
 		if _, isDirty := dirtyPermalinks[page.RelPermalink]; !isDirty {
 			continue
 		}
-		if err := renderPage(page); err != nil {
-			log.Printf("ContentRebuild: template render error: %v, falling back", err)
-			return b.Build()
+		if page.Params != nil {
+			if r, ok := page.Params["render"].(bool); ok && !r {
+				continue
+			}
 		}
+		dirtyPages = append(dirtyPages, page)
+	}
+
+	dirtyRendered, dirtyAliases, err := b.renderPages(dirtyPages, b.lastSiteCtx, true, workers.Count())
+	if err != nil {
+		log.Printf("ContentRebuild: template render error: %v, falling back", err)
+		return b.Build()
 	}
 
 	if err := b.renderDirtyCollectionPagination(b.lastCollections, dirtyPermalinks, b.lastSiteCtx, &dirtyRendered); err != nil {
@@ -1352,7 +1327,6 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 				},
 			}
 			rd := sardetemplate.BuildRouteData(taxStub, b.lastSiteCtx, b.themeConfig)
-			b.tmplEngine.SetCurrentLang(rd.Lang)
 			html, err := b.tmplEngine.Render(rd.Template, rd)
 			if err != nil {
 				return b.Build()
@@ -1374,7 +1348,6 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 					Params: map[string]any{"__taxonomy": tax, "__taxonomy_term": term},
 				}
 				rd := sardetemplate.BuildRouteData(termStub, b.lastSiteCtx, b.themeConfig)
-				b.tmplEngine.SetCurrentLang(rd.Lang)
 				html, err := b.tmplEngine.Render(rd.Template, rd)
 				if err != nil {
 					return b.Build()
@@ -1402,7 +1375,6 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 					},
 				}
 				rd := sardetemplate.BuildRouteData(paginatedStub, b.lastSiteCtx, b.themeConfig)
-				b.tmplEngine.SetCurrentLang(rd.Lang)
 				html, err := b.tmplEngine.Render(rd.Template, rd)
 				if err != nil {
 					return b.Build()
@@ -1700,7 +1672,6 @@ func (b *SiteBuilder) renderDirtyCollectionPagination(collections map[string]*en
 				},
 			}
 			rd := sardetemplate.BuildRouteData(stub, site, b.themeConfig)
-			b.tmplEngine.SetCurrentLang(rd.Lang)
 			if err := b.pluginMgr.RunBeforeRender(b.config, stub, rd, site); err != nil {
 				return err
 			}

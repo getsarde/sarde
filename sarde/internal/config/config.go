@@ -477,15 +477,30 @@ type HomepageSettings struct {
 }
 
 type HeroSettings struct {
-	Title      string   `yaml:"title"`
-	Subtitle   string   `yaml:"subtitle"`
-	CTA        *HeroCTA `yaml:"cta"`
-	Background string   `yaml:"background"`
+	Eyebrow      string     `yaml:"eyebrow"`
+	Title        string     `yaml:"title"`
+	Subtitle     string     `yaml:"subtitle"`
+	CTA          *HeroCTA   `yaml:"cta"`
+	SecondaryCTA *HeroCTA   `yaml:"secondary_cta"`
+	Stats        []HeroStat `yaml:"stats"`
+	Code         *HeroCode  `yaml:"code"`
+	Background   string     `yaml:"background"`
 }
 
 type HeroCTA struct {
 	Label string `yaml:"label"`
 	URL   string `yaml:"url"`
+}
+
+type HeroStat struct {
+	Value string `yaml:"value"`
+	Label string `yaml:"label"`
+}
+
+type HeroCode struct {
+	Title    string `yaml:"title"`
+	Language string `yaml:"language"`
+	Body     string `yaml:"body"`
 }
 
 // ---------------------------------------------------------------------------

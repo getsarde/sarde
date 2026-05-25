@@ -310,11 +310,21 @@ func mergeCollections(base *map[string]*CollectionSiteConfig, over map[string]*C
 
 func mergeHomepage(base, over *HomepageSettings) {
 	mergeStr(&base.Template, over.Template)
+	mergeStr(&base.Hero.Eyebrow, over.Hero.Eyebrow)
 	mergeStr(&base.Hero.Title, over.Hero.Title)
 	mergeStr(&base.Hero.Subtitle, over.Hero.Subtitle)
 	mergeStr(&base.Hero.Background, over.Hero.Background)
 	if over.Hero.CTA != nil {
 		base.Hero.CTA = over.Hero.CTA
+	}
+	if over.Hero.SecondaryCTA != nil {
+		base.Hero.SecondaryCTA = over.Hero.SecondaryCTA
+	}
+	if len(over.Hero.Stats) > 0 {
+		base.Hero.Stats = over.Hero.Stats
+	}
+	if over.Hero.Code != nil {
+		base.Hero.Code = over.Hero.Code
 	}
 }
 

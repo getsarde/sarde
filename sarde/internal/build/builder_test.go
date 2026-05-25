@@ -100,6 +100,83 @@ func TestBuild_EndToEnd(t *testing.T) {
 	assertFixtureFileExists(t, distDir, "404.html")
 }
 
+func TestBuild_HomeHero_BackCompatConfig(t *testing.T) {
+	projDir := createFixtureSite(t)
+	cfg := config.Defaults()
+	cfg.Build.Minify = config.BoolPtr(false)
+	cfg.Homepage.Template = "hero"
+	cfg.Homepage.Hero.Title = "Velox"
+	cfg.Homepage.Hero.Subtitle = "A blazing-fast Go HTTP router."
+	cfg.Homepage.Hero.CTA = &config.HeroCTA{Label: "Get Started", URL: "/docs/"}
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: buildThemeConfig(),
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(projDir, "dist")
+	assertFixtureFileContains(t, distDir, "index.html", `class="sarde-hero hero`)
+	assertFixtureFileContains(t, distDir, "index.html", "Velox")
+	assertFixtureFileContains(t, distDir, "index.html", "A blazing-fast Go HTTP router.")
+	assertFixtureFileContains(t, distDir, "index.html", "Get Started")
+	assertFixtureFileNotContains(t, distDir, "index.html", "sarde-hero-proof")
+}
+
+func TestBuild_HomeHero_OptionalFieldsRendered(t *testing.T) {
+	projDir := createFixtureSite(t)
+	cfg := config.Defaults()
+	cfg.Build.Minify = config.BoolPtr(false)
+	cfg.Homepage.Template = "hero"
+	cfg.Homepage.Hero = config.HeroSettings{
+		Eyebrow:    "Go HTTP Router",
+		Title:      "Velox",
+		Subtitle:   "Zero-allocation routing for production APIs.",
+		Background: "gradient",
+		CTA:        &config.HeroCTA{Label: "Get Started", URL: "/docs/"},
+		SecondaryCTA: &config.HeroCTA{
+			Label: "GitHub",
+			URL:   "https://github.com/example/velox",
+		},
+		Stats: []config.HeroStat{
+			{Value: "0", Label: "heap allocations"},
+			{Value: "<1us", Label: "route matching"},
+		},
+		Code: &config.HeroCode{
+			Title:    "Quick start",
+			Language: "go",
+			Body:     "r := velox.New()\nr.GET(\"/users/:id\", getUser)",
+		},
+	}
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: buildThemeConfig(),
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(projDir, "dist")
+	assertFixtureFileContains(t, distDir, "index.html", "Go HTTP Router")
+	assertFixtureFileContains(t, distDir, "index.html", "sarde-hero-cta-secondary")
+	assertFixtureFileContains(t, distDir, "index.html", "GitHub")
+	assertFixtureFileContains(t, distDir, "index.html", "sarde-hero-proof")
+	assertFixtureFileContains(t, distDir, "index.html", "Quick start")
+	assertFixtureFileContains(t, distDir, "index.html", "language-go")
+	assertFixtureFileContains(t, distDir, "index.html", "r := velox.New()")
+	assertFixtureFileContains(t, distDir, "index.html", "heap allocations")
+	assertFixtureFileContains(t, distDir, "index.html", "route matching")
+}
+
 func TestBuild_DraftFiltering(t *testing.T) {
 	dir := t.TempDir()
 	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n# Home\n")
@@ -281,6 +358,18 @@ func assertFixtureFileContains(t *testing.T, base, rel, substr string) {
 	}
 	if !strings.Contains(string(data), substr) {
 		t.Errorf("file %s does not contain %q", rel, substr)
+	}
+}
+
+func assertFixtureFileNotContains(t *testing.T, base, rel, substr string) {
+	t.Helper()
+	path := filepath.Join(base, filepath.FromSlash(rel))
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("reading %s: %v", rel, err)
+	}
+	if strings.Contains(string(data), substr) {
+		t.Errorf("file %s unexpectedly contains %q", rel, substr)
 	}
 }
 

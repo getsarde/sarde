@@ -1,19 +1,59 @@
-<section class="hero hero-bg-{{ if .Homepage }}{{ .Homepage.Hero.Background }}{{ else }}gradient{{ end }}">
-  <div class="sarde-hero-inner">
-    <h1 class="sarde-hero-title">
-      {{- if and .Homepage .Homepage.Hero.Title }}
-        {{- .Homepage.Hero.Title -}}
-      {{ else }}
-        {{- .Site.Title -}}
-      {{ end -}}
-    </h1>
-    {{ if and .Homepage .Homepage.Hero.Subtitle }}
-    <p class="sarde-hero-subtitle">{{ .Homepage.Hero.Subtitle }}</p>
-    {{ end }}
-    {{ if and .Homepage .Homepage.Hero.CTA }}
-    <div class="sarde-hero-actions">
-      <a href="{{ .Homepage.Hero.CTA.URL }}" class="sarde-hero-cta">{{ .Homepage.Hero.CTA.Label }}</a>
+{{ $title := .Site.Title }}
+{{ $subtitle := "" }}
+{{ $background := "gradient" }}
+{{ if .Homepage }}
+  {{ if .Homepage.Hero.Title }}{{ $title = .Homepage.Hero.Title }}{{ end }}
+  {{ $subtitle = .Homepage.Hero.Subtitle }}
+  {{ $background = .Homepage.Hero.Background }}
+{{ end }}
+{{ $hasCode := and .Homepage .Homepage.Hero.Code .Homepage.Hero.Code.Body }}
+{{ $hasStats := and .Homepage .Homepage.Hero.Stats }}
+{{ $hasPanel := or $hasCode $hasStats }}
+<section class="sarde-hero hero sarde-hero-bg-{{ $background }} hero-bg-{{ $background }}">
+  <div class="sarde-hero-inner{{ if $hasPanel }} sarde-hero-inner-with-panel{{ end }}">
+    <div class="sarde-hero-copy">
+      {{ if and .Homepage .Homepage.Hero.Eyebrow }}
+      <p class="sarde-hero-eyebrow">{{ .Homepage.Hero.Eyebrow }}</p>
+      {{ end }}
+      <h1 class="sarde-hero-title">{{ $title }}</h1>
+      {{ if $subtitle }}
+      <p class="sarde-hero-subtitle">{{ $subtitle }}</p>
+      {{ end }}
+      {{ if and .Homepage (or .Homepage.Hero.CTA .Homepage.Hero.SecondaryCTA) }}
+      <div class="sarde-hero-actions">
+        {{ with .Homepage.Hero.CTA }}
+        <a href="{{ .URL }}" class="sarde-hero-cta">{{ .Label }}</a>
+        {{ end }}
+        {{ with .Homepage.Hero.SecondaryCTA }}
+        <a href="{{ .URL }}" class="sarde-hero-cta sarde-hero-cta-secondary">{{ .Label }}</a>
+        {{ end }}
+      </div>
+      {{ end }}
     </div>
+    {{ if $hasPanel }}
+    <aside class="sarde-hero-proof" aria-label="Hero proof">
+      {{ if $hasCode }}
+      {{ with .Homepage.Hero.Code }}
+      <div class="sarde-hero-code-card">
+        <div class="sarde-hero-code-header">
+          <span>{{ if .Title }}{{ .Title }}{{ else }}Quick start{{ end }}</span>
+          {{ if .Language }}<span>{{ .Language }}</span>{{ end }}
+        </div>
+        <pre class="sarde-hero-code"><code class="language-{{ .Language }}">{{ .Body }}</code></pre>
+      </div>
+      {{ end }}
+      {{ end }}
+      {{ if $hasStats }}
+      <dl class="sarde-hero-stats">
+        {{ range .Homepage.Hero.Stats }}
+        <div class="sarde-hero-stat">
+          <dt>{{ .Value }}</dt>
+          <dd>{{ .Label }}</dd>
+        </div>
+        {{ end }}
+      </dl>
+      {{ end }}
+    </aside>
     {{ end }}
   </div>
 </section>
