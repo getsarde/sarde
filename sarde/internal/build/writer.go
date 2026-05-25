@@ -37,11 +37,19 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 	// redundant MkdirAll syscalls during parallel writes.
 	dirs := make(map[string]struct{}, len(pages)/4)
 	for _, rp := range pages {
-		dir := filepath.Dir(filepath.Join(w.OutputDir, filepath.FromSlash(rp.OutPath)))
+		outPath, err := safeOutputPath(w.OutputDir, rp.OutPath)
+		if err != nil {
+			return 0, err
+		}
+		dir := filepath.Dir(outPath)
 		dirs[dir] = struct{}{}
 	}
 	for aliasPath := range aliases {
-		dir := filepath.Dir(filepath.Join(w.OutputDir, filepath.FromSlash(PageOutputPath(aliasPath))))
+		outPath, err := safeOutputPath(w.OutputDir, PageOutputPath(aliasPath))
+		if err != nil {
+			return 0, err
+		}
+		dir := filepath.Dir(outPath)
 		dirs[dir] = struct{}{}
 	}
 	for dir := range dirs {
@@ -55,7 +63,10 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 	g.SetLimit(runtime.NumCPU())
 	for _, rp := range pages {
 		g.Go(func() error {
-			outPath := filepath.Join(w.OutputDir, filepath.FromSlash(rp.OutPath))
+			outPath, err := safeOutputPath(w.OutputDir, rp.OutPath)
+			if err != nil {
+				return err
+			}
 			if w.Tracker != nil {
 				w.Tracker.Track(outPath)
 			}
@@ -69,7 +80,10 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 	// Write alias redirects in parallel.
 	for aliasPath, target := range aliases {
 		g.Go(func() error {
-			outPath := filepath.Join(w.OutputDir, filepath.FromSlash(PageOutputPath(aliasPath)))
+			outPath, err := safeOutputPath(w.OutputDir, PageOutputPath(aliasPath))
+			if err != nil {
+				return err
+			}
 			if w.Tracker != nil {
 				w.Tracker.Track(outPath)
 			}
@@ -105,7 +119,11 @@ func (w *Writer) copyStatic() (int, error) {
 			return err
 		}
 		relPath, _ := filepath.Rel(staticDir, path)
-		pairs = append(pairs, filePair{path, filepath.Join(w.OutputDir, relPath)})
+		dst, err := safeOutputPath(w.OutputDir, relPath)
+		if err != nil {
+			return err
+		}
+		pairs = append(pairs, filePair{path, dst})
 		return nil
 	})
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/frostybee/sarde/internal/build"
 	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/deploy"
 	"github.com/spf13/cobra"
@@ -48,14 +49,12 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 
 	// Resolve output directory.
 	outputDir := cfg.Build.Output
-	if outputDir == "" {
-		outputDir = "dist"
-	}
 	if output, _ := cmd.Flags().GetString("output"); output != "" {
 		outputDir = output
 	}
-	if !filepath.IsAbs(outputDir) {
-		outputDir = filepath.Join(projectDir, outputDir)
+	outputDir, err = build.ResolveOutputDir(projectDir, outputDir)
+	if err != nil {
+		return err
 	}
 
 	// Verify output exists.

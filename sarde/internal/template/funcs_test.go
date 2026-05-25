@@ -21,7 +21,10 @@ import (
 func nilFuncMap() htmltemplate.FuncMap {
 	var s *engine.SiteContext
 	var pi *content.PageIndex
-	return buildFuncMap(&s, nil, nil, nil, "", nil, nil, nil, nil, nil, nil, nil, &pi, nil)
+	var resolver *asset.Resolver
+	var manifest *asset.Manifest
+	var processor *asset.ImageProcessor
+	return buildFuncMap(&s, nil, nil, nil, "", nil, &resolver, &manifest, &processor, nil, nil, nil, &pi, nil)
 }
 
 func testSite() *engine.SiteContext {
@@ -50,7 +53,10 @@ func testFuncMapBuild() htmltemplate.FuncMap {
 	lang := "en"
 	site := testSite()
 	var pageIndex *content.PageIndex
-	return buildFuncMap(&site, &engine.ThemeResolver{}, nil, &sync.Map{}, "", nil, nil, nil, nil, nil, &lang, nil, &pageIndex, nil)
+	var resolver *asset.Resolver
+	var manifest *asset.Manifest
+	var processor *asset.ImageProcessor
+	return buildFuncMap(&site, &engine.ThemeResolver{}, nil, &sync.Map{}, "", nil, &resolver, &manifest, &processor, nil, &lang, nil, &pageIndex, nil)
 }
 
 // ── String tests ──
@@ -309,7 +315,10 @@ func TestNavFor(t *testing.T) {
 		},
 	}
 	var pageIndex *content.PageIndex
-	fm := buildFuncMap(&site, nil, nil, nil, "", nil, nil, nil, nil, nil, nil, nil, &pageIndex, nil)
+	var resolver *asset.Resolver
+	var manifest *asset.Manifest
+	var processor *asset.ImageProcessor
+	fm := buildFuncMap(&site, nil, nil, nil, "", nil, &resolver, &manifest, &processor, nil, nil, nil, &pageIndex, nil)
 	navFor := fm["navFor"].(func(string) *engine.NavTree)
 
 	if got := navFor("docs"); got != tree {
@@ -453,7 +462,9 @@ func TestResizeImageFunc_WithProcessor(t *testing.T) {
 
 	var nilSite *engine.SiteContext
 	var nilPI *content.PageIndex
-	fm := buildFuncMap(&nilSite, nil, nil, nil, "", nil, nil, nil, processor, nil, nil, nil, &nilPI, nil)
+	var resolver *asset.Resolver
+	var manifest *asset.Manifest
+	fm := buildFuncMap(&nilSite, nil, nil, nil, "", nil, &resolver, &manifest, &processor, nil, nil, nil, &nilPI, nil)
 	resizeImage := fm["resize_image"].(func(engine.Resource, string) htmltemplate.HTML)
 
 	res := engine.Resource{

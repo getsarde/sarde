@@ -27,7 +27,7 @@ const (
 // FileChange represents a detected filesystem change.
 type FileChange struct {
 	Path  string
-	Paths []string   // all changed file paths in the batch (populated for content changes)
+	Paths []string // all changed file paths in the batch (populated for content changes)
 	Kind  ChangeKind
 }
 
@@ -229,9 +229,10 @@ func (w *Watcher) classifyChange(path string) ChangeKind {
 		return ChangeConfig
 	}
 
-	// CSS files in static/ or assets/.
+	// CSS files in static/ can be hot-swapped directly. CSS under assets/
+	// may be bundled/fingerprinted, so it must go through a rebuild.
 	ext := strings.ToLower(filepath.Ext(path))
-	if ext == ".css" && (strings.HasPrefix(rel, "static/") || strings.HasPrefix(rel, "assets/")) {
+	if ext == ".css" && strings.HasPrefix(rel, "static/") {
 		return ChangeCSS
 	}
 

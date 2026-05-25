@@ -125,7 +125,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 
 	// Build a bootstrap FuncMap (without component support or partial cache) for initial parsing.
 	// Uses &e.site / &e.pageIndex so closures always see the latest values across rebuilds.
-	bootstrapFM := buildFuncMap(&e.site, resolver, nil, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, &e.pageIndex, nil)
+	bootstrapFM := buildFuncMap(&e.site, resolver, nil, &e.dataCache, e.cachedCSS, &e.cssURL, &e.assetResolver, &e.assetManifest, &e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, &e.pageIndex, nil)
 
 	// Create the component registry with embedded defaults.
 	registry, err := component.NewRegistry(resolver.EmbeddedFS, bootstrapFM)
@@ -154,7 +154,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	partialData := resolveAllPartials(resolver)
 
 	// Rebuild the final FuncMap with the real component registry and partial cache.
-	e.funcMap = buildFuncMap(&e.site, resolver, registry, &e.dataCache, e.cachedCSS, &e.cssURL, e.assetResolver, e.assetManifest, e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, &e.pageIndex, e.partialCache)
+	e.funcMap = buildFuncMap(&e.site, resolver, registry, &e.dataCache, e.cachedCSS, &e.cssURL, &e.assetResolver, &e.assetManifest, &e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, &e.pageIndex, e.partialCache)
 
 	for name, data := range partialData {
 		tmpl, err := htmltemplate.New(name).Funcs(e.funcMap).Parse(string(data))

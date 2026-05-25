@@ -1,8 +1,10 @@
 package plugin
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -101,6 +103,42 @@ func TestManager_BuildDoneParallel(t *testing.T) {
 
 	if atomic.LoadInt64(&counter) != 5 {
 		t.Errorf("expected 5 plugins to run, got %d", counter)
+	}
+}
+
+func TestManager_BuildDoneParallelWarningsUseSharedLock(t *testing.T) {
+	mgr := NewManager()
+	for i := 0; i < 2; i++ {
+		i := i
+		mgr.Register(&Plugin{
+			Name: fmt.Sprintf("warning-%d", i),
+			Hooks: PluginHooks{
+				BuildDone: func(ctx *BuildDoneContext) error {
+					for n := 0; n < 500; n++ {
+						ctx.AddWarning(engine.ValidationWarning{
+							File:    fmt.Sprintf("%d-%d.md", i, n),
+							Field:   "test",
+							Message: "warning",
+						})
+					}
+					return nil
+				},
+			},
+		})
+	}
+
+	var warnings []engine.ValidationWarning
+	ctx := &BuildDoneContext{
+		Config:    config.Defaults(),
+		OutputDir: t.TempDir(),
+	}
+	ctx.SetWarnings(&warnings)
+
+	if err := mgr.RunBuildDone(ctx); err != nil {
+		t.Fatalf("RunBuildDone failed: %v", err)
+	}
+	if len(warnings) != 1000 {
+		t.Fatalf("warnings = %d, want 1000", len(warnings))
 	}
 }
 
@@ -215,6 +253,35 @@ func TestManager_SharedStore(t *testing.T) {
 	mgr.RunContentLoaded(cfg, nil, &pages)
 }
 
+func TestManager_SharedStoreConcurrentBeforeRender(t *testing.T) {
+	mgr := NewManager()
+	mgr.Register(&Plugin{
+		Name: "store",
+		Hooks: PluginHooks{
+			BeforeRender: func(ctx *BeforeRenderContext) error {
+				ctx.Set("key", "value")
+				if got := ctx.Get("key"); got != "value" {
+					t.Errorf("shared store value = %v, want value", got)
+				}
+				return nil
+			},
+		},
+	})
+
+	cfg := config.Defaults()
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := mgr.RunBeforeRender(cfg, &engine.Page{}, &engine.RouteData{}, &engine.SiteContext{}); err != nil {
+				t.Errorf("RunBeforeRender failed: %v", err)
+			}
+		}()
+	}
+	wg.Wait()
+}
+
 func TestBuildDoneContext_WriteFile(t *testing.T) {
 	outDir := t.TempDir()
 	var warnings []engine.ValidationWarning
@@ -236,6 +303,22 @@ func TestBuildDoneContext_WriteFile(t *testing.T) {
 	}
 	if string(data) != "hello" {
 		t.Errorf("file content = %q, want hello", string(data))
+	}
+}
+
+func TestBuildDoneContext_WriteFileRejectsTraversal(t *testing.T) {
+	parent := t.TempDir()
+	outDir := filepath.Join(parent, "dist")
+	ctx := &BuildDoneContext{
+		Config:    config.Defaults(),
+		OutputDir: outDir,
+	}
+
+	if err := ctx.WriteFile("../escape.txt", []byte("bad")); err == nil {
+		t.Fatal("expected traversal write to fail")
+	}
+	if _, err := os.Stat(filepath.Join(parent, "escape.txt")); !os.IsNotExist(err) {
+		t.Fatalf("plugin write escaped output dir, stat err = %v", err)
 	}
 }
 

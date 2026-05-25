@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/embedded"
+	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/theme"
 )
@@ -162,6 +162,78 @@ func TestBuild_StaticFiles(t *testing.T) {
 	assertFixtureFileContains(t, distDir, "images/logo.svg", "<svg>")
 }
 
+func TestBuild_RejectsUnsafeOutputDir(t *testing.T) {
+	dir := createFixtureSite(t)
+	cfg := config.Defaults()
+	cfg.Build.Output = "."
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  dir,
+		Config:      cfg,
+		ThemeConfig: buildThemeConfig(),
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+
+	if _, err := builder.Build(); err == nil {
+		t.Fatal("expected build to reject project-root output")
+	}
+}
+
+func TestBuild_RejectsUnsafeAliasOutputPath(t *testing.T) {
+	dir := createFixtureSite(t)
+	writeFixture(t, dir, "content/about.md", "---\ntitle: About\naliases: [\"/../escape/\"]\n---\nAbout.\n")
+	cfg := config.Defaults()
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  dir,
+		Config:      cfg,
+		ThemeConfig: buildThemeConfig(),
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+
+	if _, err := builder.Build(); err == nil {
+		t.Fatal("expected build to reject alias path traversal")
+	}
+	if _, err := os.Stat(filepath.Join(dir, "escape", "index.html")); !os.IsNotExist(err) {
+		t.Fatalf("unsafe alias escaped output dir, stat err = %v", err)
+	}
+}
+
+func TestBuild_ReusedBuilderRefreshesAssetManifestInTemplates(t *testing.T) {
+	dir := t.TempDir()
+	writeFixture(t, dir, "content/about.md", "---\ntitle: About\n---\nAbout.\n")
+	writeFixture(t, dir, "assets/css/main.css", "body { color: red; }\n")
+	writeFixture(t, dir, "layouts/_default/baseof.html", `<!doctype html><html><head><link href="{{ fingerprint "css/main.css" }}"></head><body>{{ block "content" . }}{{ end }}</body></html>`)
+	writeFixture(t, dir, "layouts/_default/single.html", `{{ define "content" }}{{ .Page.Content }}{{ end }}`)
+
+	cfg := config.Defaults()
+	cfg.Head.CustomCSS = []string{"css/main.css"}
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  dir,
+		Config:      cfg,
+		ThemeConfig: buildThemeConfig(),
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("first Build failed: %v", err)
+	}
+	first := readFixtureFile(t, filepath.Join(dir, "dist", "about", "index.html"))
+
+	writeFixture(t, dir, "assets/css/main.css", "body { color: blue; }\n")
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("second Build failed: %v", err)
+	}
+	second := readFixtureFile(t, filepath.Join(dir, "dist", "about", "index.html"))
+
+	if first == second {
+		t.Fatalf("expected fingerprinted asset URL to change after asset edit; HTML stayed %q", second)
+	}
+	if !strings.Contains(second, "/assets/css/main.") {
+		t.Fatalf("second HTML did not contain fingerprinted CSS URL: %s", second)
+	}
+}
+
 func TestValidate(t *testing.T) {
 	projDir := createFixtureSite(t)
 	cfg := config.Defaults()
@@ -210,6 +282,15 @@ func assertFixtureFileContains(t *testing.T, base, rel, substr string) {
 	if !strings.Contains(string(data), substr) {
 		t.Errorf("file %s does not contain %q", rel, substr)
 	}
+}
+
+func readFixtureFile(t *testing.T, path string) string {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("reading %s: %v", path, err)
+	}
+	return string(data)
 }
 
 func TestBuild_Custom404(t *testing.T) {

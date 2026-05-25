@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/frostybee/sarde/internal/build"
 	"github.com/frostybee/sarde/internal/deploy"
 	"github.com/frostybee/sarde/internal/importer"
 	"github.com/frostybee/sarde/internal/project"
@@ -390,12 +391,11 @@ func (s *APIServer) handleDeploy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	outputDir := cfg.Build.Output
-	if outputDir == "" {
-		outputDir = "dist"
-	}
 	projectDir := s.pm.ProjectDir()
-	if !filepath.IsAbs(outputDir) {
-		outputDir = filepath.Join(projectDir, outputDir)
+	outputDir, err = build.ResolveOutputDir(projectDir, outputDir)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "OUTPUT_CONFIG_ERROR", err.Error())
+		return
 	}
 
 	if err := deployer.Deploy(outputDir); err != nil {

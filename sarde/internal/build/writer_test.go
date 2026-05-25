@@ -117,6 +117,37 @@ func TestWriter_CleanFlag(t *testing.T) {
 	assertFileContains(t, filepath.Join(outDir, "index.html"), "Fresh")
 }
 
+func TestResolveOutputDirRejectsDangerousLocations(t *testing.T) {
+	projectDir := t.TempDir()
+	for _, output := range []string{".", "..", "content", "content/generated", "layouts", "static", ".git"} {
+		t.Run(output, func(t *testing.T) {
+			if _, err := ResolveOutputDir(projectDir, output); err == nil {
+				t.Fatalf("ResolveOutputDir(%q) succeeded, want error", output)
+			}
+		})
+	}
+}
+
+func TestWriterRejectsUnsafeOutputPaths(t *testing.T) {
+	parent := t.TempDir()
+	outDir := filepath.Join(parent, "dist")
+	w := &Writer{OutputDir: outDir, ProjectDir: t.TempDir()}
+
+	if _, err := w.Write([]RenderedPage{{OutPath: "../escape/index.html", HTML: []byte("bad")}}, nil); err == nil {
+		t.Fatal("expected unsafe rendered page path to fail")
+	}
+	if _, err := os.Stat(filepath.Join(parent, "escape", "index.html")); !os.IsNotExist(err) {
+		t.Fatalf("unsafe rendered page escaped output dir, stat err = %v", err)
+	}
+
+	if _, err := w.Write(nil, map[string]string{"/../alias/": "/target/"}); err == nil {
+		t.Fatal("expected unsafe alias path to fail")
+	}
+	if _, err := os.Stat(filepath.Join(parent, "alias", "index.html")); !os.IsNotExist(err) {
+		t.Fatalf("unsafe alias escaped output dir, stat err = %v", err)
+	}
+}
+
 func assertFileContains(t *testing.T, path, substr string) {
 	t.Helper()
 	content := readFile(t, path)

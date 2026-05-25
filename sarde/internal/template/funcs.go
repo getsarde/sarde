@@ -30,9 +30,9 @@ func buildFuncMap(
 	dataCache *sync.Map,
 	cachedCSS string,
 	cssURLPtr *string,
-	assetResolver *asset.Resolver,
-	assetManifest *asset.Manifest,
-	imageProcessor *asset.ImageProcessor,
+	assetResolverPtr **asset.Resolver,
+	assetManifestPtr **asset.Manifest,
+	imageProcessorPtr **asset.ImageProcessor,
 	pluginFuncs map[string]any,
 	currentLangPtr *string,
 	i18nStrings *i18n.StringTable,
@@ -41,22 +41,22 @@ func buildFuncMap(
 ) htmltemplate.FuncMap {
 	fm := htmltemplate.FuncMap{
 		// ── Strings ──
-		"upper":      strings.ToUpper,
-		"lower":      strings.ToLower,
-		"title":      fnTitle,
-		"truncate":   fnTruncate,
-		"slugify":    content.Slugify,
-		"replace":    strings.ReplaceAll,
-		"split":      strings.Split,
-		"join":       fnJoin,
-		"contains":   strings.Contains,
-		"hasPrefix":  strings.HasPrefix,
-		"hasSuffix":  strings.HasSuffix,
-		"trim":       strings.TrimSpace,
+		"upper":       strings.ToUpper,
+		"lower":       strings.ToLower,
+		"title":       fnTitle,
+		"truncate":    fnTruncate,
+		"slugify":     content.Slugify,
+		"replace":     strings.ReplaceAll,
+		"split":       strings.Split,
+		"join":        fnJoin,
+		"contains":    strings.Contains,
+		"hasPrefix":   strings.HasPrefix,
+		"hasSuffix":   strings.HasSuffix,
+		"trim":        strings.TrimSpace,
 		"markdownify": fnMarkdownify,
-		"plainify":   fnPlainify,
-		"safeHTML":   fnSafeHTML,
-		"highlight":  fnHighlight,
+		"plainify":    fnPlainify,
+		"safeHTML":    fnSafeHTML,
+		"highlight":   fnHighlight,
 
 		// ── Dates ──
 		"dateFormat": fnDateFormat,
@@ -203,6 +203,7 @@ func buildFuncMap(
 
 		// ── Assets ──
 		"asset": func(path string) string {
+			assetResolver := currentAssetResolver(assetResolverPtr)
 			if assetResolver == nil {
 				return path
 			}
@@ -217,6 +218,7 @@ func buildFuncMap(
 			return "/assets/" + path
 		},
 		"fingerprint": func(path string) string {
+			assetManifest := currentAssetManifest(assetManifestPtr)
 			if assetManifest == nil {
 				return path
 			}
@@ -227,6 +229,7 @@ func buildFuncMap(
 			return entry.OutputURL
 		},
 		"inline": func(path string) htmltemplate.HTML {
+			assetResolver := currentAssetResolver(assetResolverPtr)
 			if assetResolver == nil {
 				return ""
 			}
@@ -265,6 +268,7 @@ func buildFuncMap(
 			))
 		},
 		"resize_image": func(res engine.Resource, params string) htmltemplate.HTML {
+			imageProcessor := currentImageProcessor(imageProcessorPtr)
 			if imageProcessor == nil || res.SrcPath == "" {
 				return htmltemplate.HTML(asset.RenderPicture(
 					res.RelPermalink, res.Title,
@@ -495,11 +499,35 @@ func BuildShortcodeFuncMap(
 	imageProcessor *asset.ImageProcessor,
 	pageIndexPtr **content.PageIndex,
 ) htmltemplate.FuncMap {
+	assetResolverPtr := &assetResolver
+	assetManifestPtr := &assetManifest
+	imageProcessorPtr := &imageProcessor
 	return buildFuncMap(
 		sitePtr, resolver, nil, dataCache, "", nil,
-		assetResolver, assetManifest, imageProcessor,
+		assetResolverPtr, assetManifestPtr, imageProcessorPtr,
 		nil, nil, nil, pageIndexPtr, nil,
 	)
+}
+
+func currentAssetResolver(ptr **asset.Resolver) *asset.Resolver {
+	if ptr == nil {
+		return nil
+	}
+	return *ptr
+}
+
+func currentAssetManifest(ptr **asset.Manifest) *asset.Manifest {
+	if ptr == nil {
+		return nil
+	}
+	return *ptr
+}
+
+func currentImageProcessor(ptr **asset.ImageProcessor) *asset.ImageProcessor {
+	if ptr == nil {
+		return nil
+	}
+	return *ptr
 }
 
 // ── String function implementations ──

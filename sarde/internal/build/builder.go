@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -25,14 +26,13 @@ import (
 	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/i18n"
-	"github.com/frostybee/sarde/internal/navigation"
 	"github.com/frostybee/sarde/internal/plugin"
-	"github.com/frostybee/sarde/internal/shortcode"
 	"github.com/frostybee/sarde/internal/plugin/announcements"
 	"github.com/frostybee/sarde/internal/plugin/clientplugins"
 	"github.com/frostybee/sarde/internal/plugin/katex"
 	"github.com/frostybee/sarde/internal/plugin/mermaid"
 	"github.com/frostybee/sarde/internal/plugin/socialcards"
+	"github.com/frostybee/sarde/internal/shortcode"
 	"github.com/frostybee/sarde/internal/taxonomy"
 	sardetemplate "github.com/frostybee/sarde/internal/template"
 )
@@ -92,8 +92,8 @@ func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
 			BlockedHrefSchemes: opts.Config.Security.BlockedHrefSchemes,
 			HeadingLinks:       config.BoolVal(opts.Config.Site.HeadingLinks, true),
 		}),
-		tmplEngine:  sardetemplate.NewEngine(),
-		pluginMgr:   mgr,
+		tmplEngine: sardetemplate.NewEngine(),
+		pluginMgr:  mgr,
 	}
 }
 
@@ -113,9 +113,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		}
 	}
 
-	outputDir := filepath.Join(b.projectDir, "dist")
-	if b.config.Build.Output != "" {
-		outputDir = filepath.Join(b.projectDir, b.config.Build.Output)
+	outputDir, err := ResolveOutputDir(b.projectDir, b.config.Build.Output)
+	if err != nil {
+		return nil, err
 	}
 
 	// i18n: load translation strings (always — UI strings are needed even for single-language sites)
@@ -724,8 +724,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 					Permalink:    permalink,
 					RelPermalink: permalink,
 					Params: map[string]any{
-						"__taxonomy":              tax,
-						"__taxonomy_term":          term,
+						"__taxonomy":                tax,
+						"__taxonomy_term":           term,
 						consts.PaginationCurrentKey: n,
 					},
 				}
@@ -844,7 +844,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	// Phase 6: WRITE
 	clean := config.BoolVal(b.config.Build.Clean, true)
 	var tracker *OutputTracker
-	if clean && !b.devMode {
+	if clean {
 		tracker = NewOutputTracker(len(rendered) + 256)
 	}
 	trackFn := func(path string) {
@@ -915,7 +915,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 
 	// Prune orphaned files from previous builds.
 	if tracker != nil {
-		tracker.Prune(outputDir)
+		if err := tracker.Prune(outputDir); err != nil {
+			return nil, fmt.Errorf("pruning output: %w", err)
+		}
 	}
 	warnings = append(warnings, pluginWarnings...)
 
@@ -982,15 +984,6 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		}
 	}
 
-	// ── Edge case detection ────────────────────────────────────────────
-	for _, p := range changedPaths {
-		base := filepath.Base(p)
-		if base == "_index.md" {
-			log.Printf("ContentRebuild: section index changed, falling back to full rebuild")
-			return b.Build()
-		}
-	}
-	// ── Build lookup for old pages by file path ────────────────────────
 	// Skip fallback pages: they share FilePath with their source page and
 	// would overwrite the real page entry in the map.
 	oldByPath := make(map[string]*engine.Page, len(b.lastAllPages))
@@ -1000,16 +993,26 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		}
 	}
 
-	// ── Classify and re-parse changed files ────────────────────────────
 	type parsedEntry struct {
 		filePath string
 		newPage  *engine.Page
 		old      *engine.Page
 	}
 	var parsed []parsedEntry
+	var warnings []engine.ValidationWarning
 
 	for _, path := range changedPaths {
-		// Check if file still exists (deletion → fallback).
+		if !filepath.IsAbs(path) {
+			path = filepath.Join(b.projectDir, path)
+		}
+		path = filepath.Clean(path)
+
+		base := filepath.Base(path)
+		if base == "_index.md" || base == "404.md" || (strings.HasPrefix(base, "404.") && filepath.Ext(base) == ".md") {
+			log.Printf("ContentRebuild: structural content changed (%s), falling back to full rebuild", base)
+			return b.Build()
+		}
+
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			log.Printf("ContentRebuild: file deleted, falling back to full rebuild")
 			return b.Build()
@@ -1024,6 +1027,10 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		old := oldByPath[path]
 		if old == nil {
 			log.Printf("ContentRebuild: new file detected, falling back to full rebuild")
+			return b.Build()
+		}
+		if len(old.Resources) > 0 || cf.IsBundle {
+			log.Printf("ContentRebuild: bundle content changed, falling back to full rebuild")
 			return b.Build()
 		}
 
@@ -1041,7 +1048,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 			schema, _ = content.LoadSchema(filepath.Join(contentDir, cf.CollectionName))
 		}
 
-		newPage, _, err := collection.BuildSinglePage(
+		newPage, pageWarnings, err := collection.BuildSinglePage(
 			cf, contentDir, collCfg, schema,
 			b.config.Content.SummaryLength,
 			string(b.config.Build.LastUpdated),
@@ -1050,8 +1057,8 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 			log.Printf("ContentRebuild: parse error for %s: %v, falling back", path, err)
 			return b.Build()
 		}
+		warnings = append(warnings, pageWarnings...)
 
-		// Check draft/publish status change → fallback.
 		includeDrafts := config.BoolVal(b.config.Build.Drafts, false)
 		includeFuture := config.BoolVal(b.config.Build.Future, false)
 		now := time.Now()
@@ -1062,10 +1069,18 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 			return b.Build()
 		}
 
-		parsed = append(parsed, parsedEntry{filePath: path, newPage: newPage, old: old})
+		if reason := incrementalEligibilityFailure(old, newPage, cf); reason != "" {
+			log.Printf("ContentRebuild: %s, falling back to full rebuild", reason)
+			return b.Build()
+		}
+
+		parsed = append(parsed, parsedEntry{
+			filePath: path,
+			newPage:  newPage,
+			old:      old,
+		})
 	}
 
-	// ── Patch allPages (shallow copy) ──────────────────────────────────
 	patchedAllPages := make([]*engine.Page, len(b.lastAllPages))
 	copy(patchedAllPages, b.lastAllPages)
 
@@ -1077,6 +1092,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	}
 
 	dirtyPermalinks := make(map[string]struct{})
+	changedByPath := make(map[string]*engine.Page, len(parsed))
 
 	for _, e := range parsed {
 		idx, ok := indexByPath[e.filePath]
@@ -1084,70 +1100,24 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 			return b.Build()
 		}
 
-		// Preserve backrefs from the old page.
-		e.newPage.Collection = e.old.Collection
-		e.newPage.Section = e.old.Section
+		preserveStablePageState(e.newPage, e.old)
 
-		// Detect what changed for dirty set computation.
-		titleChanged := e.old.Title != e.newPage.Title
-		weightChanged := e.old.Weight != e.newPage.Weight
-		sidebarChanged := e.old.SidebarLabel != e.newPage.SidebarLabel ||
-			e.old.SidebarHidden != e.newPage.SidebarHidden
-
-		// Replace in allPages.
 		patchedAllPages[idx] = e.newPage
+		changedByPath[e.filePath] = e.newPage
 
-		// Patch collection.Pages.
 		col := e.old.Collection
 		if col != nil {
-			for i, cp := range col.Pages {
-				if cp.FilePath == e.filePath {
-					col.Pages[i] = e.newPage
-					break
-				}
-			}
-
-			// Re-sort and re-wire prev/next if sort-affecting fields changed.
-			if weightChanged || titleChanged {
-				sortBy := "weight"
-				sortOrder := ""
-				if col.Config != nil {
-					if col.Config.SortBy != "" {
-						sortBy = col.Config.SortBy
-					}
-					sortOrder = col.Config.SortOrder
-				}
-				collection.SortPages(col.Pages, sortBy, sortOrder)
-				if col.Config != nil && engine.LayoutHasSidebar(col.Config.Layout) {
-					navigation.WirePrevNextFromTree(col.NavTree)
-				} else {
-					collection.WirePrevNext(col.Pages)
-				}
-			}
+			replacePagePointer(&col.Pages, e.old, e.newPage)
+			replacePagePointer(&col.Featured, e.old, e.newPage)
+		}
+		if e.old.Section != nil {
+			replacePagePointer(&e.old.Section.Pages, e.old, e.newPage)
 		}
 
-		// ── Dirty set computation ──────────────────────────────────────
 		dirtyPermalinks[e.newPage.RelPermalink] = struct{}{}
-
-		if titleChanged {
-			if e.newPage.PrevPage != nil {
-				dirtyPermalinks[e.newPage.PrevPage.RelPermalink] = struct{}{}
-			}
-			if e.newPage.NextPage != nil {
-				dirtyPermalinks[e.newPage.NextPage.RelPermalink] = struct{}{}
-			}
-		}
-
-		if sidebarChanged || weightChanged {
-			if col != nil {
-				for _, cp := range col.Pages {
-					dirtyPermalinks[cp.RelPermalink] = struct{}{}
-				}
-			}
-		}
+		addCollectionListDirty(col, dirtyPermalinks)
 	}
 
-	// ── Strip stale synthetic pages ────────────────────────────────────
 	// Fallback pages are regenerated below; taxonomy stubs are rendered
 	// separately in the taxonomy section. Keeping them in patchedAllPages
 	// would double-render and cause the dirty set to grow across rebuilds.
@@ -1162,30 +1132,22 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		patchedAllPages = patchedAllPages[:n]
 	}
 
-	// ── i18n: regenerate fallbacks and re-link translations ────────────
 	isMultiLang := b.config.I18n.IsMultiLang()
 	if isMultiLang {
 		defaultLang := b.config.I18n.GetDefaultLanguage()
 
-		// Regenerate fallbacks from the updated real pages.
 		langCodes := b.config.I18n.LanguageCodes()
 		fallbacks := i18n.GenerateFallbacks(patchedAllPages, langCodes, defaultLang)
 		patchedAllPages = append(patchedAllPages, fallbacks...)
 
-		// Mark new fallback pages of changed files as dirty.
-		changedSet := make(map[string]struct{}, len(parsed))
-		for _, e := range parsed {
-			changedSet[e.filePath] = struct{}{}
-		}
 		for _, fb := range fallbacks {
 			if fb.FilePath != "" {
-				if _, ok := changedSet[fb.FilePath]; ok {
+				if _, ok := changedByPath[fb.FilePath]; ok {
 					dirtyPermalinks[fb.RelPermalink] = struct{}{}
 				}
 			}
 		}
 
-		// Re-link translations.
 		weights := make(map[string]int)
 		for code, lc := range b.config.I18n.Languages {
 			weights[code] = lc.Weight
@@ -1193,8 +1155,6 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		i18n.LinkTranslations(patchedAllPages, weights)
 	}
 
-
-	// ── Rebuild lightweight global state (all O(n), fast) ──────────────
 	newTaxonomies := taxonomy.BuildTaxonomies(patchedAllPages, b.config.Taxonomies)
 	if taxWarnings, err := taxonomy.EnrichTaxonomies(newTaxonomies, b.config.Taxonomies, b.projectDir); err != nil {
 		return b.Build()
@@ -1206,28 +1166,12 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 
 	newPageIndex := content.BuildPageIndex(patchedAllPages)
 	newPageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
+	populatePageIndexHeadings(newPageIndex, patchedAllPages)
 
-	// Mark dirty taxonomy permalinks for changed pages.
 	for _, e := range parsed {
-		for taxName, tax := range newTaxonomies {
-			cfg := b.config.Taxonomies[taxName]
-			if !cfg.ShouldRender() {
-				continue
-			}
-			for _, term := range tax.Terms {
-				for _, tp := range term.Pages {
-					if tp.FilePath == e.filePath {
-						dirtyPermalinks[term.Permalink] = struct{}{}
-						dirtyPermalinks[tax.Permalink] = struct{}{}
-						break
-					}
-				}
-			}
-		}
+		addTaxonomyDirtyForPage(e.filePath, newTaxonomies, b.config.Taxonomies, dirtyPermalinks)
 	}
 
-
-	// ── Update SiteContext in-place ────────────────────────────────────
 	b.lastSiteCtx.Collections = b.lastCollections
 	b.lastSiteCtx.Taxonomies = newTaxonomies
 	b.lastSiteCtx.Pages = patchedAllPages
@@ -1245,9 +1189,15 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		return b.Build()
 	}
 
-	// ── Markdown render for changed pages only ─────────────────────────
-	for _, e := range parsed {
+	mergedValidation := make(map[string]engine.ValidationEntry, len(b.lastValidationData))
+	for k, v := range b.lastValidationData {
+		mergedValidation[k] = v
+	}
+
+	for i := range parsed {
+		e := &parsed[i]
 		if e.newPage.RawContent == "" {
+			delete(mergedValidation, e.newPage.RelPermalink)
 			continue
 		}
 		processed, _ := b.lastScProcessor.Process(
@@ -1260,6 +1210,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 				e.newPage.Headings = entry.Headings
 				e.newPage.HasCodeBlocks = entry.HasCodeBlocks
 				e.newPage.HasImages = entry.HasImages
+				updateValidationEntry(mergedValidation, e.newPage, entry.Links)
 				continue
 			}
 		}
@@ -1281,34 +1232,27 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 				Headings:      result.Headings,
 				HasCodeBlocks: result.HasCodeBlocks,
 				HasImages:     result.HasImages,
+				Links:         result.Links,
 			})
 		}
-		if len(e.newPage.Headings) > 0 {
-			ids := make([]string, len(e.newPage.Headings))
-			for i, h := range e.newPage.Headings {
-				ids[i] = h.ID
-			}
-			newPageIndex.SetHeadings(e.newPage.RelPermalink, ids)
-		}
+		updateValidationEntry(mergedValidation, e.newPage, result.Links)
+		setPageIndexHeadings(newPageIndex, e.newPage)
 	}
+	copyRenderedContentToFallbacks(patchedAllPages, changedByPath, newPageIndex)
 
-	// ── Template render for dirty set only ─────────────────────────────
 	var dirtyRendered []RenderedPage
 	dirtyAliases := make(map[string]string)
 
-	for _, page := range patchedAllPages {
-		if _, isDirty := dirtyPermalinks[page.RelPermalink]; !isDirty {
-			continue
-		}
+	renderPage := func(page *engine.Page) error {
 		if page.Params != nil {
 			if r, ok := page.Params["render"].(bool); ok && !r {
-				continue
+				return nil
 			}
 		}
 		rd := sardetemplate.BuildRouteData(page, b.lastSiteCtx, b.themeConfig)
 		b.tmplEngine.SetCurrentLang(rd.Lang)
 		if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, b.lastSiteCtx); err != nil {
-			return b.Build()
+			return err
 		}
 		var html []byte
 		if redirect := tabbedCollectionRedirect(page); redirect != "" {
@@ -1317,8 +1261,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 			var err error
 			html, err = b.tmplEngine.Render(rd.Template, rd)
 			if err != nil {
-				log.Printf("ContentRebuild: template render error: %v, falling back", err)
-				return b.Build()
+				return err
 			}
 		}
 		dirtyRendered = append(dirtyRendered, RenderedPage{
@@ -1328,9 +1271,24 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		for _, alias := range page.Aliases {
 			dirtyAliases[alias] = page.RelPermalink
 		}
+		return nil
 	}
 
-	// Render dirty taxonomy pages.
+	for _, page := range patchedAllPages {
+		if _, isDirty := dirtyPermalinks[page.RelPermalink]; !isDirty {
+			continue
+		}
+		if err := renderPage(page); err != nil {
+			log.Printf("ContentRebuild: template render error: %v, falling back", err)
+			return b.Build()
+		}
+	}
+
+	if err := b.renderDirtyCollectionPagination(b.lastCollections, dirtyPermalinks, b.lastSiteCtx, &dirtyRendered); err != nil {
+		log.Printf("ContentRebuild: paginated list render error: %v, falling back", err)
+		return b.Build()
+	}
+
 	for taxName, tax := range newTaxonomies {
 		cfg := b.config.Taxonomies[taxName]
 		if !cfg.ShouldRender() {
@@ -1356,63 +1314,80 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 				OutPath: PageOutputPath(tax.Permalink),
 			})
 		}
+		paginateBy := cfg.PaginateBy
+		if paginateBy <= 0 {
+			paginateBy = 10
+		}
 		for _, term := range tax.Terms {
-			if _, isDirty := dirtyPermalinks[term.Permalink]; !isDirty {
-				continue
+			if _, isDirty := dirtyPermalinks[term.Permalink]; isDirty {
+				termStub := &engine.Page{
+					Title: term.Label, Kind: engine.KindTerm,
+					Permalink: term.Permalink, RelPermalink: term.Permalink,
+					Params: map[string]any{"__taxonomy": tax, "__taxonomy_term": term},
+				}
+				rd := sardetemplate.BuildRouteData(termStub, b.lastSiteCtx, b.themeConfig)
+				b.tmplEngine.SetCurrentLang(rd.Lang)
+				html, err := b.tmplEngine.Render(rd.Template, rd)
+				if err != nil {
+					return b.Build()
+				}
+				dirtyRendered = append(dirtyRendered, RenderedPage{
+					Page: termStub, HTML: html,
+					OutPath: PageOutputPath(term.Permalink),
+				})
 			}
-			termStub := &engine.Page{
-				Title: term.Label, Kind: engine.KindTerm,
-				Permalink: term.Permalink, RelPermalink: term.Permalink,
-				Params: map[string]any{"__taxonomy": tax, "__taxonomy_term": term},
+			totalTermPages := (len(term.Pages) + paginateBy - 1) / paginateBy
+			for n := 2; n <= totalTermPages; n++ {
+				permalink := fmt.Sprintf("%spage/%d/", term.Permalink, n)
+				if _, isDirty := dirtyPermalinks[permalink]; !isDirty {
+					continue
+				}
+				paginatedStub := &engine.Page{
+					Title:        term.Label,
+					Kind:         engine.KindTerm,
+					Permalink:    permalink,
+					RelPermalink: permalink,
+					Params: map[string]any{
+						"__taxonomy":                tax,
+						"__taxonomy_term":           term,
+						consts.PaginationCurrentKey: n,
+					},
+				}
+				rd := sardetemplate.BuildRouteData(paginatedStub, b.lastSiteCtx, b.themeConfig)
+				b.tmplEngine.SetCurrentLang(rd.Lang)
+				html, err := b.tmplEngine.Render(rd.Template, rd)
+				if err != nil {
+					return b.Build()
+				}
+				dirtyRendered = append(dirtyRendered, RenderedPage{
+					Page: paginatedStub, HTML: html,
+					OutPath: PageOutputPath(permalink),
+				})
 			}
-			rd := sardetemplate.BuildRouteData(termStub, b.lastSiteCtx, b.themeConfig)
-			b.tmplEngine.SetCurrentLang(rd.Lang)
-			html, err := b.tmplEngine.Render(rd.Template, rd)
-			if err != nil {
-				return b.Build()
-			}
-			dirtyRendered = append(dirtyRendered, RenderedPage{
-				Page: termStub, HTML: html,
-				OutPath: PageOutputPath(term.Permalink),
-			})
 		}
 	}
 
-	// ── Write dirty pages only ─────────────────────────────────────────
+	if !b.devMode && config.BoolVal(b.config.Build.Minify, true) {
+		mn := NewMinifier()
+		for i := range dirtyRendered {
+			dirtyRendered[i].HTML = mn.MinifyHTML(dirtyRendered[i].HTML)
+		}
+	}
+
 	for _, rp := range dirtyRendered {
-		outPath := filepath.Join(b.lastOutputDir, filepath.FromSlash(rp.OutPath))
-		if err := writeFile(outPath, rp.HTML); err != nil {
+		if _, err := writeOutputFile(b.lastOutputDir, rp.OutPath, rp.HTML); err != nil {
 			return nil, fmt.Errorf("incremental write %s: %w", rp.OutPath, err)
 		}
 	}
 	for aliasPath, target := range dirtyAliases {
-		outPath := filepath.Join(b.lastOutputDir, filepath.FromSlash(PageOutputPath(aliasPath)))
-		if err := writeFile(outPath, []byte(redirectHTML(target))); err != nil {
+		if _, err := writeOutputFile(b.lastOutputDir, PageOutputPath(aliasPath), []byte(redirectHTML(target))); err != nil {
 			return nil, fmt.Errorf("incremental write alias %s: %w", aliasPath, err)
 		}
 	}
 
-	// Re-add taxonomy stubs to patchedAllPages so BuildDone plugins
-	// (sitemap, search, RSS) see all pages including taxonomy pages.
-	for _, tax := range newTaxonomies {
-		patchedAllPages = append(patchedAllPages, &engine.Page{
-			Title: tax.Name, Kind: engine.KindTaxonomy,
-			Permalink: tax.Permalink, RelPermalink: tax.Permalink,
-		})
-		for _, term := range tax.Terms {
-			patchedAllPages = append(patchedAllPages, &engine.Page{
-				Title: term.Label, Kind: engine.KindTerm,
-				Permalink: term.Permalink, RelPermalink: term.Permalink,
-			})
-		}
-	}
+	patchedAllPages = appendTaxonomyStubs(patchedAllPages, newTaxonomies, b.config.Taxonomies)
 	b.lastSiteCtx.Pages = patchedAllPages
 
-	// ── BuildDone plugins — always over full page set ──────────────────
-	mergedValidation := make(map[string]engine.ValidationEntry, len(b.lastValidationData))
-	for k, v := range b.lastValidationData {
-		mergedValidation[k] = v
-	}
 	rebuildLogger := engine.NewBuildLogger()
 	var pluginWarnings []engine.ValidationWarning
 	buildDoneCtx := &plugin.BuildDoneContext{
@@ -1430,8 +1405,8 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	if err := b.pluginMgr.RunBuildDone(buildDoneCtx); err != nil {
 		return nil, err
 	}
+	warnings = append(warnings, pluginWarnings...)
 
-	// ── Persist updated state ──────────────────────────────────────────
 	b.lastAllPages = patchedAllPages
 	b.lastTaxonomies = newTaxonomies
 	b.lastPageIndex = newPageIndex
@@ -1440,10 +1415,291 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	return &engine.BuildResult{
 		PageCount:   len(dirtyRendered),
 		Duration:    time.Since(start),
-		Warnings:    pluginWarnings,
+		Warnings:    warnings,
 		OutputDir:   b.lastOutputDir,
 		LogMessages: rebuildLogger.Messages(),
 	}, nil
+}
+
+func incrementalEligibilityFailure(old, next *engine.Page, cf content.ContentFile) string {
+	if old.RelPermalink != next.RelPermalink {
+		return "permalink changed"
+	}
+	if old.Kind != next.Kind {
+		return "content kind changed"
+	}
+	if collectionName(old) != cf.CollectionName {
+		return "collection membership changed"
+	}
+	if old.Lang != next.Lang || old.LangRelPath != next.LangRelPath {
+		return "language identity changed"
+	}
+	if old.Slug != next.Slug {
+		return "slug changed"
+	}
+	if old.Title != next.Title || !old.Date.Equal(next.Date) || old.Weight != next.Weight {
+		return "collection sort or navigation fields changed"
+	}
+	if old.Draft != next.Draft || !old.PublishDate.Equal(next.PublishDate) {
+		return "publish state changed"
+	}
+	if !stringSlicesEqual(old.Aliases, next.Aliases) {
+		return "aliases changed"
+	}
+	if !stringSlicesEqual(old.Tags, next.Tags) || !stringSlicesEqual(old.Categories, next.Categories) {
+		return "taxonomy fields changed"
+	}
+	if boolParam(old.Params, "featured") != boolParam(next.Params, "featured") {
+		return "featured status changed"
+	}
+	if old.SidebarLabel != next.SidebarLabel || old.SidebarHidden != next.SidebarHidden || !reflect.DeepEqual(old.Badge, next.Badge) {
+		return "sidebar fields changed"
+	}
+	for _, key := range []string{
+		"render", "template", "layout", "type", "prev", "next",
+		"sidebar_group", "sidebar_attrs",
+	} {
+		if !reflect.DeepEqual(paramValue(old.Params, key), paramValue(next.Params, key)) {
+			return key + " changed"
+		}
+	}
+	return ""
+}
+
+func collectionName(p *engine.Page) string {
+	if p != nil && p.Collection != nil {
+		return p.Collection.Name
+	}
+	return ""
+}
+
+func paramValue(params map[string]any, key string) any {
+	if params == nil {
+		return nil
+	}
+	return params[key]
+}
+
+func boolParam(params map[string]any, key string) bool {
+	if v, ok := paramValue(params, key).(bool); ok {
+		return v
+	}
+	return false
+}
+
+func preserveStablePageState(next, old *engine.Page) {
+	next.Collection = old.Collection
+	next.Section = old.Section
+	next.PrevPage = old.PrevPage
+	next.NextPage = old.NextPage
+	next.Siblings = old.Siblings
+	next.NavNode = old.NavNode
+	next.Version = old.Version
+	next.VersionRelPath = old.VersionRelPath
+	next.VersionPeers = old.VersionPeers
+	next.Translations = old.Translations
+}
+
+func replacePagePointer(pages *[]*engine.Page, old, next *engine.Page) {
+	if pages == nil {
+		return
+	}
+	for i, p := range *pages {
+		if p == old || (p != nil && p.FilePath == old.FilePath && !p.IsFallback) {
+			(*pages)[i] = next
+		}
+	}
+}
+
+func addCollectionListDirty(col *engine.Collection, dirty map[string]struct{}) {
+	if col == nil || col.IndexPage == nil {
+		return
+	}
+	if col.IndexPage.RelPermalink != "" {
+		dirty[col.IndexPage.RelPermalink] = struct{}{}
+	}
+	if col.Config == nil || col.Config.Paginate <= 0 {
+		return
+	}
+	contentPages := 0
+	for _, p := range col.Pages {
+		if p.Kind != engine.KindSection {
+			contentPages++
+		}
+	}
+	total := (contentPages + col.Config.Paginate - 1) / col.Config.Paginate
+	base := col.IndexPage.RelPermalink
+	if base == "" {
+		base = "/" + col.Name + "/"
+	}
+	if !strings.HasSuffix(base, "/") {
+		base += "/"
+	}
+	for n := 2; n <= total; n++ {
+		dirty[fmt.Sprintf("%spage/%d/", base, n)] = struct{}{}
+	}
+}
+
+func addTaxonomyDirtyForPage(filePath string, taxonomies map[string]*engine.Taxonomy, cfg map[string]config.TaxonomyConfig, dirty map[string]struct{}) {
+	for taxName, tax := range taxonomies {
+		if !cfg[taxName].ShouldRender() {
+			continue
+		}
+		paginateBy := tax.PaginateBy
+		if paginateBy <= 0 {
+			paginateBy = 10
+		}
+		for _, term := range tax.Terms {
+			found := false
+			for _, tp := range term.Pages {
+				if tp.FilePath == filePath {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+			dirty[tax.Permalink] = struct{}{}
+			dirty[term.Permalink] = struct{}{}
+			total := (len(term.Pages) + paginateBy - 1) / paginateBy
+			for n := 2; n <= total; n++ {
+				dirty[fmt.Sprintf("%spage/%d/", term.Permalink, n)] = struct{}{}
+			}
+		}
+	}
+}
+
+func updateValidationEntry(data map[string]engine.ValidationEntry, page *engine.Page, links []engine.CollectedLink) {
+	if len(links) == 0 {
+		delete(data, page.RelPermalink)
+		return
+	}
+	data[page.RelPermalink] = engine.ValidationEntry{Links: links, FilePath: page.FilePath}
+}
+
+func populatePageIndexHeadings(idx *content.PageIndex, pages []*engine.Page) {
+	for _, p := range pages {
+		setPageIndexHeadings(idx, p)
+	}
+}
+
+func setPageIndexHeadings(idx *content.PageIndex, page *engine.Page) {
+	if idx == nil || page == nil || len(page.Headings) == 0 {
+		return
+	}
+	ids := make([]string, len(page.Headings))
+	for i, h := range page.Headings {
+		ids[i] = h.ID
+	}
+	idx.SetHeadings(page.RelPermalink, ids)
+}
+
+func copyRenderedContentToFallbacks(pages []*engine.Page, changed map[string]*engine.Page, idx *content.PageIndex) {
+	for _, p := range pages {
+		if !p.IsFallback || p.FilePath == "" {
+			continue
+		}
+		src := changed[p.FilePath]
+		if src == nil {
+			continue
+		}
+		p.Content = src.Content
+		p.Headings = src.Headings
+		p.HasCodeBlocks = src.HasCodeBlocks
+		p.HasImages = src.HasImages
+		setPageIndexHeadings(idx, p)
+	}
+}
+
+func (b *SiteBuilder) renderDirtyCollectionPagination(collections map[string]*engine.Collection, dirty map[string]struct{}, site *engine.SiteContext, rendered *[]RenderedPage) error {
+	for _, col := range collections {
+		if col == nil || col.Config == nil || col.Config.Paginate <= 0 || col.IndexPage == nil {
+			continue
+		}
+		var contentPages []*engine.Page
+		for _, p := range col.Pages {
+			if p.Kind != engine.KindSection {
+				contentPages = append(contentPages, p)
+			}
+		}
+		total := (len(contentPages) + col.Config.Paginate - 1) / col.Config.Paginate
+		if total <= 1 {
+			continue
+		}
+		base := col.IndexPage.RelPermalink
+		if base == "" {
+			base = "/" + col.Name + "/"
+		}
+		if !strings.HasSuffix(base, "/") {
+			base += "/"
+		}
+		for n := 2; n <= total; n++ {
+			permalink := fmt.Sprintf("%spage/%d/", base, n)
+			if _, ok := dirty[permalink]; !ok {
+				continue
+			}
+			stub := &engine.Page{
+				Title:        col.IndexPage.Title,
+				Kind:         engine.KindSection,
+				Permalink:    permalink,
+				RelPermalink: permalink,
+				Collection:   col,
+				Section:      col.IndexPage.Section,
+				Lang:         col.IndexPage.Lang,
+				Params: map[string]any{
+					consts.PaginationCurrentKey: n,
+				},
+			}
+			rd := sardetemplate.BuildRouteData(stub, site, b.themeConfig)
+			b.tmplEngine.SetCurrentLang(rd.Lang)
+			if err := b.pluginMgr.RunBeforeRender(b.config, stub, rd, site); err != nil {
+				return err
+			}
+			html, err := b.tmplEngine.Render(rd.Template, rd)
+			if err != nil {
+				return err
+			}
+			*rendered = append(*rendered, RenderedPage{
+				Page:    stub,
+				HTML:    html,
+				OutPath: PageOutputPath(permalink),
+			})
+		}
+	}
+	return nil
+}
+
+func appendTaxonomyStubs(pages []*engine.Page, taxonomies map[string]*engine.Taxonomy, cfg map[string]config.TaxonomyConfig) []*engine.Page {
+	for taxName, tax := range taxonomies {
+		if !cfg[taxName].ShouldRender() {
+			continue
+		}
+		pages = append(pages, &engine.Page{
+			Title: tax.Name, Kind: engine.KindTaxonomy,
+			Permalink: tax.Permalink, RelPermalink: tax.Permalink,
+		})
+		paginateBy := tax.PaginateBy
+		if paginateBy <= 0 {
+			paginateBy = 10
+		}
+		for _, term := range tax.Terms {
+			pages = append(pages, &engine.Page{
+				Title: term.Label, Kind: engine.KindTerm,
+				Permalink: term.Permalink, RelPermalink: term.Permalink,
+			})
+			total := (len(term.Pages) + paginateBy - 1) / paginateBy
+			for n := 2; n <= total; n++ {
+				permalink := fmt.Sprintf("%spage/%d/", term.Permalink, n)
+				pages = append(pages, &engine.Page{
+					Title: term.Label, Kind: engine.KindTerm,
+					Permalink: permalink, RelPermalink: permalink,
+					Params: map[string]any{consts.PaginationCurrentKey: n},
+				})
+			}
+		}
+	}
+	return pages
 }
 
 func stringSlicesEqual(a, b []string) bool {

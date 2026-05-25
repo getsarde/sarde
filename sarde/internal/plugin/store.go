@@ -1,8 +1,11 @@
 package plugin
 
+import "sync"
+
 // SharedStore is a simple key-value store for cross-hook data passing.
-// Not thread-safe — only used in serial hook execution (ConfigSetup, ContentLoaded, BeforeRender).
+// It is safe for concurrent BeforeRender hooks.
 type SharedStore struct {
+	mu   sync.RWMutex
 	data map[string]any
 }
 
@@ -13,10 +16,14 @@ func NewStore() *SharedStore {
 
 // Set stores a value by key.
 func (s *SharedStore) Set(key string, value any) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.data[key] = value
 }
 
 // Get retrieves a value by key. Returns nil if not found.
 func (s *SharedStore) Get(key string) any {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	return s.data[key]
 }

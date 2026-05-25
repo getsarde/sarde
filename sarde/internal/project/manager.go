@@ -260,12 +260,9 @@ func (pm *ProjectManager) StartPreview(port int) (int, error) {
 		port = consts.DefaultPort
 	}
 
-	outputDir := pm.config.Build.Output
-	if outputDir == "" {
-		outputDir = "dist"
-	}
-	if !filepath.IsAbs(outputDir) {
-		outputDir = filepath.Join(pm.projectDir, outputDir)
+	outputDir, err := build.ResolveOutputDir(pm.projectDir, pm.config.Build.Output)
+	if err != nil {
+		return 0, err
 	}
 
 	if pm.previewFactory == nil {

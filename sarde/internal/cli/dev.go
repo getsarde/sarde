@@ -79,12 +79,9 @@ func runServe(cmd *cobra.Command, args []string) error {
 	}
 
 	// Determine output directory.
-	outputDir := cfg.Build.Output
-	if outputDir == "" {
-		outputDir = "dist"
-	}
-	if !filepath.IsAbs(outputDir) {
-		outputDir = filepath.Join(projectDir, outputDir)
+	outputDir, err := build.ResolveOutputDir(projectDir, cfg.Build.Output)
+	if err != nil {
+		return err
 	}
 
 	// Builder factory: creates a fresh SiteBuilder on each rebuild.

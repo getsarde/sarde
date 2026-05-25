@@ -13,8 +13,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/config"
 	"github.com/disintegration/imaging"
+	"github.com/frostybee/sarde/internal/config"
+	"github.com/frostybee/sarde/internal/outputpath"
 	"github.com/gen2brain/webp"
 	_ "golang.org/x/image/webp" // register WebP decoder for image.Decode
 )
@@ -212,22 +213,23 @@ func (p *ImageProcessor) WriteProcessedImages(outputDir string, trackFn func(str
 		return 0, err
 	}
 
-	outImagesDir := filepath.Join(outputDir, "assets", "images")
-	if err := os.MkdirAll(outImagesDir, 0o755); err != nil {
-		return 0, err
-	}
-
 	count := 0
 	for _, e := range entries {
 		if e.IsDir() {
 			continue
 		}
 		src := filepath.Join(cacheImagesDir, e.Name())
-		dst := filepath.Join(outImagesDir, e.Name())
+		dst, err := outputpath.SafeJoin(outputDir, filepath.ToSlash(filepath.Join("assets", "images", e.Name())))
+		if err != nil {
+			return 0, err
+		}
 
 		data, err := os.ReadFile(src)
 		if err != nil {
 			continue
+		}
+		if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+			return 0, err
 		}
 		if err := os.WriteFile(dst, data, 0o644); err != nil {
 			return 0, err

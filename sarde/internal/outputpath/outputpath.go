@@ -1,0 +1,158 @@
+package outputpath
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
+// SafeJoin resolves relPath under outputDir and rejects absolute paths,
+// traversal, empty paths, and paths that escape the output directory.
+func SafeJoin(outputDir, relPath string) (string, error) {
+	if strings.TrimSpace(outputDir) == "" {
+		return "", fmt.Errorf("empty output directory")
+	}
+	if strings.TrimSpace(relPath) == "" {
+		return "", fmt.Errorf("empty output path")
+	}
+
+	raw := filepath.FromSlash(relPath)
+	if filepath.VolumeName(raw) != "" {
+		return "", fmt.Errorf("unsafe output path %q", relPath)
+	}
+	raw = strings.TrimLeft(raw, `/\`)
+	rel := filepath.Clean(raw)
+	if rel == "." || filepath.IsAbs(rel) || hasParentSegment(rel) {
+		return "", fmt.Errorf("unsafe output path %q", relPath)
+	}
+
+	outRoot, err := filepath.Abs(outputDir)
+	if err != nil {
+		return "", fmt.Errorf("resolving output directory: %w", err)
+	}
+	target, err := filepath.Abs(filepath.Join(outRoot, rel))
+	if err != nil {
+		return "", fmt.Errorf("resolving output path %q: %w", relPath, err)
+	}
+	if !IsWithin(outRoot, target) {
+		return "", fmt.Errorf("output path escapes output directory: %q", relPath)
+	}
+	return target, nil
+}
+
+// IsWithin reports whether target is equal to or inside root.
+func IsWithin(root, target string) bool {
+	absRoot, err := filepath.Abs(root)
+	if err != nil {
+		return false
+	}
+	absTarget, err := filepath.Abs(target)
+	if err != nil {
+		return false
+	}
+	rel, err := filepath.Rel(absRoot, absTarget)
+	if err != nil {
+		return false
+	}
+	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) && !filepath.IsAbs(rel))
+}
+
+// ResolveOutputDir resolves a configured build output directory and rejects
+// locations that could erase or overwrite source/project state.
+func ResolveOutputDir(projectDir, configured string) (string, error) {
+	if strings.TrimSpace(projectDir) == "" {
+		return "", fmt.Errorf("empty project directory")
+	}
+	projectRoot, err := filepath.Abs(projectDir)
+	if err != nil {
+		return "", fmt.Errorf("resolving project directory: %w", err)
+	}
+
+	output := configured
+	if output == "" {
+		output = "dist"
+	}
+	if strings.TrimSpace(output) == "" {
+		return "", fmt.Errorf("empty output directory")
+	}
+
+	rawOutput := filepath.FromSlash(output)
+	if !filepath.IsAbs(rawOutput) && hasParentSegment(filepath.Clean(rawOutput)) {
+		return "", fmt.Errorf("output directory must not contain traversal: %q", configured)
+	}
+	if !filepath.IsAbs(rawOutput) && hasParentSegment(rawOutput) {
+		return "", fmt.Errorf("output directory must not contain traversal: %q", configured)
+	}
+	cleaned := filepath.Clean(rawOutput)
+
+	if !filepath.IsAbs(cleaned) {
+		cleaned = filepath.Join(projectRoot, cleaned)
+	}
+	outputDir, err := filepath.Abs(cleaned)
+	if err != nil {
+		return "", fmt.Errorf("resolving output directory: %w", err)
+	}
+
+	if samePath(outputDir, projectRoot) {
+		return "", fmt.Errorf("output directory must not be the project root")
+	}
+	if IsWithin(outputDir, projectRoot) {
+		return "", fmt.Errorf("output directory must not be a project ancestor")
+	}
+
+	for _, rel := range []string{".git", "content", "layouts", "assets", "data", "static", "themes", "embedded"} {
+		sourceDir := filepath.Join(projectRoot, rel)
+		if samePath(outputDir, sourceDir) || IsWithin(sourceDir, outputDir) {
+			return "", fmt.Errorf("output directory must not be inside source directory %q", rel)
+		}
+	}
+
+	return outputDir, nil
+}
+
+// EnsureWithinOutputDir returns an absolute path only if path is inside outputDir.
+func EnsureWithinOutputDir(outputDir, path string) (string, error) {
+	outRoot, err := filepath.Abs(outputDir)
+	if err != nil {
+		return "", fmt.Errorf("resolving output directory: %w", err)
+	}
+	target, err := filepath.Abs(path)
+	if err != nil {
+		return "", fmt.Errorf("resolving output path: %w", err)
+	}
+	if !IsWithin(outRoot, target) {
+		return "", fmt.Errorf("output path escapes output directory: %s", path)
+	}
+	return target, nil
+}
+
+// RemoveIfWithin deletes a file only if it resolves inside outputDir.
+func RemoveIfWithin(outputDir, path string) error {
+	target, err := EnsureWithinOutputDir(outputDir, path)
+	if err != nil {
+		return err
+	}
+	return os.Remove(target)
+}
+
+func hasParentSegment(path string) bool {
+	for _, part := range strings.Split(path, string(filepath.Separator)) {
+		if part == ".." {
+			return true
+		}
+	}
+	return false
+}
+
+func samePath(a, b string) bool {
+	absA, err := filepath.Abs(a)
+	if err != nil {
+		return false
+	}
+	absB, err := filepath.Abs(b)
+	if err != nil {
+		return false
+	}
+	return strings.EqualFold(filepath.Clean(absA), filepath.Clean(absB))
+}

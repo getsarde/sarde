@@ -3,7 +3,6 @@ package build
 import (
 	"fmt"
 	"io/fs"
-	"path/filepath"
 )
 
 // WriteEmbeddedCSS writes the concatenated embedded CSS bundle to an external
@@ -12,7 +11,10 @@ func WriteEmbeddedCSS(outputDir string, css string, tracker *OutputTracker) erro
 	if css == "" {
 		return nil
 	}
-	destPath := filepath.Join(outputDir, "assets", "css", "sarde.css")
+	destPath, err := safeOutputPath(outputDir, "assets/css/sarde.css")
+	if err != nil {
+		return err
+	}
 	if tracker != nil {
 		tracker.Track(destPath)
 	}
@@ -41,7 +43,10 @@ func WriteEmbeddedAssets(embeddedFS fs.FS, outputDir string, tracker *OutputTrac
 		if err != nil {
 			return fmt.Errorf("reading embedded asset %s: %w", path, err)
 		}
-		destPath := filepath.Join(outputDir, filepath.FromSlash(path))
+		destPath, err := safeOutputPath(outputDir, path)
+		if err != nil {
+			return err
+		}
 		if tracker != nil {
 			tracker.Track(destPath)
 		}

@@ -9,6 +9,7 @@ import (
 	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/engine"
+	"github.com/frostybee/sarde/internal/outputpath"
 )
 
 // Plugin is a named bundle of lifecycle hooks.
@@ -99,6 +100,7 @@ type BuildDoneContext struct {
 	DevMode        bool
 	TrackFn        func(string)
 	mu             sync.Mutex
+	sharedMu       *sync.Mutex
 	warnings       *[]engine.ValidationWarning
 	logger         *engine.BuildLogger
 	pluginName     string
@@ -118,9 +120,13 @@ func (c *BuildDoneContext) SetLogger(l *engine.BuildLogger) {
 
 // WriteFile writes a file to the output directory. Thread-safe.
 func (c *BuildDoneContext) WriteFile(relPath string, data []byte) error {
-	absPath := filepath.Join(c.OutputDir, filepath.FromSlash(relPath))
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	absPath, err := outputpath.SafeJoin(c.OutputDir, relPath)
+	if err != nil {
+		return err
+	}
+	mu := c.lock()
+	mu.Lock()
+	defer mu.Unlock()
 	if err := os.MkdirAll(filepath.Dir(absPath), 0o755); err != nil {
 		return err
 	}
@@ -137,9 +143,20 @@ func (c *BuildDoneContext) SetWarnings(w *[]engine.ValidationWarning) {
 
 // AddWarning appends a validation warning. Thread-safe.
 func (c *BuildDoneContext) AddWarning(w engine.ValidationWarning) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	mu := c.lock()
+	mu.Lock()
+	defer mu.Unlock()
+	if c.warnings == nil {
+		return
+	}
 	*c.warnings = append(*c.warnings, w)
+}
+
+func (c *BuildDoneContext) lock() *sync.Mutex {
+	if c.sharedMu != nil {
+		return c.sharedMu
+	}
+	return &c.mu
 }
 
 // ---------------------------------------------------------------------------
@@ -249,6 +266,7 @@ func (m *Manager) RunBeforeRender(cfg *config.SiteConfig, page *engine.Page, rd 
 func (m *Manager) RunBuildDone(ctx *BuildDoneContext) error {
 	var wg sync.WaitGroup
 	errCh := make(chan error, len(m.plugins))
+	sharedMu := &ctx.mu
 
 	for _, p := range m.plugins {
 		if p.Hooks.BuildDone == nil {
@@ -269,6 +287,7 @@ func (m *Manager) RunBuildDone(ctx *BuildDoneContext) error {
 				ValidationData: ctx.ValidationData,
 				DevMode:        ctx.DevMode,
 				TrackFn:        ctx.TrackFn,
+				sharedMu:       sharedMu,
 				warnings:       ctx.warnings,
 				logger:         ctx.logger,
 				pluginName:     plug.Name,

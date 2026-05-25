@@ -18,7 +18,7 @@ func TestClassifyChange(t *testing.T) {
 		{"layout template", "/project/layouts/blog/single.html", ChangeTemplate},
 		{"theme file", "/project/themes/default/layouts/base.html", ChangeTemplate},
 		{"css in static", "/project/static/style.css", ChangeCSS},
-		{"css in assets", "/project/assets/main.css", ChangeCSS},
+		{"css in assets", "/project/assets/main.css", ChangeStatic},
 		{"js in static", "/project/static/app.js", ChangeStatic},
 		{"site config", "/project/sarde.yaml", ChangeConfig},
 		{"theme config", "/project/theme.yaml", ChangeConfig},
@@ -93,5 +93,33 @@ func TestShouldIgnoreDir(t *testing.T) {
 				t.Errorf("shouldIgnoreDir(%q) = %v, want %v", tt.dir, got, tt.ignore)
 			}
 		})
+	}
+}
+
+func TestClassifyBatch_PrioritizesRebuildOverCSS(t *testing.T) {
+	got := classifyBatch([]FileChange{
+		{Path: "/project/static/style.css", Kind: ChangeCSS},
+		{Path: "/project/content/blog/post.md", Kind: ChangeContent},
+	})
+
+	if got.Kind != ChangeContent {
+		t.Fatalf("Kind = %q, want %q", got.Kind, ChangeContent)
+	}
+	if len(got.Paths) != 1 || got.Paths[0] != "/project/content/blog/post.md" {
+		t.Fatalf("Paths = %#v, want content path", got.Paths)
+	}
+}
+
+func TestClassifyBatch_ConfigBeatsContent(t *testing.T) {
+	got := classifyBatch([]FileChange{
+		{Path: "/project/content/blog/post.md", Kind: ChangeContent},
+		{Path: "/project/sarde.yaml", Kind: ChangeConfig},
+	})
+
+	if got.Kind != ChangeConfig {
+		t.Fatalf("Kind = %q, want %q", got.Kind, ChangeConfig)
+	}
+	if len(got.Paths) != 1 || got.Paths[0] != "/project/content/blog/post.md" {
+		t.Fatalf("Paths = %#v, want collected content path", got.Paths)
 	}
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/engine"
+	"github.com/frostybee/sarde/internal/outputpath"
 )
 
 // PipelineOptions configures the asset pipeline.
@@ -22,14 +23,14 @@ type PipelineOptions struct {
 
 // Pipeline orchestrates all asset processing.
 type Pipeline struct {
-	resolver    *Resolver
-	enhancer    *ResourceEnhancer
-	processor   *ImageProcessor
-	bundler     *Bundler
-	cache       *Cache
-	manifest    *Manifest
+	resolver     *Resolver
+	enhancer     *ResourceEnhancer
+	processor    *ImageProcessor
+	bundler      *Bundler
+	cache        *Cache
+	manifest     *Manifest
 	bundledFiles []BundledFile // CSS/JS files to write after writer cleans
-	opts        PipelineOptions
+	opts         PipelineOptions
 }
 
 // NewPipeline creates and initializes the asset pipeline.
@@ -134,7 +135,10 @@ func (p *Pipeline) BundleGlobalAssets() error {
 // If trackFn is non-nil, each written path is reported for orphan tracking.
 func (p *Pipeline) WriteBundledFiles(outputDir string, trackFn func(string)) error {
 	for _, f := range p.bundledFiles {
-		outPath := filepath.Join(outputDir, filepath.FromSlash(f.OutputURL))
+		outPath, err := outputpath.SafeJoin(outputDir, f.OutputURL)
+		if err != nil {
+			return err
+		}
 		if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
 			return err
 		}
@@ -167,7 +171,10 @@ func (p *Pipeline) WriteBundleAssets(pages []*engine.Page, outputDir string, tra
 
 		for _, res := range page.Resources {
 			srcPath := filepath.Join(pageDir, res.Name)
-			outPath := filepath.Join(outputDir, filepath.FromSlash(res.RelPermalink))
+			outPath, err := outputpath.SafeJoin(outputDir, res.RelPermalink)
+			if err != nil {
+				return err
+			}
 
 			if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
 				return err
