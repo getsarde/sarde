@@ -435,10 +435,10 @@ func buildPage(
 	if fm.Summary != "" {
 		page.Summary = template.HTML(fm.Summary)
 	}
-	if fm.Prev != "" {
+	if fm.Prev != nil {
 		page.Params["prev"] = fm.Prev
 	}
-	if fm.Next != "" {
+	if fm.Next != nil {
 		page.Params["next"] = fm.Next
 	}
 	if len(fm.SidebarAttrs) > 0 {
@@ -466,10 +466,29 @@ func buildPage(
 		page.Params["type"] = fm.Type
 	}
 	if fm.Hero != nil {
+		fm.Hero.SanitizeAttrs()
 		page.Params["hero"] = fm.Hero
 	}
 	if fm.EditURL != nil {
-		page.Params["edit_url"] = *fm.EditURL
+		if fm.EditURL.CustomURL != "" {
+			page.Params["edit_url"] = fm.EditURL.CustomURL
+		} else if fm.EditURL.Disabled {
+			page.Params["edit_url"] = false
+		}
+	}
+	if len(fm.Head) > 0 {
+		var filtered []engine.HeadTag
+		for _, h := range fm.Head {
+			if engine.AllowedHeadTags[h.Tag] {
+				filtered = append(filtered, h)
+			}
+		}
+		if len(filtered) > 0 {
+			page.Params["head"] = filtered
+		}
+	}
+	if fm.Banner != nil && fm.Banner.Content != "" {
+		page.Params["banner"] = fm.Banner
 	}
 	if fm.ShowUpdated != nil {
 		page.Params["show_updated"] = *fm.ShowUpdated

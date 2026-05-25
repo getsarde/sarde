@@ -76,6 +76,10 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 			}
 		}
 
+		// Apply NavOverride link/label/disabled overrides from frontmatter.
+		applyNavOverride(page.Params, "prev", &rd.Pagination, true)
+		applyNavOverride(page.Params, "next", &rd.Pagination, false)
+
 		// Section detection for _index.md pages
 		if page.Kind == engine.KindSection {
 			rd.IsSection = true
@@ -193,6 +197,13 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 		rd.SidebarType = "none"
 	}
 
+	// Per-page banner from frontmatter.
+	if page.Params != nil {
+		if b, ok := page.Params["banner"].(*engine.PageBanner); ok {
+			rd.PageBanner = b
+		}
+	}
+
 	// GlobalNav (collections + config header links)
 	var headerLinks []config.NavLink
 	if siteCfg, ok := site.Config.(*config.SiteConfig); ok && siteCfg != nil {
@@ -201,6 +212,45 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 	rd.GlobalNav = navigation.BuildGlobalNav(site, col, headerLinks)
 
 	return rd
+}
+
+func applyNavOverride(params map[string]any, key string, pagination **engine.PaginationLinks, isPrev bool) {
+	if params == nil {
+		return
+	}
+	nav, ok := params[key].(*engine.NavOverride)
+	if !ok || nav == nil {
+		return
+	}
+	if nav.Disabled {
+		if *pagination != nil {
+			if isPrev {
+				(*pagination).Prev = nil
+			} else {
+				(*pagination).Next = nil
+			}
+		}
+		return
+	}
+	if nav.Link != "" {
+		if *pagination == nil {
+			*pagination = &engine.PaginationLinks{}
+		}
+		link := &engine.PaginationLink{URL: nav.Link, Title: nav.Label}
+		if isPrev {
+			(*pagination).Prev = link
+		} else {
+			(*pagination).Next = link
+		}
+		return
+	}
+	if nav.Label != "" && *pagination != nil {
+		if isPrev && (*pagination).Prev != nil {
+			(*pagination).Prev.Title = nav.Label
+		} else if !isPrev && (*pagination).Next != nil {
+			(*pagination).Next.Title = nav.Label
+		}
+	}
 }
 
 // resolveTemplateName determines which template to use for a page.

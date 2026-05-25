@@ -34,6 +34,7 @@
           {{ if .Breadcrumbs }}{{ component "Breadcrumbs" . }}{{ end }}
           {{ component "FallbackNotice" . }}
           {{ component "VersionBanner" . }}
+          {{ component "PageBanner" . }}
           {{ component "MobileTableOfContents" . }}
           <article class="sarde-markdown-content"{{ if and .Page .Page.Updated (not .Page.Updated.IsZero) }} data-last-modified="{{ .Page.Updated.Unix }}"{{ end }}>
             {{ block "content" . }}{{ .Page.Content }}{{ end }}

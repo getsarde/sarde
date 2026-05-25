@@ -6,3 +6,4 @@
 {{ themeStyles . }}
 {{ range .Styles }}<link rel="stylesheet" href="{{ . }}">
 {{ end }}
+{{ if .Page }}{{ if .Page.Params }}{{ renderHeadTags (index .Page.Params "head") }}{{ end }}{{ end }}

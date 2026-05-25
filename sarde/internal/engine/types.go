@@ -3,6 +3,7 @@ package engine
 import (
 	"html/template"
 	"io/fs"
+	"strings"
 	"time"
 )
 
@@ -178,11 +179,13 @@ type Frontmatter struct {
 	TOC           *bool             `yaml:"toc"`
 	TOCMinLevel   int               `yaml:"toc_min_level"`
 	TOCMaxLevel   int               `yaml:"toc_max_level"`
-	Prev          string            `yaml:"prev"`
-	Next          string            `yaml:"next"`
-	EditURL       *bool             `yaml:"edit_url"`
+	Prev          *NavOverride      `yaml:"prev"`
+	Next          *NavOverride      `yaml:"next"`
+	EditURL       *EditURLValue     `yaml:"edit_url"`
 	ShowUpdated   *bool             `yaml:"show_updated"`
 	Icon          string            `yaml:"icon"`
+	Head          []HeadTag         `yaml:"head"`
+	Banner        *PageBanner       `yaml:"banner"`
 	Params        map[string]any    `yaml:"params"`
 }
 
@@ -204,10 +207,40 @@ type HeroImage struct {
 
 // HeroAction defines a call-to-action button in the hero section.
 type HeroAction struct {
-	Text    string `yaml:"text"`
-	Link    string `yaml:"link"`
-	Variant string `yaml:"variant"`
-	Icon    string `yaml:"icon"`
+	Text    string            `yaml:"text"`
+	Link    string            `yaml:"link"`
+	Variant string            `yaml:"variant"`
+	Icon    string            `yaml:"icon"`
+	Attrs   map[string]string `yaml:"attrs"`
+}
+
+// SanitizeAttrs strips event-handler attributes (on*) from all hero actions.
+func (h *HeroConfig) SanitizeAttrs() {
+	for i := range h.Actions {
+		if len(h.Actions[i].Attrs) == 0 {
+			continue
+		}
+		clean := make(map[string]string, len(h.Actions[i].Attrs))
+		for k, v := range h.Actions[i].Attrs {
+			if !strings.HasPrefix(strings.ToLower(k), "on") {
+				clean[k] = v
+			}
+		}
+		h.Actions[i].Attrs = clean
+	}
+}
+
+// HeadTag defines a single injected <head> element from frontmatter.
+type HeadTag struct {
+	Tag     string            `yaml:"tag"`
+	Attrs   map[string]string `yaml:"attrs"`
+	Content string            `yaml:"content"`
+}
+
+// AllowedHeadTags lists the HTML tag names permitted in per-page head injection.
+var AllowedHeadTags = map[string]bool{
+	"meta": true, "link": true, "script": true,
+	"style": true, "noscript": true, "base": true,
 }
 
 // ---------------------------------------------------------------------------
@@ -584,6 +617,9 @@ type RouteData struct {
 	Versions      []VersionLink // all versions for the VersionSwitcher dropdown
 	IsLatest      bool          // true if current page is in the last_version
 	VersionBanner string        // "unmaintained" / "unreleased" / "" (empty = no banner)
+
+	// Per-page banner from frontmatter (not the site-wide announcements plugin).
+	PageBanner *PageBanner
 
 	// Per-page asset injection (populated by plugins via BeforeRender).
 	Scripts       []string        // root-relative script URLs (emitted as <script defer src>)

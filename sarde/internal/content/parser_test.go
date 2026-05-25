@@ -191,11 +191,11 @@ func TestParseFrontmatter_PrevNext(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ParseFrontmatter error: %v", err)
 	}
-	if fm.Prev != "intro" {
-		t.Errorf("Prev = %q, want %q", fm.Prev, "intro")
+	if fm.Prev == nil || fm.Prev.Slug != "intro" {
+		t.Errorf("Prev.Slug = %v, want %q", fm.Prev, "intro")
 	}
-	if fm.Next != "advanced" {
-		t.Errorf("Next = %q, want %q", fm.Next, "advanced")
+	if fm.Next == nil || fm.Next.Slug != "advanced" {
+		t.Errorf("Next.Slug = %v, want %q", fm.Next, "advanced")
 	}
 }
 

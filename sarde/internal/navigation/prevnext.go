@@ -42,15 +42,38 @@ func WirePrevNextFromTree(tree *engine.NavTree) {
 		if page.Params == nil {
 			continue
 		}
-		if prev, ok := page.Params["prev"].(string); ok && prev != "" {
-			if target := lookup[prev]; target != nil {
-				page.PrevPage = target
+		if nav := asNavOverride(page.Params["prev"]); nav != nil {
+			if nav.Disabled {
+				page.PrevPage = nil
+			} else if nav.Slug != "" {
+				if target := lookup[nav.Slug]; target != nil {
+					page.PrevPage = target
+				}
 			}
 		}
-		if next, ok := page.Params["next"].(string); ok && next != "" {
-			if target := lookup[next]; target != nil {
-				page.NextPage = target
+		if nav := asNavOverride(page.Params["next"]); nav != nil {
+			if nav.Disabled {
+				page.NextPage = nil
+			} else if nav.Slug != "" {
+				if target := lookup[nav.Slug]; target != nil {
+					page.NextPage = target
+				}
 			}
 		}
 	}
+}
+
+func asNavOverride(v any) *engine.NavOverride {
+	if v == nil {
+		return nil
+	}
+	switch val := v.(type) {
+	case *engine.NavOverride:
+		return val
+	case string:
+		if val != "" {
+			return &engine.NavOverride{Slug: val}
+		}
+	}
+	return nil
 }

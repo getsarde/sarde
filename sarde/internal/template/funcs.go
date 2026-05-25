@@ -3,6 +3,7 @@ package template
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	htmltemplate "html/template"
 	"math"
 	"math/rand"
@@ -125,6 +126,72 @@ func buildFuncMap(
 				}
 			}
 			return def
+		},
+		"stringParam": func(params map[string]any, key string) string {
+			if params == nil {
+				return ""
+			}
+			if v, ok := params[key]; ok {
+				if s, ok := v.(string); ok {
+					return s
+				}
+			}
+			return ""
+		},
+		"renderHeadTags": func(v any) htmltemplate.HTML {
+			tags, ok := v.([]engine.HeadTag)
+			if !ok || len(tags) == 0 {
+				return ""
+			}
+			var sb strings.Builder
+			for _, h := range tags {
+				if !engine.AllowedHeadTags[h.Tag] {
+					continue
+				}
+				sb.WriteString("<")
+				sb.WriteString(h.Tag)
+				keys := make([]string, 0, len(h.Attrs))
+				for k := range h.Attrs {
+					keys = append(keys, k)
+				}
+				sort.Strings(keys)
+				for _, k := range keys {
+					sb.WriteString(" ")
+					sb.WriteString(html.EscapeString(k))
+					sb.WriteString(`="`)
+					sb.WriteString(html.EscapeString(h.Attrs[k]))
+					sb.WriteString(`"`)
+				}
+				if h.Content != "" {
+					sb.WriteString(">")
+					sb.WriteString(html.EscapeString(h.Content))
+					sb.WriteString("</")
+					sb.WriteString(h.Tag)
+					sb.WriteString(">\n")
+				} else {
+					sb.WriteString(">\n")
+				}
+			}
+			return htmltemplate.HTML(sb.String())
+		},
+		"renderAttrs": func(attrs map[string]string) htmltemplate.HTML {
+			if len(attrs) == 0 {
+				return ""
+			}
+			keys := make([]string, 0, len(attrs))
+			for k := range attrs {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			var sb strings.Builder
+			for _, k := range keys {
+				sb.WriteString(" ")
+				sb.WriteString(html.EscapeString(k))
+				sb.WriteString(`="`)
+				sb.WriteString(html.EscapeString(attrs[k]))
+				sb.WriteString(`"`)
+			}
+			return htmltemplate.HTML(sb.String())
 		},
 		"urlize": content.Slugify,
 		"ref": func(slug string) string {

@@ -710,4 +710,58 @@
 	  border-color: hsl(217, 60%, 40%);
 	}
 
+	/* Page Banner (per-page frontmatter) */
+	.sarde-page-banner {
+	  border-radius: var(--sarde-radius);
+	  padding: var(--sarde-space-3) var(--sarde-space-4);
+	  margin-block-end: var(--sarde-space-4);
+	  font-size: var(--sarde-text-sm);
+	  border-inline-start: 3px solid;
+	}
+	.sarde-page-banner p { margin: 0; }
+
+	.sarde-page-banner-note {
+	  background: var(--sarde-blue-low, #dbeafe);
+	  color: var(--sarde-gray-7, #1e293b);
+	  border-color: var(--sarde-blue, #3b82f6);
+	}
+	:root.dark .sarde-page-banner-note {
+	  background: hsl(217, 50%, 18%);
+	  color: hsl(217, 80%, 90%);
+	  border-color: hsl(217, 60%, 40%);
+	}
+
+	.sarde-page-banner-tip {
+	  background: var(--sarde-green-low, #dcfce7);
+	  color: var(--sarde-gray-7, #1e293b);
+	  border-color: var(--sarde-green, #22c55e);
+	}
+	:root.dark .sarde-page-banner-tip {
+	  background: hsl(142, 50%, 16%);
+	  color: hsl(142, 80%, 90%);
+	  border-color: hsl(142, 60%, 35%);
+	}
+
+	.sarde-page-banner-caution {
+	  background: var(--sarde-amber-low, #fef3c7);
+	  color: var(--sarde-gray-7, #1e293b);
+	  border-color: var(--sarde-amber, #f59e0b);
+	}
+	:root.dark .sarde-page-banner-caution {
+	  background: hsl(38, 50%, 18%);
+	  color: hsl(38, 80%, 90%);
+	  border-color: hsl(38, 60%, 40%);
+	}
+
+	.sarde-page-banner-danger {
+	  background: var(--sarde-red-low, #fee2e2);
+	  color: var(--sarde-gray-7, #1e293b);
+	  border-color: var(--sarde-red, #ef4444);
+	}
+	:root.dark .sarde-page-banner-danger {
+	  background: hsl(0, 50%, 18%);
+	  color: hsl(0, 80%, 90%);
+	  border-color: hsl(0, 60%, 40%);
+	}
+
 }

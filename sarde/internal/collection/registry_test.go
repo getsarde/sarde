@@ -442,11 +442,13 @@ func TestBuildPages_TransparentTransferred(t *testing.T) {
 
 func TestBuildPages_PrevNextTransferred(t *testing.T) {
 	page := buildSinglePage(t, "title: Test\nprev: getting-started\nnext: advanced", "Body.")
-	if page.Params["prev"] != "getting-started" {
-		t.Errorf("Params[prev] = %v, want %q", page.Params["prev"], "getting-started")
+	prev, ok := page.Params["prev"].(*engine.NavOverride)
+	if !ok || prev.Slug != "getting-started" {
+		t.Errorf("Params[prev].Slug = %v, want %q", page.Params["prev"], "getting-started")
 	}
-	if page.Params["next"] != "advanced" {
-		t.Errorf("Params[next] = %v, want %q", page.Params["next"], "advanced")
+	next, ok := page.Params["next"].(*engine.NavOverride)
+	if !ok || next.Slug != "advanced" {
+		t.Errorf("Params[next].Slug = %v, want %q", page.Params["next"], "advanced")
 	}
 }
 
