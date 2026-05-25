@@ -26,6 +26,9 @@
 	  height: var(--sarde-nav-height);
 	  display: flex;
 	  align-items: center;
+	  gap: var(--sarde-space-2);
+	  min-width: 0;
+	  overflow: hidden;
 	  padding: 0 var(--sarde-space-4);
 	  background: var(--sarde-bg);
 	  background: color-mix(in srgb, var(--sarde-bg) 85%, transparent);
@@ -39,7 +42,9 @@
 	  font-size: var(--sarde-text-lg);
 	  color: var(--sarde-text);
 	  text-decoration: none;
-	  margin-inline-end: var(--sarde-space-8);
+	  flex: 0 0 auto;
+	  margin-inline-end: var(--sarde-space-6);
+	  white-space: nowrap;
 	}
 
 	.sarde-site-title:hover {
@@ -50,10 +55,21 @@
 	.sarde-header-nav {
 	  display: flex;
 	  align-items: center;
+	  flex: 1 1 auto;
 	  gap: var(--sarde-space-1);
+	  min-width: 0;
+	  overflow-x: auto;
+	  overscroll-behavior-inline: contain;
+	  scrollbar-width: none;
+	  white-space: nowrap;
+	}
+
+	.sarde-header-nav::-webkit-scrollbar {
+	  display: none;
 	}
 
 	.sarde-header-nav a {
+	  flex: 0 0 auto;
 	  padding: var(--sarde-space-2) var(--sarde-space-3);
 	  border-radius: var(--sarde-radius-sm);
 	  color: var(--sarde-text-muted);
@@ -326,6 +342,25 @@
 
 	/* ── Responsive ── */
 	@media (max-width: 767px) {
+	  .sarde-header {
+	    gap: var(--sarde-space-1);
+	    padding: 0 var(--sarde-space-3);
+	  }
+
+	  .sarde-site-title {
+	    margin-inline-end: var(--sarde-space-2);
+	    font-size: var(--sarde-text-base);
+	    line-height: 1.1;
+	  }
+
+	  .sarde-header-nav {
+	    gap: 0;
+	  }
+
+	  .sarde-header-nav a {
+	    padding-inline: var(--sarde-space-2);
+	  }
+
 	  .sarde-content-panel {
 	    padding: var(--sarde-space-4) var(--sarde-space-3);
 	  }

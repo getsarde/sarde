@@ -89,6 +89,14 @@
 	.sarde-search-trigger-text { color: var(--sarde-text-subtle); }
 
 	@media (max-width: 767px) {
+	  .sarde-search-trigger {
+	    width: 2rem;
+	    min-width: 2rem;
+	    height: 2rem;
+	    justify-content: center;
+	    padding: 0;
+	  }
+
 	  .sarde-search-trigger-text { display: none; }
 	  .sarde-search-trigger .sarde-search-kbd { display: none; }
 	}
