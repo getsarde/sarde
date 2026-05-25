@@ -25,8 +25,8 @@
 
 	/* ── Hero ── */
 	.sarde-hero {
-	  min-height: min(540px, calc(100vh - var(--sarde-nav-height, 4rem)));
-	  padding: var(--sarde-space-12, 3rem) var(--sarde-space-4) var(--sarde-space-8, 2rem);
+	  min-height: min(440px, calc(100vh - var(--sarde-nav-height, 4rem)));
+	  padding: var(--sarde-space-12, 3rem) var(--sarde-space-4) var(--sarde-space-6, 1.5rem);
 	  border-bottom: 1px solid var(--sarde-border-muted, var(--sarde-border));
 	  text-align: left;
 	}
@@ -144,7 +144,7 @@
 	.sarde-hero-code-card {
 	  overflow: hidden;
 	  min-width: 0;
-	  border-color: color-mix(in srgb, var(--sarde-border) 72%, var(--sarde-border-accent));
+	  border-color: color-mix(in srgb, var(--sarde-border) 62%, var(--sarde-border-accent));
 	}
 
 	.sarde-hero-code-header {
@@ -191,7 +191,7 @@
 	.sarde-hero-stat {
 	  min-width: 0;
 	  padding: var(--sarde-space-4);
-	  border-color: color-mix(in srgb, var(--sarde-border) 82%, var(--sarde-border-accent));
+	  border-color: color-mix(in srgb, var(--sarde-border) 72%, var(--sarde-border-accent));
 	}
 
 	.sarde-hero-stat dt {
@@ -318,7 +318,7 @@
 
 	.sarde-home > .sarde-hero + .sarde-home-content {
 	  max-width: 74rem;
-	  padding-top: var(--sarde-space-5);
+	  padding-top: var(--sarde-space-4);
 	}
 
 	.sarde-home > .sarde-hero + .sarde-home-content > p:first-child {
