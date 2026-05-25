@@ -17,6 +17,7 @@ import (
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/i18n"
+	sardeplugin "github.com/frostybee/sarde/internal/plugin"
 )
 
 // Engine implements engine.TemplateEngine using Go's html/template.
@@ -125,7 +126,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 
 	// Build a bootstrap FuncMap (without component support or partial cache) for initial parsing.
 	// Uses &e.site / &e.pageIndex so closures always see the latest values across rebuilds.
-	bootstrapFM := buildFuncMap(&e.site, resolver, nil, &e.dataCache, e.cachedCSS, &e.cssURL, &e.assetResolver, &e.assetManifest, &e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, &e.pageIndex, nil)
+	bootstrapFM := buildFuncMap(&e.site, resolver, nil, &e.dataCache, e.cachedCSS, &e.cssURL, &e.assetResolver, &e.assetManifest, &e.imageProcessor, e.pluginFuncs, e.currentLangResolver(), e.i18nStrings, &e.pageIndex, nil)
 
 	// Create the component registry with embedded defaults.
 	registry, err := component.NewRegistry(resolver.EmbeddedFS, bootstrapFM)
@@ -154,7 +155,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 	partialData := resolveAllPartials(resolver)
 
 	// Rebuild the final FuncMap with the real component registry and partial cache.
-	e.funcMap = buildFuncMap(&e.site, resolver, registry, &e.dataCache, e.cachedCSS, &e.cssURL, &e.assetResolver, &e.assetManifest, &e.imageProcessor, e.pluginFuncs, &e.currentLang, e.i18nStrings, &e.pageIndex, e.partialCache)
+	e.funcMap = buildFuncMap(&e.site, resolver, registry, &e.dataCache, e.cachedCSS, &e.cssURL, &e.assetResolver, &e.assetManifest, &e.imageProcessor, e.pluginFuncs, e.currentLangResolver(), e.i18nStrings, &e.pageIndex, e.partialCache)
 
 	for name, data := range partialData {
 		tmpl, err := htmltemplate.New(name).Funcs(e.funcMap).Parse(string(data))
@@ -190,7 +191,8 @@ func (e *Engine) ForceReload() {
 // Render implements engine.TemplateEngine. It renders a page using its
 // resolved template and RouteData context.
 func (e *Engine) Render(templateName string, data *engine.RouteData) ([]byte, error) {
-	tmpl, err := e.getOrParseTemplate(templateName, data.Layout, data.Collection)
+	lang := renderLang(data, e.site)
+	tmpl, err := e.getOrParseTemplate(templateName, data.Layout, data.Collection, lang)
 	if err != nil {
 		return nil, err
 	}
@@ -203,9 +205,81 @@ func (e *Engine) Render(templateName string, data *engine.RouteData) ([]byte, er
 	return buf.Bytes(), nil
 }
 
+func (e *Engine) currentLangResolver() func() string {
+	return func() string {
+		return e.currentLang
+	}
+}
+
+func renderLang(data *engine.RouteData, site *engine.SiteContext) string {
+	if data != nil {
+		if data.Lang != "" {
+			return data.Lang
+		}
+		if data.Page != nil && data.Page.Lang != "" {
+			return data.Page.Lang
+		}
+	}
+	if site != nil && site.Language != "" {
+		return site.Language
+	}
+	return "en"
+}
+
+func (e *Engine) funcMapForLang(lang string) htmltemplate.FuncMap {
+	fm := make(htmltemplate.FuncMap, len(e.funcMap)+4)
+	for k, v := range e.funcMap {
+		fm[k] = v
+	}
+
+	fm["t"] = func(key string) string {
+		if e.i18nStrings == nil {
+			return key
+		}
+		return e.i18nStrings.Resolve(lang, key)
+	}
+	fm["tWithData"] = func(key string, data any) string {
+		if e.i18nStrings == nil {
+			return key
+		}
+		return e.i18nStrings.Resolve(lang, key, data)
+	}
+	if e.pluginFuncs != nil {
+		if fn, ok := e.pluginFuncs[sardeplugin.LangAwareAnnouncementFunc].(func(string) htmltemplate.HTML); ok {
+			fm["announcementBanner"] = func() htmltemplate.HTML {
+				return fn(lang)
+			}
+		}
+	}
+	if e.partialCache != nil {
+		fm["partial"] = func(name string, data any) (htmltemplate.HTML, error) {
+			tmpl := e.partialCache[name]
+			if tmpl == nil {
+				return "", fmt.Errorf("partial %q not found", name)
+			}
+			clone, err := tmpl.Clone()
+			if err != nil {
+				return "", fmt.Errorf("cloning partial %q: %w", name, err)
+			}
+			clone.Funcs(fm)
+			var buf strings.Builder
+			if err := clone.Execute(&buf, data); err != nil {
+				return "", fmt.Errorf("rendering partial %q: %w", name, err)
+			}
+			return htmltemplate.HTML(buf.String()), nil
+		}
+	}
+	if e.components != nil {
+		fm["component"] = func(name string, data any) (htmltemplate.HTML, error) {
+			return e.components.RenderComponentWithFuncs(name, data, fm)
+		}
+	}
+	return fm
+}
+
 // getOrParseTemplate returns a cached template or resolves, parses, and caches it.
-func (e *Engine) getOrParseTemplate(name string, layout engine.LayoutType, col *engine.Collection) (*htmltemplate.Template, error) {
-	cacheKey := string(layout) + ":" + name
+func (e *Engine) getOrParseTemplate(name string, layout engine.LayoutType, col *engine.Collection, lang string) (*htmltemplate.Template, error) {
+	cacheKey := string(layout) + ":" + name + ":" + lang
 
 	// Fast path: read lock.
 	e.mu.RLock()
@@ -242,6 +316,7 @@ func (e *Engine) getOrParseTemplate(name string, layout engine.LayoutType, col *
 	if err != nil {
 		return nil, fmt.Errorf("cloning base template: %w", err)
 	}
+	clone.Funcs(e.funcMapForLang(lang))
 
 	// Extract collection and file from template name.
 	// e.g., "blog/single" → collection="blog", file="single.html"

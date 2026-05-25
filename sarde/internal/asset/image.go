@@ -2,6 +2,7 @@ package asset
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -16,8 +17,10 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/outputpath"
+	"github.com/frostybee/sarde/internal/workers"
 	"github.com/gen2brain/webp"
 	_ "golang.org/x/image/webp" // register WebP decoder for image.Decode
+	"golang.org/x/sync/errgroup"
 )
 
 // ResizeOp specifies how an image should be resized.
@@ -200,6 +203,12 @@ func (p *ImageProcessor) ProcessImage(srcPath string, opts ImageOptions) ([]Imag
 // WriteProcessedImages copies all cached image variants to the output directory.
 // Call this after the writer has cleaned and written HTML files.
 func (p *ImageProcessor) WriteProcessedImages(outputDir string, trackFn func(string)) (int, error) {
+	return p.WriteProcessedImagesWithOptions(outputDir, trackFn, WriteOptions{Parallel: true})
+}
+
+// WriteProcessedImagesWithOptions copies all cached image variants to the output directory.
+// Call this after the writer has cleaned and written HTML files.
+func (p *ImageProcessor) WriteProcessedImagesWithOptions(outputDir string, trackFn func(string), opts WriteOptions) (int, error) {
 	if p.DevMode {
 		return 0, nil
 	}
@@ -213,34 +222,68 @@ func (p *ImageProcessor) WriteProcessedImages(outputDir string, trackFn func(str
 		return 0, err
 	}
 
-	count := 0
-	for _, e := range entries {
-		if e.IsDir() {
+	type imageCopy struct {
+		src string
+		dst string
+	}
+	var copies []imageCopy
+	for _, entry := range entries {
+		if entry.IsDir() {
 			continue
 		}
-		src := filepath.Join(cacheImagesDir, e.Name())
-		dst, err := outputpath.SafeJoin(outputDir, filepath.ToSlash(filepath.Join("assets", "images", e.Name())))
+		src := filepath.Join(cacheImagesDir, entry.Name())
+		dst, err := outputpath.SafeJoin(outputDir, filepath.ToSlash(filepath.Join("assets", "images", entry.Name())))
 		if err != nil {
 			return 0, err
 		}
-
-		data, err := os.ReadFile(src)
-		if err != nil {
-			continue
-		}
-		if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
-			return 0, err
-		}
-		if err := os.WriteFile(dst, data, 0o644); err != nil {
-			return 0, err
-		}
-		if trackFn != nil {
-			trackFn(dst)
-		}
-		count++
+		copies = append(copies, imageCopy{src: src, dst: dst})
 	}
 
-	return count, nil
+	writeOne := func(c imageCopy) error {
+		data, err := os.ReadFile(c.src)
+		if err != nil {
+			return nil
+		}
+		if err := os.MkdirAll(filepath.Dir(c.dst), 0o755); err != nil {
+			return err
+		}
+		if err := os.WriteFile(c.dst, data, 0o644); err != nil {
+			return err
+		}
+		if trackFn != nil {
+			trackFn(c.dst)
+		}
+		return nil
+	}
+
+	if !opts.Parallel || len(copies) < 2 {
+		count := 0
+		for _, c := range copies {
+			if err := writeOne(c); err != nil {
+				return 0, err
+			}
+			count++
+		}
+		return count, nil
+	}
+
+	limit := opts.WorkerCount
+	if limit <= 0 {
+		limit = workers.Limit(len(copies))
+	}
+	g, _ := errgroup.WithContext(context.Background())
+	g.SetLimit(limit)
+	for _, c := range copies {
+		c := c
+		g.Go(func() error {
+			return writeOne(c)
+		})
+	}
+	if err := g.Wait(); err != nil {
+		return 0, err
+	}
+
+	return len(copies), nil
 }
 
 // generateLQIP creates a tiny blurred JPEG placeholder, base64-encoded.

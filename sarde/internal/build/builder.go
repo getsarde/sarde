@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"runtime"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -35,6 +35,7 @@ import (
 	"github.com/frostybee/sarde/internal/shortcode"
 	"github.com/frostybee/sarde/internal/taxonomy"
 	sardetemplate "github.com/frostybee/sarde/internal/template"
+	"github.com/frostybee/sarde/internal/workers"
 )
 
 // BuildOptions provides the inputs for creating a SiteBuilder.
@@ -102,6 +103,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	start := time.Now()
 	var timings []engine.PhaseTiming
 	phaseStart := time.Now()
+	recordTiming := func(phase string) {
+		timings = append(timings, engine.PhaseTiming{Phase: phase, Duration: time.Since(phaseStart)})
+		phaseStart = time.Now()
+	}
 
 	// Phase 1: INITIALIZE
 	contentDir := filepath.Join(b.projectDir, "content")
@@ -117,6 +122,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	if err != nil {
 		return nil, err
 	}
+	parallel := config.BoolVal(b.config.Build.Parallel, true)
+	workerCount := workers.Count()
 
 	// i18n: load translation strings (always — UI strings are needed even for single-language sites)
 	isMultiLang := b.config.I18n.IsMultiLang()
@@ -157,31 +164,32 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	}
 
 	// Phase 2: DISCOVER
+	phaseStart = time.Now()
 	files, err := b.scanner.DiscoverFiles(contentDir)
 	if err != nil {
 		return nil, fmt.Errorf("discovering content: %w", err)
 	}
-	timings = append(timings, engine.PhaseTiming{Phase: "Discovering content", Duration: time.Since(phaseStart)})
-	phaseStart = time.Now()
+	recordTiming("Discovering content")
 
 	// Phase 3: PARSE (collections + standalone)
-	collections, warnings, err := collection.BuildCollections(files, b.config, contentDir)
+	parseOpts := collection.BuildOptions{Parallel: parallel, WorkerCount: workerCount}
+	collections, warnings, err := collection.BuildCollectionsWithOptions(files, b.config, contentDir, parseOpts)
 	if err != nil {
 		return nil, fmt.Errorf("building collections: %w", err)
 	}
 
-	standalones, err := collection.BuildStandalonePages(files, contentDir, b.config.Content.SummaryLength, string(b.config.Build.LastUpdated))
+	standalones, err := collection.BuildStandalonePagesWithOptions(files, contentDir, b.config.Content.SummaryLength, string(b.config.Build.LastUpdated), parseOpts)
 	if err != nil {
 		return nil, fmt.Errorf("building standalone pages: %w", err)
 	}
-	timings = append(timings, engine.PhaseTiming{Phase: "Parsing markdown", Duration: time.Since(phaseStart)})
-	phaseStart = time.Now()
+	recordTiming("Parsing content")
 
 	// Phase 4: ASSEMBLE
 
 	// Collect all pages.
 	var allPages []*engine.Page
-	for _, col := range collections {
+	for _, name := range sortedCollectionNames(collections) {
+		col := collections[name]
 		allPages = append(allPages, col.Pages...)
 	}
 	allPages = append(allPages, standalones...)
@@ -248,6 +256,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			})
 		}
 	}
+	recordTiming("Assembling site")
 
 	// Phase 4.5: ASSETS
 	assetPipeline := asset.NewPipeline(asset.PipelineOptions{
@@ -258,11 +267,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		EmbeddedFS: b.embeddedFS,
 		DevMode:    b.devMode,
 	})
-	for _, page := range allPages {
-		if err := assetPipeline.EnhanceResources(page); err != nil {
-			return nil, fmt.Errorf("enhancing resources for %s: %w", page.FilePath, err)
-		}
+	if err := enhancePageResources(allPages, assetPipeline, parallel, workerCount); err != nil {
+		return nil, err
 	}
+	recordTiming("Asset preparation")
 
 	// Build page index for link validation and O(1) ref/relref lookups.
 	pageIndex := content.BuildPageIndex(allPages)
@@ -311,10 +319,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 
 	// Render markdown for all pages (after asset enhancement so image
 	// renderer can access processed resource data for <picture> generation).
-	parallel := config.BoolVal(b.config.Build.Parallel, true)
-	if parallel {
+	markdownPages := countMarkdownPages(allPages)
+	if workers.ShouldParallelize(parallel, markdownPages, workerCount) {
 		// Lazily initialize the renderer pool (Goldmark construction is expensive).
-		poolSize := runtime.NumCPU()
+		poolSize := workerCount
 		if b.rendererPool == nil {
 			b.rendererPool = make(chan *markdown.Renderer, poolSize)
 			for i := 0; i < poolSize; i++ {
@@ -447,6 +455,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			}
 		}
 	}
+	recordTiming("Rendering markdown")
 
 	// Populate heading index from rendered pages.
 	for _, page := range allPages {
@@ -482,8 +491,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		return nil, fmt.Errorf("loading templates: %w", err)
 	}
 
-	timings = append(timings, engine.PhaseTiming{Phase: "Assembling site", Duration: time.Since(phaseStart)})
-	phaseStart = time.Now()
+	recordTiming("Template setup")
 
 	// Phase 5: RENDER
 	var rendered []RenderedPage
@@ -501,87 +509,13 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		renderablePages = append(renderablePages, page)
 	}
 
-	if parallel {
-		// Group pages by language for thread-safe t() function.
-		langGroups := groupPagesByLang(renderablePages)
-		var mu sync.Mutex
-
-		for _, lang := range langGroups.order {
-			pages := langGroups.pages[lang]
-			b.tmplEngine.SetCurrentLang(lang)
-
-			g, _ := errgroup.WithContext(context.Background())
-			g.SetLimit(runtime.NumCPU())
-
-			for _, page := range pages {
-				g.Go(func() error {
-					rd := sardetemplate.BuildRouteData(page, siteCtx, b.themeConfig)
-
-					if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, siteCtx); err != nil {
-						return err
-					}
-
-					var html []byte
-					if redirect := tabbedCollectionRedirect(page); redirect != "" {
-						html = []byte(buildRedirectHTML(redirect))
-					} else {
-						var err error
-						html, err = b.tmplEngine.Render(rd.Template, rd)
-						if err != nil {
-							return fmt.Errorf("rendering %s (template %s): %w", page.FilePath, rd.Template, err)
-						}
-					}
-
-					rp := RenderedPage{
-						Page:    page,
-						HTML:    html,
-						OutPath: PageOutputPath(page.RelPermalink),
-					}
-
-					mu.Lock()
-					rendered = append(rendered, rp)
-					for _, alias := range page.Aliases {
-						aliases[alias] = page.RelPermalink
-					}
-					mu.Unlock()
-					return nil
-				})
-			}
-			if err := g.Wait(); err != nil {
-				return nil, err
-			}
-		}
-	} else {
-		for _, page := range renderablePages {
-			rd := sardetemplate.BuildRouteData(page, siteCtx, b.themeConfig)
-			b.tmplEngine.SetCurrentLang(rd.Lang)
-
-			if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, siteCtx); err != nil {
-				return nil, err
-			}
-
-			var html []byte
-			if redirect := tabbedCollectionRedirect(page); redirect != "" {
-				html = []byte(buildRedirectHTML(redirect))
-			} else {
-				var err error
-				html, err = b.tmplEngine.Render(rd.Template, rd)
-				if err != nil {
-					return nil, fmt.Errorf("rendering %s (template %s): %w", page.FilePath, rd.Template, err)
-				}
-			}
-
-			rendered = append(rendered, RenderedPage{
-				Page:    page,
-				HTML:    html,
-				OutPath: PageOutputPath(page.RelPermalink),
-			})
-
-			for _, alias := range page.Aliases {
-				aliases[alias] = page.RelPermalink
-			}
-		}
+	rendered, aliases, err = b.renderPages(renderablePages, siteCtx, parallel, workerCount)
+	if err != nil {
+		return nil, err
 	}
+	recordTiming("Rendering templates")
+
+	var syntheticPages []*engine.Page
 
 	// Synthesize numbered pagination pages (e.g. /blog/page/2/) for any collection
 	// with Paginate > 0 and enough pages to warrant a second list page.
@@ -622,27 +556,15 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 					consts.PaginationCurrentKey: n,
 				},
 			}
-			rd := sardetemplate.BuildRouteData(stub, siteCtx, b.themeConfig)
-			b.tmplEngine.SetCurrentLang(rd.Lang)
-			if err := b.pluginMgr.RunBeforeRender(b.config, stub, rd, siteCtx); err != nil {
-				return nil, err
-			}
-			html, err := b.tmplEngine.Render(rd.Template, rd)
-			if err != nil {
-				return nil, fmt.Errorf("rendering paginated list %s: %w", permalink, err)
-			}
-			rendered = append(rendered, RenderedPage{
-				Page:    stub,
-				HTML:    html,
-				OutPath: PageOutputPath(permalink),
-			})
+			syntheticPages = append(syntheticPages, stub)
 			paginatorPages++
 		}
 	}
 
 	// Synthesize taxonomy index and term pages.
 	var taxonomyPages []*engine.Page
-	for taxName, tax := range taxonomies {
+	for _, taxName := range sortedTaxonomyNames(taxonomies) {
+		tax := taxonomies[taxName]
 		cfg := b.config.Taxonomies[taxName]
 		if !cfg.ShouldRender() {
 			continue
@@ -661,20 +583,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				"__term_entries": termEntries,
 			},
 		}
-		rd := sardetemplate.BuildRouteData(taxStub, siteCtx, b.themeConfig)
-		b.tmplEngine.SetCurrentLang(rd.Lang)
-		if err := b.pluginMgr.RunBeforeRender(b.config, taxStub, rd, siteCtx); err != nil {
-			return nil, err
-		}
-		html, err := b.tmplEngine.Render(rd.Template, rd)
-		if err != nil {
-			return nil, fmt.Errorf("rendering taxonomy index %s: %w", tax.Permalink, err)
-		}
-		rendered = append(rendered, RenderedPage{
-			Page:    taxStub,
-			HTML:    html,
-			OutPath: PageOutputPath(tax.Permalink),
-		})
+		syntheticPages = append(syntheticPages, taxStub)
 		taxonomyPages = append(taxonomyPages, taxStub)
 
 		// Per-term pages (e.g. /tags/go/, /tags/go/page/2/).
@@ -699,20 +608,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 					"__taxonomy_term": term,
 				},
 			}
-			rd := sardetemplate.BuildRouteData(termStub, siteCtx, b.themeConfig)
-			b.tmplEngine.SetCurrentLang(rd.Lang)
-			if err := b.pluginMgr.RunBeforeRender(b.config, termStub, rd, siteCtx); err != nil {
-				return nil, err
-			}
-			html, err := b.tmplEngine.Render(rd.Template, rd)
-			if err != nil {
-				return nil, fmt.Errorf("rendering term page %s: %w", term.Permalink, err)
-			}
-			rendered = append(rendered, RenderedPage{
-				Page:    termStub,
-				HTML:    html,
-				OutPath: PageOutputPath(term.Permalink),
-			})
+			syntheticPages = append(syntheticPages, termStub)
 			taxonomyPages = append(taxonomyPages, termStub)
 
 			// Pages 2..N.
@@ -729,25 +625,22 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 						consts.PaginationCurrentKey: n,
 					},
 				}
-				rd := sardetemplate.BuildRouteData(paginatedStub, siteCtx, b.themeConfig)
-				b.tmplEngine.SetCurrentLang(rd.Lang)
-				if err := b.pluginMgr.RunBeforeRender(b.config, paginatedStub, rd, siteCtx); err != nil {
-					return nil, err
-				}
-				html, err := b.tmplEngine.Render(rd.Template, rd)
-				if err != nil {
-					return nil, fmt.Errorf("rendering paginated term %s: %w", permalink, err)
-				}
-				rendered = append(rendered, RenderedPage{
-					Page:    paginatedStub,
-					HTML:    html,
-					OutPath: PageOutputPath(permalink),
-				})
+				syntheticPages = append(syntheticPages, paginatedStub)
 				taxonomyPages = append(taxonomyPages, paginatedStub)
 				paginatorPages++
 			}
 		}
 	}
+
+	syntheticRendered, syntheticAliases, err := b.renderPages(syntheticPages, siteCtx, parallel, workerCount)
+	if err != nil {
+		return nil, err
+	}
+	rendered = append(rendered, syntheticRendered...)
+	for alias, target := range syntheticAliases {
+		aliases[alias] = target
+	}
+	recordTiming("Rendering synthetic pages")
 
 	// Include taxonomy pages in allPages for sitemap and search index.
 	allPages = append(allPages, taxonomyPages...)
@@ -797,7 +690,6 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			Lang:     lang,
 			Dir:      dir,
 		}
-		b.tmplEngine.SetCurrentLang(lang)
 		html404, err := b.tmplEngine.Render(rd404.Template, rd404)
 		if err == nil {
 			rendered = append(rendered, RenderedPage{
@@ -829,17 +721,15 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		}
 		render404(lang, "ltr", consts.Template404)
 	}
+	recordTiming("Rendering 404 pages")
 
 	// HTML minification (production builds only).
 	if !b.devMode && config.BoolVal(b.config.Build.Minify, true) {
-		mn := NewMinifier()
-		for i := range rendered {
-			rendered[i].HTML = mn.MinifyHTML(rendered[i].HTML)
+		if err := minifyRendered(rendered, parallel, workerCount); err != nil {
+			return nil, err
 		}
 	}
-
-	timings = append(timings, engine.PhaseTiming{Phase: "Rendering templates", Duration: time.Since(phaseStart)})
-	phaseStart = time.Now()
+	recordTiming("Minifying HTML")
 
 	// Phase 6: WRITE
 	clean := config.BoolVal(b.config.Build.Clean, true)
@@ -864,20 +754,23 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("writing output: %w", err)
 	}
+	recordTiming("Writing output")
+
+	assetWriteOpts := asset.WriteOptions{Parallel: parallel, WorkerCount: workerCount}
 
 	// Write bundle assets (images, PDFs, etc. co-located with content).
-	if err := assetPipeline.WriteBundleAssets(allPages, outputDir, trackFn); err != nil {
+	if err := assetPipeline.WriteBundleAssetsWithOptions(allPages, outputDir, trackFn, assetWriteOpts); err != nil {
 		return nil, fmt.Errorf("writing bundle assets: %w", err)
 	}
 
 	// Copy processed image variants from cache to output.
-	processedImages, err := assetPipeline.WriteProcessedImages(outputDir, trackFn)
+	processedImages, err := assetPipeline.WriteProcessedImagesWithOptions(outputDir, trackFn, assetWriteOpts)
 	if err != nil {
 		return nil, fmt.Errorf("writing processed images: %w", err)
 	}
 
 	// Write bundled CSS/JS files to output.
-	if err := assetPipeline.WriteBundledFiles(outputDir, trackFn); err != nil {
+	if err := assetPipeline.WriteBundledFilesWithOptions(outputDir, trackFn, assetWriteOpts); err != nil {
 		return nil, fmt.Errorf("writing bundled files: %w", err)
 	}
 
@@ -890,8 +783,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	if err := WriteEmbeddedCSS(outputDir, b.tmplEngine.CachedCSS(), tracker); err != nil {
 		return nil, fmt.Errorf("writing embedded CSS bundle: %w", err)
 	}
-
-	timings = append(timings, engine.PhaseTiming{Phase: "Writing output", Duration: time.Since(phaseStart)})
+	recordTiming("Writing assets")
 
 	// Plugin hook: BuildDone (parallel, after all files written).
 	buildLogger := engine.NewBuildLogger()
@@ -912,6 +804,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	if err := b.pluginMgr.RunBuildDone(buildDoneCtx); err != nil {
 		return nil, err
 	}
+	recordTiming("Running plugins")
 
 	// Prune orphaned files from previous builds.
 	if tracker != nil {
@@ -919,6 +812,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			return nil, fmt.Errorf("pruning output: %w", err)
 		}
 	}
+	recordTiming("Pruning output")
 	warnings = append(warnings, pluginWarnings...)
 
 	// Snapshot last-build state for incremental rebuild.
@@ -963,6 +857,160 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		LogMessages:     buildLogger.Messages(),
 		PhaseTimings:    timings,
 	}, nil
+}
+
+func enhancePageResources(pages []*engine.Page, pipeline *asset.Pipeline, parallel bool, workerCount int) error {
+	if !workers.ShouldParallelize(parallel, len(pages), workerCount) {
+		for _, page := range pages {
+			if err := pipeline.EnhanceResources(page); err != nil {
+				return fmt.Errorf("enhancing resources for %s: %w", page.FilePath, err)
+			}
+		}
+		return nil
+	}
+
+	g, _ := errgroup.WithContext(context.Background())
+	g.SetLimit(minWorkerLimit(workerCount, len(pages)))
+	for _, page := range pages {
+		page := page
+		g.Go(func() error {
+			if err := pipeline.EnhanceResources(page); err != nil {
+				return fmt.Errorf("enhancing resources for %s: %w", page.FilePath, err)
+			}
+			return nil
+		})
+	}
+	return g.Wait()
+}
+
+func (b *SiteBuilder) renderPages(pages []*engine.Page, siteCtx *engine.SiteContext, parallel bool, workerCount int) ([]RenderedPage, map[string]string, error) {
+	aliases := make(map[string]string)
+	if len(pages) == 0 {
+		return nil, aliases, nil
+	}
+
+	if !workers.ShouldParallelize(parallel, len(pages), workerCount) {
+		rendered := make([]RenderedPage, 0, len(pages))
+		for _, page := range pages {
+			rp, err := b.renderPage(page, siteCtx)
+			if err != nil {
+				return nil, nil, err
+			}
+			rendered = append(rendered, rp)
+			for _, alias := range page.Aliases {
+				aliases[alias] = page.RelPermalink
+			}
+		}
+		return rendered, aliases, nil
+	}
+
+	rendered := make([]RenderedPage, len(pages))
+	g, _ := errgroup.WithContext(context.Background())
+	g.SetLimit(minWorkerLimit(workerCount, len(pages)))
+	for i, page := range pages {
+		i, page := i, page
+		g.Go(func() error {
+			rp, err := b.renderPage(page, siteCtx)
+			if err != nil {
+				return err
+			}
+			rendered[i] = rp
+			return nil
+		})
+	}
+	if err := g.Wait(); err != nil {
+		return nil, nil, err
+	}
+	for _, page := range pages {
+		for _, alias := range page.Aliases {
+			aliases[alias] = page.RelPermalink
+		}
+	}
+	return rendered, aliases, nil
+}
+
+func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext) (RenderedPage, error) {
+	rd := sardetemplate.BuildRouteData(page, siteCtx, b.themeConfig)
+	if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, siteCtx); err != nil {
+		return RenderedPage{}, err
+	}
+
+	var html []byte
+	if redirect := tabbedCollectionRedirect(page); redirect != "" {
+		html = []byte(buildRedirectHTML(redirect))
+	} else {
+		var err error
+		html, err = b.tmplEngine.Render(rd.Template, rd)
+		if err != nil {
+			return RenderedPage{}, fmt.Errorf("rendering %s (template %s): %w", page.FilePath, rd.Template, err)
+		}
+	}
+
+	return RenderedPage{
+		Page:    page,
+		HTML:    html,
+		OutPath: PageOutputPath(page.RelPermalink),
+	}, nil
+}
+
+func minifyRendered(rendered []RenderedPage, parallel bool, workerCount int) error {
+	if !workers.ShouldParallelize(parallel, len(rendered), workerCount) {
+		mn := NewMinifier()
+		for i := range rendered {
+			rendered[i].HTML = mn.MinifyHTML(rendered[i].HTML)
+		}
+		return nil
+	}
+
+	g, _ := errgroup.WithContext(context.Background())
+	g.SetLimit(minWorkerLimit(workerCount, len(rendered)))
+	for i := range rendered {
+		i := i
+		g.Go(func() error {
+			mn := NewMinifier()
+			rendered[i].HTML = mn.MinifyHTML(rendered[i].HTML)
+			return nil
+		})
+	}
+	return g.Wait()
+}
+
+func minWorkerLimit(workerCount, workItems int) int {
+	if workerCount < 1 {
+		workerCount = workers.Count()
+	}
+	if workItems > 0 && workItems < workerCount {
+		return workItems
+	}
+	return workerCount
+}
+
+func countMarkdownPages(pages []*engine.Page) int {
+	count := 0
+	for _, page := range pages {
+		if page.RawContent != "" {
+			count++
+		}
+	}
+	return count
+}
+
+func sortedCollectionNames(collections map[string]*engine.Collection) []string {
+	names := make([]string, 0, len(collections))
+	for name := range collections {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
+}
+
+func sortedTaxonomyNames(taxonomies map[string]*engine.Taxonomy) []string {
+	names := make([]string, 0, len(taxonomies))
+	for name := range taxonomies {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
 }
 
 // ContentRebuild performs an incremental rebuild for content-only changes.

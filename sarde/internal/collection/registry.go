@@ -1,10 +1,12 @@
 package collection
 
 import (
+	"context"
 	"html/template"
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -12,7 +14,15 @@ import (
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/navigation"
+	"github.com/frostybee/sarde/internal/workers"
+	"golang.org/x/sync/errgroup"
 )
+
+// BuildOptions controls content parsing work inside collection builders.
+type BuildOptions struct {
+	Parallel    bool
+	WorkerCount int
+}
 
 // BuildCollections groups discovered files into typed collections, builds Pages,
 // applies sorting, section trees, draft filtering, and prev/next wiring.
@@ -22,6 +32,16 @@ func BuildCollections(
 	siteCfg *config.SiteConfig,
 	contentDir string,
 ) (map[string]*engine.Collection, []engine.ValidationWarning, error) {
+	return BuildCollectionsWithOptions(files, siteCfg, contentDir, BuildOptions{})
+}
+
+// BuildCollectionsWithOptions groups discovered files into typed collections with optional parallel parsing.
+func BuildCollectionsWithOptions(
+	files []content.ContentFile,
+	siteCfg *config.SiteConfig,
+	contentDir string,
+	opts BuildOptions,
+) (map[string]*engine.Collection, []engine.ValidationWarning, error) {
 	grouped := groupByCollection(files)
 	collections := make(map[string]*engine.Collection)
 	var allWarnings []engine.ValidationWarning
@@ -30,10 +50,17 @@ func BuildCollections(
 	includeFuture := config.BoolVal(siteCfg.Build.Future, false)
 	now := time.Now()
 
-	for name, colFiles := range grouped {
+	names := make([]string, 0, len(grouped))
+	for name := range grouped {
 		if name == "" {
-			continue // standalone/home pages handled separately
+			continue
 		}
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	for _, name := range names {
+		colFiles := grouped[name]
 
 		// 1. Infer defaults from directory name
 		collCfg := InferCollection(name)
@@ -58,7 +85,7 @@ func BuildCollections(
 		schema, _ := content.LoadSchema(filepath.Join(contentDir, name))
 
 		// 4. Build pages
-		pages, warnings, err := buildPages(colFiles, contentDir, collCfg, schema, siteCfg.Content.SummaryLength, string(siteCfg.Build.LastUpdated))
+		pages, warnings, err := buildPagesWithOptions(colFiles, contentDir, collCfg, schema, siteCfg.Content.SummaryLength, string(siteCfg.Build.LastUpdated), opts)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -167,6 +194,17 @@ func BuildStandalonePages(
 	summaryLength int,
 	lastUpdatedStrategy string,
 ) ([]*engine.Page, error) {
+	return BuildStandalonePagesWithOptions(files, contentDir, summaryLength, lastUpdatedStrategy, BuildOptions{})
+}
+
+// BuildStandalonePagesWithOptions builds root-level pages with optional parallel parsing.
+func BuildStandalonePagesWithOptions(
+	files []content.ContentFile,
+	contentDir string,
+	summaryLength int,
+	lastUpdatedStrategy string,
+	opts BuildOptions,
+) ([]*engine.Page, error) {
 	grouped := groupByCollection(files)
 	rootFiles := grouped[""]
 	if len(rootFiles) == 0 {
@@ -183,7 +221,7 @@ func BuildStandalonePages(
 		filtered = append(filtered, f)
 	}
 
-	pages, _, err := buildPages(filtered, contentDir, nil, nil, summaryLength, lastUpdatedStrategy)
+	pages, _, err := buildPagesWithOptions(filtered, contentDir, nil, nil, summaryLength, lastUpdatedStrategy, opts)
 	return pages, err
 }
 
@@ -241,185 +279,249 @@ func buildPages(
 	summaryLength int,
 	lastUpdatedStrategy string,
 ) ([]*engine.Page, []engine.ValidationWarning, error) {
+	return buildPagesWithOptions(files, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, BuildOptions{})
+}
+
+func buildPagesWithOptions(
+	files []content.ContentFile,
+	contentDir string,
+	collCfg *engine.CollectionConfig,
+	schema *engine.FrontmatterSchema,
+	summaryLength int,
+	lastUpdatedStrategy string,
+	opts BuildOptions,
+) ([]*engine.Page, []engine.ValidationWarning, error) {
+	if !workers.ShouldParallelize(opts.Parallel, len(files), opts.WorkerCount) {
+		var pages []*engine.Page
+		var warnings []engine.ValidationWarning
+		for _, cf := range files {
+			page, pageWarnings, err := buildPage(cf, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy)
+			if err != nil {
+				return nil, nil, err
+			}
+			pages = append(pages, page)
+			warnings = append(warnings, pageWarnings...)
+		}
+		return pages, warnings, nil
+	}
+
+	type result struct {
+		page     *engine.Page
+		warnings []engine.ValidationWarning
+	}
+	results := make([]result, len(files))
+	limit := opts.WorkerCount
+	if limit <= 0 {
+		limit = workers.Limit(len(files))
+	}
+	g, _ := errgroup.WithContext(context.Background())
+	g.SetLimit(limit)
+	for i, cf := range files {
+		i, cf := i, cf
+		g.Go(func() error {
+			page, pageWarnings, err := buildPage(cf, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy)
+			if err != nil {
+				return err
+			}
+			results[i] = result{page: page, warnings: pageWarnings}
+			return nil
+		})
+	}
+	if err := g.Wait(); err != nil {
+		return nil, nil, err
+	}
+
+	pages := make([]*engine.Page, 0, len(files))
+	var warnings []engine.ValidationWarning
+	for _, r := range results {
+		pages = append(pages, r.page)
+		warnings = append(warnings, r.warnings...)
+	}
+	return pages, warnings, nil
+}
+
+func buildPage(
+	cf content.ContentFile,
+	contentDir string,
+	collCfg *engine.CollectionConfig,
+	schema *engine.FrontmatterSchema,
+	summaryLength int,
+	lastUpdatedStrategy string,
+) (*engine.Page, []engine.ValidationWarning, error) {
 	inferrer := &content.Inferrer{LastUpdatedStrategy: lastUpdatedStrategy}
 	transformer := &content.Transformer{SummaryLength: summaryLength}
 	validator := &content.Validator{}
 
-	var pages []*engine.Page
 	var warnings []engine.ValidationWarning
 
-	for _, cf := range files {
-		f, err := os.Open(cf.FilePath)
-		if err != nil {
-			return nil, nil, err
-		}
-		fi, _ := f.Stat()
-		raw, err := io.ReadAll(f)
-		f.Close()
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// Parse frontmatter: single pass produces both untyped map and typed struct.
-		fmMap, fm, body, err := content.ParseAll(raw)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// Apply schema defaults
-		if schema != nil {
-			fmMap = content.ApplyDefaults(fmMap, schema)
-		}
-
-		// Validate against schema
-		if schema != nil {
-			w := validator.Validate(fmMap, schema)
-			for i := range w {
-				w[i].File = cf.RelPath
-			}
-			warnings = append(warnings, w...)
-		}
-
-		// Build Page
-		page := &engine.Page{
-			Title:         fm.Title,
-			Slug:          fm.Slug,
-			Date:          fm.Date,
-			Updated:       fm.Updated,
-			Draft:       fm.Draft,
-			PublishDate: fm.PublishDate,
-			Weight:        fm.Weight,
-			Description:   fm.Description,
-			Image:         fm.Image,
-			Tags:          fm.Tags,
-			Categories:    fm.Categories,
-			Aliases:       fm.Aliases,
-			SidebarLabel:  fm.SidebarLabel,
-			SidebarHidden: fm.SidebarHidden,
-			Badge:         fm.Badge,
-			Kind:          cf.Kind,
-			FilePath:      cf.FilePath,
-			RawContent:    body,
-			Params:        fm.Params,
-			Lang:          cf.Lang,
-			LangRelPath:   cf.LangRelPath,
-		}
-		if rel, err := filepath.Rel(contentDir, cf.FilePath); err == nil {
-			page.RelPath = filepath.ToSlash(rel)
-		}
-
-		// Ensure Params map is initialized for field transfers.
-		if page.Params == nil {
-			page.Params = make(map[string]any)
-		}
-
-		// Transfer section-specific fields to Params for section builder
-		if fm.Transparent {
-			page.Params["transparent"] = true
-		}
-		if fm.Render != nil && !*fm.Render {
-			page.Params["render"] = false
-		}
-		// Transfer `featured` (unknown to typed Frontmatter) from the raw map.
-		if b, ok := fmMap["featured"].(bool); ok && b {
-			page.Params["featured"] = true
-		}
-		if fm.Template != "" {
-			page.Params["template"] = fm.Template
-		}
-		if fm.Summary != "" {
-			page.Summary = template.HTML(fm.Summary)
-		}
-		if fm.Prev != "" {
-			page.Params["prev"] = fm.Prev
-		}
-		if fm.Next != "" {
-			page.Params["next"] = fm.Next
-		}
-		if len(fm.SidebarAttrs) > 0 {
-			page.Params["sidebar_attrs"] = fm.SidebarAttrs
-		}
-		if fm.Pagefind != nil {
-			page.Params["pagefind"] = *fm.Pagefind
-		}
-		if fm.TOC != nil {
-			page.Params["toc"] = *fm.TOC
-		}
-		if fm.TOCMinLevel > 0 {
-			page.Params["toc_min_level"] = fm.TOCMinLevel
-		}
-		if fm.TOCMaxLevel > 0 {
-			page.Params["toc_max_level"] = fm.TOCMaxLevel
-		}
-		if fm.SidebarGroup != "" {
-			page.Params["sidebar_group"] = fm.SidebarGroup
-		}
-		if fm.Layout != "" {
-			page.Params["layout"] = fm.Layout
-		}
-		if fm.Type != "" {
-			page.Params["type"] = fm.Type
-		}
-		if fm.Hero != nil {
-			page.Params["hero"] = fm.Hero
-		}
-		if fm.EditURL != nil {
-			page.Params["edit_url"] = *fm.EditURL
-		}
-		if fm.ShowUpdated != nil {
-			page.Params["show_updated"] = *fm.ShowUpdated
-		}
-		if fm.Icon != "" {
-			page.Params["icon"] = fm.Icon
-		}
-
-		// Pre-populate Date from the already-opened FileInfo to avoid a
-		// redundant os.Stat inside Infer.
-		if page.Date.IsZero() && fi != nil {
-			page.Date = fi.ModTime()
-		}
-
-		// Infer defaults (title, date, slug, weight)
-		if err := inferrer.Infer(page, cf.FilePath); err != nil {
-			return nil, nil, err
-		}
-
-		// Compute permalink: use pattern if configured, else directory-based
-		isIndex := filepath.Base(cf.FilePath) == "_index.md" || filepath.Base(cf.FilePath) == "index.md"
-		if collCfg != nil && collCfg.Permalink != "" && !isIndex {
-			vars := content.PermalinkVars{
-				Slug:       page.Slug,
-				Year:       page.Date.Format("2006"),
-				Month:      page.Date.Format("01"),
-				Day:        page.Date.Format("02"),
-				Section:    extractSection(cf.FilePath, contentDir),
-				Collection: cf.CollectionName,
-				Title:      content.Slugify(page.Title),
-			}
-			page.RelPermalink = content.ComputePatternPermalink(collCfg.Permalink, vars)
-		} else {
-			page.RelPermalink = content.ComputePermalink(contentDir, cf.FilePath)
-		}
-		page.Permalink = page.RelPermalink
-
-		// Transform (word count, reading time, summary)
-		if err := transformer.Transform(page); err != nil {
-			return nil, nil, err
-		}
-
-		// Copy bundle assets
-		if cf.IsBundle {
-			for _, asset := range cf.BundleAssets {
-				page.Resources = append(page.Resources, engine.Resource{
-					Name: filepath.Base(asset),
-				})
-			}
-		}
-
-		pages = append(pages, page)
+	f, err := os.Open(cf.FilePath)
+	if err != nil {
+		return nil, nil, err
+	}
+	fi, _ := f.Stat()
+	raw, err := io.ReadAll(f)
+	f.Close()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return pages, warnings, nil
+	// Parse frontmatter: single pass produces both untyped map and typed struct.
+	fmMap, fm, body, err := content.ParseAll(raw)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Apply schema defaults
+	if schema != nil {
+		fmMap = content.ApplyDefaults(fmMap, schema)
+	}
+
+	// Validate against schema
+	if schema != nil {
+		w := validator.Validate(fmMap, schema)
+		for i := range w {
+			w[i].File = cf.RelPath
+		}
+		warnings = append(warnings, w...)
+	}
+
+	// Build Page
+	page := &engine.Page{
+		Title:         fm.Title,
+		Slug:          fm.Slug,
+		Date:          fm.Date,
+		Updated:       fm.Updated,
+		Draft:         fm.Draft,
+		PublishDate:   fm.PublishDate,
+		Weight:        fm.Weight,
+		Description:   fm.Description,
+		Image:         fm.Image,
+		Tags:          fm.Tags,
+		Categories:    fm.Categories,
+		Aliases:       fm.Aliases,
+		SidebarLabel:  fm.SidebarLabel,
+		SidebarHidden: fm.SidebarHidden,
+		Badge:         fm.Badge,
+		Kind:          cf.Kind,
+		FilePath:      cf.FilePath,
+		RawContent:    body,
+		Params:        fm.Params,
+		Lang:          cf.Lang,
+		LangRelPath:   cf.LangRelPath,
+	}
+	if rel, err := filepath.Rel(contentDir, cf.FilePath); err == nil {
+		page.RelPath = filepath.ToSlash(rel)
+	}
+
+	// Ensure Params map is initialized for field transfers.
+	if page.Params == nil {
+		page.Params = make(map[string]any)
+	}
+
+	// Transfer section-specific fields to Params for section builder
+	if fm.Transparent {
+		page.Params["transparent"] = true
+	}
+	if fm.Render != nil && !*fm.Render {
+		page.Params["render"] = false
+	}
+	// Transfer `featured` (unknown to typed Frontmatter) from the raw map.
+	if b, ok := fmMap["featured"].(bool); ok && b {
+		page.Params["featured"] = true
+	}
+	if fm.Template != "" {
+		page.Params["template"] = fm.Template
+	}
+	if fm.Summary != "" {
+		page.Summary = template.HTML(fm.Summary)
+	}
+	if fm.Prev != "" {
+		page.Params["prev"] = fm.Prev
+	}
+	if fm.Next != "" {
+		page.Params["next"] = fm.Next
+	}
+	if len(fm.SidebarAttrs) > 0 {
+		page.Params["sidebar_attrs"] = fm.SidebarAttrs
+	}
+	if fm.Pagefind != nil {
+		page.Params["pagefind"] = *fm.Pagefind
+	}
+	if fm.TOC != nil {
+		page.Params["toc"] = *fm.TOC
+	}
+	if fm.TOCMinLevel > 0 {
+		page.Params["toc_min_level"] = fm.TOCMinLevel
+	}
+	if fm.TOCMaxLevel > 0 {
+		page.Params["toc_max_level"] = fm.TOCMaxLevel
+	}
+	if fm.SidebarGroup != "" {
+		page.Params["sidebar_group"] = fm.SidebarGroup
+	}
+	if fm.Layout != "" {
+		page.Params["layout"] = fm.Layout
+	}
+	if fm.Type != "" {
+		page.Params["type"] = fm.Type
+	}
+	if fm.Hero != nil {
+		page.Params["hero"] = fm.Hero
+	}
+	if fm.EditURL != nil {
+		page.Params["edit_url"] = *fm.EditURL
+	}
+	if fm.ShowUpdated != nil {
+		page.Params["show_updated"] = *fm.ShowUpdated
+	}
+	if fm.Icon != "" {
+		page.Params["icon"] = fm.Icon
+	}
+
+	// Pre-populate Date from the already-opened FileInfo to avoid a
+	// redundant os.Stat inside Infer.
+	if page.Date.IsZero() && fi != nil {
+		page.Date = fi.ModTime()
+	}
+
+	// Infer defaults (title, date, slug, weight)
+	if err := inferrer.Infer(page, cf.FilePath); err != nil {
+		return nil, nil, err
+	}
+
+	// Compute permalink: use pattern if configured, else directory-based
+	isIndex := filepath.Base(cf.FilePath) == "_index.md" || filepath.Base(cf.FilePath) == "index.md"
+	if collCfg != nil && collCfg.Permalink != "" && !isIndex {
+		vars := content.PermalinkVars{
+			Slug:       page.Slug,
+			Year:       page.Date.Format("2006"),
+			Month:      page.Date.Format("01"),
+			Day:        page.Date.Format("02"),
+			Section:    extractSection(cf.FilePath, contentDir),
+			Collection: cf.CollectionName,
+			Title:      content.Slugify(page.Title),
+		}
+		page.RelPermalink = content.ComputePatternPermalink(collCfg.Permalink, vars)
+	} else {
+		page.RelPermalink = content.ComputePermalink(contentDir, cf.FilePath)
+	}
+	page.Permalink = page.RelPermalink
+
+	// Transform (word count, reading time, summary)
+	if err := transformer.Transform(page); err != nil {
+		return nil, nil, err
+	}
+
+	// Copy bundle assets
+	if cf.IsBundle {
+		for _, asset := range cf.BundleAssets {
+			page.Resources = append(page.Resources, engine.Resource{
+				Name: filepath.Base(asset),
+			})
+		}
+	}
+
+	return page, warnings, nil
 }
 
 // extractSection returns the immediate parent directory name relative to the collection root.

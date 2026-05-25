@@ -73,6 +73,25 @@ func (r *Registry) RenderComponent(name string, data any) (htmltemplate.HTML, er
 	return htmltemplate.HTML(buf.String()), nil
 }
 
+// RenderComponentWithFuncs executes a component with a per-render FuncMap.
+func (r *Registry) RenderComponentWithFuncs(name string, data any, funcs htmltemplate.FuncMap) (htmltemplate.HTML, error) {
+	tmpl := r.slots[name]
+	if tmpl == nil {
+		return "", nil
+	}
+	clone, err := tmpl.Clone()
+	if err != nil {
+		return "", fmt.Errorf("cloning component %q: %w", name, err)
+	}
+	clone.Funcs(funcs)
+
+	var buf bytes.Buffer
+	if err := clone.Execute(&buf, data); err != nil {
+		return "", fmt.Errorf("rendering component %q: %w", name, err)
+	}
+	return htmltemplate.HTML(buf.String()), nil
+}
+
 // LoadOverridesFromDir loads component overrides from a filesystem directory.
 // Each .html file in the directory overrides the component named after the file
 // (without extension). For example, Header.html overrides the "Header" component.

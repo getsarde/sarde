@@ -4,12 +4,12 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
-	"runtime"
 	"strings"
 	"sync"
 
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/plugin"
+	"github.com/frostybee/sarde/internal/workers"
 
 	"golang.org/x/image/font/opentype"
 )
@@ -117,7 +117,7 @@ func buildDone(ctx *plugin.BuildDoneContext, cfg map[string]any, pending *sync.M
 	format := cfgString(cfg, "format", "png")
 	quality := cfgInt(cfg, "quality", 90)
 
-	poolSize := runtime.NumCPU()
+	poolSize := workers.Count()
 	if poolSize > len(jobs) {
 		poolSize = len(jobs)
 	}

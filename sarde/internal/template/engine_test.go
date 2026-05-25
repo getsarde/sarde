@@ -20,9 +20,9 @@ func embeddedTestFS() fstest.MapFS {
 </body>
 </html>`)},
 		"_default/single.html": {Data: []byte(`{{ define "content" }}<article><h1>{{ .Page.Title }}</h1>{{ .Page.Content }}{{ if .Pagination }}{{ component "Pagination" . }}{{ end }}</article>{{ end }}`)},
-		"_default/list.html": {Data: []byte(`{{ define "content" }}<h1>{{ .Page.Title }}</h1>{{ if .Collection }}<ul>{{ range .Collection.Pages }}<li>{{ .Title }}</li>{{ end }}</ul>{{ end }}{{ end }}`)},
-		"_default/home.html": {Data: []byte(`{{ define "content" }}<div class="home"><h1>{{ .Site.Title }}</h1>{{ .Page.Content }}</div>{{ end }}`)},
-		"_default/404.html":  {Data: []byte(`{{ define "content" }}<h1>Not Found</h1>{{ end }}`)},
+		"_default/list.html":   {Data: []byte(`{{ define "content" }}<h1>{{ .Page.Title }}</h1>{{ if .Collection }}<ul>{{ range .Collection.Pages }}<li>{{ .Title }}</li>{{ end }}</ul>{{ end }}{{ end }}`)},
+		"_default/home.html":   {Data: []byte(`{{ define "content" }}<div class="home"><h1>{{ .Site.Title }}</h1>{{ .Page.Content }}</div>{{ end }}`)},
+		"_default/404.html":    {Data: []byte(`{{ define "content" }}<h1>Not Found</h1>{{ end }}`)},
 		"_docs/baseof.html": {Data: []byte(`<!DOCTYPE html>
 <html lang="{{ .Lang }}">
 <head>{{ component "Head" . }}</head>
@@ -31,7 +31,7 @@ func embeddedTestFS() fstest.MapFS {
 <main>{{ block "content" . }}{{ .Page.Content }}{{ end }}</main>
 </body>
 </html>`)},
-		"_docs/single.html": {Data: []byte(`{{ define "content" }}<h1>{{ .Page.Title }}</h1>{{ .Page.Content }}{{ end }}`)},
+		"_docs/single.html":          {Data: []byte(`{{ define "content" }}<h1>{{ .Page.Title }}</h1>{{ .Page.Content }}{{ end }}`)},
 		"components/Head.html":       {Data: []byte(`<title>{{ if .Page }}{{ .Page.Title }} - {{ end }}{{ .Site.Title }}</title>`)},
 		"components/Footer.html":     {Data: []byte(`<footer>&copy; {{ .Site.Title }}</footer>`)},
 		"components/Pagination.html": {Data: []byte(`{{ if .Pagination }}<nav>{{ with .Pagination.Prev }}<a href="{{ .URL }}">{{ .Title }}</a>{{ end }}{{ with .Pagination.Next }}<a href="{{ .URL }}">{{ .Title }}</a>{{ end }}</nav>{{ end }}`)},
@@ -262,7 +262,7 @@ func TestEngine_Render_CachesTemplates(t *testing.T) {
 
 	// Verify cache has the entry
 	eng.mu.RLock()
-	_, cached := eng.templates["default:blog/single"]
+	_, cached := eng.templates["default:blog/single:en"]
 	eng.mu.RUnlock()
 	if !cached {
 		t.Error("template was not cached")

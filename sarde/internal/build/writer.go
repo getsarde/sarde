@@ -7,10 +7,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/frostybee/sarde/internal/engine"
+	"github.com/frostybee/sarde/internal/workers"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -60,7 +60,7 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 
 	// Write rendered HTML pages in parallel.
 	g, _ := errgroup.WithContext(context.Background())
-	g.SetLimit(runtime.NumCPU())
+	g.SetLimit(workers.Limit(len(pages)))
 	for _, rp := range pages {
 		g.Go(func() error {
 			outPath, err := safeOutputPath(w.OutputDir, rp.OutPath)
@@ -78,8 +78,10 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 	}
 
 	// Write alias redirects in parallel.
+	ag, _ := errgroup.WithContext(context.Background())
+	ag.SetLimit(workers.Limit(len(aliases)))
 	for aliasPath, target := range aliases {
-		g.Go(func() error {
+		ag.Go(func() error {
 			outPath, err := safeOutputPath(w.OutputDir, PageOutputPath(aliasPath))
 			if err != nil {
 				return err
@@ -90,7 +92,7 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 			return os.WriteFile(outPath, []byte(redirectHTML(target)), 0o644)
 		})
 	}
-	if err := g.Wait(); err != nil {
+	if err := ag.Wait(); err != nil {
 		return 0, fmt.Errorf("writing aliases: %w", err)
 	}
 
@@ -139,7 +141,7 @@ func (w *Writer) copyStatic() (int, error) {
 	}
 
 	g, _ := errgroup.WithContext(context.Background())
-	g.SetLimit(runtime.NumCPU())
+	g.SetLimit(workers.Limit(len(pairs)))
 	for _, p := range pairs {
 		g.Go(func() error {
 			if w.Tracker != nil {

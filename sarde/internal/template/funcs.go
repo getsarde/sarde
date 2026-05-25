@@ -34,7 +34,7 @@ func buildFuncMap(
 	assetManifestPtr **asset.Manifest,
 	imageProcessorPtr **asset.ImageProcessor,
 	pluginFuncs map[string]any,
-	currentLangPtr *string,
+	currentLang func() string,
 	i18nStrings *i18n.StringTable,
 	pageIndexPtr **content.PageIndex,
 	partialCache map[string]*htmltemplate.Template,
@@ -294,16 +294,16 @@ func buildFuncMap(
 
 		// ── i18n ──
 		"t": func(key string) string {
-			if i18nStrings == nil || currentLangPtr == nil {
+			if i18nStrings == nil || currentLang == nil {
 				return key
 			}
-			return i18nStrings.Resolve(*currentLangPtr, key)
+			return i18nStrings.Resolve(currentLang(), key)
 		},
 		"tWithData": func(key string, data any) string {
-			if i18nStrings == nil || currentLangPtr == nil {
+			if i18nStrings == nil || currentLang == nil {
 				return key
 			}
-			return i18nStrings.Resolve(*currentLangPtr, key, data)
+			return i18nStrings.Resolve(currentLang(), key, data)
 		},
 
 		// ── Navigation helpers ──

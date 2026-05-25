@@ -12,6 +12,10 @@ import (
 	"github.com/frostybee/sarde/internal/outputpath"
 )
 
+// LangAwareAnnouncementFunc is an internal template func factory key used by the
+// announcements plugin so concurrent multilingual renders do not share mutable language state.
+const LangAwareAnnouncementFunc = "__sarde_announcementBannerForLang"
+
 // Plugin is a named bundle of lifecycle hooks.
 type Plugin struct {
 	Name  string

@@ -1,6 +1,7 @@
 package asset
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"os"
@@ -9,6 +10,8 @@ import (
 	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/outputpath"
+	"github.com/frostybee/sarde/internal/workers"
+	"golang.org/x/sync/errgroup"
 )
 
 // PipelineOptions configures the asset pipeline.
@@ -31,6 +34,12 @@ type Pipeline struct {
 	manifest     *Manifest
 	bundledFiles []BundledFile // CSS/JS files to write after writer cleans
 	opts         PipelineOptions
+}
+
+// WriteOptions controls bounded parallel asset writes.
+type WriteOptions struct {
+	Parallel    bool
+	WorkerCount int
 }
 
 // NewPipeline creates and initializes the asset pipeline.
@@ -134,22 +143,32 @@ func (p *Pipeline) BundleGlobalAssets() error {
 // WriteBundledFiles writes bundled CSS/JS files to the output directory.
 // If trackFn is non-nil, each written path is reported for orphan tracking.
 func (p *Pipeline) WriteBundledFiles(outputDir string, trackFn func(string)) error {
-	for _, f := range p.bundledFiles {
-		outPath, err := outputpath.SafeJoin(outputDir, f.OutputURL)
-		if err != nil {
-			return err
+	return p.WriteBundledFilesWithOptions(outputDir, trackFn, WriteOptions{Parallel: true})
+}
+
+// WriteBundledFilesWithOptions writes bundled CSS/JS files to the output directory.
+func (p *Pipeline) WriteBundledFilesWithOptions(outputDir string, trackFn func(string), opts WriteOptions) error {
+	if !opts.Parallel || len(p.bundledFiles) < 2 {
+		for _, f := range p.bundledFiles {
+			if err := writeBundledFile(outputDir, f, trackFn); err != nil {
+				return err
+			}
 		}
-		if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
-			return err
-		}
-		if err := os.WriteFile(outPath, f.Content, 0o644); err != nil {
-			return err
-		}
-		if trackFn != nil {
-			trackFn(outPath)
-		}
+		return nil
 	}
-	return nil
+	limit := opts.WorkerCount
+	if limit <= 0 {
+		limit = workers.Limit(len(p.bundledFiles))
+	}
+	g, _ := errgroup.WithContext(context.Background())
+	g.SetLimit(limit)
+	for _, f := range p.bundledFiles {
+		f := f
+		g.Go(func() error {
+			return writeBundledFile(outputDir, f, trackFn)
+		})
+	}
+	return g.Wait()
 }
 
 // WriteProcessedImages copies cached image variants to the output directory.
@@ -159,9 +178,24 @@ func (p *Pipeline) WriteProcessedImages(outputDir string, trackFn func(string)) 
 	return p.processor.WriteProcessedImages(outputDir, trackFn)
 }
 
+// WriteProcessedImagesWithOptions copies cached image variants to the output directory.
+func (p *Pipeline) WriteProcessedImagesWithOptions(outputDir string, trackFn func(string), opts WriteOptions) (int, error) {
+	return p.processor.WriteProcessedImagesWithOptions(outputDir, trackFn, opts)
+}
+
 // WriteBundleAssets copies bundle assets from their source locations to the output directory.
 // If trackFn is non-nil, each written path is reported for orphan tracking.
 func (p *Pipeline) WriteBundleAssets(pages []*engine.Page, outputDir string, trackFn func(string)) error {
+	return p.WriteBundleAssetsWithOptions(pages, outputDir, trackFn, WriteOptions{Parallel: true})
+}
+
+// WriteBundleAssetsWithOptions copies bundle assets from their source locations to the output directory.
+func (p *Pipeline) WriteBundleAssetsWithOptions(pages []*engine.Page, outputDir string, trackFn func(string), opts WriteOptions) error {
+	type assetCopy struct {
+		src string
+		dst string
+	}
+	var copies []assetCopy
 	for _, page := range pages {
 		if len(page.Resources) == 0 {
 			continue
@@ -175,22 +209,64 @@ func (p *Pipeline) WriteBundleAssets(pages []*engine.Page, outputDir string, tra
 			if err != nil {
 				return err
 			}
+			copies = append(copies, assetCopy{src: srcPath, dst: outPath})
+		}
+	}
 
-			if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
-				return err
-			}
+	writeOne := func(c assetCopy) error {
+		if err := os.MkdirAll(filepath.Dir(c.dst), 0o755); err != nil {
+			return err
+		}
+		data, err := os.ReadFile(c.src)
+		if err != nil {
+			return nil
+		}
+		if err := os.WriteFile(c.dst, data, 0o644); err != nil {
+			return err
+		}
+		if trackFn != nil {
+			trackFn(c.dst)
+		}
+		return nil
+	}
 
-			data, err := os.ReadFile(srcPath)
-			if err != nil {
-				continue
-			}
-			if err := os.WriteFile(outPath, data, 0o644); err != nil {
+	if !opts.Parallel || len(copies) < 2 {
+		for _, c := range copies {
+			if err := writeOne(c); err != nil {
 				return err
-			}
-			if trackFn != nil {
-				trackFn(outPath)
 			}
 		}
+		return nil
+	}
+
+	limit := opts.WorkerCount
+	if limit <= 0 {
+		limit = workers.Limit(len(copies))
+	}
+	g, _ := errgroup.WithContext(context.Background())
+	g.SetLimit(limit)
+	for _, c := range copies {
+		c := c
+		g.Go(func() error {
+			return writeOne(c)
+		})
+	}
+	return g.Wait()
+}
+
+func writeBundledFile(outputDir string, f BundledFile, trackFn func(string)) error {
+	outPath, err := outputpath.SafeJoin(outputDir, f.OutputURL)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
+		return err
+	}
+	if err := os.WriteFile(outPath, f.Content, 0o644); err != nil {
+		return err
+	}
+	if trackFn != nil {
+		trackFn(outPath)
 	}
 	return nil
 }

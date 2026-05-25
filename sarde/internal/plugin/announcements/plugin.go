@@ -70,7 +70,7 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 	items := cfgItems(cfg)
 	active := hasActiveItems(items)
 
-	renderBanner := func() template.HTML {
+	renderBanner := func(lang string) template.HTML {
 		if !active {
 			return ""
 		}
@@ -81,7 +81,7 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 				continue
 			}
 
-			msg := resolveString(st, langPtr, item.messageKey)
+			msg := resolveString(st, lang, item.messageKey)
 			if msg == "" {
 				continue
 			}
@@ -115,7 +115,7 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 				html.EscapeString(msg),
 			))
 			if item.dismissible {
-				dismissLabel := resolveString(st, langPtr, "announcements.dismiss")
+				dismissLabel := resolveString(st, lang, "announcements.dismiss")
 				banners.WriteString(fmt.Sprintf(
 					`<button class="sarde-announcement-dismiss" data-announcement-id="%s" aria-label="%s">&times;</button>`,
 					html.EscapeString(item.id), html.EscapeString(dismissLabel),
@@ -146,8 +146,15 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 		Name: "announcements",
 		Hooks: plugin.PluginHooks{
 			ConfigSetup: func(ctx *plugin.ConfigSetupContext) error {
+				ctx.AddTemplateFunc(plugin.LangAwareAnnouncementFunc, func(lang string) template.HTML {
+					return renderBanner(lang)
+				})
 				ctx.AddTemplateFunc("announcementBanner", func() template.HTML {
-					return renderBanner()
+					lang := ""
+					if langPtr != nil {
+						lang = *langPtr
+					}
+					return renderBanner(lang)
 				})
 				return nil
 			},
@@ -181,11 +188,11 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 	}
 }
 
-func resolveString(st *i18n.StringTable, langPtr *string, key string) string {
-	if st == nil || langPtr == nil {
+func resolveString(st *i18n.StringTable, lang, key string) string {
+	if st == nil || lang == "" {
 		return key
 	}
-	return st.Resolve(*langPtr, key)
+	return st.Resolve(lang, key)
 }
 
 func hasActiveItems(items []announcementItem) bool {

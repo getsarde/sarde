@@ -56,7 +56,7 @@ func testFuncMapBuild() htmltemplate.FuncMap {
 	var resolver *asset.Resolver
 	var manifest *asset.Manifest
 	var processor *asset.ImageProcessor
-	return buildFuncMap(&site, &engine.ThemeResolver{}, nil, &sync.Map{}, "", nil, &resolver, &manifest, &processor, nil, &lang, nil, &pageIndex, nil)
+	return buildFuncMap(&site, &engine.ThemeResolver{}, nil, &sync.Map{}, "", nil, &resolver, &manifest, &processor, nil, func() string { return lang }, nil, &pageIndex, nil)
 }
 
 // ── String tests ──
