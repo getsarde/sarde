@@ -303,8 +303,40 @@ func mergeDeploy(base, over *DeployConfig) {
 }
 
 func mergeCollections(base *map[string]*CollectionSiteConfig, over map[string]*CollectionSiteConfig) {
-	if len(over) > 0 {
-		*base = over
+	if len(over) == 0 {
+		return
+	}
+	if *base == nil {
+		*base = make(map[string]*CollectionSiteConfig)
+	}
+	for k, v := range over {
+		existing, ok := (*base)[k]
+		if !ok || existing == nil {
+			(*base)[k] = v
+			continue
+		}
+		mergeStr(&existing.Path, v.Path)
+		mergeStr(&existing.URLPrefix, v.URLPrefix)
+		mergeStr(&existing.Sort, v.Sort)
+		mergeStr(&existing.Layout, v.Layout)
+		mergeStr(&existing.Permalink, v.Permalink)
+		mergeInt(&existing.Paginate, v.Paginate)
+		mergeBoolP(&existing.Enabled, v.Enabled)
+		mergeBoolP(&existing.Feed, v.Feed)
+		mergeBoolP(&existing.Tabs, v.Tabs)
+		if v.Sidebar != nil {
+			existing.Sidebar = v.Sidebar
+		}
+		if v.TOC != nil {
+			existing.TOC = v.TOC
+		}
+		if v.PrevNext != nil {
+			existing.PrevNext = v.PrevNext
+		}
+		if v.Versioning != nil {
+			existing.Versioning = v.Versioning
+		}
+		(*base)[k] = existing
 	}
 }
 
@@ -338,6 +370,7 @@ func mergePlugins(base, over *PluginSettings) {
 }
 
 func mergeServer(base, over *ServerSettings) {
+	mergeStr(&base.Host, over.Host)
 	mergeInt(&base.Port, over.Port)
 	mergeBoolP(&base.LiveReload, over.LiveReload)
 }

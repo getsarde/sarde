@@ -384,6 +384,77 @@ func TestMerge_HomepageHeroOptionalFields(t *testing.T) {
 	}
 }
 
+func TestMergeServer_Host(t *testing.T) {
+	base := &ServerSettings{Host: "", Port: 4727}
+	over := &ServerSettings{Host: "0.0.0.0"}
+	mergeServer(base, over)
+	if base.Host != "0.0.0.0" {
+		t.Errorf("Host = %q, want %q", base.Host, "0.0.0.0")
+	}
+	if base.Port != 4727 {
+		t.Errorf("Port = %d, want 4727 (should be preserved)", base.Port)
+	}
+}
+
+func TestMergeServer_HostNotOverwrittenByZero(t *testing.T) {
+	base := &ServerSettings{Host: "localhost", Port: 4727}
+	over := &ServerSettings{Port: 8080}
+	mergeServer(base, over)
+	if base.Host != "localhost" {
+		t.Errorf("Host = %q, want %q (should be preserved)", base.Host, "localhost")
+	}
+	if base.Port != 8080 {
+		t.Errorf("Port = %d, want 8080", base.Port)
+	}
+}
+
+func TestMergeCollections_DeepMerge(t *testing.T) {
+	base := map[string]*CollectionSiteConfig{
+		"docs": {Path: "content/docs", Sort: "weight"},
+	}
+	over := map[string]*CollectionSiteConfig{
+		"docs": {Layout: "doc"},
+		"blog": {Path: "content/blog"},
+	}
+	mergeCollections(&base, over)
+
+	if base["docs"].Path != "content/docs" {
+		t.Errorf("docs.Path = %q, want %q (should preserve base)", base["docs"].Path, "content/docs")
+	}
+	if base["docs"].Layout != "doc" {
+		t.Errorf("docs.Layout = %q, want %q (should apply override)", base["docs"].Layout, "doc")
+	}
+	if base["docs"].Sort != "weight" {
+		t.Errorf("docs.Sort = %q, want %q (should preserve base)", base["docs"].Sort, "weight")
+	}
+	if base["blog"] == nil || base["blog"].Path != "content/blog" {
+		t.Error("blog collection should be added from override")
+	}
+}
+
+func TestMergeCollections_NilBase(t *testing.T) {
+	var base map[string]*CollectionSiteConfig
+	over := map[string]*CollectionSiteConfig{
+		"blog": {Path: "content/blog"},
+	}
+	mergeCollections(&base, over)
+
+	if base["blog"] == nil || base["blog"].Path != "content/blog" {
+		t.Error("blog should be added to nil base")
+	}
+}
+
+func TestMergeCollections_EmptyOverlay(t *testing.T) {
+	base := map[string]*CollectionSiteConfig{
+		"docs": {Path: "content/docs"},
+	}
+	mergeCollections(&base, nil)
+
+	if base["docs"].Path != "content/docs" {
+		t.Error("base should be unchanged with empty overlay")
+	}
+}
+
 func TestMerge_MapReplace(t *testing.T) {
 	base := Defaults()
 	over := &SiteConfig{}

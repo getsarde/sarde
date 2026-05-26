@@ -1,8 +1,10 @@
 package project
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -274,8 +276,12 @@ func (pm *ProjectManager) StartPreview(port int) (int, error) {
 	})
 
 	go func() {
-		if err := ds.Start(); err != nil {
-			_ = err
+		if err := ds.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			pm.mu.Lock()
+			pm.eventHub.Broadcast(Event{Type: "preview:error", Data: map[string]any{"error": err.Error()}})
+			pm.devServer = nil
+			pm.state = StateOpen
+			pm.mu.Unlock()
 		}
 	}()
 

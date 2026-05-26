@@ -100,6 +100,27 @@ func TestFnSafeHTML(t *testing.T) {
 	}
 }
 
+func TestFnMarkdownify_Bold(t *testing.T) {
+	got := string(fnMarkdownify("**bold**"))
+	if !strings.Contains(got, "<strong>bold</strong>") {
+		t.Errorf("markdownify(**bold**) = %q, want <strong>bold</strong>", got)
+	}
+}
+
+func TestFnMarkdownify_XSS(t *testing.T) {
+	got := string(fnMarkdownify("<script>alert('xss')</script>"))
+	if strings.Contains(got, "<script>") {
+		t.Errorf("markdownify should not pass through script tags, got: %q", got)
+	}
+}
+
+func TestFnMarkdownify_InlineCode(t *testing.T) {
+	got := string(fnMarkdownify("use `fmt.Println`"))
+	if !strings.Contains(got, "<code>fmt.Println</code>") {
+		t.Errorf("markdownify(inline code) = %q, want <code>fmt.Println</code>", got)
+	}
+}
+
 // ── Date tests ──
 
 func TestFnDateFormat(t *testing.T) {

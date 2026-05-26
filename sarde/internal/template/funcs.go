@@ -1,6 +1,7 @@
 package template
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -19,6 +20,8 @@ import (
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/i18n"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
 )
 
 // buildFuncMap creates the template.FuncMap with all template functions.
@@ -620,11 +623,26 @@ func fnTruncate(s string, n int) string {
 	return string(runes[:n-3]) + "..."
 }
 
+var (
+	inlineMDOnce sync.Once
+	inlineMD     goldmark.Markdown
+)
+
+func getInlineMD() goldmark.Markdown {
+	inlineMDOnce.Do(func() {
+		inlineMD = goldmark.New(
+			goldmark.WithExtensions(extension.GFM),
+		)
+	})
+	return inlineMD
+}
+
 func fnMarkdownify(s string) htmltemplate.HTML {
-	// Inline markdown rendering: wrap in paragraph, handle bold/italic/code/links
-	// Full Goldmark integration would add a dependency cycle; use simple replacements.
-	// For proper rendering, the Engine can override this with a Goldmark instance.
-	return htmltemplate.HTML(s)
+	var buf bytes.Buffer
+	if err := getInlineMD().Convert([]byte(s), &buf); err != nil {
+		return htmltemplate.HTML(htmltemplate.HTMLEscapeString(s))
+	}
+	return htmltemplate.HTML(buf.String())
 }
 
 func fnPlainify(s string) string {
