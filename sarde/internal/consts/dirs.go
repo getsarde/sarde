@@ -18,8 +18,15 @@ const (
 	DirPartials   = "partials"
 	DirShortcodes = "shortcodes"
 
-	// Internal Params keys shared between builder and template packages.
+	// Internal Params keys shared between builder, template, and collection packages.
 	PaginationCurrentKey = "__pagination_current"
+	TaxonomyKey          = "__taxonomy"
+	TaxonomyTermKey      = "__taxonomy_term"
+	TermEntriesKey       = "__term_entries"
+	CascadeKey           = "__cascade"
+
+	// Pagination defaults.
+	DefaultPaginateBy = 10
 
 	// Collection type names.
 	CollectionBlog    = "blog"

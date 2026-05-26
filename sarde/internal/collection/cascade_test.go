@@ -3,13 +3,14 @@ package collection
 import (
 	"testing"
 
+	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/engine"
 )
 
 func TestApplyCascade_Basic(t *testing.T) {
 	indexPage := &engine.Page{
 		Kind:   engine.KindSection,
-		Params: map[string]any{"__cascade": map[string]any{"layout": "docs", "toc": true}},
+		Params: map[string]any{consts.CascadeKey: map[string]any{"layout": "docs", "toc": true}},
 	}
 	sec := &engine.Section{IndexPage: indexPage}
 	child := &engine.Page{
@@ -31,7 +32,7 @@ func TestApplyCascade_Basic(t *testing.T) {
 func TestApplyCascade_ChildOverrides(t *testing.T) {
 	indexPage := &engine.Page{
 		Kind:   engine.KindSection,
-		Params: map[string]any{"__cascade": map[string]any{"layout": "docs"}},
+		Params: map[string]any{consts.CascadeKey: map[string]any{"layout": "docs"}},
 	}
 	sec := &engine.Section{IndexPage: indexPage}
 	child := &engine.Page{
@@ -50,11 +51,11 @@ func TestApplyCascade_ChildOverrides(t *testing.T) {
 func TestApplyCascade_MultiLevel(t *testing.T) {
 	grandparentIdx := &engine.Page{
 		Kind:   engine.KindSection,
-		Params: map[string]any{"__cascade": map[string]any{"layout": "docs", "toc": false}},
+		Params: map[string]any{consts.CascadeKey: map[string]any{"layout": "docs", "toc": false}},
 	}
 	parentIdx := &engine.Page{
 		Kind:   engine.KindSection,
-		Params: map[string]any{"__cascade": map[string]any{"toc": true}},
+		Params: map[string]any{consts.CascadeKey: map[string]any{"toc": true}},
 	}
 	grandparent := &engine.Section{IndexPage: grandparentIdx}
 	parent := &engine.Section{IndexPage: parentIdx, Parent: grandparent}
@@ -78,7 +79,7 @@ func TestApplyCascade_ParamsMerge(t *testing.T) {
 	indexPage := &engine.Page{
 		Kind: engine.KindSection,
 		Params: map[string]any{
-			"__cascade": map[string]any{
+			consts.CascadeKey: map[string]any{
 				"params": map[string]any{"author": "Team", "color": "blue"},
 			},
 		},
@@ -103,7 +104,7 @@ func TestApplyCascade_ParamsMerge(t *testing.T) {
 func TestApplyCascade_SectionPageFromParent(t *testing.T) {
 	parentIdx := &engine.Page{
 		Kind:   engine.KindSection,
-		Params: map[string]any{"__cascade": map[string]any{"toc": true}},
+		Params: map[string]any{consts.CascadeKey: map[string]any{"toc": true}},
 	}
 	parent := &engine.Section{IndexPage: parentIdx}
 	childIdx := &engine.Page{
@@ -142,7 +143,7 @@ func TestApplyCascade_NoCascade(t *testing.T) {
 func TestApplyCascade_SidebarLabel(t *testing.T) {
 	indexPage := &engine.Page{
 		Kind:   engine.KindSection,
-		Params: map[string]any{"__cascade": map[string]any{"sidebar_label": "Guides"}},
+		Params: map[string]any{consts.CascadeKey: map[string]any{"sidebar_label": "Guides"}},
 	}
 	sec := &engine.Section{IndexPage: indexPage}
 	child := &engine.Page{
@@ -162,7 +163,7 @@ func TestApplyCascade_Banner(t *testing.T) {
 	indexPage := &engine.Page{
 		Kind: engine.KindSection,
 		Params: map[string]any{
-			"__cascade": map[string]any{
+			consts.CascadeKey: map[string]any{
 				"banner": map[string]any{"content": "Under review", "variant": "caution"},
 			},
 		},

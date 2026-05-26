@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/engine"
 )
 
@@ -49,7 +50,7 @@ func collectCascade(page *engine.Page) map[string]any {
 		if idx == nil || idx.Params == nil {
 			continue
 		}
-		cascade, ok := idx.Params["__cascade"].(map[string]any)
+		cascade, ok := idx.Params[consts.CascadeKey].(map[string]any)
 		if !ok || len(cascade) == 0 {
 			continue
 		}

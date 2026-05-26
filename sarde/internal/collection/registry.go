@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/frostybee/sarde/internal/config"
+	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/navigation"
@@ -502,7 +503,7 @@ func buildPage(
 		page.Params["icon"] = fm.Icon
 	}
 	if len(fm.Cascade) > 0 {
-		page.Params["__cascade"] = fm.Cascade
+		page.Params[consts.CascadeKey] = fm.Cascade
 	}
 
 	// Pre-populate Date from the already-opened FileInfo to avoid a

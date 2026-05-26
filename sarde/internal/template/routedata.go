@@ -165,19 +165,19 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 		case engine.KindTaxonomy:
 			rd.Template = consts.DirTaxonomy + "/list"
 			rd.Layout = engine.LayoutDefault
-			if tax, ok := page.Params["__taxonomy"].(*engine.Taxonomy); ok {
+			if tax, ok := page.Params[consts.TaxonomyKey].(*engine.Taxonomy); ok {
 				rd.Taxonomy = tax
 			}
-			if entries, ok := page.Params["__term_entries"].([]*engine.TermEntry); ok {
+			if entries, ok := page.Params[consts.TermEntriesKey].([]*engine.TermEntry); ok {
 				rd.TermEntries = entries
 			}
 		case engine.KindTerm:
 			rd.Template = consts.DirTaxonomy + "/term"
 			rd.Layout = engine.LayoutDefault
-			if tax, ok := page.Params["__taxonomy"].(*engine.Taxonomy); ok {
+			if tax, ok := page.Params[consts.TaxonomyKey].(*engine.Taxonomy); ok {
 				rd.Taxonomy = tax
 			}
-			if term, ok := page.Params["__taxonomy_term"].(*engine.TaxonomyTerm); ok {
+			if term, ok := page.Params[consts.TaxonomyTermKey].(*engine.TaxonomyTerm); ok {
 				rd.TaxonomyTerm = term
 			}
 			if rd.TaxonomyTerm != nil && rd.Taxonomy != nil {
@@ -187,7 +187,7 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 				}
 				paginateBy := rd.Taxonomy.PaginateBy
 				if paginateBy <= 0 {
-					paginateBy = 10
+					paginateBy = consts.DefaultPaginateBy
 				}
 				rd.Paginator = buildTermPaginator(rd.TaxonomyTerm, paginateBy, current)
 			}
@@ -332,23 +332,23 @@ func buildPaginator(col *engine.Collection, current int) *engine.Paginator {
 		Total:        total,
 		TotalItems:   len(pages),
 		BaseURL:      base,
-		FirstURL:     paginationURL(base, 1),
-		LastURL:      paginationURL(base, total),
+		FirstURL:     PaginationURL(base, 1),
+		LastURL:      PaginationURL(base, total),
 	}
 	p.Pages = make([]engine.PaginationLink, 0, total)
 	for i := 1; i <= total; i++ {
 		p.Pages = append(p.Pages, engine.PaginationLink{
-			URL:   paginationURL(base, i),
+			URL:   PaginationURL(base, i),
 			Title: fmt.Sprintf("%d", i),
 		})
 	}
 	if current > 1 {
 		p.HasPrev = true
-		p.PrevURL = paginationURL(base, current-1)
+		p.PrevURL = PaginationURL(base, current-1)
 	}
 	if current < total {
 		p.HasNext = true
-		p.NextURL = paginationURL(base, current+1)
+		p.NextURL = PaginationURL(base, current+1)
 	}
 	return p
 }
@@ -390,30 +390,30 @@ func buildTermPaginator(term *engine.TaxonomyTerm, perPage, current int) *engine
 		Total:        total,
 		TotalItems:   len(pages),
 		BaseURL:      base,
-		FirstURL:     paginationURL(base, 1),
-		LastURL:      paginationURL(base, total),
+		FirstURL:     PaginationURL(base, 1),
+		LastURL:      PaginationURL(base, total),
 	}
 	p.Pages = make([]engine.PaginationLink, 0, total)
 	for i := 1; i <= total; i++ {
 		p.Pages = append(p.Pages, engine.PaginationLink{
-			URL:   paginationURL(base, i),
+			URL:   PaginationURL(base, i),
 			Title: fmt.Sprintf("%d", i),
 		})
 	}
 	if current > 1 {
 		p.HasPrev = true
-		p.PrevURL = paginationURL(base, current-1)
+		p.PrevURL = PaginationURL(base, current-1)
 	}
 	if current < total {
 		p.HasNext = true
-		p.NextURL = paginationURL(base, current+1)
+		p.NextURL = PaginationURL(base, current+1)
 	}
 	return p
 }
 
-// paginationURL returns the URL for the Nth pagination page of a collection.
+// PaginationURL returns the URL for the Nth pagination page of a collection.
 // Page 1 maps to the collection's base URL; N>1 maps to "<base>page/N/".
-func paginationURL(base string, n int) string {
+func PaginationURL(base string, n int) string {
 	if n <= 1 {
 		return base
 	}
