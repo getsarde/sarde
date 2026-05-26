@@ -13,6 +13,10 @@ func safeOutputPath(outputDir, relPath string) (string, error) {
 	return outputpath.SafeJoin(outputDir, relPath)
 }
 
+func safeOutputPathWithRoot(absRoot, relPath string) (string, error) {
+	return outputpath.SafeJoinWithRoot(absRoot, relPath)
+}
+
 func writeOutputFile(outputDir, relPath string, data []byte) (string, error) {
 	path, err := safeOutputPath(outputDir, relPath)
 	if err != nil {

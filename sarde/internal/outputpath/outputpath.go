@@ -51,11 +51,60 @@ func IsWithin(root, target string) bool {
 	if err != nil {
 		return false
 	}
+	return isWithinAbs(absRoot, absTarget)
+}
+
+// isWithinAbs is like IsWithin but both root and target must already be
+// absolute, Clean paths (e.g. results of filepath.Abs). Avoids redundant
+// filepath.Abs calls in hot paths.
+func isWithinAbs(absRoot, absTarget string) bool {
 	rel, err := filepath.Rel(absRoot, absTarget)
 	if err != nil {
 		return false
 	}
 	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) && !filepath.IsAbs(rel))
+}
+
+// SafeJoinWithRoot is like SafeJoin but accepts a pre-resolved absolute
+// outputRoot, avoiding repeated filepath.Abs calls when the root is reused
+// across many pages. outputRoot must be the result of filepath.Abs.
+func SafeJoinWithRoot(outputRoot, relPath string) (string, error) {
+	if strings.TrimSpace(relPath) == "" {
+		return "", fmt.Errorf("empty output path")
+	}
+
+	raw := filepath.FromSlash(relPath)
+	if filepath.VolumeName(raw) != "" {
+		return "", fmt.Errorf("unsafe output path %q", relPath)
+	}
+	raw = strings.TrimLeft(raw, `/\`)
+	rel := filepath.Clean(raw)
+	if rel == "." || filepath.IsAbs(rel) || hasParentSegment(rel) {
+		return "", fmt.Errorf("unsafe output path %q", relPath)
+	}
+
+	target, err := filepath.Abs(filepath.Join(outputRoot, rel))
+	if err != nil {
+		return "", fmt.Errorf("resolving output path %q: %w", relPath, err)
+	}
+	if !isWithinAbs(outputRoot, target) {
+		return "", fmt.Errorf("output path escapes output directory: %q", relPath)
+	}
+	return target, nil
+}
+
+// RemoveIfWithinAbs deletes a file only if it resolves inside the given
+// absolute outputRoot. Avoids the filepath.Abs call on outputRoot that
+// RemoveIfWithin performs.
+func RemoveIfWithinAbs(outputRoot, path string) error {
+	target, err := filepath.Abs(path)
+	if err != nil {
+		return fmt.Errorf("resolving output path: %w", err)
+	}
+	if !isWithinAbs(outputRoot, target) {
+		return fmt.Errorf("output path escapes output directory: %s", path)
+	}
+	return os.Remove(target)
 }
 
 // ResolveOutputDir resolves a configured build output directory and rejects

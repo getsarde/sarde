@@ -30,47 +30,82 @@ type Writer struct {
 	Tracker    *OutputTracker
 }
 
+// resolvedPage holds a pre-resolved output path alongside the rendered HTML,
+// so path computation happens once (serial) and goroutines only do I/O.
+type resolvedPage struct {
+	outPath string
+	html    []byte
+}
+
+// resolvedAlias holds a pre-resolved alias redirect.
+type resolvedAlias struct {
+	outPath string
+	html    []byte
+}
+
 // Write outputs all rendered pages, alias redirects, and static files.
 // Returns the number of static files copied.
 func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, error) {
-	// Pre-create all output directories in a single pass to avoid
-	// redundant MkdirAll syscalls during parallel writes.
+	absOutputDir, err := filepath.Abs(w.OutputDir)
+	if err != nil {
+		return 0, fmt.Errorf("resolving output dir: %w", err)
+	}
+
+	// Pre-resolve all output paths in a single pass. Each path is computed
+	// once and reused for directory collection, tracking, and the write itself.
+	resolved := make([]resolvedPage, 0, len(pages))
 	dirs := make(map[string]struct{}, len(pages)/4)
+
 	for _, rp := range pages {
-		outPath, err := safeOutputPath(w.OutputDir, rp.OutPath)
+		outPath, err := safeOutputPathWithRoot(absOutputDir, rp.OutPath)
 		if err != nil {
 			return 0, err
 		}
-		dir := filepath.Dir(outPath)
-		dirs[dir] = struct{}{}
+		dirs[filepath.Dir(outPath)] = struct{}{}
+		resolved = append(resolved, resolvedPage{outPath: outPath, html: rp.HTML})
 	}
-	for aliasPath := range aliases {
-		outPath, err := safeOutputPath(w.OutputDir, PageOutputPath(aliasPath))
+
+	resolvedAliases := make([]resolvedAlias, 0, len(aliases))
+	for aliasPath, target := range aliases {
+		outPath, err := safeOutputPathWithRoot(absOutputDir, PageOutputPath(aliasPath))
 		if err != nil {
 			return 0, err
 		}
-		dir := filepath.Dir(outPath)
-		dirs[dir] = struct{}{}
+		dirs[filepath.Dir(outPath)] = struct{}{}
+		resolvedAliases = append(resolvedAliases, resolvedAlias{
+			outPath: outPath,
+			html:    []byte(redirectHTML(target)),
+		})
 	}
-	for dir := range dirs {
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			return 0, fmt.Errorf("creating directory %s: %w", dir, err)
-		}
+
+	// Pre-create all output directories in parallel.
+	dirSlice := make([]string, 0, len(dirs))
+	for d := range dirs {
+		dirSlice = append(dirSlice, d)
+	}
+	mg, _ := errgroup.WithContext(context.Background())
+	mg.SetLimit(workers.IOLimit(len(dirSlice)))
+	for _, dir := range dirSlice {
+		mg.Go(func() error {
+			return os.MkdirAll(dir, 0o755)
+		})
+	}
+	if err := mg.Wait(); err != nil {
+		return 0, fmt.Errorf("creating directories: %w", err)
 	}
 
 	// Write rendered HTML pages in parallel.
+	// Track paths via an indexed slice (lock-free) instead of per-goroutine
+	// mutex calls.
+	tracked := make([]string, len(resolved)+len(resolvedAliases))
+
 	g, _ := errgroup.WithContext(context.Background())
-	g.SetLimit(workers.Limit(len(pages)))
-	for _, rp := range pages {
+	g.SetLimit(workers.IOLimit(len(resolved)))
+	for i, rp := range resolved {
+		i, rp := i, rp
 		g.Go(func() error {
-			outPath, err := safeOutputPath(w.OutputDir, rp.OutPath)
-			if err != nil {
-				return err
-			}
-			if w.Tracker != nil {
-				w.Tracker.Track(outPath)
-			}
-			return os.WriteFile(outPath, rp.HTML, 0o644)
+			tracked[i] = rp.outPath
+			return os.WriteFile(rp.outPath, rp.html, 0o644)
 		})
 	}
 	if err := g.Wait(); err != nil {
@@ -79,21 +114,22 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 
 	// Write alias redirects in parallel.
 	ag, _ := errgroup.WithContext(context.Background())
-	ag.SetLimit(workers.Limit(len(aliases)))
-	for aliasPath, target := range aliases {
+	ag.SetLimit(workers.IOLimit(len(resolvedAliases)))
+	base := len(resolved)
+	for i, ra := range resolvedAliases {
+		i, ra := i, ra
 		ag.Go(func() error {
-			outPath, err := safeOutputPath(w.OutputDir, PageOutputPath(aliasPath))
-			if err != nil {
-				return err
-			}
-			if w.Tracker != nil {
-				w.Tracker.Track(outPath)
-			}
-			return os.WriteFile(outPath, []byte(redirectHTML(target)), 0o644)
+			tracked[base+i] = ra.outPath
+			return os.WriteFile(ra.outPath, ra.html, 0o644)
 		})
 	}
 	if err := ag.Wait(); err != nil {
 		return 0, fmt.Errorf("writing aliases: %w", err)
+	}
+
+	// Batch-register all written paths with the tracker (single lock acquisition).
+	if w.Tracker != nil {
+		w.Tracker.TrackBatch(tracked)
 	}
 
 	// Copy static files.
@@ -140,18 +176,21 @@ func (w *Writer) copyStatic() (int, error) {
 		os.MkdirAll(dir, 0o755)
 	}
 
+	tracked := make([]string, len(pairs))
 	g, _ := errgroup.WithContext(context.Background())
-	g.SetLimit(workers.Limit(len(pairs)))
-	for _, p := range pairs {
+	g.SetLimit(workers.IOLimit(len(pairs)))
+	for i, p := range pairs {
+		i, p := i, p
 		g.Go(func() error {
-			if w.Tracker != nil {
-				w.Tracker.Track(p.dst)
-			}
+			tracked[i] = p.dst
 			return copyFile(p.src, p.dst)
 		})
 	}
 	if err := g.Wait(); err != nil {
 		return 0, err
+	}
+	if w.Tracker != nil {
+		w.Tracker.TrackBatch(tracked)
 	}
 	return len(pairs), nil
 }

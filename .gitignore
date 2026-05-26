@@ -22,6 +22,9 @@ go.work.sum
 # Go content output
 dist/
 
+# Hugo benchmark (local only)
+testsite/hugo-benchmark/
+
 # Node
 node_modules/
 package-lock.json
