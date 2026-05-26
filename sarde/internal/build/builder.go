@@ -1109,9 +1109,10 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 
 		includeDrafts := config.BoolVal(b.config.Build.Drafts, false)
 		includeFuture := config.BoolVal(b.config.Build.Future, false)
+		includeExpired := config.BoolVal(b.config.Build.Expired, false)
 		now := time.Now()
-		wasExcluded := content.ShouldExclude(old.Draft, old.PublishDate, includeDrafts, includeFuture, now)
-		isExcluded := content.ShouldExclude(newPage.Draft, newPage.PublishDate, includeDrafts, includeFuture, now)
+		wasExcluded := content.ShouldExclude(old.Draft, old.PublishDate, old.ExpiryDate, includeDrafts, includeFuture, includeExpired, now)
+		isExcluded := content.ShouldExclude(newPage.Draft, newPage.PublishDate, newPage.ExpiryDate, includeDrafts, includeFuture, includeExpired, now)
 		if wasExcluded != isExcluded {
 			log.Printf("ContentRebuild: draft/publish status changed, falling back to full rebuild")
 			return b.Build()
@@ -1460,7 +1461,7 @@ func incrementalEligibilityFailure(old, next *engine.Page, cf content.ContentFil
 	if old.Title != next.Title || !old.Date.Equal(next.Date) || old.Weight != next.Weight {
 		return "collection sort or navigation fields changed"
 	}
-	if old.Draft != next.Draft || !old.PublishDate.Equal(next.PublishDate) {
+	if old.Draft != next.Draft || !old.PublishDate.Equal(next.PublishDate) || !old.ExpiryDate.Equal(next.ExpiryDate) {
 		return "publish state changed"
 	}
 	if !stringSlicesEqual(old.Aliases, next.Aliases) {

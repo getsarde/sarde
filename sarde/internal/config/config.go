@@ -217,6 +217,7 @@ type BuildSettings struct {
 	Feed        *bool               `yaml:"feed"`
 	Drafts      *bool               `yaml:"drafts"`
 	Future      *bool               `yaml:"future"`
+	Expired     *bool               `yaml:"expired"`
 	Parallel    *bool               `yaml:"parallel"`
 	Cache       *bool               `yaml:"cache"`
 }

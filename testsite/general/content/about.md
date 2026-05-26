@@ -4,6 +4,16 @@ params:
   author: Velox Team
 title: About Velox
 toc: true
+head:
+  - tag: meta
+    attrs:
+      name: author
+      content: "Velox Team"
+  - tag: meta
+    attrs:
+      property: "article:section"
+      content: "About"
+edit_url: "https://github.com/example/velox/edit/main/content/about.md"
 ---
 
 Velox started as an internal routing library at a mid-size SaaS company. After years of using the standard library's `http.ServeMux` and finding it too limited, the team built a purpose-built router optimized for API servers.

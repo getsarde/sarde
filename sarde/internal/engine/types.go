@@ -82,6 +82,7 @@ type Page struct {
 	Date        time.Time
 	Updated     time.Time
 	PublishDate time.Time
+	ExpiryDate  time.Time
 	Permalink    string
 	RelPermalink string
 	Kind         NodeKind
@@ -156,6 +157,7 @@ type Frontmatter struct {
 	Updated       time.Time         `yaml:"updated"`
 	Draft       bool      `yaml:"draft"`
 	PublishDate time.Time `yaml:"publish_date"`
+	ExpiryDate  time.Time `yaml:"expiry_date"`
 	Slug          string            `yaml:"slug"`
 	Summary       string            `yaml:"summary"`
 	Template      string            `yaml:"template"`
@@ -186,6 +188,7 @@ type Frontmatter struct {
 	Icon          string            `yaml:"icon"`
 	Head          []HeadTag         `yaml:"head"`
 	Banner        *PageBanner       `yaml:"banner"`
+	Cascade       map[string]any    `yaml:"cascade"`
 	Params        map[string]any    `yaml:"params"`
 }
 

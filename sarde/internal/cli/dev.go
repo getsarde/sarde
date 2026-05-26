@@ -42,13 +42,14 @@ func runServe(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// In serve mode, drafts are included by default.
+	// In serve mode, drafts and expired pages are included by default.
 	noDrafts, _ := cmd.Flags().GetBool("no-drafts")
 	if noDrafts {
 		cfg.Build.Drafts = config.BoolPtr(false)
 	} else {
 		cfg.Build.Drafts = config.BoolPtr(true)
 	}
+	cfg.Build.Expired = config.BoolPtr(true)
 
 	// Override base path from CLI flag.
 	if basePath, _ := cmd.Flags().GetString("base-path"); basePath != "" {
@@ -94,12 +95,13 @@ func runServe(cmd *cobra.Command, args []string) error {
 			latestThemeCfg = themeCfg
 		}
 
-		// Preserve draft setting from serve mode.
+		// Preserve draft/expired settings from serve mode.
 		if noDrafts {
 			latestCfg.Build.Drafts = config.BoolPtr(false)
 		} else {
 			latestCfg.Build.Drafts = config.BoolPtr(true)
 		}
+		latestCfg.Build.Expired = config.BoolPtr(true)
 
 		// Preserve CLI flag overrides across reloads.
 		if basePath, _ := cmd.Flags().GetString("base-path"); basePath != "" {

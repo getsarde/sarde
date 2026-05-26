@@ -48,6 +48,7 @@ func BuildCollectionsWithOptions(
 
 	includeDrafts := config.BoolVal(siteCfg.Build.Drafts, false)
 	includeFuture := config.BoolVal(siteCfg.Build.Future, false)
+	includeExpired := config.BoolVal(siteCfg.Build.Expired, false)
 	now := time.Now()
 
 	names := make([]string, 0, len(grouped))
@@ -92,13 +93,16 @@ func BuildCollectionsWithOptions(
 		allWarnings = append(allWarnings, warnings...)
 
 		// 5. Filter drafts and future content
-		pages = filterExcluded(pages, includeDrafts, includeFuture, now)
+		pages = filterExcluded(pages, includeDrafts, includeFuture, includeExpired, now)
 
 		// 6. Sort pages
 		SortPages(pages, collCfg.SortBy, collCfg.SortOrder)
 
 		// 7. Build section tree
 		sections := BuildSectionTree(pages, name)
+
+		// 7b. Apply frontmatter cascade from section _index.md
+		ApplyCascade(pages)
 
 		// 8. Find index page
 		var indexPage *engine.Page
@@ -393,6 +397,7 @@ func buildPage(
 		Updated:       fm.Updated,
 		Draft:         fm.Draft,
 		PublishDate:   fm.PublishDate,
+		ExpiryDate:    fm.ExpiryDate,
 		Weight:        fm.Weight,
 		Description:   fm.Description,
 		Image:         fm.Image,
@@ -496,6 +501,9 @@ func buildPage(
 	if fm.Icon != "" {
 		page.Params["icon"] = fm.Icon
 	}
+	if len(fm.Cascade) > 0 {
+		page.Params["__cascade"] = fm.Cascade
+	}
 
 	// Pre-populate Date from the already-opened FileInfo to avoid a
 	// redundant os.Stat inside Infer.
@@ -555,10 +563,10 @@ func extractSection(filePath, contentDir string) string {
 	return ""
 }
 
-func filterExcluded(pages []*engine.Page, includeDrafts, includeFuture bool, now time.Time) []*engine.Page {
+func filterExcluded(pages []*engine.Page, includeDrafts, includeFuture, includeExpired bool, now time.Time) []*engine.Page {
 	var result []*engine.Page
 	for _, p := range pages {
-		if !content.ShouldExclude(p.Draft, p.PublishDate, includeDrafts, includeFuture, now) {
+		if !content.ShouldExclude(p.Draft, p.PublishDate, p.ExpiryDate, includeDrafts, includeFuture, includeExpired, now) {
 			result = append(result, p)
 		}
 	}

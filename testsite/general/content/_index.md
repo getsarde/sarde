@@ -8,6 +8,9 @@ hero:
   - link: https://github.com/example/velox
     text: View on GitHub
     variant: secondary
+    attrs:
+      target: "_blank"
+      rel: "noopener noreferrer"
   image:
     alt: Velox architecture diagram
     dark: /img/hero-dark.svg
