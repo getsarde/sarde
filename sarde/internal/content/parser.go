@@ -26,7 +26,8 @@ func (p *Parser) Parse(raw []byte) (map[string]interface{}, string, error) {
 
 	switch {
 	case strings.HasPrefix(content, "---"):
-		return parseDelimited(content, "---")
+		fm, _, body, err := parseDelimited(content, "---")
+		return fm, body, err
 	case strings.HasPrefix(content, "+++"):
 		return parseTOML(content)
 	case strings.HasPrefix(content, "{"):
@@ -36,7 +37,7 @@ func (p *Parser) Parse(raw []byte) (map[string]interface{}, string, error) {
 	}
 }
 
-func parseDelimited(content, delimiter string) (map[string]interface{}, string, error) {
+func parseDelimited(content, delimiter string) (map[string]interface{}, []byte, string, error) {
 	// Find the closing delimiter after the opening one
 	rest := content[len(delimiter):]
 	// Skip the newline after opening delimiter
@@ -46,7 +47,7 @@ func parseDelimited(content, delimiter string) (map[string]interface{}, string, 
 	closingIdx := strings.Index(rest, "\n"+delimiter)
 	if closingIdx < 0 {
 		// No closing delimiter — treat entire content as body
-		return map[string]interface{}{}, content, nil
+		return map[string]interface{}{}, nil, content, nil
 	}
 
 	fmText := rest[:closingIdx]
@@ -55,11 +56,12 @@ func parseDelimited(content, delimiter string) (map[string]interface{}, string, 
 	body = strings.TrimPrefix(body, "\n")
 	body = strings.TrimPrefix(body, "\r\n")
 
+	fmBytes := []byte(fmText)
 	fm := make(map[string]interface{})
-	if err := yaml.Unmarshal([]byte(fmText), &fm); err != nil {
-		return nil, "", err
+	if err := yaml.Unmarshal(fmBytes, &fm); err != nil {
+		return nil, nil, "", err
 	}
-	return fm, body, nil
+	return fm, fmBytes, body, nil
 }
 
 func parseTOML(content string) (map[string]interface{}, string, error) {
@@ -125,24 +127,55 @@ func ParseFrontmatter(raw []byte) (*engine.Frontmatter, string, error) {
 	return fm, body, err
 }
 
+// parseRaw normalises raw file bytes and dispatches to the format-specific
+// parser. For YAML input it also returns the raw frontmatter bytes so callers
+// can unmarshal directly into a typed struct. For TOML/JSON, fmText is nil.
+func parseRaw(raw []byte) (fmMap map[string]interface{}, fmText []byte, body string, err error) {
+	content := string(bytes.TrimLeft(raw, "\xef\xbb\xbf"))
+	content = strings.TrimLeft(content, "\n\r")
+
+	if content == "" {
+		return map[string]interface{}{}, nil, "", nil
+	}
+
+	switch {
+	case strings.HasPrefix(content, "---"):
+		return parseDelimited(content, "---")
+	case strings.HasPrefix(content, "+++"):
+		fm, body, err := parseTOML(content)
+		return fm, nil, body, err
+	case strings.HasPrefix(content, "{"):
+		fm, body, err := parseJSON(content)
+		return fm, nil, body, err
+	default:
+		return map[string]interface{}{}, nil, content, nil
+	}
+}
+
 // ParseAll parses raw file bytes into both an untyped map (for schema validation)
-// and a typed Frontmatter struct in a single pass, avoiding the double-parse that
-// occurs when calling Parser.Parse and ParseFrontmatter separately.
+// and a typed Frontmatter struct. For YAML input (the common case), the struct
+// is unmarshaled directly from the raw frontmatter bytes, avoiding a redundant
+// marshal+unmarshal round-trip.
 func ParseAll(raw []byte) (map[string]interface{}, *engine.Frontmatter, string, error) {
-	p := &Parser{}
-	fmMap, body, err := p.Parse(raw)
+	fmMap, fmText, body, err := parseRaw(raw)
 	if err != nil {
 		return nil, nil, "", err
 	}
 
 	fm := &engine.Frontmatter{}
 	if len(fmMap) > 0 {
-		yamlBytes, err := yaml.Marshal(fmMap)
-		if err != nil {
-			return nil, nil, "", err
-		}
-		if err := yaml.Unmarshal(yamlBytes, fm); err != nil {
-			return nil, nil, "", err
+		if fmText != nil {
+			if err := yaml.Unmarshal(fmText, fm); err != nil {
+				return nil, nil, "", err
+			}
+		} else {
+			yamlBytes, err := yaml.Marshal(fmMap)
+			if err != nil {
+				return nil, nil, "", err
+			}
+			if err := yaml.Unmarshal(yamlBytes, fm); err != nil {
+				return nil, nil, "", err
+			}
 		}
 	}
 

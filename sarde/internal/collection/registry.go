@@ -419,19 +419,68 @@ func buildPage(
 		page.RelPath = filepath.ToSlash(rel)
 	}
 
-	// Ensure Params map is initialized for field transfers.
+	mapFrontmatterToParams(page, fm, fmMap)
+
+	// Pre-populate Date from the already-opened FileInfo to avoid a
+	// redundant os.Stat inside Infer.
+	if page.Date.IsZero() && fi != nil {
+		page.Date = fi.ModTime()
+	}
+
+	// Infer defaults (title, date, slug, weight)
+	if err := inferrer.Infer(page, cf.FilePath); err != nil {
+		return nil, nil, err
+	}
+
+	// Compute permalink: use pattern if configured, else directory-based
+	isIndex := filepath.Base(cf.FilePath) == "_index.md" || filepath.Base(cf.FilePath) == "index.md"
+	if collCfg != nil && collCfg.Permalink != "" && !isIndex {
+		vars := content.PermalinkVars{
+			Slug:       page.Slug,
+			Year:       page.Date.Format("2006"),
+			Month:      page.Date.Format("01"),
+			Day:        page.Date.Format("02"),
+			Section:    extractSection(cf.FilePath, contentDir),
+			Collection: cf.CollectionName,
+			Title:      content.Slugify(page.Title),
+		}
+		page.RelPermalink = content.ComputePatternPermalink(collCfg.Permalink, vars)
+	} else {
+		page.RelPermalink = content.ComputePermalink(contentDir, cf.FilePath)
+	}
+	page.Permalink = page.RelPermalink
+
+	// Transform (word count, reading time, summary)
+	if err := transformer.Transform(page); err != nil {
+		return nil, nil, err
+	}
+
+	// Copy bundle assets
+	if cf.IsBundle {
+		for _, asset := range cf.BundleAssets {
+			page.Resources = append(page.Resources, engine.Resource{
+				Name: filepath.Base(asset),
+			})
+		}
+	}
+
+	return page, warnings, nil
+}
+
+// mapFrontmatterToParams transfers optional frontmatter fields to page.Params
+// and page.Summary. It reads from the typed struct for all known fields and
+// falls back to fmMap for fields not present on Frontmatter (e.g. "featured").
+func mapFrontmatterToParams(page *engine.Page, fm *engine.Frontmatter, fmMap map[string]interface{}) {
 	if page.Params == nil {
 		page.Params = make(map[string]any)
 	}
 
-	// Transfer section-specific fields to Params for section builder
 	if fm.Transparent {
 		page.Params["transparent"] = true
 	}
 	if fm.Render != nil && !*fm.Render {
 		page.Params["render"] = false
 	}
-	// Transfer `featured` (unknown to typed Frontmatter) from the raw map.
 	if b, ok := fmMap["featured"].(bool); ok && b {
 		page.Params["featured"] = true
 	}
@@ -505,51 +554,6 @@ func buildPage(
 	if len(fm.Cascade) > 0 {
 		page.Params[consts.CascadeKey] = fm.Cascade
 	}
-
-	// Pre-populate Date from the already-opened FileInfo to avoid a
-	// redundant os.Stat inside Infer.
-	if page.Date.IsZero() && fi != nil {
-		page.Date = fi.ModTime()
-	}
-
-	// Infer defaults (title, date, slug, weight)
-	if err := inferrer.Infer(page, cf.FilePath); err != nil {
-		return nil, nil, err
-	}
-
-	// Compute permalink: use pattern if configured, else directory-based
-	isIndex := filepath.Base(cf.FilePath) == "_index.md" || filepath.Base(cf.FilePath) == "index.md"
-	if collCfg != nil && collCfg.Permalink != "" && !isIndex {
-		vars := content.PermalinkVars{
-			Slug:       page.Slug,
-			Year:       page.Date.Format("2006"),
-			Month:      page.Date.Format("01"),
-			Day:        page.Date.Format("02"),
-			Section:    extractSection(cf.FilePath, contentDir),
-			Collection: cf.CollectionName,
-			Title:      content.Slugify(page.Title),
-		}
-		page.RelPermalink = content.ComputePatternPermalink(collCfg.Permalink, vars)
-	} else {
-		page.RelPermalink = content.ComputePermalink(contentDir, cf.FilePath)
-	}
-	page.Permalink = page.RelPermalink
-
-	// Transform (word count, reading time, summary)
-	if err := transformer.Transform(page); err != nil {
-		return nil, nil, err
-	}
-
-	// Copy bundle assets
-	if cf.IsBundle {
-		for _, asset := range cf.BundleAssets {
-			page.Resources = append(page.Resources, engine.Resource{
-				Name: filepath.Base(asset),
-			})
-		}
-	}
-
-	return page, warnings, nil
 }
 
 // extractSection returns the immediate parent directory name relative to the collection root.
