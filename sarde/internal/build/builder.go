@@ -280,19 +280,19 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 
 	// Build shortcode registry (three-layer overlay: embedded → theme → user).
 	var scDataCache sync.Map
-	scFuncMap := sardetemplate.BuildShortcodeFuncMap(
-		&siteCtx,
-		&engine.ThemeResolver{
+	scFuncMap := sardetemplate.BuildShortcodeFuncMap(sardetemplate.ShortcodeFuncMapConfig{
+		Site: &siteCtx,
+		Resolver: &engine.ThemeResolver{
 			ProjectDir: b.projectDir,
 			ThemeName:  b.config.Theme.Name,
 			EmbeddedFS: b.embeddedFS,
 		},
-		&scDataCache,
-		assetPipeline.Resolver(),
-		assetPipeline.Manifest(),
-		assetPipeline.ImageProcessor(),
-		&pageIndex,
-	)
+		DataCache:      &scDataCache,
+		AssetResolver:  assetPipeline.Resolver(),
+		AssetManifest:  assetPipeline.Manifest(),
+		ImageProcessor: assetPipeline.ImageProcessor(),
+		PageIndex:      &pageIndex,
+	})
 	scRegistry, err := shortcode.NewRegistry(b.embeddedFS, scFuncMap)
 	if err != nil {
 		return nil, fmt.Errorf("loading shortcode registry: %w", err)

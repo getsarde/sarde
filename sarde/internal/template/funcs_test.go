@@ -8,23 +8,17 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/frostybee/sarde/internal/asset"
 	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/engine"
 )
 
 func nilFuncMap() htmltemplate.FuncMap {
-	var s *engine.SiteContext
-	var pi *content.PageIndex
-	var resolver *asset.Resolver
-	var manifest *asset.Manifest
-	var processor *asset.ImageProcessor
-	return buildFuncMap(&s, nil, nil, nil, "", nil, &resolver, &manifest, &processor, nil, nil, nil, &pi, nil)
+	e := &Engine{}
+	return e.buildFuncMap(nil, nil)
 }
 
 func testSite() *engine.SiteContext {
@@ -50,13 +44,12 @@ func testSite() *engine.SiteContext {
 }
 
 func testFuncMapBuild() htmltemplate.FuncMap {
-	lang := "en"
-	site := testSite()
-	var pageIndex *content.PageIndex
-	var resolver *asset.Resolver
-	var manifest *asset.Manifest
-	var processor *asset.ImageProcessor
-	return buildFuncMap(&site, &engine.ThemeResolver{}, nil, &sync.Map{}, "", nil, &resolver, &manifest, &processor, nil, func() string { return lang }, nil, &pageIndex, nil)
+	e := &Engine{
+		resolver: &engine.ThemeResolver{},
+		site:     testSite(),
+	}
+	e.currentLang = "en"
+	return e.buildFuncMap(nil, nil)
 }
 
 // ── String tests ──
@@ -335,11 +328,8 @@ func TestNavFor(t *testing.T) {
 			"docs": {Name: "docs", NavTree: tree},
 		},
 	}
-	var pageIndex *content.PageIndex
-	var resolver *asset.Resolver
-	var manifest *asset.Manifest
-	var processor *asset.ImageProcessor
-	fm := buildFuncMap(&site, nil, nil, nil, "", nil, &resolver, &manifest, &processor, nil, nil, nil, &pageIndex, nil)
+	e := &Engine{site: site}
+	fm := e.buildFuncMap(nil, nil)
 	navFor := fm["navFor"].(func(string) *engine.NavTree)
 
 	if got := navFor("docs"); got != tree {
@@ -481,11 +471,8 @@ func TestResizeImageFunc_WithProcessor(t *testing.T) {
 		Cache: asset.NewCache(t.TempDir()),
 	}
 
-	var nilSite *engine.SiteContext
-	var nilPI *content.PageIndex
-	var resolver *asset.Resolver
-	var manifest *asset.Manifest
-	fm := buildFuncMap(&nilSite, nil, nil, nil, "", nil, &resolver, &manifest, &processor, nil, nil, nil, &nilPI, nil)
+	e := &Engine{imageProcessor: processor}
+	fm := e.buildFuncMap(nil, nil)
 	resizeImage := fm["resize_image"].(func(engine.Resource, string) htmltemplate.HTML)
 
 	res := engine.Resource{

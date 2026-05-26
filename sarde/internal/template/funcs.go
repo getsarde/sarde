@@ -19,30 +19,32 @@ import (
 	"github.com/frostybee/sarde/internal/component"
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/i18n"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 )
 
 // buildFuncMap creates the template.FuncMap with all template functions.
-// Closures capture runtime state (site context, resolver, registry, data cache).
-// cachedCSS is the pre-loaded embedded CSS (empty string if not yet loaded).
-func buildFuncMap(
-	sitePtr **engine.SiteContext,
-	resolver *engine.ThemeResolver,
+// Closures capture Engine field addresses (e.g. &e.site) so they always see
+// the current values across hot-reload rebuilds without needing re-registration.
+// registry and partialCache are passed explicitly because they differ between
+// the bootstrap pass (nil) and the final pass (populated).
+func (e *Engine) buildFuncMap(
 	registry *component.Registry,
-	dataCache *sync.Map,
-	cachedCSS string,
-	cssURLPtr *string,
-	assetResolverPtr **asset.Resolver,
-	assetManifestPtr **asset.Manifest,
-	imageProcessorPtr **asset.ImageProcessor,
-	pluginFuncs map[string]any,
-	currentLang func() string,
-	i18nStrings *i18n.StringTable,
-	pageIndexPtr **content.PageIndex,
 	partialCache map[string]*htmltemplate.Template,
 ) htmltemplate.FuncMap {
+	sitePtr := &e.site
+	resolver := e.resolver
+	dataCache := &e.dataCache
+	cachedCSS := e.cachedCSS
+	cssURLPtr := &e.cssURL
+	assetResolverPtr := &e.assetResolver
+	assetManifestPtr := &e.assetManifest
+	imageProcessorPtr := &e.imageProcessor
+	pluginFuncs := e.pluginFuncs
+	currentLang := e.currentLangResolver()
+	i18nStrings := e.i18nStrings
+	pageIndexPtr := &e.pageIndex
+
 	fm := htmltemplate.FuncMap{
 		// ── Strings ──
 		"upper":       strings.ToUpper,
@@ -557,26 +559,36 @@ func buildFuncMap(
 	return fm
 }
 
+// ShortcodeFuncMapConfig holds the dependencies needed to build a FuncMap
+// for shortcode templates. Component registry, plugin funcs, and i18n are
+// intentionally excluded to avoid concurrency issues during parallel
+// markdown rendering.
+type ShortcodeFuncMapConfig struct {
+	Site           **engine.SiteContext
+	Resolver       *engine.ThemeResolver
+	DataCache      *sync.Map
+	AssetResolver  *asset.Resolver
+	AssetManifest  *asset.Manifest
+	ImageProcessor *asset.ImageProcessor
+	PageIndex      **content.PageIndex
+}
+
 // BuildShortcodeFuncMap constructs a FuncMap suitable for shortcode templates.
-// Component registry, plugin funcs, and i18n are excluded (nil) to avoid
-// concurrency issues during parallel markdown rendering.
-func BuildShortcodeFuncMap(
-	sitePtr **engine.SiteContext,
-	resolver *engine.ThemeResolver,
-	dataCache *sync.Map,
-	assetResolver *asset.Resolver,
-	assetManifest *asset.Manifest,
-	imageProcessor *asset.ImageProcessor,
-	pageIndexPtr **content.PageIndex,
-) htmltemplate.FuncMap {
-	assetResolverPtr := &assetResolver
-	assetManifestPtr := &assetManifest
-	imageProcessorPtr := &imageProcessor
-	return buildFuncMap(
-		sitePtr, resolver, nil, dataCache, "", nil,
-		assetResolverPtr, assetManifestPtr, imageProcessorPtr,
-		nil, nil, nil, pageIndexPtr, nil,
-	)
+// It creates a temporary Engine wired to the caller's pointers so closures
+// see mutations made through those pointers during the build.
+func BuildShortcodeFuncMap(cfg ShortcodeFuncMapConfig) htmltemplate.FuncMap {
+	e := &Engine{
+		resolver:       cfg.Resolver,
+		site:           *cfg.Site,
+		pageIndex:      *cfg.PageIndex,
+		assetResolver:  cfg.AssetResolver,
+		assetManifest:  cfg.AssetManifest,
+		imageProcessor: cfg.ImageProcessor,
+	}
+	if cfg.DataCache != nil {
+		e.dataCache = *cfg.DataCache
+	}
+	return e.buildFuncMap(nil, nil)
 }
 
 func currentAssetResolver(ptr **asset.Resolver) *asset.Resolver {
