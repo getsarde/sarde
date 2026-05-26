@@ -279,7 +279,6 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	pageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
 
 	// Build shortcode registry (three-layer overlay: embedded → theme → user).
-	var scDataCache sync.Map
 	scFuncMap := sardetemplate.BuildShortcodeFuncMap(sardetemplate.ShortcodeFuncMapConfig{
 		Site: &siteCtx,
 		Resolver: &engine.ThemeResolver{
@@ -287,7 +286,6 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			ThemeName:  b.config.Theme.Name,
 			EmbeddedFS: b.embeddedFS,
 		},
-		DataCache:      &scDataCache,
 		AssetResolver:  assetPipeline.Resolver(),
 		AssetManifest:  assetPipeline.Manifest(),
 		ImageProcessor: assetPipeline.ImageProcessor(),

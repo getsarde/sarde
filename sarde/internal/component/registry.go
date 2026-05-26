@@ -7,7 +7,6 @@ import (
 	"io/fs"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/frostybee/sarde/internal/consts"
@@ -96,28 +95,7 @@ func (r *Registry) RenderComponentWithFuncs(name string, data any, funcs htmltem
 // Each .html file in the directory overrides the component named after the file
 // (without extension). For example, Header.html overrides the "Header" component.
 func (r *Registry) LoadOverridesFromDir(dir string) error {
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
-		}
-		return err
-	}
-
-	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".html") {
-			continue
-		}
-		name := strings.TrimSuffix(e.Name(), ".html")
-		data, err := os.ReadFile(filepath.Join(dir, e.Name()))
-		if err != nil {
-			return fmt.Errorf("reading component override %q: %w", name, err)
-		}
-		if err := r.Register(name, data); err != nil {
-			return err
-		}
-	}
-	return nil
+	return r.loadFromFS(os.DirFS(dir), ".")
 }
 
 // loadFromFS loads all .html files from a directory in an fs.FS.
@@ -134,7 +112,7 @@ func (r *Registry) loadFromFS(efs fs.FS, dir string) error {
 		name := strings.TrimSuffix(e.Name(), ".html")
 		data, err := fs.ReadFile(efs, path.Join(dir, e.Name()))
 		if err != nil {
-			return fmt.Errorf("reading embedded component %q: %w", name, err)
+			return fmt.Errorf("reading component %q: %w", name, err)
 		}
 		if err := r.Register(name, data); err != nil {
 			return err

@@ -173,7 +173,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 
 	// Parse base templates (baseof + partials) for each layout type.
 	for _, layout := range []engine.LayoutType{engine.LayoutDefault, engine.LayoutDocs} {
-		if err := e.loadBase(layout); err != nil {
+		if err := e.loadBase(layout, partialData); err != nil {
 			return fmt.Errorf("loading base for %q layout: %w", layout, err)
 		}
 	}
@@ -345,7 +345,7 @@ func (e *Engine) getOrParseTemplate(name string, layout engine.LayoutType, col *
 }
 
 // loadBase loads baseof.html and all partials for a layout type.
-func (e *Engine) loadBase(layout engine.LayoutType) error {
+func (e *Engine) loadBase(layout engine.LayoutType, partials map[string][]byte) error {
 	content, resolvedPath, err := resolveTemplate(e.resolver, "", layout, consts.TemplateBaseOf)
 	if err != nil {
 		return fmt.Errorf("resolving baseof.html: %w", err)
@@ -356,8 +356,6 @@ func (e *Engine) loadBase(layout engine.LayoutType) error {
 		return fmt.Errorf("parsing baseof.html from %s: %w", resolvedPath, err)
 	}
 
-	// Load all partials into the base template.
-	partials := resolveAllPartials(e.resolver)
 	for name, data := range partials {
 		if _, err := base.New(consts.DirPartials + "/" + name).Parse(string(data)); err != nil {
 			return fmt.Errorf("parsing partial %q: %w", name, err)
@@ -381,14 +379,17 @@ func (e *Engine) reregisterComponents() error {
 	// Re-register theme overrides.
 	if e.resolver.ThemeName != "" {
 		dir := filepath.Join(e.resolver.ProjectDir, consts.DirThemes, e.resolver.ThemeName, consts.DirLayouts, consts.DirComponents)
-		if err := e.reregisterFromOSDir(dir); err != nil {
-			return err
+		if err := e.reregisterFromFS(os.DirFS(dir), "."); err != nil {
+			return fmt.Errorf("re-parsing component from %s: %w", dir, err)
 		}
 	}
 
 	// Re-register user overrides (highest priority).
 	dir := filepath.Join(e.resolver.ProjectDir, consts.DirLayouts, consts.DirComponents)
-	return e.reregisterFromOSDir(dir)
+	if err := e.reregisterFromFS(os.DirFS(dir), "."); err != nil {
+		return fmt.Errorf("re-parsing component from %s: %w", dir, err)
+	}
+	return nil
 }
 
 func (e *Engine) reregisterFromFS(efs fs.FS, dir string) error {
@@ -414,70 +415,41 @@ func (e *Engine) reregisterFromFS(efs fs.FS, dir string) error {
 	return nil
 }
 
-func (e *Engine) reregisterFromOSDir(dir string) error {
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return nil // directory may not exist
-	}
-	for _, entry := range entries {
-		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".html") {
-			continue
-		}
-		name := strings.TrimSuffix(entry.Name(), ".html")
-		data, err := os.ReadFile(filepath.Join(dir, entry.Name()))
-		if err != nil {
-			continue
-		}
-		tmpl, err := htmltemplate.New(name).Funcs(e.funcMap).Parse(string(data))
-		if err != nil {
-			return fmt.Errorf("re-parsing component %q from %s: %w", name, dir, err)
-		}
-		e.components.RegisterTemplate(name, tmpl)
-	}
-	return nil
-}
 
-var (
-	embeddedCSSOnce   sync.Once
-	embeddedCSSResult string
-)
 
 // loadEmbeddedCSS reads and concatenates all CSS files from the embedded FS.
-// The result is cached after the first call since embedded FS content is immutable.
+// Each Engine instance caches the result in e.cachedCSS during Load().
 func loadEmbeddedCSS(efs fs.FS) string {
 	if efs == nil {
 		return ""
 	}
 
-	embeddedCSSOnce.Do(func() {
-		cssOrder := []string{
-			"css/tokens.css",
-			"css/base.css",
-			"css/layout.css",
-			"css/content.css",
-			"css/components.css",
-			"css/extensions.css",
-			"css/style.css",
-			"css/blog.css",
-			"css/taxonomy.css",
-			"css/search.css",
-			"css/homepage.css",
-			"css/utilities.css",
-			"css/print.css",
-			"css/dark.css",
-		}
+	cssOrder := []string{
+		"css/tokens.css",
+		"css/base.css",
+		"css/layout.css",
+		"css/content.css",
+		"css/components.css",
+		"css/extensions.css",
+		"css/style.css",
+		"css/blog.css",
+		"css/taxonomy.css",
+		"css/search.css",
+		"css/homepage.css",
+		"css/utilities.css",
+		"css/print.css",
+		"css/dark.css",
+	}
 
-		var sb strings.Builder
-		sb.WriteString("@layer sarde.base, sarde.reset, sarde.core, sarde.content, sarde.components, sarde.variants, sarde.utils;\n")
-		for _, name := range cssOrder {
-			data, err := fs.ReadFile(efs, name)
-			if err != nil {
-				continue
-			}
-			sb.Write(data)
-			sb.WriteByte('\n')
+	var sb strings.Builder
+	sb.WriteString("@layer sarde.base, sarde.reset, sarde.core, sarde.content, sarde.components, sarde.variants, sarde.utils;\n")
+	for _, name := range cssOrder {
+		data, err := fs.ReadFile(efs, name)
+		if err != nil {
+			continue
 		}
-		embeddedCSSResult = sb.String()
-	})
-	return embeddedCSSResult
+		sb.Write(data)
+		sb.WriteByte('\n')
+	}
+	return sb.String()
 }

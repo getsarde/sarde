@@ -60,18 +60,18 @@ func resolveAllPartials(resolver *engine.ThemeResolver) map[string][]byte {
 	// Load in reverse priority order so higher-priority layers overwrite.
 	// 1. Embedded partials
 	if resolver.EmbeddedFS != nil {
-		loadPartialsFromFS(resolver.EmbeddedFS, consts.DirPartials, partials)
+		loadPartials(resolver.EmbeddedFS, consts.DirPartials, partials)
 	}
 
 	// 2. Theme partials
 	if resolver.ThemeName != "" {
 		themeDir := filepath.Join(resolver.ProjectDir, consts.DirThemes, resolver.ThemeName, consts.DirLayouts, consts.DirPartials)
-		loadPartialsFromDir(themeDir, partials)
+		loadPartials(os.DirFS(themeDir), ".", partials)
 	}
 
 	// 3. User partials (highest priority)
 	userDir := filepath.Join(resolver.ProjectDir, consts.DirLayouts, consts.DirPartials)
-	loadPartialsFromDir(userDir, partials)
+	loadPartials(os.DirFS(userDir), ".", partials)
 
 	return partials
 }
@@ -183,34 +183,17 @@ func buildPartialCandidates(resolver *engine.ThemeResolver, name string) []candi
 	return candidates
 }
 
-// loadPartialsFromFS loads all .html files from a directory in an fs.FS.
-func loadPartialsFromFS(efs fs.FS, dir string, out map[string][]byte) {
-	entries, err := fs.ReadDir(efs, dir)
+// loadPartials loads all .html files from a directory in an fs.FS.
+func loadPartials(fsys fs.FS, dir string, out map[string][]byte) {
+	entries, err := fs.ReadDir(fsys, dir)
 	if err != nil {
 		return
 	}
 	for _, e := range entries {
-		if e.IsDir() || filepath.Ext(e.Name()) != ".html" {
+		if e.IsDir() || path.Ext(e.Name()) != ".html" {
 			continue
 		}
-		data, err := fs.ReadFile(efs, path.Join(dir, e.Name()))
-		if err == nil {
-			out[e.Name()] = data
-		}
-	}
-}
-
-// loadPartialsFromDir loads all .html files from an OS directory.
-func loadPartialsFromDir(dir string, out map[string][]byte) {
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return
-	}
-	for _, e := range entries {
-		if e.IsDir() || filepath.Ext(e.Name()) != ".html" {
-			continue
-		}
-		data, err := os.ReadFile(filepath.Join(dir, e.Name()))
+		data, err := fs.ReadFile(fsys, path.Join(dir, e.Name()))
 		if err == nil {
 			out[e.Name()] = data
 		}

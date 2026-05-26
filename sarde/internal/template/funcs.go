@@ -566,7 +566,6 @@ func (e *Engine) buildFuncMap(
 type ShortcodeFuncMapConfig struct {
 	Site           **engine.SiteContext
 	Resolver       *engine.ThemeResolver
-	DataCache      *sync.Map
 	AssetResolver  *asset.Resolver
 	AssetManifest  *asset.Manifest
 	ImageProcessor *asset.ImageProcessor
@@ -584,9 +583,6 @@ func BuildShortcodeFuncMap(cfg ShortcodeFuncMapConfig) htmltemplate.FuncMap {
 		assetResolver:  cfg.AssetResolver,
 		assetManifest:  cfg.AssetManifest,
 		imageProcessor: cfg.ImageProcessor,
-	}
-	if cfg.DataCache != nil {
-		e.dataCache = *cfg.DataCache
 	}
 	return e.buildFuncMap(nil, nil)
 }
