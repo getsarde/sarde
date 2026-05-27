@@ -1,12 +1,12 @@
 package build
 
 import (
-	"context"
 	"fmt"
 	htmltemplate "html/template"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"time"
 
@@ -333,7 +333,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			}
 		}
 
-		g, _ := errgroup.WithContext(context.Background())
+		g := new(errgroup.Group)
 		g.SetLimit(poolSize)
 		for _, page := range allPages {
 			if page.RawContent == "" {
@@ -762,11 +762,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		bundleAssets += len(p.Resources)
 	}
 	sitemapCount := 0
-	for _, name := range b.config.Plugins.Enabled {
-		if name == "sitemap" {
-			sitemapCount = 1
-			break
-		}
+	if slices.Contains(b.config.Plugins.Enabled, "sitemap") {
+		sitemapCount = 1
 	}
 
 	return &engine.BuildResult{

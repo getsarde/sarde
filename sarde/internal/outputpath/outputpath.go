@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/frostybee/sarde/internal/consts"
 )
 
 // SafeJoin resolves relPath under outputDir and rejects absolute paths,
@@ -150,7 +152,7 @@ func ResolveOutputDir(projectDir, configured string) (string, error) {
 		return "", fmt.Errorf("output directory must not be a project ancestor")
 	}
 
-	for _, rel := range []string{".git", "content", "layouts", "assets", "data", "static", "themes", "embedded"} {
+	for _, rel := range []string{".git", consts.DirContent, "layouts", "assets", "data", "static", "themes", "embedded"} {
 		sourceDir := filepath.Join(projectRoot, rel)
 		if samePath(outputDir, sourceDir) || IsWithin(sourceDir, outputDir) {
 			return "", fmt.Errorf("output directory must not be inside source directory %q", rel)

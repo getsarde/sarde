@@ -2,7 +2,6 @@
 package build
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -83,7 +82,7 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 	for d := range dirs {
 		dirSlice = append(dirSlice, d)
 	}
-	mg, _ := errgroup.WithContext(context.Background())
+	mg := new(errgroup.Group)
 	mg.SetLimit(workers.IOLimit(len(dirSlice)))
 	for _, dir := range dirSlice {
 		mg.Go(func() error {
@@ -99,7 +98,7 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 	// mutex calls.
 	tracked := make([]string, len(resolved)+len(resolvedAliases))
 
-	g, _ := errgroup.WithContext(context.Background())
+	g := new(errgroup.Group)
 	g.SetLimit(workers.IOLimit(len(resolved)))
 	for i, rp := range resolved {
 		i, rp := i, rp
@@ -113,7 +112,7 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 	}
 
 	// Write alias redirects in parallel.
-	ag, _ := errgroup.WithContext(context.Background())
+	ag := new(errgroup.Group)
 	ag.SetLimit(workers.IOLimit(len(resolvedAliases)))
 	base := len(resolved)
 	for i, ra := range resolvedAliases {
@@ -177,7 +176,7 @@ func (w *Writer) copyStatic() (int, error) {
 	}
 
 	tracked := make([]string, len(pairs))
-	g, _ := errgroup.WithContext(context.Background())
+	g := new(errgroup.Group)
 	g.SetLimit(workers.IOLimit(len(pairs)))
 	for i, p := range pairs {
 		i, p := i, p

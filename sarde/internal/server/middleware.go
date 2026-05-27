@@ -1,10 +1,11 @@
 package server
 
 import (
-	"log"
 	"net/http"
 	"runtime/debug"
 	"time"
+
+	"github.com/frostybee/sarde/internal/devlog"
 )
 
 // corsMiddleware allows all origins (localhost-only sidecar).
@@ -28,7 +29,7 @@ func recovererMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				log.Printf("PANIC: %v\n%s", err, debug.Stack())
+				devlog.Error("server", "PANIC: %v\n%s", err, debug.Stack())
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(`{"success":false,"error":{"code":"INTERNAL_ERROR","message":"internal server error"}}`))
@@ -44,7 +45,7 @@ func loggerMiddleware(next http.Handler) http.Handler {
 		start := time.Now()
 		sw := &statusWriter{ResponseWriter: w, status: 200}
 		next.ServeHTTP(sw, r)
-		log.Printf("%s %s %d %s", r.Method, r.URL.Path, sw.status, time.Since(start))
+		devlog.Request(r.Method, r.URL.Path, sw.status, time.Since(start))
 	})
 }
 

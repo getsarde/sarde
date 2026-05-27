@@ -2,7 +2,6 @@ package build
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/frostybee/sarde/internal/collection"
+	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/content"
@@ -58,28 +58,28 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 
 		base := filepath.Base(path)
 		if base == "_index.md" || base == "404.md" || (strings.HasPrefix(base, "404.") && filepath.Ext(base) == ".md") {
-			log.Printf("ContentRebuild: structural content changed (%s), falling back to full rebuild", base)
+			devlog.Warn("build", "ContentRebuild: structural content changed (%s), falling back to full rebuild", base)
 			return b.Build()
 		}
 
 		if _, err := os.Stat(path); os.IsNotExist(err) {
-			log.Printf("ContentRebuild: file deleted, falling back to full rebuild")
+			devlog.Warn("build", "ContentRebuild: file deleted, falling back to full rebuild")
 			return b.Build()
 		}
 
 		cf, err := b.scanner.ClassifyFile(contentDir, path)
 		if err != nil {
-			log.Printf("ContentRebuild: ClassifyFile error: %v, falling back", err)
+			devlog.Warn("build", "ContentRebuild: ClassifyFile error: %v, falling back", err)
 			return b.Build()
 		}
 
 		old := oldByPath[path]
 		if old == nil {
-			log.Printf("ContentRebuild: new file detected, falling back to full rebuild")
+			devlog.Warn("build", "ContentRebuild: new file detected, falling back to full rebuild")
 			return b.Build()
 		}
 		if len(old.Resources) > 0 || cf.IsBundle {
-			log.Printf("ContentRebuild: bundle content changed, falling back to full rebuild")
+			devlog.Warn("build", "ContentRebuild: bundle content changed, falling back to full rebuild")
 			return b.Build()
 		}
 
@@ -103,7 +103,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 			string(b.config.Build.LastUpdated),
 		)
 		if err != nil {
-			log.Printf("ContentRebuild: parse error for %s: %v, falling back", path, err)
+			devlog.Warn("build", "ContentRebuild: parse error for %s: %v, falling back", path, err)
 			return b.Build()
 		}
 		warnings = append(warnings, pageWarnings...)
@@ -115,12 +115,12 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		wasExcluded := content.ShouldExclude(old.Draft, old.PublishDate, old.ExpiryDate, includeDrafts, includeFuture, includeExpired, now)
 		isExcluded := content.ShouldExclude(newPage.Draft, newPage.PublishDate, newPage.ExpiryDate, includeDrafts, includeFuture, includeExpired, now)
 		if wasExcluded != isExcluded {
-			log.Printf("ContentRebuild: draft/publish status changed, falling back to full rebuild")
+			devlog.Warn("build", "ContentRebuild: draft/publish status changed, falling back to full rebuild")
 			return b.Build()
 		}
 
 		if reason := incrementalEligibilityFailure(old, newPage, cf); reason != "" {
-			log.Printf("ContentRebuild: %s, falling back to full rebuild", reason)
+			devlog.Warn("build", "ContentRebuild: %s, falling back to full rebuild", reason)
 			return b.Build()
 		}
 
@@ -258,7 +258,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		}
 		links, _, err := b.renderMarkdownPageSerial(e.newPage, deps, b.lastSiteCtx)
 		if err != nil {
-			log.Printf("ContentRebuild: markdown render error: %v, falling back", err)
+			devlog.Warn("build", "ContentRebuild: markdown render error: %v, falling back", err)
 			return b.Build()
 		}
 		updateValidationEntry(mergedValidation, e.newPage, links)
@@ -281,12 +281,12 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 
 	dirtyRendered, dirtyAliases, err := b.renderPages(dirtyPages, b.lastSiteCtx, true, workers.Count())
 	if err != nil {
-		log.Printf("ContentRebuild: template render error: %v, falling back", err)
+		devlog.Warn("build", "ContentRebuild: template render error: %v, falling back", err)
 		return b.Build()
 	}
 
 	if err := b.renderDirtyCollectionPagination(b.lastCollections, dirtyPermalinks, b.lastSiteCtx, &dirtyRendered); err != nil {
-		log.Printf("ContentRebuild: paginated list render error: %v, falling back", err)
+		devlog.Warn("build", "ContentRebuild: paginated list render error: %v, falling back", err)
 		return b.Build()
 	}
 

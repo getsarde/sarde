@@ -103,11 +103,16 @@ type BuildDoneContext struct {
 	ValidationData map[string]engine.ValidationEntry // permalink -> collected links per page
 	DevMode        bool
 	TrackFn        func(string)
-	mu             sync.Mutex
-	sharedMu       *sync.Mutex
+	mu             *sync.Mutex
 	warnings       *[]engine.ValidationWarning
 	logger         *engine.BuildLogger
 	pluginName     string
+}
+
+func (c *BuildDoneContext) initMu() {
+	if c.mu == nil {
+		c.mu = &sync.Mutex{}
+	}
 }
 
 // Log emits a build log message prefixed with the plugin's name.
@@ -128,9 +133,9 @@ func (c *BuildDoneContext) WriteFile(relPath string, data []byte) error {
 	if err != nil {
 		return err
 	}
-	mu := c.lock()
-	mu.Lock()
-	defer mu.Unlock()
+	c.initMu()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if err := os.MkdirAll(filepath.Dir(absPath), 0o755); err != nil {
 		return err
 	}
@@ -147,20 +152,13 @@ func (c *BuildDoneContext) SetWarnings(w *[]engine.ValidationWarning) {
 
 // AddWarning appends a validation warning. Thread-safe.
 func (c *BuildDoneContext) AddWarning(w engine.ValidationWarning) {
-	mu := c.lock()
-	mu.Lock()
-	defer mu.Unlock()
+	c.initMu()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if c.warnings == nil {
 		return
 	}
 	*c.warnings = append(*c.warnings, w)
-}
-
-func (c *BuildDoneContext) lock() *sync.Mutex {
-	if c.sharedMu != nil {
-		return c.sharedMu
-	}
-	return &c.mu
 }
 
 // ---------------------------------------------------------------------------
@@ -270,7 +268,7 @@ func (m *Manager) RunBeforeRender(cfg *config.SiteConfig, page *engine.Page, rd 
 func (m *Manager) RunBuildDone(ctx *BuildDoneContext) error {
 	var wg sync.WaitGroup
 	errCh := make(chan error, len(m.plugins))
-	sharedMu := &ctx.mu
+	sharedMu := &sync.Mutex{}
 
 	for _, p := range m.plugins {
 		if p.Hooks.BuildDone == nil {
@@ -279,7 +277,6 @@ func (m *Manager) RunBuildDone(ctx *BuildDoneContext) error {
 		wg.Add(1)
 		go func(plug *Plugin) {
 			defer wg.Done()
-			// Each plugin gets a context with its own PluginConfig.
 			pCtx := &BuildDoneContext{
 				Config:         ctx.Config,
 				PluginConfig:   m.pluginConfig(plug.Name, ctx.Config),
@@ -291,7 +288,7 @@ func (m *Manager) RunBuildDone(ctx *BuildDoneContext) error {
 				ValidationData: ctx.ValidationData,
 				DevMode:        ctx.DevMode,
 				TrackFn:        ctx.TrackFn,
-				sharedMu:       sharedMu,
+				mu:             sharedMu,
 				warnings:       ctx.warnings,
 				logger:         ctx.logger,
 				pluginName:     plug.Name,

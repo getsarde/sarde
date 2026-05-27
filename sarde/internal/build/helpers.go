@@ -1,7 +1,6 @@
 package build
 
 import (
-	"context"
 	"fmt"
 	htmltemplate "html/template"
 	"sort"
@@ -34,7 +33,7 @@ func enhancePageResources(pages []*engine.Page, pipeline *asset.Pipeline, parall
 		return nil
 	}
 
-	g, _ := errgroup.WithContext(context.Background())
+	g := new(errgroup.Group)
 	g.SetLimit(minWorkerLimit(workerCount, len(pages)))
 	for _, page := range pages {
 		page := page
@@ -70,7 +69,7 @@ func (b *SiteBuilder) renderPages(pages []*engine.Page, siteCtx *engine.SiteCont
 	}
 
 	rendered := make([]RenderedPage, len(pages))
-	g, _ := errgroup.WithContext(context.Background())
+	g := new(errgroup.Group)
 	g.SetLimit(minWorkerLimit(workerCount, len(pages)))
 	for i, page := range pages {
 		i, page := i, page
@@ -191,7 +190,7 @@ func minifyRendered(rendered []RenderedPage, parallel bool, workerCount int) err
 		return nil
 	}
 
-	g, _ := errgroup.WithContext(context.Background())
+	g := new(errgroup.Group)
 	g.SetLimit(minWorkerLimit(workerCount, len(rendered)))
 	for i := range rendered {
 		i := i

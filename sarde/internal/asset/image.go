@@ -2,7 +2,6 @@ package asset
 
 import (
 	"bytes"
-	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -242,7 +241,7 @@ func (p *ImageProcessor) WriteProcessedImagesWithOptions(outputDir string, track
 	writeOne := func(c imageCopy) error {
 		data, err := os.ReadFile(c.src)
 		if err != nil {
-			return nil
+			return fmt.Errorf("reading processed image %s: %w", c.src, err)
 		}
 		if err := os.MkdirAll(filepath.Dir(c.dst), 0o755); err != nil {
 			return err
@@ -271,7 +270,7 @@ func (p *ImageProcessor) WriteProcessedImagesWithOptions(outputDir string, track
 	if limit <= 0 {
 		limit = workers.Limit(len(copies))
 	}
-	g, _ := errgroup.WithContext(context.Background())
+	g := new(errgroup.Group)
 	g.SetLimit(limit)
 	for _, c := range copies {
 		c := c

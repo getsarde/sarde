@@ -1,7 +1,6 @@
 package asset
 
 import (
-	"context"
 	"fmt"
 	"io/fs"
 	"os"
@@ -160,7 +159,7 @@ func (p *Pipeline) WriteBundledFilesWithOptions(outputDir string, trackFn func(s
 	if limit <= 0 {
 		limit = workers.Limit(len(p.bundledFiles))
 	}
-	g, _ := errgroup.WithContext(context.Background())
+	g := new(errgroup.Group)
 	g.SetLimit(limit)
 	for _, f := range p.bundledFiles {
 		f := f
@@ -219,7 +218,7 @@ func (p *Pipeline) WriteBundleAssetsWithOptions(pages []*engine.Page, outputDir 
 		}
 		data, err := os.ReadFile(c.src)
 		if err != nil {
-			return nil
+			return fmt.Errorf("reading bundle asset %s: %w", c.src, err)
 		}
 		if err := os.WriteFile(c.dst, data, 0o644); err != nil {
 			return err
@@ -243,7 +242,7 @@ func (p *Pipeline) WriteBundleAssetsWithOptions(pages []*engine.Page, outputDir 
 	if limit <= 0 {
 		limit = workers.Limit(len(copies))
 	}
-	g, _ := errgroup.WithContext(context.Background())
+	g := new(errgroup.Group)
 	g.SetLimit(limit)
 	for _, c := range copies {
 		c := c

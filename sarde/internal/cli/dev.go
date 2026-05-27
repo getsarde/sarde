@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -90,7 +89,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 		// Re-resolve config to pick up sarde.yaml changes.
 		latestCfg, latestThemeCfg, err := resolveAll(cmd, projectDir)
 		if err != nil {
-			log.Printf("Config re-resolve failed, using previous config: %v", err)
+			devlog.Warn("config", "Config re-resolve failed, using previous config: %v", err)
 			latestCfg = cfg
 			latestThemeCfg = themeCfg
 		}
@@ -162,7 +161,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-sigCh
-		log.Println("Shutting down...")
+		devlog.Log("sarde", "Shutting down...")
 		ds.Stop()
 	}()
 

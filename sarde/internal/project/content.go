@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/editor"
 	"gopkg.in/yaml.v3"
@@ -19,7 +20,7 @@ const revisionRetention = 20
 
 // contentDirForCollection returns the absolute path to a collection's content directory.
 func contentDirForCollection(projectDir, collection string) string {
-	return filepath.Join(projectDir, "content", collection)
+	return filepath.Join(projectDir, consts.DirContent, collection)
 }
 
 var parser = &content.Parser{}

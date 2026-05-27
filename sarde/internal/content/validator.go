@@ -12,7 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Validator implements engine.SchemaValidator.
+// Validator validates frontmatter against a collection's schema definition.
 type Validator struct{}
 
 // Validate checks frontmatter against a schema and returns warnings.

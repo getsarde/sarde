@@ -20,7 +20,7 @@ import (
 	sardeplugin "github.com/frostybee/sarde/internal/plugin"
 )
 
-// Engine implements engine.TemplateEngine using Go's html/template.
+// Engine loads templates from the resolved lookup chain and renders pages to HTML.
 type Engine struct {
 	resolver       *engine.ThemeResolver
 	components     *component.Registry
@@ -103,7 +103,7 @@ func (e *Engine) CurrentLangPtr() *string {
 // CachedCSS returns the concatenated embedded CSS bundle.
 func (e *Engine) CachedCSS() string { return e.cachedCSS }
 
-// Load implements engine.TemplateEngine. It initializes the template system:
+// Load initializes the template system:
 // loads base templates for each layout, sets up the component registry,
 // and builds the FuncMap.
 func (e *Engine) Load(resolver *engine.ThemeResolver) error {
@@ -188,7 +188,7 @@ func (e *Engine) ForceReload() {
 	e.loaded = false
 }
 
-// Render implements engine.TemplateEngine. It renders a page using its
+// Render renders a page using its
 // resolved template and RouteData context.
 func (e *Engine) Render(templateName string, data *engine.RouteData) ([]byte, error) {
 	lang := renderLang(data, e.site)

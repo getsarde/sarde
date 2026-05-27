@@ -10,8 +10,7 @@ import (
 
 const defaultWordsPerMinute = 200
 
-// Transformer implements engine.ContentTransformer.
-// It enriches a Page with computed fields: word count, reading time, and summary.
+// Transformer enriches a Page with computed fields: word count, reading time, and summary.
 type Transformer struct {
 	SummaryLength int // max words in auto-generated summary (from config)
 }

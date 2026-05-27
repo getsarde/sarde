@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/frostybee/sarde/internal/build"
+	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/deploy"
 	"github.com/frostybee/sarde/internal/importer"
 	"github.com/frostybee/sarde/internal/project"
@@ -438,7 +439,7 @@ func (s *APIServer) handleImportObsidian(w http.ResponseWriter, r *http.Request)
 		collection = filepath.Base(req.VaultPath)
 	}
 
-	contentDir := filepath.Join(projectDir, "content")
+	contentDir := filepath.Join(projectDir, consts.DirContent)
 	result, err := importer.ImportObsidian(req.VaultPath, collection, contentDir)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "IMPORT_FAILED", err.Error())

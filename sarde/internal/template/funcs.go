@@ -200,42 +200,14 @@ func (e *Engine) buildFuncMap(
 		},
 		"urlize": content.Slugify,
 		"ref": func(slug string) string {
-			pi := *pageIndexPtr
-			if pi != nil {
-				if p := pi.LookupByPermalink(slug); p != nil {
-					return p.Permalink
-				}
-				if p := pi.LookupBySlug(slug); p != nil {
-					return p.Permalink
-				}
-			}
-			s := *sitePtr
-			if s != nil {
-				for _, p := range s.Pages {
-					if p.Slug == slug || p.RelPermalink == slug {
-						return p.Permalink
-					}
-				}
+			if p := lookupPage(*pageIndexPtr, *sitePtr, slug); p != nil {
+				return p.Permalink
 			}
 			return slug
 		},
 		"relref": func(slug string) string {
-			pi := *pageIndexPtr
-			if pi != nil {
-				if p := pi.LookupByPermalink(slug); p != nil {
-					return p.RelPermalink
-				}
-				if p := pi.LookupBySlug(slug); p != nil {
-					return p.RelPermalink
-				}
-			}
-			s := *sitePtr
-			if s != nil {
-				for _, p := range s.Pages {
-					if p.Slug == slug || p.RelPermalink == slug {
-						return p.RelPermalink
-					}
-				}
+			if p := lookupPage(*pageIndexPtr, *sitePtr, slug); p != nil {
+				return p.RelPermalink
 			}
 			return slug
 		},
@@ -673,12 +645,31 @@ func fnPlainify(s string) string {
 	return result.String()
 }
 
+func lookupPage(pi *content.PageIndex, site *engine.SiteContext, slug string) *engine.Page {
+	if pi != nil {
+		if p := pi.LookupByPermalink(slug); p != nil {
+			return p
+		}
+		if p := pi.LookupBySlug(slug); p != nil {
+			return p
+		}
+	}
+	if site != nil {
+		for _, p := range site.Pages {
+			if p.Slug == slug || p.RelPermalink == slug {
+				return p
+			}
+		}
+	}
+	return nil
+}
+
 func fnSafeHTML(s string) htmltemplate.HTML {
 	return htmltemplate.HTML(s)
 }
 
 func fnHighlight(code, lang string) htmltemplate.HTML {
-	// Stub: returns code wrapped in <pre><code>. Full Chroma integration in Phase 10.
+	// Stub: wraps code in <pre><code>. Full Chroma syntax highlighting is not yet implemented.
 	escaped := htmltemplate.HTMLEscapeString(code)
 	return htmltemplate.HTML(fmt.Sprintf(`<pre><code class="language-%s">%s</code></pre>`, htmltemplate.HTMLEscapeString(lang), escaped))
 }

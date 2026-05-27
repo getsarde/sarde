@@ -32,10 +32,10 @@ const (
 type LayoutType string
 
 const (
-	LayoutDefault  LayoutType = "default"  // single-column (blog, projects, standalone)
-	LayoutDocs     LayoutType = "docs"     // three-column (sidebar | content | ToC)
-	LayoutSplash   LayoutType = "splash"   // full-width, no sidebar or ToC (landing pages)
-	LayoutWide     LayoutType = "wide"     // wider content with sidebar, no ToC
+	LayoutDefault      LayoutType = "default"      // single-column (blog, projects, standalone)
+	LayoutDocs         LayoutType = "docs"         // three-column (sidebar | content | ToC)
+	LayoutSplash       LayoutType = "splash"       // full-width, no sidebar or ToC (landing pages)
+	LayoutWide         LayoutType = "wide"         // wider content with sidebar, no ToC
 	LayoutFull         LayoutType = "full"         // full-width, no sidebar or ToC
 	LayoutCentered     LayoutType = "centered"     // narrow centered column, no sidebar
 	LayoutSplit        LayoutType = "split"        // two equal columns; no sidebar, no ToC
@@ -77,12 +77,12 @@ func LayoutHasTOC(layout LayoutType) bool {
 // Page represents a single content page after parsing and transformation.
 type Page struct {
 	// Identity
-	Title       string
-	Slug        string
-	Date        time.Time
-	Updated     time.Time
-	PublishDate time.Time
-	ExpiryDate  time.Time
+	Title        string
+	Slug         string
+	Date         time.Time
+	Updated      time.Time
+	PublishDate  time.Time
+	ExpiryDate   time.Time
 	Permalink    string
 	RelPermalink string
 	Kind         NodeKind
@@ -155,9 +155,9 @@ type Frontmatter struct {
 	Title         string            `yaml:"title"`
 	Date          time.Time         `yaml:"date"`
 	Updated       time.Time         `yaml:"updated"`
-	Draft       bool      `yaml:"draft"`
-	PublishDate time.Time `yaml:"publish_date"`
-	ExpiryDate  time.Time `yaml:"expiry_date"`
+	Draft         bool              `yaml:"draft"`
+	PublishDate   time.Time         `yaml:"publish_date"`
+	ExpiryDate    time.Time         `yaml:"expiry_date"`
 	Slug          string            `yaml:"slug"`
 	Summary       string            `yaml:"summary"`
 	Template      string            `yaml:"template"`
@@ -256,13 +256,13 @@ type Collection struct {
 	Title     string
 	Config    *CollectionConfig
 	Pages     []*Page
-	Featured  []*Page             // subset of Pages with frontmatter `featured: true`
+	Featured  []*Page // subset of Pages with frontmatter `featured: true`
 	Sections  []*Section
 	NavTree   *NavTree            // default language nav tree (backward compat)
 	NavTrees  map[string]*NavTree // per-language nav trees (i18n)
 	IndexPage *Page
-	IsTabbed  bool                // true when docs tabs are auto-detected or forced
-	Tabs      []*DocsTab          // ordered by weight, then title
+	IsTabbed  bool       // true when docs tabs are auto-detected or forced
+	Tabs      []*DocsTab // ordered by weight, then title
 
 	// Versioning
 	Versioning      *VersionConfig
@@ -315,11 +315,11 @@ type PrevNextConfig struct {
 type DocsTab struct {
 	Title       string
 	Description string
-	Icon        string              // emoji, icon name, or SVG path
-	Slug        string              // directory name, used for URL prefix matching
+	Icon        string // emoji, icon name, or SVG path
+	Slug        string // directory name, used for URL prefix matching
 	Weight      int
-	Permalink   string              // URL of the tab's index page
-	Section     *Section            // the top-level section backing this tab
+	Permalink   string   // URL of the tab's index page
+	Section     *Section // the top-level section backing this tab
 	NavTree     *NavTree
 	NavTrees    map[string]*NavTree // per-language (i18n)
 	Pages       []*Page
@@ -358,20 +358,20 @@ type NavTree struct {
 
 // NavNode is a single entry in the sidebar navigation tree.
 type NavNode struct {
-	Label     string
-	URL       string
-	Slug      string
-	Weight    int
-	Position  int
-	Children  []*NavNode
-	Parent    *NavNode
-	Depth     int
-	IsActive  bool
-	IsOpen    bool
+	Label       string
+	URL         string
+	Slug        string
+	Weight      int
+	Position    int
+	Children    []*NavNode
+	Parent      *NavNode
+	Depth       int
+	IsActive    bool
+	IsOpen      bool
 	HasActive   bool
 	DefaultOpen bool
 	Page        *Page
-	Attrs     map[string]string
+	Attrs       map[string]string
 }
 
 // GlobalNav represents the top-level site navigation bar.
@@ -583,26 +583,26 @@ type Language struct {
 
 // RouteData is the unified context object passed to every template render.
 type RouteData struct {
-	Page         *Page
-	Collection   *Collection
-	GlobalNav    *GlobalNav
-	Sidebar      *NavTree
-	SidebarType  string
-	Breadcrumbs  []BreadcrumbItem
-	Pagination   *PaginationLinks
-	Paginator    *Paginator // numbered list-page pagination (section/list pages only)
+	Page                      *Page
+	Collection                *Collection
+	GlobalNav                 *GlobalNav
+	Sidebar                   *NavTree
+	SidebarType               string
+	Breadcrumbs               []BreadcrumbItem
+	Pagination                *PaginationLinks
+	Paginator                 *Paginator // numbered list-page pagination (section/list pages only)
 	HasSidebar                bool
 	SidebarCollapsedByDefault bool
-	Section      *Section
-	IsSection    bool
-	Layout       LayoutType
-	Template     string
-	Site         *SiteContext
-	Theme        *ThemeConfig
-	Lang         string
-	Dir          string
-	Translations []TranslationLink
-	Homepage     *HomepageData // only set for KindHome pages
+	Section                   *Section
+	IsSection                 bool
+	Layout                    LayoutType
+	Template                  string
+	Site                      *SiteContext
+	Theme                     *ThemeConfig
+	Lang                      string
+	Dir                       string
+	Translations              []TranslationLink
+	Homepage                  *HomepageData // only set for KindHome pages
 
 	// Taxonomy pages (KindTaxonomy / KindTerm)
 	Taxonomy     *Taxonomy     // set for KindTaxonomy and KindTerm
@@ -734,7 +734,7 @@ type FrontmatterSchema struct {
 
 // FieldDef describes a single frontmatter field for validation and editor UI.
 type FieldDef struct {
-	Type      string   `yaml:"type"       json:"type"`       // "string", "int", "float", "bool", "date", "list", "enum"
+	Type      string   `yaml:"type"       json:"type"` // "string", "int", "float", "bool", "date", "list", "enum"
 	Label     string   `yaml:"label"      json:"label,omitempty"`
 	Required  bool     `yaml:"required"   json:"required,omitempty"`
 	Default   any      `yaml:"default"    json:"default,omitempty"`

@@ -56,7 +56,7 @@ func runNew(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("cannot generate slug from title %q", title)
 	}
 
-	relPath := filepath.Join("content", collection, slug+".md")
+	relPath := filepath.Join(consts.DirContent, collection, slug+".md")
 	absPath := filepath.Join(projectDir, relPath)
 
 	// Check if file already exists.

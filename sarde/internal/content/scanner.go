@@ -23,7 +23,7 @@ type ContentFile struct {
 	LangRelPath    string          // relative path within language root (for translation matching)
 }
 
-// Scanner implements engine.ContentDiscoverer.
+// Scanner walks the content directory and returns file paths grouped by collection.
 type Scanner struct {
 	Languages   map[string]bool // configured language codes (nil = single-language)
 	DefaultLang string          // default language code

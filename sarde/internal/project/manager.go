@@ -73,7 +73,7 @@ func (pm *ProjectManager) OpenProject(dir string) (*ProjectInfo, error) {
 	}
 
 	// Validate that content/ directory exists.
-	contentDir := filepath.Join(absDir, "content")
+	contentDir := filepath.Join(absDir, consts.DirContent)
 	if _, err := os.Stat(contentDir); os.IsNotExist(err) {
 		return nil, fmt.Errorf("not a valid project: content/ directory not found in %s", absDir)
 	}
@@ -130,7 +130,7 @@ func (pm *ProjectManager) CreateProject(dir string, opts CreateOpts) (*ProjectIn
 	}
 
 	// Scaffold directories.
-	for _, d := range []string{"content", "static"} {
+	for _, d := range []string{consts.DirContent, "static"} {
 		if err := os.MkdirAll(filepath.Join(absDir, d), 0o755); err != nil {
 			return nil, fmt.Errorf("creating directory: %w", err)
 		}
@@ -144,7 +144,7 @@ func (pm *ProjectManager) CreateProject(dir string, opts CreateOpts) (*ProjectIn
 
 	// Write content/_index.md.
 	indexMD := "---\ntitle: Welcome\n---\n\n# Welcome to your new site\n\nEdit this page at `content/_index.md`, then run `sarde serve` to see your changes.\n"
-	os.MkdirAll(filepath.Join(absDir, "content"), 0o755)
+	os.MkdirAll(filepath.Join(absDir, consts.DirContent), 0o755)
 	if err := os.WriteFile(filepath.Join(absDir, "content", "_index.md"), []byte(indexMD), 0o644); err != nil {
 		return nil, err
 	}
@@ -659,31 +659,42 @@ func (pm *ProjectManager) GetCollections() ([]CollectionInfo, error) {
 }
 
 // getCollectionsLocked is the lock-free version for internal use when lock is already held.
+// Uses a lightweight directory scan instead of the full DiscoverFiles pipeline.
 func (pm *ProjectManager) getCollectionsLocked() ([]CollectionInfo, error) {
 	contentDir := pm.contentDir()
-	scanner := &content.Scanner{}
-	files, err := scanner.DiscoverFiles(contentDir)
+	entries, err := os.ReadDir(contentDir)
 	if err != nil {
 		return nil, err
 	}
 
-	counts := make(map[string]int)
-	for _, cf := range files {
-		if cf.CollectionName != "" {
-			counts[cf.CollectionName]++
-		}
-	}
-
 	var collections []CollectionInfo
-	for name, count := range counts {
+	for _, e := range entries {
+		if !e.IsDir() || strings.HasPrefix(e.Name(), ".") || strings.HasPrefix(e.Name(), "_") {
+			continue
+		}
+		name := e.Name()
+		count := countMarkdownFiles(filepath.Join(contentDir, name))
 		collections = append(collections, CollectionInfo{
 			Name:      name,
-			Title:     strings.Title(name),
+			Title:     content.FilenameToTitle(name),
 			PageCount: count,
 		})
 	}
-
 	return collections, nil
+}
+
+func countMarkdownFiles(dir string) int {
+	count := 0
+	filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if !d.IsDir() && strings.HasSuffix(d.Name(), ".md") {
+			count++
+		}
+		return nil
+	})
+	return count
 }
 
 // ---------------------------------------------------------------------------
@@ -722,7 +733,7 @@ func (pm *ProjectManager) RenderMarkdown(md string) (*RenderResult, error) {
 // ---------------------------------------------------------------------------
 
 func (pm *ProjectManager) contentDir() string {
-	dir := "content"
+	dir := consts.DirContent
 	if pm.config != nil && pm.config.Content.Dir != "" {
 		dir = pm.config.Content.Dir
 	}

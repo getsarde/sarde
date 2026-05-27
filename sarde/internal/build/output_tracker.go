@@ -1,7 +1,6 @@
 package build
 
 import (
-	"context"
 	"fmt"
 	"io/fs"
 	"os"
@@ -103,7 +102,7 @@ func (t *OutputTracker) Prune(outputDir string) error {
 
 	// Delete orphaned files in parallel.
 	if len(toDelete) > 0 {
-		g, _ := errgroup.WithContext(context.Background())
+		g := new(errgroup.Group)
 		g.SetLimit(workers.IOLimit(len(toDelete)))
 		for _, p := range toDelete {
 			g.Go(func() error {

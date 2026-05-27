@@ -10,8 +10,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Parser implements engine.FrontmatterParser.
-// It auto-detects YAML (---), TOML (+++), and JSON ({}) frontmatter delimiters.
+// Parser auto-detects YAML (---), TOML (+++), and JSON ({}) frontmatter delimiters.
 type Parser struct{}
 
 // Parse splits raw file bytes into a frontmatter map and Markdown body.

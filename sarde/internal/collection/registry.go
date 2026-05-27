@@ -1,7 +1,6 @@
 package collection
 
 import (
-	"context"
 	"html/template"
 	"io"
 	"os"
@@ -319,7 +318,7 @@ func buildPagesWithOptions(
 	if limit <= 0 {
 		limit = workers.Limit(len(files))
 	}
-	g, _ := errgroup.WithContext(context.Background())
+	g := new(errgroup.Group)
 	g.SetLimit(limit)
 	for i, cf := range files {
 		i, cf := i, cf
