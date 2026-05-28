@@ -460,7 +460,7 @@ func loadEmbeddedCSS(efs fs.FS) string {
 	}
 
 	var sb strings.Builder
-	sb.WriteString("@layer sd.base, sd.reset, sd.core, sd.content, sd.components, sd.variants, sd.utils;\n")
+	sb.WriteString("@layer sarde.base, sarde.reset, sarde.core, sarde.content, sarde.components, sarde.variants, sarde.utils, sarde.user;\n")
 	for _, name := range cssOrder {
 		data, err := fs.ReadFile(efs, name)
 		if err != nil {

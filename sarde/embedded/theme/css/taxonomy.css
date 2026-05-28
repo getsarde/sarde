@@ -1,4 +1,4 @@
-@layer sd.content {
+@layer sarde.content {
 	.sarde-taxonomy-container { max-width: 48rem; margin: 0 auto; padding: 2rem 0; }
 	.sarde-taxonomy-title { font-size: 2rem; font-weight: 800; margin: 0 0 1.5rem; color: var(--sd-text); }
 

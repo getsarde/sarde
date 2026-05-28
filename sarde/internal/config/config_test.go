@@ -49,8 +49,8 @@ func TestDefaults_ReturnsPopulatedConfig(t *testing.T) {
 	if cfg.Content.Dir != "content" {
 		t.Errorf("Content.Dir = %q, want %q", cfg.Content.Dir, "content")
 	}
-	if cfg.Markdown.Highlighting.Style != "class" {
-		t.Errorf("Markdown.Highlighting.Style = %q, want %q", cfg.Markdown.Highlighting.Style, "class")
+	if cfg.Markdown.Codeblocks.Style != "class" {
+		t.Errorf("Markdown.Codeblocks.Style = %q, want %q", cfg.Markdown.Codeblocks.Style, "class")
 	}
 	if cfg.Taxonomies["tags"].Singular != "tag" {
 		t.Errorf("Taxonomies[tags].Singular = %q, want %q", cfg.Taxonomies["tags"].Singular, "tag")

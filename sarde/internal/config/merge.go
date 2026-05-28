@@ -230,10 +230,10 @@ func mergeMarkdown(base, over *MarkdownSettings) {
 	mergeBoolP(&base.TripleColonCallouts, over.TripleColonCallouts)
 	mergeInt(&base.TOC.MinHeadingLevel, over.TOC.MinHeadingLevel)
 	mergeInt(&base.TOC.MaxHeadingLevel, over.TOC.MaxHeadingLevel)
-	mergeStr(&base.Highlighting.Style, over.Highlighting.Style)
-	mergeStr(&base.Highlighting.LightTheme, over.Highlighting.LightTheme)
-	mergeStr(&base.Highlighting.DarkTheme, over.Highlighting.DarkTheme)
-	mergeStr(&base.Highlighting.Theme, over.Highlighting.Theme)
+	mergeStr(&base.Codeblocks.Style, over.Codeblocks.Style)
+	mergeStr(&base.Codeblocks.LightTheme, over.Codeblocks.LightTheme)
+	mergeStr(&base.Codeblocks.DarkTheme, over.Codeblocks.DarkTheme)
+	mergeStr(&base.Codeblocks.Theme, over.Codeblocks.Theme)
 }
 
 func mergePrefetch(base, over *PrefetchSettings) {

@@ -262,7 +262,7 @@ type MarkdownSettings struct {
 	GithubAlerts        *bool                `yaml:"github_alerts"`
 	TripleColonCallouts *bool                `yaml:"triple_colon_callouts"`
 	TOC                 MarkdownTOCSettings  `yaml:"toc"`
-	Highlighting        HighlightingSettings `yaml:"highlighting"`
+	Codeblocks          CodeblocksSettings   `yaml:"codeblocks"`
 }
 
 type MarkdownTOCSettings struct {
@@ -270,7 +270,7 @@ type MarkdownTOCSettings struct {
 	MaxHeadingLevel int `yaml:"max_heading_level"`
 }
 
-type HighlightingSettings struct {
+type CodeblocksSettings struct {
 	Style      string `yaml:"style"`
 	LightTheme string `yaml:"light_theme"`
 	DarkTheme  string `yaml:"dark_theme"`

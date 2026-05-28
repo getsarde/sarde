@@ -244,11 +244,11 @@ func foldThemeShortcuts(cfg *config.SiteConfig) {
 			}
 		}
 	}
-	if cfg.Theme.CodeLight != "" && cfg.Markdown.Highlighting.LightTheme == "" {
-		cfg.Markdown.Highlighting.LightTheme = cfg.Theme.CodeLight
+	if cfg.Theme.CodeLight != "" && cfg.Markdown.Codeblocks.LightTheme == "" {
+		cfg.Markdown.Codeblocks.LightTheme = cfg.Theme.CodeLight
 	}
-	if cfg.Theme.CodeDark != "" && cfg.Markdown.Highlighting.DarkTheme == "" {
-		cfg.Markdown.Highlighting.DarkTheme = cfg.Theme.CodeDark
+	if cfg.Theme.CodeDark != "" && cfg.Markdown.Codeblocks.DarkTheme == "" {
+		cfg.Markdown.Codeblocks.DarkTheme = cfg.Theme.CodeDark
 	}
 }
 

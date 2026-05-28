@@ -12,7 +12,7 @@ import (
 // GenerateChromaCSS produces CSS rules for syntax highlighting from two
 // Chroma style names. The light theme CSS is emitted unscoped; the dark
 // theme CSS is wrapped in .dark { } using CSS nesting. Both are wrapped
-// in @layer sd.components so they participate in the cascade correctly.
+// in @layer sarde.components so they participate in the cascade correctly.
 func GenerateChromaCSS(lightTheme, darkTheme string) (string, error) {
 	lightCSS, err := generateForStyle(lightTheme)
 	if err != nil {
@@ -24,13 +24,23 @@ func GenerateChromaCSS(lightTheme, darkTheme string) (string, error) {
 	}
 
 	var sb strings.Builder
-	sb.WriteString("@layer sd.components {\n")
+	sb.WriteString("@layer sarde.components {\n")
 	sb.WriteString(lightCSS)
 	sb.WriteString(".dark {\n")
 	sb.WriteString(darkCSS)
 	sb.WriteString("}\n")
 	sb.WriteString("}\n")
 	return sb.String(), nil
+}
+
+// GenerateStyleCSS produces CSS rules for a single Chroma style.
+func GenerateStyleCSS(name string) (string, error) {
+	return generateForStyle(name)
+}
+
+// IsKnownStyle reports whether name matches a built-in Chroma style.
+func IsKnownStyle(name string) bool {
+	return isKnownStyle(name)
 }
 
 func generateForStyle(name string) (string, error) {

@@ -446,8 +446,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	}
 	// Generate Chroma syntax highlighting CSS from config theme names.
 	chromaCSS, err := syntax.GenerateChromaCSS(
-		b.config.Markdown.Highlighting.LightTheme,
-		b.config.Markdown.Highlighting.DarkTheme,
+		b.config.Markdown.Codeblocks.LightTheme,
+		b.config.Markdown.Codeblocks.DarkTheme,
 	)
 	if err != nil {
 		devlog.Warn("build", "syntax highlighting: %v", err)

@@ -1,4 +1,4 @@
-@layer sd.base {
+@layer sarde.base {
 	/* Sarde Default Theme — Token Definitions
 	   Primitives and semantic aliases. Dynamic tokens (--sd-accent, --sd-bg, etc.)
 	   are injected via <style id="sarde-theme"> from theme.yaml resolution. */

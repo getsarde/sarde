@@ -13,7 +13,7 @@ func TestGenerateChromaCSS_ValidThemes(t *testing.T) {
 	for _, want := range []string{
 		".chroma",
 		"background-color:",
-		"@layer sd.components",
+		"@layer sarde.components",
 	} {
 		if !strings.Contains(css, want) {
 			t.Errorf("expected CSS to contain %q", want)

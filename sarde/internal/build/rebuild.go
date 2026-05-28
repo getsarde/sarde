@@ -232,8 +232,8 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 
 	// Load template engine (skips re-parsing via loaded flag, just clears caches).
 	chromaCSS, err := syntax.GenerateChromaCSS(
-		b.config.Markdown.Highlighting.LightTheme,
-		b.config.Markdown.Highlighting.DarkTheme,
+		b.config.Markdown.Codeblocks.LightTheme,
+		b.config.Markdown.Codeblocks.DarkTheme,
 	)
 	if err == nil {
 		b.tmplEngine.SetChromaCSS(chromaCSS)
