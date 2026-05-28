@@ -64,14 +64,25 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 
 	canonical := baseURL + page.RelPermalink
 
-	seo := map[string]any{
-		"og_title":       page.Title,
-		"og_description": description,
-		"og_url":         canonical,
-		"og_type":        ogType,
-		"og_image":       ogImage,
-		"og_site_name":   siteTitle,
-		"canonical":      canonical,
+	// Merge into any existing seo map rather than replacing it wholesale.
+	// The social_cards plugin also runs in BeforeRender and may have already
+	// injected og_image/twitter_image (a generated card URL); replacing the
+	// map here would discard it. Merging makes the two plugins order-independent.
+	seo, _ := page.Params["seo"].(map[string]any)
+	if seo == nil {
+		seo = make(map[string]any)
+	}
+	seo["og_title"] = page.Title
+	seo["og_description"] = description
+	seo["og_url"] = canonical
+	seo["og_type"] = ogType
+	seo["og_site_name"] = siteTitle
+	seo["canonical"] = canonical
+
+	// Preserve an image already set by an earlier plugin (e.g. a generated
+	// social card); only fall back to the page/default image otherwise.
+	if existing, _ := seo["og_image"].(string); existing == "" {
+		seo["og_image"] = ogImage
 	}
 
 	// Twitter card.
@@ -79,7 +90,9 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 	seo["twitter_card"] = twitterCard
 	seo["twitter_title"] = page.Title
 	seo["twitter_description"] = description
-	seo["twitter_image"] = ogImage
+	if existing, _ := seo["twitter_image"].(string); existing == "" {
+		seo["twitter_image"] = ogImage
+	}
 	if twitterHandle != "" {
 		seo["twitter_site"] = twitterHandle
 	}

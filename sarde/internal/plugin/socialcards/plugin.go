@@ -2,6 +2,7 @@ package socialcards
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
 	"strings"
@@ -182,8 +183,12 @@ func buildDone(ctx *plugin.BuildDoneContext, cfg map[string]any, pending *sync.M
 
 	wg.Wait()
 	close(errCh)
+	var errs []error
 	for err := range errCh {
-		return err
+		errs = append(errs, err)
+	}
+	if len(errs) > 0 {
+		return errors.Join(errs...)
 	}
 	ctx.Log(fmt.Sprintf("Generated %d social card(s)", len(jobs)))
 	return nil

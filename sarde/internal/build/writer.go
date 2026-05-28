@@ -246,8 +246,13 @@ func copyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer out.Close()
 
+	// Close explicitly and propagate the close error: io.Copy can succeed
+	// while the deferred flush on Close fails (e.g. disk full), which would
+	// otherwise leave a truncated file recorded as successfully written.
 	_, err = io.Copy(out, in)
+	if cerr := out.Close(); err == nil {
+		err = cerr
+	}
 	return err
 }

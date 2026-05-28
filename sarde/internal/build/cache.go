@@ -58,6 +58,11 @@ func NewPageCache(projectDir string) *PageCache {
 
 // Get retrieves a cached entry by content hash.
 // Checks in-memory LRU first, then falls through to filesystem.
+//
+// The returned *CacheEntry (including its Headings/Links slices) is shared with
+// the in-memory LRU and, on a hit, with every other caller of the same hash.
+// Callers MUST treat it as read-only: mutating it (e.g. appending to Headings)
+// would corrupt the cache and other pages. Copy before mutating if needed.
 func (c *PageCache) Get(hash string) *CacheEntry {
 	c.mu.Lock()
 	if node, ok := c.items[hash]; ok {

@@ -14,7 +14,7 @@ func TestBuildTaxonomies_Tags(t *testing.T) {
 		{PageIdentity: engine.PageIdentity{Title: "Post C"}, PageTaxonomy: engine.PageTaxonomy{Tags: []string{"Testing"}}},
 	}
 
-	taxonomies := BuildTaxonomies(pages, nil)
+	taxonomies := BuildTaxonomies(pages, nil, "")
 
 	tags, ok := taxonomies["tags"]
 	if !ok {
@@ -46,7 +46,7 @@ func TestBuildTaxonomies_Categories(t *testing.T) {
 		{PageIdentity: engine.PageIdentity{Title: "Post A"}, PageTaxonomy: engine.PageTaxonomy{Categories: []string{"Tutorials"}}},
 	}
 
-	taxonomies := BuildTaxonomies(pages, nil)
+	taxonomies := BuildTaxonomies(pages, nil, "")
 
 	cats := taxonomies["categories"]
 	if cats == nil {
@@ -63,7 +63,7 @@ func TestBuildTaxonomies_EmptyRemoved(t *testing.T) {
 		// No categories.
 	}
 
-	taxonomies := BuildTaxonomies(pages, nil)
+	taxonomies := BuildTaxonomies(pages, nil, "")
 
 	if _, ok := taxonomies["categories"]; ok {
 		t.Error("expected empty categories taxonomy to be removed")
@@ -71,7 +71,7 @@ func TestBuildTaxonomies_EmptyRemoved(t *testing.T) {
 }
 
 func TestBuildTaxonomies_NoPages(t *testing.T) {
-	taxonomies := BuildTaxonomies(nil, nil)
+	taxonomies := BuildTaxonomies(nil, nil, "")
 	if len(taxonomies) != 0 {
 		t.Errorf("expected 0 taxonomies, got %d", len(taxonomies))
 	}
@@ -96,7 +96,7 @@ func TestBuildTaxonomies_CustomTaxonomy(t *testing.T) {
 	taxCfg := map[string]config.TaxonomyConfig{
 		"authors": {Singular: "author"},
 	}
-	taxonomies := BuildTaxonomies(pages, taxCfg)
+	taxonomies := BuildTaxonomies(pages, taxCfg, "")
 
 	authors, ok := taxonomies["authors"]
 	if !ok {
@@ -139,7 +139,7 @@ func TestBuildTaxonomies_MixedTagsAndCustom(t *testing.T) {
 		"tags":    {Singular: "tag"},
 		"authors": {Singular: "author"},
 	}
-	taxonomies := BuildTaxonomies(pages, taxCfg)
+	taxonomies := BuildTaxonomies(pages, taxCfg, "")
 
 	if _, ok := taxonomies["tags"]; !ok {
 		t.Error("expected tags taxonomy")
@@ -161,12 +161,34 @@ func TestBuildTaxonomies_EmptyCustomRemoved(t *testing.T) {
 		"tags":    {Singular: "tag"},
 		"authors": {Singular: "author"},
 	}
-	taxonomies := BuildTaxonomies(pages, taxCfg)
+	taxonomies := BuildTaxonomies(pages, taxCfg, "")
 
 	if _, ok := taxonomies["authors"]; ok {
 		t.Error("expected empty authors taxonomy to be removed")
 	}
 	if _, ok := taxonomies["tags"]; !ok {
 		t.Error("expected tags taxonomy to remain")
+	}
+}
+
+func TestBuildTaxonomies_MultiLangScoping(t *testing.T) {
+	// The same logical post, translated into three languages, all tagged "Go".
+	pages := []*engine.Page{
+		{PageIdentity: engine.PageIdentity{Title: "Post (en)"}, PageI18n: engine.PageI18n{Lang: "en"}, PageTaxonomy: engine.PageTaxonomy{Tags: []string{"Go"}}},
+		{PageIdentity: engine.PageIdentity{Title: "Post (fr)"}, PageI18n: engine.PageI18n{Lang: "fr"}, PageTaxonomy: engine.PageTaxonomy{Tags: []string{"Go"}}},
+		{PageIdentity: engine.PageIdentity{Title: "Post (ar)"}, PageI18n: engine.PageI18n{Lang: "ar"}, PageTaxonomy: engine.PageTaxonomy{Tags: []string{"Go"}}},
+	}
+
+	// Scoped to the default language: the post is listed once, not three times.
+	scoped := BuildTaxonomies(pages, nil, "en")
+	if got := len(scoped["tags"].Terms["go"].Pages); got != 1 {
+		t.Errorf("scoped to en: expected 1 page on 'go', got %d", got)
+	}
+
+	// No scoping (lang ""): every language variant is included (legacy behavior,
+	// single-language sites where Lang is empty).
+	all := BuildTaxonomies(pages, nil, "")
+	if got := len(all["tags"].Terms["go"].Pages); got != 3 {
+		t.Errorf("unscoped: expected 3 pages on 'go', got %d", got)
 	}
 }

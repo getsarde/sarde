@@ -855,7 +855,7 @@ func fnSort(list any, field string) any {
 	result := reflect.MakeSlice(v.Type(), l, l)
 	reflect.Copy(result, v)
 
-	sort.SliceStable(result.Interface().([]any), func(i, j int) bool {
+	sort.SliceStable(result.Interface(), func(i, j int) bool {
 		a := getField(result.Index(i).Interface(), field)
 		b := getField(result.Index(j).Interface(), field)
 		return fmt.Sprint(a) < fmt.Sprint(b)

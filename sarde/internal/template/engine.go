@@ -39,7 +39,7 @@ type Engine struct {
 	pluginFuncs    map[string]any
 	i18nStrings    *i18n.StringTable
 	pageIndex      *content.PageIndex
-	currentLang    string // set per-page before render, captured by t() closure
+	currentLang    string // fallback lang for base-funcMap closures; per-render language is resolved via funcMapForLang(lang), so render correctness does not depend on this field
 	loaded         bool   // true after first Load(); subsequent calls skip template re-parsing
 	mu             sync.RWMutex
 }
@@ -93,8 +93,10 @@ func (e *Engine) SetPageIndex(idx *content.PageIndex) {
 	e.pageIndex = idx
 }
 
-// SetCurrentLang sets the current language for the t() template function.
-// Must be called before each Render() call.
+// SetCurrentLang sets a fallback language for the base-funcMap t() closure.
+// This is NOT required for correct rendering: Render resolves the language
+// per-page from RouteData and installs a language-specific t() via
+// funcMapForLang on the cached template. Provided for API completeness.
 func (e *Engine) SetCurrentLang(lang string) {
 	e.currentLang = lang
 }

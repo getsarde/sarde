@@ -34,6 +34,7 @@ type FileChange struct {
 // Watcher monitors project directories for changes and triggers a callback.
 type Watcher struct {
 	projectDir string
+	outputDir  string // build output dir relative to projectDir (slash form); changes under it are ignored
 	onChange   func([]FileChange)
 	debounce   time.Duration
 	watcher    *fsnotify.Watcher
@@ -42,12 +43,22 @@ type Watcher struct {
 	timer   *time.Timer
 	pending []FileChange
 	done    chan struct{}
+	started bool
 }
 
 // NewWatcher creates a file watcher for the given project directory.
-func NewWatcher(projectDir string, debounce time.Duration, onChange func([]FileChange)) *Watcher {
+// outputDir is the build output directory (absolute or relative); changes
+// under it are ignored so a build's own writes don't trigger a rebuild loop.
+func NewWatcher(projectDir, outputDir string, debounce time.Duration, onChange func([]FileChange)) *Watcher {
+	rel := ""
+	if outputDir != "" {
+		if r, err := filepath.Rel(projectDir, outputDir); err == nil {
+			rel = filepath.ToSlash(r)
+		}
+	}
 	return &Watcher{
 		projectDir: projectDir,
+		outputDir:  rel,
 		onChange:   onChange,
 		debounce:   debounce,
 		done:       make(chan struct{}),
@@ -80,6 +91,9 @@ func (w *Watcher) Start() error {
 		}
 	}
 
+	w.mu.Lock()
+	w.started = true
+	w.mu.Unlock()
 	go w.loop()
 	return nil
 }
@@ -89,7 +103,14 @@ func (w *Watcher) Stop() {
 	if w.watcher != nil {
 		w.watcher.Close()
 	}
-	<-w.done
+	// Only wait for loop() to exit if it was actually started; otherwise
+	// done is never closed and this would deadlock (e.g. after a failed Start).
+	w.mu.Lock()
+	started := w.started
+	w.mu.Unlock()
+	if started {
+		<-w.done
+	}
 }
 
 func (w *Watcher) loop() {
@@ -188,7 +209,14 @@ func (w *Watcher) shouldIgnore(path string) bool {
 	}
 	rel = filepath.ToSlash(rel)
 
-	// Ignore output and cache directories.
+	// Ignore the configured build output directory so the build's own writes
+	// don't trigger a rebuild loop (handles non-default build.output values).
+	if w.outputDir != "" && w.outputDir != "." &&
+		(rel == w.outputDir || strings.HasPrefix(rel, w.outputDir+"/")) {
+		return true
+	}
+
+	// Ignore default output and cache directories.
 	if strings.HasPrefix(rel, "dist/") || strings.HasPrefix(rel, "public/") ||
 		strings.HasPrefix(rel, ".cache/") || strings.HasPrefix(rel, ".git/") {
 		return true
@@ -209,6 +237,10 @@ func (w *Watcher) shouldIgnore(path string) bool {
 }
 
 func (w *Watcher) shouldIgnoreDir(name string) bool {
+	// Skip the configured output dir if it happens to nest under a watched root.
+	if w.outputDir != "" && name == filepath.Base(w.outputDir) {
+		return true
+	}
 	switch name {
 	case ".git", ".cache", "dist", "public", "node_modules", ".svn", ".hg":
 		return true

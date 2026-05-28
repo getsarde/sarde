@@ -68,6 +68,32 @@ func TestShouldIgnore(t *testing.T) {
 	}
 }
 
+func TestShouldIgnore_CustomOutputDir(t *testing.T) {
+	// A non-default build.output (e.g. "www") must be ignored so the build's
+	// own writes don't trigger a rebuild loop.
+	w := &Watcher{projectDir: "/project", outputDir: "www"}
+
+	tests := []struct {
+		name   string
+		path   string
+		ignore bool
+	}{
+		{"custom output file", "/project/www/index.html", true},
+		{"custom output nested", "/project/www/blog/post/index.html", true},
+		{"default dist still ignored", "/project/dist/index.html", true},
+		{"content not ignored", "/project/content/blog/hello.md", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := w.shouldIgnore(filepath.FromSlash(tt.path))
+			if got != tt.ignore {
+				t.Errorf("shouldIgnore(%q) = %v, want %v", tt.path, got, tt.ignore)
+			}
+		})
+	}
+}
+
 func TestShouldIgnoreDir(t *testing.T) {
 	w := &Watcher{}
 

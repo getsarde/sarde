@@ -204,6 +204,45 @@ func TestSEO_DefaultImageFallback(t *testing.T) {
 	}
 }
 
+func TestSEO_PreservesExistingOgImage(t *testing.T) {
+	// Simulate social_cards having already run in BeforeRender and injected a
+	// generated card URL. seoBeforeRender must merge, not clobber it.
+	page := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Title: "Post", RelPermalink: "/blog/post/"},
+		PageMeta:          engine.PageMeta{Description: "A post", Image: "/img/page-cover.png"},
+		PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "blog"}},
+		Params: map[string]any{
+			"seo": map[string]any{
+				"og_image":      "/og/generated-card.png",
+				"twitter_image": "/og/generated-card.png",
+			},
+		},
+	}
+
+	ctx := &BeforeRenderContext{
+		Page:  page,
+		Site:  &engine.SiteContext{BaseURL: "https://example.com", Title: "My Site"},
+		store: NewStore(),
+	}
+
+	cfg := map[string]any{"default_image": "/img/fallback.png"}
+	if err := seoBeforeRender(ctx, cfg); err != nil {
+		t.Fatalf("seoBeforeRender failed: %v", err)
+	}
+
+	seo := page.Params["seo"].(map[string]any)
+	if seo["og_image"] != "/og/generated-card.png" {
+		t.Errorf("og_image = %v, want preserved card URL /og/generated-card.png", seo["og_image"])
+	}
+	if seo["twitter_image"] != "/og/generated-card.png" {
+		t.Errorf("twitter_image = %v, want preserved card URL", seo["twitter_image"])
+	}
+	// Other SEO fields should still be populated.
+	if seo["og_title"] != "Post" {
+		t.Errorf("og_title = %v, want Post", seo["og_title"])
+	}
+}
+
 func TestSEO_DisableJSONLD(t *testing.T) {
 	page := &engine.Page{
 		PageIdentity: engine.PageIdentity{Title: "Test", RelPermalink: "/test/"},

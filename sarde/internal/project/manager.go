@@ -210,11 +210,16 @@ func (pm *ProjectManager) Build() (*engine.BuildResult, error) {
 	builder := pm.newBuilder()
 	result, err := builder.Build()
 
+	// Only transition out of StateBuilding if we're still building. A
+	// concurrent CloseProject() during the build sets StateClosed; don't
+	// resurrect the project to Open/Previewing after it was closed.
 	pm.mu.Lock()
-	if pm.devServer != nil {
-		pm.state = StatePreviewing
-	} else {
-		pm.state = StateOpen
+	if pm.state == StateBuilding {
+		if pm.devServer != nil {
+			pm.state = StatePreviewing
+		} else {
+			pm.state = StateOpen
+		}
 	}
 	pm.mu.Unlock()
 

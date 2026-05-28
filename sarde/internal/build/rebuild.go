@@ -207,7 +207,11 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		i18n.LinkTranslations(patchedAllPages, weights)
 	}
 
-	newTaxonomies := taxonomy.BuildTaxonomies(patchedAllPages, b.config.Taxonomies)
+	taxScopeLang := ""
+	if isMultiLang {
+		taxScopeLang = b.config.I18n.GetDefaultLanguage()
+	}
+	newTaxonomies := taxonomy.BuildTaxonomies(patchedAllPages, b.config.Taxonomies, taxScopeLang)
 	if taxWarnings, err := taxonomy.EnrichTaxonomies(newTaxonomies, b.config.Taxonomies, b.projectDir); err != nil {
 		return b.Build()
 	} else {

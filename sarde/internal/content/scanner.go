@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 )
 
@@ -80,7 +81,13 @@ func (s *Scanner) DiscoverFiles(contentDir string) ([]ContentFile, error) {
 			return nil
 		}
 
-		rel, _ := filepath.Rel(contentDir, path)
+		rel, relErr := filepath.Rel(contentDir, path)
+		if relErr != nil {
+			// Can't make path relative to contentDir (e.g. different Windows
+			// drive). Skip it rather than producing a page with an empty slug.
+			devlog.Warn("content", "skipping %s: %v", path, relErr)
+			return nil
+		}
 		rel = filepath.ToSlash(rel)
 		// Use path-based operations on the already-normalized forward-slash rel
 		lastSlash := strings.LastIndex(rel, "/")

@@ -221,8 +221,13 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	// Versioning: link version peers across versioned collections.
 	collection.LinkVersions(allPages)
 
-	// Build taxonomies.
-	taxonomies := taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies)
+	// Build taxonomies, scoped to the default language in multi-language sites
+	// so translated posts aren't counted once per language on a term page.
+	taxScopeLang := ""
+	if isMultiLang {
+		taxScopeLang = defaultLang
+	}
+	taxonomies := taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies, taxScopeLang)
 
 	// Enrich taxonomies with metadata from data/*.yml and validate.
 	taxWarnings, err := taxonomy.EnrichTaxonomies(taxonomies, b.config.Taxonomies, b.projectDir)
@@ -336,8 +341,11 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			}
 		}
 
+		// Cap concurrency to the actual pool capacity: the pool is created once
+		// and reused across rebuilds, so if workerCount ever exceeds the pool
+		// size, borrowers would block forever waiting for a renderer.
 		g := new(errgroup.Group)
-		g.SetLimit(poolSize)
+		g.SetLimit(cap(b.rendererPool))
 		for _, page := range allPages {
 			if page.RawContent == "" {
 				continue
@@ -642,13 +650,15 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			},
 		}
 		html404, err := b.tmplEngine.Render(rd404.Template, rd404)
-		if err == nil {
-			rendered = append(rendered, RenderedPage{
-				Page:    page404,
-				HTML:    html404,
-				OutPath: outPath,
-			})
+		if err != nil {
+			devlog.Warn("404", "failed to render 404 page (template %q): %v", rd404.Template, err)
+			return
 		}
+		rendered = append(rendered, RenderedPage{
+			Page:    page404,
+			HTML:    html404,
+			OutPath: outPath,
+		})
 	}
 
 	if isMultiLang {

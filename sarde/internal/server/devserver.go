@@ -66,7 +66,7 @@ func New(opts Options) *DevServer {
 		rebuilder:  NewRebuilder(opts.BuilderFactory, opts.ProjectDir),
 	}
 
-	ds.watcher = NewWatcher(opts.ProjectDir, 50*time.Millisecond, ds.onFileChange)
+	ds.watcher = NewWatcher(opts.ProjectDir, opts.OutputDir, 50*time.Millisecond, ds.onFileChange)
 	return ds
 }
 
@@ -292,10 +292,12 @@ func (ds *DevServer) injectScript(next http.Handler) http.Handler {
 			return
 		}
 
-		// Buffer the response.
+		// Buffer the response. Default to 200 so a handler that writes
+		// nothing (never calls Write/WriteHeader) doesn't yield WriteHeader(0).
 		buf := &bufferedResponseWriter{
-			header: make(http.Header),
-			body:   &bytes.Buffer{},
+			header:     make(http.Header),
+			body:       &bytes.Buffer{},
+			statusCode: http.StatusOK,
 		}
 		next.ServeHTTP(buf, r)
 

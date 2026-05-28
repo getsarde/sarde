@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/disintegration/imaging"
 	"github.com/frostybee/sarde/internal/config"
@@ -400,13 +401,14 @@ func scaleHeight(src image.Image, width int) int {
 	return (srcH * width) / srcW
 }
 
-var avifWarned bool
+// avifWarnOnce guards the one-time AVIF-unavailable warning. Image processing
+// runs across concurrent workers, so a plain bool would be a data race.
+var avifWarnOnce sync.Once
 
 func logAVIFWarning() {
-	if !avifWarned {
+	avifWarnOnce.Do(func() {
 		log.Println("[WARN] AVIF format configured but encoder not available. Rebuild with: go build -tags avif. Skipping AVIF variants.")
-		avifWarned = true
-	}
+	})
 }
 
 // formatToExt maps a format name to its file extension.

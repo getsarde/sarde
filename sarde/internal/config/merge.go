@@ -423,9 +423,18 @@ func mergeBoolP(base **bool, over *bool) {
 	}
 }
 
+// mergeStringMap merges over into base per-key (later layer wins per key),
+// rather than replacing the whole map. This preserves earlier-layer entries
+// (e.g. theme-provided redirects/permalinks) when a later layer adds its own.
 func mergeStringMap(base *map[string]string, over map[string]string) {
-	if len(over) > 0 {
-		*base = over
+	if len(over) == 0 {
+		return
+	}
+	if *base == nil {
+		*base = make(map[string]string, len(over))
+	}
+	for k, v := range over {
+		(*base)[k] = v
 	}
 }
 

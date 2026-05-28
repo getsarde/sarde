@@ -13,32 +13,11 @@ func newRSSPlugin(cfg map[string]any) *Plugin {
 	return &Plugin{
 		Name: "rss",
 		Hooks: PluginHooks{
-			ContentLoaded: func(ctx *ContentLoadedContext) error {
-				return rssContentLoaded(ctx, cfg)
-			},
 			BuildDone: func(ctx *BuildDoneContext) error {
 				return rssBuildDone(ctx, cfg)
 			},
 		},
 	}
-}
-
-func rssContentLoaded(ctx *ContentLoadedContext, cfg map[string]any) error {
-	// Determine which collections should have feeds.
-	feedCollections := cfgStringSlice(cfg, "collections")
-
-	if len(feedCollections) == 0 {
-		// Auto-detect: collections with Feed enabled in their config.
-		for name, col := range ctx.Collections {
-			if col.Config != nil && col.Config.Feed {
-				feedCollections = append(feedCollections, name)
-			}
-		}
-	}
-
-	// Store in shared store for BuildDone.
-	ctx.Set("rss:collections", feedCollections)
-	return nil
 }
 
 func rssBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
@@ -48,8 +27,9 @@ func rssBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		baseURL = strings.TrimRight(ctx.Site.BaseURL, "/")
 	}
 
-	// Get feed collections from shared store — but BuildDone doesn't have
-	// access to the shared store. Determine collections directly from config.
+	// Determine which collections should have feeds: explicit config list, or
+	// auto-detect collections with Feed enabled. BuildDone owns this directly
+	// (it has no access to the shared store populated during ContentLoaded).
 	feedCollections := cfgStringSlice(cfg, "collections")
 	if len(feedCollections) == 0 {
 		for name, col := range ctx.Collections {
