@@ -129,6 +129,7 @@ type PageTaxonomy struct {
 	Tags       []string
 	Categories []string
 	Aliases    []string
+	Extra      map[string][]string
 }
 
 // PageSidebar holds sidebar presentation fields.

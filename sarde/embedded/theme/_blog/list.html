@@ -23,6 +23,9 @@
       {{ if .Tags }}
       <div class="sarde-post-card-tags">{{ range .Tags }}<a href="{{ termURL "tags" . }}" class="sarde-post-tag">{{ . }}</a>{{ end }}</div>
       {{ end }}
+      {{ with .Extra }}{{ with index . "authors" }}
+      <div class="sarde-post-card-authors">{{ range . }}<a href="{{ termURL "authors" . }}" class="sarde-post-author-pill">{{ . }}</a>{{ end }}</div>
+      {{ end }}{{ end }}
     </div>
     {{ end }}
   </div>
@@ -45,6 +48,9 @@
       {{ if .Tags }}
       <div class="sarde-post-card-tags">{{ range .Tags }}<a href="{{ termURL "tags" . }}" class="sarde-post-tag">{{ . }}</a>{{ end }}</div>
       {{ end }}
+      {{ with .Extra }}{{ with index . "authors" }}
+      <div class="sarde-post-card-authors">{{ range . }}<a href="{{ termURL "authors" . }}" class="sarde-post-author-pill">{{ . }}</a>{{ end }}</div>
+      {{ end }}{{ end }}
     </div>
     {{ end }}
   </div>

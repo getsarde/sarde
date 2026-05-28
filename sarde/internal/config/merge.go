@@ -448,6 +448,12 @@ func mergeTaxonomies(base *map[string]TaxonomyConfig, over map[string]TaxonomyCo
 		if v.PaginateBy != 0 {
 			existing.PaginateBy = v.PaginateBy
 		}
+		if v.Render != nil {
+			existing.Render = v.Render
+		}
+		if v.UndefinedTags != "" {
+			existing.UndefinedTags = v.UndefinedTags
+		}
 		(*base)[k] = existing
 	}
 }

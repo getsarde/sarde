@@ -38,6 +38,17 @@
 	  text-decoration: none; transition: background 0.15s, color 0.15s;
 	}
 	.sarde-post-tag:hover { background: var(--sd-border); color: var(--sd-text); }
+	.sarde-post-author { color: var(--sd-text); text-decoration: none; font-weight: 500; }
+	.sarde-post-author:hover { text-decoration: underline; }
+	.sarde-post-card-authors { display: flex; gap: 0.375rem; margin-top: 0.375rem; flex-wrap: wrap; }
+	.sarde-post-author-pill {
+	  display: inline-block; padding: 0.125rem 0.5rem; border-radius: 9999px;
+	  font-size: 0.75rem; font-weight: 500;
+	  background: var(--sd-bg-accent-subtle, var(--sd-bg-surface));
+	  color: var(--sd-accent-text, var(--sd-text-muted));
+	  text-decoration: none; transition: background 0.15s, color 0.15s;
+	}
+	.sarde-post-author-pill:hover { background: var(--sd-border); color: var(--sd-text); }
 	.sarde-post-card.sarde-post-card-featured { background: var(--sd-bg-accent-subtle); margin: 0 -1rem; padding: 1.25rem 1rem; border-radius: 0.5rem; border: none; }
 	.sarde-post-grid { display: grid; gap: 1rem; margin-bottom: 1rem; }
 	.sarde-section-heading { font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sd-text-muted); margin: 0 0 1rem; }

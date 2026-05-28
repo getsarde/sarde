@@ -4,6 +4,7 @@ date: 2024-01-15
 description: "Introducing the Velox Go HTTP router."
 tags: ["announcement", "open-source"]
 categories: ["releases"]
+authors: ["Jane Doe"]
 params:
   featured: true
   author: "Jane Doe"

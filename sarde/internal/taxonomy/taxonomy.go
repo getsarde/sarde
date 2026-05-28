@@ -35,14 +35,18 @@ func BuildTaxonomies(pages []*engine.Page, taxCfg map[string]config.TaxonomyConf
 	}
 
 	for _, page := range pages {
-		if tax, ok := taxonomies["tags"]; ok {
-			for _, tag := range page.Tags {
-				addTerm(tax, tag, page)
+		for name, tax := range taxonomies {
+			var terms []string
+			switch name {
+			case "tags":
+				terms = page.Tags
+			case "categories":
+				terms = page.Categories
+			default:
+				terms = page.Extra[name]
 			}
-		}
-		if tax, ok := taxonomies["categories"]; ok {
-			for _, cat := range page.Categories {
-				addTerm(tax, cat, page)
+			for _, term := range terms {
+				addTerm(tax, term, page)
 			}
 		}
 	}

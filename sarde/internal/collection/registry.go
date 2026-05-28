@@ -86,7 +86,7 @@ func BuildCollectionsWithOptions(
 		schema, _ := content.LoadSchema(filepath.Join(contentDir, name))
 
 		// 4. Build pages
-		pages, warnings, err := buildPagesWithOptions(colFiles, contentDir, collCfg, schema, siteCfg.Content.SummaryLength, string(siteCfg.Build.LastUpdated), opts)
+		pages, warnings, err := buildPagesWithOptions(colFiles, contentDir, collCfg, schema, siteCfg.Content.SummaryLength, string(siteCfg.Build.LastUpdated), opts, siteCfg.Taxonomies)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -225,7 +225,7 @@ func BuildStandalonePagesWithOptions(
 		filtered = append(filtered, f)
 	}
 
-	pages, _, err := buildPagesWithOptions(filtered, contentDir, nil, nil, summaryLength, lastUpdatedStrategy, opts)
+	pages, _, err := buildPagesWithOptions(filtered, contentDir, nil, nil, summaryLength, lastUpdatedStrategy, opts, nil)
 	return pages, err
 }
 
@@ -238,8 +238,9 @@ func BuildSinglePage(
 	schema *engine.FrontmatterSchema,
 	summaryLength int,
 	lastUpdatedStrategy string,
+	taxCfg map[string]config.TaxonomyConfig,
 ) (*engine.Page, []engine.ValidationWarning, error) {
-	pages, warnings, err := buildPages([]content.ContentFile{cf}, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy)
+	pages, warnings, err := buildPages([]content.ContentFile{cf}, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, taxCfg)
 	if err != nil || len(pages) == 0 {
 		return nil, warnings, err
 	}
@@ -282,8 +283,9 @@ func buildPages(
 	schema *engine.FrontmatterSchema,
 	summaryLength int,
 	lastUpdatedStrategy string,
+	taxCfg map[string]config.TaxonomyConfig,
 ) ([]*engine.Page, []engine.ValidationWarning, error) {
-	return buildPagesWithOptions(files, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, BuildOptions{})
+	return buildPagesWithOptions(files, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, BuildOptions{}, taxCfg)
 }
 
 func buildPagesWithOptions(
@@ -294,12 +296,13 @@ func buildPagesWithOptions(
 	summaryLength int,
 	lastUpdatedStrategy string,
 	opts BuildOptions,
+	taxCfg map[string]config.TaxonomyConfig,
 ) ([]*engine.Page, []engine.ValidationWarning, error) {
 	if !workers.ShouldParallelize(opts.Parallel, len(files), opts.WorkerCount) {
 		var pages []*engine.Page
 		var warnings []engine.ValidationWarning
 		for _, cf := range files {
-			page, pageWarnings, err := buildPage(cf, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy)
+			page, pageWarnings, err := buildPage(cf, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, taxCfg)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -323,7 +326,7 @@ func buildPagesWithOptions(
 	for i, cf := range files {
 		i, cf := i, cf
 		g.Go(func() error {
-			page, pageWarnings, err := buildPage(cf, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy)
+			page, pageWarnings, err := buildPage(cf, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, taxCfg)
 			if err != nil {
 				return err
 			}
@@ -351,6 +354,7 @@ func buildPage(
 	schema *engine.FrontmatterSchema,
 	summaryLength int,
 	lastUpdatedStrategy string,
+	taxCfg map[string]config.TaxonomyConfig,
 ) (*engine.Page, []engine.ValidationWarning, error) {
 	inferrer := &content.Inferrer{LastUpdatedStrategy: lastUpdatedStrategy}
 	transformer := &content.Transformer{SummaryLength: summaryLength}
@@ -430,7 +434,7 @@ func buildPage(
 		page.RelPath = filepath.ToSlash(rel)
 	}
 
-	mapFrontmatterToParams(page, fm, fmMap)
+	mapFrontmatterToParams(page, fm, fmMap, taxCfg)
 
 	// Pre-populate Date from the already-opened FileInfo to avoid a
 	// redundant os.Stat inside Infer.
@@ -481,7 +485,7 @@ func buildPage(
 // mapFrontmatterToParams transfers optional frontmatter fields to page.Params
 // and page.Summary. It reads from the typed struct for all known fields and
 // falls back to fmMap for fields not present on Frontmatter (e.g. "featured").
-func mapFrontmatterToParams(page *engine.Page, fm *engine.Frontmatter, fmMap map[string]interface{}) {
+func mapFrontmatterToParams(page *engine.Page, fm *engine.Frontmatter, fmMap map[string]interface{}, taxCfg map[string]config.TaxonomyConfig) {
 	if page.Params == nil {
 		page.Params = make(map[string]any)
 	}
@@ -565,6 +569,44 @@ func mapFrontmatterToParams(page *engine.Page, fm *engine.Frontmatter, fmMap map
 	if len(fm.Cascade) > 0 {
 		page.Params[consts.CascadeKey] = fm.Cascade
 	}
+
+	for key := range taxCfg {
+		if key == "tags" || key == "categories" {
+			continue
+		}
+		raw, ok := fmMap[key]
+		if !ok {
+			continue
+		}
+		vals := toStringSlice(raw)
+		if len(vals) == 0 {
+			continue
+		}
+		if page.Extra == nil {
+			page.Extra = make(map[string][]string)
+		}
+		page.Extra[key] = vals
+	}
+}
+
+func toStringSlice(v interface{}) []string {
+	switch t := v.(type) {
+	case []string:
+		return t
+	case []interface{}:
+		out := make([]string, 0, len(t))
+		for _, item := range t {
+			if s, ok := item.(string); ok && s != "" {
+				out = append(out, s)
+			}
+		}
+		return out
+	case string:
+		if t != "" {
+			return []string{t}
+		}
+	}
+	return nil
 }
 
 // extractSection returns the immediate parent directory name relative to the collection root.

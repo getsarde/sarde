@@ -35,6 +35,7 @@ taxonomy:
   post: "post"
   posts: "posts"
   tags: "Tags"
+  authors: "Authors"
 
 edit_this_page: "Edit this page"
 last_updated: "Last updated: {{ .Date }}"

@@ -102,6 +102,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 			cf, contentDir, collCfg, schema,
 			b.config.Content.SummaryLength,
 			string(b.config.Build.LastUpdated),
+			b.config.Taxonomies,
 		)
 		if err != nil {
 			devlog.Warn("build", "ContentRebuild: parse error for %s: %v, falling back", path, err)

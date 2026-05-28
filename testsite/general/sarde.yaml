@@ -27,6 +27,10 @@ sidebar:
   pagination: true
 header:
   links:
+  - label: Tags
+    url: /tags/
+  - label: Authors
+    url: /authors/
   - label: Changelog
     url: /blog
   - external: true
@@ -110,6 +114,7 @@ collections:
 taxonomies:
   categories: category
   tags: tag
+  authors: author
 redirects:
   /perf: /blog/2024-06-10-performance-tips
   /start: /docs/guide/introduction

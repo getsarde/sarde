@@ -37,6 +37,9 @@
             {{ range .Tags }}<span class="sarde-post-tag">{{ . }}</span>{{ end }}
           </div>
           {{ end }}
+          {{ with .Extra }}{{ with index . "authors" }}
+          <div class="sarde-post-card-authors">{{ range . }}<span class="sarde-post-author-pill">{{ . }}</span>{{ end }}</div>
+          {{ end }}{{ end }}
         </div>
       </div>
     </a>

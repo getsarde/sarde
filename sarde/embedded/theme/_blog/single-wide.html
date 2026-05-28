@@ -11,6 +11,10 @@
         <span class="sarde-meta-sep">&middot;</span>
         <span>{{ .Page.ReadingTime }} min read</span>
         {{ end }}
+        {{ with index .Page.Extra "authors" }}
+        <span class="sarde-meta-sep">&middot;</span>
+        <span class="sarde-post-authors">{{ range $i, $a := . }}{{ if $i }}, {{ end }}<a href="{{ termURL "authors" $a }}" class="sarde-post-author">{{ $a }}</a>{{ end }}</span>
+        {{ end }}
       </div>
       {{ if .Page.Tags }}
       <div class="sarde-post-tags">

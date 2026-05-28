@@ -3,6 +3,7 @@ title: "10 Performance Tips for Velox"
 date: 2024-06-10
 description: "How to squeeze every last nanosecond out of your Velox application."
 tags: ["performance", "tips"]
+authors: ["Carlos Rivera", "Priya Sharma"]
 toc: false
 aliases:
   - /blog/perf-tips
