@@ -18,6 +18,7 @@ import (
 	"github.com/frostybee/sarde/internal/plugin"
 	sardetemplate "github.com/frostybee/sarde/internal/template"
 	"github.com/frostybee/sarde/internal/taxonomy"
+	"github.com/frostybee/sarde/internal/theme/syntax"
 	"github.com/frostybee/sarde/internal/workers"
 )
 
@@ -230,6 +231,14 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	b.tmplEngine.SetPageIndex(newPageIndex)
 
 	// Load template engine (skips re-parsing via loaded flag, just clears caches).
+	chromaCSS, err := syntax.GenerateChromaCSS(
+		b.config.Markdown.Highlighting.LightTheme,
+		b.config.Markdown.Highlighting.DarkTheme,
+	)
+	if err == nil {
+		b.tmplEngine.SetChromaCSS(chromaCSS)
+	}
+
 	resolver := &engine.ThemeResolver{
 		ProjectDir: b.projectDir,
 		ThemeName:  b.config.Theme.Name,

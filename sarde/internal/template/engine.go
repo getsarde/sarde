@@ -32,6 +32,7 @@ type Engine struct {
 	site           *engine.SiteContext
 	cachedCSS      string // embedded CSS, loaded once
 	cssURL         string // external CSS bundle URL (set during Load)
+	chromaCSS      string // dynamically generated Chroma syntax theme CSS
 	assetResolver  *asset.Resolver
 	assetManifest  *asset.Manifest
 	imageProcessor *asset.ImageProcessor
@@ -69,6 +70,10 @@ func (e *Engine) SetAssetPipeline(resolver *asset.Resolver, manifest *asset.Mani
 func (e *Engine) SetImageProcessor(p *asset.ImageProcessor) {
 	e.imageProcessor = p
 }
+
+// SetChromaCSS sets dynamically generated Chroma syntax highlighting CSS.
+// Must be called before Load().
+func (e *Engine) SetChromaCSS(css string) { e.chromaCSS = css }
 
 // SetPluginFuncs sets additional template functions provided by plugins.
 // Must be called before Load().
@@ -126,6 +131,9 @@ func (e *Engine) Load(resolver *engine.ThemeResolver, devMode bool) error {
 
 	// Load, optionally minify, and fingerprint the embedded CSS bundle.
 	raw := loadEmbeddedCSS(resolver.EmbeddedFS)
+	if e.chromaCSS != "" {
+		raw += "\n" + e.chromaCSS
+	}
 	processed, err := asset.TransformCSS(raw, !devMode)
 	if err != nil {
 		return fmt.Errorf("minifying embedded CSS: %w", err)

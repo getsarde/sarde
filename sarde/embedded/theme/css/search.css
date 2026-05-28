@@ -55,7 +55,7 @@
 	.sarde-search-result-title { font-weight: 600; font-size: 0.9375rem; margin-bottom: 0.125rem; }
 	.sarde-search-result-breadcrumb { font-size: 0.75rem; color: var(--sd-text-muted); margin-bottom: 0.25rem; }
 	.sarde-search-result-excerpt { font-size: 0.8125rem; color: var(--sd-text-muted); line-height: 1.5; }
-	.sarde-search-result-excerpt mark { background: #fef08a; color: inherit; padding: 0 0.125em; border-radius: 0.125rem; }
+	.sarde-search-result-excerpt mark { background: oklch(0.96 0.12 99); color: inherit; padding: 0 0.125em; border-radius: 0.125rem; }
 	.sarde-search-result-type {
 	  position: absolute; top: 0.75rem; inset-inline-end: 1rem;
 	  font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
@@ -115,7 +115,7 @@
 	:root.dark #search-input { color: var(--sd-text); }
 	:root.dark .sarde-search-result:hover,
 	:root.dark .sarde-search-result.is-selected { background: var(--sd-hover); }
-	:root.dark .sarde-search-result-excerpt mark { background: #854d0e; color: #fef9c3; }
+	:root.dark .sarde-search-result-excerpt mark { background: oklch(0.45 0.10 67); color: oklch(0.97 0.07 102); }
 	:root.dark .sarde-search-trigger { background: var(--sd-bg); border-color: var(--sd-border); }
 
 }

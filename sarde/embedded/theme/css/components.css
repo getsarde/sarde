@@ -583,9 +583,9 @@
 	}
 	.sarde-fallback-notice p { margin: 0; }
 	:root.dark .sarde-fallback-notice {
-	  background: hsl(38, 50%, 18%);
-	  color: hsl(38, 80%, 90%);
-	  border-color: hsl(38, 60%, 40%);
+	  background: oklch(0.26 0.06 75);
+	  color: oklch(0.91 0.09 75);
+	  border-color: oklch(0.48 0.11 75);
 	}
 
 	/* Version Switcher */
@@ -694,9 +694,9 @@
 	  border: 1px solid var(--sd-amber, #f59e0b);
 	}
 	:root.dark .sarde-version-banner.is-unmaintained {
-	  background: hsl(38, 50%, 18%);
-	  color: hsl(38, 80%, 90%);
-	  border-color: hsl(38, 60%, 40%);
+	  background: oklch(0.26 0.06 75);
+	  color: oklch(0.91 0.09 75);
+	  border-color: oklch(0.48 0.11 75);
 	}
 
 	.sarde-version-banner.is-unreleased {
@@ -705,9 +705,9 @@
 	  border: 1px solid var(--sd-blue, #3b82f6);
 	}
 	:root.dark .sarde-version-banner.is-unreleased {
-	  background: hsl(217, 50%, 18%);
-	  color: hsl(217, 80%, 90%);
-	  border-color: hsl(217, 60%, 40%);
+	  background: oklch(0.26 0.06 230);
+	  color: oklch(0.91 0.09 230);
+	  border-color: oklch(0.48 0.11 230);
 	}
 
 	/* Page Banner (per-page frontmatter) */
@@ -726,9 +726,9 @@
 	  border-color: var(--sd-blue, #3b82f6);
 	}
 	:root.dark .sarde-page-banner-note {
-	  background: hsl(217, 50%, 18%);
-	  color: hsl(217, 80%, 90%);
-	  border-color: hsl(217, 60%, 40%);
+	  background: oklch(0.26 0.06 230);
+	  color: oklch(0.91 0.09 230);
+	  border-color: oklch(0.48 0.11 230);
 	}
 
 	.sarde-page-banner-tip {
@@ -737,9 +737,9 @@
 	  border-color: var(--sd-green, #22c55e);
 	}
 	:root.dark .sarde-page-banner-tip {
-	  background: hsl(142, 50%, 16%);
-	  color: hsl(142, 80%, 90%);
-	  border-color: hsl(142, 60%, 35%);
+	  background: oklch(0.25 0.06 155);
+	  color: oklch(0.91 0.09 155);
+	  border-color: oklch(0.44 0.11 155);
 	}
 
 	.sarde-page-banner-caution {
@@ -748,9 +748,9 @@
 	  border-color: var(--sd-amber, #f59e0b);
 	}
 	:root.dark .sarde-page-banner-caution {
-	  background: hsl(38, 50%, 18%);
-	  color: hsl(38, 80%, 90%);
-	  border-color: hsl(38, 60%, 40%);
+	  background: oklch(0.26 0.06 75);
+	  color: oklch(0.91 0.09 75);
+	  border-color: oklch(0.48 0.11 75);
 	}
 
 	.sarde-page-banner-danger {
@@ -759,9 +759,9 @@
 	  border-color: var(--sd-red, #ef4444);
 	}
 	:root.dark .sarde-page-banner-danger {
-	  background: hsl(0, 50%, 18%);
-	  color: hsl(0, 80%, 90%);
-	  border-color: hsl(0, 60%, 40%);
+	  background: oklch(0.26 0.06 25);
+	  color: oklch(0.91 0.09 25);
+	  border-color: oklch(0.48 0.11 25);
 	}
 
 }

@@ -73,7 +73,7 @@ markdown:
   highlighting:
     style: "class"
     light_theme: "github"
-    dark_theme: "monokai"
+    dark_theme: "dracula"
     theme: ""
 
 prefetch:

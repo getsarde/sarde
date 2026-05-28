@@ -54,12 +54,98 @@ func TestDeriveTokens_ExistingKeyNotOverridden(t *testing.T) {
 	}
 }
 
-func TestDeriveTokens_NonHexSkipped(t *testing.T) {
-	tokens := map[string]string{"accent": "oklch(60% 0.15 250)"}
+func TestDeriveTokens_InvalidFormatSkipped(t *testing.T) {
+	tokens := map[string]string{"accent": "hsl(200, 50%, 50%)"}
 	DeriveTokens(tokens)
 
 	if _, ok := tokens["accent-hover"]; ok {
-		t.Error("should not derive from non-hex value")
+		t.Error("should not derive from unsupported format")
+	}
+}
+
+func TestDeriveTokens_OKLCH(t *testing.T) {
+	tokens := map[string]string{"accent": "oklch(0.600 0.220 264.0)"}
+	result := DeriveTokens(tokens)
+
+	if result["accent-hover"] == "" {
+		t.Error("expected accent-hover to be derived from OKLCH")
+	}
+	if result["accent-high"] == "" {
+		t.Error("expected accent-high to be derived from OKLCH")
+	}
+	if result["accent-low"] == "" {
+		t.Error("expected accent-low to be derived from OKLCH")
+	}
+	if !strings.HasPrefix(result["accent-hover"], "oklch(") {
+		t.Errorf("accent-hover should be oklch, got %q", result["accent-hover"])
+	}
+	if !strings.HasPrefix(result["accent-high"], "oklch(") {
+		t.Errorf("accent-high should be oklch, got %q", result["accent-high"])
+	}
+	if !strings.Contains(result["accent-low"], "/ 0.1") {
+		t.Errorf("accent-low should contain alpha, got %q", result["accent-low"])
+	}
+}
+
+func TestDeriveTokens_OKLCH_Percent(t *testing.T) {
+	tokens := map[string]string{"accent": "oklch(60% 0.22 264)"}
+	result := DeriveTokens(tokens)
+
+	if result["accent-hover"] == "" {
+		t.Error("expected accent-hover to be derived from OKLCH with percentage L")
+	}
+	if !strings.HasPrefix(result["accent-hover"], "oklch(0.520") {
+		t.Errorf("hover L should be 0.60-0.08=0.52, got %q", result["accent-hover"])
+	}
+}
+
+func TestDeriveTokens_OKLCH_ClampAtBounds(t *testing.T) {
+	tokens := map[string]string{"accent": "oklch(0.020 0.15 200)"}
+	result := DeriveTokens(tokens)
+
+	if !strings.HasPrefix(result["accent-hover"], "oklch(0.000") {
+		t.Errorf("hover should clamp to 0, got %q", result["accent-hover"])
+	}
+}
+
+func TestDeriveTokens_OKLCH_HighClamp(t *testing.T) {
+	tokens := map[string]string{"accent": "oklch(0.950 0.15 200)"}
+	result := DeriveTokens(tokens)
+
+	if !strings.HasPrefix(result["accent-high"], "oklch(1.000") {
+		t.Errorf("high should clamp to 1, got %q", result["accent-high"])
+	}
+}
+
+func TestParseOKLCH(t *testing.T) {
+	tests := []struct {
+		input   string
+		wantL   float64
+		wantC   float64
+		wantH   float64
+		wantErr bool
+	}{
+		{"oklch(0.600 0.220 264.0)", 0.600, 0.220, 264.0, false},
+		{"oklch(60% 0.15 250)", 0.600, 0.15, 250.0, false},
+		{"oklch(0.985 0.002 286)", 0.985, 0.002, 286.0, false},
+		{"oklch(1 0 0)", 1.0, 0.0, 0.0, false},
+		{"#ffffff", 0, 0, 0, true},
+		{"hsl(200, 50%, 50%)", 0, 0, 0, true},
+		{"oklch(0.5 0.2 200 / 0.5)", 0, 0, 0, true}, // alpha form not parsed
+	}
+	for _, tt := range tests {
+		l, c, h, err := parseOKLCH(tt.input)
+		if (err != nil) != tt.wantErr {
+			t.Errorf("parseOKLCH(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
+			continue
+		}
+		if err != nil {
+			continue
+		}
+		if l != tt.wantL || c != tt.wantC || h != tt.wantH {
+			t.Errorf("parseOKLCH(%q) = (%.3f, %.3f, %.1f), want (%.3f, %.3f, %.1f)",
+				tt.input, l, c, h, tt.wantL, tt.wantC, tt.wantH)
+		}
 	}
 }
 

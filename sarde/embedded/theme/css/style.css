@@ -242,7 +242,7 @@
 
 	/* ── Hero Section ── */
 	.sarde-hero-section {
-	  background: linear-gradient(135deg, var(--sd-bg-accent) 0%, hsl(var(--sd-hue-purple), 70%, 55%) 50%, hsl(var(--sd-hue-cyan), 70%, 40%) 100%);
+	  background: linear-gradient(135deg, var(--sd-bg-accent) 0%, oklch(0.58 0.22 var(--sd-hue-purple)) 50%, oklch(0.52 0.14 var(--sd-hue-cyan)) 100%);
 	  background-size: 200% 200%;
 	  animation: gradientShift 15s ease infinite;
 	  color: var(--sd-text-invert);
@@ -260,8 +260,8 @@
 	  right: 0;
 	  bottom: 0;
 	  background-image:
-	    radial-gradient(circle at 20% 50%, hsla(0, 0%, 100%, 0.1) 0%, transparent 50%),
-	    radial-gradient(circle at 80% 50%, hsla(0, 0%, 100%, 0.1) 0%, transparent 50%);
+	    radial-gradient(circle at 20% 50%, oklch(1 0 0 / 0.1) 0%, transparent 50%),
+	    radial-gradient(circle at 80% 50%, oklch(1 0 0 / 0.1) 0%, transparent 50%);
 	  pointer-events: none;
 	}
 
@@ -297,11 +297,11 @@
 	.sarde-stat-item {
 	  text-align: center;
 	  padding: var(--sd-space-4);
-	  background: hsla(0, 0%, 100%, 0.1);
+	  background: oklch(1 0 0 / 0.1);
 	  border-radius: var(--sd-radius-lg);
 	  backdrop-filter: blur(8px);
 	  -webkit-backdrop-filter: blur(8px);
-	  border: 1px solid hsla(0, 0%, 100%, 0.15);
+	  border: 1px solid oklch(1 0 0 / 0.15);
 	  transition: transform var(--sd-transition-fast) var(--sd-ease-bounce);
 	}
 
@@ -353,7 +353,7 @@
 	  content: '';
 	  position: absolute;
 	  inset: 0;
-	  background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+	  background: linear-gradient(180deg, oklch(1 0 0 / 0.1) 0%, transparent 100%);
 	  opacity: 0;
 	  transition: opacity var(--sd-transition-fast);
 	}
@@ -808,8 +808,8 @@
 	}
 
 	@keyframes pulseGlow {
-	  0%, 100% { box-shadow: 0 0 0 0 hsla(var(--sd-hue-blue), 70%, 50%, 0.4); }
-	  50% { box-shadow: 0 0 0 8px hsla(var(--sd-hue-blue), 70%, 50%, 0); }
+	  0%, 100% { box-shadow: 0 0 0 0 oklch(0.62 0.20 var(--sd-hue-blue) / 0.4); }
+	  50% { box-shadow: 0 0 0 8px oklch(0.62 0.20 var(--sd-hue-blue) / 0); }
 	}
 
 	@keyframes gradientShift {
@@ -874,7 +874,7 @@
 	  content: '';
 	  position: absolute;
 	  inset: 0;
-	  background: linear-gradient(90deg, transparent, hsla(0, 0%, 100%, 0.5), transparent);
+	  background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.5), transparent);
 	  animation: shimmer 1.5s infinite;
 	}
 

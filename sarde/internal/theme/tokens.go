@@ -3,6 +3,7 @@ package theme
 import (
 	"fmt"
 	"math"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -21,28 +22,36 @@ func DeriveTokens(tokens map[string]string) map[string]string {
 		return tokens
 	}
 
-	r, g, b, err := parseHex(primary)
-	if err != nil {
+	// Try hex path first.
+	if r, g, b, err := parseHex(primary); err == nil {
+		h, s, l := rgbToHSL(r, g, b)
+
+		if _, exists := tokens["accent-hover"]; !exists {
+			hr, hg, hb := hslToRGB(h, s, clamp(l-0.10, 0, 1))
+			tokens["accent-hover"] = toHex(hr, hg, hb)
+		}
+		if _, exists := tokens["accent-high"]; !exists {
+			hr, hg, hb := hslToRGB(h, s, clamp(l+0.20, 0, 1))
+			tokens["accent-high"] = toHex(hr, hg, hb)
+		}
+		if _, exists := tokens["accent-low"]; !exists {
+			tokens["accent-low"] = fmt.Sprintf("rgba(%d, %d, %d, 0.1)", r, g, b)
+		}
 		return tokens
 	}
 
-	h, s, l := rgbToHSL(r, g, b)
-
-	// accent-hover: 10% darker
-	if _, exists := tokens["accent-hover"]; !exists {
-		hr, hg, hb := hslToRGB(h, s, clamp(l-0.10, 0, 1))
-		tokens["accent-hover"] = toHex(hr, hg, hb)
-	}
-
-	// accent-high: 20% lighter
-	if _, exists := tokens["accent-high"]; !exists {
-		hr, hg, hb := hslToRGB(h, s, clamp(l+0.20, 0, 1))
-		tokens["accent-high"] = toHex(hr, hg, hb)
-	}
-
-	// accent-low: rgba at 10% opacity
-	if _, exists := tokens["accent-low"]; !exists {
-		tokens["accent-low"] = fmt.Sprintf("rgba(%d, %d, %d, 0.1)", r, g, b)
+	// Try OKLCH path.
+	if l, c, h, err := parseOKLCH(primary); err == nil {
+		if _, exists := tokens["accent-hover"]; !exists {
+			tokens["accent-hover"] = fmt.Sprintf("oklch(%.3f %.3f %.1f)", clamp(l-0.08, 0, 1), c, h)
+		}
+		if _, exists := tokens["accent-high"]; !exists {
+			tokens["accent-high"] = fmt.Sprintf("oklch(%.3f %.3f %.1f)", clamp(l+0.12, 0, 1), c, h)
+		}
+		if _, exists := tokens["accent-low"]; !exists {
+			tokens["accent-low"] = fmt.Sprintf("oklch(%.3f %.3f %.1f / 0.1)", l, c, h)
+		}
+		return tokens
 	}
 
 	return tokens
@@ -65,6 +74,33 @@ func parseHex(hex string) (r, g, b int, err error) {
 	default:
 		return 0, 0, 0, fmt.Errorf("invalid hex color: #%s", hex)
 	}
+}
+
+var oklchRe = regexp.MustCompile(`^oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)\s*\)$`)
+
+// parseOKLCH parses an oklch(L C H) string into its components.
+// L can be 0-1 (decimal) or 0%-100% (percentage, converted to 0-1).
+func parseOKLCH(s string) (l, c, h float64, err error) {
+	m := oklchRe.FindStringSubmatch(s)
+	if m == nil {
+		return 0, 0, 0, fmt.Errorf("invalid oklch color: %s", s)
+	}
+	l, err = strconv.ParseFloat(m[1], 64)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	if m[2] == "%" {
+		l /= 100
+	}
+	c, err = strconv.ParseFloat(m[3], 64)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	h, err = strconv.ParseFloat(m[4], 64)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	return l, c, h, nil
 }
 
 // rgbToHSL converts RGB (0-255) to HSL (0-360, 0-1, 0-1).

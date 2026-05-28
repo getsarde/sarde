@@ -5,61 +5,61 @@
 
 	:root {
 	  /* ── White/Black ── */
-	  --sd-white: #ffffff;
-	  --sd-black: #09090b;
+	  --sd-white: oklch(1 0 0);
+	  --sd-black: oklch(0.145 0.005 286);
 
-	  /* ── Gray Scale ── */
-	  --sd-gray-1: #fafafa;
-	  --sd-gray-2: #f4f4f5;
-	  --sd-gray-3: #e4e4e7;
-	  --sd-gray-4: #a1a1aa;
-	  --sd-gray-5: #71717a;
-	  --sd-gray-6: #52525b;
-	  --sd-gray-7: #3f3f46;
-	  --sd-gray-8: #27272a;
-	  --sd-gray-9: #18181b;
+	  /* ── Gray Scale (Zinc) ── */
+	  --sd-gray-1: oklch(0.985 0.002 286);
+	  --sd-gray-2: oklch(0.967 0.003 286);
+	  --sd-gray-3: oklch(0.920 0.004 286);
+	  --sd-gray-4: oklch(0.705 0.015 286);
+	  --sd-gray-5: oklch(0.553 0.014 286);
+	  --sd-gray-6: oklch(0.442 0.012 286);
+	  --sd-gray-7: oklch(0.370 0.011 286);
+	  --sd-gray-8: oklch(0.274 0.006 286);
+	  --sd-gray-9: oklch(0.210 0.006 286);
 
-	  /* ── Accent Hue ── */
-	  --sd-hue-accent: 239;
+	  /* ── Accent Hue (OKLCH) ── */
+	  --sd-hue-accent: 264;
 
-	  /* ── Status Hues ── */
-	  --sd-hue-green: 150;
-	  --sd-hue-amber: 38;
-	  --sd-hue-red: 0;
-	  --sd-hue-cyan: 185;
+	  /* ── Status Hues (OKLCH) ── */
+	  --sd-hue-green: 155;
+	  --sd-hue-amber: 75;
+	  --sd-hue-red: 25;
+	  --sd-hue-cyan: 196;
 
-	  --sd-green: hsl(var(--sd-hue-green), 60%, 40%);
-	  --sd-green-low: hsl(var(--sd-hue-green), 50%, 92%);
-	  --sd-green-high: hsl(var(--sd-hue-green), 70%, 50%);
-	  --sd-amber: hsl(var(--sd-hue-amber), 90%, 50%);
-	  --sd-amber-low: hsl(var(--sd-hue-amber), 90%, 92%);
-	  --sd-amber-high: hsl(var(--sd-hue-amber), 90%, 55%);
-	  --sd-red: hsl(var(--sd-hue-red), 70%, 50%);
-	  --sd-red-low: hsl(var(--sd-hue-red), 70%, 94%);
-	  --sd-red-high: hsl(var(--sd-hue-red), 80%, 60%);
-	  --sd-blue: #3b82f6;
-	  --sd-blue-low: #eff6ff;
-	  --sd-blue-high: #60a5fa;
-	  --sd-purple: #8b5cf6;
-	  --sd-purple-low: #f5f3ff;
-	  --sd-purple-high: #a78bfa;
+	  --sd-green: oklch(0.52 0.15 var(--sd-hue-green));
+	  --sd-green-low: oklch(0.95 0.04 var(--sd-hue-green));
+	  --sd-green-high: oklch(0.65 0.18 var(--sd-hue-green));
+	  --sd-amber: oklch(0.75 0.16 var(--sd-hue-amber));
+	  --sd-amber-low: oklch(0.96 0.04 var(--sd-hue-amber));
+	  --sd-amber-high: oklch(0.79 0.16 var(--sd-hue-amber));
+	  --sd-red: oklch(0.55 0.20 var(--sd-hue-red));
+	  --sd-red-low: oklch(0.96 0.05 var(--sd-hue-red));
+	  --sd-red-high: oklch(0.65 0.22 var(--sd-hue-red));
+	  --sd-blue: oklch(0.62 0.20 231);
+	  --sd-blue-low: oklch(0.97 0.02 231);
+	  --sd-blue-high: oklch(0.70 0.18 231);
+	  --sd-purple: oklch(0.59 0.23 293);
+	  --sd-purple-low: oklch(0.97 0.02 293);
+	  --sd-purple-high: oklch(0.70 0.22 293);
 
-	  /* ── Extended Hues ── */
-	  --sd-hue-blue: 217;
-	  --sd-hue-indigo: 245;
-	  --sd-hue-purple: 270;
-	  --sd-cyan: hsl(var(--sd-hue-cyan), 70%, 40%);
-	  --sd-cyan-low: hsl(var(--sd-hue-cyan), 50%, 92%);
-	  --sd-cyan-high: hsl(var(--sd-hue-cyan), 80%, 50%);
-	  --sd-indigo: hsl(var(--sd-hue-indigo), 65%, 55%);
-	  --sd-indigo-low: hsl(var(--sd-hue-indigo), 50%, 94%);
-	  --sd-indigo-high: hsl(var(--sd-hue-indigo), 75%, 65%);
+	  /* ── Extended Hues (OKLCH) ── */
+	  --sd-hue-blue: 230;
+	  --sd-hue-indigo: 264;
+	  --sd-hue-purple: 305;
+	  --sd-cyan: oklch(0.52 0.14 var(--sd-hue-cyan));
+	  --sd-cyan-low: oklch(0.95 0.04 var(--sd-hue-cyan));
+	  --sd-cyan-high: oklch(0.65 0.18 var(--sd-hue-cyan));
+	  --sd-indigo: oklch(0.60 0.18 var(--sd-hue-indigo));
+	  --sd-indigo-low: oklch(0.95 0.04 var(--sd-hue-indigo));
+	  --sd-indigo-high: oklch(0.72 0.20 var(--sd-hue-indigo));
 
 	  /* ── Semantic Text ── */
 	  --sd-text: var(--sd-gray-9);
 	  --sd-text-muted: var(--sd-gray-6);
 	  --sd-text-subtle: var(--sd-gray-5);
-	  --sd-text-accent: var(--sd-accent, hsl(var(--sd-hue-accent), 80%, 55%));
+	  --sd-text-accent: var(--sd-accent, oklch(0.60 0.22 var(--sd-hue-accent)));
 	  --sd-text-invert: var(--sd-white);
 	  --sd-text-success: var(--sd-green);
 	  --sd-text-warning: var(--sd-amber);
@@ -73,18 +73,18 @@
 	  --sd-bg-footer: var(--sd-bg);
 	  --sd-bg-toc: transparent;
 	  --sd-bg-inline-code: var(--sd-gray-2);
-	  --sd-bg-accent: var(--sd-accent, hsl(var(--sd-hue-accent), 80%, 55%));
-	  --sd-bg-accent-subtle: var(--sd-accent-low, hsla(var(--sd-hue-accent), 80%, 55%, 0.1));
+	  --sd-bg-accent: var(--sd-accent, oklch(0.60 0.22 var(--sd-hue-accent)));
+	  --sd-bg-accent-subtle: var(--sd-accent-low, oklch(0.60 0.22 var(--sd-hue-accent) / 0.1));
 	  --sd-hover: var(--sd-gray-2);
 
 	  /* ── Semantic Borders ── */
 	  --sd-border: var(--sd-gray-3);
 	  --sd-border-muted: var(--sd-gray-3);
-	  --sd-border-accent: var(--sd-accent, hsl(var(--sd-hue-accent), 80%, 55%));
-	  --sd-hairline: color-mix(in srgb, var(--sd-gray-5) 20%, transparent);
+	  --sd-border-accent: var(--sd-accent, oklch(0.60 0.22 var(--sd-hue-accent)));
+	  --sd-hairline: color-mix(in oklch, var(--sd-gray-5) 20%, transparent);
 
 	  /* ── Interactive ── */
-	  --sd-focus-ring: var(--sd-accent, hsl(var(--sd-hue-accent), 80%, 55%));
+	  --sd-focus-ring: var(--sd-accent, oklch(0.60 0.22 var(--sd-hue-accent)));
 
 	  /* ── Typography ── */
 	  --sd-font-sans: var(--sd-font-sans, 'Inter', system-ui, -apple-system, sans-serif);
@@ -155,9 +155,9 @@
 	  --sd-ease-out: cubic-bezier(0, 0, 0.2, 1);
 
 	  /* ── Shadows ── */
-	  --sd-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-	  --sd-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-	  --sd-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+	  --sd-shadow-sm: 0 1px 2px oklch(0 0 0 / 0.05);
+	  --sd-shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.08), 0 2px 4px -1px oklch(0 0 0 / 0.04);
+	  --sd-shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.1), 0 4px 6px -4px oklch(0 0 0 / 0.1);
 
 	  /* ── Code ── */
 	  --sd-code-bg: var(--sd-bg-surface);
@@ -170,8 +170,8 @@
 	  --sd-code-radius: var(--sd-radius-lg);
 
 	  /* ── Additional Shadows ── */
-	  --sd-shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.04);
-	  --sd-shadow-accent: 0 4px 14px -2px rgba(99, 102, 241, 0.25);
+	  --sd-shadow-xs: 0 1px 1px oklch(0 0 0 / 0.04);
+	  --sd-shadow-accent: 0 4px 14px -2px oklch(0.60 0.22 264 / 0.25);
 
 	  /* ── Additional Transitions ── */
 	  --sd-transition-slow: 300ms ease;
@@ -185,9 +185,9 @@
 	  --sd-motion-scale-sm: scale(1.02);
 
 	  /* ── Glass ── */
-	  --sd-glass-bg: rgba(255, 255, 255, 0.8);
+	  --sd-glass-bg: oklch(1 0 0 / 0.8);
 	  --sd-glass-blur: 12px;
-	  --sd-glass-border: rgba(255, 255, 255, 0.2);
+	  --sd-glass-border: oklch(1 0 0 / 0.2);
 
 	  /* ── Typography Extras ── */
 	  --sd-tracking-tight: -0.025em;

@@ -81,7 +81,7 @@
 	  border: 1px solid var(--sd-border); border-radius: 0.5rem;
 	  padding: 0; overflow: hidden; transition: border-color 0.15s, box-shadow 0.15s;
 	}
-	.sarde-post-card-bordered:hover { border-color: var(--sd-text-accent); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+	.sarde-post-card-bordered:hover { border-color: var(--sd-text-accent); box-shadow: 0 2px 8px oklch(0 0 0 / 0.06); }
 	.sarde-post-card-bordered a { display: flex; flex-direction: column; }
 	.sarde-post-card-image { width: 100%; height: 10rem; object-fit: cover; }
 	.sarde-post-card-body { padding: 1rem; }

@@ -7,7 +7,7 @@ import (
 func TestResolveTokens_DefaultsOnly(t *testing.T) {
 	result := ResolveTokens(DefaultTokens(), nil, "", nil)
 
-	if result["bg"] != "#ffffff" {
+	if result["bg"] != "oklch(1 0 0)" {
 		t.Errorf("bg: got %q", result["bg"])
 	}
 	if _, ok := result["accent"]; ok {
@@ -25,7 +25,7 @@ func TestResolveTokens_ThemeOverridesDefaults(t *testing.T) {
 		t.Errorf("accent: got %q", result["accent"])
 	}
 	// Non-overridden defaults should persist.
-	if result["bg"] != "#ffffff" {
+	if result["bg"] != "oklch(1 0 0)" {
 		t.Errorf("bg: got %q", result["bg"])
 	}
 }

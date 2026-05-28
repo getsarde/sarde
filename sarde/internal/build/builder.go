@@ -19,6 +19,7 @@ import (
 	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/content/markdown"
+	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/i18n"
 	"github.com/frostybee/sarde/internal/plugin"
@@ -30,6 +31,7 @@ import (
 	"github.com/frostybee/sarde/internal/shortcode"
 	"github.com/frostybee/sarde/internal/taxonomy"
 	sardetemplate "github.com/frostybee/sarde/internal/template"
+	"github.com/frostybee/sarde/internal/theme/syntax"
 	"github.com/frostybee/sarde/internal/workers"
 )
 
@@ -442,6 +444,17 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	if stringTable != nil {
 		b.tmplEngine.SetI18nStrings(stringTable)
 	}
+	// Generate Chroma syntax highlighting CSS from config theme names.
+	chromaCSS, err := syntax.GenerateChromaCSS(
+		b.config.Markdown.Highlighting.LightTheme,
+		b.config.Markdown.Highlighting.DarkTheme,
+	)
+	if err != nil {
+		devlog.Warn("build", "syntax highlighting: %v", err)
+	} else {
+		b.tmplEngine.SetChromaCSS(chromaCSS)
+	}
+
 	resolver := &engine.ThemeResolver{
 		ProjectDir: b.projectDir,
 		ThemeName:  b.config.Theme.Name,
