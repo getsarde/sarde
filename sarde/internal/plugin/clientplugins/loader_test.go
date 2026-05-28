@@ -58,7 +58,7 @@ func TestMergeConfig(t *testing.T) {
 }
 
 func TestShouldInject(t *testing.T) {
-	page := &engine.Page{Kind: engine.KindPage}
+	page := &engine.Page{PageIdentity: engine.PageIdentity{Kind: engine.KindPage}}
 	rd := &engine.RouteData{Layout: engine.LayoutDocs}
 
 	tests := []struct {
@@ -88,18 +88,18 @@ func TestShouldInject(t *testing.T) {
 func TestShouldInject_ContentFlags(t *testing.T) {
 	rd := &engine.RouteData{Layout: engine.LayoutDocs}
 
-	page := &engine.Page{HasCodeBlocks: true}
+	page := &engine.Page{PageContent: engine.PageContent{HasCodeBlocks: true}}
 	if !shouldInject("has_code_blocks", page, rd) {
 		t.Error("has_code_blocks should be true")
 	}
 
-	page = &engine.Page{HasImages: true}
+	page = &engine.Page{PageContent: engine.PageContent{HasImages: true}}
 	if !shouldInject("has_images", page, rd) {
 		t.Error("has_images should be true")
 	}
 
 	page = &engine.Page{
-		Headings: []engine.Heading{{Level: 2, ID: "test", Text: "Test"}},
+		PageContent: engine.PageContent{Headings: []engine.Heading{{Level: 2, ID: "test", Text: "Test"}}},
 	}
 	if !shouldInject("has_toc", page, rd) {
 		t.Error("has_toc should be true with docs layout and headings")
@@ -108,13 +108,13 @@ func TestShouldInject_ContentFlags(t *testing.T) {
 		t.Error("has_headings should be true")
 	}
 
-	page = &engine.Page{Updated: time.Now()}
+	page = &engine.Page{PageIdentity: engine.PageIdentity{Updated: time.Now()}}
 	if !shouldInject("has_updated", page, rd) {
 		t.Error("has_updated should be true with non-zero Updated")
 	}
 
 	page = &engine.Page{
-		PrevPage: &engine.Page{},
+		PageRelationships: engine.PageRelationships{PrevPage: &engine.Page{}},
 	}
 	if !shouldInject("has_prev_next", page, rd) {
 		t.Error("has_prev_next should be true with PrevPage set")

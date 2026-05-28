@@ -9,7 +9,7 @@ import (
 )
 
 func TestTransform_WordCount(t *testing.T) {
-	page := &engine.Page{RawContent: "Hello world this is a test of word counting"}
+	page := &engine.Page{PageContent: engine.PageContent{RawContent: "Hello world this is a test of word counting"}}
 	tr := &Transformer{SummaryLength: 70}
 	tr.Transform(page)
 
@@ -21,7 +21,7 @@ func TestTransform_WordCount(t *testing.T) {
 func TestTransform_ReadingTime(t *testing.T) {
 	// 200 words = 1 minute
 	words := strings.Repeat("word ", 200)
-	page := &engine.Page{RawContent: words}
+	page := &engine.Page{PageContent: engine.PageContent{RawContent: words}}
 	tr := &Transformer{SummaryLength: 70}
 	tr.Transform(page)
 
@@ -31,7 +31,7 @@ func TestTransform_ReadingTime(t *testing.T) {
 
 	// 201 words = 2 minutes (ceil)
 	words = strings.Repeat("word ", 201)
-	page = &engine.Page{RawContent: words}
+	page = &engine.Page{PageContent: engine.PageContent{RawContent: words}}
 	tr.Transform(page)
 
 	if page.ReadingTime != 2 {
@@ -40,7 +40,7 @@ func TestTransform_ReadingTime(t *testing.T) {
 }
 
 func TestTransform_ReadingTimeMinimum(t *testing.T) {
-	page := &engine.Page{RawContent: "Just a few words."}
+	page := &engine.Page{PageContent: engine.PageContent{RawContent: "Just a few words."}}
 	tr := &Transformer{SummaryLength: 70}
 	tr.Transform(page)
 
@@ -50,7 +50,7 @@ func TestTransform_ReadingTimeMinimum(t *testing.T) {
 }
 
 func TestTransform_ReadingTimeEmpty(t *testing.T) {
-	page := &engine.Page{RawContent: ""}
+	page := &engine.Page{PageContent: engine.PageContent{RawContent: ""}}
 	tr := &Transformer{SummaryLength: 70}
 	tr.Transform(page)
 
@@ -61,8 +61,8 @@ func TestTransform_ReadingTimeEmpty(t *testing.T) {
 
 func TestTransform_SummaryFromDescription(t *testing.T) {
 	page := &engine.Page{
-		Description: "This is the description.",
-		RawContent:  "# Title\n\nThis is the body paragraph.\n",
+		PageContent: engine.PageContent{RawContent: "# Title\n\nThis is the body paragraph.\n"},
+		PageMeta:    engine.PageMeta{Description: "This is the description."},
 	}
 	tr := &Transformer{SummaryLength: 70}
 	tr.Transform(page)
@@ -74,7 +74,7 @@ func TestTransform_SummaryFromDescription(t *testing.T) {
 
 func TestTransform_SummaryFromFirstParagraph(t *testing.T) {
 	page := &engine.Page{
-		RawContent: "# My Title\n\nThis is the first paragraph of content.\n\nSecond paragraph.\n",
+		PageContent: engine.PageContent{RawContent: "# My Title\n\nThis is the first paragraph of content.\n\nSecond paragraph.\n"},
 	}
 	tr := &Transformer{SummaryLength: 70}
 	tr.Transform(page)
@@ -89,8 +89,8 @@ func TestTransform_SummaryTruncation(t *testing.T) {
 	// Description is set, so Summary uses Description directly (not word-truncated).
 	// To test word truncation, set Description explicitly so auto-fill is skipped.
 	page := &engine.Page{
-		Description: "Short desc.",
-		RawContent:  "This is a long paragraph that goes on and on with many words to test truncation behavior.\n",
+		PageContent: engine.PageContent{RawContent: "This is a long paragraph that goes on and on with many words to test truncation behavior.\n"},
+		PageMeta:    engine.PageMeta{Description: "Short desc."},
 	}
 	tr := &Transformer{SummaryLength: 5}
 	tr.Transform(page)
@@ -105,7 +105,7 @@ func TestTransform_SummaryTruncation_NoDescription(t *testing.T) {
 	// When Description is empty AND auto-description fills it,
 	// Summary should use the auto-filled Description.
 	page := &engine.Page{
-		RawContent: "This is a long paragraph that goes on and on with many words to test truncation behavior.\n",
+		PageContent: engine.PageContent{RawContent: "This is a long paragraph that goes on and on with many words to test truncation behavior.\n"},
 	}
 	tr := &Transformer{SummaryLength: 5}
 	tr.Transform(page)
@@ -121,8 +121,7 @@ func TestTransform_SummaryTruncation_NoDescription(t *testing.T) {
 
 func TestTransform_SummaryPreservesExisting(t *testing.T) {
 	page := &engine.Page{
-		Summary:    "Existing summary.",
-		RawContent: "# Title\n\nBody text.\n",
+		PageContent: engine.PageContent{Summary: "Existing summary.", RawContent: "# Title\n\nBody text.\n"},
 	}
 	tr := &Transformer{SummaryLength: 70}
 	tr.Transform(page)

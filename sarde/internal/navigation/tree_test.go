@@ -21,10 +21,10 @@ func TestBuildNavTree_BasicStructure(t *testing.T) {
 		Slug:      "guides",
 		Permalink: "/docs/guides/",
 		Render:    true,
-		IndexPage: &engine.Page{Title: "Guides", Weight: 1, Kind: engine.KindSection},
+		IndexPage: &engine.Page{PageIdentity: engine.PageIdentity{Title: "Guides", Kind: engine.KindSection}, PageMeta: engine.PageMeta{Weight: 1}},
 		Pages: []*engine.Page{
-			{Title: "Auth", Slug: "auth", RelPermalink: "/docs/guides/auth/", Weight: 1, Kind: engine.KindPage},
-			{Title: "Deploy", Slug: "deploy", RelPermalink: "/docs/guides/deploy/", Weight: 2, Kind: engine.KindPage},
+			{PageIdentity: engine.PageIdentity{Title: "Auth", Slug: "auth", RelPermalink: "/docs/guides/auth/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 1}},
+			{PageIdentity: engine.PageIdentity{Title: "Deploy", Slug: "deploy", RelPermalink: "/docs/guides/deploy/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 2}},
 		},
 	}
 	// Wire Section backrefs.
@@ -39,7 +39,7 @@ func TestBuildNavTree_BasicStructure(t *testing.T) {
 		Config:   docsConfig(),
 		Sections: []*engine.Section{sec},
 		Pages: []*engine.Page{
-			{Title: "Getting Started", Slug: "getting-started", RelPermalink: "/docs/getting-started/", Weight: 0, Kind: engine.KindPage},
+			{PageIdentity: engine.PageIdentity{Title: "Getting Started", Slug: "getting-started", RelPermalink: "/docs/getting-started/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 0}},
 			sec.IndexPage,
 			sec.Pages[0],
 			sec.Pages[1],
@@ -85,8 +85,8 @@ func TestBuildNavTree_TransparentSection(t *testing.T) {
 		Slug:        "internal",
 		Transparent: true,
 		Pages: []*engine.Page{
-			{Title: "Page A", Slug: "a", RelPermalink: "/docs/a/", Weight: 1, Kind: engine.KindPage},
-			{Title: "Page B", Slug: "b", RelPermalink: "/docs/b/", Weight: 2, Kind: engine.KindPage},
+			{PageIdentity: engine.PageIdentity{Title: "Page A", Slug: "a", RelPermalink: "/docs/a/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 1}},
+			{PageIdentity: engine.PageIdentity{Title: "Page B", Slug: "b", RelPermalink: "/docs/b/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 2}},
 		},
 	}
 	for _, p := range sec.Pages {
@@ -119,9 +119,9 @@ func TestBuildNavTree_NonRenderingSection(t *testing.T) {
 		Slug:      "advanced",
 		Permalink: "/docs/advanced/",
 		Render:    false,
-		IndexPage: &engine.Page{Title: "Advanced", Weight: 10, Kind: engine.KindSection},
+		IndexPage: &engine.Page{PageIdentity: engine.PageIdentity{Title: "Advanced", Kind: engine.KindSection}, PageMeta: engine.PageMeta{Weight: 10}},
 		Pages: []*engine.Page{
-			{Title: "Internals", Slug: "internals", RelPermalink: "/docs/advanced/internals/", Kind: engine.KindPage},
+			{PageIdentity: engine.PageIdentity{Title: "Internals", Slug: "internals", RelPermalink: "/docs/advanced/internals/", Kind: engine.KindPage}},
 		},
 	}
 	for _, p := range sec.Pages {
@@ -155,8 +155,8 @@ func TestBuildNavTree_SidebarHidden(t *testing.T) {
 		Title:  "Docs",
 		Config: docsConfig(),
 		Pages: []*engine.Page{
-			{Title: "Visible", Slug: "visible", RelPermalink: "/docs/visible/", Kind: engine.KindPage},
-			{Title: "Hidden", Slug: "hidden", RelPermalink: "/docs/hidden/", SidebarHidden: true, Kind: engine.KindPage},
+			{PageIdentity: engine.PageIdentity{Title: "Visible", Slug: "visible", RelPermalink: "/docs/visible/", Kind: engine.KindPage}},
+			{PageIdentity: engine.PageIdentity{Title: "Hidden", Slug: "hidden", RelPermalink: "/docs/hidden/", Kind: engine.KindPage}, PageSidebar: engine.PageSidebar{SidebarHidden: true}},
 		},
 	}
 
@@ -176,7 +176,7 @@ func TestBuildNavTree_SidebarLabel(t *testing.T) {
 		Title:  "Docs",
 		Config: docsConfig(),
 		Pages: []*engine.Page{
-			{Title: "Advanced Configuration Guide", SidebarLabel: "Config", Slug: "config", RelPermalink: "/docs/config/", Kind: engine.KindPage},
+			{PageIdentity: engine.PageIdentity{Title: "Advanced Configuration Guide", Slug: "config", RelPermalink: "/docs/config/", Kind: engine.KindPage}, PageSidebar: engine.PageSidebar{SidebarLabel: "Config"}},
 		},
 	}
 
@@ -193,9 +193,9 @@ func TestBuildNavTree_WeightSorting(t *testing.T) {
 		Title:  "Docs",
 		Config: docsConfig(),
 		Pages: []*engine.Page{
-			{Title: "Zebra", Slug: "z", RelPermalink: "/docs/z/", Weight: 3, Kind: engine.KindPage},
-			{Title: "Apple", Slug: "a", RelPermalink: "/docs/a/", Weight: 1, Kind: engine.KindPage},
-			{Title: "Mango", Slug: "m", RelPermalink: "/docs/m/", Weight: 2, Kind: engine.KindPage},
+			{PageIdentity: engine.PageIdentity{Title: "Zebra", Slug: "z", RelPermalink: "/docs/z/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 3}},
+			{PageIdentity: engine.PageIdentity{Title: "Apple", Slug: "a", RelPermalink: "/docs/a/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 1}},
+			{PageIdentity: engine.PageIdentity{Title: "Mango", Slug: "m", RelPermalink: "/docs/m/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 2}},
 		},
 	}
 
@@ -219,10 +219,10 @@ func TestBuildNavTree_FlatList(t *testing.T) {
 		Slug:      "sec",
 		Permalink: "/docs/sec/",
 		Render:    true,
-		IndexPage: &engine.Page{Title: "Section", Kind: engine.KindSection},
+		IndexPage: &engine.Page{PageIdentity: engine.PageIdentity{Title: "Section", Kind: engine.KindSection}},
 		Pages: []*engine.Page{
-			{Title: "B", Slug: "b", RelPermalink: "/docs/sec/b/", Weight: 2, Kind: engine.KindPage},
-			{Title: "A", Slug: "a", RelPermalink: "/docs/sec/a/", Weight: 1, Kind: engine.KindPage},
+			{PageIdentity: engine.PageIdentity{Title: "B", Slug: "b", RelPermalink: "/docs/sec/b/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 2}},
+			{PageIdentity: engine.PageIdentity{Title: "A", Slug: "a", RelPermalink: "/docs/sec/a/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 1}},
 		},
 	}
 	for _, p := range sec.Pages {
@@ -236,7 +236,7 @@ func TestBuildNavTree_FlatList(t *testing.T) {
 		Config:   docsConfig(),
 		Sections: []*engine.Section{sec},
 		Pages: []*engine.Page{
-			{Title: "Root", Slug: "root", RelPermalink: "/docs/root/", Weight: 0, Kind: engine.KindPage},
+			{PageIdentity: engine.PageIdentity{Title: "Root", Slug: "root", RelPermalink: "/docs/root/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 0}},
 			sec.IndexPage,
 			sec.Pages[0],
 			sec.Pages[1],
@@ -271,11 +271,8 @@ func TestBuildNavTree_SidebarAttrsOnNode(t *testing.T) {
 		Config: docsConfig(),
 		Pages: []*engine.Page{
 			{
-				Title:        "API Page",
-				Slug:         "api",
-				RelPermalink: "/docs/api/",
-				Weight:       1,
-				Kind:         engine.KindPage,
+				PageIdentity: engine.PageIdentity{Title: "API Page", Slug: "api", RelPermalink: "/docs/api/", Kind: engine.KindPage},
+				PageMeta:     engine.PageMeta{Weight: 1},
 				Params:       map[string]any{"sidebar_attrs": map[string]string{"icon": "star", "data-new": "true"}},
 			},
 		},

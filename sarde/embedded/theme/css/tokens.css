@@ -1,6 +1,6 @@
 @layer sarde.base {
 	/* Sarde Default Theme — Token Definitions
-	   Primitives and semantic aliases. Dynamic tokens (--sarde-primary, --sarde-bg, etc.)
+	   Primitives and semantic aliases. Dynamic tokens (--sarde-accent, --sarde-bg, etc.)
 	   are injected via <style id="sarde-theme"> from theme.yaml resolution. */
 
 	:root {
@@ -18,6 +18,9 @@
 	  --sarde-gray-7: #3f3f46;
 	  --sarde-gray-8: #27272a;
 	  --sarde-gray-9: #18181b;
+
+	  /* ── Accent Hue ── */
+	  --sarde-hue-accent: 239;
 
 	  /* ── Status Hues ── */
 	  --sarde-hue-green: 150;
@@ -56,25 +59,32 @@
 	  --sarde-text: var(--sarde-gray-9);
 	  --sarde-text-muted: var(--sarde-gray-6);
 	  --sarde-text-subtle: var(--sarde-gray-5);
-	  --sarde-text-accent: var(--sarde-primary, #6366f1);
+	  --sarde-text-accent: var(--sarde-accent, hsl(var(--sarde-hue-accent), 80%, 55%));
 	  --sarde-text-invert: var(--sarde-white);
+	  --sarde-text-success: var(--sarde-green);
+	  --sarde-text-warning: var(--sarde-amber);
+	  --sarde-text-danger: var(--sarde-red);
 
 	  /* ── Semantic Backgrounds ── */
 	  --sarde-bg: var(--sarde-white);
 	  --sarde-bg-surface: var(--sarde-gray-1);
+	  --sarde-bg-nav: var(--sarde-bg);
+	  --sarde-bg-sidebar: var(--sarde-bg);
+	  --sarde-bg-footer: var(--sarde-bg);
+	  --sarde-bg-toc: transparent;
 	  --sarde-bg-inline-code: var(--sarde-gray-2);
-	  --sarde-bg-accent: var(--sarde-primary, #6366f1);
-	  --sarde-bg-accent-subtle: var(--sarde-primary-low, rgba(99, 102, 241, 0.1));
+	  --sarde-bg-accent: var(--sarde-accent, hsl(var(--sarde-hue-accent), 80%, 55%));
+	  --sarde-bg-accent-subtle: var(--sarde-accent-low, hsla(var(--sarde-hue-accent), 80%, 55%, 0.1));
 	  --sarde-hover: var(--sarde-gray-2);
 
 	  /* ── Semantic Borders ── */
 	  --sarde-border: var(--sarde-gray-3);
 	  --sarde-border-muted: var(--sarde-gray-3);
-	  --sarde-border-accent: var(--sarde-primary, #6366f1);
+	  --sarde-border-accent: var(--sarde-accent, hsl(var(--sarde-hue-accent), 80%, 55%));
 	  --sarde-hairline: color-mix(in srgb, var(--sarde-gray-5) 20%, transparent);
 
 	  /* ── Interactive ── */
-	  --sarde-focus-ring: var(--sarde-primary, #6366f1);
+	  --sarde-focus-ring: var(--sarde-accent, hsl(var(--sarde-hue-accent), 80%, 55%));
 
 	  /* ── Typography ── */
 	  --sarde-font-sans: var(--sarde-font-sans, 'Inter', system-ui, -apple-system, sans-serif);
@@ -88,6 +98,13 @@
 	  --sarde-text-2xl: 1.5rem;
 	  --sarde-text-3xl: 1.875rem;
 	  --sarde-text-4xl: 2.25rem;
+
+	  --sarde-text-h1: var(--sarde-text-3xl);
+	  --sarde-text-h2: var(--sarde-text-2xl);
+	  --sarde-text-h3: var(--sarde-text-xl);
+	  --sarde-text-h4: var(--sarde-text-lg);
+	  --sarde-text-h5: var(--sarde-text-base);
+	  --sarde-text-h6: var(--sarde-text-base);
 
 	  --sarde-line-height: 1.75;
 	  --sarde-line-height-headings: 1.2;

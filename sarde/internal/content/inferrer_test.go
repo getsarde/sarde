@@ -14,7 +14,7 @@ func TestInfer_TitleFromH1(t *testing.T) {
 	path := filepath.Join(dir, "test.md")
 	os.WriteFile(path, []byte("# Hello World\nContent here.\n"), 0644)
 
-	page := &engine.Page{RawContent: "# Hello World\nContent here.\n"}
+	page := &engine.Page{PageContent: engine.PageContent{RawContent: "# Hello World\nContent here.\n"}}
 	inf := &Inferrer{}
 	if err := inf.Infer(page, path); err != nil {
 		t.Fatal(err)
@@ -29,7 +29,7 @@ func TestInfer_TitleFromFilename(t *testing.T) {
 	path := filepath.Join(dir, "getting-started.md")
 	os.WriteFile(path, []byte("No heading here.\n"), 0644)
 
-	page := &engine.Page{RawContent: "No heading here.\n"}
+	page := &engine.Page{PageContent: engine.PageContent{RawContent: "No heading here.\n"}}
 	inf := &Inferrer{}
 	if err := inf.Infer(page, path); err != nil {
 		t.Fatal(err)
@@ -44,7 +44,7 @@ func TestInfer_TitlePreservesExisting(t *testing.T) {
 	path := filepath.Join(dir, "test.md")
 	os.WriteFile(path, []byte("# Markdown Title\n"), 0644)
 
-	page := &engine.Page{Title: "Explicit Title", RawContent: "# Markdown Title\n"}
+	page := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Explicit Title"}, PageContent: engine.PageContent{RawContent: "# Markdown Title\n"}}
 	inf := &Inferrer{}
 	inf.Infer(page, path)
 	if page.Title != "Explicit Title" {
@@ -57,7 +57,7 @@ func TestInfer_DateFromMtime(t *testing.T) {
 	path := filepath.Join(dir, "test.md")
 	os.WriteFile(path, []byte("content"), 0644)
 
-	page := &engine.Page{RawContent: "content"}
+	page := &engine.Page{PageContent: engine.PageContent{RawContent: "content"}}
 	inf := &Inferrer{}
 	inf.Infer(page, path)
 
@@ -75,7 +75,7 @@ func TestInfer_DatePreservesExisting(t *testing.T) {
 	os.WriteFile(path, []byte("content"), 0644)
 
 	explicit := time.Date(2025, 1, 15, 0, 0, 0, 0, time.UTC)
-	page := &engine.Page{Date: explicit, Updated: explicit, RawContent: "content"}
+	page := &engine.Page{PageIdentity: engine.PageIdentity{Date: explicit, Updated: explicit}, PageContent: engine.PageContent{RawContent: "content"}}
 	inf := &Inferrer{}
 	inf.Infer(page, path)
 
@@ -89,7 +89,7 @@ func TestInfer_WeightFromPrefix(t *testing.T) {
 	path := filepath.Join(dir, "03-advanced.md")
 	os.WriteFile(path, []byte("# Advanced\n"), 0644)
 
-	page := &engine.Page{RawContent: "# Advanced\n"}
+	page := &engine.Page{PageContent: engine.PageContent{RawContent: "# Advanced\n"}}
 	inf := &Inferrer{}
 	inf.Infer(page, path)
 
@@ -106,7 +106,7 @@ func TestInfer_SlugFromFilename(t *testing.T) {
 	path := filepath.Join(dir, "my-awesome-post.md")
 	os.WriteFile(path, []byte("content"), 0644)
 
-	page := &engine.Page{RawContent: "content"}
+	page := &engine.Page{PageContent: engine.PageContent{RawContent: "content"}}
 	inf := &Inferrer{}
 	inf.Infer(page, path)
 
@@ -120,7 +120,7 @@ func TestInfer_SlugPreservesExisting(t *testing.T) {
 	path := filepath.Join(dir, "01-basics.md")
 	os.WriteFile(path, []byte("content"), 0644)
 
-	page := &engine.Page{Slug: "custom-slug", RawContent: "content"}
+	page := &engine.Page{PageIdentity: engine.PageIdentity{Slug: "custom-slug"}, PageContent: engine.PageContent{RawContent: "content"}}
 	inf := &Inferrer{}
 	inf.Infer(page, path)
 
@@ -134,7 +134,7 @@ func TestInfer_DatePrefixFilename(t *testing.T) {
 	path := filepath.Join(dir, "2024-03-15-hello-world.md")
 	os.WriteFile(path, []byte("content"), 0644)
 
-	page := &engine.Page{RawContent: "content"}
+	page := &engine.Page{PageContent: engine.PageContent{RawContent: "content"}}
 	inf := &Inferrer{}
 	inf.Infer(page, path)
 
@@ -153,7 +153,7 @@ func TestInfer_DatePrefixFrontmatterWins(t *testing.T) {
 	os.WriteFile(path, []byte("content"), 0644)
 
 	explicit := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
-	page := &engine.Page{Date: explicit, RawContent: "content"}
+	page := &engine.Page{PageIdentity: engine.PageIdentity{Date: explicit}, PageContent: engine.PageContent{RawContent: "content"}}
 	inf := &Inferrer{}
 	inf.Infer(page, path)
 
@@ -167,7 +167,7 @@ func TestInfer_DatePrefixWithNumericRemainder(t *testing.T) {
 	path := filepath.Join(dir, "2024-01-15-01-intro.md")
 	os.WriteFile(path, []byte("content"), 0644)
 
-	page := &engine.Page{RawContent: "content"}
+	page := &engine.Page{PageContent: engine.PageContent{RawContent: "content"}}
 	inf := &Inferrer{}
 	inf.Infer(page, path)
 
@@ -190,7 +190,7 @@ func TestInfer_IndexMdSlugFromParentDir(t *testing.T) {
 	path := filepath.Join(docsDir, "_index.md")
 	os.WriteFile(path, []byte("# Docs\n"), 0644)
 
-	page := &engine.Page{RawContent: "# Docs\n"}
+	page := &engine.Page{PageContent: engine.PageContent{RawContent: "# Docs\n"}}
 	inf := &Inferrer{}
 	inf.Infer(page, path)
 

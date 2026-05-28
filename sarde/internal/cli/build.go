@@ -167,10 +167,19 @@ func resolveAll(cmd *cobra.Command, projectDir string) (*config.SiteConfig, *eng
 	// Fold theme shortcut fields into overrides before token resolution.
 	foldThemeShortcuts(cfg)
 
+	// Validate token names in overrides.
+	known := theme.KnownTokens()
+	if err := theme.ValidateOverrides("theme.overrides", cfg.Theme.Overrides, known); err != nil {
+		return nil, nil, err
+	}
+	if err := theme.ValidateOverrides("theme.dark_overrides", cfg.Theme.DarkOverrides, known); err != nil {
+		return nil, nil, err
+	}
+
 	// Resolve tokens.
 	lightTokens := theme.ResolveTokens(theme.DefaultTokens(), thm, cfg.Theme.Preset, cfg.Theme.Overrides)
 	lightTokens = theme.DeriveTokens(lightTokens)
-	darkTokens := theme.ResolveDarkTokens(theme.DefaultDarkTokens(), thm, cfg.Theme.Preset, nil)
+	darkTokens := theme.ResolveDarkTokens(theme.DefaultDarkTokens(), thm, cfg.Theme.Preset, darkOverrides(cfg))
 	styleTag := theme.GenerateStyleTag(lightTokens, darkTokens)
 
 	name := "Default"
@@ -212,13 +221,16 @@ func projectDirFromArgs(args []string) string {
 	return dir
 }
 
-// foldThemeShortcuts maps convenience theme config fields (primary_color, etc.)
+// foldThemeShortcuts maps convenience theme config fields (accent_color, etc.)
 // into the Overrides map so they flow through the token resolution cascade.
 // Explicit Overrides entries take precedence over shortcuts.
 func foldThemeShortcuts(cfg *config.SiteConfig) {
+	accentVal := cfg.Theme.AccentColor
+	if accentVal == "" {
+		accentVal = cfg.Theme.PrimaryColor
+	}
 	shortcuts := map[string]string{
-		"primary":   cfg.Theme.PrimaryColor,
-		"accent":    cfg.Theme.AccentColor,
+		"accent":    accentVal,
 		"font-sans": cfg.Theme.FontFamily,
 		"font-mono": cfg.Theme.FontMono,
 	}
@@ -238,4 +250,11 @@ func foldThemeShortcuts(cfg *config.SiteConfig) {
 	if cfg.Theme.CodeDark != "" && cfg.Markdown.Highlighting.DarkTheme == "" {
 		cfg.Markdown.Highlighting.DarkTheme = cfg.Theme.CodeDark
 	}
+}
+
+func darkOverrides(cfg *config.SiteConfig) map[string]string {
+	if len(cfg.Theme.DarkOverrides) > 0 {
+		return cfg.Theme.DarkOverrides
+	}
+	return cfg.Theme.Overrides
 }

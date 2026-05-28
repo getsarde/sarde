@@ -24,8 +24,8 @@ func TestLlmsTxt_BasicOutput(t *testing.T) {
 		},
 		OutputDir: outDir,
 		Pages: []*engine.Page{
-			{Title: "About", RelPermalink: "/about/", Kind: engine.KindPage},
-			{Title: "Contact", RelPermalink: "/contact/", Kind: engine.KindPage},
+			{PageIdentity: engine.PageIdentity{Title: "About", RelPermalink: "/about/", Kind: engine.KindPage}},
+			{PageIdentity: engine.PageIdentity{Title: "Contact", RelPermalink: "/contact/", Kind: engine.KindPage}},
 		},
 	}
 	ctx.SetWarnings(&warnings)
@@ -74,8 +74,8 @@ func TestLlmsTxt_ExcludeBlog(t *testing.T) {
 		Site:      &engine.SiteContext{Title: "Test"},
 		OutputDir: outDir,
 		Pages: []*engine.Page{
-			{Title: "Getting Started", RelPermalink: "/docs/getting-started/", Kind: engine.KindPage, Collection: docsCol},
-			{Title: "Hello World", RelPermalink: "/blog/hello-world/", Kind: engine.KindPage, Collection: blogCol},
+			{PageIdentity: engine.PageIdentity{Title: "Getting Started", RelPermalink: "/docs/getting-started/", Kind: engine.KindPage}, PageRelationships: engine.PageRelationships{Collection: docsCol}},
+			{PageIdentity: engine.PageIdentity{Title: "Hello World", RelPermalink: "/blog/hello-world/", Kind: engine.KindPage}, PageRelationships: engine.PageRelationships{Collection: blogCol}},
 		},
 	}
 	ctx.SetWarnings(&warnings)
@@ -106,7 +106,7 @@ func TestLlmsTxt_Disabled(t *testing.T) {
 		},
 		Site:      &engine.SiteContext{Title: "Test"},
 		OutputDir: outDir,
-		Pages:     []*engine.Page{{Title: "Page", RelPermalink: "/page/", Kind: engine.KindPage}},
+		Pages:     []*engine.Page{{PageIdentity: engine.PageIdentity{Title: "Page", RelPermalink: "/page/", Kind: engine.KindPage}}},
 	}
 	ctx.SetWarnings(&warnings)
 
@@ -128,10 +128,10 @@ func TestLlmsTxt_SkipsSectionsAndDrafts(t *testing.T) {
 		Site:      &engine.SiteContext{Title: "Test"},
 		OutputDir: outDir,
 		Pages: []*engine.Page{
-			{Title: "Home", RelPermalink: "/", Kind: engine.KindHome},
-			{Title: "Docs", RelPermalink: "/docs/", Kind: engine.KindSection},
-			{Title: "Draft", RelPermalink: "/draft/", Kind: engine.KindPage, Draft: true},
-			{Title: "Visible", RelPermalink: "/visible/", Kind: engine.KindPage},
+			{PageIdentity: engine.PageIdentity{Title: "Home", RelPermalink: "/", Kind: engine.KindHome}},
+			{PageIdentity: engine.PageIdentity{Title: "Docs", RelPermalink: "/docs/", Kind: engine.KindSection}},
+			{PageIdentity: engine.PageIdentity{Title: "Draft", RelPermalink: "/draft/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Draft: true}},
+			{PageIdentity: engine.PageIdentity{Title: "Visible", RelPermalink: "/visible/", Kind: engine.KindPage}},
 		},
 	}
 	ctx.SetWarnings(&warnings)

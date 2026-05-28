@@ -19,16 +19,14 @@ func TestSearch_GeneratesIndex(t *testing.T) {
 		Site:      &engine.SiteContext{BaseURL: "https://example.com"},
 		Pages: []*engine.Page{
 			{
-				Title:        "Getting Started",
-				RelPermalink: "/docs/getting-started/",
-				Content:      template.HTML("<p>This is the getting started guide.</p>"),
-				Collection:   &engine.Collection{Name: "docs"},
-				Tags:         []string{"tutorial", "beginner"},
+				PageIdentity:      engine.PageIdentity{Title: "Getting Started", RelPermalink: "/docs/getting-started/"},
+				PageContent:       engine.PageContent{Content: template.HTML("<p>This is the getting started guide.</p>")},
+				PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "docs"}},
+				PageTaxonomy:      engine.PageTaxonomy{Tags: []string{"tutorial", "beginner"}},
 			},
 			{
-				Title:        "Draft",
-				RelPermalink: "/docs/draft/",
-				Draft:        true,
+				PageIdentity: engine.PageIdentity{Title: "Draft", RelPermalink: "/docs/draft/"},
+				PageMeta:     engine.PageMeta{Draft: true},
 			},
 		},
 	}
@@ -81,7 +79,7 @@ func TestSearch_BuildDoneWritesVendorAssets(t *testing.T) {
 	ctx := &BuildDoneContext{
 		Config:    config.Defaults(),
 		OutputDir: outDir,
-		Pages:     []*engine.Page{{Title: "T", RelPermalink: "/t/"}},
+		Pages:     []*engine.Page{{PageIdentity: engine.PageIdentity{Title: "T", RelPermalink: "/t/"}}},
 	}
 	ctx.SetWarnings(&warnings)
 
@@ -103,7 +101,7 @@ func TestSearch_BeforeRenderAppendsScripts(t *testing.T) {
 	}
 	rd := &engine.RouteData{}
 	err := p.Hooks.BeforeRender(&BeforeRenderContext{
-		Page:      &engine.Page{Title: "X"},
+		Page:      &engine.Page{PageIdentity: engine.PageIdentity{Title: "X"}},
 		RouteData: rd,
 	})
 	if err != nil {
@@ -121,7 +119,7 @@ func TestSearch_IncludesDescription(t *testing.T) {
 		Config:    config.Defaults(),
 		OutputDir: outDir,
 		Pages: []*engine.Page{
-			{Title: "T", Description: "short summary", RelPermalink: "/t/"},
+			{PageIdentity: engine.PageIdentity{Title: "T", RelPermalink: "/t/"}, PageMeta: engine.PageMeta{Description: "short summary"}},
 		},
 	}
 	ctx.SetWarnings(&warnings)
@@ -152,7 +150,7 @@ func TestSearch_ContentTruncation(t *testing.T) {
 		Config:    config.Defaults(),
 		OutputDir: outDir,
 		Pages: []*engine.Page{
-			{Title: "Long", RelPermalink: "/long/", Content: template.HTML(longContent)},
+			{PageIdentity: engine.PageIdentity{Title: "Long", RelPermalink: "/long/"}, PageContent: engine.PageContent{Content: template.HTML(longContent)}},
 		},
 	}
 	ctx.SetWarnings(&warnings)

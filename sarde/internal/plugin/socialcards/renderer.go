@@ -215,9 +215,15 @@ func resolveBackground(cfg map[string]any, siteCfg *config.SiteConfig) color.NRG
 	if override := cfgString(cfg, "bg_color", ""); override != "" {
 		return parseHexColor(override)
 	}
-	if siteCfg != nil && siteCfg.Theme.PrimaryColor != "" {
-		c := parseHexColor(siteCfg.Theme.PrimaryColor)
-		return darken(c, 0.30)
+	if siteCfg != nil {
+		accentVal := siteCfg.Theme.AccentColor
+		if accentVal == "" {
+			accentVal = siteCfg.Theme.PrimaryColor
+		}
+		if accentVal != "" {
+			c := parseHexColor(accentVal)
+			return darken(c, 0.30)
+		}
 	}
 	return color.NRGBA{R: 0x1a, G: 0x1a, B: 0x2e, A: 0xff}
 }

@@ -77,8 +77,7 @@ func TestResourcesByType(t *testing.T) {
 
 func TestEnhancePageResources_SetsMetadata(t *testing.T) {
 	page := &engine.Page{
-		FilePath:     "/project/content/blog/my-post/index.md",
-		RelPermalink: "/blog/my-post/",
+		PageIdentity: engine.PageIdentity{FilePath: "/project/content/blog/my-post/index.md", RelPermalink: "/blog/my-post/"},
 		Resources: []engine.Resource{
 			{Name: "doc.pdf"},
 			{Name: "data.json"},
@@ -115,8 +114,7 @@ func TestEnhancePageResources_SetsMetadata(t *testing.T) {
 
 func TestEnhancePageResources_Empty(t *testing.T) {
 	page := &engine.Page{
-		FilePath:     "/project/content/about.md",
-		RelPermalink: "/about/",
+		PageIdentity: engine.PageIdentity{FilePath: "/project/content/about.md", RelPermalink: "/about/"},
 	}
 
 	enhancer := &ResourceEnhancer{}

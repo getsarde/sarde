@@ -118,7 +118,7 @@ func TestProcessor_UnknownShortcode(t *testing.T) {
 	proc := NewProcessor(reg)
 
 	input := `before {{< unknown />}} after`
-	result, warnings := proc.Process(input, &engine.Page{FilePath: "test.md"}, &engine.SiteContext{}, nil)
+	result, warnings := proc.Process(input, &engine.Page{PageIdentity: engine.PageIdentity{FilePath: "test.md"}}, &engine.SiteContext{}, nil)
 
 	if len(warnings) != 1 {
 		t.Fatalf("expected 1 warning, got %d", len(warnings))
@@ -138,7 +138,7 @@ func TestProcessor_MismatchedClosing(t *testing.T) {
 	proc := NewProcessor(reg)
 
 	input := `{{< alert >}}content without closing`
-	result, warnings := proc.Process(input, &engine.Page{FilePath: "test.md"}, &engine.SiteContext{}, nil)
+	result, warnings := proc.Process(input, &engine.Page{PageIdentity: engine.PageIdentity{FilePath: "test.md"}}, &engine.SiteContext{}, nil)
 
 	if len(warnings) != 1 {
 		t.Fatalf("expected 1 warning, got %d: %v", len(warnings), warnings)
@@ -277,7 +277,7 @@ func TestProcessor_TemplateExecutionError(t *testing.T) {
 	})
 	proc := NewProcessor(reg)
 
-	_, warnings := proc.Process(`{{< bad />}}`, &engine.Page{FilePath: "test.md"}, &engine.SiteContext{}, nil)
+	_, warnings := proc.Process(`{{< bad />}}`, &engine.Page{PageIdentity: engine.PageIdentity{FilePath: "test.md"}}, &engine.SiteContext{}, nil)
 
 	if len(warnings) != 1 {
 		t.Fatalf("expected 1 warning for execution error, got %d", len(warnings))

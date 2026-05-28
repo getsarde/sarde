@@ -7,9 +7,9 @@ import (
 )
 
 func buildTestTree() *engine.NavTree {
-	pageA := &engine.Page{Title: "Page A", RelPermalink: "/docs/a/"}
-	pageB := &engine.Page{Title: "Page B", RelPermalink: "/docs/guides/b/"}
-	pageC := &engine.Page{Title: "Page C", RelPermalink: "/docs/guides/c/"}
+	pageA := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Page A", RelPermalink: "/docs/a/"}}
+	pageB := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Page B", RelPermalink: "/docs/guides/b/"}}
+	pageC := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Page C", RelPermalink: "/docs/guides/c/"}}
 
 	root := &engine.NavNode{Label: "Root", Depth: 0}
 	nodeA := &engine.NavNode{Label: "Page A", URL: "/docs/a/", Page: pageA, Depth: 1, Parent: root}
@@ -30,7 +30,7 @@ func buildTestTree() *engine.NavTree {
 
 func TestMarkActive_LeafNode(t *testing.T) {
 	tree := buildTestTree()
-	page := &engine.Page{RelPermalink: "/docs/a/"}
+	page := &engine.Page{PageIdentity: engine.PageIdentity{RelPermalink: "/docs/a/"}}
 
 	marked := MarkActive(tree, page)
 
@@ -48,7 +48,7 @@ func TestMarkActive_LeafNode(t *testing.T) {
 
 func TestMarkActive_NestedNode(t *testing.T) {
 	tree := buildTestTree()
-	page := &engine.Page{RelPermalink: "/docs/guides/b/"}
+	page := &engine.Page{PageIdentity: engine.PageIdentity{RelPermalink: "/docs/guides/b/"}}
 
 	marked := MarkActive(tree, page)
 
@@ -90,8 +90,8 @@ func TestMarkActive_NilPage(t *testing.T) {
 func TestMarkActive_CloneIndependence(t *testing.T) {
 	tree := buildTestTree()
 
-	m1 := MarkActive(tree, &engine.Page{RelPermalink: "/docs/a/"})
-	m2 := MarkActive(tree, &engine.Page{RelPermalink: "/docs/guides/b/"})
+	m1 := MarkActive(tree, &engine.Page{PageIdentity: engine.PageIdentity{RelPermalink: "/docs/a/"}})
+	m2 := MarkActive(tree, &engine.Page{PageIdentity: engine.PageIdentity{RelPermalink: "/docs/guides/b/"}})
 
 	// m1 and m2 should be independent.
 	if m1.Root.Children[0].IsActive != true {

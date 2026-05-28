@@ -8,26 +8,17 @@ import (
 
 func TestGenerateFallbacks_CreatesMissing(t *testing.T) {
 	enPage := &engine.Page{
-		Lang:         "en",
-		LangRelPath:  "docs/getting-started.md",
-		Title:        "Getting Started",
-		RelPermalink: "/docs/getting-started/",
-		Permalink:    "/docs/getting-started/",
+		PageIdentity: engine.PageIdentity{Title: "Getting Started", RelPermalink: "/docs/getting-started/", Permalink: "/docs/getting-started/"},
+		PageI18n:     engine.PageI18n{Lang: "en", LangRelPath: "docs/getting-started.md"},
 	}
 	frPage := &engine.Page{
-		Lang:         "fr",
-		LangRelPath:  "docs/getting-started.md",
-		Title:        "Premiers pas",
-		RelPermalink: "/fr/docs/getting-started/",
-		Permalink:    "/fr/docs/getting-started/",
+		PageIdentity: engine.PageIdentity{Title: "Premiers pas", RelPermalink: "/fr/docs/getting-started/", Permalink: "/fr/docs/getting-started/"},
+		PageI18n:     engine.PageI18n{Lang: "fr", LangRelPath: "docs/getting-started.md"},
 	}
 	// en has an extra page that fr doesn't have
 	enOnly := &engine.Page{
-		Lang:         "en",
-		LangRelPath:  "docs/api.md",
-		Title:        "API Reference",
-		RelPermalink: "/docs/api/",
-		Permalink:    "/docs/api/",
+		PageIdentity: engine.PageIdentity{Title: "API Reference", RelPermalink: "/docs/api/", Permalink: "/docs/api/"},
+		PageI18n:     engine.PageI18n{Lang: "en", LangRelPath: "docs/api.md"},
 	}
 
 	pages := []*engine.Page{enPage, frPage, enOnly}
@@ -57,7 +48,7 @@ func TestGenerateFallbacks_CreatesMissing(t *testing.T) {
 
 func TestGenerateFallbacks_SingleLanguage(t *testing.T) {
 	pages := []*engine.Page{
-		{Lang: "en", LangRelPath: "docs/api.md"},
+		{PageI18n: engine.PageI18n{Lang: "en", LangRelPath: "docs/api.md"}},
 	}
 
 	fallbacks := GenerateFallbacks(pages, []string{"en"}, "en")
@@ -68,10 +59,8 @@ func TestGenerateFallbacks_SingleLanguage(t *testing.T) {
 
 func TestGenerateFallbacks_ThreeLanguages(t *testing.T) {
 	enPage := &engine.Page{
-		Lang:         "en",
-		LangRelPath:  "docs/intro.md",
-		RelPermalink: "/docs/intro/",
-		Permalink:    "/docs/intro/",
+		PageIdentity: engine.PageIdentity{RelPermalink: "/docs/intro/", Permalink: "/docs/intro/"},
+		PageI18n:     engine.PageI18n{Lang: "en", LangRelPath: "docs/intro.md"},
 	}
 
 	pages := []*engine.Page{enPage}
@@ -96,8 +85,8 @@ func TestGenerateFallbacks_ThreeLanguages(t *testing.T) {
 
 func TestGenerateFallbacks_NoFallbackWhenTranslationExists(t *testing.T) {
 	pages := []*engine.Page{
-		{Lang: "en", LangRelPath: "about.md", RelPermalink: "/about/", Permalink: "/about/"},
-		{Lang: "fr", LangRelPath: "about.md", RelPermalink: "/fr/about/", Permalink: "/fr/about/"},
+		{PageIdentity: engine.PageIdentity{RelPermalink: "/about/", Permalink: "/about/"}, PageI18n: engine.PageI18n{Lang: "en", LangRelPath: "about.md"}},
+		{PageIdentity: engine.PageIdentity{RelPermalink: "/fr/about/", Permalink: "/fr/about/"}, PageI18n: engine.PageI18n{Lang: "fr", LangRelPath: "about.md"}},
 	}
 
 	fallbacks := GenerateFallbacks(pages, []string{"en", "fr"}, "en")

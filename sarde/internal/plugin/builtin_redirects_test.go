@@ -76,9 +76,8 @@ func TestRedirectsBuildDone_PageAliases(t *testing.T) {
 		OutputDir: outDir,
 		Pages: []*engine.Page{
 			{
-				Title:        "New Page",
-				RelPermalink: "/docs/new-page/",
-				Aliases:      []string{"/docs/old-name/", "/docs/renamed/"},
+				PageIdentity: engine.PageIdentity{Title: "New Page", RelPermalink: "/docs/new-page/"},
+				PageTaxonomy: engine.PageTaxonomy{Aliases: []string{"/docs/old-name/", "/docs/renamed/"}},
 			},
 		},
 	}
@@ -113,9 +112,8 @@ func TestRedirectsBuildDone_AliasOverridesGlobal(t *testing.T) {
 		OutputDir: outDir,
 		Pages: []*engine.Page{
 			{
-				Title:        "Page",
-				RelPermalink: "/alias-target/",
-				Aliases:      []string{"/conflict/"},
+				PageIdentity: engine.PageIdentity{Title: "Page", RelPermalink: "/alias-target/"},
+				PageTaxonomy: engine.PageTaxonomy{Aliases: []string{"/conflict/"}},
 			},
 		},
 	}

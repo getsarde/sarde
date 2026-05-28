@@ -95,6 +95,7 @@ func (b *SiteBuilder) renderPages(pages []*engine.Page, siteCtx *engine.SiteCont
 
 func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext) (RenderedPage, error) {
 	rd := sardetemplate.BuildRouteData(page, siteCtx, b.themeConfig)
+	rd.Styles = append(b.globalCSSURLs, rd.Styles...)
 	if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, siteCtx); err != nil {
 		return RenderedPage{}, err
 	}
@@ -209,10 +210,12 @@ func minifyRendered(rendered []RenderedPage, parallel bool, workerCount int) err
 
 func buildTaxonomyIndexStub(tax *engine.Taxonomy, termEntries []*engine.TermEntry) *engine.Page {
 	return &engine.Page{
-		Title:        tax.Name,
-		Kind:         engine.KindTaxonomy,
-		Permalink:    tax.Permalink,
-		RelPermalink: tax.Permalink,
+		PageIdentity: engine.PageIdentity{
+			Title:        tax.Name,
+			Kind:         engine.KindTaxonomy,
+			Permalink:    tax.Permalink,
+			RelPermalink: tax.Permalink,
+		},
 		Params: map[string]any{
 			consts.TaxonomyKey:    tax,
 			consts.TermEntriesKey: termEntries,
@@ -222,10 +225,12 @@ func buildTaxonomyIndexStub(tax *engine.Taxonomy, termEntries []*engine.TermEntr
 
 func buildTermStub(tax *engine.Taxonomy, term *engine.TaxonomyTerm) *engine.Page {
 	return &engine.Page{
-		Title:        term.Label,
-		Kind:         engine.KindTerm,
-		Permalink:    term.Permalink,
-		RelPermalink: term.Permalink,
+		PageIdentity: engine.PageIdentity{
+			Title:        term.Label,
+			Kind:         engine.KindTerm,
+			Permalink:    term.Permalink,
+			RelPermalink: term.Permalink,
+		},
 		Params: map[string]any{
 			consts.TaxonomyKey:     tax,
 			consts.TaxonomyTermKey: term,
@@ -235,10 +240,12 @@ func buildTermStub(tax *engine.Taxonomy, term *engine.TaxonomyTerm) *engine.Page
 
 func buildTermPaginatedStub(tax *engine.Taxonomy, term *engine.TaxonomyTerm, permalink string, n int) *engine.Page {
 	return &engine.Page{
-		Title:        term.Label,
-		Kind:         engine.KindTerm,
-		Permalink:    permalink,
-		RelPermalink: permalink,
+		PageIdentity: engine.PageIdentity{
+			Title:        term.Label,
+			Kind:         engine.KindTerm,
+			Permalink:    permalink,
+			RelPermalink: permalink,
+		},
 		Params: map[string]any{
 			consts.TaxonomyKey:          tax,
 			consts.TaxonomyTermKey:      term,

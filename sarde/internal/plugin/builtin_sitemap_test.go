@@ -18,9 +18,9 @@ func TestSitemap_GeneratesXML(t *testing.T) {
 		OutputDir: outDir,
 		Site:      &engine.SiteContext{BaseURL: "https://example.com"},
 		Pages: []*engine.Page{
-			{Title: "Home", RelPermalink: "/", Date: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)},
-			{Title: "About", RelPermalink: "/about/", Date: time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)},
-			{Title: "Draft", RelPermalink: "/draft/", Draft: true},
+			{PageIdentity: engine.PageIdentity{Title: "Home", RelPermalink: "/", Date: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)}},
+			{PageIdentity: engine.PageIdentity{Title: "About", RelPermalink: "/about/", Date: time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)}},
+			{PageIdentity: engine.PageIdentity{Title: "Draft", RelPermalink: "/draft/"}, PageMeta: engine.PageMeta{Draft: true}},
 		},
 	}
 	ctx.SetWarnings(&warnings)
@@ -62,8 +62,8 @@ func TestSitemap_ExcludePatterns(t *testing.T) {
 		OutputDir: outDir,
 		Site:      &engine.SiteContext{BaseURL: "https://example.com"},
 		Pages: []*engine.Page{
-			{Title: "Home", RelPermalink: "/"},
-			{Title: "Secret", RelPermalink: "/secret/"},
+			{PageIdentity: engine.PageIdentity{Title: "Home", RelPermalink: "/"}},
+			{PageIdentity: engine.PageIdentity{Title: "Secret", RelPermalink: "/secret/"}},
 		},
 	}
 	ctx.SetWarnings(&warnings)
@@ -89,9 +89,9 @@ func TestSitemap_ExcludesPaginatedURLs(t *testing.T) {
 		OutputDir: outDir,
 		Site:      &engine.SiteContext{BaseURL: "https://example.com"},
 		Pages: []*engine.Page{
-			{Title: "Blog", RelPermalink: "/blog/"},
-			{Title: "Blog Page 2", RelPermalink: "/blog/page/2/"},
-			{Title: "Blog Page 3", RelPermalink: "/blog/page/3/"},
+			{PageIdentity: engine.PageIdentity{Title: "Blog", RelPermalink: "/blog/"}},
+			{PageIdentity: engine.PageIdentity{Title: "Blog Page 2", RelPermalink: "/blog/page/2/"}},
+			{PageIdentity: engine.PageIdentity{Title: "Blog Page 3", RelPermalink: "/blog/page/3/"}},
 		},
 	}
 	ctx.SetWarnings(&warnings)

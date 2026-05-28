@@ -9,9 +9,9 @@ import (
 
 func TestSortPages_DateDesc(t *testing.T) {
 	pages := []*engine.Page{
-		{Title: "Old", Date: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)},
-		{Title: "New", Date: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)},
-		{Title: "Mid", Date: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)},
+		{PageIdentity: engine.PageIdentity{Title: "Old", Date: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)}},
+		{PageIdentity: engine.PageIdentity{Title: "New", Date: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)}},
+		{PageIdentity: engine.PageIdentity{Title: "Mid", Date: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)}},
 	}
 	SortPages(pages, "date", "desc")
 	if pages[0].Title != "New" || pages[1].Title != "Mid" || pages[2].Title != "Old" {
@@ -21,8 +21,8 @@ func TestSortPages_DateDesc(t *testing.T) {
 
 func TestSortPages_DateAsc(t *testing.T) {
 	pages := []*engine.Page{
-		{Title: "New", Date: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)},
-		{Title: "Old", Date: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)},
+		{PageIdentity: engine.PageIdentity{Title: "New", Date: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)}},
+		{PageIdentity: engine.PageIdentity{Title: "Old", Date: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)}},
 	}
 	SortPages(pages, "date", "asc")
 	if pages[0].Title != "Old" {
@@ -32,9 +32,9 @@ func TestSortPages_DateAsc(t *testing.T) {
 
 func TestSortPages_WeightAsc(t *testing.T) {
 	pages := []*engine.Page{
-		{Title: "C", Weight: 3},
-		{Title: "A", Weight: 1},
-		{Title: "B", Weight: 2},
+		{PageIdentity: engine.PageIdentity{Title: "C"}, PageMeta: engine.PageMeta{Weight: 3}},
+		{PageIdentity: engine.PageIdentity{Title: "A"}, PageMeta: engine.PageMeta{Weight: 1}},
+		{PageIdentity: engine.PageIdentity{Title: "B"}, PageMeta: engine.PageMeta{Weight: 2}},
 	}
 	SortPages(pages, "weight", "asc")
 	if pages[0].Title != "A" || pages[1].Title != "B" || pages[2].Title != "C" {
@@ -44,8 +44,8 @@ func TestSortPages_WeightAsc(t *testing.T) {
 
 func TestSortPages_WeightTiebreaker(t *testing.T) {
 	pages := []*engine.Page{
-		{Title: "Zebra", Weight: 1},
-		{Title: "Alpha", Weight: 1},
+		{PageIdentity: engine.PageIdentity{Title: "Zebra"}, PageMeta: engine.PageMeta{Weight: 1}},
+		{PageIdentity: engine.PageIdentity{Title: "Alpha"}, PageMeta: engine.PageMeta{Weight: 1}},
 	}
 	SortPages(pages, "weight", "asc")
 	if pages[0].Title != "Alpha" {
@@ -55,9 +55,9 @@ func TestSortPages_WeightTiebreaker(t *testing.T) {
 
 func TestSortPages_TitleAsc(t *testing.T) {
 	pages := []*engine.Page{
-		{Title: "Zebra"},
-		{Title: "alpha"},
-		{Title: "Beta"},
+		{PageIdentity: engine.PageIdentity{Title: "Zebra"}},
+		{PageIdentity: engine.PageIdentity{Title: "alpha"}},
+		{PageIdentity: engine.PageIdentity{Title: "Beta"}},
 	}
 	SortPages(pages, "title", "asc")
 	if pages[0].Title != "alpha" || pages[1].Title != "Beta" || pages[2].Title != "Zebra" {
@@ -67,8 +67,8 @@ func TestSortPages_TitleAsc(t *testing.T) {
 
 func TestSortPages_SlugAsc(t *testing.T) {
 	pages := []*engine.Page{
-		{Slug: "z-post"},
-		{Slug: "a-post"},
+		{PageIdentity: engine.PageIdentity{Slug: "z-post"}},
+		{PageIdentity: engine.PageIdentity{Slug: "a-post"}},
 	}
 	SortPages(pages, "slug", "asc")
 	if pages[0].Slug != "a-post" {

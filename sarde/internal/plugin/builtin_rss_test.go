@@ -23,9 +23,9 @@ func TestRSS_GeneratesFeed(t *testing.T) {
 				Title:  "Blog",
 				Config: &engine.CollectionConfig{Feed: true},
 				Pages: []*engine.Page{
-					{Title: "Post 1", RelPermalink: "/blog/post-1/", Date: time.Date(2025, 3, 1, 0, 0, 0, 0, time.UTC)},
-					{Title: "Post 2", RelPermalink: "/blog/post-2/", Date: time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)},
-					{Title: "Draft", RelPermalink: "/blog/draft/", Draft: true},
+					{PageIdentity: engine.PageIdentity{Title: "Post 1", RelPermalink: "/blog/post-1/", Date: time.Date(2025, 3, 1, 0, 0, 0, 0, time.UTC)}},
+					{PageIdentity: engine.PageIdentity{Title: "Post 2", RelPermalink: "/blog/post-2/", Date: time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)}},
+					{PageIdentity: engine.PageIdentity{Title: "Draft", RelPermalink: "/blog/draft/"}, PageMeta: engine.PageMeta{Draft: true}},
 				},
 			},
 		},
@@ -67,9 +67,11 @@ func TestRSS_ItemLimit(t *testing.T) {
 	pages := make([]*engine.Page, 30)
 	for i := range pages {
 		pages[i] = &engine.Page{
-			Title:        "Post",
-			RelPermalink: "/blog/post/",
-			Date:         time.Now(),
+			PageIdentity: engine.PageIdentity{
+				Title:        "Post",
+				RelPermalink: "/blog/post/",
+				Date:         time.Now(),
+			},
 		}
 	}
 

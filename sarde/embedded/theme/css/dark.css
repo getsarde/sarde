@@ -1,50 +1,13 @@
 @layer sarde.reset {
-	/* Sarde Default Theme — Dark Mode Overrides
-	   Token-based dark mode swaps are handled by :root.dark in the generated
-	   <style id="sarde-theme"> block. This file handles non-token overrides. */
+	/* Sarde Default Theme — Dark Mode Non-Token Overrides
+	   Token-based dark mode swaps (colors, shadows, glass, asides) are handled
+	   by DefaultDarkTokens() → <style id="sarde-theme"> :root.dark block.
+	   This file handles rules that can't be expressed as --sarde-* custom properties. */
 
 	:root.dark {
-	  /* ── Semantic Remaps ── */
-	  --sarde-text: var(--sarde-gray-3);
-	  --sarde-text-muted: var(--sarde-gray-4);
-	  --sarde-text-subtle: var(--sarde-gray-5);
-	  --sarde-text-accent: var(--sarde-primary-high, var(--sarde-primary, #818cf8));
-	  --sarde-text-invert: var(--sarde-black);
-
-	  --sarde-bg: var(--sarde-black);
-	  --sarde-bg-surface: var(--sarde-gray-9);
-	  --sarde-bg-inline-code: var(--sarde-gray-8);
-	  --sarde-bg-accent-subtle: var(--sarde-primary-low, rgba(99, 102, 241, 0.15));
-	  --sarde-hover: var(--sarde-gray-8);
-
-	  --sarde-border: var(--sarde-gray-8);
-	  --sarde-border-muted: var(--sarde-gray-7);
-	  --sarde-border-accent: var(--sarde-primary-high, var(--sarde-primary, #818cf8));
-	  --sarde-hairline: var(--sarde-gray-8);
-
-	  --sarde-code-bg: var(--sarde-gray-9);
-	  --sarde-code-border: var(--sarde-gray-7);
-
-	  /* ── Shadows ── */
-	  --sarde-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
-	  --sarde-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-	  --sarde-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
-	  --sarde-shadow-accent: 0 4px 14px -2px rgba(129, 140, 248, 0.2);
-
-	  /* ── Glass ── */
-	  --sarde-glass-bg: rgba(0, 0, 0, 0.6);
-	  --sarde-glass-border: rgba(255, 255, 255, 0.08);
-
-	  /* ── Dark aside variants ── */
-	  --sarde-aside-note-bg: rgba(59, 130, 246, 0.1);
-	  --sarde-aside-tip-bg: rgba(34, 197, 94, 0.1);
-	  --sarde-aside-caution-bg: rgba(245, 158, 11, 0.1);
-	  --sarde-aside-danger-bg: rgba(239, 68, 68, 0.1);
-
 	  color-scheme: dark;
 	}
 
-	/* Image opacity in dark mode */
 	:root.dark img:not([src*=".svg"]) {
 	  opacity: 0.9;
 	}

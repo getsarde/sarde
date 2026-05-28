@@ -6,13 +6,13 @@ import (
 )
 
 func TestGenerateCSS_LightOnly(t *testing.T) {
-	css := GenerateCSS(map[string]string{"primary": "#6366f1", "bg": "#ffffff"}, nil)
+	css := GenerateCSS(map[string]string{"accent": "#6366f1", "bg": "#ffffff"}, nil)
 
 	if !strings.Contains(css, ":root {") {
 		t.Error("expected :root block")
 	}
-	if !strings.Contains(css, "--sarde-primary: #6366f1") {
-		t.Error("expected --sarde-primary")
+	if !strings.Contains(css, "--sarde-accent: #6366f1") {
+		t.Error("expected --sarde-accent")
 	}
 	if !strings.Contains(css, "--sarde-bg: #ffffff") {
 		t.Error("expected --sarde-bg")
@@ -42,15 +42,15 @@ func TestGenerateCSS_SortedKeys(t *testing.T) {
 	tokens := map[string]string{
 		"text":    "#1e293b",
 		"bg":      "#ffffff",
-		"primary": "#6366f1",
+		"accent": "#6366f1",
 	}
 	css := GenerateCSS(tokens, nil)
 
+	accentIdx := strings.Index(css, "--sarde-accent")
 	bgIdx := strings.Index(css, "--sarde-bg")
-	primaryIdx := strings.Index(css, "--sarde-primary")
 	textIdx := strings.Index(css, "--sarde-text")
 
-	if bgIdx > primaryIdx || primaryIdx > textIdx {
+	if accentIdx > bgIdx || bgIdx > textIdx {
 		t.Error("keys should be sorted alphabetically")
 	}
 }
@@ -63,7 +63,7 @@ func TestGenerateCSS_Empty(t *testing.T) {
 }
 
 func TestGenerateStyleTag(t *testing.T) {
-	tag := GenerateStyleTag(map[string]string{"primary": "#6366f1"}, nil)
+	tag := GenerateStyleTag(map[string]string{"accent": "#6366f1"}, nil)
 
 	s := string(tag)
 	if !strings.HasPrefix(s, "<style") {
@@ -72,7 +72,7 @@ func TestGenerateStyleTag(t *testing.T) {
 	if !strings.HasSuffix(s, "</style>") {
 		t.Error("expected </style> suffix")
 	}
-	if !strings.Contains(s, "--sarde-primary") {
+	if !strings.Contains(s, "--sarde-accent") {
 		t.Error("expected token in style tag")
 	}
 }
@@ -87,11 +87,11 @@ func TestGenerateStyleTag_Empty(t *testing.T) {
 func TestGenerateCSS_FullPipeline(t *testing.T) {
 	// Simulate the full pipeline: defaults → theme → preset → derive → CSS.
 	theme := &Theme{
-		Tokens: map[string]string{"primary": "#3b82f6"},
+		Tokens: map[string]string{"accent": "#3b82f6"},
 		Presets: map[string]Preset{
 			"ocean": {
-				Tokens:     map[string]string{"primary": "#0ea5e9"},
-				DarkTokens: map[string]string{"primary": "#38bdf8"},
+				Tokens:     map[string]string{"accent": "#0ea5e9"},
+				DarkTokens: map[string]string{"accent": "#38bdf8"},
 			},
 		},
 	}
@@ -102,11 +102,11 @@ func TestGenerateCSS_FullPipeline(t *testing.T) {
 
 	css := GenerateCSS(light, dark)
 
-	if !strings.Contains(css, "--sarde-primary: #0ea5e9") {
-		t.Error("expected ocean primary")
+	if !strings.Contains(css, "--sarde-accent: #0ea5e9") {
+		t.Error("expected ocean accent")
 	}
-	if !strings.Contains(css, "--sarde-primary-hover:") {
-		t.Error("expected derived primary-hover")
+	if !strings.Contains(css, "--sarde-accent-hover:") {
+		t.Error("expected derived accent-hover")
 	}
 	if !strings.Contains(css, ":root.dark {") {
 		t.Error("expected dark block")

@@ -11,10 +11,8 @@ func TestBuildBreadcrumbs_NestedPage(t *testing.T) {
 	childSec := &engine.Section{Title: "Advanced", Slug: "advanced", Permalink: "/docs/guides/advanced/", Parent: parentSec}
 
 	page := &engine.Page{
-		Title:        "Monitoring",
-		RelPermalink: "/docs/guides/advanced/monitoring/",
-		Kind:         engine.KindPage,
-		Section:      childSec,
+		PageIdentity:      engine.PageIdentity{Title: "Monitoring", RelPermalink: "/docs/guides/advanced/monitoring/", Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Section: childSec},
 	}
 
 	col := &engine.Collection{Name: "docs", Title: "Documentation"}
@@ -41,9 +39,7 @@ func TestBuildBreadcrumbs_NestedPage(t *testing.T) {
 
 func TestBuildBreadcrumbs_RootPage(t *testing.T) {
 	page := &engine.Page{
-		Title:        "Getting Started",
-		RelPermalink: "/docs/getting-started/",
-		Kind:         engine.KindPage,
+		PageIdentity: engine.PageIdentity{Title: "Getting Started", RelPermalink: "/docs/getting-started/", Kind: engine.KindPage},
 	}
 
 	col := &engine.Collection{Name: "docs", Title: "Documentation"}
@@ -64,10 +60,8 @@ func TestBuildBreadcrumbs_RootPage(t *testing.T) {
 func TestBuildBreadcrumbs_SectionIndex(t *testing.T) {
 	sec := &engine.Section{Title: "Guides", Slug: "guides", Permalink: "/docs/guides/"}
 	page := &engine.Page{
-		Title:        "Guides",
-		RelPermalink: "/docs/guides/",
-		Kind:         engine.KindSection,
-		Section:      sec,
+		PageIdentity:      engine.PageIdentity{Title: "Guides", RelPermalink: "/docs/guides/", Kind: engine.KindSection},
+		PageRelationships: engine.PageRelationships{Section: sec},
 	}
 
 	col := &engine.Collection{Name: "docs", Title: "Documentation"}
@@ -87,10 +81,8 @@ func TestBuildBreadcrumbs_TransparentSectionSkipped(t *testing.T) {
 	parentSec := &engine.Section{Title: "Internal", Slug: "internal", Permalink: "/docs/internal/", Transparent: true}
 
 	page := &engine.Page{
-		Title:        "Config",
-		RelPermalink: "/docs/config/",
-		Kind:         engine.KindPage,
-		Section:      parentSec,
+		PageIdentity:      engine.PageIdentity{Title: "Config", RelPermalink: "/docs/config/", Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Section: parentSec},
 	}
 
 	col := &engine.Collection{Name: "docs", Title: "Docs"}

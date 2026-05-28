@@ -14,7 +14,7 @@ func TestBeforeRender_InjectsOnMermaidContent(t *testing.T) {
 	p := New(nil)
 	rd := &engine.RouteData{}
 	ctx := &plugin.BeforeRenderContext{
-		Page:      &engine.Page{Content: template.HTML(`<pre class="sarde-mermaid">graph TD</pre>`)},
+		Page:      &engine.Page{PageContent: engine.PageContent{Content: template.HTML(`<pre class="sarde-mermaid">graph TD</pre>`)}},
 		RouteData: rd,
 	}
 	if err := p.Hooks.BeforeRender(ctx); err != nil {
@@ -29,7 +29,7 @@ func TestBeforeRender_SkipsWithoutMermaid(t *testing.T) {
 	p := New(nil)
 	rd := &engine.RouteData{}
 	ctx := &plugin.BeforeRenderContext{
-		Page:      &engine.Page{Content: template.HTML("<p>just text</p>")},
+		Page:      &engine.Page{PageContent: engine.PageContent{Content: template.HTML("<p>just text</p>")}},
 		RouteData: rd,
 	}
 	if err := p.Hooks.BeforeRender(ctx); err != nil {
@@ -44,7 +44,7 @@ func TestBeforeRender_AlwaysConfigForces(t *testing.T) {
 	p := New(map[string]any{"always": true})
 	rd := &engine.RouteData{}
 	ctx := &plugin.BeforeRenderContext{
-		Page:      &engine.Page{Content: template.HTML("<p>plain</p>")},
+		Page:      &engine.Page{PageContent: engine.PageContent{Content: template.HTML("<p>plain</p>")}},
 		RouteData: rd,
 	}
 	if err := p.Hooks.BeforeRender(ctx); err != nil {

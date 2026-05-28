@@ -31,14 +31,14 @@ func testSite() *engine.SiteContext {
 				Name:  "blog",
 				Title: "Blog",
 				Pages: []*engine.Page{
-					{Title: "Post A", Slug: "post-a", RelPermalink: "/blog/post-a/"},
-					{Title: "Post B", Slug: "post-b", RelPermalink: "/blog/post-b/"},
-					{Title: "Post C", Slug: "post-c", RelPermalink: "/blog/post-c/"},
+					{PageIdentity: engine.PageIdentity{Title: "Post A", Slug: "post-a", RelPermalink: "/blog/post-a/"}},
+					{PageIdentity: engine.PageIdentity{Title: "Post B", Slug: "post-b", RelPermalink: "/blog/post-b/"}},
+					{PageIdentity: engine.PageIdentity{Title: "Post C", Slug: "post-c", RelPermalink: "/blog/post-c/"}},
 				},
 			},
 		},
 		Pages: []*engine.Page{
-			{Title: "Post A", Slug: "post-a", Permalink: "https://example.com/blog/post-a/", RelPermalink: "/blog/post-a/"},
+			{PageIdentity: engine.PageIdentity{Title: "Post A", Slug: "post-a", Permalink: "https://example.com/blog/post-a/", RelPermalink: "/blog/post-a/"}},
 		},
 	}
 }
@@ -348,7 +348,7 @@ func TestBreadcrumbs(t *testing.T) {
 		{Label: "Home", URL: "/"},
 		{Label: "Docs", URL: "/docs/"},
 	}
-	rd := &engine.RouteData{Breadcrumbs: items}
+	rd := &engine.RouteData{RouteNav: engine.RouteNav{Breadcrumbs: items}}
 
 	got := breadcrumbs(rd)
 	if len(got) != 2 || got[0].Label != "Home" {
@@ -363,9 +363,15 @@ func TestSiblings(t *testing.T) {
 	fm := nilFuncMap()
 	siblings := fm["siblings"].(func(*engine.Page) []*engine.Page)
 
-	pages := []*engine.Page{{Title: "A"}, {Title: "B"}}
+	pages := []*engine.Page{
+		{PageIdentity: engine.PageIdentity{Title: "A"}},
+		{PageIdentity: engine.PageIdentity{Title: "B"}},
+	}
 	section := &engine.Section{Pages: pages}
-	page := &engine.Page{Title: "A", Section: section}
+	page := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Title: "A"},
+		PageRelationships: engine.PageRelationships{Section: section},
+	}
 
 	if got := siblings(page); len(got) != 2 {
 		t.Errorf("siblings() = %d pages, want 2", len(got))
@@ -386,7 +392,7 @@ func TestTranslations(t *testing.T) {
 		{Lang: "en", URL: "/about/"},
 		{Lang: "fr", URL: "/fr/about/"},
 	}
-	rd := &engine.RouteData{Translations: links}
+	rd := &engine.RouteData{RouteI18n: engine.RouteI18n{Translations: links}}
 
 	got := translations(rd)
 	if len(got) != 2 || got[1].Lang != "fr" {
@@ -428,7 +434,7 @@ func TestLang(t *testing.T) {
 	fm := nilFuncMap()
 	lang := fm["lang"].(func(any) string)
 
-	rd := &engine.RouteData{Lang: "fr"}
+	rd := &engine.RouteData{RouteI18n: engine.RouteI18n{Lang: "fr"}}
 	if got := lang(rd); got != "fr" {
 		t.Errorf("lang(rd) = %q, want %q", got, "fr")
 	}

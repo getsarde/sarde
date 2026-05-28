@@ -68,10 +68,10 @@ func TestAnnotateVersions(t *testing.T) {
 	}
 
 	pages := []*engine.Page{
-		{RelPermalink: "/docs/v2/getting-started/", Permalink: "/docs/v2/getting-started/", Kind: engine.KindPage},
-		{RelPermalink: "/docs/v2/guides/auth/", Permalink: "/docs/v2/guides/auth/", Kind: engine.KindPage},
-		{RelPermalink: "/docs/v1/getting-started/", Permalink: "/docs/v1/getting-started/", Kind: engine.KindPage},
-		{RelPermalink: "/docs/intro/", Permalink: "/docs/intro/", Kind: engine.KindPage},
+		{PageIdentity: engine.PageIdentity{RelPermalink: "/docs/v2/getting-started/", Permalink: "/docs/v2/getting-started/", Kind: engine.KindPage}},
+		{PageIdentity: engine.PageIdentity{RelPermalink: "/docs/v2/guides/auth/", Permalink: "/docs/v2/guides/auth/", Kind: engine.KindPage}},
+		{PageIdentity: engine.PageIdentity{RelPermalink: "/docs/v1/getting-started/", Permalink: "/docs/v1/getting-started/", Kind: engine.KindPage}},
+		{PageIdentity: engine.PageIdentity{RelPermalink: "/docs/intro/", Permalink: "/docs/intro/", Kind: engine.KindPage}},
 	}
 
 	col := &engine.Collection{
@@ -119,22 +119,19 @@ func TestLinkVersions(t *testing.T) {
 	}
 
 	p1 := &engine.Page{
-		Collection:     col,
-		Version:        "v1",
-		VersionRelPath: "getting-started",
-		Kind:           engine.KindPage,
+		PageIdentity:      engine.PageIdentity{Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Collection: col},
+		PageVersioning:    engine.PageVersioning{Version: "v1", VersionRelPath: "getting-started"},
 	}
 	p2 := &engine.Page{
-		Collection:     col,
-		Version:        "v2",
-		VersionRelPath: "getting-started",
-		Kind:           engine.KindPage,
+		PageIdentity:      engine.PageIdentity{Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Collection: col},
+		PageVersioning:    engine.PageVersioning{Version: "v2", VersionRelPath: "getting-started"},
 	}
 	p3 := &engine.Page{
-		Collection:     col,
-		Version:        "v1",
-		VersionRelPath: "unique-page",
-		Kind:           engine.KindPage,
+		PageIdentity:      engine.PageIdentity{Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Collection: col},
+		PageVersioning:    engine.PageVersioning{Version: "v1", VersionRelPath: "unique-page"},
 	}
 
 	LinkVersions([]*engine.Page{p1, p2, p3})
@@ -158,10 +155,10 @@ func TestLinkVersionsRespectsLang(t *testing.T) {
 		},
 	}
 
-	enV1 := &engine.Page{Collection: col, Version: "v1", VersionRelPath: "guide", Lang: "en", Kind: engine.KindPage}
-	enV2 := &engine.Page{Collection: col, Version: "v2", VersionRelPath: "guide", Lang: "en", Kind: engine.KindPage}
-	frV1 := &engine.Page{Collection: col, Version: "v1", VersionRelPath: "guide", Lang: "fr", Kind: engine.KindPage}
-	frV2 := &engine.Page{Collection: col, Version: "v2", VersionRelPath: "guide", Lang: "fr", Kind: engine.KindPage}
+	enV1 := &engine.Page{PageIdentity: engine.PageIdentity{Kind: engine.KindPage}, PageRelationships: engine.PageRelationships{Collection: col}, PageVersioning: engine.PageVersioning{Version: "v1", VersionRelPath: "guide"}, PageI18n: engine.PageI18n{Lang: "en"}}
+	enV2 := &engine.Page{PageIdentity: engine.PageIdentity{Kind: engine.KindPage}, PageRelationships: engine.PageRelationships{Collection: col}, PageVersioning: engine.PageVersioning{Version: "v2", VersionRelPath: "guide"}, PageI18n: engine.PageI18n{Lang: "en"}}
+	frV1 := &engine.Page{PageIdentity: engine.PageIdentity{Kind: engine.KindPage}, PageRelationships: engine.PageRelationships{Collection: col}, PageVersioning: engine.PageVersioning{Version: "v1", VersionRelPath: "guide"}, PageI18n: engine.PageI18n{Lang: "fr"}}
+	frV2 := &engine.Page{PageIdentity: engine.PageIdentity{Kind: engine.KindPage}, PageRelationships: engine.PageRelationships{Collection: col}, PageVersioning: engine.PageVersioning{Version: "v2", VersionRelPath: "guide"}, PageI18n: engine.PageI18n{Lang: "fr"}}
 
 	LinkVersions([]*engine.Page{enV1, enV2, frV1, frV2})
 

@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/engine"
@@ -137,6 +138,17 @@ func (p *Pipeline) BundleGlobalAssets() error {
 	}
 
 	return nil
+}
+
+// GlobalCSSURLs returns the output URLs of all CSS files bundled from head.custom_css.
+func (p *Pipeline) GlobalCSSURLs() []string {
+	var urls []string
+	for _, f := range p.bundledFiles {
+		if strings.HasSuffix(f.Name, ".css") {
+			urls = append(urls, f.OutputURL)
+		}
+	}
+	return urls
 }
 
 // WriteBundledFiles writes bundled CSS/JS files to the output directory.

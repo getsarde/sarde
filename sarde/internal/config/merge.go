@@ -149,6 +149,9 @@ func mergeTheme(base, over *ThemeSettings) {
 	if len(over.Overrides) > 0 {
 		base.Overrides = over.Overrides
 	}
+	if len(over.DarkOverrides) > 0 {
+		base.DarkOverrides = over.DarkOverrides
+	}
 	mergeStr(&base.PrimaryColor, over.PrimaryColor)
 	mergeStr(&base.AccentColor, over.AccentColor)
 	mergeStr(&base.FontFamily, over.FontFamily)

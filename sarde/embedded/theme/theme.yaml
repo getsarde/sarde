@@ -6,7 +6,6 @@ description: The default Sarde theme with a modern, professional appearance.
 license: MIT
 
 tokens:
-  primary: "#6366f1"
   bg: "#ffffff"
   bg-surface: "#f8fafc"
   bg-code: "#1e293b"
@@ -29,21 +28,42 @@ presets:
   ocean:
     name: Ocean
     tokens:
-      primary: "#0ea5e9"
+      accent: "#0ea5e9"
+      gray-1: "hsl(200, 10%, 94%)"
+      gray-2: "hsl(200, 8%, 87%)"
+      gray-3: "hsl(200, 7%, 77%)"
+      gray-4: "hsl(200, 5%, 60%)"
+      gray-5: "hsl(200, 4%, 45%)"
+      gray-6: "hsl(200, 8%, 28%)"
+      gray-7: "hsl(200, 12%, 14%)"
     dark_tokens:
-      primary: "#38bdf8"
+      accent: "#38bdf8"
   forest:
     name: Forest
     tokens:
-      primary: "#16a34a"
+      accent: "#16a34a"
+      gray-1: "hsl(40, 10%, 94%)"
+      gray-2: "hsl(40, 8%, 87%)"
+      gray-3: "hsl(40, 7%, 77%)"
+      gray-4: "hsl(40, 5%, 60%)"
+      gray-5: "hsl(40, 4%, 45%)"
+      gray-6: "hsl(40, 8%, 28%)"
+      gray-7: "hsl(40, 12%, 14%)"
     dark_tokens:
-      primary: "#4ade80"
+      accent: "#4ade80"
   rose:
     name: Rose
     tokens:
-      primary: "#e11d48"
+      accent: "#e11d48"
+      gray-1: "hsl(340, 10%, 95%)"
+      gray-2: "hsl(340, 8%, 88%)"
+      gray-3: "hsl(340, 6%, 78%)"
+      gray-4: "hsl(340, 4%, 60%)"
+      gray-5: "hsl(340, 3%, 45%)"
+      gray-6: "hsl(340, 6%, 28%)"
+      gray-7: "hsl(340, 10%, 14%)"
     dark_tokens:
-      primary: "#fb7185"
+      accent: "#fb7185"
 
   # --- Full-look presets -------------------------------------------------
   # Each preset below changes colors, typography, and radius together to
@@ -52,7 +72,7 @@ presets:
   clean:
     name: Clean
     tokens:
-      primary: "#0f766e"
+      accent: "#0f766e"
       bg: "#ffffff"
       bg-surface: "#f0fdfa"
       text: "#134e4a"
@@ -71,7 +91,7 @@ presets:
   minimal:
     name: Minimal
     tokens:
-      primary: "#18181b"
+      accent: "#18181b"
       bg: "#ffffff"
       bg-surface: "#fafafa"
       text: "#18181b"
@@ -81,7 +101,7 @@ presets:
       font-mono: "ui-monospace, 'SF Mono', monospace"
       radius: "0.375rem"
     dark_tokens:
-      primary: "#fafafa"
+      accent: "#fafafa"
       bg: "#09090b"
       bg-surface: "#18181b"
       text: "#fafafa"
@@ -91,7 +111,7 @@ presets:
   docs:
     name: Docs
     tokens:
-      primary: "#2563eb"
+      accent: "#2563eb"
       bg: "#ffffff"
       bg-surface: "#f6f8fa"
       text: "#24292f"
@@ -110,7 +130,7 @@ presets:
   academic:
     name: Academic
     tokens:
-      primary: "#1e40af"
+      accent: "#1e40af"
       bg: "#fefefe"
       bg-surface: "#f5f3ef"
       text: "#1c1917"

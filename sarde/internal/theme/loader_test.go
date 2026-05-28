@@ -12,7 +12,7 @@ name: Test Theme
 slug: test
 version: "1.0.0"
 tokens:
-  primary: "#3b82f6"
+  accent: "#3b82f6"
   bg: "#ffffff"
 dark_tokens:
   bg: "#0f172a"
@@ -20,7 +20,7 @@ presets:
   ocean:
     name: Ocean
     tokens:
-      primary: "#0ea5e9"
+      accent: "#0ea5e9"
 `)},
 	}
 
@@ -34,14 +34,14 @@ presets:
 	if theme.Name != "Test Theme" {
 		t.Errorf("name: got %q", theme.Name)
 	}
-	if theme.Tokens["primary"] != "#3b82f6" {
-		t.Errorf("primary: got %q", theme.Tokens["primary"])
+	if theme.Tokens["accent"] != "#3b82f6" {
+		t.Errorf("accent: got %q", theme.Tokens["accent"])
 	}
 	if theme.DarkTokens["bg"] != "#0f172a" {
 		t.Errorf("dark bg: got %q", theme.DarkTokens["bg"])
 	}
-	if theme.Presets["ocean"].Tokens["primary"] != "#0ea5e9" {
-		t.Errorf("ocean preset primary: got %q", theme.Presets["ocean"].Tokens["primary"])
+	if theme.Presets["ocean"].Tokens["accent"] != "#0ea5e9" {
+		t.Errorf("ocean preset accent: got %q", theme.Presets["ocean"].Tokens["accent"])
 	}
 }
 
@@ -80,11 +80,11 @@ func TestLoadFromDir_NotFound(t *testing.T) {
 
 func TestDefaultTokens(t *testing.T) {
 	tokens := DefaultTokens()
-	if tokens["primary"] == "" {
-		t.Error("expected primary token")
-	}
 	if tokens["bg"] == "" {
 		t.Error("expected bg token")
+	}
+	if _, ok := tokens["accent"]; ok {
+		t.Error("accent should not be in DefaultTokens (HSL hue is the default)")
 	}
 }
 

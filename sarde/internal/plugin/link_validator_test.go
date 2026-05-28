@@ -35,7 +35,7 @@ func buildTestContext(pages []*engine.Page, validationData map[string]engine.Val
 
 func TestLinkValidatorInvalidLink(t *testing.T) {
 	pages := []*engine.Page{
-		{Slug: "guide", RelPermalink: "/docs/guide/", Permalink: "/docs/guide/"},
+		{PageIdentity: engine.PageIdentity{Slug: "guide", RelPermalink: "/docs/guide/", Permalink: "/docs/guide/"}},
 	}
 	data := map[string]engine.ValidationEntry{
 		"/docs/guide/": {
@@ -63,8 +63,10 @@ func TestLinkValidatorInvalidLink(t *testing.T) {
 
 func TestLinkValidatorInvalidHash(t *testing.T) {
 	pages := []*engine.Page{
-		{Slug: "guide", RelPermalink: "/docs/guide/", Permalink: "/docs/guide/",
-			Headings: []engine.Heading{{ID: "intro", Text: "Intro", Level: 2}}},
+		{
+			PageIdentity: engine.PageIdentity{Slug: "guide", RelPermalink: "/docs/guide/", Permalink: "/docs/guide/"},
+			PageContent:  engine.PageContent{Headings: []engine.Heading{{ID: "intro", Text: "Intro", Level: 2}}},
+		},
 	}
 	data := map[string]engine.ValidationEntry{
 		"/docs/guide/": {
@@ -179,7 +181,7 @@ func TestLinkValidatorSameSiteWarn(t *testing.T) {
 
 func TestLinkValidatorSameSiteValidate(t *testing.T) {
 	pages := []*engine.Page{
-		{Slug: "guide", RelPermalink: "/docs/guide/", Permalink: "/docs/guide/"},
+		{PageIdentity: engine.PageIdentity{Slug: "guide", RelPermalink: "/docs/guide/", Permalink: "/docs/guide/"}},
 	}
 	data := map[string]engine.ValidationEntry{
 		"/page/": {
@@ -264,7 +266,7 @@ func TestLinkValidatorExclude(t *testing.T) {
 
 func TestLinkValidatorStaticAsset(t *testing.T) {
 	pages := []*engine.Page{
-		{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"},
+		{PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"}},
 	}
 	data := map[string]engine.ValidationEntry{
 		"/page/": {

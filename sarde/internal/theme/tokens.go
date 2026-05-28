@@ -7,16 +7,16 @@ import (
 	"strings"
 )
 
-// DeriveTokens auto-generates variant tokens from the primary color.
-// When primary is a valid hex color, it derives:
-//   - primary-hover: 10% darker
-//   - primary-high: 20% lighter (for dark mode accents)
-//   - primary-low: rgba() at 10% opacity (for subtle backgrounds)
+// DeriveTokens auto-generates variant tokens from the accent color.
+// When accent is a valid hex color, it derives:
+//   - accent-hover: 10% darker
+//   - accent-high: 20% lighter (for dark mode emphasis)
+//   - accent-low: rgba() at 10% opacity (for subtle backgrounds)
 //
 // Derivation is skipped if a key already exists (user overrides win).
-// Non-hex primary values are skipped gracefully.
+// Non-hex accent values are skipped gracefully.
 func DeriveTokens(tokens map[string]string) map[string]string {
-	primary, ok := tokens["primary"]
+	primary, ok := tokens["accent"]
 	if !ok || primary == "" {
 		return tokens
 	}
@@ -28,21 +28,21 @@ func DeriveTokens(tokens map[string]string) map[string]string {
 
 	h, s, l := rgbToHSL(r, g, b)
 
-	// primary-hover: 10% darker
-	if _, exists := tokens["primary-hover"]; !exists {
+	// accent-hover: 10% darker
+	if _, exists := tokens["accent-hover"]; !exists {
 		hr, hg, hb := hslToRGB(h, s, clamp(l-0.10, 0, 1))
-		tokens["primary-hover"] = toHex(hr, hg, hb)
+		tokens["accent-hover"] = toHex(hr, hg, hb)
 	}
 
-	// primary-high: 20% lighter
-	if _, exists := tokens["primary-high"]; !exists {
+	// accent-high: 20% lighter
+	if _, exists := tokens["accent-high"]; !exists {
 		hr, hg, hb := hslToRGB(h, s, clamp(l+0.20, 0, 1))
-		tokens["primary-high"] = toHex(hr, hg, hb)
+		tokens["accent-high"] = toHex(hr, hg, hb)
 	}
 
-	// primary-low: rgba at 10% opacity
-	if _, exists := tokens["primary-low"]; !exists {
-		tokens["primary-low"] = fmt.Sprintf("rgba(%d, %d, %d, 0.1)", r, g, b)
+	// accent-low: rgba at 10% opacity
+	if _, exists := tokens["accent-low"]; !exists {
+		tokens["accent-low"] = fmt.Sprintf("rgba(%d, %d, %d, 0.1)", r, g, b)
 	}
 
 	return tokens

@@ -72,9 +72,8 @@ func TestEngine_Render_SinglePage(t *testing.T) {
 	eng := setupEngine(t)
 
 	page := &engine.Page{
-		Title:   "Hello World",
-		Kind:    engine.KindPage,
-		Content: template.HTML("<p>This is content.</p>"),
+		PageIdentity: engine.PageIdentity{Title: "Hello World", Kind: engine.KindPage},
+		PageContent:  engine.PageContent{Content: template.HTML("<p>This is content.</p>")},
 	}
 	col := &engine.Collection{
 		Name:   "blog",
@@ -108,9 +107,8 @@ func TestEngine_Render_DocsPage(t *testing.T) {
 	eng := setupEngine(t)
 
 	page := &engine.Page{
-		Title:   "Getting Started",
-		Kind:    engine.KindPage,
-		Content: template.HTML("<p>Docs content.</p>"),
+		PageIdentity: engine.PageIdentity{Title: "Getting Started", Kind: engine.KindPage},
+		PageContent:  engine.PageContent{Content: template.HTML("<p>Docs content.</p>")},
 	}
 	col := &engine.Collection{
 		Name:   "docs",
@@ -141,9 +139,8 @@ func TestEngine_Render_HomePage(t *testing.T) {
 	eng := setupEngine(t)
 
 	page := &engine.Page{
-		Title:   "Welcome",
-		Kind:    engine.KindHome,
-		Content: template.HTML("<p>Welcome!</p>"),
+		PageIdentity: engine.PageIdentity{Title: "Welcome", Kind: engine.KindHome},
+		PageContent:  engine.PageContent{Content: template.HTML("<p>Welcome!</p>")},
 	}
 
 	rd := BuildRouteData(page, eng.site, nil)
@@ -165,14 +162,12 @@ func TestEngine_Render_HomePage(t *testing.T) {
 func TestEngine_Render_WithPagination(t *testing.T) {
 	eng := setupEngine(t)
 
-	prev := &engine.Page{Title: "Previous", RelPermalink: "/blog/prev/"}
-	next := &engine.Page{Title: "Next", RelPermalink: "/blog/next/"}
+	prev := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Previous", RelPermalink: "/blog/prev/"}}
+	next := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Next", RelPermalink: "/blog/next/"}}
 	page := &engine.Page{
-		Title:    "Current Post",
-		Kind:     engine.KindPage,
-		Content:  template.HTML("<p>Content.</p>"),
-		PrevPage: prev,
-		NextPage: next,
+		PageIdentity:      engine.PageIdentity{Title: "Current Post", Kind: engine.KindPage},
+		PageContent:       engine.PageContent{Content: template.HTML("<p>Content.</p>")},
+		PageRelationships: engine.PageRelationships{PrevPage: prev, NextPage: next},
 	}
 	col := &engine.Collection{
 		Name:   "blog",
@@ -200,8 +195,8 @@ func TestEngine_Render_ListPage(t *testing.T) {
 	eng := setupEngine(t)
 
 	pages := []*engine.Page{
-		{Title: "Post A"},
-		{Title: "Post B"},
+		{PageIdentity: engine.PageIdentity{Title: "Post A"}},
+		{PageIdentity: engine.PageIdentity{Title: "Post B"}},
 	}
 	col := &engine.Collection{
 		Name:   "blog",
@@ -210,9 +205,8 @@ func TestEngine_Render_ListPage(t *testing.T) {
 	}
 	section := &engine.Section{Title: "Blog"}
 	page := &engine.Page{
-		Title:   "Blog",
-		Kind:    engine.KindSection,
-		Section: section,
+		PageIdentity:      engine.PageIdentity{Title: "Blog", Kind: engine.KindSection},
+		PageRelationships: engine.PageRelationships{Section: section},
 	}
 	page.Collection = col
 
@@ -240,10 +234,9 @@ func TestEngine_Render_CachesTemplates(t *testing.T) {
 		Config: &engine.CollectionConfig{Layout: engine.LayoutDefault},
 	}
 	page := &engine.Page{
-		Title:      "Post",
-		Kind:       engine.KindPage,
-		Content:    template.HTML("<p>Content</p>"),
-		Collection: col,
+		PageIdentity:      engine.PageIdentity{Title: "Post", Kind: engine.KindPage},
+		PageContent:       engine.PageContent{Content: template.HTML("<p>Content</p>")},
+		PageRelationships: engine.PageRelationships{Collection: col},
 	}
 
 	rd := BuildRouteData(page, eng.site, nil)
@@ -273,12 +266,11 @@ func TestEngine_Render_UnknownTemplate(t *testing.T) {
 	eng := setupEngine(t)
 
 	rd := &engine.RouteData{
-		Template: "nonexistent/template",
-		Layout:   engine.LayoutDefault,
-		Lang:     "en",
-		Dir:      "ltr",
-		Page:     &engine.Page{},
-		Site:     eng.site,
+		Template:  "nonexistent/template",
+		Layout:    engine.LayoutDefault,
+		RouteI18n: engine.RouteI18n{Lang: "en", Dir: "ltr"},
+		Page:      &engine.Page{},
+		Site:      eng.site,
 	}
 
 	_, err := eng.Render(rd.Template, rd)

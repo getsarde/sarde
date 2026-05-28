@@ -9,14 +9,14 @@ import (
 
 func TestApplyCascade_Basic(t *testing.T) {
 	indexPage := &engine.Page{
-		Kind:   engine.KindSection,
-		Params: map[string]any{consts.CascadeKey: map[string]any{"layout": "docs", "toc": true}},
+		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
+		Params:       map[string]any{consts.CascadeKey: map[string]any{"layout": "docs", "toc": true}},
 	}
 	sec := &engine.Section{IndexPage: indexPage}
 	child := &engine.Page{
-		Kind:    engine.KindPage,
-		Section: sec,
-		Params:  map[string]any{},
+		PageIdentity:      engine.PageIdentity{Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Section: sec},
+		Params:            map[string]any{},
 	}
 
 	ApplyCascade([]*engine.Page{child})
@@ -31,14 +31,14 @@ func TestApplyCascade_Basic(t *testing.T) {
 
 func TestApplyCascade_ChildOverrides(t *testing.T) {
 	indexPage := &engine.Page{
-		Kind:   engine.KindSection,
-		Params: map[string]any{consts.CascadeKey: map[string]any{"layout": "docs"}},
+		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
+		Params:       map[string]any{consts.CascadeKey: map[string]any{"layout": "docs"}},
 	}
 	sec := &engine.Section{IndexPage: indexPage}
 	child := &engine.Page{
-		Kind:    engine.KindPage,
-		Section: sec,
-		Params:  map[string]any{"layout": "wide"},
+		PageIdentity:      engine.PageIdentity{Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Section: sec},
+		Params:            map[string]any{"layout": "wide"},
 	}
 
 	ApplyCascade([]*engine.Page{child})
@@ -50,19 +50,19 @@ func TestApplyCascade_ChildOverrides(t *testing.T) {
 
 func TestApplyCascade_MultiLevel(t *testing.T) {
 	grandparentIdx := &engine.Page{
-		Kind:   engine.KindSection,
-		Params: map[string]any{consts.CascadeKey: map[string]any{"layout": "docs", "toc": false}},
+		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
+		Params:       map[string]any{consts.CascadeKey: map[string]any{"layout": "docs", "toc": false}},
 	}
 	parentIdx := &engine.Page{
-		Kind:   engine.KindSection,
-		Params: map[string]any{consts.CascadeKey: map[string]any{"toc": true}},
+		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
+		Params:       map[string]any{consts.CascadeKey: map[string]any{"toc": true}},
 	}
 	grandparent := &engine.Section{IndexPage: grandparentIdx}
 	parent := &engine.Section{IndexPage: parentIdx, Parent: grandparent}
 	child := &engine.Page{
-		Kind:    engine.KindPage,
-		Section: parent,
-		Params:  map[string]any{},
+		PageIdentity:      engine.PageIdentity{Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Section: parent},
+		Params:            map[string]any{},
 	}
 
 	ApplyCascade([]*engine.Page{child})
@@ -77,7 +77,7 @@ func TestApplyCascade_MultiLevel(t *testing.T) {
 
 func TestApplyCascade_ParamsMerge(t *testing.T) {
 	indexPage := &engine.Page{
-		Kind: engine.KindSection,
+		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
 		Params: map[string]any{
 			consts.CascadeKey: map[string]any{
 				"params": map[string]any{"author": "Team", "color": "blue"},
@@ -86,9 +86,9 @@ func TestApplyCascade_ParamsMerge(t *testing.T) {
 	}
 	sec := &engine.Section{IndexPage: indexPage}
 	child := &engine.Page{
-		Kind:    engine.KindPage,
-		Section: sec,
-		Params:  map[string]any{"color": "red"},
+		PageIdentity:      engine.PageIdentity{Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Section: sec},
+		Params:            map[string]any{"color": "red"},
 	}
 
 	ApplyCascade([]*engine.Page{child})
@@ -103,16 +103,16 @@ func TestApplyCascade_ParamsMerge(t *testing.T) {
 
 func TestApplyCascade_SectionPageFromParent(t *testing.T) {
 	parentIdx := &engine.Page{
-		Kind:   engine.KindSection,
-		Params: map[string]any{consts.CascadeKey: map[string]any{"toc": true}},
+		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
+		Params:       map[string]any{consts.CascadeKey: map[string]any{"toc": true}},
 	}
 	parent := &engine.Section{IndexPage: parentIdx}
 	childIdx := &engine.Page{
-		Kind:    engine.KindSection,
-		Params:  map[string]any{},
+		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
+		Params:       map[string]any{},
 	}
 	childSec := &engine.Section{IndexPage: childIdx, Parent: parent}
-	childIdx.Section = childSec
+	childIdx.PageRelationships.Section = childSec
 
 	ApplyCascade([]*engine.Page{childIdx})
 
@@ -123,14 +123,14 @@ func TestApplyCascade_SectionPageFromParent(t *testing.T) {
 
 func TestApplyCascade_NoCascade(t *testing.T) {
 	indexPage := &engine.Page{
-		Kind:   engine.KindSection,
-		Params: map[string]any{},
+		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
+		Params:       map[string]any{},
 	}
 	sec := &engine.Section{IndexPage: indexPage}
 	child := &engine.Page{
-		Kind:    engine.KindPage,
-		Section: sec,
-		Params:  map[string]any{},
+		PageIdentity:      engine.PageIdentity{Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Section: sec},
+		Params:            map[string]any{},
 	}
 
 	ApplyCascade([]*engine.Page{child})
@@ -142,14 +142,14 @@ func TestApplyCascade_NoCascade(t *testing.T) {
 
 func TestApplyCascade_SidebarLabel(t *testing.T) {
 	indexPage := &engine.Page{
-		Kind:   engine.KindSection,
-		Params: map[string]any{consts.CascadeKey: map[string]any{"sidebar_label": "Guides"}},
+		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
+		Params:       map[string]any{consts.CascadeKey: map[string]any{"sidebar_label": "Guides"}},
 	}
 	sec := &engine.Section{IndexPage: indexPage}
 	child := &engine.Page{
-		Kind:    engine.KindPage,
-		Section: sec,
-		Params:  map[string]any{},
+		PageIdentity:      engine.PageIdentity{Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Section: sec},
+		Params:            map[string]any{},
 	}
 
 	ApplyCascade([]*engine.Page{child})
@@ -161,7 +161,7 @@ func TestApplyCascade_SidebarLabel(t *testing.T) {
 
 func TestApplyCascade_Banner(t *testing.T) {
 	indexPage := &engine.Page{
-		Kind: engine.KindSection,
+		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
 		Params: map[string]any{
 			consts.CascadeKey: map[string]any{
 				"banner": map[string]any{"content": "Under review", "variant": "caution"},
@@ -170,9 +170,9 @@ func TestApplyCascade_Banner(t *testing.T) {
 	}
 	sec := &engine.Section{IndexPage: indexPage}
 	child := &engine.Page{
-		Kind:    engine.KindPage,
-		Section: sec,
-		Params:  map[string]any{},
+		PageIdentity:      engine.PageIdentity{Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Section: sec},
+		Params:            map[string]any{},
 	}
 
 	ApplyCascade([]*engine.Page{child})

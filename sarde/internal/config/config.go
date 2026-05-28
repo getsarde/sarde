@@ -116,11 +116,12 @@ type SocialLink struct {
 // ---------------------------------------------------------------------------
 
 type ThemeSettings struct {
-	Name         string            `yaml:"name"`
-	Preset       string            `yaml:"preset"`
-	Dark         *bool             `yaml:"dark"`
-	Overrides    map[string]string `yaml:"overrides"`
-	PrimaryColor string            `yaml:"primary_color"`
+	Name          string            `yaml:"name"`
+	Preset        string            `yaml:"preset"`
+	Dark          *bool             `yaml:"dark"`
+	Overrides     map[string]string `yaml:"overrides"`
+	DarkOverrides map[string]string `yaml:"dark_overrides"`
+	PrimaryColor  string            `yaml:"primary_color"`
 	AccentColor  string            `yaml:"accent_color"`
 	FontFamily   string            `yaml:"font_family"`
 	FontMono     string            `yaml:"font_mono"`

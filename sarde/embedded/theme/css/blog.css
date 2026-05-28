@@ -3,7 +3,7 @@
 
 	/* Blog Layout */
 	.sarde-blog-layout { min-height: 100vh; display: flex; flex-direction: column; }
-	.sarde-blog-header { border-bottom: 1px solid var(--sarde-border); background: var(--sarde-bg); position: sticky; top: 0; z-index: 10; }
+	.sarde-blog-header { border-bottom: 1px solid var(--sarde-border); background: var(--sarde-bg-nav); position: sticky; top: 0; z-index: 10; }
 	.sarde-header-inner { max-width: 72rem; margin: 0 auto; padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 2rem; }
 	.sarde-header-logo { font-weight: 700; font-size: 1.125rem; color: var(--sarde-text); text-decoration: none; }
 	.sarde-header-nav-bar { display: flex; gap: 0.25rem; flex: 1; }

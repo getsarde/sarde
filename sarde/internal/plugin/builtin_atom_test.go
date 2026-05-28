@@ -24,15 +24,19 @@ func TestAtom_GeneratesFeed(t *testing.T) {
 				Config: &engine.CollectionConfig{Feed: true},
 				Pages: []*engine.Page{
 					{
-						Title:        "Post 1",
-						RelPermalink: "/blog/post-1/",
-						Date:         time.Date(2025, 3, 1, 0, 0, 0, 0, time.UTC),
-						Params:       map[string]any{"author": "Alice"},
+						PageIdentity: engine.PageIdentity{
+							Title:        "Post 1",
+							RelPermalink: "/blog/post-1/",
+							Date:         time.Date(2025, 3, 1, 0, 0, 0, 0, time.UTC),
+						},
+						Params: map[string]any{"author": "Alice"},
 					},
 					{
-						Title:        "Draft",
-						RelPermalink: "/blog/draft/",
-						Draft:        true,
+						PageIdentity: engine.PageIdentity{
+							Title:        "Draft",
+							RelPermalink: "/blog/draft/",
+						},
+						PageMeta: engine.PageMeta{Draft: true},
 					},
 				},
 			},
@@ -77,9 +81,11 @@ func TestAtom_Limit(t *testing.T) {
 	pages := make([]*engine.Page, 10)
 	for i := range pages {
 		pages[i] = &engine.Page{
-			Title:        "Post",
-			RelPermalink: "/blog/p/",
-			Date:         time.Now(),
+			PageIdentity: engine.PageIdentity{
+				Title:        "Post",
+				RelPermalink: "/blog/p/",
+				Date:         time.Now(),
+			},
 		}
 	}
 

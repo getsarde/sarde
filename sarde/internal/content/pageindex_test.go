@@ -10,9 +10,9 @@ import (
 
 func TestBuildPageIndex(t *testing.T) {
 	pages := []*engine.Page{
-		{Slug: "hello", RelPermalink: "/blog/hello/", Permalink: "/blog/hello/"},
-		{Slug: "guide", RelPermalink: "/docs/guide/", Permalink: "/docs/guide/"},
-		{Slug: "about", RelPermalink: "/about/", Permalink: "/about/"},
+		{PageIdentity: engine.PageIdentity{Slug: "hello", RelPermalink: "/blog/hello/", Permalink: "/blog/hello/"}},
+		{PageIdentity: engine.PageIdentity{Slug: "guide", RelPermalink: "/docs/guide/", Permalink: "/docs/guide/"}},
+		{PageIdentity: engine.PageIdentity{Slug: "about", RelPermalink: "/about/", Permalink: "/about/"}},
 	}
 	idx := BuildPageIndex(pages)
 
@@ -46,8 +46,8 @@ func TestBuildPageIndex(t *testing.T) {
 }
 
 func TestPageIndexSlugCollision(t *testing.T) {
-	first := &engine.Page{Slug: "intro", RelPermalink: "/docs/intro/", Permalink: "/docs/intro/"}
-	second := &engine.Page{Slug: "intro", RelPermalink: "/blog/intro/", Permalink: "/blog/intro/"}
+	first := &engine.Page{PageIdentity: engine.PageIdentity{Slug: "intro", RelPermalink: "/docs/intro/", Permalink: "/docs/intro/"}}
+	second := &engine.Page{PageIdentity: engine.PageIdentity{Slug: "intro", RelPermalink: "/blog/intro/", Permalink: "/blog/intro/"}}
 	idx := BuildPageIndex([]*engine.Page{first, second})
 
 	got := idx.LookupBySlug("intro")
@@ -64,9 +64,9 @@ func TestPageIndexSlugCollision(t *testing.T) {
 }
 
 func TestPageIndexEmptySlugOrPermalink(t *testing.T) {
-	orphan := &engine.Page{Slug: "orphan", RelPermalink: ""}
+	orphan := &engine.Page{PageIdentity: engine.PageIdentity{Slug: "orphan", RelPermalink: ""}}
 	pages := []*engine.Page{
-		{Slug: "", RelPermalink: "/page/"},
+		{PageIdentity: engine.PageIdentity{Slug: "", RelPermalink: "/page/"}},
 		orphan,
 	}
 	idx := BuildPageIndex(pages)
@@ -89,7 +89,7 @@ func TestPageIndexEmptySlugOrPermalink(t *testing.T) {
 
 func TestPageIndexHeadings(t *testing.T) {
 	idx := BuildPageIndex([]*engine.Page{
-		{Slug: "post", RelPermalink: "/blog/post/"},
+		{PageIdentity: engine.PageIdentity{Slug: "post", RelPermalink: "/blog/post/"}},
 	})
 
 	idx.SetHeadings("/blog/post/", []string{"intro", "setup", "conclusion"})
@@ -121,7 +121,7 @@ func TestPageIndexHeadings(t *testing.T) {
 
 func TestPageIndexHeadingsEmpty(t *testing.T) {
 	idx := BuildPageIndex([]*engine.Page{
-		{Slug: "post", RelPermalink: "/blog/post/"},
+		{PageIdentity: engine.PageIdentity{Slug: "post", RelPermalink: "/blog/post/"}},
 	})
 
 	idx.SetHeadings("/blog/post/", nil)

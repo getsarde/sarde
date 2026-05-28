@@ -15,7 +15,7 @@ func TestBeforeRender_InjectsOnMathContent(t *testing.T) {
 	rd := &engine.RouteData{}
 	ctx := &plugin.BeforeRenderContext{
 		Page: &engine.Page{
-			Content: template.HTML(`<p class="sarde-math display">x^2</p>`),
+			PageContent: engine.PageContent{Content: template.HTML(`<p class="sarde-math display">x^2</p>`)},
 		},
 		RouteData: rd,
 	}
@@ -34,7 +34,7 @@ func TestBeforeRender_SkipsWithoutMath(t *testing.T) {
 	p := New(nil)
 	rd := &engine.RouteData{}
 	ctx := &plugin.BeforeRenderContext{
-		Page:      &engine.Page{Content: template.HTML("<p>just text</p>")},
+		Page:      &engine.Page{PageContent: engine.PageContent{Content: template.HTML("<p>just text</p>")}},
 		RouteData: rd,
 	}
 	if err := p.Hooks.BeforeRender(ctx); err != nil {
@@ -49,7 +49,7 @@ func TestBeforeRender_AlwaysConfigForces(t *testing.T) {
 	p := New(map[string]any{"always": true})
 	rd := &engine.RouteData{}
 	ctx := &plugin.BeforeRenderContext{
-		Page:      &engine.Page{Content: template.HTML("<p>plain</p>")},
+		Page:      &engine.Page{PageContent: engine.PageContent{Content: template.HTML("<p>plain</p>")}},
 		RouteData: rd,
 	}
 	if err := p.Hooks.BeforeRender(ctx); err != nil {

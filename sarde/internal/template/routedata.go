@@ -19,8 +19,10 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 		Site:   site,
 		Theme:  theme,
 		Layout: engine.LayoutDefault,
-		Lang:   resolveLang(page, site),
-		Dir:    resolveDir(page, site),
+		RouteI18n: engine.RouteI18n{
+			Lang: resolveLang(page, site),
+			Dir:  resolveDir(page, site),
+		},
 	}
 
 	// Build translation links from page.Translations

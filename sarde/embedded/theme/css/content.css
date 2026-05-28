@@ -35,11 +35,12 @@
 	  opacity: 1;
 	}
 
-	h1 { font-size: var(--sarde-text-3xl); letter-spacing: -0.025em; margin-top: 0; }
-	h2 { font-size: var(--sarde-text-2xl); letter-spacing: -0.02em; padding-bottom: var(--sarde-space-2); border-bottom: 1px solid var(--sarde-border); }
-	h3 { font-size: var(--sarde-text-xl); }
-	h4 { font-size: var(--sarde-text-lg); }
-	h5, h6 { font-size: var(--sarde-text-base); }
+	h1 { font-size: var(--sarde-text-h1); letter-spacing: -0.025em; margin-top: 0; }
+	h2 { font-size: var(--sarde-text-h2); letter-spacing: -0.02em; padding-bottom: var(--sarde-space-2); border-bottom: 1px solid var(--sarde-border); }
+	h3 { font-size: var(--sarde-text-h3); }
+	h4 { font-size: var(--sarde-text-h4); }
+	h5 { font-size: var(--sarde-text-h5); }
+	h6 { font-size: var(--sarde-text-h6); }
 
 
 	/* ── Prose ── */

@@ -22,9 +22,9 @@ func testCollection() *engine.Collection {
 		Title:  "Documentation",
 		Config: docsConfig(),
 		Pages: []*engine.Page{
-			{Title: "Getting Started", Slug: "getting-started", RelPermalink: "/docs/getting-started/", Weight: 1, Kind: engine.KindPage},
-			{Title: "Installation", Slug: "installation", RelPermalink: "/docs/installation/", Weight: 2, Kind: engine.KindPage},
-			{Title: "Authentication", Slug: "authentication", RelPermalink: "/docs/guides/authentication/", Weight: 1, Kind: engine.KindPage},
+			{PageIdentity: engine.PageIdentity{Title: "Getting Started", Slug: "getting-started", RelPermalink: "/docs/getting-started/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 1}},
+			{PageIdentity: engine.PageIdentity{Title: "Installation", Slug: "installation", RelPermalink: "/docs/installation/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 2}},
+			{PageIdentity: engine.PageIdentity{Title: "Authentication", Slug: "authentication", RelPermalink: "/docs/guides/authentication/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 1}},
 		},
 	}
 }

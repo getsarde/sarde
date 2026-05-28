@@ -10,11 +10,9 @@ import (
 
 func TestSEO_PopulatesParams(t *testing.T) {
 	page := &engine.Page{
-		Title:        "My Post",
-		RelPermalink: "/blog/my-post/",
-		Description:  "A great post",
-		Date:         time.Date(2025, 6, 1, 0, 0, 0, 0, time.UTC),
-		Collection:   &engine.Collection{Name: "blog"},
+		PageIdentity:      engine.PageIdentity{Title: "My Post", RelPermalink: "/blog/my-post/", Date: time.Date(2025, 6, 1, 0, 0, 0, 0, time.UTC)},
+		PageMeta:          engine.PageMeta{Description: "A great post"},
+		PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "blog"}},
 	}
 
 	ctx := &BeforeRenderContext{
@@ -71,8 +69,7 @@ func TestSEO_PopulatesParams(t *testing.T) {
 
 func TestSEO_StandalonePageType(t *testing.T) {
 	page := &engine.Page{
-		Title:        "About",
-		RelPermalink: "/about/",
+		PageIdentity: engine.PageIdentity{Title: "About", RelPermalink: "/about/"},
 	}
 
 	ctx := &BeforeRenderContext{
@@ -91,9 +88,7 @@ func TestSEO_StandalonePageType(t *testing.T) {
 
 func TestSEO_CollectionPageType(t *testing.T) {
 	page := &engine.Page{
-		Title:        "Blog",
-		RelPermalink: "/blog/",
-		Kind:         engine.KindSection,
+		PageIdentity: engine.PageIdentity{Title: "Blog", RelPermalink: "/blog/", Kind: engine.KindSection},
 	}
 	ctx := &BeforeRenderContext{
 		Page:  page,
@@ -110,18 +105,19 @@ func TestSEO_CollectionPageType(t *testing.T) {
 
 func TestSEO_BreadcrumbList(t *testing.T) {
 	page := &engine.Page{
-		Title:        "Post",
-		RelPermalink: "/blog/post/",
-		Collection:   &engine.Collection{Name: "blog"},
+		PageIdentity:      engine.PageIdentity{Title: "Post", RelPermalink: "/blog/post/"},
+		PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "blog"}},
 	}
 	ctx := &BeforeRenderContext{
 		Page: page,
 		Site: &engine.SiteContext{BaseURL: "https://example.com"},
 		RouteData: &engine.RouteData{
-			Breadcrumbs: []engine.BreadcrumbItem{
-				{Label: "Home", URL: "/"},
-				{Label: "Blog", URL: "/blog/"},
-				{Label: "Post", URL: "/blog/post/", Current: true},
+			RouteNav: engine.RouteNav{
+				Breadcrumbs: []engine.BreadcrumbItem{
+					{Label: "Home", URL: "/"},
+					{Label: "Blog", URL: "/blog/"},
+					{Label: "Post", URL: "/blog/post/", Current: true},
+				},
 			},
 		},
 		store: NewStore(),
@@ -139,10 +135,9 @@ func TestSEO_BreadcrumbList(t *testing.T) {
 
 func TestSEO_CourseNode(t *testing.T) {
 	page := &engine.Page{
-		Title:        "Intro to Go",
-		RelPermalink: "/courses/intro-go/",
-		Collection:   &engine.Collection{Name: "courses"},
-		Params:       map[string]any{"schema_type": "Course", "provider": "Acme"},
+		PageIdentity:      engine.PageIdentity{Title: "Intro to Go", RelPermalink: "/courses/intro-go/"},
+		PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "courses"}},
+		Params:            map[string]any{"schema_type": "Course", "provider": "Acme"},
 	}
 	ctx := &BeforeRenderContext{
 		Page:  page,
@@ -162,11 +157,9 @@ func TestSEO_CourseNode(t *testing.T) {
 
 func TestSEO_PageImageUsedForOgImage(t *testing.T) {
 	page := &engine.Page{
-		Title:        "Post With Image",
-		RelPermalink: "/blog/post/",
-		Description:  "A post",
-		Image:        "/img/custom-cover.png",
-		Collection:   &engine.Collection{Name: "blog"},
+		PageIdentity:      engine.PageIdentity{Title: "Post With Image", RelPermalink: "/blog/post/"},
+		PageMeta:          engine.PageMeta{Description: "A post", Image: "/img/custom-cover.png"},
+		PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "blog"}},
 	}
 
 	ctx := &BeforeRenderContext{
@@ -188,10 +181,9 @@ func TestSEO_PageImageUsedForOgImage(t *testing.T) {
 
 func TestSEO_DefaultImageFallback(t *testing.T) {
 	page := &engine.Page{
-		Title:        "Post No Image",
-		RelPermalink: "/blog/post/",
-		Description:  "A post",
-		Collection:   &engine.Collection{Name: "blog"},
+		PageIdentity:      engine.PageIdentity{Title: "Post No Image", RelPermalink: "/blog/post/"},
+		PageMeta:          engine.PageMeta{Description: "A post"},
+		PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "blog"}},
 	}
 
 	ctx := &BeforeRenderContext{
@@ -214,8 +206,7 @@ func TestSEO_DefaultImageFallback(t *testing.T) {
 
 func TestSEO_DisableJSONLD(t *testing.T) {
 	page := &engine.Page{
-		Title:        "Test",
-		RelPermalink: "/test/",
+		PageIdentity: engine.PageIdentity{Title: "Test", RelPermalink: "/test/"},
 	}
 
 	ctx := &BeforeRenderContext{

@@ -1,0 +1,15 @@
+{{- $type := or .Params.type "note" -}}
+{{- $title := .Params.title -}}
+{{- $icon := "&#128161;" -}}
+{{- if eq $type "tip" }}{{ $icon = "&#9989;" }}{{ else if eq $type "warning" }}{{ $icon = "&#9888;&#65039;" }}{{ else if eq $type "danger" }}{{ $icon = "&#128680;" }}{{ end -}}
+<div class="starter-callout starter-callout--{{ $type }}" role="note">
+  <span class="starter-callout-icon" aria-hidden="true">{{ safeHTML $icon }}</span>
+  <div class="starter-callout-body">
+    {{- if $title }}
+    <p class="starter-callout-title">{{ $title }}</p>
+    {{- end }}
+    {{- if .Inner }}
+    <div class="starter-callout-content">{{ .Inner }}</div>
+    {{- end }}
+  </div>
+</div>

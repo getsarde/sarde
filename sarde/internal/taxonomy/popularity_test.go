@@ -9,7 +9,7 @@ import (
 func makeTerm(name string, pageCount int, priority int, hidden bool) *engine.TaxonomyTerm {
 	pages := make([]*engine.Page, pageCount)
 	for i := range pages {
-		pages[i] = &engine.Page{Title: name}
+		pages[i] = &engine.Page{PageIdentity: engine.PageIdentity{Title: name}}
 	}
 	return &engine.TaxonomyTerm{
 		Name:     name,

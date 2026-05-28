@@ -14,9 +14,8 @@ func TestBeforeRender_SkipsWhenImageSet(t *testing.T) {
 	pending := &sync.Map{}
 	cfg := map[string]any{}
 	page := &engine.Page{
-		Title:        "Test",
-		Image:        "/images/existing.png",
-		RelPermalink: "/blog/test/",
+		PageIdentity: engine.PageIdentity{Title: "Test", RelPermalink: "/blog/test/"},
+		PageMeta:     engine.PageMeta{Image: "/images/existing.png"},
 		Params:       make(map[string]any),
 	}
 	ctx := &plugin.BeforeRenderContext{
@@ -40,8 +39,7 @@ func TestBeforeRender_SkipsWhenOgImageAlreadySet(t *testing.T) {
 	pending := &sync.Map{}
 	cfg := map[string]any{}
 	page := &engine.Page{
-		Title:        "Test",
-		RelPermalink: "/blog/test/",
+		PageIdentity: engine.PageIdentity{Title: "Test", RelPermalink: "/blog/test/"},
 		Params: map[string]any{
 			"seo": map[string]any{
 				"og_image": "https://example.com/default.png",
@@ -69,8 +67,7 @@ func TestBeforeRender_InjectsWhenEmpty(t *testing.T) {
 	pending := &sync.Map{}
 	cfg := map[string]any{}
 	page := &engine.Page{
-		Title:        "Hello World",
-		RelPermalink: "/blog/hello-world/",
+		PageIdentity: engine.PageIdentity{Title: "Hello World", RelPermalink: "/blog/hello-world/"},
 		Params: map[string]any{
 			"seo": map[string]any{
 				"og_image": "",
@@ -111,9 +108,8 @@ func TestBeforeRender_CollectionFilter(t *testing.T) {
 		"collections": []any{"blog"},
 	}
 	page := &engine.Page{
-		Title:        "Docs Page",
-		RelPermalink: "/docs/getting-started/",
-		Collection:   &engine.Collection{Name: "docs"},
+		PageIdentity:      engine.PageIdentity{Title: "Docs Page", RelPermalink: "/docs/getting-started/"},
+		PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "docs"}},
 		Params: map[string]any{
 			"seo": map[string]any{"og_image": ""},
 		},
@@ -139,8 +135,7 @@ func TestBeforeRender_NoSEOPlugin(t *testing.T) {
 	pending := &sync.Map{}
 	cfg := map[string]any{}
 	page := &engine.Page{
-		Title:        "New Page",
-		RelPermalink: "/about/",
+		PageIdentity: engine.PageIdentity{Title: "New Page", RelPermalink: "/about/"},
 	}
 	ctx := &plugin.BeforeRenderContext{
 		Page: page,
@@ -173,31 +168,31 @@ func TestComputeCardPath(t *testing.T) {
 	}{
 		{
 			name:     "collection page",
-			page:     &engine.Page{RelPermalink: "/blog/hello-world/"},
+			page:     &engine.Page{PageIdentity: engine.PageIdentity{RelPermalink: "/blog/hello-world/"}},
 			format:   "png",
 			expected: "og/blog/hello-world.png",
 		},
 		{
 			name:     "standalone page",
-			page:     &engine.Page{RelPermalink: "/about/"},
+			page:     &engine.Page{PageIdentity: engine.PageIdentity{RelPermalink: "/about/"}},
 			format:   "png",
 			expected: "og/about.png",
 		},
 		{
 			name:     "home page",
-			page:     &engine.Page{RelPermalink: "/"},
+			page:     &engine.Page{PageIdentity: engine.PageIdentity{RelPermalink: "/"}},
 			format:   "png",
 			expected: "og/_index.png",
 		},
 		{
 			name:     "jpeg format",
-			page:     &engine.Page{RelPermalink: "/blog/post/"},
+			page:     &engine.Page{PageIdentity: engine.PageIdentity{RelPermalink: "/blog/post/"}},
 			format:   "jpeg",
 			expected: "og/blog/post.jpg",
 		},
 		{
 			name:     "nested docs page",
-			page:     &engine.Page{RelPermalink: "/docs/guides/setup/"},
+			page:     &engine.Page{PageIdentity: engine.PageIdentity{RelPermalink: "/docs/guides/setup/"}},
 			format:   "png",
 			expected: "og/docs/guides/setup.png",
 		},

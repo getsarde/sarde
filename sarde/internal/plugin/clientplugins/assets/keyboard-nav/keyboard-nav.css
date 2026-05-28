@@ -65,7 +65,7 @@
 /* Nav link flash highlight on keyboard navigation */
 .pagination-prev.sarde-kbd-nav-active,
 .pagination-next.sarde-kbd-nav-active {
-    outline: 2px solid var(--sarde-primary, #6366f1);
+    outline: 2px solid var(--sarde-accent, #6366f1);
     outline-offset: 2px;
     border-radius: var(--sarde-radius-md, 0.5rem);
 }

@@ -149,8 +149,7 @@ func TestManager_ContentLoaded_InjectPage(t *testing.T) {
 		Hooks: PluginHooks{
 			ContentLoaded: func(ctx *ContentLoadedContext) error {
 				ctx.InjectPage(&engine.Page{
-					Title: "Virtual Page",
-					Slug:  "virtual",
+					PageIdentity: engine.PageIdentity{Title: "Virtual Page", Slug: "virtual"},
 				})
 				return nil
 			},
@@ -159,7 +158,7 @@ func TestManager_ContentLoaded_InjectPage(t *testing.T) {
 
 	cfg := config.Defaults()
 	pages := []*engine.Page{
-		{Title: "Real Page", Slug: "real"},
+		{PageIdentity: engine.PageIdentity{Title: "Real Page", Slug: "real"}},
 	}
 
 	if err := mgr.RunContentLoaded(cfg, nil, &pages); err != nil {

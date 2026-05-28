@@ -14,13 +14,8 @@ social:
   label: Discord
   url: https://discord.gg/velox
 theme:
-  accent_color: '#fb7185'
   dark: true
-  name: docs
-  overrides:
-    primary: '#7c3aed'
-  preset: rose
-  primary_color: '#f43f5e'
+  name: starter
 toc:
   enabled: true
   max_level: 4
@@ -218,6 +213,9 @@ plugins:
 head:
   custom_css:
   - /css/custom.css
+  - css/starter.css
+  custom_js:
+  - js/starter.js
 i18n:
   default_language: en
   languages:

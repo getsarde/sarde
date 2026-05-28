@@ -768,10 +768,22 @@ func (pm *ProjectManager) resolveConfig(projectDir string) (*config.SiteConfig, 
 		thm, _ = theme.LoadFromFS(embedded.ThemeFS(), ".")
 	}
 
+	// Fold theme shortcut fields into overrides before token resolution.
+	foldThemeShortcuts(cfg)
+
+	// Validate token names in overrides.
+	known := theme.KnownTokens()
+	if err := theme.ValidateOverrides("theme.overrides", cfg.Theme.Overrides, known); err != nil {
+		return nil, nil, err
+	}
+	if err := theme.ValidateOverrides("theme.dark_overrides", cfg.Theme.DarkOverrides, known); err != nil {
+		return nil, nil, err
+	}
+
 	// Resolve tokens.
 	lightTokens := theme.ResolveTokens(theme.DefaultTokens(), thm, cfg.Theme.Preset, cfg.Theme.Overrides)
 	lightTokens = theme.DeriveTokens(lightTokens)
-	darkTokens := theme.ResolveDarkTokens(theme.DefaultDarkTokens(), thm, cfg.Theme.Preset, nil)
+	darkTokens := theme.ResolveDarkTokens(theme.DefaultDarkTokens(), thm, cfg.Theme.Preset, darkOverrides(cfg))
 	styleTag := theme.GenerateStyleTag(lightTokens, darkTokens)
 
 	name := "Default"
@@ -795,6 +807,35 @@ func (pm *ProjectManager) resolveConfig(projectDir string) (*config.SiteConfig, 
 	}
 
 	return cfg, themeCfg, nil
+}
+
+func foldThemeShortcuts(cfg *config.SiteConfig) {
+	accentVal := cfg.Theme.AccentColor
+	if accentVal == "" {
+		accentVal = cfg.Theme.PrimaryColor
+	}
+	shortcuts := map[string]string{
+		"accent":    accentVal,
+		"font-sans": cfg.Theme.FontFamily,
+		"font-mono": cfg.Theme.FontMono,
+	}
+	if cfg.Theme.Overrides == nil {
+		cfg.Theme.Overrides = make(map[string]string)
+	}
+	for token, val := range shortcuts {
+		if val != "" {
+			if _, exists := cfg.Theme.Overrides[token]; !exists {
+				cfg.Theme.Overrides[token] = val
+			}
+		}
+	}
+}
+
+func darkOverrides(cfg *config.SiteConfig) map[string]string {
+	if len(cfg.Theme.DarkOverrides) > 0 {
+		return cfg.Theme.DarkOverrides
+	}
+	return cfg.Theme.Overrides
 }
 
 func (pm *ProjectManager) buildProjectInfo() *ProjectInfo {

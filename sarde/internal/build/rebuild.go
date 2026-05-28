@@ -588,13 +588,17 @@ func (b *SiteBuilder) renderDirtyCollectionPagination(collections map[string]*en
 				continue
 			}
 			stub := &engine.Page{
-				Title:        col.IndexPage.Title,
-				Kind:         engine.KindSection,
-				Permalink:    permalink,
-				RelPermalink: permalink,
-				Collection:   col,
-				Section:      col.IndexPage.Section,
-				Lang:         col.IndexPage.Lang,
+				PageIdentity: engine.PageIdentity{
+					Title:        col.IndexPage.Title,
+					Kind:         engine.KindSection,
+					Permalink:    permalink,
+					RelPermalink: permalink,
+				},
+				PageRelationships: engine.PageRelationships{
+					Collection: col,
+					Section:    col.IndexPage.Section,
+				},
+				PageI18n: engine.PageI18n{Lang: col.IndexPage.Lang},
 				Params: map[string]any{
 					consts.PaginationCurrentKey: n,
 				},
@@ -623,8 +627,10 @@ func appendTaxonomyStubs(pages []*engine.Page, taxonomies map[string]*engine.Tax
 			continue
 		}
 		pages = append(pages, &engine.Page{
-			Title: tax.Name, Kind: engine.KindTaxonomy,
-			Permalink: tax.Permalink, RelPermalink: tax.Permalink,
+			PageIdentity: engine.PageIdentity{
+				Title: tax.Name, Kind: engine.KindTaxonomy,
+				Permalink: tax.Permalink, RelPermalink: tax.Permalink,
+			},
 		})
 		paginateBy := tax.PaginateBy
 		if paginateBy <= 0 {
@@ -632,15 +638,19 @@ func appendTaxonomyStubs(pages []*engine.Page, taxonomies map[string]*engine.Tax
 		}
 		for _, term := range tax.Terms {
 			pages = append(pages, &engine.Page{
-				Title: term.Label, Kind: engine.KindTerm,
-				Permalink: term.Permalink, RelPermalink: term.Permalink,
+				PageIdentity: engine.PageIdentity{
+					Title: term.Label, Kind: engine.KindTerm,
+					Permalink: term.Permalink, RelPermalink: term.Permalink,
+				},
 			})
 			total := (len(term.Pages) + paginateBy - 1) / paginateBy
 			for n := 2; n <= total; n++ {
 				permalink := sardetemplate.PaginationURL(term.Permalink, n)
 				pages = append(pages, &engine.Page{
-					Title: term.Label, Kind: engine.KindTerm,
-					Permalink: permalink, RelPermalink: permalink,
+					PageIdentity: engine.PageIdentity{
+						Title: term.Label, Kind: engine.KindTerm,
+						Permalink: permalink, RelPermalink: permalink,
+					},
 					Params: map[string]any{consts.PaginationCurrentKey: n},
 				})
 			}

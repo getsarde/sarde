@@ -310,9 +310,12 @@ func resolveBenchmarkSite(b *testing.B, projectDir string) (*config.SiteConfig, 
 }
 
 func foldBenchmarkThemeShortcuts(cfg *config.SiteConfig) {
+	accentVal := cfg.Theme.AccentColor
+	if accentVal == "" {
+		accentVal = cfg.Theme.PrimaryColor
+	}
 	shortcuts := map[string]string{
-		"primary":   cfg.Theme.PrimaryColor,
-		"accent":    cfg.Theme.AccentColor,
+		"accent":    accentVal,
 		"font-sans": cfg.Theme.FontFamily,
 		"font-mono": cfg.Theme.FontMono,
 	}

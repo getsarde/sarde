@@ -65,6 +65,7 @@ type SiteBuilder struct {
 	lastPageIndex      *content.PageIndex
 	lastOutputDir      string
 	lastAssetPipeline  *asset.Pipeline
+	globalCSSURLs      []string
 	lastScProcessor    *shortcode.Processor
 	lastShortcodesHash string
 	lastPageCache      *PageCache
@@ -430,6 +431,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	if err := assetPipeline.BundleGlobalAssets(); err != nil {
 		return nil, fmt.Errorf("bundling global assets: %w", err)
 	}
+	b.globalCSSURLs = assetPipeline.GlobalCSSURLs()
 
 	// Load template engine (needs SiteContext + asset pipeline + plugin funcs + i18n for funcMap closures).
 	b.tmplEngine.SetSiteContext(siteCtx)
@@ -500,13 +502,17 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		for n := 2; n <= total; n++ {
 			permalink := sardetemplate.PaginationURL(base, n)
 			stub := &engine.Page{
-				Title:        idx.Title,
-				Kind:         engine.KindSection,
-				Permalink:    permalink,
-				RelPermalink: permalink,
-				Collection:   col,
-				Section:      idx.Section,
-				Lang:         idx.Lang,
+				PageIdentity: engine.PageIdentity{
+					Title:        idx.Title,
+					Kind:         engine.KindSection,
+					Permalink:    permalink,
+					RelPermalink: permalink,
+				},
+				PageRelationships: engine.PageRelationships{
+					Collection: col,
+					Section:    idx.Section,
+				},
+				PageI18n: engine.PageI18n{Lang: idx.Lang},
 				Params: map[string]any{
 					consts.PaginationCurrentKey: n,
 				},
@@ -575,7 +581,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 
 	// Render 404 page(s).
 	render404 := func(lang, dir, outPath string) {
-		page404 := &engine.Page{Title: "Page Not Found", Kind: engine.KindPage, Lang: lang}
+		page404 := &engine.Page{
+				PageIdentity: engine.PageIdentity{Title: "Page Not Found", Kind: engine.KindPage},
+				PageI18n:     engine.PageI18n{Lang: lang},
+			}
 		templateName := consts.DirDefault + "/404"
 
 		// Convention: auto-detect content/404.md (or content/404.<lang>.md).
@@ -614,8 +623,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			Site:     siteCtx,
 			Theme:    b.themeConfig,
 			Page:     page404,
-			Lang:     lang,
-			Dir:      dir,
+			RouteI18n: engine.RouteI18n{
+				Lang: lang,
+				Dir:  dir,
+			},
 		}
 		html404, err := b.tmplEngine.Render(rd404.Template, rd404)
 		if err == nil {

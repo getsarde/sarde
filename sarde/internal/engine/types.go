@@ -75,8 +75,12 @@ func LayoutHasTOC(layout LayoutType) bool {
 // ---------------------------------------------------------------------------
 
 // Page represents a single content page after parsing and transformation.
-type Page struct {
-	// Identity
+// ---------------------------------------------------------------------------
+// Page — embedded sub-structs
+// ---------------------------------------------------------------------------
+
+// PageIdentity holds the core identity fields of a page.
+type PageIdentity struct {
 	Title        string
 	Slug         string
 	Date         time.Time
@@ -87,63 +91,87 @@ type Page struct {
 	RelPermalink string
 	Kind         NodeKind
 	FilePath     string
-	RelPath      string // path relative to content dir (POSIX slashes); used by editURL template func
+	RelPath      string
+}
 
-	// Content
-	Content     template.HTML
-	Summary     template.HTML
-	RawContent  string
-	WordCount   int
-	ReadingTime int
-	Headings    []Heading
-
-	// Content feature flags (set by markdown renderers during conversion).
+// PageContent holds rendered content and content-derived metadata.
+type PageContent struct {
+	Content       template.HTML
+	Summary       template.HTML
+	RawContent    string
+	WordCount     int
+	ReadingTime   int
+	Headings      []Heading
 	HasCodeBlocks bool
 	HasImages     bool
+}
 
-	// Metadata
+// PageMeta holds editorial metadata.
+type PageMeta struct {
 	Draft       bool
 	Weight      int
 	Description string
 	Image       string
+}
 
-	// Relationships
+// PageRelationships holds graph connections to other pages and structures.
+type PageRelationships struct {
 	Collection *Collection
 	Section    *Section
 	PrevPage   *Page
 	NextPage   *Page
 	Siblings   []*Page
 	Backlinks  []*Page
+}
 
-	// Navigation (docs-layout only)
-	NavNode *NavNode
-
-	// Taxonomy
+// PageTaxonomy holds taxonomy membership fields.
+type PageTaxonomy struct {
 	Tags       []string
 	Categories []string
 	Aliases    []string
+}
 
-	// Sidebar
+// PageSidebar holds sidebar presentation fields.
+type PageSidebar struct {
 	SidebarLabel  string
 	SidebarHidden bool
 	Badge         Badge
+}
 
-	// Bundle resources
-	Resources []Resource
-
-	// i18n
+// PageI18n holds language and translation fields.
+type PageI18n struct {
 	Lang         string
-	LangRelPath  string // relative path within language root (for translation matching)
+	LangRelPath  string
 	Translations []*Page
 	IsFallback   bool
+}
 
-	// Versioning
-	Version        string  // version ID (e.g. "v1"), empty for unversioned/latest
-	VersionRelPath string  // path relative to version root, for cross-version linking
-	VersionPeers   []*Page // same page in other versions
+// PageVersioning holds version membership fields.
+type PageVersioning struct {
+	Version        string
+	VersionRelPath string
+	VersionPeers   []*Page
+}
 
-	// User data
-	Params map[string]any
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
+
+// Page represents a single content page. Sub-structs are embedded so all
+// fields remain accessible as top-level names (e.g. page.Title, page.Tags).
+type Page struct {
+	PageIdentity
+	PageContent
+	PageMeta
+	PageRelationships
+	PageTaxonomy
+	PageSidebar
+	PageI18n
+	PageVersioning
+
+	NavNode   *NavNode
+	Resources []Resource
+	Params    map[string]any
 }
 
 // ---------------------------------------------------------------------------
@@ -578,57 +606,80 @@ type Language struct {
 }
 
 // ---------------------------------------------------------------------------
-// RouteData
+// RouteData — embedded sub-structs
 // ---------------------------------------------------------------------------
 
-// RouteData is the unified context object passed to every template render.
-type RouteData struct {
-	Page                      *Page
-	Collection                *Collection
+// RouteNav groups navigation-related fields for the current page render.
+type RouteNav struct {
 	GlobalNav                 *GlobalNav
 	Sidebar                   *NavTree
 	SidebarType               string
 	Breadcrumbs               []BreadcrumbItem
 	Pagination                *PaginationLinks
-	Paginator                 *Paginator // numbered list-page pagination (section/list pages only)
+	Paginator                 *Paginator
 	HasSidebar                bool
 	SidebarCollapsedByDefault bool
 	Section                   *Section
 	IsSection                 bool
-	Layout                    LayoutType
-	Template                  string
-	Site                      *SiteContext
-	Theme                     *ThemeConfig
-	Lang                      string
-	Dir                       string
-	Translations              []TranslationLink
-	Homepage                  *HomepageData // only set for KindHome pages
+}
 
-	// Taxonomy pages (KindTaxonomy / KindTerm)
-	Taxonomy     *Taxonomy     // set for KindTaxonomy and KindTerm
-	TaxonomyTerm *TaxonomyTerm // set for KindTerm only
-	TermEntries  []*TermEntry  // set for KindTaxonomy (sorted terms with PopTier)
+// RouteI18n groups language and translation fields.
+type RouteI18n struct {
+	Lang         string
+	Dir          string
+	Translations []TranslationLink
+}
 
-	// Docs tabs (tabbed docs collections)
-	IsTabbed  bool       // collection uses docs tabs
-	DocsTabs  []*DocsTab // all tabs (for the switcher component)
-	ActiveTab *DocsTab   // which tab the current page belongs to
+// RouteVersioning groups version-switcher fields for versioned collections.
+type RouteVersioning struct {
+	Version       string
+	VersionLabel  string
+	Versions      []VersionLink
+	IsLatest      bool
+	VersionBanner string
+}
 
-	// Versioning (docs collections with version subdirs)
-	Version       string        // current page's version ID, empty for latest/unversioned
-	VersionLabel  string        // display label of current version
-	Versions      []VersionLink // all versions for the VersionSwitcher dropdown
-	IsLatest      bool          // true if current page is in the last_version
-	VersionBanner string        // "unmaintained" / "unreleased" / "" (empty = no banner)
+// RouteTabs groups docs-tab fields for tabbed collections.
+type RouteTabs struct {
+	IsTabbed  bool
+	DocsTabs  []*DocsTab
+	ActiveTab *DocsTab
+}
 
-	// Per-page banner from frontmatter (not the site-wide announcements plugin).
-	PageBanner *PageBanner
+// RouteAssets holds per-page asset URLs injected by plugins via BeforeRender.
+type RouteAssets struct {
+	Scripts       []string
+	Styles        []string
+	InlineScripts []template.HTML
+	ModuleScripts []string
+}
 
-	// Per-page asset injection (populated by plugins via BeforeRender).
-	Scripts       []string        // root-relative script URLs (emitted as <script defer src>)
-	Styles        []string        // root-relative stylesheet URLs (emitted as <link rel="stylesheet">)
-	InlineScripts []template.HTML // inline <script> bodies (already-escaped template.HTML)
-	ModuleScripts []string        // root-relative URLs emitted as <script type="module" src>
+// ---------------------------------------------------------------------------
+// RouteData
+// ---------------------------------------------------------------------------
+
+// RouteData is the unified context object passed to every template render.
+// Sub-structs are embedded so all fields remain accessible as top-level
+// names in both Go code and html/template (e.g. .Lang, .Scripts, .Version).
+type RouteData struct {
+	Page       *Page
+	Collection *Collection
+	Site       *SiteContext
+	Theme      *ThemeConfig
+	Layout     LayoutType
+	Template   string
+
+	RouteNav
+	RouteI18n
+	RouteVersioning
+	RouteTabs
+	RouteAssets
+
+	Homepage     *HomepageData
+	Taxonomy     *Taxonomy
+	TaxonomyTerm *TaxonomyTerm
+	TermEntries  []*TermEntry
+	PageBanner   *PageBanner
 }
 
 // HomepageData exposes homepage settings to templates.

@@ -391,28 +391,40 @@ func buildPage(
 
 	// Build Page
 	page := &engine.Page{
-		Title:         fm.Title,
-		Slug:          fm.Slug,
-		Date:          fm.Date,
-		Updated:       fm.Updated,
-		Draft:         fm.Draft,
-		PublishDate:   fm.PublishDate,
-		ExpiryDate:    fm.ExpiryDate,
-		Weight:        fm.Weight,
-		Description:   fm.Description,
-		Image:         fm.Image,
-		Tags:          fm.Tags,
-		Categories:    fm.Categories,
-		Aliases:       fm.Aliases,
-		SidebarLabel:  fm.SidebarLabel,
-		SidebarHidden: fm.SidebarHidden,
-		Badge:         fm.Badge,
-		Kind:          cf.Kind,
-		FilePath:      cf.FilePath,
-		RawContent:    body,
-		Params:        fm.Params,
-		Lang:          cf.Lang,
-		LangRelPath:   cf.LangRelPath,
+		PageIdentity: engine.PageIdentity{
+			Title:       fm.Title,
+			Slug:        fm.Slug,
+			Date:        fm.Date,
+			Updated:     fm.Updated,
+			PublishDate: fm.PublishDate,
+			ExpiryDate:  fm.ExpiryDate,
+			Kind:        cf.Kind,
+			FilePath:    cf.FilePath,
+		},
+		PageContent: engine.PageContent{
+			RawContent: body,
+		},
+		PageMeta: engine.PageMeta{
+			Draft:       fm.Draft,
+			Weight:      fm.Weight,
+			Description: fm.Description,
+			Image:       fm.Image,
+		},
+		PageTaxonomy: engine.PageTaxonomy{
+			Tags:       fm.Tags,
+			Categories: fm.Categories,
+			Aliases:    fm.Aliases,
+		},
+		PageSidebar: engine.PageSidebar{
+			SidebarLabel:  fm.SidebarLabel,
+			SidebarHidden: fm.SidebarHidden,
+			Badge:         fm.Badge,
+		},
+		PageI18n: engine.PageI18n{
+			Lang:        cf.Lang,
+			LangRelPath: cf.LangRelPath,
+		},
+		Params: fm.Params,
 	}
 	if rel, err := filepath.Rel(contentDir, cf.FilePath); err == nil {
 		page.RelPath = filepath.ToSlash(rel)

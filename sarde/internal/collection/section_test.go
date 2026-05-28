@@ -8,9 +8,9 @@ import (
 
 func TestBuildSectionTree_Flat(t *testing.T) {
 	pages := []*engine.Page{
-		{Title: "Docs", Slug: "docs", Kind: engine.KindSection, RelPermalink: "/docs/"},
-		{Title: "Getting Started", Slug: "getting-started", Kind: engine.KindPage, RelPermalink: "/docs/getting-started/"},
-		{Title: "API", Slug: "api", Kind: engine.KindPage, RelPermalink: "/docs/api/"},
+		{PageIdentity: engine.PageIdentity{Title: "Docs", Slug: "docs", Kind: engine.KindSection, RelPermalink: "/docs/"}},
+		{PageIdentity: engine.PageIdentity{Title: "Getting Started", Slug: "getting-started", Kind: engine.KindPage, RelPermalink: "/docs/getting-started/"}},
+		{PageIdentity: engine.PageIdentity{Title: "API", Slug: "api", Kind: engine.KindPage, RelPermalink: "/docs/api/"}},
 	}
 	roots := BuildSectionTree(pages, "docs")
 	if len(roots) != 1 {
@@ -27,9 +27,9 @@ func TestBuildSectionTree_Flat(t *testing.T) {
 
 func TestBuildSectionTree_Nested(t *testing.T) {
 	pages := []*engine.Page{
-		{Title: "Docs", Slug: "docs", Kind: engine.KindSection, RelPermalink: "/docs/"},
-		{Title: "Guides", Slug: "guides", Kind: engine.KindSection, RelPermalink: "/docs/guides/"},
-		{Title: "Auth", Slug: "auth", Kind: engine.KindPage, RelPermalink: "/docs/guides/auth/"},
+		{PageIdentity: engine.PageIdentity{Title: "Docs", Slug: "docs", Kind: engine.KindSection, RelPermalink: "/docs/"}},
+		{PageIdentity: engine.PageIdentity{Title: "Guides", Slug: "guides", Kind: engine.KindSection, RelPermalink: "/docs/guides/"}},
+		{PageIdentity: engine.PageIdentity{Title: "Auth", Slug: "auth", Kind: engine.KindPage, RelPermalink: "/docs/guides/auth/"}},
 	}
 	roots := BuildSectionTree(pages, "docs")
 	if len(roots) != 1 {
@@ -53,10 +53,10 @@ func TestBuildSectionTree_Nested(t *testing.T) {
 
 func TestBuildSectionTree_TransparentSection(t *testing.T) {
 	pages := []*engine.Page{
-		{Title: "Docs", Slug: "docs", Kind: engine.KindSection, RelPermalink: "/docs/"},
-		{Title: "Internal", Slug: "internal", Kind: engine.KindSection, RelPermalink: "/docs/internal/",
+		{PageIdentity: engine.PageIdentity{Title: "Docs", Slug: "docs", Kind: engine.KindSection, RelPermalink: "/docs/"}},
+		{PageIdentity: engine.PageIdentity{Title: "Internal", Slug: "internal", Kind: engine.KindSection, RelPermalink: "/docs/internal/"},
 			Params: map[string]any{"transparent": true}},
-		{Title: "Hidden Page", Slug: "hidden", Kind: engine.KindPage, RelPermalink: "/docs/internal/hidden/"},
+		{PageIdentity: engine.PageIdentity{Title: "Hidden Page", Slug: "hidden", Kind: engine.KindPage, RelPermalink: "/docs/internal/hidden/"}},
 	}
 	roots := BuildSectionTree(pages, "docs")
 	root := roots[0]
@@ -68,8 +68,8 @@ func TestBuildSectionTree_TransparentSection(t *testing.T) {
 
 func TestBuildSectionTree_RenderFalse(t *testing.T) {
 	pages := []*engine.Page{
-		{Title: "Docs", Slug: "docs", Kind: engine.KindSection, RelPermalink: "/docs/"},
-		{Title: "Group Only", Slug: "group", Kind: engine.KindSection, RelPermalink: "/docs/group/",
+		{PageIdentity: engine.PageIdentity{Title: "Docs", Slug: "docs", Kind: engine.KindSection, RelPermalink: "/docs/"}},
+		{PageIdentity: engine.PageIdentity{Title: "Group Only", Slug: "group", Kind: engine.KindSection, RelPermalink: "/docs/group/"},
 			Params: map[string]any{"render": false}},
 	}
 	roots := BuildSectionTree(pages, "docs")
@@ -83,7 +83,7 @@ func TestBuildSectionTree_RenderFalse(t *testing.T) {
 }
 
 func TestBuildSectionTree_IndexPage(t *testing.T) {
-	indexPage := &engine.Page{Title: "Docs", Slug: "docs", Kind: engine.KindSection, RelPermalink: "/docs/"}
+	indexPage := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Docs", Slug: "docs", Kind: engine.KindSection, RelPermalink: "/docs/"}}
 	pages := []*engine.Page{indexPage}
 	roots := BuildSectionTree(pages, "docs")
 	if roots[0].IndexPage != indexPage {

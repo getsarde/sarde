@@ -72,9 +72,9 @@ func TestContentLint_EmptyLinks(t *testing.T) {
 
 func TestContentLint_FrontmatterRequired(t *testing.T) {
 	page := &engine.Page{
-		Title:       "Has Title",
-		Description: "",
-		Params:      map[string]any{"author": "Alice"},
+		PageIdentity: engine.PageIdentity{Title: "Has Title"},
+		PageMeta:     engine.PageMeta{Description: ""},
+		Params:       map[string]any{"author": "Alice"},
 	}
 
 	issues := checkFrontmatterRequired(page, []string{"title", "description", "author", "category"})
@@ -100,8 +100,8 @@ func TestContentLint_Disabled(t *testing.T) {
 		OutputDir: outDir,
 		Pages: []*engine.Page{
 			{
-				Title:      "Test",
-				RawContent: "# This heading is very long and would normally fail",
+				PageIdentity: engine.PageIdentity{Title: "Test"},
+				PageContent:  engine.PageContent{RawContent: "# This heading is very long and would normally fail"},
 			},
 		},
 	}
@@ -135,9 +135,8 @@ func TestContentLint_Integration(t *testing.T) {
 		OutputDir: outDir,
 		Pages: []*engine.Page{
 			{
-				Title:    "Test Page",
-				FilePath: "content/test.md",
-				RawContent: "# OK\n### Skipped h2\n![](no-alt.png)\n[](empty.html)\n",
+				PageIdentity: engine.PageIdentity{Title: "Test Page", FilePath: "content/test.md"},
+				PageContent:  engine.PageContent{RawContent: "# OK\n### Skipped h2\n![](no-alt.png)\n[](empty.html)\n"},
 			},
 		},
 	}

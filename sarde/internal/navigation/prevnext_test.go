@@ -7,9 +7,9 @@ import (
 )
 
 func TestWirePrevNextFromTree_CrossSection(t *testing.T) {
-	pageA := &engine.Page{Title: "A", Slug: "a"}
-	pageB := &engine.Page{Title: "B", Slug: "b"}
-	pageC := &engine.Page{Title: "C", Slug: "c"}
+	pageA := &engine.Page{PageIdentity: engine.PageIdentity{Title: "A", Slug: "a"}}
+	pageB := &engine.Page{PageIdentity: engine.PageIdentity{Title: "B", Slug: "b"}}
+	pageC := &engine.Page{PageIdentity: engine.PageIdentity{Title: "C", Slug: "c"}}
 
 	tree := &engine.NavTree{
 		Flat: []*engine.NavNode{
@@ -43,9 +43,9 @@ func TestWirePrevNextFromTree_CrossSection(t *testing.T) {
 }
 
 func TestWirePrevNextFromTree_ManualOverride(t *testing.T) {
-	pageA := &engine.Page{Title: "A", Slug: "a"}
-	pageB := &engine.Page{Title: "B", Slug: "b", Params: map[string]any{"prev": "c"}}
-	pageC := &engine.Page{Title: "C", Slug: "c"}
+	pageA := &engine.Page{PageIdentity: engine.PageIdentity{Title: "A", Slug: "a"}}
+	pageB := &engine.Page{PageIdentity: engine.PageIdentity{Title: "B", Slug: "b"}, Params: map[string]any{"prev": "c"}}
+	pageC := &engine.Page{PageIdentity: engine.PageIdentity{Title: "C", Slug: "c"}}
 
 	tree := &engine.NavTree{
 		Flat: []*engine.NavNode{
@@ -69,7 +69,7 @@ func TestWirePrevNextFromTree_NilTree(t *testing.T) {
 }
 
 func TestWirePrevNextFromTree_SinglePage(t *testing.T) {
-	page := &engine.Page{Title: "Only", Slug: "only"}
+	page := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Only", Slug: "only"}}
 	tree := &engine.NavTree{
 		Flat:       []*engine.NavNode{{Page: page}},
 		TotalPages: 1,
@@ -83,9 +83,9 @@ func TestWirePrevNextFromTree_SinglePage(t *testing.T) {
 }
 
 func TestWirePrevNextFromTree_NextOverride(t *testing.T) {
-	pageA := &engine.Page{Title: "A", Slug: "a"}
-	pageB := &engine.Page{Title: "B", Slug: "b", Params: map[string]any{"next": "a"}}
-	pageC := &engine.Page{Title: "C", Slug: "c"}
+	pageA := &engine.Page{PageIdentity: engine.PageIdentity{Title: "A", Slug: "a"}}
+	pageB := &engine.Page{PageIdentity: engine.PageIdentity{Title: "B", Slug: "b"}, Params: map[string]any{"next": "a"}}
+	pageC := &engine.Page{PageIdentity: engine.PageIdentity{Title: "C", Slug: "c"}}
 
 	tree := &engine.NavTree{
 		Flat: []*engine.NavNode{
@@ -104,9 +104,9 @@ func TestWirePrevNextFromTree_NextOverride(t *testing.T) {
 }
 
 func TestWirePrevNextFromTree_BothOverrides(t *testing.T) {
-	pageA := &engine.Page{Title: "A", Slug: "a"}
-	pageB := &engine.Page{Title: "B", Slug: "b", Params: map[string]any{"prev": "c", "next": "a"}}
-	pageC := &engine.Page{Title: "C", Slug: "c"}
+	pageA := &engine.Page{PageIdentity: engine.PageIdentity{Title: "A", Slug: "a"}}
+	pageB := &engine.Page{PageIdentity: engine.PageIdentity{Title: "B", Slug: "b"}, Params: map[string]any{"prev": "c", "next": "a"}}
+	pageC := &engine.Page{PageIdentity: engine.PageIdentity{Title: "C", Slug: "c"}}
 
 	tree := &engine.NavTree{
 		Flat: []*engine.NavNode{
@@ -128,8 +128,8 @@ func TestWirePrevNextFromTree_BothOverrides(t *testing.T) {
 }
 
 func TestWirePrevNextFromTree_MissingSlug(t *testing.T) {
-	pageA := &engine.Page{Title: "A", Slug: "a"}
-	pageB := &engine.Page{Title: "B", Slug: "b", Params: map[string]any{"prev": "nonexistent"}}
+	pageA := &engine.Page{PageIdentity: engine.PageIdentity{Title: "A", Slug: "a"}}
+	pageB := &engine.Page{PageIdentity: engine.PageIdentity{Title: "B", Slug: "b"}, Params: map[string]any{"prev": "nonexistent"}}
 
 	tree := &engine.NavTree{
 		Flat: []*engine.NavNode{

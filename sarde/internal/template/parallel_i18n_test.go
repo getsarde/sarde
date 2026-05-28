@@ -38,8 +38,8 @@ func TestEngine_Render_ConcurrentLanguagesUseRouteData(t *testing.T) {
 		t.Fatalf("Load failed: %v", err)
 	}
 
-	enRD := BuildRouteData(&engine.Page{Title: "English", Lang: "en"}, site, nil)
-	frRD := BuildRouteData(&engine.Page{Title: "French", Lang: "fr"}, site, nil)
+	enRD := BuildRouteData(&engine.Page{PageIdentity: engine.PageIdentity{Title: "English"}, PageI18n: engine.PageI18n{Lang: "en"}}, site, nil)
+	frRD := BuildRouteData(&engine.Page{PageIdentity: engine.PageIdentity{Title: "French"}, PageI18n: engine.PageI18n{Lang: "fr"}}, site, nil)
 
 	var wg sync.WaitGroup
 	for i := 0; i < 50; i++ {

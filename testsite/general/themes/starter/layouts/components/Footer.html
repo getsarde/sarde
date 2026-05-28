@@ -1,0 +1,25 @@
+<footer class="starter-footer">
+  <div class="starter-footer-inner">
+    <div class="starter-footer-brand">
+      <a href="/" class="starter-footer-brand-name">{{ .Site.Title }}</a>
+      {{ if .Site.Config.Site.Description }}
+      <p class="starter-footer-tagline">{{ .Site.Config.Site.Description }}</p>
+      {{ end }}
+    </div>
+    {{ if .Site.Config.Footer.Links }}
+    <nav class="starter-footer-links" aria-label="Footer navigation">
+      {{ range .Site.Config.Footer.Links }}
+      <a href="{{ .URL }}"{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}</a>
+      {{ end }}
+    </nav>
+    {{ end }}
+  </div>
+  <div class="starter-footer-bottom">
+    <span>&copy; {{ now.Year }} {{ .Site.Title }}</span>
+    {{ if boolVal .Site.Config.Footer.Credits false }}
+    <span class="starter-footer-credits">
+      Built with <a href="https://sarde.dev" rel="noopener">Sarde</a>
+    </span>
+    {{ end }}
+  </div>
+</footer>

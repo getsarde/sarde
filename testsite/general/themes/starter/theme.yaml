@@ -1,0 +1,58 @@
+name: Starter
+slug: starter
+version: "1.0.0"
+author: Sarde
+description: >
+  A warm, professional theme with amber/orange accents, rounded geometry,
+  and Outfit typography. Designed as a reference implementation for Sarde
+  theme authoring.
+license: MIT
+
+tokens:
+  accent: "#d97706"
+  bg: "#ffffff"
+  bg-surface: "#fffbf2"
+  bg-code: "#1c1917"
+  text: "#1c1917"
+  text-muted: "#78716c"
+  border: "#e7e5e0"
+  font-sans: "'Outfit', system-ui, -apple-system, sans-serif"
+  font-mono: "'Fira Code', 'JetBrains Mono', ui-monospace, monospace"
+  radius: "0.625rem"
+
+dark_tokens:
+  bg: "#0c0a09"
+  bg-surface: "#1c1917"
+  bg-code: "#0c0a09"
+  text: "#e7e5e0"
+  text-muted: "#a8a29e"
+  border: "#292524"
+
+presets:
+  warm:
+    name: Warm
+    tokens:
+      accent: "#ea580c"
+      bg-surface: "#fff7ed"
+      text-muted: "#9a3412"
+      border: "#fed7aa"
+      radius: "0.75rem"
+    dark_tokens:
+      text: "#fef3c7"
+      text-muted: "#d97706"
+
+  cool:
+    name: Cool
+    tokens:
+      accent: "#0d9488"
+      bg-surface: "#f0fdfa"
+      text: "#134e4a"
+      text-muted: "#5eead4"
+      border: "#ccfbf1"
+      radius: "0.5rem"
+    dark_tokens:
+      bg: "#042f2e"
+      bg-surface: "#0f3d3c"
+      text: "#ccfbf1"
+      text-muted: "#5eead4"
+      border: "#115e59"

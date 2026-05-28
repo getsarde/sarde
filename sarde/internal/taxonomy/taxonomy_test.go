@@ -8,9 +8,9 @@ import (
 
 func TestBuildTaxonomies_Tags(t *testing.T) {
 	pages := []*engine.Page{
-		{Title: "Post A", Tags: []string{"Go", "Testing"}},
-		{Title: "Post B", Tags: []string{"Go", "Performance"}},
-		{Title: "Post C", Tags: []string{"Testing"}},
+		{PageIdentity: engine.PageIdentity{Title: "Post A"}, PageTaxonomy: engine.PageTaxonomy{Tags: []string{"Go", "Testing"}}},
+		{PageIdentity: engine.PageIdentity{Title: "Post B"}, PageTaxonomy: engine.PageTaxonomy{Tags: []string{"Go", "Performance"}}},
+		{PageIdentity: engine.PageIdentity{Title: "Post C"}, PageTaxonomy: engine.PageTaxonomy{Tags: []string{"Testing"}}},
 	}
 
 	taxonomies := BuildTaxonomies(pages, nil)
@@ -42,7 +42,7 @@ func TestBuildTaxonomies_Tags(t *testing.T) {
 
 func TestBuildTaxonomies_Categories(t *testing.T) {
 	pages := []*engine.Page{
-		{Title: "Post A", Categories: []string{"Tutorials"}},
+		{PageIdentity: engine.PageIdentity{Title: "Post A"}, PageTaxonomy: engine.PageTaxonomy{Categories: []string{"Tutorials"}}},
 	}
 
 	taxonomies := BuildTaxonomies(pages, nil)
@@ -58,7 +58,7 @@ func TestBuildTaxonomies_Categories(t *testing.T) {
 
 func TestBuildTaxonomies_EmptyRemoved(t *testing.T) {
 	pages := []*engine.Page{
-		{Title: "Post A", Tags: []string{"Go"}},
+		{PageIdentity: engine.PageIdentity{Title: "Post A"}, PageTaxonomy: engine.PageTaxonomy{Tags: []string{"Go"}}},
 		// No categories.
 	}
 

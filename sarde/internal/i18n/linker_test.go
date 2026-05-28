@@ -7,8 +7,8 @@ import (
 )
 
 func TestLinkTranslations_BasicPairing(t *testing.T) {
-	enPage := &engine.Page{Lang: "en", LangRelPath: "docs/getting-started.md", Title: "Getting Started"}
-	frPage := &engine.Page{Lang: "fr", LangRelPath: "docs/getting-started.md", Title: "Premiers pas"}
+	enPage := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Getting Started"}, PageI18n: engine.PageI18n{Lang: "en", LangRelPath: "docs/getting-started.md"}}
+	frPage := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Premiers pas"}, PageI18n: engine.PageI18n{Lang: "fr", LangRelPath: "docs/getting-started.md"}}
 
 	pages := []*engine.Page{enPage, frPage}
 	weights := map[string]int{"en": 1, "fr": 2}
@@ -24,9 +24,9 @@ func TestLinkTranslations_BasicPairing(t *testing.T) {
 }
 
 func TestLinkTranslations_ThreeLanguages(t *testing.T) {
-	en := &engine.Page{Lang: "en", LangRelPath: "docs/api.md"}
-	fr := &engine.Page{Lang: "fr", LangRelPath: "docs/api.md"}
-	ar := &engine.Page{Lang: "ar", LangRelPath: "docs/api.md"}
+	en := &engine.Page{PageI18n: engine.PageI18n{Lang: "en", LangRelPath: "docs/api.md"}}
+	fr := &engine.Page{PageI18n: engine.PageI18n{Lang: "fr", LangRelPath: "docs/api.md"}}
+	ar := &engine.Page{PageI18n: engine.PageI18n{Lang: "ar", LangRelPath: "docs/api.md"}}
 
 	pages := []*engine.Page{ar, en, fr}
 	weights := map[string]int{"en": 1, "fr": 2, "ar": 3}
@@ -48,8 +48,8 @@ func TestLinkTranslations_ThreeLanguages(t *testing.T) {
 }
 
 func TestLinkTranslations_NoMatch(t *testing.T) {
-	en := &engine.Page{Lang: "en", LangRelPath: "docs/getting-started.md"}
-	fr := &engine.Page{Lang: "fr", LangRelPath: "docs/introduction.md"} // different path
+	en := &engine.Page{PageI18n: engine.PageI18n{Lang: "en", LangRelPath: "docs/getting-started.md"}}
+	fr := &engine.Page{PageI18n: engine.PageI18n{Lang: "fr", LangRelPath: "docs/introduction.md"}} // different path
 
 	pages := []*engine.Page{en, fr}
 	LinkTranslations(pages, nil)
@@ -63,7 +63,7 @@ func TestLinkTranslations_NoMatch(t *testing.T) {
 }
 
 func TestLinkTranslations_SinglePage(t *testing.T) {
-	en := &engine.Page{Lang: "en", LangRelPath: "about.md"}
+	en := &engine.Page{PageI18n: engine.PageI18n{Lang: "en", LangRelPath: "about.md"}}
 
 	pages := []*engine.Page{en}
 	LinkTranslations(pages, nil)

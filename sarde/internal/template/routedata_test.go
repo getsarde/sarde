@@ -22,14 +22,11 @@ func TestBuildRouteData_BlogPage(t *testing.T) {
 		Title:  "Blog",
 		Config: &engine.CollectionConfig{Layout: engine.LayoutDefault},
 	}
-	prev := &engine.Page{Title: "Previous Post", RelPermalink: "/blog/prev/"}
-	next := &engine.Page{Title: "Next Post", RelPermalink: "/blog/next/"}
+	prev := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Previous Post", RelPermalink: "/blog/prev/"}}
+	next := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Next Post", RelPermalink: "/blog/next/"}}
 	page := &engine.Page{
-		Title:    "My Post",
-		Kind:     engine.KindPage,
-		PrevPage: prev,
-		NextPage: next,
-		Collection: col,
+		PageIdentity:      engine.PageIdentity{Title: "My Post", Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{PrevPage: prev, NextPage: next, Collection: col},
 	}
 
 	rd := BuildRouteData(page, baseSite(), nil)
@@ -61,9 +58,8 @@ func TestBuildRouteData_DocsPage(t *testing.T) {
 		Config: &engine.CollectionConfig{Layout: engine.LayoutDocs},
 	}
 	page := &engine.Page{
-		Title:      "Getting Started",
-		Kind:       engine.KindPage,
-		Collection: col,
+		PageIdentity:      engine.PageIdentity{Title: "Getting Started", Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Collection: col},
 	}
 
 	rd := BuildRouteData(page, baseSite(), nil)
@@ -84,8 +80,7 @@ func TestBuildRouteData_DocsPage(t *testing.T) {
 
 func TestBuildRouteData_HomePage(t *testing.T) {
 	page := &engine.Page{
-		Title: "Welcome",
-		Kind:  engine.KindHome,
+		PageIdentity: engine.PageIdentity{Title: "Welcome", Kind: engine.KindHome},
 	}
 
 	rd := BuildRouteData(page, baseSite(), nil)
@@ -100,8 +95,7 @@ func TestBuildRouteData_HomePage(t *testing.T) {
 
 func TestBuildRouteData_HomePageHeroOptionalFields(t *testing.T) {
 	page := &engine.Page{
-		Title: "Welcome",
-		Kind:  engine.KindHome,
+		PageIdentity: engine.PageIdentity{Title: "Welcome", Kind: engine.KindHome},
 	}
 	site := baseSite()
 	site.Config = &config.SiteConfig{
@@ -156,8 +150,7 @@ func TestBuildRouteData_HomePageHeroOptionalFields(t *testing.T) {
 
 func TestBuildRouteData_StandalonePage(t *testing.T) {
 	page := &engine.Page{
-		Title: "About",
-		Kind:  engine.KindStandalone,
+		PageIdentity: engine.PageIdentity{Title: "About", Kind: engine.KindStandalone},
 	}
 
 	rd := BuildRouteData(page, baseSite(), nil)
@@ -175,10 +168,8 @@ func TestBuildRouteData_SectionPage(t *testing.T) {
 		Config: &engine.CollectionConfig{Layout: engine.LayoutDocs},
 	}
 	page := &engine.Page{
-		Title:      "Guides",
-		Kind:       engine.KindSection,
-		Collection: col,
-		Section:    section,
+		PageIdentity:      engine.PageIdentity{Title: "Guides", Kind: engine.KindSection},
+		PageRelationships: engine.PageRelationships{Collection: col, Section: section},
 	}
 
 	rd := BuildRouteData(page, baseSite(), nil)
@@ -201,10 +192,9 @@ func TestBuildRouteData_FrontmatterTemplateOverride(t *testing.T) {
 		Config: &engine.CollectionConfig{Layout: engine.LayoutDefault},
 	}
 	page := &engine.Page{
-		Title:      "Special Post",
-		Kind:       engine.KindPage,
-		Collection: col,
-		Params:     map[string]any{"template": "blog/featured"},
+		PageIdentity:      engine.PageIdentity{Title: "Special Post", Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Collection: col},
+		Params:            map[string]any{"template": "blog/featured"},
 	}
 
 	rd := BuildRouteData(page, baseSite(), nil)
@@ -220,8 +210,8 @@ func TestBuildRouteData_NoPagination(t *testing.T) {
 		Config: &engine.CollectionConfig{Layout: engine.LayoutDefault},
 	}
 	page := &engine.Page{
-		Kind:       engine.KindPage,
-		Collection: col,
+		PageIdentity:      engine.PageIdentity{Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Collection: col},
 	}
 
 	rd := BuildRouteData(page, baseSite(), nil)
@@ -235,7 +225,7 @@ func TestBuildRouteData_PaginatorOnListPage(t *testing.T) {
 	// 12 pages, paginate by 5 → 3 pagination pages total.
 	pages := make([]*engine.Page, 12)
 	for i := range pages {
-		pages[i] = &engine.Page{Kind: engine.KindPage, Title: "post", RelPermalink: "/blog/post/"}
+		pages[i] = &engine.Page{PageIdentity: engine.PageIdentity{Kind: engine.KindPage, Title: "post", RelPermalink: "/blog/post/"}}
 	}
 	col := &engine.Collection{
 		Name:   "blog",
@@ -243,10 +233,8 @@ func TestBuildRouteData_PaginatorOnListPage(t *testing.T) {
 		Config: &engine.CollectionConfig{Layout: engine.LayoutDefault, Paginate: 5},
 	}
 	indexPage := &engine.Page{
-		Title:        "Blog",
-		Kind:         engine.KindSection,
-		Collection:   col,
-		RelPermalink: "/blog/",
+		PageIdentity:      engine.PageIdentity{Title: "Blog", Kind: engine.KindSection, RelPermalink: "/blog/"},
+		PageRelationships: engine.PageRelationships{Collection: col},
 	}
 	col.IndexPage = indexPage
 
@@ -290,7 +278,7 @@ func TestBuildRouteData_PaginatorOnListPage(t *testing.T) {
 func TestBuildRouteData_PaginatorCurrentFromParams(t *testing.T) {
 	pages := make([]*engine.Page, 12)
 	for i := range pages {
-		pages[i] = &engine.Page{Kind: engine.KindPage, RelPermalink: "/blog/post/"}
+		pages[i] = &engine.Page{PageIdentity: engine.PageIdentity{Kind: engine.KindPage, RelPermalink: "/blog/post/"}}
 	}
 	col := &engine.Collection{
 		Name:   "blog",
@@ -298,10 +286,9 @@ func TestBuildRouteData_PaginatorCurrentFromParams(t *testing.T) {
 		Config: &engine.CollectionConfig{Layout: engine.LayoutDefault, Paginate: 5},
 	}
 	indexPage := &engine.Page{
-		Kind:         engine.KindSection,
-		Collection:   col,
-		RelPermalink: "/blog/",
-		Params:       map[string]any{consts.PaginationCurrentKey: 2},
+		PageIdentity:      engine.PageIdentity{Kind: engine.KindSection, RelPermalink: "/blog/"},
+		PageRelationships: engine.PageRelationships{Collection: col},
+		Params:            map[string]any{consts.PaginationCurrentKey: 2},
 	}
 	col.IndexPage = indexPage
 
@@ -327,10 +314,13 @@ func TestBuildRouteData_PaginatorCurrentFromParams(t *testing.T) {
 func TestBuildRouteData_NoPaginatorWhenPaginateZero(t *testing.T) {
 	col := &engine.Collection{
 		Name:   "blog",
-		Pages:  []*engine.Page{{Kind: engine.KindPage}},
+		Pages:  []*engine.Page{{PageIdentity: engine.PageIdentity{Kind: engine.KindPage}}},
 		Config: &engine.CollectionConfig{Layout: engine.LayoutDefault},
 	}
-	page := &engine.Page{Kind: engine.KindSection, Collection: col}
+	page := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Kind: engine.KindSection},
+		PageRelationships: engine.PageRelationships{Collection: col},
+	}
 	rd := BuildRouteData(page, baseSite(), nil)
 	if rd.Paginator != nil {
 		t.Error("Paginator should be nil when Paginate == 0")
@@ -340,7 +330,7 @@ func TestBuildRouteData_NoPaginatorWhenPaginateZero(t *testing.T) {
 func TestBuildRouteData_Lang(t *testing.T) {
 	site := baseSite()
 	site.Language = "fr"
-	page := &engine.Page{Kind: engine.KindStandalone}
+	page := &engine.Page{PageIdentity: engine.PageIdentity{Kind: engine.KindStandalone}}
 
 	rd := BuildRouteData(page, site, nil)
 

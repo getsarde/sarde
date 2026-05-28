@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="{{ .Lang }}" dir="{{ .Dir }}">
+<head>
+  <script>if(localStorage.getItem('sarde-theme')==='dark'||(localStorage.getItem('sarde-theme')!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')</script>
+  {{ component "Head" . }}
+</head>
+<body class="sarde-layout-{{ .Layout }} starter-theme">
+  {{ component "Header" . }}
+  <main>
+    {{ component "FallbackNotice" . }}
+    {{ component "PageBanner" . }}
+    {{ block "content" . }}{{ .Page.Content }}{{ end }}
+  </main>
+  {{ component "Footer" . }}
+  {{ announcementBanner }}
+  {{ component "Scripts" . }}
+</body>
+</html>
