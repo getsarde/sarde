@@ -8,10 +8,10 @@
     padding: 0.25rem 0.625rem;
     font-size: 0.75rem;
     font-weight: 500;
-    font-family: var(--sarde-font-system, system-ui, sans-serif);
+    font-family: var(--sd-font-system, system-ui, sans-serif);
     color: #fff;
     background: #0f172a;
-    border-radius: var(--sarde-radius-md, 0.375rem);
+    border-radius: var(--sd-radius-md, 0.375rem);
     white-space: nowrap;
     pointer-events: none;
     opacity: 0;

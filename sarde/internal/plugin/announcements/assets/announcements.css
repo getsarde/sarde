@@ -25,27 +25,27 @@
 }
 
 .sarde-announcement-info {
-    background: var(--sarde-blue-low, #dbeafe);
-    color: var(--sarde-gray-7, #1e293b);
-    border-top: 2px solid var(--sarde-blue, #3b82f6);
+    background: var(--sd-blue-low, #dbeafe);
+    color: var(--sd-gray-7, #1e293b);
+    border-top: 2px solid var(--sd-blue, #3b82f6);
 }
 
 .sarde-announcement-warning {
-    background: var(--sarde-amber-low, #fef3c7);
-    color: var(--sarde-gray-7, #1e293b);
-    border-top: 2px solid var(--sarde-amber, #f59e0b);
+    background: var(--sd-amber-low, #fef3c7);
+    color: var(--sd-gray-7, #1e293b);
+    border-top: 2px solid var(--sd-amber, #f59e0b);
 }
 
 .sarde-announcement-success {
-    background: var(--sarde-green-low, #dcfce7);
-    color: var(--sarde-gray-7, #1e293b);
-    border-top: 2px solid var(--sarde-green, #22c55e);
+    background: var(--sd-green-low, #dcfce7);
+    color: var(--sd-gray-7, #1e293b);
+    border-top: 2px solid var(--sd-green, #22c55e);
 }
 
 .sarde-announcement-danger {
-    background: var(--sarde-red-low, #fee2e2);
-    color: var(--sarde-gray-7, #1e293b);
-    border-top: 2px solid var(--sarde-red, #ef4444);
+    background: var(--sd-red-low, #fee2e2);
+    color: var(--sd-gray-7, #1e293b);
+    border-top: 2px solid var(--sd-red, #ef4444);
 }
 
 :root.dark .sarde-announcement-info {

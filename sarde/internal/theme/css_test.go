@@ -11,11 +11,11 @@ func TestGenerateCSS_LightOnly(t *testing.T) {
 	if !strings.Contains(css, ":root {") {
 		t.Error("expected :root block")
 	}
-	if !strings.Contains(css, "--sarde-accent: #6366f1") {
-		t.Error("expected --sarde-accent")
+	if !strings.Contains(css, "--sd-accent: #6366f1") {
+		t.Error("expected --sd-accent")
 	}
-	if !strings.Contains(css, "--sarde-bg: #ffffff") {
-		t.Error("expected --sarde-bg")
+	if !strings.Contains(css, "--sd-bg: #ffffff") {
+		t.Error("expected --sd-bg")
 	}
 	if strings.Contains(css, ":root.dark") {
 		t.Error("should not have dark block with nil dark tokens")
@@ -33,8 +33,8 @@ func TestGenerateCSS_LightAndDark(t *testing.T) {
 	if !strings.Contains(css, ":root.dark {") {
 		t.Error("expected :root.dark block")
 	}
-	if !strings.Contains(css, "--sarde-bg: #0f172a") {
-		t.Error("expected dark --sarde-bg")
+	if !strings.Contains(css, "--sd-bg: #0f172a") {
+		t.Error("expected dark --sd-bg")
 	}
 }
 
@@ -46,9 +46,9 @@ func TestGenerateCSS_SortedKeys(t *testing.T) {
 	}
 	css := GenerateCSS(tokens, nil)
 
-	accentIdx := strings.Index(css, "--sarde-accent")
-	bgIdx := strings.Index(css, "--sarde-bg")
-	textIdx := strings.Index(css, "--sarde-text")
+	accentIdx := strings.Index(css, "--sd-accent")
+	bgIdx := strings.Index(css, "--sd-bg")
+	textIdx := strings.Index(css, "--sd-text")
 
 	if accentIdx > bgIdx || bgIdx > textIdx {
 		t.Error("keys should be sorted alphabetically")
@@ -72,7 +72,7 @@ func TestGenerateStyleTag(t *testing.T) {
 	if !strings.HasSuffix(s, "</style>") {
 		t.Error("expected </style> suffix")
 	}
-	if !strings.Contains(s, "--sarde-accent") {
+	if !strings.Contains(s, "--sd-accent") {
 		t.Error("expected token in style tag")
 	}
 }
@@ -102,10 +102,10 @@ func TestGenerateCSS_FullPipeline(t *testing.T) {
 
 	css := GenerateCSS(light, dark)
 
-	if !strings.Contains(css, "--sarde-accent: #0ea5e9") {
+	if !strings.Contains(css, "--sd-accent: #0ea5e9") {
 		t.Error("expected ocean accent")
 	}
-	if !strings.Contains(css, "--sarde-accent-hover:") {
+	if !strings.Contains(css, "--sd-accent-hover:") {
 		t.Error("expected derived accent-hover")
 	}
 	if !strings.Contains(css, ":root.dark {") {

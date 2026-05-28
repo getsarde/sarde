@@ -447,7 +447,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		ThemeName:  b.config.Theme.Name,
 		EmbeddedFS: b.embeddedFS,
 	}
-	if err := b.tmplEngine.Load(resolver); err != nil {
+	if err := b.tmplEngine.Load(resolver, b.devMode); err != nil {
 		return nil, fmt.Errorf("loading templates: %w", err)
 	}
 
@@ -717,8 +717,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		return nil, fmt.Errorf("writing embedded theme assets: %w", err)
 	}
 
-	// Write the embedded CSS bundle as an external file.
-	if err := WriteEmbeddedCSS(outputDir, b.tmplEngine.CachedCSS(), tracker); err != nil {
+	// Write the embedded CSS bundle as an external file (fingerprinted).
+	cssFilename := filepath.Base(b.tmplEngine.CSSURL())
+	if err := WriteEmbeddedCSS(outputDir, b.tmplEngine.CachedCSS(), cssFilename, tracker); err != nil {
 		return nil, fmt.Errorf("writing embedded CSS bundle: %w", err)
 	}
 	recordTiming("Writing assets")

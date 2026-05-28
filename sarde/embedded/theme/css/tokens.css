@@ -1,218 +1,218 @@
-@layer sarde.base {
+@layer sd.base {
 	/* Sarde Default Theme — Token Definitions
-	   Primitives and semantic aliases. Dynamic tokens (--sarde-accent, --sarde-bg, etc.)
+	   Primitives and semantic aliases. Dynamic tokens (--sd-accent, --sd-bg, etc.)
 	   are injected via <style id="sarde-theme"> from theme.yaml resolution. */
 
 	:root {
 	  /* ── White/Black ── */
-	  --sarde-white: #ffffff;
-	  --sarde-black: #09090b;
+	  --sd-white: #ffffff;
+	  --sd-black: #09090b;
 
 	  /* ── Gray Scale ── */
-	  --sarde-gray-1: #fafafa;
-	  --sarde-gray-2: #f4f4f5;
-	  --sarde-gray-3: #e4e4e7;
-	  --sarde-gray-4: #a1a1aa;
-	  --sarde-gray-5: #71717a;
-	  --sarde-gray-6: #52525b;
-	  --sarde-gray-7: #3f3f46;
-	  --sarde-gray-8: #27272a;
-	  --sarde-gray-9: #18181b;
+	  --sd-gray-1: #fafafa;
+	  --sd-gray-2: #f4f4f5;
+	  --sd-gray-3: #e4e4e7;
+	  --sd-gray-4: #a1a1aa;
+	  --sd-gray-5: #71717a;
+	  --sd-gray-6: #52525b;
+	  --sd-gray-7: #3f3f46;
+	  --sd-gray-8: #27272a;
+	  --sd-gray-9: #18181b;
 
 	  /* ── Accent Hue ── */
-	  --sarde-hue-accent: 239;
+	  --sd-hue-accent: 239;
 
 	  /* ── Status Hues ── */
-	  --sarde-hue-green: 150;
-	  --sarde-hue-amber: 38;
-	  --sarde-hue-red: 0;
-	  --sarde-hue-cyan: 185;
+	  --sd-hue-green: 150;
+	  --sd-hue-amber: 38;
+	  --sd-hue-red: 0;
+	  --sd-hue-cyan: 185;
 
-	  --sarde-green: hsl(var(--sarde-hue-green), 60%, 40%);
-	  --sarde-green-low: hsl(var(--sarde-hue-green), 50%, 92%);
-	  --sarde-green-high: hsl(var(--sarde-hue-green), 70%, 50%);
-	  --sarde-amber: hsl(var(--sarde-hue-amber), 90%, 50%);
-	  --sarde-amber-low: hsl(var(--sarde-hue-amber), 90%, 92%);
-	  --sarde-amber-high: hsl(var(--sarde-hue-amber), 90%, 55%);
-	  --sarde-red: hsl(var(--sarde-hue-red), 70%, 50%);
-	  --sarde-red-low: hsl(var(--sarde-hue-red), 70%, 94%);
-	  --sarde-red-high: hsl(var(--sarde-hue-red), 80%, 60%);
-	  --sarde-blue: #3b82f6;
-	  --sarde-blue-low: #eff6ff;
-	  --sarde-blue-high: #60a5fa;
-	  --sarde-purple: #8b5cf6;
-	  --sarde-purple-low: #f5f3ff;
-	  --sarde-purple-high: #a78bfa;
+	  --sd-green: hsl(var(--sd-hue-green), 60%, 40%);
+	  --sd-green-low: hsl(var(--sd-hue-green), 50%, 92%);
+	  --sd-green-high: hsl(var(--sd-hue-green), 70%, 50%);
+	  --sd-amber: hsl(var(--sd-hue-amber), 90%, 50%);
+	  --sd-amber-low: hsl(var(--sd-hue-amber), 90%, 92%);
+	  --sd-amber-high: hsl(var(--sd-hue-amber), 90%, 55%);
+	  --sd-red: hsl(var(--sd-hue-red), 70%, 50%);
+	  --sd-red-low: hsl(var(--sd-hue-red), 70%, 94%);
+	  --sd-red-high: hsl(var(--sd-hue-red), 80%, 60%);
+	  --sd-blue: #3b82f6;
+	  --sd-blue-low: #eff6ff;
+	  --sd-blue-high: #60a5fa;
+	  --sd-purple: #8b5cf6;
+	  --sd-purple-low: #f5f3ff;
+	  --sd-purple-high: #a78bfa;
 
 	  /* ── Extended Hues ── */
-	  --sarde-hue-blue: 217;
-	  --sarde-hue-indigo: 245;
-	  --sarde-hue-purple: 270;
-	  --sarde-cyan: hsl(var(--sarde-hue-cyan), 70%, 40%);
-	  --sarde-cyan-low: hsl(var(--sarde-hue-cyan), 50%, 92%);
-	  --sarde-cyan-high: hsl(var(--sarde-hue-cyan), 80%, 50%);
-	  --sarde-indigo: hsl(var(--sarde-hue-indigo), 65%, 55%);
-	  --sarde-indigo-low: hsl(var(--sarde-hue-indigo), 50%, 94%);
-	  --sarde-indigo-high: hsl(var(--sarde-hue-indigo), 75%, 65%);
+	  --sd-hue-blue: 217;
+	  --sd-hue-indigo: 245;
+	  --sd-hue-purple: 270;
+	  --sd-cyan: hsl(var(--sd-hue-cyan), 70%, 40%);
+	  --sd-cyan-low: hsl(var(--sd-hue-cyan), 50%, 92%);
+	  --sd-cyan-high: hsl(var(--sd-hue-cyan), 80%, 50%);
+	  --sd-indigo: hsl(var(--sd-hue-indigo), 65%, 55%);
+	  --sd-indigo-low: hsl(var(--sd-hue-indigo), 50%, 94%);
+	  --sd-indigo-high: hsl(var(--sd-hue-indigo), 75%, 65%);
 
 	  /* ── Semantic Text ── */
-	  --sarde-text: var(--sarde-gray-9);
-	  --sarde-text-muted: var(--sarde-gray-6);
-	  --sarde-text-subtle: var(--sarde-gray-5);
-	  --sarde-text-accent: var(--sarde-accent, hsl(var(--sarde-hue-accent), 80%, 55%));
-	  --sarde-text-invert: var(--sarde-white);
-	  --sarde-text-success: var(--sarde-green);
-	  --sarde-text-warning: var(--sarde-amber);
-	  --sarde-text-danger: var(--sarde-red);
+	  --sd-text: var(--sd-gray-9);
+	  --sd-text-muted: var(--sd-gray-6);
+	  --sd-text-subtle: var(--sd-gray-5);
+	  --sd-text-accent: var(--sd-accent, hsl(var(--sd-hue-accent), 80%, 55%));
+	  --sd-text-invert: var(--sd-white);
+	  --sd-text-success: var(--sd-green);
+	  --sd-text-warning: var(--sd-amber);
+	  --sd-text-danger: var(--sd-red);
 
 	  /* ── Semantic Backgrounds ── */
-	  --sarde-bg: var(--sarde-white);
-	  --sarde-bg-surface: var(--sarde-gray-1);
-	  --sarde-bg-nav: var(--sarde-bg);
-	  --sarde-bg-sidebar: var(--sarde-bg);
-	  --sarde-bg-footer: var(--sarde-bg);
-	  --sarde-bg-toc: transparent;
-	  --sarde-bg-inline-code: var(--sarde-gray-2);
-	  --sarde-bg-accent: var(--sarde-accent, hsl(var(--sarde-hue-accent), 80%, 55%));
-	  --sarde-bg-accent-subtle: var(--sarde-accent-low, hsla(var(--sarde-hue-accent), 80%, 55%, 0.1));
-	  --sarde-hover: var(--sarde-gray-2);
+	  --sd-bg: var(--sd-white);
+	  --sd-bg-surface: var(--sd-gray-1);
+	  --sd-bg-nav: var(--sd-bg);
+	  --sd-bg-sidebar: var(--sd-bg);
+	  --sd-bg-footer: var(--sd-bg);
+	  --sd-bg-toc: transparent;
+	  --sd-bg-inline-code: var(--sd-gray-2);
+	  --sd-bg-accent: var(--sd-accent, hsl(var(--sd-hue-accent), 80%, 55%));
+	  --sd-bg-accent-subtle: var(--sd-accent-low, hsla(var(--sd-hue-accent), 80%, 55%, 0.1));
+	  --sd-hover: var(--sd-gray-2);
 
 	  /* ── Semantic Borders ── */
-	  --sarde-border: var(--sarde-gray-3);
-	  --sarde-border-muted: var(--sarde-gray-3);
-	  --sarde-border-accent: var(--sarde-accent, hsl(var(--sarde-hue-accent), 80%, 55%));
-	  --sarde-hairline: color-mix(in srgb, var(--sarde-gray-5) 20%, transparent);
+	  --sd-border: var(--sd-gray-3);
+	  --sd-border-muted: var(--sd-gray-3);
+	  --sd-border-accent: var(--sd-accent, hsl(var(--sd-hue-accent), 80%, 55%));
+	  --sd-hairline: color-mix(in srgb, var(--sd-gray-5) 20%, transparent);
 
 	  /* ── Interactive ── */
-	  --sarde-focus-ring: var(--sarde-accent, hsl(var(--sarde-hue-accent), 80%, 55%));
+	  --sd-focus-ring: var(--sd-accent, hsl(var(--sd-hue-accent), 80%, 55%));
 
 	  /* ── Typography ── */
-	  --sarde-font-sans: var(--sarde-font-sans, 'Inter', system-ui, -apple-system, sans-serif);
-	  --sarde-font-mono: var(--sarde-font-mono, 'JetBrains Mono', ui-monospace, monospace);
+	  --sd-font-sans: var(--sd-font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+	  --sd-font-mono: var(--sd-font-mono, 'JetBrains Mono', ui-monospace, monospace);
 
-	  --sarde-text-xs: 0.75rem;
-	  --sarde-text-sm: 0.875rem;
-	  --sarde-text-base: 1rem;
-	  --sarde-text-lg: 1.125rem;
-	  --sarde-text-xl: 1.25rem;
-	  --sarde-text-2xl: 1.5rem;
-	  --sarde-text-3xl: 1.875rem;
-	  --sarde-text-4xl: 2.25rem;
+	  --sd-text-xs: 0.75rem;
+	  --sd-text-sm: 0.875rem;
+	  --sd-text-base: 1rem;
+	  --sd-text-lg: 1.125rem;
+	  --sd-text-xl: 1.25rem;
+	  --sd-text-2xl: 1.5rem;
+	  --sd-text-3xl: 1.875rem;
+	  --sd-text-4xl: 2.25rem;
 
-	  --sarde-text-h1: var(--sarde-text-3xl);
-	  --sarde-text-h2: var(--sarde-text-2xl);
-	  --sarde-text-h3: var(--sarde-text-xl);
-	  --sarde-text-h4: var(--sarde-text-lg);
-	  --sarde-text-h5: var(--sarde-text-base);
-	  --sarde-text-h6: var(--sarde-text-base);
+	  --sd-text-h1: var(--sd-text-3xl);
+	  --sd-text-h2: var(--sd-text-2xl);
+	  --sd-text-h3: var(--sd-text-xl);
+	  --sd-text-h4: var(--sd-text-lg);
+	  --sd-text-h5: var(--sd-text-base);
+	  --sd-text-h6: var(--sd-text-base);
 
-	  --sarde-line-height: 1.75;
-	  --sarde-line-height-headings: 1.2;
-	  --sarde-weight-normal: 400;
-	  --sarde-weight-medium: 500;
-	  --sarde-weight-semibold: 600;
-	  --sarde-weight-bold: 700;
+	  --sd-line-height: 1.75;
+	  --sd-line-height-headings: 1.2;
+	  --sd-weight-normal: 400;
+	  --sd-weight-medium: 500;
+	  --sd-weight-semibold: 600;
+	  --sd-weight-bold: 700;
 
 	  /* ── Spacing ── */
-	  --sarde-space-1: 0.25rem;
-	  --sarde-space-2: 0.5rem;
-	  --sarde-space-3: 0.75rem;
-	  --sarde-space-4: 1rem;
-	  --sarde-space-5: 1.25rem;
-	  --sarde-space-6: 1.5rem;
-	  --sarde-space-8: 2rem;
-	  --sarde-space-10: 2.5rem;
-	  --sarde-space-12: 3rem;
+	  --sd-space-1: 0.25rem;
+	  --sd-space-2: 0.5rem;
+	  --sd-space-3: 0.75rem;
+	  --sd-space-4: 1rem;
+	  --sd-space-5: 1.25rem;
+	  --sd-space-6: 1.5rem;
+	  --sd-space-8: 2rem;
+	  --sd-space-10: 2.5rem;
+	  --sd-space-12: 3rem;
 
 	  /* ── Radius ── */
-	  --sarde-radius-sm: 0.25rem;
-	  --sarde-radius-md: var(--sarde-radius, 0.375rem);
-	  --sarde-radius-lg: 0.5rem;
-	  --sarde-radius-xl: 0.75rem;
-	  --sarde-radius-full: 9999px;
+	  --sd-radius-sm: 0.25rem;
+	  --sd-radius-md: var(--sd-radius, 0.375rem);
+	  --sd-radius-lg: 0.5rem;
+	  --sd-radius-xl: 0.75rem;
+	  --sd-radius-full: 9999px;
 
 	  /* ── Layout ── */
-	  --sarde-nav-height: 4rem;
-	  --sarde-sidebar-width: 280px;
-	  --sarde-toc-width: 240px;
-	  --sarde-content-width: 768px;
+	  --sd-nav-height: 4rem;
+	  --sd-sidebar-width: 280px;
+	  --sd-toc-width: 240px;
+	  --sd-content-width: 768px;
 
 	  /* ── Z-index ── */
-	  --sarde-z-header: 20;
-	  --sarde-z-sidebar: 30;
-	  --sarde-z-overlay: 40;
-	  --sarde-z-modal: 50;
-	  --sarde-z-toast: 400;
+	  --sd-z-header: 20;
+	  --sd-z-sidebar: 30;
+	  --sd-z-overlay: 40;
+	  --sd-z-modal: 50;
+	  --sd-z-toast: 400;
 
 	  /* ── Transitions ── */
-	  --sarde-transition-fast: 150ms ease;
-	  --sarde-transition-normal: 200ms ease;
-	  --sarde-duration-100: 100ms;
-	  --sarde-duration-150: 150ms;
-	  --sarde-duration-200: 200ms;
-	  --sarde-duration-700: 700ms;
-	  --sarde-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
-	  --sarde-ease-out: cubic-bezier(0, 0, 0.2, 1);
+	  --sd-transition-fast: 150ms ease;
+	  --sd-transition-normal: 200ms ease;
+	  --sd-duration-100: 100ms;
+	  --sd-duration-150: 150ms;
+	  --sd-duration-200: 200ms;
+	  --sd-duration-700: 700ms;
+	  --sd-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+	  --sd-ease-out: cubic-bezier(0, 0, 0.2, 1);
 
 	  /* ── Shadows ── */
-	  --sarde-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-	  --sarde-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-	  --sarde-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+	  --sd-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+	  --sd-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+	  --sd-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 
 	  /* ── Code ── */
-	  --sarde-code-bg: var(--sarde-bg-surface);
-	  --sarde-code-text: var(--sarde-text);
-	  --sarde-code-border: var(--sarde-border);
-	  --sarde-code-font: var(--sarde-font-mono);
-	  --sarde-code-font-size: var(--sarde-text-sm);
-	  --sarde-code-line-height: 1.7;
-	  --sarde-code-padding: var(--sarde-space-4);
-	  --sarde-code-radius: var(--sarde-radius-lg);
+	  --sd-code-bg: var(--sd-bg-surface);
+	  --sd-code-text: var(--sd-text);
+	  --sd-code-border: var(--sd-border);
+	  --sd-code-font: var(--sd-font-mono);
+	  --sd-code-font-size: var(--sd-text-sm);
+	  --sd-code-line-height: 1.7;
+	  --sd-code-padding: var(--sd-space-4);
+	  --sd-code-radius: var(--sd-radius-lg);
 
 	  /* ── Additional Shadows ── */
-	  --sarde-shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.04);
-	  --sarde-shadow-accent: 0 4px 14px -2px rgba(99, 102, 241, 0.25);
+	  --sd-shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.04);
+	  --sd-shadow-accent: 0 4px 14px -2px rgba(99, 102, 241, 0.25);
 
 	  /* ── Additional Transitions ── */
-	  --sarde-transition-slow: 300ms ease;
+	  --sd-transition-slow: 300ms ease;
 
 	  /* ── Easing ── */
-	  --sarde-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+	  --sd-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 
 	  /* ── Motion / Transform Presets ── */
-	  --sarde-motion-lift: translateY(-2px);
-	  --sarde-motion-lift-lg: translateY(-4px);
-	  --sarde-motion-scale-sm: scale(1.02);
+	  --sd-motion-lift: translateY(-2px);
+	  --sd-motion-lift-lg: translateY(-4px);
+	  --sd-motion-scale-sm: scale(1.02);
 
 	  /* ── Glass ── */
-	  --sarde-glass-bg: rgba(255, 255, 255, 0.8);
-	  --sarde-glass-blur: 12px;
-	  --sarde-glass-border: rgba(255, 255, 255, 0.2);
+	  --sd-glass-bg: rgba(255, 255, 255, 0.8);
+	  --sd-glass-blur: 12px;
+	  --sd-glass-border: rgba(255, 255, 255, 0.2);
 
 	  /* ── Typography Extras ── */
-	  --sarde-tracking-tight: -0.025em;
-	  --sarde-tracking-wide: 0.05em;
-	  --sarde-line-height-relaxed: 1.8;
+	  --sd-tracking-tight: -0.025em;
+	  --sd-tracking-wide: 0.05em;
+	  --sd-line-height-relaxed: 1.8;
 
 	  /* ── Z-index Extras ── */
-	  --sarde-z-sticky: 10;
+	  --sd-z-sticky: 10;
 
 	  /* ── Code Button ── */
-	  --sarde-code-btn-size: 2rem;
-	  --sarde-code-btn-bg: transparent;
-	  --sarde-code-btn-text: var(--sarde-text-muted);
-	  --sarde-code-btn-bg-hover: var(--sarde-hover);
-	  --sarde-code-btn-text-hover: var(--sarde-text);
+	  --sd-code-btn-size: 2rem;
+	  --sd-code-btn-bg: transparent;
+	  --sd-code-btn-text: var(--sd-text-muted);
+	  --sd-code-btn-bg-hover: var(--sd-hover);
+	  --sd-code-btn-text-hover: var(--sd-text);
 
 	  /* ── Asides ── */
-	  --sarde-aside-note: var(--sarde-blue);
-	  --sarde-aside-note-bg: var(--sarde-blue-low);
-	  --sarde-aside-tip: var(--sarde-green);
-	  --sarde-aside-tip-bg: var(--sarde-green-low);
-	  --sarde-aside-caution: var(--sarde-amber);
-	  --sarde-aside-caution-bg: var(--sarde-amber-low);
-	  --sarde-aside-danger: var(--sarde-red);
-	  --sarde-aside-danger-bg: var(--sarde-red-low);
+	  --sd-aside-note: var(--sd-blue);
+	  --sd-aside-note-bg: var(--sd-blue-low);
+	  --sd-aside-tip: var(--sd-green);
+	  --sd-aside-tip-bg: var(--sd-green-low);
+	  --sd-aside-caution: var(--sd-amber);
+	  --sd-aside-caution-bg: var(--sd-amber-low);
+	  --sd-aside-danger: var(--sd-red);
+	  --sd-aside-danger-bg: var(--sd-red-low);
 	}
 
 }

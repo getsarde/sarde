@@ -41,7 +41,7 @@ article.sarde-markdown-content img:not(.sarde-gallery-item img):not(.no-lightbox
     max-width: 90vw;
     max-height: 80vh;
     object-fit: contain;
-    border-radius: var(--sarde-radius-md, 0.375rem);
+    border-radius: var(--sd-radius-md, 0.375rem);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     cursor: default;
     user-select: none;
@@ -60,7 +60,7 @@ article.sarde-markdown-content img:not(.sarde-gallery-item img):not(.no-lightbox
 .sarde-image-lightbox-caption {
     color: rgba(255, 255, 255, 0.8);
     font-size: 0.875rem;
-    font-family: var(--sarde-font-system, system-ui, sans-serif);
+    font-family: var(--sd-font-system, system-ui, sans-serif);
     text-align: center;
     max-width: 60ch;
 }
@@ -117,7 +117,7 @@ article.sarde-markdown-content img:not(.sarde-gallery-item img):not(.no-lightbox
 .sarde-image-lightbox-zoom-level {
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.75rem;
-    font-family: var(--sarde-font-system, system-ui, sans-serif);
+    font-family: var(--sd-font-system, system-ui, sans-serif);
     min-width: 3ch;
     text-align: center;
     user-select: none;

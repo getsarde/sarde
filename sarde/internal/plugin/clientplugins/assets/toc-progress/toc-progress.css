@@ -13,6 +13,6 @@
 
 /* All links in the visible range get colored border + text */
 .toc a.sarde-toc-progress-visible {
-    border-inline-start-color: var(--sarde-text-accent);
-    color: var(--sarde-text-accent);
+    border-inline-start-color: var(--sd-text-accent);
+    color: var(--sd-text-accent);
 }

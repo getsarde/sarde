@@ -238,3 +238,21 @@ func (b *Bundler) resolverPlugin() api.Plugin {
 		},
 	}
 }
+
+// TransformCSS runs esbuild's Transform API on a raw CSS string.
+// When minify is true, whitespace and syntax are minified.
+// When minify is false, the input is returned unchanged.
+func TransformCSS(content string, minify bool) (string, error) {
+	if !minify {
+		return content, nil
+	}
+	result := api.Transform(content, api.TransformOptions{
+		Loader:           api.LoaderCSS,
+		MinifyWhitespace: true,
+		MinifySyntax:     true,
+	})
+	if len(result.Errors) > 0 {
+		return "", fmt.Errorf("esbuild transform: %s", result.Errors[0].Text)
+	}
+	return string(result.Code), nil
+}

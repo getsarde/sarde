@@ -57,7 +57,7 @@ func setupEngine(t *testing.T) *Engine {
 		EmbeddedFS: embeddedTestFS(),
 	}
 
-	if err := eng.Load(resolver); err != nil {
+	if err := eng.Load(resolver, true); err != nil {
 		t.Fatalf("Load failed: %v", err)
 	}
 

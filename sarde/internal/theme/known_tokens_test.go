@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-var cssVarRe = regexp.MustCompile(`--sarde-([\w-]+)\s*:`)
+var cssVarRe = regexp.MustCompile(`--sd-([\w-]+)\s*:`)
 
 func TestKnownTokens_MatchesCSS(t *testing.T) {
 	data, err := os.ReadFile("../../embedded/theme/css/tokens.css")

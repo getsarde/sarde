@@ -1,6 +1,6 @@
 package theme
 
-// KnownTokens returns the set of all valid --sarde-* token names (without the prefix).
+// KnownTokens returns the set of all valid --sd-* token names (without the prefix).
 // This must stay in sync with tokens.css — the TestKnownTokens_MatchesCSS test enforces this.
 func KnownTokens() map[string]bool {
 	return map[string]bool{

@@ -5,13 +5,12 @@ import (
 	"io/fs"
 )
 
-// WriteEmbeddedCSS writes the concatenated embedded CSS bundle to an external
-// file at outputDir/assets/css/sarde.css. Returns the root-relative URL.
-func WriteEmbeddedCSS(outputDir string, css string, tracker *OutputTracker) error {
+// WriteEmbeddedCSS writes the embedded CSS bundle to outputDir/assets/css/<filename>.
+func WriteEmbeddedCSS(outputDir string, css string, filename string, tracker *OutputTracker) error {
 	if css == "" {
 		return nil
 	}
-	destPath, err := safeOutputPath(outputDir, "assets/css/sarde.css")
+	destPath, err := safeOutputPath(outputDir, "assets/css/"+filename)
 	if err != nil {
 		return err
 	}

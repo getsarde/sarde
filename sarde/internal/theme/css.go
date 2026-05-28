@@ -8,7 +8,7 @@ import (
 )
 
 // GenerateCSS produces CSS custom property blocks for light and dark modes.
-// All token keys are prefixed with --sarde- and sorted alphabetically.
+// All token keys are prefixed with --sd- and sorted alphabetically.
 func GenerateCSS(lightTokens, darkTokens map[string]string) string {
 	var sb strings.Builder
 
@@ -33,10 +33,10 @@ func GenerateStyleTag(lightTokens, darkTokens map[string]string) htmltemplate.HT
 	if css == "" {
 		return ""
 	}
-	return htmltemplate.HTML(fmt.Sprintf("<style id=\"sarde-theme\">\n%s</style>", css))
+	return htmltemplate.HTML(fmt.Sprintf("<style id=\"sd-theme\">\n%s</style>", css))
 }
 
-// writeTokens writes sorted, --sarde- prefixed CSS custom properties to a builder.
+// writeTokens writes sorted, --sd- prefixed CSS custom properties to a builder.
 func writeTokens(sb *strings.Builder, tokens map[string]string) {
 	keys := make([]string, 0, len(tokens))
 	for k := range tokens {
@@ -45,6 +45,6 @@ func writeTokens(sb *strings.Builder, tokens map[string]string) {
 	sort.Strings(keys)
 
 	for _, k := range keys {
-		sb.WriteString(fmt.Sprintf("  --sarde-%s: %s;\n", k, tokens[k]))
+		sb.WriteString(fmt.Sprintf("  --sd-%s: %s;\n", k, tokens[k]))
 	}
 }

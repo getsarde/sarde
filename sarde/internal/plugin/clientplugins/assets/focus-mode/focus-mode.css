@@ -8,10 +8,10 @@
     width: 47px;
     height: 47px;
     box-sizing: border-box;
-    border: 1px solid var(--sarde-border-accent, var(--sarde-blue));
+    border: 1px solid var(--sd-border-accent, var(--sd-blue));
     border-radius: 15%;
-    background-color: var(--sarde-bg-accent, var(--sarde-blue));
-    color: var(--sarde-text-invert, #fff);
+    background-color: var(--sd-bg-accent, var(--sd-blue));
+    color: var(--sd-text-invert, #fff);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -21,7 +21,7 @@
     transform: scale(0);
     transform-origin: center;
     transition: opacity 0.3s ease, visibility 0.3s ease, background-color 0.3s ease, transform 0.3s ease, color 0.3s ease;
-    box-shadow: var(--sarde-shadow-md, 0 4px 6px -1px rgba(0,0,0,0.08));
+    box-shadow: var(--sd-shadow-md, 0 4px 6px -1px rgba(0,0,0,0.08));
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
 }
@@ -33,21 +33,21 @@
 }
 
 .sarde-focus-mode-btn:hover {
-    background-color: var(--sarde-bg-accent-subtle, var(--sarde-blue-low));
-    color: var(--sarde-text-accent, var(--sarde-blue));
-    border-color: var(--sarde-border-accent, var(--sarde-blue));
-    box-shadow: var(--sarde-shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.08));
+    background-color: var(--sd-bg-accent-subtle, var(--sd-blue-low));
+    color: var(--sd-text-accent, var(--sd-blue));
+    border-color: var(--sd-border-accent, var(--sd-blue));
+    box-shadow: var(--sd-shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.08));
 }
 
 .sarde-focus-mode-btn:active {
-    background-color: var(--sarde-blue-high);
-    color: var(--sarde-text-invert, #fff);
+    background-color: var(--sd-blue-high);
+    color: var(--sd-text-invert, #fff);
     transition: background-color 0.1s ease, transform 0.1s ease;
 }
 
 .sarde-focus-mode-btn.keyboard-focus {
-    outline: var(--sarde-focus-ring-width, 2px) solid var(--sarde-focus-ring, var(--sarde-blue));
-    outline-offset: var(--sarde-focus-ring-offset, 2px);
+    outline: var(--sd-focus-ring-width, 2px) solid var(--sd-focus-ring, var(--sd-blue));
+    outline-offset: var(--sd-focus-ring-offset, 2px);
 }
 
 .sarde-focus-mode-btn svg {
@@ -70,20 +70,20 @@ body.focus-mode .sarde-focus-mode-btn .sarde-icon-exit  { display: block; }
 
 /* Active state styling */
 body.focus-mode .sarde-focus-mode-btn {
-    background-color: var(--sarde-bg-accent-subtle, var(--sarde-blue-low));
-    color: var(--sarde-text-accent, var(--sarde-blue));
-    border-color: var(--sarde-border-accent, var(--sarde-blue));
+    background-color: var(--sd-bg-accent-subtle, var(--sd-blue-low));
+    color: var(--sd-text-accent, var(--sd-blue));
+    border-color: var(--sd-border-accent, var(--sd-blue));
 }
 
 body.focus-mode .sarde-focus-mode-btn:hover {
-    background-color: var(--sarde-bg-accent, var(--sarde-blue));
-    color: var(--sarde-text-invert, #fff);
+    background-color: var(--sd-bg-accent, var(--sd-blue));
+    color: var(--sd-text-invert, #fff);
 }
 
 /* Left position variant — offset by sidebar width so it's not hidden behind it */
 .sarde-focus-mode-btn.pos-bottom-left {
     inset-inline-end: auto;
-    inset-inline-start: calc(var(--sarde-sidebar-width) + 20px);
+    inset-inline-start: calc(var(--sd-sidebar-width) + 20px);
     transition: opacity 0.3s ease, visibility 0.3s ease, background-color 0.3s ease, transform 0.3s ease, color 0.3s ease, inset-inline-start var(--focus-mode-speed, 300ms) ease;
 }
 
@@ -98,12 +98,12 @@ body.focus-mode .sarde-focus-mode-btn.pos-bottom-left {
     position: absolute;
     inset-inline-end: -10px;
     top: -42px;
-    background-color: var(--sarde-gray-7, #1e293b);
-    color: var(--sarde-text-invert, #fff);
+    background-color: var(--sd-gray-7, #1e293b);
+    color: var(--sd-text-invert, #fff);
     padding: 5px 10px;
-    border-radius: var(--sarde-radius-sm, 4px);
-    font-weight: var(--sarde-weight-normal, 400);
-    font-size: var(--sarde-text-sm, 14px);
+    border-radius: var(--sd-radius-sm, 4px);
+    font-weight: var(--sd-weight-normal, 400);
+    font-size: var(--sd-text-sm, 14px);
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
@@ -125,16 +125,16 @@ body.focus-mode .sarde-focus-mode-btn.pos-bottom-left {
     height: 0;
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-top: 6px solid var(--sarde-gray-7, #1e293b);
+    border-top: 6px solid var(--sd-gray-7, #1e293b);
 }
 
 :root.dark .sarde-focus-mode-tooltip {
-    background-color: var(--sarde-gray-7);
-    color: var(--sarde-gray-1);
+    background-color: var(--sd-gray-7);
+    color: var(--sd-gray-1);
 }
 
 :root.dark .sarde-focus-mode-tooltip-arrow {
-    border-top-color: var(--sarde-gray-7);
+    border-top-color: var(--sd-gray-7);
 }
 
 /* ── Focus Mode Layout Changes ────────────────────────────────── */

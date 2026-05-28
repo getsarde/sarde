@@ -34,7 +34,7 @@ func TestEngine_Render_ConcurrentLanguagesUseRouteData(t *testing.T) {
 			"_default/single.html":       {Data: []byte(`{{ define "content" }}{{ .Page.Title }}{{ end }}`)},
 			"components/Translated.html": {Data: []byte(`{{ t "component" }}`)},
 		},
-	}); err != nil {
+	}, true); err != nil {
 		t.Fatalf("Load failed: %v", err)
 	}
 

@@ -30,10 +30,10 @@
     align-items: center;
     gap: 0.25rem;
     padding: 0.375rem 0.5rem;
-    background: var(--sarde-bg-surface, #fff);
-    border: 1px solid var(--sarde-border, rgba(0, 0, 0, 0.1));
-    border-radius: var(--sarde-radius-lg, 0.5rem);
-    box-shadow: var(--sarde-shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.15));
+    background: var(--sd-bg-surface, #fff);
+    border: 1px solid var(--sd-border, rgba(0, 0, 0, 0.1));
+    border-radius: var(--sd-radius-lg, 0.5rem);
+    box-shadow: var(--sd-shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.15));
     opacity: 0;
     transform: translateY(4px);
     transition: opacity 0.15s ease, transform 0.15s ease;
@@ -61,7 +61,7 @@
 
 .sarde-thl-toolbar-color:hover {
     transform: scale(1.2);
-    border-color: var(--sarde-text-muted, #6b7280);
+    border-color: var(--sd-text-muted, #6b7280);
 }
 
 .sarde-thl-toolbar-color[data-color="yellow"] { background-color: hsla(48, 96%, 53%, 0.6); }
@@ -75,7 +75,7 @@
 .sarde-thl-toolbar-sep {
     width: 1px;
     height: 1rem;
-    background: var(--sarde-border, rgba(0, 0, 0, 0.1));
+    background: var(--sd-border, rgba(0, 0, 0, 0.1));
     margin: 0 0.125rem;
     flex-shrink: 0;
 }
@@ -89,16 +89,16 @@
     padding: 0;
     border: none;
     background: transparent;
-    color: var(--sarde-text-muted, #6b7280);
-    border-radius: var(--sarde-radius-sm, 0.25rem);
+    color: var(--sd-text-muted, #6b7280);
+    border-radius: var(--sd-radius-sm, 0.25rem);
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease;
     flex-shrink: 0;
 }
 
 .sarde-thl-toolbar-clear:hover {
-    background: var(--sarde-hover, rgba(0, 0, 0, 0.05));
-    color: var(--sarde-text, inherit);
+    background: var(--sd-hover, rgba(0, 0, 0, 0.05));
+    color: var(--sd-text, inherit);
 }
 
 .sarde-thl-toolbar-clear svg {
@@ -120,10 +120,10 @@
     align-items: center;
     gap: 0.25rem;
     padding: 0.25rem 0.5rem;
-    background: var(--sarde-bg-surface, #fff);
-    border: 1px solid var(--sarde-border, rgba(0, 0, 0, 0.1));
-    border-radius: var(--sarde-radius-md, 0.375rem);
-    box-shadow: var(--sarde-shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.15));
+    background: var(--sd-bg-surface, #fff);
+    border: 1px solid var(--sd-border, rgba(0, 0, 0, 0.1));
+    border-radius: var(--sd-radius-md, 0.375rem);
+    box-shadow: var(--sd-shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.15));
     font-size: 0.75rem;
     opacity: 0;
     transform: translateY(4px);
@@ -141,17 +141,17 @@
     padding: 0.2rem 0.5rem;
     border: none;
     background: transparent;
-    color: var(--sarde-text-muted, #6b7280);
+    color: var(--sd-text-muted, #6b7280);
     font-size: 0.75rem;
     cursor: pointer;
-    border-radius: var(--sarde-radius-sm, 0.25rem);
+    border-radius: var(--sd-radius-sm, 0.25rem);
     transition: background-color 0.15s ease, color 0.15s ease;
     white-space: nowrap;
 }
 
 .sarde-thl-remove-btn:hover {
-    background: var(--sarde-hover, rgba(0, 0, 0, 0.05));
-    color: var(--sarde-text, inherit);
+    background: var(--sd-hover, rgba(0, 0, 0, 0.05));
+    color: var(--sd-text, inherit);
 }
 
 .sarde-thl-remove-btn-danger:hover {

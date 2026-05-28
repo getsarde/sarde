@@ -235,7 +235,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		ThemeName:  b.config.Theme.Name,
 		EmbeddedFS: b.embeddedFS,
 	}
-	if err := b.tmplEngine.Load(resolver); err != nil {
+	if err := b.tmplEngine.Load(resolver, b.devMode); err != nil {
 		return b.Build()
 	}
 

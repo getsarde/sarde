@@ -114,7 +114,7 @@ func DownloadFile(srcURL string) (string, error) {
 		return "", fmt.Errorf("download too large: %d bytes (max %d)", resp.ContentLength, maxDownloadSize)
 	}
 
-	tmp, err := os.CreateTemp("", "sarde-theme-*")
+	tmp, err := os.CreateTemp("", "sd-theme-*")
 	if err != nil {
 		return "", fmt.Errorf("creating temp file: %w", err)
 	}

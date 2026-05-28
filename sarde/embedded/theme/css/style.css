@@ -1,4 +1,4 @@
-@layer sarde.content {
+@layer sd.content {
 	/* Sarde Default Theme — Catalog & Site Chrome
 	   Navbar, hero, buttons, catalog cards, footer, and animations.
 	   Ported from old codebase style.css. */
@@ -7,23 +7,23 @@
 	.sarde-container {
 	  max-width: 80rem;
 	  margin: 0 auto;
-	  padding: 0 var(--sarde-space-4);
+	  padding: 0 var(--sd-space-4);
 	}
 
 	/* ── Catalog Header / Navbar ── */
 	.sarde-legacy-header {
-	  background: var(--sarde-glass-bg, var(--sarde-bg));
-	  backdrop-filter: blur(var(--sarde-glass-blur, 8px));
-	  -webkit-backdrop-filter: blur(var(--sarde-glass-blur, 8px));
-	  border-bottom: 1px solid var(--sarde-glass-border, var(--sarde-border));
+	  background: var(--sd-glass-bg, var(--sd-bg));
+	  backdrop-filter: blur(var(--sd-glass-blur, 8px));
+	  -webkit-backdrop-filter: blur(var(--sd-glass-blur, 8px));
+	  border-bottom: 1px solid var(--sd-glass-border, var(--sd-border));
 	  position: sticky;
 	  top: 0;
-	  z-index: var(--sarde-z-sticky);
-	  box-shadow: var(--sarde-shadow-sm);
+	  z-index: var(--sd-z-sticky);
+	  box-shadow: var(--sd-shadow-sm);
 	}
 
 	.sarde-navbar {
-	  height: var(--sarde-nav-height);
+	  height: var(--sd-nav-height);
 	}
 
 	.sarde-navbar .sarde-container {
@@ -34,18 +34,18 @@
 	}
 
 	.sarde-navbar-brand {
-	  font-size: var(--sarde-text-xl);
-	  font-weight: var(--sarde-weight-semibold);
+	  font-size: var(--sd-text-xl);
+	  font-weight: var(--sd-weight-semibold);
 	}
 
 	.sarde-brand-link {
 	  text-decoration: none;
-	  color: var(--sarde-text);
-	  transition: color var(--sarde-transition-fast);
+	  color: var(--sd-text);
+	  transition: color var(--sd-transition-fast);
 	}
 
 	.sarde-brand-link:hover {
-	  color: var(--sarde-text-accent);
+	  color: var(--sd-text-accent);
 	}
 
 	.sarde-navbar-menu {
@@ -61,16 +61,16 @@
 	}
 
 	.sarde-navbar-nav .sarde-nav-item {
-	  margin: 0 var(--sarde-space-2);
+	  margin: 0 var(--sd-space-2);
 	}
 
 	.sarde-navbar .sarde-nav-link {
 	  display: block;
-	  padding: var(--sarde-space-2) var(--sarde-space-4);
+	  padding: var(--sd-space-2) var(--sd-space-4);
 	  text-decoration: none;
-	  color: var(--sarde-text-muted);
-	  border-radius: var(--sarde-radius-md);
-	  transition: all var(--sarde-transition-fast) var(--sarde-ease-default);
+	  color: var(--sd-text-muted);
+	  border-radius: var(--sd-radius-md);
+	  transition: all var(--sd-transition-fast) var(--sd-ease-default);
 	  position: relative;
 	}
 
@@ -81,40 +81,40 @@
 	  left: 50%;
 	  width: 0;
 	  height: 2px;
-	  background: var(--sarde-bg-accent);
-	  transition: all var(--sarde-transition-fast) var(--sarde-ease-out);
+	  background: var(--sd-bg-accent);
+	  transition: all var(--sd-transition-fast) var(--sd-ease-out);
 	  transform: translateX(-50%);
-	  border-radius: var(--sarde-radius-full);
+	  border-radius: var(--sd-radius-full);
 	}
 
 	.sarde-navbar .sarde-nav-link:hover {
-	  color: var(--sarde-text);
-	  background-color: var(--sarde-hover);
+	  color: var(--sd-text);
+	  background-color: var(--sd-hover);
 	}
 
 	.sarde-navbar .sarde-nav-link:hover::after {
-	  width: calc(100% - var(--sarde-space-8));
+	  width: calc(100% - var(--sd-space-8));
 	}
 
 	.sarde-navbar-actions {
 	  display: flex;
 	  align-items: center;
-	  gap: var(--sarde-space-2);
+	  gap: var(--sd-space-2);
 	}
 
 	.sarde-navbar .search-toggle {
 	  background: none;
-	  border: 1px solid var(--sarde-border);
-	  padding: var(--sarde-space-2);
-	  border-radius: var(--sarde-radius-md);
+	  border: 1px solid var(--sd-border);
+	  padding: var(--sd-space-2);
+	  border-radius: var(--sd-radius-md);
 	  cursor: pointer;
-	  color: var(--sarde-text-muted);
-	  transition: all var(--sarde-transition-fast);
+	  color: var(--sd-text-muted);
+	  transition: all var(--sd-transition-fast);
 	}
 
 	.sarde-navbar .search-toggle:hover {
-	  background-color: var(--sarde-hover);
-	  border-color: var(--sarde-border-accent);
+	  background-color: var(--sd-hover);
+	  border-color: var(--sd-border-accent);
 	}
 
 	/* Mobile menu toggle (hamburger) */
@@ -127,22 +127,22 @@
 	  height: 40px;
 	  padding: 8px;
 	  background: none;
-	  border: 1px solid var(--sarde-border);
-	  border-radius: var(--sarde-radius-md);
+	  border: 1px solid var(--sd-border);
+	  border-radius: var(--sd-radius-md);
 	  cursor: pointer;
-	  transition: all var(--sarde-transition-fast);
+	  transition: all var(--sd-transition-fast);
 	}
 
 	.sarde-mobile-menu-toggle:hover {
-	  background-color: var(--sarde-hover);
-	  border-color: var(--sarde-border-accent);
+	  background-color: var(--sd-hover);
+	  border-color: var(--sd-border-accent);
 	}
 
 	.sarde-hamburger-line {
 	  display: block;
 	  width: 100%;
 	  height: 2px;
-	  background-color: var(--sarde-text);
+	  background-color: var(--sd-text);
 	  border-radius: 1px;
 	  transition: all 0.3s ease;
 	}
@@ -161,45 +161,45 @@
 
 	/* ── Catalog Search Bar ── */
 	.sarde-search-bar {
-	  background: var(--sarde-bg-surface);
-	  border-bottom: 1px solid var(--sarde-border);
-	  padding: var(--sarde-space-4) 0;
+	  background: var(--sd-bg-surface);
+	  border-bottom: 1px solid var(--sd-border);
+	  padding: var(--sd-space-4) 0;
 	}
 
 	.sarde-search-form {
 	  display: flex;
-	  gap: var(--sarde-space-2);
+	  gap: var(--sd-space-2);
 	}
 
 	.sarde-search-form .sarde-search-input-field {
 	  flex: 1;
-	  padding: var(--sarde-space-3) var(--sarde-space-4);
-	  border: 1px solid var(--sarde-border);
-	  border-radius: var(--sarde-radius-md);
-	  background: var(--sarde-bg);
-	  color: var(--sarde-text);
-	  font-size: var(--sarde-text-base);
+	  padding: var(--sd-space-3) var(--sd-space-4);
+	  border: 1px solid var(--sd-border);
+	  border-radius: var(--sd-radius-md);
+	  background: var(--sd-bg);
+	  color: var(--sd-text);
+	  font-size: var(--sd-text-base);
 	}
 
 	.sarde-search-form .sarde-search-input-field:focus {
 	  outline: none;
-	  border-color: var(--sarde-border-accent);
-	  box-shadow: 0 0 0 2px var(--sarde-focus-ring);
+	  border-color: var(--sd-border-accent);
+	  box-shadow: 0 0 0 2px var(--sd-focus-ring);
 	}
 
 	.sarde-search-button {
-	  padding: var(--sarde-space-3) var(--sarde-space-6);
-	  background: var(--sarde-bg-accent);
-	  color: var(--sarde-text-invert);
+	  padding: var(--sd-space-3) var(--sd-space-6);
+	  background: var(--sd-bg-accent);
+	  color: var(--sd-text-invert);
 	  border: none;
-	  border-radius: var(--sarde-radius-md);
+	  border-radius: var(--sd-radius-md);
 	  cursor: pointer;
-	  font-weight: var(--sarde-weight-medium);
-	  transition: background-color var(--sarde-transition-fast);
+	  font-weight: var(--sd-weight-medium);
+	  transition: background-color var(--sd-transition-fast);
 	}
 
 	.sarde-search-button:hover {
-	  background: var(--sarde-blue-high);
+	  background: var(--sd-blue-high);
 	}
 
 	/* ── Catalog Breadcrumbs ── */
@@ -217,12 +217,12 @@
 
 	.sarde-breadcrumb-item:not(:last-child)::after {
 	  content: "\2192";
-	  margin: 0 var(--sarde-space-2);
-	  color: var(--sarde-text-subtle);
+	  margin: 0 var(--sd-space-2);
+	  color: var(--sd-text-subtle);
 	}
 
 	.sarde-breadcrumb-item a {
-	  color: var(--sarde-text-accent);
+	  color: var(--sd-text-accent);
 	  text-decoration: none;
 	}
 
@@ -231,22 +231,22 @@
 	}
 
 	.sarde-breadcrumb-item span {
-	  color: var(--sarde-text-muted);
+	  color: var(--sd-text-muted);
 	}
 
 	/* ── Main Content Area (Catalog) ── */
 	.sarde-main-content {
-	  min-height: calc(100vh - var(--sarde-nav-height) - 200px);
-	  padding: var(--sarde-space-8) 0;
+	  min-height: calc(100vh - var(--sd-nav-height) - 200px);
+	  padding: var(--sd-space-8) 0;
 	}
 
 	/* ── Hero Section ── */
 	.sarde-hero-section {
-	  background: linear-gradient(135deg, var(--sarde-bg-accent) 0%, hsl(var(--sarde-hue-purple), 70%, 55%) 50%, hsl(var(--sarde-hue-cyan), 70%, 40%) 100%);
+	  background: linear-gradient(135deg, var(--sd-bg-accent) 0%, hsl(var(--sd-hue-purple), 70%, 55%) 50%, hsl(var(--sd-hue-cyan), 70%, 40%) 100%);
 	  background-size: 200% 200%;
 	  animation: gradientShift 15s ease infinite;
-	  color: var(--sarde-text-invert);
-	  padding: var(--sarde-space-12) 0;
+	  color: var(--sd-text-invert);
+	  padding: var(--sd-space-12) 0;
 	  text-align: center;
 	  position: relative;
 	  overflow: hidden;
@@ -271,38 +271,38 @@
 	}
 
 	.sarde-hero-content h1 {
-	  font-size: var(--sarde-text-4xl);
-	  font-weight: var(--sarde-weight-bold);
-	  margin-bottom: var(--sarde-space-4);
-	  letter-spacing: var(--sarde-tracking-tight);
+	  font-size: var(--sd-text-4xl);
+	  font-weight: var(--sd-weight-bold);
+	  margin-bottom: var(--sd-space-4);
+	  letter-spacing: var(--sd-tracking-tight);
 	}
 
 	.sarde-hero-section .hero-subtitle {
-	  font-size: var(--sarde-text-xl);
-	  margin-bottom: var(--sarde-space-8);
+	  font-size: var(--sd-text-xl);
+	  margin-bottom: var(--sd-space-8);
 	  opacity: 0.95;
 	  max-width: 600px;
 	  margin-left: auto;
 	  margin-right: auto;
-	  line-height: var(--sarde-line-height-relaxed);
+	  line-height: var(--sd-line-height-relaxed);
 	}
 
 	.sarde-hero-stats {
 	  display: flex;
 	  justify-content: center;
-	  gap: var(--sarde-space-8);
-	  margin-bottom: var(--sarde-space-8);
+	  gap: var(--sd-space-8);
+	  margin-bottom: var(--sd-space-8);
 	}
 
 	.sarde-stat-item {
 	  text-align: center;
-	  padding: var(--sarde-space-4);
+	  padding: var(--sd-space-4);
 	  background: hsla(0, 0%, 100%, 0.1);
-	  border-radius: var(--sarde-radius-lg);
+	  border-radius: var(--sd-radius-lg);
 	  backdrop-filter: blur(8px);
 	  -webkit-backdrop-filter: blur(8px);
 	  border: 1px solid hsla(0, 0%, 100%, 0.15);
-	  transition: transform var(--sarde-transition-fast) var(--sarde-ease-bounce);
+	  transition: transform var(--sd-transition-fast) var(--sd-ease-bounce);
 	}
 
 	.sarde-stat-item:hover {
@@ -311,23 +311,23 @@
 
 	.sarde-stat-number {
 	  display: block;
-	  font-size: var(--sarde-text-4xl);
-	  font-weight: var(--sarde-weight-bold);
+	  font-size: var(--sd-text-4xl);
+	  font-weight: var(--sd-weight-bold);
 	}
 
 	.sarde-stat-label {
 	  display: block;
-	  font-size: var(--sarde-text-sm);
+	  font-size: var(--sd-text-sm);
 	  opacity: 0.9;
 	  text-transform: uppercase;
-	  letter-spacing: var(--sarde-tracking-wide);
-	  margin-top: var(--sarde-space-1);
+	  letter-spacing: var(--sd-tracking-wide);
+	  margin-top: var(--sd-space-1);
 	}
 
 	.sarde-hero-section .sarde-hero-actions {
 	  display: flex;
 	  justify-content: center;
-	  gap: var(--sarde-space-4);
+	  gap: var(--sd-space-4);
 	}
 
 	/* ── Buttons ── */
@@ -337,13 +337,13 @@
 	  justify-content: center;
 	  gap: 0.5rem;
 	  padding: 0.5rem 1rem;
-	  font-size: var(--sarde-text-sm);
-	  font-weight: var(--sarde-weight-medium);
+	  font-size: var(--sd-text-sm);
+	  font-weight: var(--sd-weight-medium);
 	  text-decoration: none;
-	  border-radius: var(--sarde-radius-md);
+	  border-radius: var(--sd-radius-md);
 	  border: 1px solid transparent;
 	  cursor: pointer;
-	  transition: all var(--sarde-transition-fast) var(--sarde-ease-default);
+	  transition: all var(--sd-transition-fast) var(--sd-ease-default);
 	  text-align: center;
 	  position: relative;
 	  overflow: hidden;
@@ -355,7 +355,7 @@
 	  inset: 0;
 	  background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
 	  opacity: 0;
-	  transition: opacity var(--sarde-transition-fast);
+	  transition: opacity var(--sd-transition-fast);
 	}
 
 	.sarde-btn:hover::before {
@@ -363,57 +363,57 @@
 	}
 
 	.sarde-btn:active {
-	  transform: scale(var(--sarde-motion-scale-sm));
+	  transform: scale(var(--sd-motion-scale-sm));
 	}
 
 	.sarde-btn-primary {
-	  background: var(--sarde-bg-accent);
-	  color: var(--sarde-text-invert);
-	  box-shadow: var(--sarde-shadow-accent);
+	  background: var(--sd-bg-accent);
+	  color: var(--sd-text-invert);
+	  box-shadow: var(--sd-shadow-accent);
 	}
 
 	.sarde-btn-primary:hover {
-	  background: var(--sarde-blue-high);
-	  transform: translateY(var(--sarde-motion-lift));
-	  box-shadow: var(--sarde-shadow-md), var(--sarde-shadow-accent);
+	  background: var(--sd-blue-high);
+	  transform: translateY(var(--sd-motion-lift));
+	  box-shadow: var(--sd-shadow-md), var(--sd-shadow-accent);
 	}
 
 	.sarde-btn-secondary {
 	  background: transparent;
-	  color: var(--sarde-text-invert);
-	  border-color: var(--sarde-text-invert);
+	  color: var(--sd-text-invert);
+	  border-color: var(--sd-text-invert);
 	}
 
 	.sarde-btn-secondary:hover {
-	  background: var(--sarde-text-invert);
-	  color: var(--sarde-bg-accent);
-	  transform: translateY(var(--sarde-motion-lift));
+	  background: var(--sd-text-invert);
+	  color: var(--sd-bg-accent);
+	  transform: translateY(var(--sd-motion-lift));
 	}
 
 	/* ── Content Sections & Cards ── */
 	.sarde-content-section {
-	  margin-bottom: var(--sarde-space-12);
+	  margin-bottom: var(--sd-space-12);
 	}
 
 	.sarde-section-header {
 	  display: flex;
 	  justify-content: space-between;
 	  align-items: center;
-	  margin-bottom: var(--sarde-space-6);
-	  padding-bottom: var(--sarde-space-2);
-	  border-bottom: 2px solid var(--sarde-border);
+	  margin-bottom: var(--sd-space-6);
+	  padding-bottom: var(--sd-space-2);
+	  border-bottom: 2px solid var(--sd-border);
 	}
 
 	.sarde-section-header h2 {
-	  font-size: var(--sarde-text-2xl);
-	  font-weight: var(--sarde-weight-semibold);
-	  color: var(--sarde-text);
+	  font-size: var(--sd-text-2xl);
+	  font-weight: var(--sd-weight-semibold);
+	  color: var(--sd-text);
 	}
 
 	.sarde-section-link {
-	  color: var(--sarde-text-accent);
+	  color: var(--sd-text-accent);
 	  text-decoration: none;
-	  font-weight: var(--sarde-weight-medium);
+	  font-weight: var(--sd-weight-medium);
 	}
 
 	.sarde-section-link:hover {
@@ -426,8 +426,8 @@
 	.sarde-snippet-grid,
 	.sarde-collections-grid {
 	  display: grid;
-	  gap: var(--sarde-space-6);
-	  margin-bottom: var(--sarde-space-8);
+	  gap: var(--sd-space-6);
+	  margin-bottom: var(--sd-space-8);
 	}
 
 	.sarde-course-grid {
@@ -451,12 +451,12 @@
 	.sarde-tutorial-card,
 	.sarde-snippet-card,
 	.sarde-collection-card {
-	  background: var(--sarde-bg-surface);
-	  border: 1px solid var(--sarde-border);
-	  border-radius: var(--sarde-radius-xl);
-	  padding: var(--sarde-space-6);
-	  transition: all var(--sarde-transition-normal) var(--sarde-ease-default);
-	  box-shadow: var(--sarde-shadow-xs);
+	  background: var(--sd-bg-surface);
+	  border: 1px solid var(--sd-border);
+	  border-radius: var(--sd-radius-xl);
+	  padding: var(--sd-space-6);
+	  transition: all var(--sd-transition-normal) var(--sd-ease-default);
+	  box-shadow: var(--sd-shadow-xs);
 	  position: relative;
 	  overflow: hidden;
 	}
@@ -471,19 +471,19 @@
 	  left: 0;
 	  right: 0;
 	  height: 3px;
-	  background: linear-gradient(90deg, var(--sarde-bg-accent), var(--sarde-purple), var(--sarde-cyan));
+	  background: linear-gradient(90deg, var(--sd-bg-accent), var(--sd-purple), var(--sd-cyan));
 	  transform: scaleX(0);
 	  transform-origin: left;
-	  transition: transform var(--sarde-transition-slow) var(--sarde-ease-out);
+	  transition: transform var(--sd-transition-slow) var(--sd-ease-out);
 	}
 
 	.sarde-course-card:hover,
 	.sarde-tutorial-card:hover,
 	.sarde-snippet-card:hover,
 	.sarde-collection-card:hover {
-	  transform: translateY(var(--sarde-motion-lift-lg));
-	  box-shadow: var(--sarde-shadow-lg);
-	  border-color: var(--sarde-border-accent);
+	  transform: translateY(var(--sd-motion-lift-lg));
+	  box-shadow: var(--sd-shadow-lg);
+	  border-color: var(--sd-border-accent);
 	}
 
 	.sarde-course-card:hover::before,
@@ -497,79 +497,79 @@
 	  display: flex;
 	  justify-content: space-between;
 	  align-items: center;
-	  margin-bottom: var(--sarde-space-4);
+	  margin-bottom: var(--sd-space-4);
 	}
 
 	.sarde-course-level,
 	.sarde-course-duration {
 	  padding: 0.125rem 0.5rem;
-	  border-radius: var(--sarde-radius-full);
-	  font-size: var(--sarde-text-xs);
-	  font-weight: var(--sarde-weight-medium);
+	  border-radius: var(--sd-radius-full);
+	  font-size: var(--sd-text-xs);
+	  font-weight: var(--sd-weight-medium);
 	}
 
 	.sarde-course-level {
-	  background: var(--sarde-green-low);
-	  color: var(--sarde-green);
+	  background: var(--sd-green-low);
+	  color: var(--sd-green);
 	}
 
 	.sarde-course-duration {
-	  background: var(--sarde-bg-surface);
-	  color: var(--sarde-text-muted);
+	  background: var(--sd-bg-surface);
+	  color: var(--sd-text-muted);
 	}
 
 	.sarde-course-title,
 	.sarde-tutorial-title,
 	.sarde-snippet-title,
 	.sarde-collection-title {
-	  margin-bottom: var(--sarde-space-3);
+	  margin-bottom: var(--sd-space-3);
 	}
 
 	.sarde-course-title a,
 	.sarde-tutorial-title a,
 	.sarde-snippet-title a {
-	  color: var(--sarde-text);
+	  color: var(--sd-text);
 	  text-decoration: none;
-	  font-weight: var(--sarde-weight-semibold);
+	  font-weight: var(--sd-weight-semibold);
 	}
 
 	.sarde-course-title a:hover,
 	.sarde-tutorial-title a:hover,
 	.sarde-snippet-title a:hover {
-	  color: var(--sarde-text-accent);
+	  color: var(--sd-text-accent);
 	}
 
 	.sarde-course-description,
 	.sarde-tutorial-description,
 	.sarde-snippet-description,
 	.sarde-collection-description {
-	  color: var(--sarde-text-muted);
-	  margin-bottom: var(--sarde-space-4);
-	  line-height: var(--sarde-line-height);
+	  color: var(--sd-text-muted);
+	  margin-bottom: var(--sd-space-4);
+	  line-height: var(--sd-line-height);
 	}
 
 	/* Tags */
 	.sarde-course-tags,
 	.sarde-tutorial-tags,
 	.sarde-snippet-tags {
-	  margin-bottom: var(--sarde-space-4);
+	  margin-bottom: var(--sd-space-4);
 	}
 
 	.tag,
 	.sarde-language-tag {
 	  display: inline-block;
 	  padding: 0.125rem 0.5rem;
-	  background: var(--sarde-bg-surface);
-	  color: var(--sarde-text-muted);
-	  border-radius: var(--sarde-radius-full);
-	  font-size: var(--sarde-text-xs);
-	  margin-inline-end: var(--sarde-space-2);
-	  margin-bottom: var(--sarde-space-1);
+	  background: var(--sd-bg-surface);
+	  color: var(--sd-text-muted);
+	  border-radius: var(--sd-radius-full);
+	  font-size: var(--sd-text-xs);
+	  margin-inline-end: var(--sd-space-2);
+	  margin-bottom: var(--sd-space-1);
 	}
 
 	.sarde-language-tag {
-	  background: var(--sarde-blue-low);
-	  color: var(--sarde-blue);
+	  background: var(--sd-blue-low);
+	  color: var(--sd-blue);
 	}
 
 	/* Meta info */
@@ -578,26 +578,26 @@
 	  display: flex;
 	  justify-content: space-between;
 	  align-items: center;
-	  color: var(--sarde-text-subtle);
-	  font-size: var(--sarde-text-sm);
+	  color: var(--sd-text-subtle);
+	  font-size: var(--sd-text-sm);
 	}
 
 	.sarde-collection-stats {
 	  display: flex;
 	  justify-content: space-between;
 	  align-items: center;
-	  margin-top: var(--sarde-space-4);
+	  margin-top: var(--sd-space-4);
 	}
 
 	.sarde-item-count {
-	  color: var(--sarde-text-subtle);
-	  font-size: var(--sarde-text-sm);
+	  color: var(--sd-text-subtle);
+	  font-size: var(--sd-text-sm);
 	}
 
 	.sarde-collection-link {
-	  color: var(--sarde-text-accent);
+	  color: var(--sd-text-accent);
 	  text-decoration: none;
-	  font-weight: var(--sarde-weight-medium);
+	  font-weight: var(--sd-weight-medium);
 	}
 
 	.sarde-collection-link:hover {
@@ -605,53 +605,53 @@
 	}
 
 	.sarde-collection-icon {
-	  font-size: var(--sarde-text-3xl);
-	  margin-bottom: var(--sarde-space-4);
+	  font-size: var(--sd-text-3xl);
+	  margin-bottom: var(--sd-space-4);
 	  text-align: center;
 	}
 
 	/* Quick start */
 	.sarde-quick-start {
-	  background: var(--sarde-bg-surface);
-	  border-radius: var(--sarde-radius-lg);
-	  padding: var(--sarde-space-8);
+	  background: var(--sd-bg-surface);
+	  border-radius: var(--sd-radius-lg);
+	  padding: var(--sd-space-8);
 	  text-align: center;
 	}
 
 	.sarde-quick-start h2 {
-	  margin-bottom: var(--sarde-space-8);
+	  margin-bottom: var(--sd-space-8);
 	}
 
 	.sarde-quick-start-grid {
 	  display: grid;
 	  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-	  gap: var(--sarde-space-8);
+	  gap: var(--sd-space-8);
 	}
 
 	.sarde-quick-start-item h3 {
-	  margin-bottom: var(--sarde-space-2);
-	  color: var(--sarde-text-accent);
+	  margin-bottom: var(--sd-space-2);
+	  color: var(--sd-text-accent);
 	}
 
 	/* ── Catalog Footer ── */
 	.sarde-legacy-footer {
-	  background: var(--sarde-bg-surface);
-	  border-top: 1px solid var(--sarde-border);
-	  padding: var(--sarde-space-12) 0 var(--sarde-space-4);
-	  margin-top: var(--sarde-space-12);
+	  background: var(--sd-bg-surface);
+	  border-top: 1px solid var(--sd-border);
+	  padding: var(--sd-space-12) 0 var(--sd-space-4);
+	  margin-top: var(--sd-space-12);
 	}
 
 	.sarde-footer-content {
 	  display: grid;
 	  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-	  gap: var(--sarde-space-8);
-	  margin-bottom: var(--sarde-space-8);
+	  gap: var(--sd-space-8);
+	  margin-bottom: var(--sd-space-8);
 	}
 
 	.sarde-footer-section h3,
 	.sarde-footer-section h4 {
-	  margin-bottom: var(--sarde-space-4);
-	  color: var(--sarde-text);
+	  margin-bottom: var(--sd-space-4);
+	  color: var(--sd-text);
 	}
 
 	.sarde-footer-section ul {
@@ -659,34 +659,34 @@
 	}
 
 	.sarde-footer-section li {
-	  margin-bottom: var(--sarde-space-2);
+	  margin-bottom: var(--sd-space-2);
 	}
 
 	.sarde-footer-section a {
-	  color: var(--sarde-text-muted);
+	  color: var(--sd-text-muted);
 	  text-decoration: none;
 	}
 
 	.sarde-footer-section a:hover {
-	  color: var(--sarde-text-accent);
+	  color: var(--sd-text-accent);
 	}
 
 	.sarde-footer-bottom {
 	  text-align: center;
-	  padding-top: var(--sarde-space-8);
-	  border-top: 1px solid var(--sarde-border);
-	  color: var(--sarde-text-muted);
+	  padding-top: var(--sd-space-8);
+	  border-top: 1px solid var(--sd-border);
+	  color: var(--sd-text-muted);
 	}
 
 	/* ── Responsive ── */
 	@media (max-width: 768px) {
 	  .sarde-hero-content h1 {
-	    font-size: var(--sarde-text-3xl);
+	    font-size: var(--sd-text-3xl);
 	  }
 
 	  .sarde-hero-stats {
 	    flex-direction: column;
-	    gap: var(--sarde-space-4);
+	    gap: var(--sd-space-4);
 	  }
 
 	  .sarde-stat-item {
@@ -696,13 +696,13 @@
 	  }
 
 	  .sarde-stat-number {
-	    font-size: var(--sarde-text-2xl);
+	    font-size: var(--sd-text-2xl);
 	  }
 
 	  .sarde-navbar .sarde-container {
 	    flex-wrap: wrap;
 	    height: auto;
-	    padding: var(--sarde-space-3);
+	    padding: var(--sd-space-3);
 	  }
 
 	  .sarde-mobile-menu-toggle {
@@ -723,9 +723,9 @@
 	    display: none;
 	    order: 4;
 	    width: 100%;
-	    padding-top: var(--sarde-space-4);
-	    margin-top: var(--sarde-space-4);
-	    border-top: 1px solid var(--sarde-border);
+	    padding-top: var(--sd-space-4);
+	    margin-top: var(--sd-space-4);
+	    border-top: 1px solid var(--sd-border);
 	  }
 
 	  .sarde-navbar-menu.open {
@@ -738,11 +738,11 @@
 	  }
 
 	  .sarde-navbar-nav .sarde-nav-item {
-	    margin: var(--sarde-space-1) 0;
+	    margin: var(--sd-space-1) 0;
 	  }
 
 	  .sarde-navbar .sarde-nav-link {
-	    padding: var(--sarde-space-3) var(--sarde-space-4);
+	    padding: var(--sd-space-3) var(--sd-space-4);
 	  }
 
 	  .sarde-search-form {
@@ -763,21 +763,21 @@
 
 	@media (max-width: 480px) {
 	  .sarde-container {
-	    padding: 0 var(--sarde-space-2);
+	    padding: 0 var(--sd-space-2);
 	  }
 
 	  .sarde-main-content {
-	    padding: var(--sarde-space-4) 0;
+	    padding: var(--sd-space-4) 0;
 	  }
 
 	  .sarde-content-section {
-	    margin-bottom: var(--sarde-space-8);
+	    margin-bottom: var(--sd-space-8);
 	  }
 
 	  .sarde-section-header {
 	    flex-direction: column;
 	    align-items: flex-start;
-	    gap: var(--sarde-space-2);
+	    gap: var(--sd-space-2);
 	  }
 	}
 
@@ -808,8 +808,8 @@
 	}
 
 	@keyframes pulseGlow {
-	  0%, 100% { box-shadow: 0 0 0 0 hsla(var(--sarde-hue-blue), 70%, 50%, 0.4); }
-	  50% { box-shadow: 0 0 0 8px hsla(var(--sarde-hue-blue), 70%, 50%, 0); }
+	  0%, 100% { box-shadow: 0 0 0 0 hsla(var(--sd-hue-blue), 70%, 50%, 0.4); }
+	  50% { box-shadow: 0 0 0 8px hsla(var(--sd-hue-blue), 70%, 50%, 0); }
 	}
 
 	@keyframes gradientShift {
@@ -818,13 +818,13 @@
 	}
 
 	/* Animation utilities */
-	.animate-fade-in { animation: fadeIn var(--sarde-transition-normal) var(--sarde-ease-out); }
-	.animate-slide-in-left { animation: slideInLeft var(--sarde-transition-normal) var(--sarde-ease-out); }
-	.animate-slide-in-right { animation: slideInRight var(--sarde-transition-normal) var(--sarde-ease-out); }
-	.animate-scale-up { animation: scaleUp var(--sarde-transition-normal) var(--sarde-ease-bounce); }
+	.animate-fade-in { animation: fadeIn var(--sd-transition-normal) var(--sd-ease-out); }
+	.animate-slide-in-left { animation: slideInLeft var(--sd-transition-normal) var(--sd-ease-out); }
+	.animate-slide-in-right { animation: slideInRight var(--sd-transition-normal) var(--sd-ease-out); }
+	.animate-scale-up { animation: scaleUp var(--sd-transition-normal) var(--sd-ease-bounce); }
 
 	.animate-shimmer {
-	  background: linear-gradient(90deg, var(--sarde-bg-surface) 25%, var(--sarde-bg) 50%, var(--sarde-bg-surface) 75%);
+	  background: linear-gradient(90deg, var(--sd-bg-surface) 25%, var(--sd-bg) 50%, var(--sd-bg-surface) 75%);
 	  background-size: 200% 100%;
 	  animation: shimmer 1.5s infinite;
 	}
@@ -832,7 +832,7 @@
 	.animate-pulse-glow { animation: pulseGlow 2s infinite; }
 
 	/* Stagger animation */
-	.stagger-animation > * { animation: fadeIn var(--sarde-transition-normal) var(--sarde-ease-out) backwards; }
+	.stagger-animation > * { animation: fadeIn var(--sd-transition-normal) var(--sd-ease-out) backwards; }
 	.stagger-animation > *:nth-child(1) { animation-delay: 0ms; }
 	.stagger-animation > *:nth-child(2) { animation-delay: 50ms; }
 	.stagger-animation > *:nth-child(3) { animation-delay: 100ms; }
@@ -845,27 +845,27 @@
 	.stagger-animation > *:nth-child(10) { animation-delay: 450ms; }
 
 	/* Utility effects */
-	.sarde-hover-glow { transition: box-shadow var(--sarde-transition-fast); }
-	.sarde-hover-glow:hover { box-shadow: var(--sarde-shadow-accent); }
+	.sarde-hover-glow { transition: box-shadow var(--sd-transition-fast); }
+	.sarde-hover-glow:hover { box-shadow: var(--sd-shadow-accent); }
 
 	.sarde-gradient-text {
-	  background: linear-gradient(135deg, var(--sarde-bg-accent), var(--sarde-purple), var(--sarde-cyan));
+	  background: linear-gradient(135deg, var(--sd-bg-accent), var(--sd-purple), var(--sd-cyan));
 	  -webkit-background-clip: text;
 	  background-clip: text;
 	  -webkit-text-fill-color: transparent;
 	}
 
 	.sarde-glass-card {
-	  background: var(--sarde-glass-bg);
-	  backdrop-filter: blur(var(--sarde-glass-blur));
-	  -webkit-backdrop-filter: blur(var(--sarde-glass-blur));
-	  border: 1px solid var(--sarde-glass-border);
+	  background: var(--sd-glass-bg);
+	  backdrop-filter: blur(var(--sd-glass-blur));
+	  -webkit-backdrop-filter: blur(var(--sd-glass-blur));
+	  border: 1px solid var(--sd-glass-border);
 	}
 
 	/* Skeleton loading */
 	.sarde-skeleton {
-	  background: var(--sarde-bg-surface);
-	  border-radius: var(--sarde-radius-md);
+	  background: var(--sd-bg-surface);
+	  border-radius: var(--sd-radius-md);
 	  position: relative;
 	  overflow: hidden;
 	}

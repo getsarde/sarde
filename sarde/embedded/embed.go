@@ -3,7 +3,6 @@ package embedded
 import (
 	"embed"
 	"io/fs"
-	"strings"
 )
 
 // DefaultsYAML contains the embedded default site configuration.
@@ -38,35 +37,3 @@ func ThemeFS() fs.FS {
 	return sub
 }
 
-// ThemeCSS returns all embedded CSS files concatenated in the correct order.
-// The order is: tokens, base, layout, content, components, dark.
-func ThemeCSS() string {
-	cssOrder := []string{
-		"css/tokens.css",
-		"css/base.css",
-		"css/layout.css",
-		"css/content.css",
-		"css/components.css",
-		"css/extensions.css",
-		"css/style.css",
-		"css/blog.css",
-		"css/search.css",
-		"css/homepage.css",
-		"css/utilities.css",
-		"css/print.css",
-		"css/dark.css",
-	}
-
-	efs := ThemeFS()
-	var sb strings.Builder
-	sb.WriteString("@layer sarde.base, sarde.reset, sarde.core, sarde.content, sarde.components, sarde.variants, sarde.utils;\n")
-	for _, name := range cssOrder {
-		data, err := fs.ReadFile(efs, name)
-		if err != nil {
-			continue
-		}
-		sb.Write(data)
-		sb.WriteByte('\n')
-	}
-	return sb.String()
-}

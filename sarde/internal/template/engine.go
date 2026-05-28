@@ -103,10 +103,14 @@ func (e *Engine) CurrentLangPtr() *string {
 // CachedCSS returns the concatenated embedded CSS bundle.
 func (e *Engine) CachedCSS() string { return e.cachedCSS }
 
+// CSSURL returns the root-relative URL of the embedded CSS bundle.
+func (e *Engine) CSSURL() string { return e.cssURL }
+
 // Load initializes the template system:
 // loads base templates for each layout, sets up the component registry,
-// and builds the FuncMap.
-func (e *Engine) Load(resolver *engine.ThemeResolver) error {
+// and builds the FuncMap. In production mode (!devMode), the embedded CSS
+// bundle is minified via esbuild. The output is always fingerprinted.
+func (e *Engine) Load(resolver *engine.ThemeResolver, devMode bool) error {
 	e.resolver = resolver
 
 	// On subsequent loads (same engine reused across rebuilds), skip the
@@ -120,9 +124,15 @@ func (e *Engine) Load(resolver *engine.ThemeResolver) error {
 		return nil
 	}
 
-	// Load and cache embedded CSS files.
-	e.cachedCSS = loadEmbeddedCSS(resolver.EmbeddedFS)
-	e.cssURL = "/assets/css/sarde.css"
+	// Load, optionally minify, and fingerprint the embedded CSS bundle.
+	raw := loadEmbeddedCSS(resolver.EmbeddedFS)
+	processed, err := asset.TransformCSS(raw, !devMode)
+	if err != nil {
+		return fmt.Errorf("minifying embedded CSS: %w", err)
+	}
+	e.cachedCSS = processed
+	hash := asset.Fingerprint([]byte(processed))
+	e.cssURL = "/assets/css/" + asset.FingerprintedName("sarde.css", hash)
 
 	// Build a bootstrap FuncMap (without component support or partial cache) for initial parsing.
 	// Uses &e.site / &e.pageIndex so closures always see the latest values across rebuilds.
@@ -442,7 +452,7 @@ func loadEmbeddedCSS(efs fs.FS) string {
 	}
 
 	var sb strings.Builder
-	sb.WriteString("@layer sarde.base, sarde.reset, sarde.core, sarde.content, sarde.components, sarde.variants, sarde.utils;\n")
+	sb.WriteString("@layer sd.base, sd.reset, sd.core, sd.content, sd.components, sd.variants, sd.utils;\n")
 	for _, name := range cssOrder {
 		data, err := fs.ReadFile(efs, name)
 		if err != nil {

@@ -1,8 +1,8 @@
-@layer sarde.reset {
+@layer sd.reset {
 	/* Sarde Default Theme — Dark Mode Non-Token Overrides
 	   Token-based dark mode swaps (colors, shadows, glass, asides) are handled
 	   by DefaultDarkTokens() → <style id="sarde-theme"> :root.dark block.
-	   This file handles rules that can't be expressed as --sarde-* custom properties. */
+	   This file handles rules that can't be expressed as --sd-* custom properties. */
 
 	:root.dark {
 	  color-scheme: dark;

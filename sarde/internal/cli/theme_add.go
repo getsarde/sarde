@@ -131,7 +131,7 @@ func installFromGitHub(src, destDir string) error {
 		return download.ExtractZip(tmpPath, destDir, 1)
 	}
 
-	scratchDir, err := os.MkdirTemp("", "sarde-theme-extract-*")
+	scratchDir, err := os.MkdirTemp("", "sd-theme-extract-*")
 	if err != nil {
 		return fmt.Errorf("creating temp directory: %w", err)
 	}
