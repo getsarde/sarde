@@ -218,7 +218,8 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		emitTaxonomyWarnings(taxWarnings)
 	}
 
-	collection.LinkVersions(patchedAllPages)
+	// DISABLED: versioning soft-disabled pending basePath implementation (Phase A).
+	// collection.LinkVersions(patchedAllPages)
 
 	newPageIndex := content.BuildPageIndex(patchedAllPages)
 	newPageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))

@@ -36,6 +36,7 @@ func BuildSectionTree(pages []*engine.Page, collectionName string) []*engine.Sec
 			}
 		}
 		sectionMap[dirPath] = sec
+		page.Section = sec
 	}
 
 	// Wire parent-child relationships

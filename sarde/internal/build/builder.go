@@ -218,8 +218,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		i18n.LinkTranslations(allPages, weights)
 	}
 
-	// Versioning: link version peers across versioned collections.
-	collection.LinkVersions(allPages)
+	// DISABLED: versioning soft-disabled pending basePath implementation (Phase A).
+	// collection.LinkVersions(allPages)
 
 	// Build taxonomies, scoped to the default language in multi-language sites
 	// so translated posts aren't counted once per language on a term page.

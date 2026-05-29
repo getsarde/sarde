@@ -172,7 +172,7 @@ func buildTab(sec *engine.Section, col *engine.Collection, contentDir string) *e
 		Title:    tab.Title,
 		Config:   col.Config,
 		Pages:    tabPages,
-		Sections: sec.Sections,
+		Sections: BuildSectionTree(tabPages, col.Name),
 	}
 
 	tab.NavTree = buildTabNavTree(tabCol, col.Name, sec.Slug, contentDir)

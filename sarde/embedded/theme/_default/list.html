@@ -1,26 +1,27 @@
 {{ define "content" }}
 <h1>{{ .Page.Title }}</h1>
 {{ if .Page.Content }}{{ .Page.Content }}{{ end }}
-{{ if .Collection }}
-<ul class="sarde-page-list">
-{{ $pages := .Collection.Pages }}
-{{ if and .Paginator .Paginator.CurrentPages }}{{ $pages = .Paginator.CurrentPages }}{{ end }}
-{{ range $pages }}
-  <li>
-    <a href="{{ .RelPermalink }}">{{ .Title }}</a>
-    {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
-  </li>
-{{ end }}
-</ul>
-{{ if .Paginator }}
-<nav class="sarde-pagination" aria-label="Pagination">
-  {{ if .Paginator.HasPrev }}<a class="sarde-pagination-prev" href="{{ .Paginator.PrevURL }}" rel="prev">{{ t "nav.previous" }}</a>{{ end }}
-  <ol class="sarde-pagination-pages">
-    {{ range .Paginator.Pages }}<li{{ if eq .URL $.Page.RelPermalink }} class="sarde-current"{{ end }}><a href="{{ .URL }}">{{ .Title }}</a></li>
+{{ if .Section }}
+<div class="sarde-card-grid">
+  {{ range .Section.Sections }}
+  {{ if .Render }}
+  <a href="{{ .Permalink }}" class="sarde-doc-card sarde-doc-card--category">
+    <h3 class="sarde-doc-card__title">{{ .Title }}</h3>
+    {{ if and .IndexPage .IndexPage.Description }}
+    <p class="sarde-doc-card__desc">{{ .IndexPage.Description }}</p>
     {{ end }}
-  </ol>
-  {{ if .Paginator.HasNext }}<a class="sarde-pagination-next" href="{{ .Paginator.NextURL }}" rel="next">{{ t "nav.next" }}</a>{{ end }}
-</nav>
-{{ end }}
+    <span class="sarde-doc-card__count">{{ len .Pages }} items</span>
+  </a>
+  {{ end }}
+  {{ end }}
+  {{ range .Section.Pages }}
+  <a href="{{ .RelPermalink }}" class="sarde-doc-card">
+    <h3 class="sarde-doc-card__title">{{ .Title }}</h3>
+    {{ if .Description }}
+    <p class="sarde-doc-card__desc">{{ .Description }}</p>
+    {{ end }}
+  </a>
+  {{ end }}
+</div>
 {{ end }}
 {{ end }}

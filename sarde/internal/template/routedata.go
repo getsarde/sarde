@@ -99,13 +99,13 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 			rd.Paginator = buildPaginator(col, current)
 		}
 
-		// Versioning
-		if vc := col.Config.Versioning; vc != nil && vc.Enabled {
-			rd.Version = page.Version
-			rd.IsLatest = isLastVersion(page.Version, vc)
-			rd.VersionLabel, rd.VersionBanner = versionLabelAndBanner(page.Version, vc)
-			rd.Versions = buildVersionLinks(page, vc, col.Name)
-		}
+		// DISABLED: versioning soft-disabled pending basePath implementation (Phase A).
+		// if vc := col.Config.Versioning; vc != nil && vc.Enabled {
+		// 	rd.Version = page.Version
+		// 	rd.IsLatest = isLastVersion(page.Version, vc)
+		// 	rd.VersionLabel, rd.VersionBanner = versionLabelAndBanner(page.Version, vc)
+		// 	rd.Versions = buildVersionLinks(page, vc, col.Name)
+		// }
 
 		// Sidebar and navigation for layouts with sidebar
 		if engine.LayoutHasSidebar(rd.Layout) {
@@ -132,12 +132,12 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 					}
 					rd.Breadcrumbs = navigation.BuildBreadcrumbsTabbed(page, col, rd.ActiveTab)
 				}
-			} else if col.VersionNavTrees != nil {
-				// Versioned collection: select the current version's nav tree.
-				if navTree, ok := col.VersionNavTrees[page.Version]; ok && navTree != nil {
-					rd.Sidebar = navigation.MarkActive(navTree, page)
-				}
-				rd.Breadcrumbs = navigation.BuildBreadcrumbsVersioned(page, col)
+			// DISABLED: versioning soft-disabled pending basePath implementation (Phase A).
+			// } else if col.VersionNavTrees != nil {
+			// 	if navTree, ok := col.VersionNavTrees[page.Version]; ok && navTree != nil {
+			// 		rd.Sidebar = navigation.MarkActive(navTree, page)
+			// 	}
+			// 	rd.Breadcrumbs = navigation.BuildBreadcrumbsVersioned(page, col)
 			} else {
 				navTree := col.NavTree
 				if col.NavTrees != nil && page.Lang != "" {

@@ -764,4 +764,42 @@
 	  border-color: oklch(0.48 0.11 25);
 	}
 
+	/* ── Doc Card Grid (section index pages) ── */
+	.sarde-card-grid {
+	  display: grid;
+	  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	  gap: 1rem;
+	  margin-block-start: 1.5rem;
+	}
+	.sarde-doc-card {
+	  display: flex;
+	  flex-direction: column;
+	  padding: 1rem 1.25rem;
+	  border: 1px solid var(--sd-border);
+	  border-radius: var(--sd-radius);
+	  text-decoration: none;
+	  color: var(--sd-text);
+	  transition: border-color 0.2s, box-shadow 0.2s;
+	}
+	.sarde-doc-card:hover {
+	  border-color: var(--sd-accent);
+	  box-shadow: var(--sd-shadow-sm);
+	}
+	.sarde-doc-card__title {
+	  margin: 0 0 0.25rem;
+	  font-size: 1rem;
+	  font-weight: 600;
+	}
+	.sarde-doc-card__desc {
+	  margin: 0;
+	  font-size: 0.875rem;
+	  color: var(--sd-text-muted);
+	  flex: 1;
+	}
+	.sarde-doc-card__count {
+	  margin-block-start: 0.5rem;
+	  font-size: 0.75rem;
+	  color: var(--sd-text-muted);
+	}
+
 }

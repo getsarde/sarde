@@ -1,6 +1,6 @@
 {{ if .IsTabbed }}
 <div class="sarde-tab-switcher">
-  <button class="sarde-tab-trigger" data-docs-tab-trigger aria-expanded="false" aria-haspopup="listbox">
+  <button class="sarde-tab-trigger" data-sarde-tab-trigger aria-expanded="false" aria-haspopup="listbox">
     {{ if .ActiveTab }}
     <span class="sarde-tab-active-label">
       {{ if .ActiveTab.Icon }}<span class="sarde-tab-icon">{{ .ActiveTab.Icon }}</span>{{ end }}
@@ -13,7 +13,7 @@
       <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </button>
-  <ul class="sarde-tab-menu" data-docs-tab-menu role="listbox" hidden>
+  <ul class="sarde-tab-menu" data-sarde-tab-menu role="listbox" hidden>
     {{ range .DocsTabs }}
     <li role="option"{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} aria-selected="true"{{ end }}>
       <a href="{{ .Permalink }}" class="sarde-tab-option{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} is-active{{ end }}">
