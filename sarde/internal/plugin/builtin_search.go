@@ -12,7 +12,6 @@ import (
 var searchAssetsFS embed.FS
 
 var searchRuntimeScripts = []string{
-	"/assets/vendor/orama/orama.esm.js",
 	"/assets/js/static-search.js",
 }
 

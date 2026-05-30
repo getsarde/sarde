@@ -107,8 +107,8 @@ func TestSearch_BeforeRenderAppendsScripts(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BeforeRender: %v", err)
 	}
-	if len(rd.Scripts) != 2 {
-		t.Fatalf("expected 2 scripts appended, got %d: %v", len(rd.Scripts), rd.Scripts)
+	if len(rd.Scripts) != 1 {
+		t.Fatalf("expected 1 script appended, got %d: %v", len(rd.Scripts), rd.Scripts)
 	}
 }
 

@@ -28,7 +28,7 @@
 	  align-items: center;
 	  gap: var(--sd-space-2);
 	  min-width: 0;
-	  overflow: hidden;
+	  overflow: visible;
 	  padding: 0 var(--sd-space-4);
 	  background: var(--sd-bg-nav);
 	  background: color-mix(in srgb, var(--sd-bg-nav) 85%, transparent);
