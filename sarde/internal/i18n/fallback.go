@@ -78,13 +78,13 @@ func GenerateFallbacks(pages []*engine.Page, languageCodes []string, defaultLang
 // pages display the same content as the original).
 func clonePage(p *engine.Page) *engine.Page {
 	cp := *p
-	// Clear relationship fields that will be re-established
+	// Clear per-language relationship fields (rebuilt by LinkAllTranslations / nav wiring).
+	// Collection and Section are intentionally kept — they are structural references
+	// needed by BuildRouteData for layout, sidebar, template, and breadcrumbs.
 	cp.Translations = nil
 	cp.AllTranslations = nil
 	cp.PrevPage = nil
 	cp.NextPage = nil
-	cp.Collection = nil
-	cp.Section = nil
 	cp.NavNode = nil
 	return &cp
 }

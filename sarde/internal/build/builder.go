@@ -230,6 +230,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		fallbacks := i18n.GenerateFallbacks(allPages, langCodes, defaultLang, fbOpts)
 		allPages = append(allPages, fallbacks...)
 
+		collection.RebuildNavTreesWithFallbacks(collections, allPages, langCodes)
+
 		i18n.LinkAllTranslations(allPages, weights)
 	}
 
