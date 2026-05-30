@@ -217,7 +217,7 @@ plugins:
   - announcements
 head:
   custom_css:
-  - /css/custom.css
+  - /css/custeom.css
 i18n:
   default_language: en
   languages:

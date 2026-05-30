@@ -85,6 +85,10 @@ func (ds *DevServer) Start() error {
 	if result.Error != nil {
 		devlog.Error("build", "Initial build failed: %v", result.Error)
 		devlog.Warn("build", "Serving stale output (if any). Waiting for file changes...")
+		if ds.liveReload {
+			msg := ToReloadMessage(FileChange{Kind: ChangeConfig}, result, ds.projectDir)
+			ds.hub.SetPendingError(&msg)
+		}
 	} else {
 		devlog.Log("build", "Built %d pages in %s", result.PageCount, result.Duration)
 	}
@@ -196,6 +200,11 @@ func (ds *DevServer) onFileChange(changes []FileChange) {
 	}
 
 	msg := ToReloadMessage(representative, result, ds.projectDir)
+	if result.Error != nil {
+		ds.hub.SetPendingError(&msg)
+	} else {
+		ds.hub.ClearPendingError()
+	}
 	ds.hub.Broadcast(msg)
 
 	// Send a follow-up warning if there are warnings after a successful rebuild.
@@ -295,7 +304,11 @@ func (ds *DevServer) fileHandler() http.Handler {
 			return
 		}
 
-		http.NotFound(w, r)
+		// Minimal HTML so injectScript can inject the live reload script,
+		// enabling the error overlay even when no build output exists.
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>404</title></head><body></body></html>`))
 	})
 }
 

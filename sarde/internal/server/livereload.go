@@ -32,9 +32,10 @@ type ReloadMessage struct {
 
 // Hub manages WebSocket client connections and broadcasts reload messages.
 type Hub struct {
-	clients  map[*websocket.Conn]bool
-	mu       sync.Mutex
-	upgrader websocket.Upgrader
+	clients      map[*websocket.Conn]bool
+	mu           sync.Mutex
+	upgrader     websocket.Upgrader
+	pendingError *ReloadMessage
 }
 
 // NewHub creates a new WebSocket hub.
@@ -47,6 +48,20 @@ func NewHub() *Hub {
 	}
 }
 
+// SetPendingError stores a build error to replay to newly connecting clients.
+func (h *Hub) SetPendingError(msg *ReloadMessage) {
+	h.mu.Lock()
+	h.pendingError = msg
+	h.mu.Unlock()
+}
+
+// ClearPendingError removes the stored build error after a successful rebuild.
+func (h *Hub) ClearPendingError() {
+	h.mu.Lock()
+	h.pendingError = nil
+	h.mu.Unlock()
+}
+
 // HandleWS upgrades an HTTP connection to WebSocket and registers the client.
 func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	conn, err := h.upgrader.Upgrade(w, r, nil)
@@ -57,7 +72,14 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 
 	h.mu.Lock()
 	h.clients[conn] = true
+	pending := h.pendingError
 	h.mu.Unlock()
+
+	if pending != nil {
+		if data, err := json.Marshal(pending); err == nil {
+			conn.WriteMessage(websocket.TextMessage, data)
+		}
+	}
 
 	// Read pump — blocks until client disconnects.
 	for {

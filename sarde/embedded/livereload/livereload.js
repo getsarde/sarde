@@ -40,62 +40,112 @@
 
   function showOverlay(msg) {
     removeOverlay();
+
+    // Backdrop
     overlay = document.createElement("div");
     overlay.id = "__lr_overlay";
     overlay.style.cssText =
-      "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);" +
-      "display:flex;align-items:center;justify-content:center;font-family:monospace;color:#fff;";
+      "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.66);" +
+      "overflow-y:auto;padding:40px 16px 16px;" +
+      "font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;";
+    overlay.onclick = function (e) { if (e.target === overlay) removeOverlay(); };
 
-    var box = document.createElement("div");
-    box.style.cssText =
-      "background:#1e1e2e;border:1px solid #f38ba8;border-radius:8px;padding:24px;max-width:720px;" +
-      "width:90%;max-height:80vh;overflow:auto;";
+    // Card
+    var card = document.createElement("div");
+    card.style.cssText =
+      "background:#252525;border-radius:8px;overflow:hidden;width:92vw;max-width:960px;margin:0 auto;" +
+      "max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5);" +
+      "border-top:4px solid #ff5555;";
 
-    var header = document.createElement("div");
-    header.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;";
+    var inner = document.createElement("div");
+    inner.style.cssText = "padding:24px 28px;position:relative;";
 
-    var title = document.createElement("span");
-    title.style.cssText = "color:#f38ba8;font-size:16px;font-weight:bold;";
-    title.textContent = (msg.file ? msg.file : "Build") + " Error";
+    // Actions (top-right)
+    var actions = document.createElement("div");
+    actions.style.cssText = "position:absolute;top:20px;right:24px;display:flex;align-items:center;gap:8px;";
+
+    var copySvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    var copy = document.createElement("button");
+    copy.innerHTML = copySvg + " Copy";
+    copy.style.cssText =
+      "background:#333;border:1px solid #555;color:#ccc;font-size:12px;font-family:inherit;" +
+      "cursor:pointer;padding:5px 10px;border-radius:4px;display:flex;align-items:center;gap:5px;";
+    copy.onmouseenter = function () { copy.style.background = "#444"; };
+    copy.onmouseleave = function () { copy.style.background = "#333"; };
+    copy.onclick = function () {
+      var text = "";
+      if (msg.file) text += msg.file + (msg.line ? ":" + msg.line : "") + (msg.col ? ":" + msg.col : "") + "\n";
+      if (msg.error) text += msg.error + "\n";
+      if (msg.frame) text += "\n" + msg.frame;
+      navigator.clipboard.writeText(text.trim()).then(function () {
+        copy.innerHTML = copySvg + " Copied!";
+        setTimeout(function () { copy.innerHTML = copySvg + " Copy"; }, 1500);
+      });
+    };
 
     var close = document.createElement("button");
-    close.textContent = "\u00d7";
+    close.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
     close.style.cssText =
-      "background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:0 4px;";
+      "background:none;border:none;color:#888;cursor:pointer;padding:4px;display:flex;";
+    close.onmouseenter = function () { close.style.color = "#ccc"; };
+    close.onmouseleave = function () { close.style.color = "#888"; };
     close.onclick = removeOverlay;
-    header.appendChild(title);
-    header.appendChild(close);
-    box.appendChild(header);
 
+    actions.appendChild(copy);
+    actions.appendChild(close);
+    inner.appendChild(actions);
+
+    // Error header: [Build Error] message
+    var errHeader = document.createElement("div");
+    errHeader.style.cssText =
+      "font-size:16px;font-weight:700;line-height:1.5;margin-bottom:16px;" +
+      "padding-right:140px;word-break:break-word;color:#e8e8e8;";
+    var label = document.createElement("span");
+    label.style.cssText = "color:#e2b340;";
+    label.textContent = "[Build Error] ";
+    errHeader.appendChild(label);
+    if (msg.error) {
+      errHeader.appendChild(document.createTextNode(msg.error));
+    }
+    inner.appendChild(errHeader);
+
+    // File location
     if (msg.file) {
       var loc = document.createElement("div");
-      loc.style.cssText = "color:#89b4fa;margin-bottom:12px;font-size:13px;";
+      loc.style.cssText = "color:#56b6c2;font-size:14px;margin-bottom:16px;";
       loc.textContent = msg.file + (msg.line ? ":" + msg.line : "") + (msg.col ? ":" + msg.col : "");
-      box.appendChild(loc);
+      inner.appendChild(loc);
     }
 
+    // Code frame
     if (msg.frame) {
-      var pre = document.createElement("pre");
-      pre.style.cssText =
-        "background:#181825;border-radius:4px;padding:12px;overflow-x:auto;font-size:13px;" +
-        "line-height:1.5;margin:0 0 12px;color:#cdd6f4;";
-      pre.textContent = msg.frame;
-      box.appendChild(pre);
+      var frameBox = document.createElement("div");
+      frameBox.style.cssText =
+        "background:#1a1a1a;border-radius:6px;padding:14px 0;overflow-x:auto;margin-bottom:16px;";
+
+      var lines = msg.frame.split("\n");
+      for (var i = 0; i < lines.length; i++) {
+        if (!lines[i] && i === lines.length - 1) continue;
+        var line = document.createElement("div");
+        var isErrorLine = lines[i].indexOf("> ") === 0;
+        line.style.cssText = "padding:1px 18px;font-size:13px;line-height:1.7;white-space:pre;" +
+          (isErrorLine
+            ? "background:rgba(255,85,85,0.1);color:#ff8888;"
+            : "color:#999;");
+        line.textContent = lines[i];
+        frameBox.appendChild(line);
+      }
+      inner.appendChild(frameBox);
     }
 
-    if (msg.error) {
-      var err = document.createElement("div");
-      err.style.cssText = "color:#f38ba8;font-size:13px;margin-bottom:12px;";
-      err.textContent = msg.error;
-      box.appendChild(err);
-    }
-
+    // Footer
     var foot = document.createElement("div");
-    foot.style.cssText = "color:#6c7086;font-size:12px;";
-    foot.textContent = "Waiting for file changes\u2026 (press Escape to dismiss)";
-    box.appendChild(foot);
+    foot.style.cssText = "color:#666;font-size:13px;line-height:1.6;border-top:1px dashed #333;padding-top:14px;margin-top:4px;";
+    foot.textContent = "Click outside or fix the code to dismiss.";
+    inner.appendChild(foot);
 
-    overlay.appendChild(box);
+    card.appendChild(inner);
+    overlay.appendChild(card);
     document.body.appendChild(overlay);
   }
 
