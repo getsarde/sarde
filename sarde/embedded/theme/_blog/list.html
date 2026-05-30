@@ -12,7 +12,7 @@
   <div class="sarde-post-grid">
     {{ range .Collection.Featured }}
     <div class="sarde-post-card sarde-post-card-featured">
-      <a href="{{ .RelPermalink }}">
+      <a href="{{ .Permalink }}">
         <h3 class="sarde-post-card-title">{{ .Title }}</h3>
         <div class="sarde-post-card-meta">
           {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
@@ -37,7 +37,7 @@
   <div class="sarde-post-grid">
     {{ range $pages }}
     <div class="sarde-post-card">
-      <a href="{{ .RelPermalink }}">
+      <a href="{{ .Permalink }}">
         <h3 class="sarde-post-card-title">{{ .Title }}</h3>
         <div class="sarde-post-card-meta">
           {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}

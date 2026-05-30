@@ -8,7 +8,7 @@
     {{ end }}
     {{ if and .Homepage .Homepage.Hero.CTA }}
     <div class="sarde-hero-actions">
-      <a href="{{ .Homepage.Hero.CTA.URL }}" class="sarde-hero-cta">{{ .Homepage.Hero.CTA.Label }}</a>
+      <a href="{{ relURL .Homepage.Hero.CTA.URL }}" class="sarde-hero-cta">{{ .Homepage.Hero.CTA.Label }}</a>
     </div>
     {{ end }}
   </div>
@@ -27,11 +27,11 @@
   <div class="sarde-portfolio-recent-inner">
     <div class="sarde-section-header-row">
       <h2 class="sarde-section-label">{{ $col.Title }}</h2>
-      <a class="sarde-section-link" href="/{{ $name }}/">{{ t "home.all_posts" }} &rarr;</a>
+      <a class="sarde-section-link" href="{{ relURL (printf "/%s/" $name) }}">{{ t "home.all_posts" }} &rarr;</a>
     </div>
     <div class="sarde-recent-grid">
       {{ range $recent }}
-      <a class="sarde-recent-card" href="{{ .RelPermalink }}">
+      <a class="sarde-recent-card" href="{{ .Permalink }}">
         <span class="sarde-recent-card-title">{{ .Title }}</span>
         {{ if not .Date.IsZero }}<time class="sarde-recent-card-date">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
         {{ if .Summary }}<span class="sarde-recent-card-excerpt">{{ .Summary }}</span>{{ end }}

@@ -126,6 +126,10 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 			return b.Build()
 		}
 
+		if b.urlResolver != nil {
+			newPage.Permalink = b.urlResolver.URL(newPage.RelPermalink, "", "")
+		}
+
 		parsed = append(parsed, parsedEntry{
 			filePath: path,
 			newPage:  newPage,
@@ -313,7 +317,9 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		if _, isDirty := dirtyPermalinks[tax.Permalink]; isDirty {
 			termEntries := taxonomy.ComputeTermEntries(tax)
 			taxStub := buildTaxonomyIndexStub(tax, termEntries)
+			resolvePermalinks(b.urlResolver, []*engine.Page{taxStub})
 			rd := sardetemplate.BuildRouteData(taxStub, b.lastSiteCtx, b.themeConfig)
+			resolveRouteAssets(b.urlResolver, rd)
 			html, err := b.tmplEngine.Render(rd.Template, rd)
 			if err != nil {
 				return b.Build()
@@ -330,7 +336,9 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		for _, term := range tax.Terms {
 			if _, isDirty := dirtyPermalinks[term.Permalink]; isDirty {
 				termStub := buildTermStub(tax, term)
+				resolvePermalinks(b.urlResolver, []*engine.Page{termStub})
 				rd := sardetemplate.BuildRouteData(termStub, b.lastSiteCtx, b.themeConfig)
+				resolveRouteAssets(b.urlResolver, rd)
 				html, err := b.tmplEngine.Render(rd.Template, rd)
 				if err != nil {
 					return b.Build()
@@ -347,7 +355,9 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 					continue
 				}
 				paginatedStub := buildTermPaginatedStub(tax, term, permalink, n)
+				resolvePermalinks(b.urlResolver, []*engine.Page{paginatedStub})
 				rd := sardetemplate.BuildRouteData(paginatedStub, b.lastSiteCtx, b.themeConfig)
+				resolveRouteAssets(b.urlResolver, rd)
 				html, err := b.tmplEngine.Render(rd.Template, rd)
 				if err != nil {
 					return b.Build()
@@ -618,10 +628,12 @@ func (b *SiteBuilder) renderDirtyCollectionPagination(collections map[string]*en
 					consts.PaginationCurrentKey: n,
 				},
 			}
+			resolvePermalinks(b.urlResolver, []*engine.Page{stub})
 			rd := sardetemplate.BuildRouteData(stub, site, b.themeConfig)
 			if err := b.pluginMgr.RunBeforeRender(b.config, stub, rd, site); err != nil {
 				return err
 			}
+			resolveRouteAssets(b.urlResolver, rd)
 			html, err := b.tmplEngine.Render(rd.Template, rd)
 			if err != nil {
 				return err

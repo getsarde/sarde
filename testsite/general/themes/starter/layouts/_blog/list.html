@@ -14,7 +14,7 @@
 
   <div class="starter-post-list">
     {{ range $pages }}
-    <a class="starter-post-item" href="{{ .RelPermalink }}">
+    <a class="starter-post-item" href="{{ .Permalink }}">
       {{ if not .Date.IsZero }}
       <div class="starter-post-date-block" aria-hidden="true">
         <span class="starter-post-date-month">{{ .Date.Format "Jan" }}</span>

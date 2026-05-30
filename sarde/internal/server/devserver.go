@@ -28,6 +28,7 @@ type Options struct {
 	Port           int
 	LiveReload     bool
 	Version        string
+	BasePath       string // normalized: "/docs/" or "/"
 	BuilderFactory func() *build.SiteBuilder
 }
 
@@ -39,6 +40,7 @@ type DevServer struct {
 	port       int
 	liveReload bool
 	version    string
+	basePath   string // normalized: "/docs/" or "/"
 	hub        *Hub
 	watcher    *Watcher
 	rebuilder  *Rebuilder
@@ -55,6 +57,10 @@ func New(opts Options) *DevServer {
 	if version == "" {
 		version = "vdev"
 	}
+	basePath := opts.BasePath
+	if basePath == "" {
+		basePath = "/"
+	}
 	ds := &DevServer{
 		projectDir: opts.ProjectDir,
 		outputDir:  opts.OutputDir,
@@ -62,6 +68,7 @@ func New(opts Options) *DevServer {
 		port:       opts.Port,
 		liveReload: opts.LiveReload,
 		version:    version,
+		basePath:   basePath,
 		hub:        NewHub(),
 		rebuilder:  NewRebuilder(opts.BuilderFactory, opts.ProjectDir),
 	}
@@ -97,7 +104,19 @@ func (ds *DevServer) Start() error {
 	if ds.liveReload {
 		handler = ds.injectScript(handler)
 	}
-	mux.Handle("/", handler)
+	if ds.basePath != "/" {
+		bp := strings.TrimRight(ds.basePath, "/")
+		mux.Handle(bp+"/", http.StripPrefix(bp, handler))
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/" {
+				http.Redirect(w, r, bp+"/", http.StatusFound)
+				return
+			}
+			http.NotFound(w, r)
+		})
+	} else {
+		mux.Handle("/", handler)
+	}
 
 	var devHandler http.Handler = mux
 	devHandler = devRequestLogger(devHandler)
@@ -124,7 +143,11 @@ func (ds *DevServer) Start() error {
 	}
 	actualPort := ln.Addr().(*net.TCPAddr).Port
 
-	devlog.Banner(ds.version, fmt.Sprintf("http://localhost:%d", actualPort), ds.host, result.Duration)
+	localURL := fmt.Sprintf("http://localhost:%d", actualPort)
+	if ds.basePath != "/" {
+		localURL += strings.TrimRight(ds.basePath, "/")
+	}
+	devlog.Banner(ds.version, localURL, ds.host, result.Duration)
 	devlog.Log("watch", "Watching: content/, layouts/, assets/, data/")
 
 	// Emit JSON ready signal on stdout for the Tauri desktop app to detect.

@@ -52,7 +52,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 
 	// Override base path from CLI flag.
 	if basePath, _ := cmd.Flags().GetString("base-path"); basePath != "" {
-		cfg.Build.BasePath = basePath
+		cfg.Build.BasePath = config.NormalizeBasePath(basePath)
 	}
 
 	// Override content directory from CLI flag.
@@ -104,7 +104,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 
 		// Preserve CLI flag overrides across reloads.
 		if basePath, _ := cmd.Flags().GetString("base-path"); basePath != "" {
-			latestCfg.Build.BasePath = basePath
+			latestCfg.Build.BasePath = config.NormalizeBasePath(basePath)
 		}
 		if contentDir, _ := cmd.Flags().GetString("content"); contentDir != "" {
 			if !filepath.IsAbs(contentDir) {
@@ -153,6 +153,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 		Port:           port,
 		LiveReload:     liveReload,
 		Version:        "v" + Version,
+		BasePath:       cfg.Build.BasePath,
 		BuilderFactory: builderFactory,
 	})
 

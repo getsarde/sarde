@@ -16,7 +16,7 @@
   <ul class="sarde-tab-menu" data-sarde-tab-menu role="listbox" hidden>
     {{ range .DocsTabs }}
     <li role="option"{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} aria-selected="true"{{ end }}>
-      <a href="{{ .Permalink }}" class="sarde-tab-option{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} is-active{{ end }}">
+      <a href="{{ relURL .Permalink }}" class="sarde-tab-option{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} is-active{{ end }}">
         {{ if .Icon }}<span class="sarde-tab-icon">{{ .Icon }}</span>{{ end }}
         <span class="sarde-tab-option-text">
           <span class="sarde-tab-option-title">{{ .Title }}</span>

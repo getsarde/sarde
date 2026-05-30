@@ -14,8 +14,8 @@ social:
   label: Discord
   url: https://discord.gg/velox
 theme:
+  preset: "docs"
   dark: true
-  name: starter
 toc:
   enabled: true
   max_level: 4
@@ -218,9 +218,6 @@ plugins:
 head:
   custom_css:
   - /css/custom.css
-  - css/starter.css
-  custom_js:
-  - js/starter.js
 i18n:
   default_language: en
   languages:

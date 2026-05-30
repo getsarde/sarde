@@ -23,8 +23,12 @@ func newAtomPlugin(cfg map[string]any) *Plugin {
 func atomBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 	limit := cfgInt(cfg, "limit", 20)
 	baseURL := ""
+	basePath := "/"
 	if ctx.Site != nil {
 		baseURL = strings.TrimRight(ctx.Site.BaseURL, "/")
+		if ctx.Site.BasePath != "" {
+			basePath = ctx.Site.BasePath
+		}
 	}
 
 	feedCollections := cfgStringSlice(cfg, "collections")
@@ -50,7 +54,7 @@ func atomBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 			updated = entries[0].Updated
 		}
 
-		colURL := baseURL + "/" + colName + "/"
+		colURL := baseURL + basePath + colName + "/"
 		feed := atomFeed{
 			XMLNS:   "http://www.w3.org/2005/Atom",
 			Title:   col.Title,
@@ -106,7 +110,7 @@ func buildAtomEntries(pages []*engine.Page, baseURL string, limit int) []atomEnt
 			summary = string(page.Summary)
 		}
 
-		entryURL := baseURL + page.RelPermalink
+		entryURL := baseURL + page.URL()
 		entry := atomEntry{
 			Title:   page.Title,
 			Link:    atomLink{Href: entryURL},

@@ -59,6 +59,8 @@ type SiteBuilder struct {
 	rendererPool chan *markdown.Renderer // lazily initialized pool, persisted across rebuilds
 	built        bool                    // true after first Build(); gates one-time registrations
 
+	urlResolver  *engine.URLResolver // URL resolver for basePath prefixing
+
 	// Last-build state for incremental rebuild.
 	lastCollections    map[string]*engine.Collection
 	lastAllPages       []*engine.Page
@@ -240,6 +242,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	siteCtx := &engine.SiteContext{
 		Title:       b.config.Site.Title,
 		BaseURL:     b.config.Site.URL,
+		BasePath:    b.config.Build.BasePath,
 		Language:    b.config.Site.Language,
 		Config:      b.config,
 		Collections: collections,
@@ -248,6 +251,15 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		BuildTime:   time.Now(),
 		EditURL:     b.config.Site.EditURL,
 	}
+
+	// Resolve all Permalink fields through the URL resolver.
+	// RelPermalink stays prefix-free; Permalink gets basePath.
+	b.urlResolver = &engine.URLResolver{
+		BasePath: b.config.Build.BasePath,
+		BaseURL:  b.config.Site.URL,
+	}
+	urlResolver := b.urlResolver
+	resolvePermalinks(urlResolver, allPages)
 
 	// i18n: populate site-level language info
 	if isMultiLang {
@@ -445,6 +457,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 
 	// Load template engine (needs SiteContext + asset pipeline + plugin funcs + i18n for funcMap closures).
 	b.tmplEngine.SetSiteContext(siteCtx)
+	b.tmplEngine.SetURLResolver(urlResolver)
 	b.tmplEngine.SetAssetPipeline(assetPipeline.Resolver(), assetPipeline.Manifest())
 	b.tmplEngine.SetImageProcessor(assetPipeline.ImageProcessor())
 	b.tmplEngine.SetPluginFuncs(b.pluginMgr.TemplateFuncs())
@@ -586,6 +599,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		}
 	}
 
+	// Resolve Permalinks on synthetic pages (pagination + taxonomy stubs).
+	resolvePermalinks(urlResolver, syntheticPages)
+
 	syntheticRendered, syntheticAliases, err := b.renderPages(syntheticPages, siteCtx, parallel, workerCount)
 	if err != nil {
 		return nil, err
@@ -649,6 +665,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				Dir:  dir,
 			},
 		}
+		resolveRouteAssets(urlResolver, rd404)
 		html404, err := b.tmplEngine.Render(rd404.Template, rd404)
 		if err != nil {
 			devlog.Warn("404", "failed to render 404 page (template %q): %v", rd404.Template, err)

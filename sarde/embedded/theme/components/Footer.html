@@ -2,7 +2,7 @@
   {{ if .Site.Config.Footer.Links }}
   <nav class="sarde-footer-links">
     {{ range .Site.Config.Footer.Links }}
-    <a href="{{ .URL }}"{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}</a>
+    <a href="{{ if .External }}{{ .URL }}{{ else }}{{ relURL .URL }}{{ end }}"{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}</a>
     {{ end }}
   </nav>
   {{ end }}

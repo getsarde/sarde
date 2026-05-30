@@ -9,7 +9,7 @@
   {{ if .TermEntries }}
   <div class="sarde-taxonomy-cloud">
     {{ range .TermEntries }}
-    <a href="{{ .Permalink }}" class="sarde-taxonomy-pill taxonomy-tier-{{ .PopTier }}"{{ if .Color }} style="--term-color: {{ .Color }}"{{ end }}>
+    <a href="{{ relURL .Permalink }}" class="sarde-taxonomy-pill taxonomy-tier-{{ .PopTier }}"{{ if .Color }} style="--term-color: {{ .Color }}"{{ end }}>
       {{ if .Icon }}<span class="sarde-term-icon">{{ .Icon }}</span>{{ end }}
       <span class="sarde-term-label">{{ .Label }}</span>
       <span class="sarde-term-count">{{ .Count }}</span>

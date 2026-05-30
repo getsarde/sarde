@@ -94,6 +94,16 @@ type PageIdentity struct {
 	RelPath      string
 }
 
+// URL returns the resolved Permalink if set, otherwise RelPermalink.
+// In a fully built site, Permalink is always set. This accessor exists
+// for robustness in tests and edge cases where Permalink may be empty.
+func (p *PageIdentity) URL() string {
+	if p.Permalink != "" {
+		return p.Permalink
+	}
+	return p.RelPermalink
+}
+
 // PageContent holds rendered content and content-derived metadata.
 type PageContent struct {
 	Content       template.HTML
@@ -586,6 +596,7 @@ type ValidationWarning struct {
 type SiteContext struct {
 	Title       string
 	BaseURL     string
+	BasePath    string // normalized: "/docs/" or "/"
 	Language    string
 	Config      any // *config.SiteConfig at runtime; any to avoid circular imports
 	Collections map[string]*Collection

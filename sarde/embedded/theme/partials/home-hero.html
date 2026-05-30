@@ -22,7 +22,7 @@
       {{ if and .Homepage (or .Homepage.Hero.CTA .Homepage.Hero.SecondaryCTA) }}
       <div class="sarde-hero-actions">
         {{ with .Homepage.Hero.CTA }}
-        <a href="{{ .URL }}" class="sarde-hero-cta">{{ .Label }}</a>
+        <a href="{{ relURL .URL }}" class="sarde-hero-cta">{{ .Label }}</a>
         {{ end }}
         {{ with .Homepage.Hero.SecondaryCTA }}
         <a href="{{ .URL }}" class="sarde-hero-cta sarde-hero-cta-secondary">{{ .Label }}</a>

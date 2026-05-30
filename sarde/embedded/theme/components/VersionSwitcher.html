@@ -8,7 +8,7 @@
   <ul class="sarde-version-switcher-menu" data-version-switcher-menu hidden role="menu">
     {{ range .Versions }}
     <li role="none">
-      <a href="{{ .URL }}" role="menuitem"
+      <a href="{{ relURL .URL }}" role="menuitem"
         class="sarde-version-switcher-option{{ if .IsCurrent }} is-active{{ end }}{{ if eq .Banner "unmaintained" }} is-unmaintained{{ end }}{{ if eq .Banner "unreleased" }} is-unreleased{{ end }}"
         {{ if .IsCurrent }}aria-current="true"{{ end }}>
         <span class="sarde-version-switcher-label">{{ .Label }}</span>

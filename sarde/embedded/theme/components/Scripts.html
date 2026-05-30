@@ -1,12 +1,12 @@
-<script defer src="/assets/js/copy-code.js"></script>
-<script defer src="/assets/js/spoiler.js"></script>
-<script defer src="/assets/js/tabs.js"></script>
-<script defer src="/assets/js/toc-scrollspy.js"></script>
-<script defer src="/assets/js/prefetch.js"></script>
-<script defer src="/assets/js/heading-anchors.js"></script>
-{{ if .HasSidebar }}<script defer src="/assets/js/docs-sidebar-drawer.js"></script>{{ end }}
-{{ if .IsTabbed }}<script defer src="/assets/js/docs-tab-switcher.js"></script>{{ end }}
-{{ if .Translations }}<script defer src="/assets/js/lang-switcher.js"></script>{{ end }}
+<script defer src="{{ relURL "/assets/js/copy-code.js" }}"></script>
+<script defer src="{{ relURL "/assets/js/spoiler.js" }}"></script>
+<script defer src="{{ relURL "/assets/js/tabs.js" }}"></script>
+<script defer src="{{ relURL "/assets/js/toc-scrollspy.js" }}"></script>
+<script defer src="{{ relURL "/assets/js/prefetch.js" }}"></script>
+<script defer src="{{ relURL "/assets/js/heading-anchors.js" }}"></script>
+{{ if .HasSidebar }}<script defer src="{{ relURL "/assets/js/docs-sidebar-drawer.js" }}"></script>{{ end }}
+{{ if .IsTabbed }}<script defer src="{{ relURL "/assets/js/docs-tab-switcher.js" }}"></script>{{ end }}
+{{ if .Translations }}<script defer src="{{ relURL "/assets/js/lang-switcher.js" }}"></script>{{ end }}
 {{ range .Scripts }}<script defer src="{{ . }}"></script>
 {{ end }}
 {{ range .InlineScripts }}<script>{{ . }}</script>

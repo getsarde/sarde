@@ -62,7 +62,7 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 		ogType = "article"
 	}
 
-	canonical := baseURL + page.RelPermalink
+	canonical := baseURL + page.URL()
 
 	// Merge into any existing seo map rather than replacing it wholesale.
 	// The social_cards plugin also runs in BeforeRender and may have already
@@ -114,7 +114,7 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 // BreadcrumbList derived from route data, and a Course when the collection
 // is tagged as a course (via Params["schema_type"] = "Course").
 func buildJSONLD(page *engine.Page, route *engine.RouteData, site *engine.SiteContext, baseURL, description string) string {
-	pageURL := baseURL + page.RelPermalink
+	pageURL := baseURL + page.URL()
 	siteName := ""
 	if site != nil {
 		siteName = site.Title
@@ -123,7 +123,7 @@ func buildJSONLD(page *engine.Page, route *engine.RouteData, site *engine.SiteCo
 	primary := primaryNode(page, pageURL, description, siteName)
 	graph := []map[string]any{primary}
 
-	if crumbs := breadcrumbListNode(route, baseURL); crumbs != nil {
+	if crumbs := breadcrumbListNode(route, site, baseURL); crumbs != nil {
 		graph = append(graph, crumbs)
 	}
 	if course := courseNode(page, pageURL, description); course != nil {
@@ -179,9 +179,13 @@ func primaryNode(page *engine.Page, pageURL, description, siteName string) map[s
 	return node
 }
 
-func breadcrumbListNode(route *engine.RouteData, baseURL string) map[string]any {
+func breadcrumbListNode(route *engine.RouteData, site *engine.SiteContext, baseURL string) map[string]any {
 	if route == nil || len(route.Breadcrumbs) < 2 {
 		return nil
+	}
+	basePath := "/"
+	if site != nil && site.BasePath != "" {
+		basePath = site.BasePath
 	}
 	items := make([]map[string]any, 0, len(route.Breadcrumbs))
 	for i, c := range route.Breadcrumbs {
@@ -191,7 +195,7 @@ func breadcrumbListNode(route *engine.RouteData, baseURL string) map[string]any 
 			"name":     c.Label,
 		}
 		if c.URL != "" {
-			item["item"] = baseURL + c.URL
+			item["item"] = baseURL + strings.TrimRight(basePath, "/") + c.URL
 		}
 		items = append(items, item)
 	}

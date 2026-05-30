@@ -65,7 +65,7 @@ func llmsTxtBuildDone(ctx *BuildDoneContext) error {
 			continue
 		}
 
-		url := baseURL + page.RelPermalink
+		url := baseURL + page.URL()
 		fmt.Fprintf(&sb, "- [%s](%s)\n", page.Title, url)
 	}
 

@@ -4,7 +4,7 @@
   <h3 class="sarde-tag-sidebar-title">{{ t "taxonomy.tags" }}</h3>
   <div class="sarde-tag-sidebar-list">
     {{ range $tags }}
-    <a href="{{ .Permalink }}" class="sarde-tag-sidebar-item">
+    <a href="{{ relURL .Permalink }}" class="sarde-tag-sidebar-item">
       <span class="sarde-tag-sidebar-label">{{ .Label }}</span>
       <span class="sarde-tag-sidebar-count">{{ len .Pages }}</span>
     </a>

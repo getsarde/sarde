@@ -5,7 +5,7 @@
 <div class="sarde-card-grid">
   {{ range .Section.Sections }}
   {{ if .Render }}
-  <a href="{{ .Permalink }}" class="sarde-doc-card sarde-doc-card--category">
+  <a href="{{ relURL .Permalink }}" class="sarde-doc-card sarde-doc-card--category">
     <h3 class="sarde-doc-card__title">{{ .Title }}</h3>
     {{ if and .IndexPage .IndexPage.Description }}
     <p class="sarde-doc-card__desc">{{ .IndexPage.Description }}</p>
@@ -15,7 +15,7 @@
   {{ end }}
   {{ end }}
   {{ range .Section.Pages }}
-  <a href="{{ .RelPermalink }}" class="sarde-doc-card">
+  <a href="{{ .Permalink }}" class="sarde-doc-card">
     <h3 class="sarde-doc-card__title">{{ .Title }}</h3>
     {{ if .Description }}
     <p class="sarde-doc-card__desc">{{ .Description }}</p>

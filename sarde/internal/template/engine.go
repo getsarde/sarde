@@ -39,6 +39,7 @@ type Engine struct {
 	pluginFuncs    map[string]any
 	i18nStrings    *i18n.StringTable
 	pageIndex      *content.PageIndex
+	urlResolver    *engine.URLResolver
 	currentLang    string // fallback lang for base-funcMap closures; per-render language is resolved via funcMapForLang(lang), so render correctness does not depend on this field
 	loaded         bool   // true after first Load(); subsequent calls skip template re-parsing
 	mu             sync.RWMutex
@@ -91,6 +92,12 @@ func (e *Engine) SetI18nStrings(st *i18n.StringTable) {
 // Must be called before Load().
 func (e *Engine) SetPageIndex(idx *content.PageIndex) {
 	e.pageIndex = idx
+}
+
+// SetURLResolver sets the URL resolver for relURL/absURL template functions.
+// Must be called before Load().
+func (e *Engine) SetURLResolver(r *engine.URLResolver) {
+	e.urlResolver = r
 }
 
 // SetCurrentLang sets a fallback language for the base-funcMap t() closure.

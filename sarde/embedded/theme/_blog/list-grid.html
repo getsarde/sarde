@@ -13,7 +13,7 @@
   <div class="sarde-post-grid sarde-post-grid-cards">
     {{ range $pages }}
     <article class="sarde-post-card sarde-post-card-bordered">
-      <a href="{{ .RelPermalink }}">
+      <a href="{{ .Permalink }}">
         {{ if .Image }}<img class="sarde-post-card-image" src="{{ .Image }}" alt="" loading="lazy">{{ end }}
         <div class="sarde-post-card-body">
           <h3 class="sarde-post-card-title">{{ .Title }}</h3>

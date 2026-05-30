@@ -8,7 +8,7 @@
     {{ end }}
     {{ if and .Homepage .Homepage.Hero.CTA }}
     <div class="sarde-hero-actions">
-      <a href="{{ .Homepage.Hero.CTA.URL }}" class="sarde-hero-cta hero-cta-lg">{{ .Homepage.Hero.CTA.Label }}</a>
+      <a href="{{ relURL .Homepage.Hero.CTA.URL }}" class="sarde-hero-cta hero-cta-lg">{{ .Homepage.Hero.CTA.Label }}</a>
     </div>
     {{ end }}
   </div>
@@ -27,7 +27,7 @@
   <p class="sarde-landing-cta-subtitle">{{ .Homepage.Hero.Subtitle }}</p>
   {{ end }}
   <div class="sarde-hero-actions">
-    <a href="{{ .Homepage.Hero.CTA.URL }}" class="sarde-hero-cta hero-cta-lg">{{ .Homepage.Hero.CTA.Label }}</a>
+    <a href="{{ relURL .Homepage.Hero.CTA.URL }}" class="sarde-hero-cta hero-cta-lg">{{ .Homepage.Hero.CTA.Label }}</a>
   </div>
 </section>
 {{ end }}

@@ -31,7 +31,7 @@ func redirectsBuildDone(ctx *BuildDoneContext) error {
 	// 2. Page aliases (override global if conflict).
 	for _, page := range ctx.Pages {
 		for _, alias := range page.Aliases {
-			redirects[alias] = page.RelPermalink
+			redirects[alias] = page.URL()
 		}
 	}
 

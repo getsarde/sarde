@@ -59,6 +59,9 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 	// Layer 5: environment variables
 	applyEnvOverrides(cfg, opts.EnvPrefix)
 
+	// Normalize fields that accept multiple input forms.
+	cfg.Build.BasePath = NormalizeBasePath(cfg.Build.BasePath)
+
 	return cfg, nil
 }
 

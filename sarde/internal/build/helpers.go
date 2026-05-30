@@ -62,7 +62,7 @@ func (b *SiteBuilder) renderPages(pages []*engine.Page, siteCtx *engine.SiteCont
 			}
 			rendered = append(rendered, rp)
 			for _, alias := range page.Aliases {
-				aliases[alias] = page.RelPermalink
+				aliases[alias] = page.Permalink
 			}
 		}
 		return rendered, aliases, nil
@@ -87,7 +87,7 @@ func (b *SiteBuilder) renderPages(pages []*engine.Page, siteCtx *engine.SiteCont
 	}
 	for _, page := range pages {
 		for _, alias := range page.Aliases {
-			aliases[alias] = page.RelPermalink
+			aliases[alias] = page.Permalink
 		}
 	}
 	return rendered, aliases, nil
@@ -99,9 +99,13 @@ func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext)
 	if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, siteCtx); err != nil {
 		return RenderedPage{}, err
 	}
+	resolveRouteAssets(b.urlResolver, rd)
 
 	var html []byte
 	if redirect := tabbedCollectionRedirect(page); redirect != "" {
+		if b.urlResolver != nil {
+			redirect = b.urlResolver.URL(redirect, "", "")
+		}
 		html = []byte(buildRedirectHTML(redirect))
 	} else {
 		var err error

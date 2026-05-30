@@ -34,6 +34,7 @@ func (e *Engine) buildFuncMap(
 ) htmltemplate.FuncMap {
 	sitePtr := &e.site
 	resolver := e.resolver
+	urlResolverPtr := &e.urlResolver
 	dataCache := &e.dataCache
 	cachedCSS := e.cachedCSS
 	cssURLPtr := &e.cssURL
@@ -94,6 +95,9 @@ func (e *Engine) buildFuncMap(
 
 		// ── URLs ──
 		"absURL": func(relPath string) string {
+			if r := *urlResolverPtr; r != nil {
+				return r.AbsURL(relPath, "", "")
+			}
 			s := *sitePtr
 			if s == nil || s.BaseURL == "" {
 				return relPath
@@ -104,13 +108,14 @@ func (e *Engine) buildFuncMap(
 			}
 			return base + "/" + relPath
 		},
-		"relURL": func(absPath string) string {
-			s := *sitePtr
-			if s == nil || s.BaseURL == "" {
-				return absPath
+		"relURL": func(relPath string) string {
+			if strings.Contains(relPath, "://") {
+				return relPath
 			}
-			base := strings.TrimRight(s.BaseURL, "/")
-			return strings.TrimPrefix(absPath, base)
+			if r := *urlResolverPtr; r != nil {
+				return r.URL(relPath, "", "")
+			}
+			return relPath
 		},
 		"editURL": func(base, relPath string) string {
 			if base == "" || relPath == "" {
@@ -236,8 +241,12 @@ func (e *Engine) buildFuncMap(
 			}
 			// Main CSS bundle: external <link> when URL is set, inline fallback otherwise.
 			if cssURLPtr != nil && *cssURLPtr != "" {
+				url := *cssURLPtr
+				if r := *urlResolverPtr; r != nil {
+					url = r.URL(url, "", "")
+				}
 				sb.WriteString(`<link rel="stylesheet" href="`)
-				sb.WriteString(*cssURLPtr)
+				sb.WriteString(url)
 				sb.WriteString(`">`)
 			} else if cachedCSS != "" {
 				sb.WriteString(wrapCSS(cachedCSS))
@@ -255,11 +264,12 @@ func (e *Engine) buildFuncMap(
 			if err != nil {
 				return path
 			}
-			// For embedded assets, return the path as-is (will be served from embedded FS).
-			if strings.HasPrefix(resolved, "embedded:") {
-				return "/assets/" + path
+			url := "/assets/" + path
+			_ = resolved
+			if r := *urlResolverPtr; r != nil {
+				url = r.URL(url, "", "")
 			}
-			return "/assets/" + path
+			return url
 		},
 		"fingerprint": func(path string) string {
 			assetManifest := currentAssetManifest(assetManifestPtr)
@@ -270,7 +280,11 @@ func (e *Engine) buildFuncMap(
 			if !ok {
 				return path
 			}
-			return entry.OutputURL
+			url := entry.OutputURL
+			if r := *urlResolverPtr; r != nil {
+				url = r.URL(url, "", "")
+			}
+			return url
 		},
 		"inline": func(path string) htmltemplate.HTML {
 			assetResolver := currentAssetResolver(assetResolverPtr)
@@ -459,15 +473,19 @@ func (e *Engine) buildFuncMap(
 
 		"termURL": func(taxonomyName, termName string) string {
 			slug := content.Slugify(termName)
+			url := "/" + taxonomyName + "/" + slug + "/"
 			s := *sitePtr
 			if s != nil {
 				if tax, ok := s.Taxonomies[taxonomyName]; ok && tax != nil {
 					if term, ok := tax.Terms[slug]; ok {
-						return term.Permalink
+						url = term.Permalink
 					}
 				}
 			}
-			return "/" + taxonomyName + "/" + slug + "/"
+			if r := *urlResolverPtr; r != nil {
+				url = r.URL(url, "", "")
+			}
+			return url
 		},
 		"topTerms": func(taxonomyName string, n int) []*engine.TaxonomyTerm {
 			s := *sitePtr

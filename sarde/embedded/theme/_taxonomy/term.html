@@ -21,7 +21,7 @@
   <div class="post-grid">
     {{ range $pages }}
     <div class="post-card">
-      <a href="{{ .RelPermalink }}">
+      <a href="{{ .Permalink }}">
         <h3 class="post-card-title">{{ .Title }}</h3>
         <div class="post-card-meta">
           {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}

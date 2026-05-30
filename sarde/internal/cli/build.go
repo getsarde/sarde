@@ -45,7 +45,7 @@ func runBuild(cmd *cobra.Command, args []string) error {
 
 	// Override base path from CLI flag.
 	if basePath, _ := cmd.Flags().GetString("base-path"); basePath != "" {
-		cfg.Build.BasePath = basePath
+		cfg.Build.BasePath = config.NormalizeBasePath(basePath)
 	}
 
 	// Override content directory from CLI flag.

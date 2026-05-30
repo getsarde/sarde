@@ -25,7 +25,11 @@ func robotsBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 
 	if includeSitemap && ctx.Site != nil && ctx.Site.BaseURL != "" {
 		baseURL := strings.TrimRight(ctx.Site.BaseURL, "/")
-		sb.WriteString(fmt.Sprintf("Sitemap: %s/sitemap.xml\n", baseURL))
+		basePath := ctx.Site.BasePath
+		if basePath == "" || basePath == "/" {
+			basePath = "/"
+		}
+		sb.WriteString(fmt.Sprintf("Sitemap: %s%ssitemap.xml\n", baseURL, basePath))
 	}
 
 	if err := ctx.WriteFile("robots.txt", []byte(sb.String())); err != nil {

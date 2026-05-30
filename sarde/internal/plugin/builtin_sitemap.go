@@ -53,7 +53,7 @@ func sitemapBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 			continue
 		}
 
-		loc := baseURL + page.RelPermalink
+		loc := baseURL + page.URL()
 		lastmod := ""
 		if !page.Updated.IsZero() {
 			lastmod = page.Updated.Format(time.RFC3339)

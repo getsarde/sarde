@@ -7,11 +7,12 @@
   if (!modal || !input || !results) return;
 
   var dbPromise = null;
+  var _base = (window.__BASE_PATH__ || "/").replace(/\/$/, "");
   function loadIndex() {
     if (dbPromise) return dbPromise;
     dbPromise = Promise.all([
-      import("/assets/vendor/orama/orama.esm.js"),
-      fetch("/search-index.json").then(function (r) { return r.json(); })
+      import(_base + "/assets/vendor/orama/orama.esm.js"),
+      fetch(_base + "/search-index.json").then(function (r) { return r.json(); })
     ]).then(function (arr) {
       var orama = arr[0], docs = arr[1];
       return orama.create({

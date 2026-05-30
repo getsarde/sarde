@@ -1,5 +1,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>window.__BASE_PATH__="{{ .Site.BasePath }}";</script>
 <title>{{ if .Page }}{{ if .Page.Title }}{{ .Page.Title }} {{ .Site.Config.Site.TitleDelimiter }} {{ end }}{{ end }}{{ .Site.Title }}</title>
 {{ if .Page }}{{ if .Page.Description }}<meta name="description" content="{{ .Page.Description }}">{{ end }}{{ end }}
 {{ partial "seo.html" . }}

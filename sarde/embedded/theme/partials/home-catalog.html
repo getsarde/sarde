@@ -5,13 +5,13 @@
   <div class="sarde-catalog-grid">
     {{ range $name, $col := $cols }}
     <div class="sarde-catalog-card">
-      <h2><a href="/{{ $name }}/">{{ $col.Title }}</a></h2>
+      <h2><a href="{{ relURL (printf "/%s/" $name) }}">{{ $col.Title }}</a></h2>
       {{ if and $col.IndexPage $col.IndexPage.Description }}<p>{{ $col.IndexPage.Description }}</p>{{ end }}
       {{ $recent := recentEntries $name 3 }}
       {{ if $recent }}
       <ul>
         {{ range $recent }}
-        <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+        <li><a href="{{ .Permalink }}">{{ .Title }}</a></li>
         {{ end }}
       </ul>
       {{ end }}

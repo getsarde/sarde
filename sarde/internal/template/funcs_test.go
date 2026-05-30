@@ -266,8 +266,23 @@ func TestRelURL(t *testing.T) {
 	fm := testFuncMapBuild()
 	fn := fm["relURL"].(func(string) string)
 
-	if got := fn("https://example.com/blog/post/"); got != "/blog/post/" {
-		t.Errorf("got %q", got)
+	if got := fn("/blog/post/"); got != "/blog/post/" {
+		t.Errorf("root deploy: got %q, want %q", got, "/blog/post/")
+	}
+}
+
+func TestRelURL_WithBasePath(t *testing.T) {
+	e := &Engine{
+		resolver:    &engine.ThemeResolver{},
+		site:        testSite(),
+		urlResolver: &engine.URLResolver{BasePath: "/docs/", BaseURL: "https://example.com"},
+	}
+	e.currentLang = "en"
+	fm := e.buildFuncMap(nil, nil)
+	fn := fm["relURL"].(func(string) string)
+
+	if got := fn("/blog/post/"); got != "/docs/blog/post/" {
+		t.Errorf("subdir deploy: got %q, want %q", got, "/docs/blog/post/")
 	}
 }
 

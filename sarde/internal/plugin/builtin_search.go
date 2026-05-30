@@ -74,7 +74,7 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		docs = append(docs, searchDocument{
 			ID:          page.RelPermalink,
 			Title:       page.Title,
-			URL:         page.RelPermalink,
+			URL:         page.URL(),
 			Description: page.Description,
 			Content:     content,
 			Section:     section,
