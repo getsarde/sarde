@@ -53,7 +53,7 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		if page.Draft {
 			continue
 		}
-		if shouldExclude(page.RelPermalink, excludePatterns) {
+		if shouldExclude(page.Permalink, excludePatterns) {
 			continue
 		}
 
@@ -72,7 +72,7 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		}
 
 		docs = append(docs, searchDocument{
-			ID:          page.RelPermalink,
+			ID:          page.Permalink,
 			Title:       page.Title,
 			URL:         page.URL(),
 			Description: page.Description,

@@ -72,3 +72,52 @@ func TestLinkTranslations_SinglePage(t *testing.T) {
 		t.Errorf("single page should have 0 translations, got %d", len(en.Translations))
 	}
 }
+
+func TestLinkAllTranslations_IncludesFallbacks(t *testing.T) {
+	enReal := &engine.Page{PageI18n: engine.PageI18n{Lang: "en", LangRelPath: "docs/api.md"}}
+	frFallback := &engine.Page{PageI18n: engine.PageI18n{Lang: "fr", LangRelPath: "docs/api.md", IsFallback: true}}
+
+	pages := []*engine.Page{enReal, frFallback}
+	weights := map[string]int{"en": 1, "fr": 2}
+
+	// LinkTranslations on real pages only (simulating pipeline order)
+	LinkTranslations([]*engine.Page{enReal}, weights)
+	if len(enReal.Translations) != 0 {
+		t.Errorf("Translations should be empty for single real page; got %d", len(enReal.Translations))
+	}
+
+	// LinkAllTranslations on all pages (real + fallback)
+	LinkAllTranslations(pages, weights)
+	if len(enReal.AllTranslations) != 1 {
+		t.Fatalf("AllTranslations should include fallback; got %d", len(enReal.AllTranslations))
+	}
+	if enReal.AllTranslations[0] != frFallback {
+		t.Error("AllTranslations[0] should be the fr fallback page")
+	}
+	if len(frFallback.AllTranslations) != 1 || frFallback.AllTranslations[0] != enReal {
+		t.Error("fr fallback AllTranslations should point to en real page")
+	}
+}
+
+func TestLinkAllTranslations_ThreeLanguages(t *testing.T) {
+	en := &engine.Page{PageI18n: engine.PageI18n{Lang: "en", LangRelPath: "docs/api.md"}}
+	fr := &engine.Page{PageI18n: engine.PageI18n{Lang: "fr", LangRelPath: "docs/api.md", IsFallback: true}}
+	ar := &engine.Page{PageI18n: engine.PageI18n{Lang: "ar", LangRelPath: "docs/api.md", IsFallback: true}}
+
+	pages := []*engine.Page{en, fr, ar}
+	weights := map[string]int{"en": 1, "fr": 2, "ar": 3}
+
+	LinkAllTranslations(pages, weights)
+
+	for _, p := range pages {
+		if len(p.AllTranslations) != 2 {
+			t.Errorf("page %s: AllTranslations = %d, want 2", p.Lang, len(p.AllTranslations))
+		}
+	}
+
+	// en's AllTranslations should be sorted by weight: fr, ar
+	if en.AllTranslations[0].Lang != "fr" || en.AllTranslations[1].Lang != "ar" {
+		t.Errorf("en AllTranslations order: got [%s, %s], want [fr, ar]",
+			en.AllTranslations[0].Lang, en.AllTranslations[1].Lang)
+	}
+}

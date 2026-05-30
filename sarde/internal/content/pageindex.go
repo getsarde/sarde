@@ -30,8 +30,8 @@ func BuildPageIndex(pages []*engine.Page) *PageIndex {
 		assets:      make(map[string]bool),
 	}
 	for _, p := range pages {
-		if p.RelPermalink != "" {
-			idx.byPermalink[p.RelPermalink] = p
+		if p.Permalink != "" {
+			idx.byPermalink[p.Permalink] = p
 		}
 		if p.Slug != "" {
 			if _, exists := idx.bySlug[p.Slug]; !exists {

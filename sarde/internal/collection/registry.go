@@ -462,7 +462,11 @@ func buildPage(
 		}
 		page.RelPermalink = content.ComputePatternPermalink(collCfg.Permalink, vars)
 	} else {
-		page.RelPermalink = content.ComputePermalink(contentDir, cf.FilePath)
+		if cf.LangRelPath != "" {
+			page.RelPermalink = content.ComputePermalinkFromRelPath(cf.LangRelPath)
+		} else {
+			page.RelPermalink = content.ComputePermalink(contentDir, cf.FilePath)
+		}
 	}
 	page.Permalink = page.RelPermalink
 

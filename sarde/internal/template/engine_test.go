@@ -162,8 +162,8 @@ func TestEngine_Render_HomePage(t *testing.T) {
 func TestEngine_Render_WithPagination(t *testing.T) {
 	eng := setupEngine(t)
 
-	prev := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Previous", RelPermalink: "/blog/prev/"}}
-	next := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Next", RelPermalink: "/blog/next/"}}
+	prev := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Previous", RelPermalink: "/blog/prev/", Permalink: "/blog/prev/"}}
+	next := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Next", RelPermalink: "/blog/next/", Permalink: "/blog/next/"}}
 	page := &engine.Page{
 		PageIdentity:      engine.PageIdentity{Title: "Current Post", Kind: engine.KindPage},
 		PageContent:       engine.PageContent{Content: template.HTML("<p>Content.</p>")},

@@ -1,6 +1,7 @@
 package content
 
 import (
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -23,6 +24,41 @@ func PrefixPermalink(permalink, lang, defaultLang string) string {
 		return permalink
 	}
 	return "/" + lang + permalink
+}
+
+// ComputePermalinkFromRelPath computes a permalink from a forward-slash
+// relative path (e.g. cf.LangRelPath). Unlike ComputePermalink, this operates
+// on a path already stripped of any language directory prefix, producing a
+// language-free RelPermalink that is identical across translations.
+func ComputePermalinkFromRelPath(relPath string) string {
+	base := path.Base(relPath)
+	dir := path.Dir(relPath)
+	if dir == "." {
+		dir = ""
+	}
+
+	switch {
+	case base == "_index.md":
+		if dir == "" {
+			return "/"
+		}
+		return "/" + dir + "/"
+	case base == "index.md":
+		if dir == "" {
+			return "/"
+		}
+		return "/" + dir + "/"
+	default:
+		name := strings.TrimSuffix(base, path.Ext(base))
+		slug, _ := FilenameSlug(name + ".md")
+		if slug == "" {
+			slug = Slugify(name)
+		}
+		if dir == "" {
+			return "/" + slug + "/"
+		}
+		return "/" + dir + "/" + slug + "/"
+	}
 }
 
 // PermalinkVars holds the values available for pattern interpolation.

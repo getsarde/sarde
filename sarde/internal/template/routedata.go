@@ -25,7 +25,7 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 		},
 	}
 
-	// Build translation links from page.Translations
+	// Build translation links from page.Translations (real translations only — used by seo.html)
 	if len(page.Translations) > 0 {
 		langMap := buildLangMap(site)
 		rd.Translations = make([]engine.TranslationLink, 0, len(page.Translations)+1)
@@ -33,7 +33,7 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 			Lang:       page.Lang,
 			Name:       langName(langMap, page.Lang),
 			Dir:        langDir(langMap, page.Lang),
-			URL:        page.RelPermalink,
+			URL:        page.Permalink,
 			Title:      page.Title,
 			IsFallback: page.IsFallback,
 		})
@@ -42,7 +42,31 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 				Lang:       tr.Lang,
 				Name:       langName(langMap, tr.Lang),
 				Dir:        langDir(langMap, tr.Lang),
-				URL:        tr.RelPermalink,
+				URL:        tr.Permalink,
+				Title:      tr.Title,
+				IsFallback: tr.IsFallback,
+			})
+		}
+	}
+
+	// Build AllTranslations (real + fallback — used by LanguageSwitcher)
+	if len(page.AllTranslations) > 0 {
+		langMap := buildLangMap(site)
+		rd.AllTranslations = make([]engine.TranslationLink, 0, len(page.AllTranslations)+1)
+		rd.AllTranslations = append(rd.AllTranslations, engine.TranslationLink{
+			Lang:       page.Lang,
+			Name:       langName(langMap, page.Lang),
+			Dir:        langDir(langMap, page.Lang),
+			URL:        page.Permalink,
+			Title:      page.Title,
+			IsFallback: page.IsFallback,
+		})
+		for _, tr := range page.AllTranslations {
+			rd.AllTranslations = append(rd.AllTranslations, engine.TranslationLink{
+				Lang:       tr.Lang,
+				Name:       langName(langMap, tr.Lang),
+				Dir:        langDir(langMap, tr.Lang),
+				URL:        tr.Permalink,
 				Title:      tr.Title,
 				IsFallback: tr.IsFallback,
 			})
@@ -66,13 +90,13 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 			rd.Pagination = &engine.PaginationLinks{}
 			if page.PrevPage != nil {
 				rd.Pagination.Prev = &engine.PaginationLink{
-					URL:   page.PrevPage.RelPermalink,
+					URL:   page.PrevPage.Permalink,
 					Title: page.PrevPage.Title,
 				}
 			}
 			if page.NextPage != nil {
 				rd.Pagination.Next = &engine.PaginationLink{
-					URL:   page.NextPage.RelPermalink,
+					URL:   page.NextPage.Permalink,
 					Title: page.NextPage.Title,
 				}
 			}
@@ -360,8 +384,8 @@ func paginationBaseURL(col *engine.Collection) string {
 	if col == nil {
 		return "/"
 	}
-	if col.IndexPage != nil && col.IndexPage.RelPermalink != "" {
-		return col.IndexPage.RelPermalink
+	if col.IndexPage != nil && col.IndexPage.Permalink != "" {
+		return col.IndexPage.Permalink
 	}
 	return "/" + col.Name + "/"
 }

@@ -21,12 +21,12 @@ func TestBuildPageIndex(t *testing.T) {
 	}
 
 	for _, p := range pages {
-		if !idx.HasPage(p.RelPermalink) {
-			t.Errorf("HasPage(%q) = false, want true", p.RelPermalink)
+		if !idx.HasPage(p.Permalink) {
+			t.Errorf("HasPage(%q) = false, want true", p.Permalink)
 		}
-		got := idx.LookupByPermalink(p.RelPermalink)
+		got := idx.LookupByPermalink(p.Permalink)
 		if got != p {
-			t.Errorf("LookupByPermalink(%q) returned wrong page", p.RelPermalink)
+			t.Errorf("LookupByPermalink(%q) returned wrong page", p.Permalink)
 		}
 		got = idx.LookupBySlug(p.Slug)
 		if got != p {
@@ -64,9 +64,9 @@ func TestPageIndexSlugCollision(t *testing.T) {
 }
 
 func TestPageIndexEmptySlugOrPermalink(t *testing.T) {
-	orphan := &engine.Page{PageIdentity: engine.PageIdentity{Slug: "orphan", RelPermalink: ""}}
+	orphan := &engine.Page{PageIdentity: engine.PageIdentity{Slug: "orphan", RelPermalink: "", Permalink: ""}}
 	pages := []*engine.Page{
-		{PageIdentity: engine.PageIdentity{Slug: "", RelPermalink: "/page/"}},
+		{PageIdentity: engine.PageIdentity{Slug: "", RelPermalink: "/page/", Permalink: "/page/"}},
 		orphan,
 	}
 	idx := BuildPageIndex(pages)
@@ -74,11 +74,9 @@ func TestPageIndexEmptySlugOrPermalink(t *testing.T) {
 	if idx.PageCount() != 1 {
 		t.Errorf("PageCount() = %d, want 1 (only page with non-empty permalink)", idx.PageCount())
 	}
-	// A page with a slug is still findable by slug even without a permalink.
 	if idx.LookupBySlug("orphan") != orphan {
 		t.Error("LookupBySlug(orphan) should return the page even when permalink is empty")
 	}
-	// A page with no slug but a permalink is findable by permalink.
 	if !idx.HasPage("/page/") {
 		t.Error("HasPage(/page/) = false, want true")
 	}

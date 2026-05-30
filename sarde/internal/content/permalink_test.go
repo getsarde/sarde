@@ -156,3 +156,29 @@ func TestPrefixPermalink(t *testing.T) {
 		}
 	}
 }
+
+func TestComputePermalinkFromRelPath(t *testing.T) {
+	cases := []struct {
+		name    string
+		relPath string
+		want    string
+	}{
+		{"regular page", "docs/guide.md", "/docs/guide/"},
+		{"nested page", "docs/guides/auth.md", "/docs/guides/auth/"},
+		{"section index", "docs/_index.md", "/docs/"},
+		{"page bundle", "docs/guide/index.md", "/docs/guide/"},
+		{"root index", "_index.md", "/"},
+		{"root page", "about.md", "/about/"},
+		{"numeric prefix stripped", "docs/01-getting-started.md", "/docs/getting-started/"},
+		{"deeply nested", "docs/reference/api/rest.md", "/docs/reference/api/rest/"},
+		{"nested section index", "docs/guides/_index.md", "/docs/guides/"},
+		{"root page bundle", "about/index.md", "/about/"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := ComputePermalinkFromRelPath(c.relPath); got != c.want {
+				t.Errorf("ComputePermalinkFromRelPath(%q) = %q, want %q", c.relPath, got, c.want)
+			}
+		})
+	}
+}

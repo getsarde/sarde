@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/frostybee/sarde/internal/consts"
@@ -62,7 +63,46 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 	// Normalize fields that accept multiple input forms.
 	cfg.Build.BasePath = NormalizeBasePath(cfg.Build.BasePath)
 
+	// Apply i18n defaults and validation.
+	if err := normalizeI18n(&cfg.I18n); err != nil {
+		return nil, err
+	}
+
 	return cfg, nil
+}
+
+func normalizeI18n(i *I18nSettings) error {
+	if !i.IsMultiLang() {
+		return nil
+	}
+
+	// Defaults
+	if i.Strategy == "" {
+		i.Strategy = "prefix-except-default"
+	}
+	if i.Fallback == "" {
+		i.Fallback = "default"
+	}
+	for code, lc := range i.Languages {
+		if lc.Dir == "" {
+			lc.Dir = "ltr"
+			i.Languages[code] = lc
+		}
+	}
+
+	// Validation
+	if i.Strategy != "prefix-except-default" {
+		return fmt.Errorf("i18n: unsupported strategy %q (only \"prefix-except-default\" is supported)", i.Strategy)
+	}
+	if i.Fallback != "default" && i.Fallback != "omit" {
+		return fmt.Errorf("i18n: unsupported fallback %q (must be \"default\" or \"omit\")", i.Fallback)
+	}
+	defLang := i.GetDefaultLanguage()
+	if _, ok := i.Languages[defLang]; !ok {
+		return fmt.Errorf("i18n: default_language %q is not listed in languages", defLang)
+	}
+
+	return nil
 }
 
 // ---------------------------------------------------------------------------
@@ -342,6 +382,7 @@ func mergeCollections(base *map[string]*CollectionSiteConfig, over map[string]*C
 		if v.Versioning != nil {
 			existing.Versioning = v.Versioning
 		}
+		mergeStr(&existing.I18nFallback, v.I18nFallback)
 		(*base)[k] = existing
 	}
 }
@@ -383,6 +424,8 @@ func mergeServer(base, over *ServerSettings) {
 
 func mergeI18n(base, over *I18nSettings) {
 	mergeStr(&base.DefaultLanguage, over.DefaultLanguage)
+	mergeStr(&base.Strategy, over.Strategy)
+	mergeStr(&base.Fallback, over.Fallback)
 	if len(over.Languages) > 0 {
 		base.Languages = over.Languages
 	}

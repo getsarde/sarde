@@ -382,10 +382,11 @@ type CollectionSiteConfig struct {
 	Paginate   int                       `yaml:"paginate"`
 	Feed       *bool                     `yaml:"feed"`
 	Tabs       *bool                     `yaml:"tabs"`
-	Sidebar    *CollectionSidebarConfig  `yaml:"sidebar"`
-	TOC        *CollectionTOCConfig      `yaml:"toc"`
-	PrevNext   *CollectionPrevNextConfig `yaml:"prev_next"`
-	Versioning *VersioningConfig         `yaml:"versioning"`
+	Sidebar      *CollectionSidebarConfig  `yaml:"sidebar"`
+	TOC          *CollectionTOCConfig      `yaml:"toc"`
+	PrevNext     *CollectionPrevNextConfig `yaml:"prev_next"`
+	Versioning   *VersioningConfig         `yaml:"versioning"`
+	I18nFallback string                    `yaml:"i18n_fallback"` // "" (inherit site), "default", or "omit"
 }
 
 // ---------------------------------------------------------------------------
@@ -530,6 +531,8 @@ type ServerSettings struct {
 
 type I18nSettings struct {
 	DefaultLanguage string                    `yaml:"default_language"`
+	Strategy        string                    `yaml:"strategy"` // "prefix-except-default" (default)
+	Fallback        string                    `yaml:"fallback"` // "default" | "omit"
 	Languages       map[string]LanguageConfig `yaml:"languages"`
 }
 
@@ -551,6 +554,26 @@ func (s *I18nSettings) GetDefaultLanguage() string {
 		return s.DefaultLanguage
 	}
 	return "en"
+}
+
+// IsLanguageCode reports whether seg is a registered language code.
+func (s *I18nSettings) IsLanguageCode(seg string) bool {
+	_, ok := s.Languages[seg]
+	return ok
+}
+
+// Language returns the config for a language code, or false if not found.
+func (s *I18nSettings) Language(code string) (LanguageConfig, bool) {
+	lc, ok := s.Languages[code]
+	return lc, ok
+}
+
+// ResolveLang returns the default language code when lang is empty, otherwise lang.
+func (s *I18nSettings) ResolveLang(lang string) string {
+	if lang == "" {
+		return s.GetDefaultLanguage()
+	}
+	return lang
 }
 
 // LanguageCodes returns all configured language codes sorted by weight then alphabetically.

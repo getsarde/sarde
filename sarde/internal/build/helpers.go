@@ -104,7 +104,7 @@ func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext)
 	var html []byte
 	if redirect := tabbedCollectionRedirect(page); redirect != "" {
 		if b.urlResolver != nil {
-			redirect = b.urlResolver.URL(redirect, "", "")
+			redirect = b.urlResolver.URL(redirect, page.Lang, "")
 		}
 		html = []byte(buildRedirectHTML(redirect))
 	} else {
@@ -118,7 +118,7 @@ func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext)
 	return RenderedPage{
 		Page:    page,
 		HTML:    html,
-		OutPath: PageOutputPath(page.RelPermalink),
+		OutPath: PageOutputPath(b.urlResolver.OutputRelPath(page.RelPermalink, page.Lang, "")),
 	}, nil
 }
 
@@ -276,15 +276,15 @@ func setPageIndexHeadings(idx *content.PageIndex, page *engine.Page) {
 	for i, h := range page.Headings {
 		ids[i] = h.ID
 	}
-	idx.SetHeadings(page.RelPermalink, ids)
+	idx.SetHeadings(page.Permalink, ids)
 }
 
 func updateValidationEntry(data map[string]engine.ValidationEntry, page *engine.Page, links []engine.CollectedLink) {
 	if len(links) == 0 {
-		delete(data, page.RelPermalink)
+		delete(data, page.Permalink)
 		return
 	}
-	data[page.RelPermalink] = engine.ValidationEntry{Links: links, FilePath: page.FilePath}
+	data[page.Permalink] = engine.ValidationEntry{Links: links, FilePath: page.FilePath}
 }
 
 // ---------------------------------------------------------------------------

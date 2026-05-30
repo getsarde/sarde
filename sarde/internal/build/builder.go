@@ -206,18 +206,31 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		return nil, err
 	}
 
-	// i18n: generate fallback pages and link translations
+	// i18n: link real translations, generate fallbacks, link all translations
 	if isMultiLang {
 		langCodes := b.config.I18n.LanguageCodes()
-		fallbacks := i18n.GenerateFallbacks(allPages, langCodes, defaultLang)
-		allPages = append(allPages, fallbacks...)
-
-		// Build language weight map for sorting
 		weights := make(map[string]int)
 		for code, lc := range b.config.I18n.Languages {
 			weights[code] = lc.Weight
 		}
+
 		i18n.LinkTranslations(allPages, weights)
+
+		collFallback := make(map[string]string)
+		for colName, colCfg := range b.config.Collections {
+			if colCfg != nil && colCfg.I18nFallback != "" {
+				collFallback[colName] = colCfg.I18nFallback
+			}
+		}
+		fbOpts := i18n.FallbackOptions{
+			SiteFallback:       b.config.I18n.Fallback,
+			CollectionFallback: collFallback,
+		}
+
+		fallbacks := i18n.GenerateFallbacks(allPages, langCodes, defaultLang, fbOpts)
+		allPages = append(allPages, fallbacks...)
+
+		i18n.LinkAllTranslations(allPages, weights)
 	}
 
 	// DISABLED: versioning soft-disabled pending basePath implementation (Phase A).
@@ -253,10 +266,18 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	}
 
 	// Resolve all Permalink fields through the URL resolver.
-	// RelPermalink stays prefix-free; Permalink gets basePath.
+	// RelPermalink stays prefix-free; Permalink gets basePath + lang.
+	langSet := make(map[string]bool, len(b.config.I18n.Languages))
+	for code := range b.config.I18n.Languages {
+		langSet[code] = true
+	}
 	b.urlResolver = &engine.URLResolver{
-		BasePath: b.config.Build.BasePath,
-		BaseURL:  b.config.Site.URL,
+		BasePath:    b.config.Build.BasePath,
+		BaseURL:     b.config.Site.URL,
+		I18nEnabled: b.config.I18n.IsMultiLang(),
+		DefaultLang: b.config.I18n.GetDefaultLanguage(),
+		Strategy:    b.config.I18n.Strategy,
+		Languages:   langSet,
 	}
 	urlResolver := b.urlResolver
 	resolvePermalinks(urlResolver, allPages)
@@ -384,7 +405,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 						page.HasImages = entry.HasImages
 						if len(entry.Links) > 0 {
 							validationMu.Lock()
-							validationData[page.RelPermalink] = engine.ValidationEntry{Links: entry.Links, FilePath: page.FilePath}
+							validationData[page.Permalink] = engine.ValidationEntry{Links: entry.Links, FilePath: page.FilePath}
 							validationMu.Unlock()
 						}
 						b.rendererPool <- renderer
@@ -406,7 +427,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				page.HasImages = result.HasImages
 				if len(result.Links) > 0 {
 					validationMu.Lock()
-					validationData[page.RelPermalink] = engine.ValidationEntry{Links: result.Links, FilePath: page.FilePath}
+					validationData[page.Permalink] = engine.ValidationEntry{Links: result.Links, FilePath: page.FilePath}
 					validationMu.Unlock()
 				}
 
@@ -441,7 +462,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			}
 			warnings = append(warnings, scWarns...)
 			if len(links) > 0 {
-				validationData[page.RelPermalink] = engine.ValidationEntry{Links: links, FilePath: page.FilePath}
+				validationData[page.Permalink] = engine.ValidationEntry{Links: links, FilePath: page.FilePath}
 			}
 		}
 	}

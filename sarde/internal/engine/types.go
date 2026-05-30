@@ -151,10 +151,11 @@ type PageSidebar struct {
 
 // PageI18n holds language and translation fields.
 type PageI18n struct {
-	Lang         string
-	LangRelPath  string
-	Translations []*Page
-	IsFallback   bool
+	Lang            string
+	LangRelPath     string
+	Translations    []*Page
+	AllTranslations []*Page
+	IsFallback      bool
 }
 
 // PageVersioning holds version membership fields.
@@ -637,9 +638,10 @@ type RouteNav struct {
 
 // RouteI18n groups language and translation fields.
 type RouteI18n struct {
-	Lang         string
-	Dir          string
-	Translations []TranslationLink
+	Lang            string
+	Dir             string
+	Translations    []TranslationLink
+	AllTranslations []TranslationLink
 }
 
 // RouteVersioning groups version-switcher fields for versioned collections.

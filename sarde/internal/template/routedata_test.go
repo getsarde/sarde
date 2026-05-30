@@ -22,8 +22,8 @@ func TestBuildRouteData_BlogPage(t *testing.T) {
 		Title:  "Blog",
 		Config: &engine.CollectionConfig{Layout: engine.LayoutDefault},
 	}
-	prev := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Previous Post", RelPermalink: "/blog/prev/"}}
-	next := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Next Post", RelPermalink: "/blog/next/"}}
+	prev := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Previous Post", RelPermalink: "/blog/prev/", Permalink: "/blog/prev/"}}
+	next := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Next Post", RelPermalink: "/blog/next/", Permalink: "/blog/next/"}}
 	page := &engine.Page{
 		PageIdentity:      engine.PageIdentity{Title: "My Post", Kind: engine.KindPage},
 		PageRelationships: engine.PageRelationships{PrevPage: prev, NextPage: next, Collection: col},
@@ -339,5 +339,53 @@ func TestBuildRouteData_Lang(t *testing.T) {
 	}
 	if rd.Dir != "ltr" {
 		t.Errorf("Dir: got %q", rd.Dir)
+	}
+}
+
+func TestBuildRouteData_TranslationsAndAllTranslations(t *testing.T) {
+	site := baseSite()
+	site.Languages = []engine.Language{
+		{Code: "en", Name: "English", Dir: "ltr"},
+		{Code: "fr", Name: "Français", Dir: "ltr"},
+		{Code: "ar", Name: "العربية", Dir: "rtl"},
+	}
+
+	frReal := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "Guide FR", Permalink: "/fr/docs/guide/"},
+		PageI18n:     engine.PageI18n{Lang: "fr"},
+	}
+	arFallback := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "Guide", Permalink: "/ar/docs/guide/"},
+		PageI18n:     engine.PageI18n{Lang: "ar", IsFallback: true},
+	}
+
+	page := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "Guide", Kind: engine.KindStandalone, Permalink: "/docs/guide/"},
+		PageI18n: engine.PageI18n{
+			Lang:            "en",
+			Translations:    []*engine.Page{frReal},
+			AllTranslations: []*engine.Page{frReal, arFallback},
+		},
+	}
+
+	rd := BuildRouteData(page, site, nil)
+
+	// Translations: self + 1 real = 2
+	if len(rd.Translations) != 2 {
+		t.Fatalf("Translations len = %d, want 2", len(rd.Translations))
+	}
+	if rd.Translations[1].Lang != "fr" || rd.Translations[1].IsFallback {
+		t.Errorf("Translations[1] = %+v, want fr real", rd.Translations[1])
+	}
+
+	// AllTranslations: self + 2 (real + fallback) = 3
+	if len(rd.AllTranslations) != 3 {
+		t.Fatalf("AllTranslations len = %d, want 3", len(rd.AllTranslations))
+	}
+	if rd.AllTranslations[0].Lang != "en" {
+		t.Errorf("AllTranslations[0] (self) Lang = %q, want en", rd.AllTranslations[0].Lang)
+	}
+	if rd.AllTranslations[2].Lang != "ar" || !rd.AllTranslations[2].IsFallback {
+		t.Errorf("AllTranslations[2] = %+v, want ar fallback", rd.AllTranslations[2])
 	}
 }

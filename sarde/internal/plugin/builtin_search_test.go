@@ -19,7 +19,7 @@ func TestSearch_GeneratesIndex(t *testing.T) {
 		Site:      &engine.SiteContext{BaseURL: "https://example.com"},
 		Pages: []*engine.Page{
 			{
-				PageIdentity:      engine.PageIdentity{Title: "Getting Started", RelPermalink: "/docs/getting-started/"},
+				PageIdentity:      engine.PageIdentity{Title: "Getting Started", RelPermalink: "/docs/getting-started/", Permalink: "/docs/getting-started/"},
 				PageContent:       engine.PageContent{Content: template.HTML("<p>This is the getting started guide.</p>")},
 				PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "docs"}},
 				PageTaxonomy:      engine.PageTaxonomy{Tags: []string{"tutorial", "beginner"}},

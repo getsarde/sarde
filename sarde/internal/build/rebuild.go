@@ -127,7 +127,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		}
 
 		if b.urlResolver != nil {
-			newPage.Permalink = b.urlResolver.URL(newPage.RelPermalink, "", "")
+			newPage.Permalink = b.urlResolver.URL(newPage.RelPermalink, newPage.Lang, "")
 		}
 
 		parsed = append(parsed, parsedEntry{
@@ -191,24 +191,41 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	isMultiLang := b.config.I18n.IsMultiLang()
 	if isMultiLang {
 		defaultLang := b.config.I18n.GetDefaultLanguage()
-
 		langCodes := b.config.I18n.LanguageCodes()
-		fallbacks := i18n.GenerateFallbacks(patchedAllPages, langCodes, defaultLang)
-		patchedAllPages = append(patchedAllPages, fallbacks...)
-
-		for _, fb := range fallbacks {
-			if fb.FilePath != "" {
-				if _, ok := changedByPath[fb.FilePath]; ok {
-					dirtyPermalinks[fb.RelPermalink] = struct{}{}
-				}
-			}
-		}
-
 		weights := make(map[string]int)
 		for code, lc := range b.config.I18n.Languages {
 			weights[code] = lc.Weight
 		}
+
 		i18n.LinkTranslations(patchedAllPages, weights)
+
+		collFallback := make(map[string]string)
+		for colName, colCfg := range b.config.Collections {
+			if colCfg != nil && colCfg.I18nFallback != "" {
+				collFallback[colName] = colCfg.I18nFallback
+			}
+		}
+		fbOpts := i18n.FallbackOptions{
+			SiteFallback:       b.config.I18n.Fallback,
+			CollectionFallback: collFallback,
+		}
+
+		fallbacks := i18n.GenerateFallbacks(patchedAllPages, langCodes, defaultLang, fbOpts)
+		patchedAllPages = append(patchedAllPages, fallbacks...)
+
+		if b.urlResolver != nil {
+			resolvePermalinks(b.urlResolver, fallbacks)
+		}
+
+		for _, fb := range fallbacks {
+			if fb.FilePath != "" {
+				if _, ok := changedByPath[fb.FilePath]; ok {
+					dirtyPermalinks[fb.Permalink] = struct{}{}
+				}
+			}
+		}
+
+		i18n.LinkAllTranslations(patchedAllPages, weights)
 	}
 
 	taxScopeLang := ""
@@ -272,7 +289,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	for i := range parsed {
 		e := &parsed[i]
 		if e.newPage.RawContent == "" {
-			delete(mergedValidation, e.newPage.RelPermalink)
+			delete(mergedValidation, e.newPage.Permalink)
 			continue
 		}
 		links, _, err := b.renderMarkdownPageSerial(e.newPage, deps, b.lastSiteCtx)
