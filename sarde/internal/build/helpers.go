@@ -96,7 +96,7 @@ func (b *SiteBuilder) renderPages(pages []*engine.Page, siteCtx *engine.SiteCont
 func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext) (RenderedPage, error) {
 	rd := sardetemplate.BuildRouteData(page, siteCtx, b.themeConfig)
 	rd.Styles = append(b.globalCSSURLs, rd.Styles...)
-	if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, siteCtx); err != nil {
+	if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, siteCtx, b.urlResolver); err != nil {
 		return RenderedPage{}, err
 	}
 	resolveRouteAssets(b.urlResolver, rd)

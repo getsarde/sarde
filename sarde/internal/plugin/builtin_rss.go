@@ -23,12 +23,8 @@ func newRSSPlugin(cfg map[string]any) *Plugin {
 func rssBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 	limit := cfgInt(cfg, "limit", 20)
 	baseURL := ""
-	basePath := "/"
 	if ctx.Site != nil {
 		baseURL = strings.TrimRight(ctx.Site.BaseURL, "/")
-		if ctx.Site.BasePath != "" {
-			basePath = ctx.Site.BasePath
-		}
 	}
 
 	// Determine which collections should have feeds: explicit config list, or
@@ -53,7 +49,7 @@ func rssBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		items := buildRSSItems(col.Pages, baseURL, limit)
 		feed := rssChannel{
 			Title:       col.Title,
-			Link:        baseURL + basePath + colName + "/",
+			Link:        ctx.AbsURL("/"+colName+"/", "", ""),
 			Description: fmt.Sprintf("Latest from %s", col.Title),
 			Items:       items,
 		}

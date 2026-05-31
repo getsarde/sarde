@@ -62,7 +62,7 @@ func TestManager_NilHooksSkipped(t *testing.T) {
 		t.Fatalf("should not error on nil hooks: %v", err)
 	}
 
-	if err := mgr.RunBeforeRender(cfg, &engine.Page{}, &engine.RouteData{}, &engine.SiteContext{}); err != nil {
+	if err := mgr.RunBeforeRender(cfg, &engine.Page{}, &engine.RouteData{}, &engine.SiteContext{}, nil); err != nil {
 		t.Fatalf("should not error on nil hooks: %v", err)
 	}
 
@@ -273,7 +273,7 @@ func TestManager_SharedStoreConcurrentBeforeRender(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if err := mgr.RunBeforeRender(cfg, &engine.Page{}, &engine.RouteData{}, &engine.SiteContext{}); err != nil {
+			if err := mgr.RunBeforeRender(cfg, &engine.Page{}, &engine.RouteData{}, &engine.SiteContext{}, nil); err != nil {
 				t.Errorf("RunBeforeRender failed: %v", err)
 			}
 		}()

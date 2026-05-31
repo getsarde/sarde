@@ -470,23 +470,8 @@ func (e *Engine) buildFuncMap(
 		},
 
 		// ── Taxonomy helpers ──
+		// termURL is overridden in funcMapForLang to inject the rendering page's language.
 
-		"termURL": func(taxonomyName, termName string) string {
-			slug := content.Slugify(termName)
-			url := "/" + taxonomyName + "/" + slug + "/"
-			s := *sitePtr
-			if s != nil {
-				if tax, ok := s.Taxonomies[taxonomyName]; ok && tax != nil {
-					if term, ok := tax.Terms[slug]; ok {
-						url = term.Permalink
-					}
-				}
-			}
-			if r := *urlResolverPtr; r != nil {
-				url = r.URL(url, "", "")
-			}
-			return url
-		},
 		"topTerms": func(taxonomyName string, n int) []*engine.TaxonomyTerm {
 			s := *sitePtr
 			if s == nil {

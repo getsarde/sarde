@@ -45,7 +45,7 @@ func BuildBreadcrumbs(page *engine.Page, collection *engine.Collection) []engine
 	if page.Kind != engine.KindSection {
 		crumbs = append(crumbs, engine.BreadcrumbItem{
 			Label:   page.Title,
-			URL:     page.Permalink,
+			URL:     page.RelPermalink,
 			Current: true,
 		})
 	} else {
@@ -88,7 +88,7 @@ func BuildBreadcrumbsTabbed(page *engine.Page, col *engine.Collection, tab *engi
 	if page.Kind != engine.KindSection {
 		crumbs = append(crumbs, engine.BreadcrumbItem{
 			Label:   page.Title,
-			URL:     page.Permalink,
+			URL:     page.RelPermalink,
 			Current: true,
 		})
 	} else if len(crumbs) > 0 {
@@ -147,7 +147,7 @@ func BuildBreadcrumbsVersioned(page *engine.Page, col *engine.Collection) []engi
 	if page.Kind != engine.KindSection {
 		crumbs = append(crumbs, engine.BreadcrumbItem{
 			Label:   page.Title,
-			URL:     page.Permalink,
+			URL:     page.RelPermalink,
 			Current: true,
 		})
 	} else if len(crumbs) > 0 {

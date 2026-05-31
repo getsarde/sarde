@@ -126,10 +126,6 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 			return b.Build()
 		}
 
-		if b.urlResolver != nil {
-			newPage.Permalink = b.urlResolver.URL(newPage.RelPermalink, newPage.Lang, "")
-		}
-
 		parsed = append(parsed, parsedEntry{
 			filePath: path,
 			newPage:  newPage,
@@ -157,6 +153,11 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		}
 
 		preserveStablePageState(e.newPage, e.old)
+
+		if b.urlResolver != nil {
+			e.newPage.Permalink = b.urlResolver.URL(
+				e.newPage.RelPermalink, e.newPage.Lang, resolvePageVersion(e.newPage))
+		}
 
 		patchedAllPages[idx] = e.newPage
 		changedByPath[e.filePath] = e.newPage
@@ -412,6 +413,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		Pages:          patchedAllPages,
 		Collections:    b.lastCollections,
 		Site:           b.lastSiteCtx,
+		Resolver:       b.urlResolver,
 		PageIndex:      newPageIndex,
 		ValidationData: mergedValidation,
 		DevMode:        b.devMode,
@@ -646,7 +648,7 @@ func (b *SiteBuilder) renderDirtyCollectionPagination(collections map[string]*en
 			}
 			resolvePermalinks(b.urlResolver, []*engine.Page{stub})
 			rd := sardetemplate.BuildRouteData(stub, site, b.themeConfig)
-			if err := b.pluginMgr.RunBeforeRender(b.config, stub, rd, site); err != nil {
+			if err := b.pluginMgr.RunBeforeRender(b.config, stub, rd, site, b.urlResolver); err != nil {
 				return err
 			}
 			resolveRouteAssets(b.urlResolver, rd)

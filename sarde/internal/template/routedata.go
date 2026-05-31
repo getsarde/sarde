@@ -33,7 +33,7 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 			Lang:       page.Lang,
 			Name:       langName(langMap, page.Lang),
 			Dir:        langDir(langMap, page.Lang),
-			URL:        page.Permalink,
+			URL:        page.RelPermalink,
 			Title:      page.Title,
 			IsFallback: page.IsFallback,
 		})
@@ -42,7 +42,7 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 				Lang:       tr.Lang,
 				Name:       langName(langMap, tr.Lang),
 				Dir:        langDir(langMap, tr.Lang),
-				URL:        tr.Permalink,
+				URL:        tr.RelPermalink,
 				Title:      tr.Title,
 				IsFallback: tr.IsFallback,
 			})
@@ -57,7 +57,7 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 			Lang:       page.Lang,
 			Name:       langName(langMap, page.Lang),
 			Dir:        langDir(langMap, page.Lang),
-			URL:        page.Permalink,
+			URL:        page.RelPermalink,
 			Title:      page.Title,
 			IsFallback: page.IsFallback,
 		})
@@ -66,7 +66,7 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 				Lang:       tr.Lang,
 				Name:       langName(langMap, tr.Lang),
 				Dir:        langDir(langMap, tr.Lang),
-				URL:        tr.Permalink,
+				URL:        tr.RelPermalink,
 				Title:      tr.Title,
 				IsFallback: tr.IsFallback,
 			})
@@ -90,13 +90,13 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 			rd.Pagination = &engine.PaginationLinks{}
 			if page.PrevPage != nil {
 				rd.Pagination.Prev = &engine.PaginationLink{
-					URL:   page.PrevPage.Permalink,
+					URL:   page.PrevPage.RelPermalink,
 					Title: page.PrevPage.Title,
 				}
 			}
 			if page.NextPage != nil {
 				rd.Pagination.Next = &engine.PaginationLink{
-					URL:   page.NextPage.Permalink,
+					URL:   page.NextPage.RelPermalink,
 					Title: page.NextPage.Title,
 				}
 			}
@@ -383,8 +383,8 @@ func paginationBaseURL(col *engine.Collection) string {
 	if col == nil {
 		return "/"
 	}
-	if col.IndexPage != nil && col.IndexPage.Permalink != "" {
-		return col.IndexPage.Permalink
+	if col.IndexPage != nil && col.IndexPage.RelPermalink != "" {
+		return col.IndexPage.RelPermalink
 	}
 	return "/" + col.Name + "/"
 }

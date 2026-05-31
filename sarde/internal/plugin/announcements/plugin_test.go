@@ -62,7 +62,7 @@ func runBeforeRender(t *testing.T, p *plugin.Plugin) *engine.RouteData {
 	cfg := config.Defaults()
 	cfg.Plugins.Enabled = []string{"announcements"}
 	rd := &engine.RouteData{}
-	if err := mgr.RunBeforeRender(cfg, &engine.Page{}, rd, &engine.SiteContext{}); err != nil {
+	if err := mgr.RunBeforeRender(cfg, &engine.Page{}, rd, &engine.SiteContext{}, nil); err != nil {
 		t.Fatalf("RunBeforeRender: %v", err)
 	}
 	return rd

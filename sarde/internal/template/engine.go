@@ -271,6 +271,21 @@ func (e *Engine) funcMapForLang(lang string) htmltemplate.FuncMap {
 		}
 		return e.i18nStrings.Resolve(lang, key, data)
 	}
+	fm["termURL"] = func(taxonomyName, termName string) string {
+		slug := content.Slugify(termName)
+		url := "/" + taxonomyName + "/" + slug + "/"
+		if e.site != nil {
+			if tax, ok := e.site.Taxonomies[taxonomyName]; ok && tax != nil {
+				if term, ok := tax.Terms[slug]; ok {
+					url = term.Permalink
+				}
+			}
+		}
+		if e.urlResolver != nil {
+			url = e.urlResolver.URL(url, lang, "")
+		}
+		return url
+	}
 	if e.pluginFuncs != nil {
 		if fn, ok := e.pluginFuncs[sardeplugin.LangAwareAnnouncementFunc].(func(string) htmltemplate.HTML); ok {
 			fm["announcementBanner"] = func() htmltemplate.HTML {

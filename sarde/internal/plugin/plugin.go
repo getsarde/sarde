@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/frostybee/sarde/internal/config"
@@ -81,8 +82,28 @@ type BeforeRenderContext struct {
 	Page         *engine.Page
 	RouteData    *engine.RouteData
 	Site         *engine.SiteContext
+	Resolver     *engine.URLResolver
 	PluginConfig map[string]any
 	store        *SharedStore
+}
+
+// ResolveURL returns a root-relative URL with basePath, lang, and version applied.
+func (c *BeforeRenderContext) ResolveURL(relPath, lang, version string) string {
+	if c.Resolver != nil {
+		return c.Resolver.URL(relPath, lang, version)
+	}
+	return relPath
+}
+
+// AbsURL returns a fully-qualified URL (origin + resolved path).
+func (c *BeforeRenderContext) AbsURL(relPath, lang, version string) string {
+	if c.Resolver != nil {
+		return c.Resolver.AbsURL(relPath, lang, version)
+	}
+	if c.Site != nil {
+		return strings.TrimRight(c.Site.BaseURL, "/") + relPath
+	}
+	return relPath
 }
 
 // Set stores a value in the shared cross-hook store.
@@ -99,6 +120,7 @@ type BuildDoneContext struct {
 	Pages          []*engine.Page
 	Collections    map[string]*engine.Collection
 	Site           *engine.SiteContext
+	Resolver       *engine.URLResolver
 	PageIndex      *content.PageIndex                // page index for link validation
 	ValidationData map[string]engine.ValidationEntry // permalink -> collected links per page
 	DevMode        bool
@@ -107,6 +129,25 @@ type BuildDoneContext struct {
 	warnings       *[]engine.ValidationWarning
 	logger         *engine.BuildLogger
 	pluginName     string
+}
+
+// ResolveURL returns a root-relative URL with basePath, lang, and version applied.
+func (c *BuildDoneContext) ResolveURL(relPath, lang, version string) string {
+	if c.Resolver != nil {
+		return c.Resolver.URL(relPath, lang, version)
+	}
+	return relPath
+}
+
+// AbsURL returns a fully-qualified URL (origin + resolved path).
+func (c *BuildDoneContext) AbsURL(relPath, lang, version string) string {
+	if c.Resolver != nil {
+		return c.Resolver.AbsURL(relPath, lang, version)
+	}
+	if c.Site != nil {
+		return strings.TrimRight(c.Site.BaseURL, "/") + relPath
+	}
+	return relPath
 }
 
 func (c *BuildDoneContext) initMu() {
@@ -245,7 +286,7 @@ func (m *Manager) RunContentLoaded(cfg *config.SiteConfig, collections map[strin
 }
 
 // RunBeforeRender executes BeforeRender hooks serially for a single page.
-func (m *Manager) RunBeforeRender(cfg *config.SiteConfig, page *engine.Page, rd *engine.RouteData, site *engine.SiteContext) error {
+func (m *Manager) RunBeforeRender(cfg *config.SiteConfig, page *engine.Page, rd *engine.RouteData, site *engine.SiteContext, resolver *engine.URLResolver) error {
 	for _, p := range m.plugins {
 		if p.Hooks.BeforeRender == nil {
 			continue
@@ -254,6 +295,7 @@ func (m *Manager) RunBeforeRender(cfg *config.SiteConfig, page *engine.Page, rd 
 			Page:         page,
 			RouteData:    rd,
 			Site:         site,
+			Resolver:     resolver,
 			PluginConfig: m.pluginConfig(p.Name, cfg),
 			store:        m.store,
 		}
@@ -284,6 +326,7 @@ func (m *Manager) RunBuildDone(ctx *BuildDoneContext) error {
 				Pages:          ctx.Pages,
 				Collections:    ctx.Collections,
 				Site:           ctx.Site,
+				Resolver:       ctx.Resolver,
 				PageIndex:      ctx.PageIndex,
 				ValidationData: ctx.ValidationData,
 				DevMode:        ctx.DevMode,

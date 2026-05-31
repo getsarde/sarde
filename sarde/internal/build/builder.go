@@ -815,6 +815,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		Pages:          allPages,
 		Collections:    collections,
 		Site:           siteCtx,
+		Resolver:       b.urlResolver,
 		PageIndex:      pageIndex,
 		ValidationData: validationData,
 		DevMode:        b.devMode,
