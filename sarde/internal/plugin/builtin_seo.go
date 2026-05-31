@@ -64,6 +64,18 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 
 	canonical := baseURL + page.URL()
 
+	// Version-aware canonical: non-latest versioned pages point canonical
+	// at the latest version's URL to consolidate SEO signals on current docs.
+	if page.Collection != nil && page.Collection.Config != nil {
+		if vc := page.Collection.Config.Versioning; vc != nil && vc.Enabled {
+			if page.Version != "" && page.Version != vc.LastVersion {
+				if latestPeer := findLatestPeer(page, vc.LastVersion); latestPeer != nil {
+					canonical = baseURL + latestPeer.URL()
+				}
+			}
+		}
+	}
+
 	// Merge into any existing seo map rather than replacing it wholesale.
 	// The social_cards plugin also runs in BeforeRender and may have already
 	// injected og_image/twitter_image (a generated card URL); replacing the
@@ -183,10 +195,6 @@ func breadcrumbListNode(route *engine.RouteData, site *engine.SiteContext, baseU
 	if route == nil || len(route.Breadcrumbs) < 2 {
 		return nil
 	}
-	basePath := "/"
-	if site != nil && site.BasePath != "" {
-		basePath = site.BasePath
-	}
 	items := make([]map[string]any, 0, len(route.Breadcrumbs))
 	for i, c := range route.Breadcrumbs {
 		item := map[string]any{
@@ -195,7 +203,9 @@ func breadcrumbListNode(route *engine.RouteData, site *engine.SiteContext, baseU
 			"name":     c.Label,
 		}
 		if c.URL != "" {
-			item["item"] = baseURL + strings.TrimRight(basePath, "/") + c.URL
+			// c.URL is already fully resolved (basePath + lang + version)
+			// by resolveRouteAssets — just prepend the origin.
+			item["item"] = baseURL + c.URL
 		}
 		items = append(items, item)
 	}
@@ -203,6 +213,15 @@ func breadcrumbListNode(route *engine.RouteData, site *engine.SiteContext, baseU
 		"@type":           "BreadcrumbList",
 		"itemListElement": items,
 	}
+}
+
+func findLatestPeer(page *engine.Page, lastVersion string) *engine.Page {
+	for _, peer := range page.VersionPeers {
+		if peer.Version == lastVersion {
+			return peer
+		}
+	}
+	return nil
 }
 
 func courseNode(page *engine.Page, pageURL, description string) map[string]any {

@@ -17,6 +17,11 @@ type FallbackOptions struct {
 // a page exists in the default language but has no translation.
 // Per-collection i18n_fallback:"omit" suppresses fallbacks for that collection.
 // Returns the newly created fallback pages (caller should append to allPages).
+//
+// For versioned pages, fallback operates within a version (no cross-version
+// fallback). The grouping key includes collection+version for versioned pages,
+// making the intent explicit rather than relying on version being embedded in
+// LangRelPath.
 func GenerateFallbacks(pages []*engine.Page, languageCodes []string, defaultLang string, opts FallbackOptions) []*engine.Page {
 	if len(languageCodes) <= 1 {
 		return nil
@@ -26,14 +31,13 @@ func GenerateFallbacks(pages []*engine.Page, languageCodes []string, defaultLang
 		return nil
 	}
 
-	// Index existing pages by (lang, langRelPath)
-	exists := make(map[string]bool) // "fr:docs/getting-started.md" → true
+	exists := make(map[string]bool)
 	defaultPages := make(map[string]*engine.Page)
 	for _, p := range pages {
-		key := p.Lang + ":" + p.LangRelPath
-		exists[key] = true
+		key := fallbackKey(p)
+		exists[p.Lang+":"+key] = true
 		if p.Lang == defaultLang {
-			defaultPages[p.LangRelPath] = p
+			defaultPages[key] = p
 		}
 	}
 
@@ -42,10 +46,10 @@ func GenerateFallbacks(pages []*engine.Page, languageCodes []string, defaultLang
 		if lang == defaultLang {
 			continue
 		}
-		for relPath, defPage := range defaultPages {
-			key := lang + ":" + relPath
-			if exists[key] {
-				continue // real translation exists
+		for fbKey, defPage := range defaultPages {
+			lookupKey := lang + ":" + fbKey
+			if exists[lookupKey] {
+				continue
 			}
 
 			effectivePolicy := opts.SiteFallback
@@ -58,10 +62,9 @@ func GenerateFallbacks(pages []*engine.Page, languageCodes []string, defaultLang
 				continue
 			}
 
-			// Clone the default-language page as a fallback
 			fb := clonePage(defPage)
 			fb.Lang = lang
-			fb.LangRelPath = relPath
+			fb.LangRelPath = defPage.LangRelPath
 			fb.IsFallback = true
 			fb.RelPermalink = defPage.RelPermalink
 			fb.Permalink = ""
@@ -71,6 +74,17 @@ func GenerateFallbacks(pages []*engine.Page, languageCodes []string, defaultLang
 	}
 
 	return fallbacks
+}
+
+// fallbackKey returns the grouping key for fallback generation.
+// For versioned pages: "collection:version:versionRelPath" — scopes
+// fallback within a version (no cross-version fallback).
+// For unversioned pages: LangRelPath (unchanged from before).
+func fallbackKey(p *engine.Page) string {
+	if p.Version != "" && p.Collection != nil {
+		return p.Collection.Name + ":" + p.Version + ":" + p.VersionRelPath
+	}
+	return p.LangRelPath
 }
 
 // clonePage creates a shallow copy of a Page. Slice/pointer fields like

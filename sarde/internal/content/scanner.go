@@ -22,12 +22,15 @@ type ContentFile struct {
 	BundleAssets   []string        // sibling non-.md files (bundles only)
 	Lang           string          // language code (set by i18n detector)
 	LangRelPath    string          // relative path within language root (for translation matching)
+	Version        string          // version ID (set by version detector), e.g. "v1"
+	VersionRelPath string          // path within the version root (cross-version key)
 }
 
 // Scanner walks the content directory and returns file paths grouped by collection.
 type Scanner struct {
-	Languages   map[string]bool // configured language codes (nil = single-language)
-	DefaultLang string          // default language code
+	Languages   map[string]bool            // configured language codes (nil = single-language)
+	DefaultLang string                     // default language code
+	VersionIDs  map[string]map[string]bool // collection name → set of version IDs (nil = no versioning)
 }
 
 // Discover walks contentDir and returns file paths grouped by collection name.
@@ -146,6 +149,11 @@ func (s *Scanner) DiscoverFiles(contentDir string) ([]ContentFile, error) {
 			ClassifyLang(&cf, s.Languages, s.DefaultLang)
 		}
 
+		// Versioning: classify version if any collection has versioning
+		if len(s.VersionIDs) > 0 {
+			ClassifyVersion(&cf, s.VersionIDs)
+		}
+
 		files = append(files, cf)
 		return nil
 	})
@@ -244,6 +252,9 @@ func (s *Scanner) ClassifyFile(contentDir, filePath string) (ContentFile, error)
 	}
 	if len(s.Languages) > 0 {
 		ClassifyLang(&cf, s.Languages, s.DefaultLang)
+	}
+	if len(s.VersionIDs) > 0 {
+		ClassifyVersion(&cf, s.VersionIDs)
 	}
 	return cf, nil
 }

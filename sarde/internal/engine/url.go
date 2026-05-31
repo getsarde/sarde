@@ -3,7 +3,7 @@ package engine
 import "strings"
 
 // URLResolver resolves site-root-relative, prefix-free paths into final URLs.
-// It is the single chokepoint for basePath and lang (and later version) prefixing.
+// It is the single chokepoint for basePath, lang, and version prefixing.
 type URLResolver struct {
 	BasePath    string // normalized: "/docs/" or "/"
 	BaseURL     string // origin only: "https://example.com"
@@ -11,16 +11,21 @@ type URLResolver struct {
 	DefaultLang string
 	Strategy    string          // "prefix-except-default"
 	Languages   map[string]bool // set of known language codes
+
+	CollectionMounts []string        // ["/docs", "/blog"] — populated by builder
+	VersionIDs       map[string]bool // union of all version IDs across versioned collections
 }
 
 // URL resolves a site-root-relative, prefix-free path to a final root-relative URL.
 //
-// relPath: e.g. "/guides/auth/" — always treated as site-root-relative.
+// relPath: e.g. "/docs/guides/auth/" — always treated as site-root-relative.
 // lang:    language code; "" means default language. Non-default languages
 //
 //	get a /<lang>/ segment inserted (prefix-except-default strategy).
 //
-// version: PHASE D — accepted but ignored. Pass "".
+// version: version ID for non-latest versions (e.g. "v1"); "" for latest/unversioned.
+//
+//	Inserted AFTER the collection mount, not as a global prefix.
 func (r *URLResolver) URL(relPath, lang, version string) string {
 	rel := cleanJoin(relPath)
 
@@ -28,9 +33,13 @@ func (r *URLResolver) URL(relPath, lang, version string) string {
 	// back through the resolver must not get double-prefixed).
 	rel = r.stripBasePath(rel)
 
-	// [version slot — Phase D]
+	// version — per-collection, inserted AFTER the collection mount.
+	// Done first while rel is still the bare collection path.
+	if r.needVersionSegment(version) {
+		rel = r.insertVersionSegment(rel, version)
+	}
 
-	// lang segment
+	// lang — site-wide global prefix, outer of the collection.
 	if r.needLangSegment(lang) {
 		resolved := lang
 		if resolved == "" {
@@ -48,11 +57,14 @@ func (r *URLResolver) AbsURL(relPath, lang, version string) string {
 	return origin + r.URL(relPath, lang, version)
 }
 
-// OutputRelPath returns the on-disk output path: lang-prefixed but WITHOUT basePath.
-// Used to compute filesystem write paths where lang creates real directories
-// but basePath does not (the web server's mount handles basePath).
+// OutputRelPath returns the on-disk output path: version- and lang-prefixed but
+// WITHOUT basePath. Used to compute filesystem write paths where version and lang
+// create real directories but basePath does not (the web server's mount handles basePath).
 func (r *URLResolver) OutputRelPath(relPath, lang, version string) string {
 	rel := cleanJoin(relPath)
+	if r.needVersionSegment(version) {
+		rel = r.insertVersionSegment(rel, version)
+	}
 	if r.needLangSegment(lang) {
 		resolved := lang
 		if resolved == "" {
@@ -90,6 +102,44 @@ func (r *URLResolver) insertLangSegment(rel, code string) string {
 		return rel
 	}
 	return cleanJoin("/"+code, rel)
+}
+
+func (r *URLResolver) needVersionSegment(version string) bool {
+	return version != ""
+}
+
+// insertVersionSegment places "/<version>" immediately after the collection mount.
+// Idempotent: if the post-mount segment is already a version ID, it is a no-op.
+func (r *URLResolver) insertVersionSegment(rel, version string) string {
+	mount := r.collectionMountFor(rel)
+	if mount == "" {
+		return rel
+	}
+	rest := strings.TrimPrefix(rel, mount)
+	if r.IsVersionID(firstSegment(rest)) {
+		return rel
+	}
+	return cleanJoin(mount, "/"+version, rest)
+}
+
+// IsVersionID reports whether seg matches any configured version ID
+// (union over all versioned collections).
+func (r *URLResolver) IsVersionID(seg string) bool {
+	return r.VersionIDs[seg]
+}
+
+// collectionMountFor returns the longest collection mount that prefixes rel.
+// Returns "" if no mount matches (e.g. standalone pages).
+func (r *URLResolver) collectionMountFor(rel string) string {
+	best := ""
+	for _, m := range r.CollectionMounts {
+		if rel == m || strings.HasPrefix(rel, m+"/") {
+			if len(m) > len(best) {
+				best = m
+			}
+		}
+	}
+	return best
 }
 
 func firstSegment(rel string) string {

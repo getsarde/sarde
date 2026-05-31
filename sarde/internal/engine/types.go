@@ -305,8 +305,8 @@ type Collection struct {
 	Tabs      []*DocsTab // ordered by weight, then title
 
 	// Versioning
-	Versioning      *VersionConfig
-	VersionNavTrees map[string]*NavTree // per-version nav trees, key = version ID ("" for unversioned)
+	Versioning        *VersionConfig
+	CompositeNavTrees map[string]*NavTree // keyed by langVersionKey(lang, ver) for versioned collections
 }
 
 // CollectionConfig holds per-collection settings (auto-detected or explicit).
@@ -750,9 +750,10 @@ type TranslationLink struct {
 // VersionConfig holds versioning settings for a collection (engine-level mirror
 // of config.VersioningConfig to avoid import cycles).
 type VersionConfig struct {
-	Enabled     bool
-	LastVersion string // version ID that serves the root URL (no prefix)
-	Versions    []VersionDef
+	Enabled                   bool
+	LastVersion               string // version ID that serves the root URL (no prefix)
+	PublishLatestAtVersionURL bool
+	Versions                  []VersionDef
 }
 
 // VersionDef describes one version of a versioned docs collection.

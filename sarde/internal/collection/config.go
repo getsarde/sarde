@@ -101,8 +101,9 @@ func MergeCollectionConfig(inferred *engine.CollectionConfig, siteCfg *config.Co
 	// Versioning merge
 	if siteCfg.Versioning != nil && config.BoolVal(siteCfg.Versioning.Enabled, false) {
 		vc := &engine.VersionConfig{
-			Enabled:     true,
-			LastVersion: siteCfg.Versioning.LastVersion,
+			Enabled:                   true,
+			LastVersion:               siteCfg.Versioning.LastVersion,
+			PublishLatestAtVersionURL: siteCfg.Versioning.PublishLatestAtVersionURL,
 		}
 		for _, v := range siteCfg.Versioning.Versions {
 			path := v.Path

@@ -150,6 +150,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		b.scanner.DefaultLang = defaultLang
 	}
 
+	// Configure scanner for version detection
+	b.scanner.VersionIDs = buildScannerVersionIDs(b.config.Collections)
+
 	// Register announcements plugin and run ConfigSetup only on first build.
 	// Manager.Register appends without dedup — re-running would double-register hooks.
 	if !b.built {
@@ -218,8 +221,15 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 
 		collFallback := make(map[string]string)
 		for colName, colCfg := range b.config.Collections {
-			if colCfg != nil && colCfg.I18nFallback != "" {
+			if colCfg == nil {
+				continue
+			}
+			if colCfg.I18nFallback != "" {
 				collFallback[colName] = colCfg.I18nFallback
+			}
+			// Versioning fallback overrides i18n fallback for versioned collections.
+			if colCfg.Versioning != nil && config.BoolVal(colCfg.Versioning.Enabled, false) && colCfg.Versioning.Fallback != "" {
+				collFallback[colName] = colCfg.Versioning.Fallback
 			}
 		}
 		fbOpts := i18n.FallbackOptions{
@@ -235,8 +245,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		i18n.LinkAllTranslations(allPages, weights)
 	}
 
-	// DISABLED: versioning soft-disabled pending basePath implementation (Phase A).
-	// collection.LinkVersions(allPages)
+	collection.LinkVersions(allPages)
 
 	// Build taxonomies, scoped to the default language in multi-language sites
 	// so translated posts aren't counted once per language on a term page.
@@ -273,13 +282,18 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	for code := range b.config.I18n.Languages {
 		langSet[code] = true
 	}
+	// Build collection-mount and version-ID registries for the resolver.
+	collMounts, versionIDs := buildResolverRegistries(collections)
+
 	b.urlResolver = &engine.URLResolver{
-		BasePath:    b.config.Build.BasePath,
-		BaseURL:     b.config.Site.URL,
-		I18nEnabled: b.config.I18n.IsMultiLang(),
-		DefaultLang: b.config.I18n.GetDefaultLanguage(),
-		Strategy:    b.config.I18n.Strategy,
-		Languages:   langSet,
+		BasePath:         b.config.Build.BasePath,
+		BaseURL:          b.config.Site.URL,
+		I18nEnabled:      b.config.I18n.IsMultiLang(),
+		DefaultLang:      b.config.I18n.GetDefaultLanguage(),
+		Strategy:         b.config.I18n.Strategy,
+		Languages:        langSet,
+		CollectionMounts: collMounts,
+		VersionIDs:       versionIDs,
 	}
 	urlResolver := b.urlResolver
 	resolvePermalinks(urlResolver, allPages)
@@ -724,6 +738,11 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	}
 	recordTiming("Rendering 404 pages")
 
+	// PublishLatestAtVersionURL: duplicate latest-version pages at their
+	// explicit versioned URL (e.g. /docs/v2/guides/auth/) with canonical
+	// pointing to the alias (/docs/guides/auth/).
+	rendered = appendVersionedLatestPages(rendered, collections, urlResolver)
+
 	// HTML minification (production builds only).
 	if !b.devMode && config.BoolVal(b.config.Build.Minify, true) {
 		if err := minifyRendered(rendered, parallel, workerCount); err != nil {
@@ -861,6 +880,78 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 // registerSubpackagePlugins wires plugins whose assets live in their own
 // subpackage (and therefore can't be referenced from internal/plugin/registry.go
 // without creating an import cycle).
+// appendVersionedLatestPages appends duplicate RenderedPage entries for
+// collections with PublishLatestAtVersionURL enabled. These duplicates emit
+// the latest-version content at the explicit versioned URL (e.g.
+// /docs/v2/guides/auth/) alongside the alias URL (/docs/guides/auth/).
+func appendVersionedLatestPages(rendered []RenderedPage, collections map[string]*engine.Collection, r *engine.URLResolver) []RenderedPage {
+	for _, col := range collections {
+		vc := col.Config.Versioning
+		if vc == nil || !vc.Enabled || !vc.PublishLatestAtVersionURL || vc.LastVersion == "" {
+			continue
+		}
+		for i := range rendered {
+			rp := &rendered[i]
+			if rp.Page == nil || rp.Page.Collection != col {
+				continue
+			}
+			if rp.Page.Version != vc.LastVersion {
+				continue
+			}
+			versionedOutPath := PageOutputPath(r.OutputRelPath(rp.Page.RelPermalink, rp.Page.Lang, vc.LastVersion))
+			rendered = append(rendered, RenderedPage{
+				Page:    rp.Page,
+				HTML:    rp.HTML,
+				OutPath: versionedOutPath,
+			})
+		}
+	}
+	return rendered
+}
+
+// buildScannerVersionIDs constructs the collection→versionIDs map from config
+// for the scanner's version detection pass.
+func buildScannerVersionIDs(collections map[string]*config.CollectionSiteConfig) map[string]map[string]bool {
+	if len(collections) == 0 {
+		return nil
+	}
+	result := make(map[string]map[string]bool)
+	for name, colCfg := range collections {
+		if colCfg == nil || colCfg.Versioning == nil || !config.BoolVal(colCfg.Versioning.Enabled, false) {
+			continue
+		}
+		ids := make(map[string]bool, len(colCfg.Versioning.Versions))
+		for _, v := range colCfg.Versioning.Versions {
+			if v.ID != "" {
+				ids[v.ID] = true
+			}
+		}
+		if len(ids) > 0 {
+			result[name] = ids
+		}
+	}
+	if len(result) == 0 {
+		return nil
+	}
+	return result
+}
+
+// buildResolverRegistries extracts collection mounts and a union of version IDs
+// from all built collections for the URL resolver.
+func buildResolverRegistries(collections map[string]*engine.Collection) ([]string, map[string]bool) {
+	mounts := make([]string, 0, len(collections))
+	versionIDs := make(map[string]bool)
+	for name, col := range collections {
+		mounts = append(mounts, "/"+name)
+		if col.Config != nil && col.Config.Versioning != nil && col.Config.Versioning.Enabled {
+			for _, vd := range col.Config.Versioning.Versions {
+				versionIDs[vd.ID] = true
+			}
+		}
+	}
+	return mounts, versionIDs
+}
+
 func registerSubpackagePlugins(mgr *plugin.Manager, enabled []string, configs map[string]map[string]any) {
 	for _, name := range enabled {
 		switch name {

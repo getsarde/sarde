@@ -1,105 +1,57 @@
 package collection
 
 import (
-	"strings"
-
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/navigation"
 )
 
-// AnnotateVersions sets Version and VersionRelPath on every page in a versioned
-// collection. If last_version is configured, pages matching that version get
-// their URLs rewritten to serve at the collection root (no version prefix).
-func AnnotateVersions(col *engine.Collection) {
-	vc := col.Config.Versioning
-	if vc == nil || !vc.Enabled {
-		return
+// LangVersionKey computes the composite map key for a (lang, version) pair.
+func LangVersionKey(lang, ver string) string {
+	if lang == "" {
+		lang = "_default"
 	}
-
-	versionIDs := make(map[string]bool, len(vc.Versions))
-	for _, v := range vc.Versions {
-		versionIDs[v.ID] = true
+	if ver == "" {
+		ver = "_latest"
 	}
-
-	for _, page := range col.Pages {
-		vid, relPath := extractVersionFromPermalink(page.RelPermalink, col.Name, versionIDs)
-		page.Version = vid
-		page.VersionRelPath = relPath
-
-		// Rewrite URLs for last_version pages to serve at root (no version prefix).
-		if vc.LastVersion != "" && vid == vc.LastVersion {
-			page.Permalink = removeVersionSegment(page.Permalink, vid)
-			page.RelPermalink = removeVersionSegment(page.RelPermalink, vid)
-		}
-	}
+	return lang + "/" + ver
 }
 
-// extractVersionFromPermalink checks whether the first path segment after the
-// collection name matches a known version ID.
-//
-//	"/docs/v1/getting-started/" → ("v1", "getting-started")
-//	"/docs/getting-started/"    → ("", "getting-started")
-//	"/docs/v1/"                 → ("v1", "")
-//	"/docs/"                    → ("", "")
-func extractVersionFromPermalink(permalink, collectionName string, versionIDs map[string]bool) (versionID, versionRelPath string) {
-	// Strip leading/trailing slashes and collection prefix.
-	p := strings.Trim(permalink, "/")
-	p = strings.TrimPrefix(p, collectionName)
-	p = strings.TrimPrefix(p, "/")
-
-	if p == "" {
-		return "", ""
-	}
-
-	parts := strings.SplitN(p, "/", 2)
-	if versionIDs[parts[0]] {
-		versionID = parts[0]
-		if len(parts) > 1 {
-			versionRelPath = parts[1]
-		}
-		return versionID, versionRelPath
-	}
-
-	return "", p
-}
-
-// removeVersionSegment strips a version segment from a permalink.
-// "/docs/v2/getting-started/" → "/docs/getting-started/"
-// "/docs/v2/"                 → "/docs/"
-func removeVersionSegment(permalink, versionID string) string {
-	return strings.Replace(permalink, "/"+versionID+"/", "/", 1)
-}
-
-// BuildVersionedNavTrees builds a separate NavTree for each version in the
-// collection. Returns a map keyed by version ID ("" for unversioned pages).
-func BuildVersionedNavTrees(col *engine.Collection) map[string]*engine.NavTree {
+// BuildCompositeNavTrees builds one NavTree per (lang, version) pair found in
+// the collection's pages. Keyed by LangVersionKey. Used for versioned
+// collections that may also be multi-language.
+func BuildCompositeNavTrees(col *engine.Collection, langs []string) map[string]*engine.NavTree {
 	vc := col.Config.Versioning
 	if vc == nil || !vc.Enabled {
 		return nil
 	}
 
-	// Collect distinct version IDs present in pages.
-	versionPages := make(map[string][]*engine.Page)
+	// Discover all (lang, version) pairs present in pages.
+	type lvPair struct{ lang, ver string }
+	pairSet := make(map[lvPair]bool)
 	for _, p := range col.Pages {
-		versionPages[p.Version] = append(versionPages[p.Version], p)
+		pairSet[lvPair{p.Lang, p.Version}] = true
 	}
 
-	trees := make(map[string]*engine.NavTree, len(versionPages))
-	for vid, pages := range versionPages {
-		sections := BuildSectionTree(pages, col.Name)
+	trees := make(map[string]*engine.NavTree, len(pairSet))
+	for pair := range pairSet {
+		filtered := filterByLangAndVersion(col.Pages, pair.lang, pair.ver)
+		if len(filtered) == 0 {
+			continue
+		}
+
+		sections := BuildSectionTree(filtered, col.Name)
 		vCol := &engine.Collection{
 			Name:     col.Name,
 			Title:    col.Title,
 			Config:   col.Config,
-			Pages:    pages,
+			Pages:    filtered,
 			Sections: sections,
 		}
 
-		// Find index page for this version's sub-collection.
-		for _, p := range pages {
+		for _, p := range filtered {
 			if p.Kind == engine.KindSection {
 				relDir := sectionDir(p.RelPermalink, col.Name)
-				if relDir == "" || relDir == vid {
+				if relDir == "" {
 					vCol.IndexPage = p
 					break
 				}
@@ -108,7 +60,7 @@ func BuildVersionedNavTrees(col *engine.Collection) map[string]*engine.NavTree {
 
 		tree := navigation.BuildNavTree(vCol)
 		navigation.WirePrevNextFromTree(tree)
-		trees[vid] = tree
+		trees[LangVersionKey(pair.lang, pair.ver)] = tree
 	}
 
 	return trees
@@ -117,7 +69,6 @@ func BuildVersionedNavTrees(col *engine.Collection) map[string]*engine.NavTree {
 // LinkVersions groups pages across versions by their VersionRelPath and
 // populates each page's VersionPeers slice, mirroring i18n.LinkTranslations.
 func LinkVersions(pages []*engine.Page) {
-	// Key: collectionName + ":" + versionRelPath + ":" + lang
 	groups := make(map[string][]*engine.Page)
 	for _, p := range pages {
 		if p.Collection == nil || p.Collection.Config == nil ||
@@ -145,4 +96,14 @@ func LinkVersions(pages []*engine.Page) {
 			p.VersionPeers = peers
 		}
 	}
+}
+
+func filterByLangAndVersion(pages []*engine.Page, lang, ver string) []*engine.Page {
+	var result []*engine.Page
+	for _, p := range pages {
+		if p.Lang == lang && p.Version == ver {
+			result = append(result, p)
+		}
+	}
+	return result
 }

@@ -106,7 +106,10 @@ collections:
       scroll_highlight: true
     versioning:
       enabled: true
+      last_version: v2
       versions:
+      - id: v2
+        label: v2.x (latest)
       - banner: unmaintained
         id: v1
         label: v1.x

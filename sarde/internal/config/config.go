@@ -395,9 +395,11 @@ type CollectionSiteConfig struct {
 
 // VersioningConfig controls docs versioning for a collection.
 type VersioningConfig struct {
-	Enabled     *bool          `yaml:"enabled"`
-	LastVersion string         `yaml:"last_version"`
-	Versions    []VersionEntry `yaml:"versions"`
+	Enabled                  *bool          `yaml:"enabled"`
+	LastVersion              string         `yaml:"last_version"`
+	PublishLatestAtVersionURL bool          `yaml:"publish_latest_at_version_url"`
+	Fallback                 string         `yaml:"fallback"` // "" (inherit site), "default", or "omit"
+	Versions                 []VersionEntry `yaml:"versions"`
 }
 
 // VersionEntry describes one version of a versioned docs collection.
@@ -423,6 +425,28 @@ const (
 	RedirectSamePage VersionRedirect = "same-page"
 	RedirectRoot     VersionRedirect = "root"
 )
+
+// ValidateVersioning checks that a versioning config is self-consistent:
+// LastVersion must appear in Versions[].ID, and version IDs must be unique.
+func ValidateVersioning(colName string, vc *VersioningConfig) error {
+	if vc == nil || !BoolVal(vc.Enabled, false) {
+		return nil
+	}
+	seen := make(map[string]bool, len(vc.Versions))
+	for _, v := range vc.Versions {
+		if v.ID == "" {
+			return fmt.Errorf("collection %q: version entry has empty ID", colName)
+		}
+		if seen[v.ID] {
+			return fmt.Errorf("collection %q: duplicate version ID %q", colName, v.ID)
+		}
+		seen[v.ID] = true
+	}
+	if vc.LastVersion != "" && !seen[vc.LastVersion] {
+		return fmt.Errorf("collection %q: last_version %q not found in versions list", colName, vc.LastVersion)
+	}
+	return nil
+}
 
 type CollectionSidebarConfig struct {
 	Collapsible        *bool `yaml:"collapsible"`

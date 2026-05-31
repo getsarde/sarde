@@ -70,6 +70,13 @@ func BuildCollectionsWithOptions(
 		if siteCfg.Collections != nil {
 			if scfg, ok := siteCfg.Collections[name]; ok {
 				collCfg = MergeCollectionConfig(collCfg, scfg)
+
+				// Validate versioning config
+				if scfg.Versioning != nil {
+					if err := config.ValidateVersioning(name, scfg.Versioning); err != nil {
+						return nil, nil, err
+					}
+				}
 			}
 		}
 
@@ -132,22 +139,14 @@ func BuildCollectionsWithOptions(
 		// 9. Build navigation (versioned, tabbed, or standard)
 		langs := collectLanguages(pages)
 
-		// DISABLED: versioning soft-disabled pending basePath implementation (Phase A).
-		// Re-enable after the URL resolver is wired.
-		// if collCfg.Versioning != nil && collCfg.Versioning.Enabled {
-		// 	col.Versioning = collCfg.Versioning
-		// 	AnnotateVersions(col)
-		// 	col.VersionNavTrees = BuildVersionedNavTrees(col)
-		// 	if lv := collCfg.Versioning.LastVersion; lv != "" {
-		// 		col.NavTree = col.VersionNavTrees[lv]
-		// 	}
-		// 	if col.NavTree == nil {
-		// 		col.NavTree = col.VersionNavTrees[""]
-		// 	}
-		// }
-
-		// Tab detection runs after versioning (topLevelSections filters out version dirs).
-		if DetectTabs(col) {
+		if collCfg.Versioning != nil && collCfg.Versioning.Enabled {
+			col.Versioning = collCfg.Versioning
+			col.CompositeNavTrees = BuildCompositeNavTrees(col, langs)
+			if len(langs) > 0 {
+				key := LangVersionKey(langs[0], collCfg.Versioning.LastVersion)
+				col.NavTree = col.CompositeNavTrees[key]
+			}
+		} else if DetectTabs(col) {
 			col.IsTabbed = true
 			if len(langs) > 1 {
 				col.Tabs = BuildTabsI18n(col, contentDir, langs)
@@ -429,6 +428,10 @@ func buildPage(
 			Lang:        cf.Lang,
 			LangRelPath: cf.LangRelPath,
 		},
+		PageVersioning: engine.PageVersioning{
+			Version:        cf.Version,
+			VersionRelPath: cf.VersionRelPath,
+		},
 		Params: fm.Params,
 	}
 	if rel, err := filepath.Rel(contentDir, cf.FilePath); err == nil {
@@ -462,8 +465,15 @@ func buildPage(
 		}
 		page.RelPermalink = content.ComputePatternPermalink(collCfg.Permalink, vars)
 	} else {
-		if cf.LangRelPath != "" {
-			page.RelPermalink = content.ComputePermalinkFromRelPath(cf.LangRelPath)
+		// For versioned pages, compute RelPermalink from the version-free
+		// relative path so that RelPermalink is version-free but
+		// collection-bearing (e.g. "/docs/guides/auth/" not "/docs/v1/guides/auth/").
+		relPathForPermalink := cf.LangRelPath
+		if cf.Version != "" {
+			relPathForPermalink = content.VersionFreeRelPath(&cf)
+		}
+		if relPathForPermalink != "" {
+			page.RelPermalink = content.ComputePermalinkFromRelPath(relPathForPermalink)
 		} else {
 			page.RelPermalink = content.ComputePermalink(contentDir, cf.FilePath)
 		}
@@ -699,6 +709,16 @@ func RebuildNavTreesWithFallbacks(collections map[string]*engine.Collection, all
 			if p.Collection != nil && p.Collection.Name == col.Name {
 				colPages = append(colPages, p)
 			}
+		}
+
+		// Versioned collections: rebuild composite nav trees.
+		if col.Config.Versioning != nil && col.Config.Versioning.Enabled {
+			col.CompositeNavTrees = BuildCompositeNavTrees(col, langs)
+			if len(langs) > 0 {
+				key := LangVersionKey(langs[0], col.Config.Versioning.LastVersion)
+				col.NavTree = col.CompositeNavTrees[key]
+			}
+			continue
 		}
 
 		if col.IsTabbed && len(col.Tabs) > 0 {

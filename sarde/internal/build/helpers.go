@@ -118,7 +118,7 @@ func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext)
 	return RenderedPage{
 		Page:    page,
 		HTML:    html,
-		OutPath: PageOutputPath(b.urlResolver.OutputRelPath(page.RelPermalink, page.Lang, "")),
+		OutPath: PageOutputPath(b.urlResolver.OutputRelPath(page.RelPermalink, page.Lang, resolvePageVersion(page))),
 	}, nil
 }
 
