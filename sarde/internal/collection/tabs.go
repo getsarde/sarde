@@ -126,6 +126,55 @@ func BuildTabsI18n(col *engine.Collection, contentDir string, langs []string) []
 	return tabs
 }
 
+// BuildCompositeTabSets builds one tab set per (lang, version) pair found in
+// the collection's pages. Used for collections with both versioning and tabs.
+func BuildCompositeTabSets(col *engine.Collection, contentDir string, langs []string) map[string][]*engine.DocsTab {
+	vc := col.Config.Versioning
+	if vc == nil || !vc.Enabled {
+		return nil
+	}
+
+	type lvPair struct{ lang, ver string }
+	pairSet := make(map[lvPair]bool)
+	for _, p := range col.Pages {
+		pairSet[lvPair{p.Lang, p.Version}] = true
+	}
+
+	result := make(map[string][]*engine.DocsTab, len(pairSet))
+	for pair := range pairSet {
+		filtered := filterByLangAndVersion(col.Pages, pair.lang, pair.ver)
+		if len(filtered) == 0 {
+			continue
+		}
+
+		sections := BuildSectionTree(filtered, col.Name)
+		vCol := &engine.Collection{
+			Name:     col.Name,
+			Title:    col.Title,
+			Config:   &engine.CollectionConfig{Layout: col.Config.Layout, Sidebar: col.Config.Sidebar},
+			Pages:    filtered,
+			Sections: sections,
+		}
+		for _, p := range filtered {
+			if p.Kind == engine.KindSection {
+				relDir := sectionDir(p.RelPermalink, col.Name)
+				if relDir == "" {
+					vCol.IndexPage = p
+					break
+				}
+			}
+		}
+
+		tabs := BuildTabs(vCol, contentDir)
+		if len(tabs) == 0 {
+			continue
+		}
+		result[LangVersionKey(pair.lang, pair.ver)] = tabs
+	}
+
+	return result
+}
+
 // FindTabForPage returns the tab that contains the given page, or nil.
 func FindTabForPage(tabs []*engine.DocsTab, page *engine.Page) *engine.DocsTab {
 	if page == nil || len(tabs) == 0 {

@@ -138,10 +138,32 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 				rd.SidebarCollapsedByDefault = col.Config.Sidebar.CollapsedByDefault
 			}
 
-			if col.IsTabbed && len(col.Tabs) > 0 {
+			if col.IsTabbed && col.CompositeTabSets != nil {
+				key := collection.LangVersionKey(page.Lang, page.Version)
+				tabs := col.CompositeTabSets[key]
+				if len(tabs) > 0 {
+					rd.IsTabbed = true
+					rd.DocsTabs = tabs
+					rd.ActiveTab = collection.FindTabForPage(tabs, page)
+					if rd.ActiveTab == nil && len(tabs) > 0 {
+						rd.ActiveTab = tabs[0]
+					}
+					if rd.ActiveTab != nil {
+						if rd.ActiveTab.NavTree != nil {
+							rd.Sidebar = navigation.MarkActive(rd.ActiveTab.NavTree, page)
+						}
+						rd.Breadcrumbs = navigation.BuildBreadcrumbsTabbed(page, col, rd.ActiveTab)
+					}
+				} else {
+					rd.Breadcrumbs = navigation.BuildBreadcrumbsVersioned(page, col)
+				}
+			} else if col.IsTabbed && len(col.Tabs) > 0 {
 				rd.IsTabbed = true
 				rd.DocsTabs = col.Tabs
 				rd.ActiveTab = collection.FindTabForPage(col.Tabs, page)
+				if rd.ActiveTab == nil && len(col.Tabs) > 0 {
+					rd.ActiveTab = col.Tabs[0]
+				}
 
 				if rd.ActiveTab != nil {
 					navTree := rd.ActiveTab.NavTree

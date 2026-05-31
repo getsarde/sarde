@@ -306,7 +306,8 @@ type Collection struct {
 
 	// Versioning
 	Versioning        *VersionConfig
-	CompositeNavTrees map[string]*NavTree // keyed by langVersionKey(lang, ver) for versioned collections
+	CompositeNavTrees map[string]*NavTree      // keyed by langVersionKey(lang, ver) for versioned collections
+	CompositeTabSets  map[string][]*DocsTab    // keyed by langVersionKey(lang, ver) for versioned+tabbed collections
 }
 
 // CollectionConfig holds per-collection settings (auto-detected or explicit).

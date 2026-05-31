@@ -141,10 +141,15 @@ func BuildCollectionsWithOptions(
 
 		if collCfg.Versioning != nil && collCfg.Versioning.Enabled {
 			col.Versioning = collCfg.Versioning
-			col.CompositeNavTrees = BuildCompositeNavTrees(col, langs)
-			if len(langs) > 0 {
-				key := LangVersionKey(langs[0], collCfg.Versioning.LastVersion)
-				col.NavTree = col.CompositeNavTrees[key]
+			if DetectTabs(col) {
+				col.IsTabbed = true
+				col.CompositeTabSets = BuildCompositeTabSets(col, contentDir, langs)
+			} else {
+				col.CompositeNavTrees = BuildCompositeNavTrees(col, langs)
+				if len(langs) > 0 {
+					key := LangVersionKey(langs[0], collCfg.Versioning.LastVersion)
+					col.NavTree = col.CompositeNavTrees[key]
+				}
 			}
 		} else if DetectTabs(col) {
 			col.IsTabbed = true
@@ -711,12 +716,16 @@ func RebuildNavTreesWithFallbacks(collections map[string]*engine.Collection, all
 			}
 		}
 
-		// Versioned collections: rebuild composite nav trees.
+		// Versioned collections: rebuild composite nav trees or tab sets.
 		if col.Config.Versioning != nil && col.Config.Versioning.Enabled {
-			col.CompositeNavTrees = BuildCompositeNavTrees(col, langs)
-			if len(langs) > 0 {
-				key := LangVersionKey(langs[0], col.Config.Versioning.LastVersion)
-				col.NavTree = col.CompositeNavTrees[key]
+			if col.IsTabbed {
+				col.CompositeTabSets = BuildCompositeTabSets(col, "", langs)
+			} else {
+				col.CompositeNavTrees = BuildCompositeNavTrees(col, langs)
+				if len(langs) > 0 {
+					key := LangVersionKey(langs[0], col.Config.Versioning.LastVersion)
+					col.NavTree = col.CompositeNavTrees[key]
+				}
 			}
 			continue
 		}
