@@ -194,6 +194,119 @@ python:
 	}
 }
 
+func TestLoadTermMetadataForLang_InlineTranslations(t *testing.T) {
+	dir := t.TempDir()
+	dataDir := filepath.Join(dir, "data")
+	os.MkdirAll(dataDir, 0755)
+	os.WriteFile(filepath.Join(dataDir, "tags.yml"), []byte(`
+beginner:
+  label: "Beginner"
+  description: "Entry-level content"
+  color: "#00ADD8"
+  translations:
+    fr:
+      label: "Débutant"
+      description: "Contenu pour débutants"
+    ar:
+      label: "مبتدئ"
+`), 0644)
+
+	meta, err := LoadTermMetadataForLang(dir, "tags", "fr")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := meta["beginner"]
+	if m.Label != "Débutant" {
+		t.Errorf("Label = %q, want %q (inline fr)", m.Label, "Débutant")
+	}
+	if m.Description != "Contenu pour débutants" {
+		t.Errorf("Description = %q, want %q (inline fr)", m.Description, "Contenu pour débutants")
+	}
+	if m.Color != "#00ADD8" {
+		t.Errorf("Color = %q, want %q (base, not translatable)", m.Color, "#00ADD8")
+	}
+}
+
+func TestLoadTermMetadataForLang_FileOverridesInline(t *testing.T) {
+	dir := t.TempDir()
+	dataDir := filepath.Join(dir, "data")
+	os.MkdirAll(dataDir, 0755)
+	os.WriteFile(filepath.Join(dataDir, "tags.yml"), []byte(`
+beginner:
+  label: "Beginner"
+  translations:
+    fr:
+      label: "Débutant"
+`), 0644)
+	os.WriteFile(filepath.Join(dataDir, "tags.fr.yml"), []byte(`
+beginner:
+  label: "Niveau débutant"
+`), 0644)
+
+	meta, err := LoadTermMetadataForLang(dir, "tags", "fr")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := meta["beginner"]
+	if m.Label != "Niveau débutant" {
+		t.Errorf("Label = %q, want %q (file overlay wins over inline)", m.Label, "Niveau débutant")
+	}
+}
+
+func TestLoadTermMetadataForLang_InlineNoMatchingLang(t *testing.T) {
+	dir := t.TempDir()
+	dataDir := filepath.Join(dir, "data")
+	os.MkdirAll(dataDir, 0755)
+	os.WriteFile(filepath.Join(dataDir, "tags.yml"), []byte(`
+beginner:
+  label: "Beginner"
+  translations:
+    fr:
+      label: "Débutant"
+`), 0644)
+
+	meta, err := LoadTermMetadataForLang(dir, "tags", "de")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := meta["beginner"]
+	if m.Label != "Beginner" {
+		t.Errorf("Label = %q, want %q (no matching lang, base returned)", m.Label, "Beginner")
+	}
+}
+
+func TestLoadTermMetadataForLang_TranslationsStripped(t *testing.T) {
+	dir := t.TempDir()
+	dataDir := filepath.Join(dir, "data")
+	os.MkdirAll(dataDir, 0755)
+	os.WriteFile(filepath.Join(dataDir, "tags.yml"), []byte(`
+beginner:
+  label: "Beginner"
+  translations:
+    fr:
+      label: "Débutant"
+`), 0644)
+
+	meta, err := LoadTermMetadataForLang(dir, "tags", "fr")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := meta["beginner"]
+	if m.Translations != nil {
+		t.Errorf("Translations = %v, want nil (should be stripped)", m.Translations)
+	}
+
+	// Also check when lang is empty (base-only path).
+	meta2, err := LoadTermMetadataForLang(dir, "tags", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m2 := meta2["beginner"]
+	if m2.Translations != nil {
+		t.Errorf("Translations (empty lang) = %v, want nil", m2.Translations)
+	}
+}
+
 func TestLoadTermMetadata_PartialFields(t *testing.T) {
 	dir := t.TempDir()
 	dataDir := filepath.Join(dir, "data")

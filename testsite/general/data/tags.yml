@@ -24,3 +24,31 @@ middleware:
   label: "Middleware"
   color: "#7c3aed"
   hidden: true
+
+beginner:
+  label: "Beginner"
+  translations:
+    fr:
+      label: "Debutant"
+    ar:
+      label: "مبتدئ"
+
+overview:
+  label: "Overview"
+  translations:
+    fr:
+      label: "Apercu"
+    ar:
+      label: "نظرة عامة"
+
+intermediate:
+  label: "Intermediate"
+  translations:
+    fr:
+      label: "Intermediaire"
+
+security:
+  label: "Security"
+  translations:
+    fr:
+      label: "Securite"

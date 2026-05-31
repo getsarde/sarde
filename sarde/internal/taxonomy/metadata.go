@@ -13,15 +13,23 @@ import (
 
 // TermMetadata holds optional per-term configuration from data/<taxonomy>.yml.
 type TermMetadata struct {
+	Label        string                     `yaml:"label"`
+	Description  string                     `yaml:"description"`
+	Color        string                     `yaml:"color"`
+	Icon         string                     `yaml:"icon"`
+	Hidden       bool                       `yaml:"hidden"`
+	Priority     int                        `yaml:"priority"`
+	Permalink    string                     `yaml:"permalink"`
+	Difficulty   string                     `yaml:"difficulty"`
+	ContentType  string                     `yaml:"content_type"`
+	Translations map[string]TermTranslation `yaml:"translations"`
+}
+
+// TermTranslation holds the translatable fields for a single language
+// inside a term's inline translations: block.
+type TermTranslation struct {
 	Label       string `yaml:"label"`
 	Description string `yaml:"description"`
-	Color       string `yaml:"color"`
-	Icon        string `yaml:"icon"`
-	Hidden      bool   `yaml:"hidden"`
-	Priority    int    `yaml:"priority"`
-	Permalink   string `yaml:"permalink"`
-	Difficulty  string `yaml:"difficulty"`
-	ContentType string `yaml:"content_type"`
 }
 
 var validDifficulties = map[string]bool{
@@ -48,65 +56,104 @@ func LoadTermMetadata(projectDir, taxonomyName string) (map[string]TermMetadata,
 }
 
 // LoadTermMetadataForLang loads term metadata with per-language overlay.
-// Reads the base data/<name>.yml, then overlays data/<name>.<lang>.yml
-// (per-key merge, overlay wins). lang=="" returns base only.
+// Resolution order per term: base entry → inline translations[lang] → file overlay.
+// lang=="" returns base only (with Translations stripped).
 func LoadTermMetadataForLang(projectDir, taxonomyName, lang string) (map[string]TermMetadata, error) {
 	base, err := LoadTermMetadata(projectDir, taxonomyName)
 	if err != nil {
 		return nil, err
 	}
 	if lang == "" {
+		stripTranslations(base)
 		return base, nil
 	}
 
+	// Apply inline translations from the base file.
+	if base != nil {
+		for slug, bm := range base {
+			if tr, ok := bm.Translations[lang]; ok {
+				applyTranslationOverlay(&bm, &tr)
+				base[slug] = bm
+			}
+		}
+	}
+
+	// Apply per-language file overlay (highest priority).
 	overlayPath := filepath.Join(projectDir, consts.DirData, taxonomyName+"."+lang+".yml")
 	overlay, err := loadTermMetadataFile(overlayPath)
 	if err != nil {
 		return nil, err
 	}
-	if overlay == nil {
-		return base, nil
-	}
-	if base == nil {
-		return overlay, nil
+	if overlay != nil {
+		if base == nil {
+			base = overlay
+		} else {
+			for slug, om := range overlay {
+				bm, exists := base[slug]
+				if !exists {
+					base[slug] = om
+					continue
+				}
+				applyOverlay(&bm, &om)
+				base[slug] = bm
+			}
+		}
 	}
 
-	for slug, om := range overlay {
-		bm, exists := base[slug]
-		if !exists {
-			base[slug] = om
-			continue
-		}
-		if om.Label != "" {
-			bm.Label = om.Label
-		}
-		if om.Description != "" {
-			bm.Description = om.Description
-		}
-		if om.Color != "" {
-			bm.Color = om.Color
-		}
-		if om.Icon != "" {
-			bm.Icon = om.Icon
-		}
-		if om.Hidden {
-			bm.Hidden = om.Hidden
-		}
-		if om.Priority != 0 {
-			bm.Priority = om.Priority
-		}
-		if om.Permalink != "" {
-			bm.Permalink = om.Permalink
-		}
-		if om.Difficulty != "" {
-			bm.Difficulty = om.Difficulty
-		}
-		if om.ContentType != "" {
-			bm.ContentType = om.ContentType
-		}
-		base[slug] = bm
-	}
+	stripTranslations(base)
 	return base, nil
+}
+
+// applyOverlay merges non-zero fields from overlay into base.
+func applyOverlay(base, overlay *TermMetadata) {
+	if overlay.Label != "" {
+		base.Label = overlay.Label
+	}
+	if overlay.Description != "" {
+		base.Description = overlay.Description
+	}
+	if overlay.Color != "" {
+		base.Color = overlay.Color
+	}
+	if overlay.Icon != "" {
+		base.Icon = overlay.Icon
+	}
+	if overlay.Hidden {
+		base.Hidden = overlay.Hidden
+	}
+	if overlay.Priority != 0 {
+		base.Priority = overlay.Priority
+	}
+	if overlay.Permalink != "" {
+		base.Permalink = overlay.Permalink
+	}
+	if overlay.Difficulty != "" {
+		base.Difficulty = overlay.Difficulty
+	}
+	if overlay.ContentType != "" {
+		base.ContentType = overlay.ContentType
+	}
+}
+
+// applyTranslationOverlay merges translatable fields from a TermTranslation into base.
+func applyTranslationOverlay(base *TermMetadata, tr *TermTranslation) {
+	if tr.Label != "" {
+		base.Label = tr.Label
+	}
+	if tr.Description != "" {
+		base.Description = tr.Description
+	}
+}
+
+// stripTranslations clears the Translations field from all entries so
+// downstream consumers receive single-language resolved metadata.
+func stripTranslations(meta map[string]TermMetadata) {
+	for slug, m := range meta {
+		if m.Translations != nil {
+			m.Translations = nil
+			meta[slug] = m
+		}
+	}
 }
 
 func loadTermMetadataFile(path string) (map[string]TermMetadata, error) {
