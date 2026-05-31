@@ -155,14 +155,22 @@ func BuildCompositeTabSets(col *engine.Collection, contentDir string, langs []st
 			Pages:    filtered,
 			Sections: sections,
 		}
-		for _, p := range filtered {
-			if p.Kind == engine.KindSection {
-				relDir := sectionDir(p.RelPermalink, col.Name)
-				if relDir == "" {
-					vCol.IndexPage = p
-					break
-				}
+
+		// Promote the version root's children to top-level so
+		// topLevelSections sees guide/api/plugins rather than v2.
+		var versionRoot *engine.Section
+		for _, sec := range sections {
+			if sec.Parent == nil {
+				versionRoot = sec
+				break
 			}
+		}
+		if versionRoot != nil && len(versionRoot.Sections) > 0 {
+			vCol.Sections = versionRoot.Sections
+			for _, child := range vCol.Sections {
+				child.Parent = nil
+			}
+			vCol.IndexPage = versionRoot.IndexPage
 		}
 
 		tabs := BuildTabs(vCol, contentDir)
