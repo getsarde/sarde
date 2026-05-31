@@ -1,0 +1,8 @@
+beginner:
+  label: "Debutant"
+overview:
+  label: "Apercu"
+intermediate:
+  label: "Intermediaire"
+security:
+  label: "Securite"

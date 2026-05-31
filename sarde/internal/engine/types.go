@@ -481,6 +481,7 @@ type Taxonomy struct {
 type TaxonomyTerm struct {
 	Name        string
 	Slug        string
+	CustomSlug  string // from permalink field in data/*.yml; overrides Slugify(Name)
 	Permalink   string
 	Pages       []*Page
 	Label       string
@@ -489,6 +490,8 @@ type TaxonomyTerm struct {
 	Icon        string
 	Hidden      bool
 	Priority    int
+	Difficulty  string // beginner, intermediate, advanced
+	ContentType string // lecture, lab, assignment, project, reference, tutorial, assessment
 }
 
 // TermEntry wraps a TaxonomyTerm with computed tag-cloud data.
@@ -602,8 +605,9 @@ type SiteContext struct {
 	Language    string
 	Config      any // *config.SiteConfig at runtime; any to avoid circular imports
 	Collections map[string]*Collection
-	Taxonomies  map[string]*Taxonomy
-	Pages       []*Page
+	Taxonomies       map[string]*Taxonomy
+	TaxonomiesByLang map[string]map[string]*Taxonomy
+	Pages            []*Page
 	Data        map[string]any
 	BuildTime   time.Time
 	Languages   []Language

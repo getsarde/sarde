@@ -229,15 +229,38 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		i18n.LinkAllTranslations(patchedAllPages, weights)
 	}
 
-	taxScopeLang := ""
+	var newTaxonomies map[string]*engine.Taxonomy
+	var newTaxByLang map[string]map[string]*engine.Taxonomy
+
 	if isMultiLang {
-		taxScopeLang = b.config.I18n.GetDefaultLanguage()
-	}
-	newTaxonomies := taxonomy.BuildTaxonomies(patchedAllPages, b.config.Taxonomies, taxScopeLang)
-	if taxWarnings, err := taxonomy.EnrichTaxonomies(newTaxonomies, b.config.Taxonomies, b.projectDir); err != nil {
-		return b.Build()
+		defaultLang := b.config.I18n.GetDefaultLanguage()
+		langCodes := b.config.I18n.LanguageCodes()
+		newTaxByLang = make(map[string]map[string]*engine.Taxonomy, len(langCodes))
+		for _, code := range langCodes {
+			langTax := taxonomy.BuildTaxonomies(patchedAllPages, b.config.Taxonomies, code)
+			if w, err := taxonomy.EnrichTaxonomies(langTax, b.config.Taxonomies, b.projectDir, code); err != nil {
+				return b.Build()
+			} else {
+				emitTaxonomyWarnings(w)
+			}
+			if b.urlResolver != nil {
+				for _, tax := range langTax {
+					tax.Permalink = b.urlResolver.URL(tax.Permalink, code, "")
+					for _, term := range tax.Terms {
+						term.Permalink = b.urlResolver.URL(term.Permalink, code, "")
+					}
+				}
+			}
+			newTaxByLang[code] = langTax
+		}
+		newTaxonomies = newTaxByLang[defaultLang]
 	} else {
-		emitTaxonomyWarnings(taxWarnings)
+		newTaxonomies = taxonomy.BuildTaxonomies(patchedAllPages, b.config.Taxonomies, "")
+		if w, err := taxonomy.EnrichTaxonomies(newTaxonomies, b.config.Taxonomies, b.projectDir, ""); err != nil {
+			return b.Build()
+		} else {
+			emitTaxonomyWarnings(w)
+		}
 	}
 
 	collection.LinkVersions(patchedAllPages)
@@ -246,12 +269,21 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	newPageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
 	populatePageIndexHeadings(newPageIndex, patchedAllPages)
 
-	for _, e := range parsed {
-		addTaxonomyDirtyForPage(e.filePath, newTaxonomies, b.config.Taxonomies, dirtyPermalinks)
+	if newTaxByLang != nil {
+		for _, langTax := range newTaxByLang {
+			for _, e := range parsed {
+				addTaxonomyDirtyForPage(e.filePath, langTax, b.config.Taxonomies, dirtyPermalinks)
+			}
+		}
+	} else {
+		for _, e := range parsed {
+			addTaxonomyDirtyForPage(e.filePath, newTaxonomies, b.config.Taxonomies, dirtyPermalinks)
+		}
 	}
 
 	b.lastSiteCtx.Collections = b.lastCollections
 	b.lastSiteCtx.Taxonomies = newTaxonomies
+	b.lastSiteCtx.TaxonomiesByLang = newTaxByLang
 	b.lastSiteCtx.Pages = patchedAllPages
 	b.lastSiteCtx.BuildTime = time.Now()
 	b.tmplEngine.SetSiteContext(b.lastSiteCtx)
@@ -326,63 +358,69 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		return b.Build()
 	}
 
-	for taxName, tax := range newTaxonomies {
-		cfg := b.config.Taxonomies[taxName]
-		if !cfg.ShouldRender() {
-			continue
-		}
-		if _, isDirty := dirtyPermalinks[tax.Permalink]; isDirty {
-			termEntries := taxonomy.ComputeTermEntries(tax)
-			taxStub := buildTaxonomyIndexStub(tax, termEntries)
-			resolvePermalinks(b.urlResolver, []*engine.Page{taxStub})
-			rd := sardetemplate.BuildRouteData(taxStub, b.lastSiteCtx, b.themeConfig)
-			resolveRouteAssets(b.urlResolver, rd)
-			html, err := b.tmplEngine.Render(rd.Template, rd)
-			if err != nil {
-				return b.Build()
+	rebuildTaxByLang := newTaxByLang
+	if rebuildTaxByLang == nil {
+		rebuildTaxByLang = map[string]map[string]*engine.Taxonomy{"": newTaxonomies}
+	}
+	for lang, langTax := range rebuildTaxByLang {
+		for taxName, tax := range langTax {
+			cfg := b.config.Taxonomies[taxName]
+			if !cfg.ShouldRender() {
+				continue
 			}
-			dirtyRendered = append(dirtyRendered, RenderedPage{
-				Page: taxStub, HTML: html,
-				OutPath: PageOutputPath(tax.Permalink),
-			})
-		}
-		paginateBy := cfg.PaginateBy
-		if paginateBy <= 0 {
-			paginateBy = consts.DefaultPaginateBy
-		}
-		for _, term := range tax.Terms {
-			if _, isDirty := dirtyPermalinks[term.Permalink]; isDirty {
-				termStub := buildTermStub(tax, term)
-				resolvePermalinks(b.urlResolver, []*engine.Page{termStub})
-				rd := sardetemplate.BuildRouteData(termStub, b.lastSiteCtx, b.themeConfig)
+			if _, isDirty := dirtyPermalinks[tax.Permalink]; isDirty {
+				termEntries := taxonomy.ComputeTermEntries(tax)
+				taxStub := buildTaxonomyIndexStub(tax, termEntries, lang)
+				resolvePermalinks(b.urlResolver, []*engine.Page{taxStub})
+				rd := sardetemplate.BuildRouteData(taxStub, b.lastSiteCtx, b.themeConfig)
 				resolveRouteAssets(b.urlResolver, rd)
 				html, err := b.tmplEngine.Render(rd.Template, rd)
 				if err != nil {
 					return b.Build()
 				}
 				dirtyRendered = append(dirtyRendered, RenderedPage{
-					Page: termStub, HTML: html,
-					OutPath: PageOutputPath(term.Permalink),
+					Page: taxStub, HTML: html,
+					OutPath: PageOutputPath(b.urlResolver.OutputRelPath(taxStub.RelPermalink, taxStub.Lang, "")),
 				})
 			}
-			totalTermPages := (len(term.Pages) + paginateBy - 1) / paginateBy
-			for n := 2; n <= totalTermPages; n++ {
-				permalink := sardetemplate.PaginationURL(term.Permalink, n)
-				if _, isDirty := dirtyPermalinks[permalink]; !isDirty {
-					continue
+			paginateBy := cfg.PaginateBy
+			if paginateBy <= 0 {
+				paginateBy = consts.DefaultPaginateBy
+			}
+			for _, term := range tax.Terms {
+				if _, isDirty := dirtyPermalinks[term.Permalink]; isDirty {
+					termStub := buildTermStub(tax, term, lang)
+					resolvePermalinks(b.urlResolver, []*engine.Page{termStub})
+					rd := sardetemplate.BuildRouteData(termStub, b.lastSiteCtx, b.themeConfig)
+					resolveRouteAssets(b.urlResolver, rd)
+					html, err := b.tmplEngine.Render(rd.Template, rd)
+					if err != nil {
+						return b.Build()
+					}
+					dirtyRendered = append(dirtyRendered, RenderedPage{
+						Page: termStub, HTML: html,
+						OutPath: PageOutputPath(b.urlResolver.OutputRelPath(termStub.RelPermalink, termStub.Lang, "")),
+					})
 				}
-				paginatedStub := buildTermPaginatedStub(tax, term, permalink, n)
-				resolvePermalinks(b.urlResolver, []*engine.Page{paginatedStub})
-				rd := sardetemplate.BuildRouteData(paginatedStub, b.lastSiteCtx, b.themeConfig)
-				resolveRouteAssets(b.urlResolver, rd)
-				html, err := b.tmplEngine.Render(rd.Template, rd)
-				if err != nil {
-					return b.Build()
+				totalTermPages := (len(term.Pages) + paginateBy - 1) / paginateBy
+				for n := 2; n <= totalTermPages; n++ {
+					permalink := sardetemplate.PaginationURL(term.Permalink, n)
+					if _, isDirty := dirtyPermalinks[permalink]; !isDirty {
+						continue
+					}
+					paginatedStub := buildTermPaginatedStub(tax, term, permalink, n, lang)
+					resolvePermalinks(b.urlResolver, []*engine.Page{paginatedStub})
+					rd := sardetemplate.BuildRouteData(paginatedStub, b.lastSiteCtx, b.themeConfig)
+					resolveRouteAssets(b.urlResolver, rd)
+					html, err := b.tmplEngine.Render(rd.Template, rd)
+					if err != nil {
+						return b.Build()
+					}
+					dirtyRendered = append(dirtyRendered, RenderedPage{
+						Page: paginatedStub, HTML: html,
+						OutPath: PageOutputPath(b.urlResolver.OutputRelPath(paginatedStub.RelPermalink, paginatedStub.Lang, "")),
+					})
 				}
-				dirtyRendered = append(dirtyRendered, RenderedPage{
-					Page: paginatedStub, HTML: html,
-					OutPath: PageOutputPath(permalink),
-				})
 			}
 		}
 	}
@@ -402,7 +440,9 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		}
 	}
 
-	patchedAllPages = appendTaxonomyStubs(patchedAllPages, newTaxonomies, b.config.Taxonomies)
+	for lang, langTax := range rebuildTaxByLang {
+		patchedAllPages = appendTaxonomyStubsForLang(patchedAllPages, langTax, b.config.Taxonomies, lang)
+	}
 	b.lastSiteCtx.Pages = patchedAllPages
 
 	rebuildLogger := engine.NewBuildLogger()
@@ -426,7 +466,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	warnings = append(warnings, pluginWarnings...)
 
 	b.lastAllPages = patchedAllPages
-	b.lastTaxonomies = newTaxonomies
+	b.lastTaxByLang = newTaxByLang
 	b.lastPageIndex = newPageIndex
 	b.lastValidationData = mergedValidation
 
@@ -666,37 +706,42 @@ func (b *SiteBuilder) renderDirtyCollectionPagination(collections map[string]*en
 	return nil
 }
 
-func appendTaxonomyStubs(pages []*engine.Page, taxonomies map[string]*engine.Taxonomy, cfg map[string]config.TaxonomyConfig) []*engine.Page {
+func appendTaxonomyStubsForLang(pages []*engine.Page, taxonomies map[string]*engine.Taxonomy, cfg map[string]config.TaxonomyConfig, lang string) []*engine.Page {
 	for taxName, tax := range taxonomies {
 		if !cfg[taxName].ShouldRender() {
 			continue
 		}
+		barePermalink := "/" + taxName + "/"
 		pages = append(pages, &engine.Page{
 			PageIdentity: engine.PageIdentity{
 				Title: tax.Name, Kind: engine.KindTaxonomy,
-				Permalink: tax.Permalink, RelPermalink: tax.Permalink,
+				Permalink: tax.Permalink, RelPermalink: barePermalink,
 			},
+			PageI18n: engine.PageI18n{Lang: lang},
 		})
 		paginateBy := tax.PaginateBy
 		if paginateBy <= 0 {
 			paginateBy = consts.DefaultPaginateBy
 		}
 		for _, term := range tax.Terms {
+			bareTermPermalink := barePermalink + term.Slug + "/"
 			pages = append(pages, &engine.Page{
 				PageIdentity: engine.PageIdentity{
 					Title: term.Label, Kind: engine.KindTerm,
-					Permalink: term.Permalink, RelPermalink: term.Permalink,
+					Permalink: term.Permalink, RelPermalink: bareTermPermalink,
 				},
+				PageI18n: engine.PageI18n{Lang: lang},
 			})
 			total := (len(term.Pages) + paginateBy - 1) / paginateBy
 			for n := 2; n <= total; n++ {
-				permalink := sardetemplate.PaginationURL(term.Permalink, n)
+				paginatedPermalink := sardetemplate.PaginationURL(term.Permalink, n)
 				pages = append(pages, &engine.Page{
 					PageIdentity: engine.PageIdentity{
 						Title: term.Label, Kind: engine.KindTerm,
-						Permalink: permalink, RelPermalink: permalink,
+						Permalink: paginatedPermalink, RelPermalink: bareTermPermalink,
 					},
-					Params: map[string]any{consts.PaginationCurrentKey: n},
+					PageI18n: engine.PageI18n{Lang: lang},
+					Params:   map[string]any{consts.PaginationCurrentKey: n},
 				})
 			}
 		}

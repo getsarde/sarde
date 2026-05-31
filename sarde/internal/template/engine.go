@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 
@@ -253,6 +254,17 @@ func renderLang(data *engine.RouteData, site *engine.SiteContext) string {
 	return "en"
 }
 
+// lookupTaxonomies returns the taxonomy map for the given language,
+// falling back to the default Taxonomies map.
+func (e *Engine) lookupTaxonomies(lang string) map[string]*engine.Taxonomy {
+	if e.site.TaxonomiesByLang != nil && lang != "" {
+		if m, ok := e.site.TaxonomiesByLang[lang]; ok {
+			return m
+		}
+	}
+	return e.site.Taxonomies
+}
+
 func (e *Engine) funcMapForLang(lang string) htmltemplate.FuncMap {
 	fm := make(htmltemplate.FuncMap, len(e.funcMap)+4)
 	for k, v := range e.funcMap {
@@ -275,7 +287,8 @@ func (e *Engine) funcMapForLang(lang string) htmltemplate.FuncMap {
 		slug := content.Slugify(termName)
 		url := "/" + taxonomyName + "/" + slug + "/"
 		if e.site != nil {
-			if tax, ok := e.site.Taxonomies[taxonomyName]; ok && tax != nil {
+			taxMap := e.lookupTaxonomies(lang)
+			if tax, ok := taxMap[taxonomyName]; ok && tax != nil {
 				if term, ok := tax.Terms[slug]; ok {
 					url = term.Permalink
 				}
@@ -285,6 +298,32 @@ func (e *Engine) funcMapForLang(lang string) htmltemplate.FuncMap {
 			url = e.urlResolver.URL(url, lang, "")
 		}
 		return url
+	}
+	fm["topTerms"] = func(taxonomyName string, n int) []*engine.TaxonomyTerm {
+		if e.site == nil {
+			return nil
+		}
+		taxMap := e.lookupTaxonomies(lang)
+		tax, ok := taxMap[taxonomyName]
+		if !ok || tax == nil {
+			return nil
+		}
+		terms := make([]*engine.TaxonomyTerm, 0, len(tax.Terms))
+		for _, t := range tax.Terms {
+			if !t.Hidden {
+				terms = append(terms, t)
+			}
+		}
+		sort.Slice(terms, func(i, j int) bool {
+			if len(terms[i].Pages) != len(terms[j].Pages) {
+				return len(terms[i].Pages) > len(terms[j].Pages)
+			}
+			return terms[i].Slug < terms[j].Slug
+		})
+		if n > 0 && n < len(terms) {
+			terms = terms[:n]
+		}
+		return terms
 	}
 	if e.pluginFuncs != nil {
 		if fn, ok := e.pluginFuncs[sardeplugin.LangAwareAnnouncementFunc].(func(string) htmltemplate.HTML); ok {

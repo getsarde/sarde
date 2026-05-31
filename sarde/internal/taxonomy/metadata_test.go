@@ -91,6 +91,109 @@ func TestLoadTermMetadata_EmptyFile(t *testing.T) {
 	}
 }
 
+func TestLoadTermMetadataForLang_NoOverlay(t *testing.T) {
+	dir := t.TempDir()
+	dataDir := filepath.Join(dir, "data")
+	os.MkdirAll(dataDir, 0755)
+	os.WriteFile(filepath.Join(dataDir, "tags.yml"), []byte(`
+go:
+  label: "Go"
+  color: "#00ADD8"
+`), 0644)
+
+	meta, err := LoadTermMetadataForLang(dir, "tags", "fr")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := meta["go"]
+	if m.Label != "Go" {
+		t.Errorf("Label = %q, want %q (base only, no overlay)", m.Label, "Go")
+	}
+}
+
+func TestLoadTermMetadataForLang_WithOverlay(t *testing.T) {
+	dir := t.TempDir()
+	dataDir := filepath.Join(dir, "data")
+	os.MkdirAll(dataDir, 0755)
+	os.WriteFile(filepath.Join(dataDir, "tags.yml"), []byte(`
+go:
+  label: "Go"
+  description: "The Go language"
+  color: "#00ADD8"
+rust:
+  label: "Rust"
+`), 0644)
+	os.WriteFile(filepath.Join(dataDir, "tags.fr.yml"), []byte(`
+go:
+  label: "Langage Go"
+  description: "Le langage Go"
+`), 0644)
+
+	meta, err := LoadTermMetadataForLang(dir, "tags", "fr")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	m := meta["go"]
+	if m.Label != "Langage Go" {
+		t.Errorf("Label = %q, want %q (overlay wins)", m.Label, "Langage Go")
+	}
+	if m.Description != "Le langage Go" {
+		t.Errorf("Description = %q, want overlay", m.Description)
+	}
+	if m.Color != "#00ADD8" {
+		t.Errorf("Color = %q, want base value (not overridden)", m.Color)
+	}
+
+	m2 := meta["rust"]
+	if m2.Label != "Rust" {
+		t.Errorf("rust Label = %q, want %q (base, no overlay)", m2.Label, "Rust")
+	}
+}
+
+func TestLoadTermMetadataForLang_EmptyLang(t *testing.T) {
+	dir := t.TempDir()
+	dataDir := filepath.Join(dir, "data")
+	os.MkdirAll(dataDir, 0755)
+	os.WriteFile(filepath.Join(dataDir, "tags.yml"), []byte(`
+go:
+  label: "Go"
+`), 0644)
+
+	meta, err := LoadTermMetadataForLang(dir, "tags", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if meta["go"].Label != "Go" {
+		t.Errorf("Label = %q, want %q (base only for empty lang)", meta["go"].Label, "Go")
+	}
+}
+
+func TestLoadTermMetadataForLang_OverlayNewKey(t *testing.T) {
+	dir := t.TempDir()
+	dataDir := filepath.Join(dir, "data")
+	os.MkdirAll(dataDir, 0755)
+	os.WriteFile(filepath.Join(dataDir, "tags.yml"), []byte(`
+go:
+  label: "Go"
+`), 0644)
+	os.WriteFile(filepath.Join(dataDir, "tags.fr.yml"), []byte(`
+python:
+  label: "Python (FR)"
+`), 0644)
+
+	meta, err := LoadTermMetadataForLang(dir, "tags", "fr")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if meta["go"].Label != "Go" {
+		t.Errorf("go Label = %q, want base", meta["go"].Label)
+	}
+	if meta["python"].Label != "Python (FR)" {
+		t.Errorf("python Label = %q, want overlay-only key", meta["python"].Label)
+	}
+}
+
 func TestLoadTermMetadata_PartialFields(t *testing.T) {
 	dir := t.TempDir()
 	dataDir := filepath.Join(dir, "data")

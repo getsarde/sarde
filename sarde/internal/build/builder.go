@@ -65,7 +65,7 @@ type SiteBuilder struct {
 	lastCollections    map[string]*engine.Collection
 	lastAllPages       []*engine.Page
 	lastSiteCtx        *engine.SiteContext
-	lastTaxonomies     map[string]*engine.Taxonomy
+	lastTaxByLang      map[string]map[string]*engine.Taxonomy
 	lastPageIndex      *content.PageIndex
 	lastOutputDir      string
 	lastAssetPipeline  *asset.Pipeline
@@ -247,20 +247,33 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 
 	collection.LinkVersions(allPages)
 
-	// Build taxonomies, scoped to the default language in multi-language sites
-	// so translated posts aren't counted once per language on a term page.
-	taxScopeLang := ""
-	if isMultiLang {
-		taxScopeLang = defaultLang
-	}
-	taxonomies := taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies, taxScopeLang)
+	// Build taxonomies. Multi-language sites get per-language maps; single-
+	// language sites build one map with lang="". Permalink resolution on the
+	// per-language instances happens after the URLResolver is created (below).
+	var taxonomies map[string]*engine.Taxonomy
+	var taxByLang map[string]map[string]*engine.Taxonomy
 
-	// Enrich taxonomies with metadata from data/*.yml and validate.
-	taxWarnings, err := taxonomy.EnrichTaxonomies(taxonomies, b.config.Taxonomies, b.projectDir)
-	if err != nil {
-		return nil, fmt.Errorf("enriching taxonomies: %w", err)
+	if isMultiLang {
+		langCodes := b.config.I18n.LanguageCodes()
+		taxByLang = make(map[string]map[string]*engine.Taxonomy, len(langCodes))
+		for _, code := range langCodes {
+			langTax := taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies, code)
+			w, err := taxonomy.EnrichTaxonomies(langTax, b.config.Taxonomies, b.projectDir, code)
+			if err != nil {
+				return nil, fmt.Errorf("enriching taxonomies for %s: %w", code, err)
+			}
+			emitTaxonomyWarnings(w)
+			taxByLang[code] = langTax
+		}
+		taxonomies = taxByLang[defaultLang]
+	} else {
+		taxonomies = taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies, "")
+		w, err := taxonomy.EnrichTaxonomies(taxonomies, b.config.Taxonomies, b.projectDir, "")
+		if err != nil {
+			return nil, fmt.Errorf("enriching taxonomies: %w", err)
+		}
+		emitTaxonomyWarnings(w)
 	}
-	emitTaxonomyWarnings(taxWarnings)
 
 	// Build SiteContext.
 	siteCtx := &engine.SiteContext{
@@ -269,9 +282,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		BasePath:    b.config.Build.BasePath,
 		Language:    b.config.Site.Language,
 		Config:      b.config,
-		Collections: collections,
-		Taxonomies:  taxonomies,
-		Pages:       allPages,
+		Collections:      collections,
+		Taxonomies:       taxonomies,
+		TaxonomiesByLang: taxByLang,
+		Pages:            allPages,
 		BuildTime:   time.Now(),
 		EditURL:     b.config.Site.EditURL,
 	}
@@ -297,6 +311,22 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	}
 	urlResolver := b.urlResolver
 	resolvePermalinks(urlResolver, allPages)
+
+	// Resolve per-language taxonomy permalinks through the URLResolver.
+	// Each language has its own *Taxonomy/*TaxonomyTerm instances, so
+	// mutation is safe. Downstream consumers (ComputeTermEntries, topTerms,
+	// templates) read term.Permalink — resolving here makes them lang-aware.
+	if taxByLang != nil {
+		for code, langTax := range taxByLang {
+			for _, tax := range langTax {
+				tax.Permalink = urlResolver.URL(tax.Permalink, code, "")
+				for _, term := range tax.Terms {
+					term.Permalink = urlResolver.URL(term.Permalink, code, "")
+				}
+			}
+		}
+		siteCtx.Taxonomies = taxByLang[defaultLang]
+	}
 
 	// i18n: populate site-level language info
 	if isMultiLang {
@@ -594,44 +624,97 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	}
 
 	// Synthesize taxonomy index and term pages.
+	// Multi-language: one set per language, cross-linked for LanguageSwitcher.
+	// Single-language: one set with lang="".
 	var taxonomyPages []*engine.Page
-	for _, taxName := range sortedTaxonomyNames(taxonomies) {
-		tax := taxonomies[taxName]
-		cfg := b.config.Taxonomies[taxName]
-		if !cfg.ShouldRender() {
+
+	allTaxByLang := taxByLang
+	if allTaxByLang == nil {
+		allTaxByLang = map[string]map[string]*engine.Taxonomy{"": taxonomies}
+	}
+
+	// Determine which languages to iterate and their sorted order.
+	var taxLangs []string
+	if isMultiLang {
+		taxLangs = b.config.I18n.LanguageCodes()
+	} else {
+		taxLangs = []string{""}
+	}
+
+	// Pass 1: build all index + term (page 1) stubs, keyed for cross-linking.
+	// byLang[code][key] → stub page, where key = taxName or taxName+"/"+slug.
+	stubsByLang := make(map[string]map[string]*engine.Page, len(taxLangs))
+	for _, lang := range taxLangs {
+		langTax := allTaxByLang[lang]
+		if langTax == nil {
 			continue
 		}
+		stubs := make(map[string]*engine.Page)
+		for _, taxName := range sortedTaxonomyNames(langTax) {
+			tax := langTax[taxName]
+			cfg := b.config.Taxonomies[taxName]
+			if !cfg.ShouldRender() {
+				continue
+			}
+			termEntries := taxonomy.ComputeTermEntries(tax)
+			taxStub := buildTaxonomyIndexStub(tax, termEntries, lang)
+			stubs[taxName] = taxStub
 
-		termEntries := taxonomy.ComputeTermEntries(tax)
-
-		// Taxonomy index page (e.g. /tags/).
-		taxStub := buildTaxonomyIndexStub(tax, termEntries)
-		syntheticPages = append(syntheticPages, taxStub)
-		taxonomyPages = append(taxonomyPages, taxStub)
-
-		// Per-term pages (e.g. /tags/go/, /tags/go/page/2/).
-		paginateBy := cfg.PaginateBy
-		if paginateBy <= 0 {
-			paginateBy = consts.DefaultPaginateBy
+			for _, term := range tax.Terms {
+				termStub := buildTermStub(tax, term, lang)
+				stubs[taxName+"/"+term.Slug] = termStub
+			}
 		}
-		for _, term := range tax.Terms {
-			totalTermPages := (len(term.Pages) + paginateBy - 1) / paginateBy
-			if totalTermPages < 1 {
-				totalTermPages = 1
+		stubsByLang[lang] = stubs
+	}
+
+	// Pass 2: cross-link, then collect into syntheticPages + taxonomyPages.
+	for _, lang := range taxLangs {
+		langTax := allTaxByLang[lang]
+		if langTax == nil {
+			continue
+		}
+		stubs := stubsByLang[lang]
+		for _, taxName := range sortedTaxonomyNames(langTax) {
+			tax := langTax[taxName]
+			cfg := b.config.Taxonomies[taxName]
+			if !cfg.ShouldRender() {
+				continue
 			}
 
-			// Page 1.
-			termStub := buildTermStub(tax, term)
-			syntheticPages = append(syntheticPages, termStub)
-			taxonomyPages = append(taxonomyPages, termStub)
+			taxStub := stubs[taxName]
+			if isMultiLang {
+				taxStub.Translations = crossLinkTaxStubs(stubsByLang, taxName, lang)
+				taxStub.AllTranslations = taxStub.Translations
+			}
+			syntheticPages = append(syntheticPages, taxStub)
+			taxonomyPages = append(taxonomyPages, taxStub)
 
-			// Pages 2..N.
-			for n := 2; n <= totalTermPages; n++ {
-				permalink := sardetemplate.PaginationURL(term.Permalink, n)
-				paginatedStub := buildTermPaginatedStub(tax, term, permalink, n)
-				syntheticPages = append(syntheticPages, paginatedStub)
-				taxonomyPages = append(taxonomyPages, paginatedStub)
-				paginatorPages++
+			paginateBy := cfg.PaginateBy
+			if paginateBy <= 0 {
+				paginateBy = consts.DefaultPaginateBy
+			}
+			for _, term := range tax.Terms {
+				key := taxName + "/" + term.Slug
+				termStub := stubs[key]
+				if isMultiLang {
+					termStub.Translations = crossLinkTermStubs(stubsByLang, key, lang)
+					termStub.AllTranslations = termStub.Translations
+				}
+				syntheticPages = append(syntheticPages, termStub)
+				taxonomyPages = append(taxonomyPages, termStub)
+
+				totalTermPages := (len(term.Pages) + paginateBy - 1) / paginateBy
+				if totalTermPages < 1 {
+					totalTermPages = 1
+				}
+				for n := 2; n <= totalTermPages; n++ {
+					permalink := sardetemplate.PaginationURL(term.Permalink, n)
+					paginatedStub := buildTermPaginatedStub(tax, term, permalink, n, lang)
+					syntheticPages = append(syntheticPages, paginatedStub)
+					taxonomyPages = append(taxonomyPages, paginatedStub)
+					paginatorPages++
+				}
 			}
 		}
 	}
@@ -841,7 +924,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	b.lastCollections = collections
 	b.lastAllPages = allPages
 	b.lastSiteCtx = siteCtx
-	b.lastTaxonomies = taxonomies
+	b.lastTaxByLang = taxByLang
 	b.lastPageIndex = pageIndex
 	b.lastOutputDir = outputDir
 	b.lastAssetPipeline = assetPipeline

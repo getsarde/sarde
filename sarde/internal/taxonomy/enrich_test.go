@@ -59,7 +59,7 @@ go:
 `)
 	cfg := map[string]config.TaxonomyConfig{"tags": {UndefinedTags: "ignore"}}
 
-	_, err := EnrichTaxonomies(tax, cfg, dir)
+	_, err := EnrichTaxonomies(tax, cfg, dir, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,7 +89,7 @@ func TestEnrich_DefaultLabel(t *testing.T) {
 	dir, tax := setupEnrichTest(t, "")
 	cfg := map[string]config.TaxonomyConfig{"tags": {}}
 
-	_, err := EnrichTaxonomies(tax, cfg, dir)
+	_, err := EnrichTaxonomies(tax, cfg, dir, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +104,7 @@ func TestEnrich_DateSorting(t *testing.T) {
 	dir, tax := setupEnrichTest(t, "")
 	cfg := map[string]config.TaxonomyConfig{"tags": {}}
 
-	_, err := EnrichTaxonomies(tax, cfg, dir)
+	_, err := EnrichTaxonomies(tax, cfg, dir, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -128,7 +128,7 @@ go:
 `)
 	cfg := map[string]config.TaxonomyConfig{"tags": {UndefinedTags: "warn"}}
 
-	warnings, err := EnrichTaxonomies(tax, cfg, dir)
+	warnings, err := EnrichTaxonomies(tax, cfg, dir, "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -144,7 +144,7 @@ go:
 `)
 	cfg := map[string]config.TaxonomyConfig{"tags": {UndefinedTags: "error"}}
 
-	_, err := EnrichTaxonomies(tax, cfg, dir)
+	_, err := EnrichTaxonomies(tax, cfg, dir, "")
 	if err == nil {
 		t.Fatal("expected error for undefined term in error mode")
 	}
@@ -157,7 +157,7 @@ go:
 `)
 	cfg := map[string]config.TaxonomyConfig{"tags": {UndefinedTags: "ignore"}}
 
-	warnings, err := EnrichTaxonomies(tax, cfg, dir)
+	warnings, err := EnrichTaxonomies(tax, cfg, dir, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,7 +173,7 @@ go:
 `)
 	cfg := map[string]config.TaxonomyConfig{"tags": {UndefinedTags: "create"}}
 
-	warnings, err := EnrichTaxonomies(tax, cfg, dir)
+	warnings, err := EnrichTaxonomies(tax, cfg, dir, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -186,7 +186,7 @@ func TestEnrich_ErrorModeNoDataFile(t *testing.T) {
 	dir, tax := setupEnrichTest(t, "")
 	cfg := map[string]config.TaxonomyConfig{"tags": {UndefinedTags: "error"}}
 
-	warnings, err := EnrichTaxonomies(tax, cfg, dir)
+	warnings, err := EnrichTaxonomies(tax, cfg, dir, "")
 	if err != nil {
 		t.Fatalf("should not error when no data file exists: %v", err)
 	}
@@ -195,11 +195,57 @@ func TestEnrich_ErrorModeNoDataFile(t *testing.T) {
 	}
 }
 
+func TestEnrich_PerLangOverlay(t *testing.T) {
+	dir := t.TempDir()
+	dataDir := filepath.Join(dir, "data")
+	os.MkdirAll(dataDir, 0755)
+	os.WriteFile(filepath.Join(dataDir, "tags.yml"), []byte(`
+go:
+  label: "Go"
+  description: "The Go language"
+rust:
+  label: "Rust"
+`), 0644)
+	os.WriteFile(filepath.Join(dataDir, "tags.fr.yml"), []byte(`
+go:
+  label: "Langage Go"
+`), 0644)
+
+	tax := map[string]*engine.Taxonomy{
+		"tags": {
+			Name: "tags", Singular: "tag", Permalink: "/tags/",
+			Terms: map[string]*engine.TaxonomyTerm{
+				"go":   {Name: "Go", Slug: "go", Permalink: "/tags/go/", Pages: []*engine.Page{{PageIdentity: engine.PageIdentity{Title: "P1"}}}},
+				"rust": {Name: "Rust", Slug: "rust", Permalink: "/tags/rust/", Pages: []*engine.Page{{PageIdentity: engine.PageIdentity{Title: "P2"}}}},
+			},
+		},
+	}
+	cfg := map[string]config.TaxonomyConfig{"tags": {UndefinedTags: "ignore"}}
+
+	_, err := EnrichTaxonomies(tax, cfg, dir, "fr")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	goTerm := tax["tags"].Terms["go"]
+	if goTerm.Label != "Langage Go" {
+		t.Errorf("go Label = %q, want %q (French overlay)", goTerm.Label, "Langage Go")
+	}
+	if goTerm.Description != "The Go language" {
+		t.Errorf("go Description = %q, want base value", goTerm.Description)
+	}
+
+	rustTerm := tax["tags"].Terms["rust"]
+	if rustTerm.Label != "Rust" {
+		t.Errorf("rust Label = %q, want %q (base, no French override)", rustTerm.Label, "Rust")
+	}
+}
+
 func TestEnrich_NoMetadataFile(t *testing.T) {
 	dir, tax := setupEnrichTest(t, "")
 	cfg := map[string]config.TaxonomyConfig{"tags": {}}
 
-	warnings, err := EnrichTaxonomies(tax, cfg, dir)
+	warnings, err := EnrichTaxonomies(tax, cfg, dir, "")
 	if err != nil {
 		t.Fatal(err)
 	}

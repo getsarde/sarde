@@ -212,14 +212,16 @@ func minifyRendered(rendered []RenderedPage, parallel bool, workerCount int) err
 // Taxonomy stub constructors
 // ---------------------------------------------------------------------------
 
-func buildTaxonomyIndexStub(tax *engine.Taxonomy, termEntries []*engine.TermEntry) *engine.Page {
+func buildTaxonomyIndexStub(tax *engine.Taxonomy, termEntries []*engine.TermEntry, lang string) *engine.Page {
+	barePermalink := "/" + tax.Name + "/"
 	return &engine.Page{
 		PageIdentity: engine.PageIdentity{
 			Title:        tax.Name,
 			Kind:         engine.KindTaxonomy,
 			Permalink:    tax.Permalink,
-			RelPermalink: tax.Permalink,
+			RelPermalink: barePermalink,
 		},
+		PageI18n: engine.PageI18n{Lang: lang},
 		Params: map[string]any{
 			consts.TaxonomyKey:    tax,
 			consts.TermEntriesKey: termEntries,
@@ -227,14 +229,16 @@ func buildTaxonomyIndexStub(tax *engine.Taxonomy, termEntries []*engine.TermEntr
 	}
 }
 
-func buildTermStub(tax *engine.Taxonomy, term *engine.TaxonomyTerm) *engine.Page {
+func buildTermStub(tax *engine.Taxonomy, term *engine.TaxonomyTerm, lang string) *engine.Page {
+	barePermalink := "/" + tax.Name + "/" + term.Slug + "/"
 	return &engine.Page{
 		PageIdentity: engine.PageIdentity{
 			Title:        term.Label,
 			Kind:         engine.KindTerm,
 			Permalink:    term.Permalink,
-			RelPermalink: term.Permalink,
+			RelPermalink: barePermalink,
 		},
+		PageI18n: engine.PageI18n{Lang: lang},
 		Params: map[string]any{
 			consts.TaxonomyKey:     tax,
 			consts.TaxonomyTermKey: term,
@@ -242,20 +246,50 @@ func buildTermStub(tax *engine.Taxonomy, term *engine.TaxonomyTerm) *engine.Page
 	}
 }
 
-func buildTermPaginatedStub(tax *engine.Taxonomy, term *engine.TaxonomyTerm, permalink string, n int) *engine.Page {
+func buildTermPaginatedStub(tax *engine.Taxonomy, term *engine.TaxonomyTerm, permalink string, n int, lang string) *engine.Page {
+	barePermalink := "/" + tax.Name + "/" + term.Slug + "/"
 	return &engine.Page{
 		PageIdentity: engine.PageIdentity{
 			Title:        term.Label,
 			Kind:         engine.KindTerm,
 			Permalink:    permalink,
-			RelPermalink: permalink,
+			RelPermalink: barePermalink,
 		},
+		PageI18n: engine.PageI18n{Lang: lang},
 		Params: map[string]any{
 			consts.TaxonomyKey:          tax,
 			consts.TaxonomyTermKey:      term,
 			consts.PaginationCurrentKey: n,
 		},
 	}
+}
+
+// crossLinkTaxStubs returns the other-language stubs for the same taxonomy index.
+func crossLinkTaxStubs(byLang map[string]map[string]*engine.Page, taxName, selfLang string) []*engine.Page {
+	var peers []*engine.Page
+	for lang, stubs := range byLang {
+		if lang == selfLang {
+			continue
+		}
+		if stub, ok := stubs[taxName]; ok {
+			peers = append(peers, stub)
+		}
+	}
+	return peers
+}
+
+// crossLinkTermStubs returns the other-language stubs for the same term.
+func crossLinkTermStubs(byLang map[string]map[string]*engine.Page, key, selfLang string) []*engine.Page {
+	var peers []*engine.Page
+	for lang, stubs := range byLang {
+		if lang == selfLang {
+			continue
+		}
+		if stub, ok := stubs[key]; ok {
+			peers = append(peers, stub)
+		}
+	}
+	return peers
 }
 
 // ---------------------------------------------------------------------------
