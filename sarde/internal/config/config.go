@@ -317,6 +317,7 @@ type SearchSettings struct {
 type LinkValidationSettings struct {
 	Enabled           *bool    `yaml:"enabled"`
 	Level             string   `yaml:"level"`
+	InternalLinks     string   `yaml:"internal_links"` // "error" (default) | "warn" | "ignore"
 	CheckAnchors      *bool    `yaml:"check_anchors"`
 	CheckImages       *bool    `yaml:"check_images"`
 	WarnRelativeLinks *bool    `yaml:"warn_relative_links"`

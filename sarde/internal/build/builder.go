@@ -19,6 +19,7 @@ import (
 	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/content/markdown"
+	"github.com/frostybee/sarde/internal/content/markdown/extensions/linkrender"
 	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/i18n"
@@ -404,6 +405,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	var validationMu sync.Mutex
 	validationData := make(map[string]engine.ValidationEntry)
 
+	// Internal link resolution: accumulated pending anchor checks and broken links.
+	var pendingAnchors []linkrender.PendingAnchorCheck
+	var brokenLinks []linkrender.BrokenLink
+
 	// Render markdown for all pages (after asset enhancement so image
 	// renderer can access processed resource data for <picture> generation).
 	markdownPages := countMarkdownPages(allPages)
@@ -432,6 +437,11 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			g.Go(func() error {
 				// Borrow a renderer from the pool (needed for both shortcode inner rendering and main render).
 				renderer := <-b.rendererPool
+				// Configure link resolver with current build's page index and URL resolver.
+				lr := renderer.LinkRenderer()
+				lr.PageIndex = pageIndex
+				lr.URLResolver = urlResolver
+				lr.Policy = b.config.LinkValidation.InternalLinks
 
 				// Pre-process shortcodes before Goldmark.
 				processed, scWarns := scProcessor.Process(page.RawContent, page, siteCtx, renderer)
@@ -461,8 +471,12 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 
 				lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor())
 				renderer.SetImageLookup(lookup)
+				renderer.SetLinkContext(page)
 
 				result, err := renderer.Render(processed)
+				// Drain link resolution results before returning renderer to pool.
+				pagePendingAnchors := renderer.LinkRenderer().DrainPendingAnchors()
+				pageBrokenLinks := renderer.LinkRenderer().DrainBrokenLinks()
 				b.rendererPool <- renderer // return to pool
 				if err != nil {
 					return fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
@@ -471,9 +485,13 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				page.Headings = result.Headings
 				page.HasCodeBlocks = result.HasCodeBlocks
 				page.HasImages = result.HasImages
-				if len(result.Links) > 0 {
+				if len(result.Links) > 0 || len(pagePendingAnchors) > 0 || len(pageBrokenLinks) > 0 {
 					validationMu.Lock()
-					validationData[page.Permalink] = engine.ValidationEntry{Links: result.Links, FilePath: page.FilePath}
+					if len(result.Links) > 0 {
+						validationData[page.Permalink] = engine.ValidationEntry{Links: result.Links, FilePath: page.FilePath}
+					}
+					pendingAnchors = append(pendingAnchors, pagePendingAnchors...)
+					brokenLinks = append(brokenLinks, pageBrokenLinks...)
 					validationMu.Unlock()
 				}
 
@@ -495,6 +513,12 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			return nil, err
 		}
 	} else {
+		// Configure link resolver for serial rendering.
+		lr := b.mdRenderer.LinkRenderer()
+		lr.PageIndex = pageIndex
+		lr.URLResolver = urlResolver
+		lr.Policy = b.config.LinkValidation.InternalLinks
+
 		deps := markdownRenderDeps{
 			scProcessor:    scProcessor,
 			shortcodesHash: shortcodesHash,
@@ -510,11 +534,41 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			if len(links) > 0 {
 				validationData[page.Permalink] = engine.ValidationEntry{Links: links, FilePath: page.FilePath}
 			}
+			// Drain link resolution results from serial renderer.
+			pendingAnchors = append(pendingAnchors, lr.DrainPendingAnchors()...)
+			brokenLinks = append(brokenLinks, lr.DrainBrokenLinks()...)
 		}
 	}
 	recordTiming("Rendering markdown")
 
 	populatePageIndexHeadings(pageIndex, allPages)
+
+	// Validate pending anchor checks now that all heading IDs are populated.
+	for _, check := range pendingAnchors {
+		if !pageIndex.HasHeading(check.TargetPermalink, check.Fragment) {
+			brokenLinks = append(brokenLinks, linkrender.BrokenLink{
+				SourceFile: check.SourceFile,
+				RawHref:    check.RawHref,
+			})
+		}
+	}
+
+	// Report broken internal links according to policy.
+	if len(brokenLinks) > 0 {
+		policy := b.config.LinkValidation.InternalLinks
+		if policy == "" {
+			policy = "error"
+		}
+		if policy != "ignore" {
+			for _, bl := range brokenLinks {
+				msg := fmt.Sprintf("broken internal link in %s → %q", bl.SourceFile, bl.RawHref)
+				warnings = append(warnings, engine.ValidationWarning{Message: msg, File: bl.SourceFile})
+			}
+			if policy == "error" {
+				return nil, fmt.Errorf("build failed: %d broken internal link(s) found (set link_validation.internal_links: warn to downgrade)", len(brokenLinks))
+			}
+		}
+	}
 
 	// Bundle global CSS/JS assets (processes head.custom_css/custom_js from config).
 	if err := assetPipeline.BundleGlobalAssets(); err != nil {

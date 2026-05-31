@@ -29,6 +29,7 @@ import (
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/timeline"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/imagerender"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/linkcollector"
+	"github.com/frostybee/sarde/internal/content/markdown/extensions/linkrender"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/video"
 	"github.com/frostybee/sarde/internal/engine"
 
@@ -50,12 +51,25 @@ type Renderer struct {
 	imgRend       *imagerender.Renderer       // mutable reference — swap lookup without rebuilding Goldmark
 	codeRend      *codeblock.Renderer         // mutable reference — read HasCodeBlocks flag after render
 	linkCollector *linkcollector.Collector     // mutable reference — collects link destinations per page
+	linkRend      *linkrender.Renderer         // mutable reference — resolves internal links per page
 }
 
 // SetImageLookup sets the lookup function for bundle-relative image processing.
 // Swaps the lookup on the existing image renderer without rebuilding the Goldmark instance.
 func (r *Renderer) SetImageLookup(lookup imagerender.ImageLookupFunc) {
 	r.imgRend.Lookup = lookup
+}
+
+// SetLinkContext sets the current page for internal link resolution.
+// Must be called before Render() for each page.
+func (r *Renderer) SetLinkContext(page *engine.Page) {
+	r.linkRend.SetPage(page)
+}
+
+// LinkRenderer returns the internal link renderer for external configuration
+// (setting PageIndex, URLResolver, Policy).
+func (r *Renderer) LinkRenderer() *linkrender.Renderer {
+	return r.linkRend
 }
 
 // ImageLookupForPage creates a lookup function for a specific page's resources.
@@ -141,6 +155,7 @@ func NewRendererFromConfig(cfg RendererConfig) *Renderer {
 		imgRend:       imagerender.NewRenderer(nil),
 		codeRend:      codeblock.NewRenderer(),
 		linkCollector: linkcollector.NewCollector(),
+		linkRend:      linkrender.NewRenderer(),
 	}
 	r.md = r.buildMarkdown(cfg)
 	return r
@@ -195,6 +210,7 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) goldmark.Markdown {
 			gmhtml.WithUnsafe(),
 			gmrenderer.WithNodeRenderers(
 				util.Prioritized(r.codeRend, 100),
+				util.Prioritized(r.linkRend, 49),
 			),
 		),
 	)
@@ -205,6 +221,7 @@ func (r *Renderer) ResetFlags() {
 	r.codeRend.HasCodeBlocks = false
 	r.imgRend.HasImages = false
 	r.linkCollector.Reset()
+	r.linkRend.Reset()
 }
 
 // Render converts markdown to HTML, extracts headings, and returns both.

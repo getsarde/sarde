@@ -312,6 +312,12 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		mergedValidation[k] = v
 	}
 
+	// Configure link resolver for incremental re-render.
+	lr := b.mdRenderer.LinkRenderer()
+	lr.PageIndex = newPageIndex
+	lr.URLResolver = b.urlResolver
+	lr.Policy = b.config.LinkValidation.InternalLinks
+
 	deps := markdownRenderDeps{
 		scProcessor:    b.lastScProcessor,
 		shortcodesHash: b.lastShortcodesHash,

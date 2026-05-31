@@ -307,6 +307,7 @@ func mergeSearch(base, over *SearchSettings) {
 func mergeLinkValidation(base, over *LinkValidationSettings) {
 	mergeBoolP(&base.Enabled, over.Enabled)
 	mergeStr(&base.Level, over.Level)
+	mergeStr(&base.InternalLinks, over.InternalLinks)
 	mergeBoolP(&base.CheckAnchors, over.CheckAnchors)
 	mergeBoolP(&base.CheckImages, over.CheckImages)
 	mergeBoolP(&base.WarnRelativeLinks, over.WarnRelativeLinks)

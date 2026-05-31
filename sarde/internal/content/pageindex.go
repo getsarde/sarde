@@ -9,11 +9,18 @@ import (
 	"github.com/frostybee/sarde/internal/engine"
 )
 
-// PageIndex provides O(1) lookups of pages by permalink, slug, and heading ID.
-// It also tracks static assets and heading IDs for link validation.
+// laneKey identifies a content lane (language + version).
+type laneKey struct {
+	Lang    string
+	Version string // "" for latest/unversioned
+}
+
+// PageIndex provides O(1) lookups of pages by permalink, slug, heading ID,
+// and lane-scoped RelPermalink for internal link resolution.
 type PageIndex struct {
 	byPermalink map[string]*engine.Page
 	bySlug      map[string]*engine.Page
+	byLane      map[laneKey]map[string]*engine.Page // relPermalink → *Page per (lang, version)
 	headings    map[string][]string
 	assets      map[string]bool
 
@@ -22,10 +29,12 @@ type PageIndex struct {
 
 // BuildPageIndex constructs a PageIndex from all pages.
 // The bySlug map uses first-match semantics for duplicate slugs.
+// The byLane map indexes each page by its RelPermalink within its (lang, version) lane.
 func BuildPageIndex(pages []*engine.Page) *PageIndex {
 	idx := &PageIndex{
 		byPermalink: make(map[string]*engine.Page, len(pages)),
 		bySlug:      make(map[string]*engine.Page, len(pages)),
+		byLane:      make(map[laneKey]map[string]*engine.Page),
 		headings:    make(map[string][]string),
 		assets:      make(map[string]bool),
 	}
@@ -37,6 +46,16 @@ func BuildPageIndex(pages []*engine.Page) *PageIndex {
 			if _, exists := idx.bySlug[p.Slug]; !exists {
 				idx.bySlug[p.Slug] = p
 			}
+		}
+		// Lane index: register by RelPermalink within (lang, version).
+		if p.RelPermalink != "" {
+			key := laneKey{Lang: p.Lang, Version: p.Version}
+			lane, ok := idx.byLane[key]
+			if !ok {
+				lane = make(map[string]*engine.Page)
+				idx.byLane[key] = lane
+			}
+			lane[p.RelPermalink] = p
 		}
 	}
 	return idx
@@ -56,6 +75,16 @@ func (idx *PageIndex) LookupByPermalink(permalink string) *engine.Page {
 // LookupBySlug returns the first page matching the given slug, or nil.
 func (idx *PageIndex) LookupBySlug(slug string) *engine.Page {
 	return idx.bySlug[slug]
+}
+
+// LookupInLane returns the page with the given RelPermalink in the specified
+// (lang, version) lane. Returns nil if not found.
+func (idx *PageIndex) LookupInLane(relPermalink, lang, version string) *engine.Page {
+	lane, ok := idx.byLane[laneKey{Lang: lang, Version: version}]
+	if !ok {
+		return nil
+	}
+	return lane[relPermalink]
 }
 
 // SetHeadings stores heading IDs for a page. "_top" is always prepended.

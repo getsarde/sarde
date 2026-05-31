@@ -181,6 +181,74 @@ func TestPageIndexEmpty(t *testing.T) {
 	}
 }
 
+func TestLookupInLane(t *testing.T) {
+	enLatest := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "auth", RelPermalink: "/docs/guides/auth/", Permalink: "/docs/guides/auth/"},
+		PageI18n:     engine.PageI18n{Lang: "en"},
+		PageVersioning: engine.PageVersioning{Version: "v2"},
+	}
+	enV1 := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "auth", RelPermalink: "/docs/guides/auth/", Permalink: "/docs/v1/guides/auth/"},
+		PageI18n:     engine.PageI18n{Lang: "en"},
+		PageVersioning: engine.PageVersioning{Version: "v1"},
+	}
+	frLatest := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "auth", RelPermalink: "/docs/guides/auth/", Permalink: "/fr/docs/guides/auth/"},
+		PageI18n:     engine.PageI18n{Lang: "fr"},
+		PageVersioning: engine.PageVersioning{Version: "v2"},
+	}
+	blogPost := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "hello", RelPermalink: "/blog/hello/", Permalink: "/blog/hello/"},
+		PageI18n:     engine.PageI18n{Lang: "en"},
+	}
+
+	idx := BuildPageIndex([]*engine.Page{enLatest, enV1, frLatest, blogPost})
+
+	tests := []struct {
+		name         string
+		relPermalink string
+		lang         string
+		version      string
+		want         *engine.Page
+	}{
+		{"en latest", "/docs/guides/auth/", "en", "v2", enLatest},
+		{"en v1", "/docs/guides/auth/", "en", "v1", enV1},
+		{"fr latest", "/docs/guides/auth/", "fr", "v2", frLatest},
+		{"blog en", "/blog/hello/", "en", "", blogPost},
+		{"wrong lang", "/docs/guides/auth/", "de", "v2", nil},
+		{"wrong version", "/docs/guides/auth/", "en", "v3", nil},
+		{"wrong path", "/docs/guides/missing/", "en", "v2", nil},
+		{"empty lane", "/anything/", "xx", "yy", nil},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := idx.LookupInLane(tt.relPermalink, tt.lang, tt.version)
+			if got != tt.want {
+				t.Errorf("LookupInLane(%q, %q, %q) = %v, want %v", tt.relPermalink, tt.lang, tt.version, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestLookupInLaneUnversioned(t *testing.T) {
+	page := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "post", RelPermalink: "/blog/post/", Permalink: "/blog/post/"},
+		PageI18n:     engine.PageI18n{Lang: "en"},
+	}
+	idx := BuildPageIndex([]*engine.Page{page})
+
+	got := idx.LookupInLane("/blog/post/", "en", "")
+	if got != page {
+		t.Error("LookupInLane for unversioned page should return the page")
+	}
+
+	got = idx.LookupInLane("/blog/post/", "en", "v1")
+	if got != nil {
+		t.Error("LookupInLane with wrong version should return nil")
+	}
+}
+
 func TestNormalizePermalink(t *testing.T) {
 	tests := []struct {
 		input string
