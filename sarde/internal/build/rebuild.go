@@ -9,15 +9,15 @@ import (
 	"time"
 
 	"github.com/frostybee/sarde/internal/collection"
-	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/content"
+	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/i18n"
 	"github.com/frostybee/sarde/internal/plugin"
-	sardetemplate "github.com/frostybee/sarde/internal/template"
 	"github.com/frostybee/sarde/internal/taxonomy"
+	sardetemplate "github.com/frostybee/sarde/internal/template"
 	"github.com/frostybee/sarde/internal/theme/syntax"
 	"github.com/frostybee/sarde/internal/workers"
 )
@@ -320,6 +320,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	deps := markdownRenderDeps{
 		scProcessor:    b.lastScProcessor,
 		shortcodesHash: b.lastShortcodesHash,
+		resolutionKey:  b.resolutionKey,
 		pageCache:      b.lastPageCache,
 		assetPipeline:  b.lastAssetPipeline,
 	}

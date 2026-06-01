@@ -40,6 +40,29 @@ func setupTestEnv() (*markdown.Renderer, *engine.Page, *links.LinkGraph) {
 	return r, currentPage, graph
 }
 
+func TestLinkButtonSiteAbsoluteResolvesNoNewTab(t *testing.T) {
+	r, _, graph := setupTestEnv()
+
+	// Extension-less site-absolute href resolves through the shared link renderer.
+	md := ":::link-button[Auth]{href=\"/docs/guide/auth\"}\n:::"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatalf("Render error: %v", err)
+	}
+
+	if !strings.Contains(result.HTML, `href="/docs/guide/auth/"`) {
+		t.Errorf("Expected resolved site-absolute href in link-button, got: %s", result.HTML)
+	}
+	if strings.Contains(result.HTML, `target="_blank"`) {
+		t.Errorf("Internal link-button must NOT open in a new tab, got: %s", result.HTML)
+	}
+
+	refs := graph.Refs()
+	if len(refs) == 0 || refs[0].Status != links.StatusOK {
+		t.Errorf("Expected StatusOK for resolved site-absolute link, got: %v", refs)
+	}
+}
+
 func TestLinkButtonResolvesRelativeHref(t *testing.T) {
 	r, _, graph := setupTestEnv()
 

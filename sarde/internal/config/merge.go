@@ -313,6 +313,7 @@ func mergeLinkValidation(base, over *LinkValidationSettings) {
 	mergeStr(&base.Report, over.Report)
 	mergeStr(&base.OnRelativeLinks, over.OnRelativeLinks)
 	mergeStr(&base.OnLocalLinks, over.OnLocalLinks)
+	mergeStr(&base.OnUnverifiedInternal, over.OnUnverifiedInternal)
 	mergeBoolP(&base.CheckAnchors, over.CheckAnchors)
 	mergeBoolP(&base.CheckImages, over.CheckImages)
 	mergeBoolP(&base.WarnRelativeLinks, over.WarnRelativeLinks)

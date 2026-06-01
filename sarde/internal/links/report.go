@@ -18,6 +18,7 @@ const (
 	FindingLocalLink
 	FindingSameSite
 	FindingExternalBroken
+	FindingUnverifiedInternal
 )
 
 func (ft FindingType) String() string {
@@ -34,6 +35,8 @@ func (ft FindingType) String() string {
 		return "same_site"
 	case FindingExternalBroken:
 		return "external_broken"
+	case FindingUnverifiedInternal:
+		return "unverified_internal"
 	default:
 		return "unknown"
 	}
@@ -53,6 +56,8 @@ func (ft FindingType) Label() string {
 		return "same site"
 	case FindingExternalBroken:
 		return "external broken"
+	case FindingUnverifiedInternal:
+		return "unverified internal"
 	default:
 		return "unknown"
 	}
@@ -68,14 +73,15 @@ type Finding struct {
 // LinkCheckConfig holds resolved policy values for report generation.
 // Avoids importing internal/config in this package.
 type LinkCheckConfig struct {
-	OnBroken         string
-	OnBrokenAnchor   string
-	OnRelativeLinks  string
-	OnLocalLinks     string
-	SameSitePolicy   string
-	ReportFormat     string
-	Exclude          []string
-	OnExternalBroken string
+	OnBroken             string
+	OnBrokenAnchor       string
+	OnRelativeLinks      string
+	OnLocalLinks         string
+	SameSitePolicy       string
+	ReportFormat         string
+	Exclude              []string
+	OnExternalBroken     string
+	OnUnverifiedInternal string
 }
 
 // ReportInput bundles everything GenerateReport needs.
@@ -193,6 +199,18 @@ func classifyRefs(refs []LinkRef, cfg LinkCheckConfig, siteURL string) []Finding
 			}
 			findings = append(findings, Finding{
 				Type: FindingExternalBroken, Ref: ref, Policy: policy,
+			})
+
+		case StatusUnverified:
+			policy := cfg.OnUnverifiedInternal
+			if policy == "" {
+				policy = "warn"
+			}
+			if policy == "ignore" {
+				continue
+			}
+			findings = append(findings, Finding{
+				Type: FindingUnverifiedInternal, Ref: ref, Policy: policy,
 			})
 		}
 	}

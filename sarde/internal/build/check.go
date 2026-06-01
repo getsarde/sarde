@@ -39,6 +39,7 @@ func (b *SiteBuilder) Check(opts CheckOptions) (*CheckResult, error) {
 		b.config.LinkValidation.OnBrokenAnchor = "error"
 		b.config.LinkValidation.OnRelativeLinks = "error"
 		b.config.LinkValidation.OnLocalLinks = "error"
+		b.config.LinkValidation.OnUnverifiedInternal = "error"
 		b.config.LinkValidation.External.OnBroken = "error"
 		b.config.LinkValidation.SameSitePolicy = "error"
 	}

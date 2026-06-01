@@ -38,13 +38,18 @@ func (r *linkCardRenderer) render(w util.BufWriter, source []byte, node ast.Node
 		if r.linkRenderer != nil {
 			href = r.linkRenderer.ResolveHref(href)
 		}
+		isExternal := strings.HasPrefix(href, "http://") || strings.HasPrefix(href, "https://")
 
 		title := lc.Title
 		if title == "" {
 			title = domainFromURL(lc.Href)
 		}
-		_, _ = fmt.Fprintf(w, "<a href=\"%s\" class=\"sarde-link-card\" target=\"_blank\" rel=\"noopener noreferrer\">\n",
-			htmlutil.EscapeHTML(href))
+		attrs := fmt.Sprintf("href=\"%s\" class=\"sarde-link-card\"", htmlutil.EscapeHTML(href))
+		if isExternal {
+			// Only external links open in a new tab; resolved internal URLs stay same-tab.
+			attrs += ` target="_blank" rel="noopener noreferrer"`
+		}
+		_, _ = fmt.Fprintf(w, "<a %s>\n", attrs)
 		if lc.Icon != "" {
 			if svg := icons.GetWithClass(lc.Icon, "sarde-link-card-icon"); svg != "" {
 				_, _ = w.WriteString(svg)
@@ -70,4 +75,3 @@ func domainFromURL(href string) string {
 	host = strings.TrimPrefix(host, "www.")
 	return host
 }
-

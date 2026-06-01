@@ -109,6 +109,61 @@ func TestLinkCardExternalHrefPassesThrough(t *testing.T) {
 	}
 }
 
+func TestLinkCardSiteAbsoluteResolvesNoNewTab(t *testing.T) {
+	r, _, graph := setupTestEnv()
+
+	// Extension-less site-absolute href to an existing page.
+	md := ":::link-card[Auth]{href=\"/docs/guide/auth\"}\n:::"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatalf("Render error: %v", err)
+	}
+
+	if !strings.Contains(result.HTML, `href="/docs/guide/auth/"`) {
+		t.Errorf("Expected resolved site-absolute href, got: %s", result.HTML)
+	}
+	if strings.Contains(result.HTML, `target="_blank"`) {
+		t.Errorf("Internal link-card must NOT open in a new tab, got: %s", result.HTML)
+	}
+
+	refs := graph.Refs()
+	if len(refs) == 0 || refs[0].Status != links.StatusOK {
+		t.Errorf("Expected StatusOK for resolved site-absolute link, got: %v", refs)
+	}
+}
+
+func TestLinkCardInternalNoNewTab(t *testing.T) {
+	r, _, _ := setupTestEnv()
+
+	// A resolved relative link is internal — it must stay in the same tab.
+	md := ":::link-card[Auth Guide]{href=\"./auth.md\"}\n:::"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatalf("Render error: %v", err)
+	}
+
+	if strings.Contains(result.HTML, `target="_blank"`) {
+		t.Errorf("Internal link-card must NOT open in a new tab, got: %s", result.HTML)
+	}
+}
+
+func TestLinkCardExternalKeepsNewTab(t *testing.T) {
+	r, _, _ := setupTestEnv()
+
+	md := ":::link-card[GitHub]{href=\"https://github.com\"}\n:::"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatalf("Render error: %v", err)
+	}
+
+	if !strings.Contains(result.HTML, `target="_blank"`) {
+		t.Errorf("External link-card must open in a new tab, got: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, `rel="noopener noreferrer"`) {
+		t.Errorf("External link-card must carry rel=noopener noreferrer, got: %s", result.HTML)
+	}
+}
+
 func TestLinkCardContentRootHref(t *testing.T) {
 	r, _, graph := setupTestEnv()
 

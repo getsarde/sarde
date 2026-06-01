@@ -15,6 +15,7 @@ const (
 	StatusBrokenAnchor                     // target page found but heading ID missing
 	StatusExternal                         // external URL, unchecked by internal resolver
 	StatusExternalBroken                   // external URL probed and returned non-2xx/3xx
+	StatusUnverified                       // internal page-like link that didn't resolve in-lane (cross-lane or typo)
 )
 
 // DimKey identifies the content dimension a link was resolved in.
@@ -43,10 +44,10 @@ type LinkKind int
 
 const (
 	KindRelative    LinkKind = iota // ./ or ../
-	KindContentRoot                // leading / within collection
-	KindAnchorOnly                 // #fragment with no path
-	KindExternal                   // http(s)://, mailto:, etc.
-	KindAmbiguous                  // bare name — rejected
+	KindContentRoot                 // leading / within collection
+	KindAnchorOnly                  // #fragment with no path
+	KindExternal                    // http(s)://, mailto:, etc.
+	KindAmbiguous                   // bare name — rejected
 )
 
 // LinkGraph records every link resolution attempt during a build for
@@ -108,6 +109,19 @@ func (g *LinkGraph) ExternalRefs() []LinkRef {
 		}
 	}
 	return ext
+}
+
+// UnverifiedRefs returns only the refs with Unverified status.
+func (g *LinkGraph) UnverifiedRefs() []LinkRef {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	var unv []LinkRef
+	for _, ref := range g.refs {
+		if ref.Status == StatusUnverified {
+			unv = append(unv, ref)
+		}
+	}
+	return unv
 }
 
 // MarkExternalBroken transitions all refs whose RawDest equals url

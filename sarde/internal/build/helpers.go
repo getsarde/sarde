@@ -129,6 +129,7 @@ func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext)
 type markdownRenderDeps struct {
 	scProcessor    *shortcode.Processor
 	shortcodesHash string
+	resolutionKey  string
 	pageCache      *PageCache
 	assetPipeline  *asset.Pipeline
 }
@@ -143,7 +144,7 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 	}
 
 	processed, scWarns := deps.scProcessor.Process(page.RawContent, page, siteCtx, b.mdRenderer)
-	hash := ContentHash(processed + deps.shortcodesHash)
+	hash := ContentHash(processed + deps.shortcodesHash + deps.resolutionKey)
 
 	if deps.pageCache != nil {
 		if entry := deps.pageCache.Get(hash); entry != nil {

@@ -22,8 +22,8 @@ import (
 	"github.com/frostybee/sarde/internal/content/markdown"
 	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/links"
 	"github.com/frostybee/sarde/internal/i18n"
+	"github.com/frostybee/sarde/internal/links"
 	"github.com/frostybee/sarde/internal/plugin"
 	"github.com/frostybee/sarde/internal/plugin/announcements"
 	"github.com/frostybee/sarde/internal/plugin/clientplugins"
@@ -61,12 +61,13 @@ type SiteBuilder struct {
 	rendererPool chan *markdown.Renderer // lazily initialized pool, persisted across rebuilds
 	built        bool                    // true after first Build(); gates one-time registrations
 
-	urlResolver  *engine.URLResolver // URL resolver for basePath prefixing
-	linkGraph    *links.LinkGraph
-	lastCoverage links.CoverageSummary
+	urlResolver   *engine.URLResolver // URL resolver for basePath prefixing
+	resolutionKey string              // digest of resolver state; folded into page-cache keys
+	linkGraph     *links.LinkGraph
+	lastCoverage  links.CoverageSummary
 
-	checkOnly          bool               // when true, Build() returns after link validation
-	checkReportResult  *links.ReportResult // stored for Check() to read after Build() returns
+	checkOnly         bool                // when true, Build() returns after link validation
+	checkReportResult *links.ReportResult // stored for Check() to read after Build() returns
 
 	// Last-build state for incremental rebuild.
 	lastCollections    map[string]*engine.Collection
@@ -284,17 +285,17 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 
 	// Build SiteContext.
 	siteCtx := &engine.SiteContext{
-		Title:       b.config.Site.Title,
-		BaseURL:     b.config.Site.URL,
-		BasePath:    b.config.Build.BasePath,
-		Language:    b.config.Site.Language,
-		Config:      b.config,
+		Title:            b.config.Site.Title,
+		BaseURL:          b.config.Site.URL,
+		BasePath:         b.config.Build.BasePath,
+		Language:         b.config.Site.Language,
+		Config:           b.config,
 		Collections:      collections,
 		Taxonomies:       taxonomies,
 		TaxonomiesByLang: taxByLang,
 		Pages:            allPages,
-		BuildTime:   time.Now(),
-		EditURL:     b.config.Site.EditURL,
+		BuildTime:        time.Now(),
+		EditURL:          b.config.Site.EditURL,
 	}
 
 	// Resolve all Permalink fields through the URL resolver.
@@ -317,6 +318,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		VersionIDs:       versionIDs,
 	}
 	urlResolver := b.urlResolver
+	// Digest of all resolution-affecting state; folded into page-cache keys so a
+	// base-path / i18n / version / mount change busts stale rendered HTML.
+	b.resolutionKey = urlResolver.CacheKey()
 	resolvePermalinks(urlResolver, allPages)
 
 	// Resolve per-language taxonomy permalinks through the URLResolver.
@@ -403,7 +407,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	shortcodesHash := scRegistry.TemplateHash()
 
 	var pageCache *PageCache
-	if config.BoolVal(b.config.Build.Cache, true) {
+	// Disable the cache in check mode: a forced fresh render guarantees the link
+	// graph is fully populated (a cache hit would skip link recording, making
+	// `sarde check` report "0 links" on a warm cache).
+	if config.BoolVal(b.config.Build.Cache, true) && !b.checkOnly {
 		pageCache = NewPageCache(b.projectDir)
 	}
 
@@ -460,7 +467,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				}
 
 				// Check cache first.
-				hash := ContentHash(processed + shortcodesHash)
+				hash := ContentHash(processed + shortcodesHash + b.resolutionKey)
 				if pageCache != nil {
 					if entry := pageCache.Get(hash); entry != nil {
 						page.Content = htmltemplate.HTML(entry.HTML)
@@ -528,6 +535,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		deps := markdownRenderDeps{
 			scProcessor:    scProcessor,
 			shortcodesHash: shortcodesHash,
+			resolutionKey:  b.resolutionKey,
 			pageCache:      pageCache,
 			assetPipeline:  assetPipeline,
 		}
@@ -609,14 +617,15 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			Graph:    b.linkGraph,
 			Coverage: b.lastCoverage,
 			Config: links.LinkCheckConfig{
-				OnBroken:         lvc.EffectiveOnBroken(),
-				OnBrokenAnchor:   lvc.EffectiveOnBrokenAnchor(),
-				OnRelativeLinks:  lvc.EffectiveOnRelativeLinks(),
-				OnLocalLinks:     lvc.EffectiveOnLocalLinks(),
-				SameSitePolicy:   lvc.SameSitePolicy,
-				ReportFormat:     lvc.EffectiveReport(),
-				Exclude:          lvc.Exclude,
-				OnExternalBroken: lvc.EffectiveExternalOnBroken(),
+				OnBroken:             lvc.EffectiveOnBroken(),
+				OnBrokenAnchor:       lvc.EffectiveOnBrokenAnchor(),
+				OnRelativeLinks:      lvc.EffectiveOnRelativeLinks(),
+				OnLocalLinks:         lvc.EffectiveOnLocalLinks(),
+				SameSitePolicy:       lvc.SameSitePolicy,
+				ReportFormat:         lvc.EffectiveReport(),
+				Exclude:              lvc.Exclude,
+				OnExternalBroken:     lvc.EffectiveExternalOnBroken(),
+				OnUnverifiedInternal: lvc.EffectiveOnUnverifiedInternal(),
 			},
 			SiteURL: siteURL,
 		})
@@ -871,9 +880,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	// Render 404 page(s).
 	render404 := func(lang, dir, outPath string) {
 		page404 := &engine.Page{
-				PageIdentity: engine.PageIdentity{Title: "Page Not Found", Kind: engine.KindPage},
-				PageI18n:     engine.PageI18n{Lang: lang},
-			}
+			PageIdentity: engine.PageIdentity{Title: "Page Not Found", Kind: engine.KindPage},
+			PageI18n:     engine.PageI18n{Lang: lang},
+		}
 		templateName := consts.DirDefault + "/404"
 
 		// Convention: auto-detect content/404.md (or content/404.<lang>.md).

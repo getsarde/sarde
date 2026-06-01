@@ -53,6 +53,71 @@ func TestGenerateReport_BrokenTarget(t *testing.T) {
 	}
 }
 
+func TestGenerateReport_UnverifiedInternal_DefaultWarn(t *testing.T) {
+	graph := NewLinkGraph()
+	graph.Record(LinkRef{
+		FromFile: "content/docs/guide.md",
+		RawDest:  "/docs/guide/ath",
+		Dim:      DimKey{Collection: "docs", Lang: "en"},
+		Kind:     KindContentRoot,
+		Status:   StatusUnverified,
+	})
+
+	result := GenerateReport(ReportInput{
+		Graph:    graph,
+		Coverage: CoverageSummary{TotalLinks: 1, TotalLanes: 1},
+		// Empty policy → defaults to "warn".
+		Config: LinkCheckConfig{ReportFormat: "pretty"},
+	})
+
+	if result.HasErrors {
+		t.Error("unverified_internal should warn, not error, by default")
+	}
+	if len(result.Findings) != 1 {
+		t.Fatalf("expected 1 finding, got %d", len(result.Findings))
+	}
+	if result.Findings[0].Type != FindingUnverifiedInternal {
+		t.Errorf("expected FindingUnverifiedInternal, got %s", result.Findings[0].Type.String())
+	}
+	if result.Findings[0].Policy != "warn" {
+		t.Errorf("expected policy warn, got %q", result.Findings[0].Policy)
+	}
+}
+
+func TestGenerateReport_UnverifiedInternal_StrictError(t *testing.T) {
+	graph := NewLinkGraph()
+	graph.Record(LinkRef{
+		FromFile: "content/docs/guide.md",
+		RawDest:  "/docs/guide/ath",
+		Status:   StatusUnverified,
+	})
+
+	result := GenerateReport(ReportInput{
+		Graph:    graph,
+		Coverage: CoverageSummary{TotalLinks: 1, TotalLanes: 1},
+		Config:   LinkCheckConfig{OnUnverifiedInternal: "error", ReportFormat: "pretty"},
+	})
+
+	if !result.HasErrors {
+		t.Error("expected errors when on_unverified_internal=error (strict mode)")
+	}
+}
+
+func TestGenerateReport_UnverifiedInternal_Ignore(t *testing.T) {
+	graph := NewLinkGraph()
+	graph.Record(LinkRef{RawDest: "/docs/guide/ath", Status: StatusUnverified})
+
+	result := GenerateReport(ReportInput{
+		Graph:    graph,
+		Coverage: CoverageSummary{TotalLinks: 1, TotalLanes: 1},
+		Config:   LinkCheckConfig{OnUnverifiedInternal: "ignore", ReportFormat: "pretty"},
+	})
+
+	if len(result.Findings) != 0 {
+		t.Errorf("expected 0 findings when ignored, got %d", len(result.Findings))
+	}
+}
+
 func TestGenerateReport_BrokenAnchor(t *testing.T) {
 	graph := NewLinkGraph()
 	graph.Record(LinkRef{
@@ -426,6 +491,7 @@ func TestFindingTypeString(t *testing.T) {
 		{FindingLocalLink, "local_link"},
 		{FindingSameSite, "same_site"},
 		{FindingExternalBroken, "external_broken"},
+		{FindingUnverifiedInternal, "unverified_internal"},
 	}
 	for _, tt := range tests {
 		if got := tt.ft.String(); got != tt.want {

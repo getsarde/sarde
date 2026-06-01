@@ -31,34 +31,34 @@ func BoolVal(p *bool, fallback bool) bool {
 // top-level key in sarde.yaml. Booleans use *bool so the merge layer can
 // distinguish "not set" from "explicitly false".
 type SiteConfig struct {
-	Site           SiteIdentity                  `yaml:"site"`
-	Social         []SocialLink                  `yaml:"social"`
-	Theme          ThemeSettings                 `yaml:"theme"`
-	TOC            TOCSettings                   `yaml:"toc"`
-	Sidebar        SidebarSettings               `yaml:"sidebar"`
-	Header         HeaderSettings                `yaml:"header"`
-	Footer         FooterSettings                `yaml:"footer"`
-	Head           HeadSettings                  `yaml:"head"`
-	Build          BuildSettings                 `yaml:"build"`
-	Markdown       MarkdownSettings              `yaml:"markdown"`
-	Prefetch       PrefetchSettings              `yaml:"prefetch"`
-	Images         ImageSettings                 `yaml:"images"`
-	Search         SearchSettings                `yaml:"search"`
-	LinkValidation LinkValidationSettings        `yaml:"link_validation"`
-	ContentLint    ContentLintSettings           `yaml:"content_lint"`
-	Analytics      AnalyticsSettings             `yaml:"analytics"`
-	Deploy         DeployConfig                  `yaml:"deploy"`
-	Redirects      map[string]string             `yaml:"redirects"`
+	Site           SiteIdentity                     `yaml:"site"`
+	Social         []SocialLink                     `yaml:"social"`
+	Theme          ThemeSettings                    `yaml:"theme"`
+	TOC            TOCSettings                      `yaml:"toc"`
+	Sidebar        SidebarSettings                  `yaml:"sidebar"`
+	Header         HeaderSettings                   `yaml:"header"`
+	Footer         FooterSettings                   `yaml:"footer"`
+	Head           HeadSettings                     `yaml:"head"`
+	Build          BuildSettings                    `yaml:"build"`
+	Markdown       MarkdownSettings                 `yaml:"markdown"`
+	Prefetch       PrefetchSettings                 `yaml:"prefetch"`
+	Images         ImageSettings                    `yaml:"images"`
+	Search         SearchSettings                   `yaml:"search"`
+	LinkValidation LinkValidationSettings           `yaml:"link_validation"`
+	ContentLint    ContentLintSettings              `yaml:"content_lint"`
+	Analytics      AnalyticsSettings                `yaml:"analytics"`
+	Deploy         DeployConfig                     `yaml:"deploy"`
+	Redirects      map[string]string                `yaml:"redirects"`
 	Collections    map[string]*CollectionSiteConfig `yaml:"collections"`
-	Homepage       HomepageSettings              `yaml:"homepage"`
-	Plugins        PluginSettings                `yaml:"plugins"`
-	Taxonomies     map[string]TaxonomyConfig     `yaml:"taxonomies"`
-	Server         ServerSettings                `yaml:"server"`
-	Permalinks     map[string]string             `yaml:"permalinks"`
-	I18n           I18nSettings                  `yaml:"i18n"`
-	Content        ContentSettings               `yaml:"content"`
-	LlmsTxt        LlmsTxtSettings              `yaml:"llms_txt"`
-	Security       SecurityConfig               `yaml:"security"`
+	Homepage       HomepageSettings                 `yaml:"homepage"`
+	Plugins        PluginSettings                   `yaml:"plugins"`
+	Taxonomies     map[string]TaxonomyConfig        `yaml:"taxonomies"`
+	Server         ServerSettings                   `yaml:"server"`
+	Permalinks     map[string]string                `yaml:"permalinks"`
+	I18n           I18nSettings                     `yaml:"i18n"`
+	Content        ContentSettings                  `yaml:"content"`
+	LlmsTxt        LlmsTxtSettings                  `yaml:"llms_txt"`
+	Security       SecurityConfig                   `yaml:"security"`
 }
 
 // ---------------------------------------------------------------------------
@@ -122,11 +122,11 @@ type ThemeSettings struct {
 	Overrides     map[string]string `yaml:"overrides"`
 	DarkOverrides map[string]string `yaml:"dark_overrides"`
 	PrimaryColor  string            `yaml:"primary_color"`
-	AccentColor  string            `yaml:"accent_color"`
-	FontFamily   string            `yaml:"font_family"`
-	FontMono     string            `yaml:"font_mono"`
-	CodeLight    string            `yaml:"code_light"`
-	CodeDark     string            `yaml:"code_dark"`
+	AccentColor   string            `yaml:"accent_color"`
+	FontFamily    string            `yaml:"font_family"`
+	FontMono      string            `yaml:"font_mono"`
+	CodeLight     string            `yaml:"code_light"`
+	CodeDark      string            `yaml:"code_dark"`
 }
 
 // ---------------------------------------------------------------------------
@@ -254,15 +254,15 @@ func (l *LastUpdatedStrategy) UnmarshalYAML(value *yaml.Node) error {
 // ---------------------------------------------------------------------------
 
 type MarkdownSettings struct {
-	KaTeX               *bool                `yaml:"katex"`
-	Mermaid             *bool                `yaml:"mermaid"`
-	CDN                 *bool                `yaml:"cdn"`
-	Unsafe              *bool                `yaml:"unsafe"`
-	Typographer         *bool                `yaml:"typographer"`
-	GithubAlerts        *bool                `yaml:"github_alerts"`
-	TripleColonCallouts *bool                `yaml:"triple_colon_callouts"`
-	TOC                 MarkdownTOCSettings  `yaml:"toc"`
-	Codeblocks          CodeblocksSettings   `yaml:"codeblocks"`
+	KaTeX               *bool               `yaml:"katex"`
+	Mermaid             *bool               `yaml:"mermaid"`
+	CDN                 *bool               `yaml:"cdn"`
+	Unsafe              *bool               `yaml:"unsafe"`
+	Typographer         *bool               `yaml:"typographer"`
+	GithubAlerts        *bool               `yaml:"github_alerts"`
+	TripleColonCallouts *bool               `yaml:"triple_colon_callouts"`
+	TOC                 MarkdownTOCSettings `yaml:"toc"`
+	Codeblocks          CodeblocksSettings  `yaml:"codeblocks"`
 }
 
 type MarkdownTOCSettings struct {
@@ -315,23 +315,24 @@ type SearchSettings struct {
 // ---------------------------------------------------------------------------
 
 type LinkValidationSettings struct {
-	Enabled           *bool                 `yaml:"enabled"`
-	Level             string                `yaml:"level"`
-	InternalLinks     string                `yaml:"internal_links"` // legacy alias for OnBroken
-	OnBroken          string                `yaml:"on_broken"`          // "error" (default) | "warn" | "ignore"
-	OnBrokenAnchor    string                `yaml:"on_broken_anchor"`   // "error" (default) | "warn" | "ignore"
-	Report            string                `yaml:"report"`             // "pretty" (default) | "json" | "github-actions"
-	OnRelativeLinks   string                `yaml:"on_relative_links"`  // "warn" (default) | "error" | "ignore"
-	OnLocalLinks      string                `yaml:"on_local_links"`     // "warn" (default) | "error" | "ignore"
-	CheckAnchors      *bool                 `yaml:"check_anchors"`
-	CheckImages       *bool                 `yaml:"check_images"`
-	WarnRelativeLinks *bool                 `yaml:"warn_relative_links"` // legacy; prefer OnRelativeLinks
-	WarnLocalLinks    *bool                 `yaml:"warn_local_links"`    // legacy; prefer OnLocalLinks
-	SameSitePolicy    string                `yaml:"same_site_policy"`
-	Exclude           []string              `yaml:"exclude"`
-	Ignore            []string              `yaml:"ignore"`
-	FailBuild         *bool                 `yaml:"fail_build"`
-	External          ExternalCheckSettings `yaml:"external"`
+	Enabled              *bool                 `yaml:"enabled"`
+	Level                string                `yaml:"level"`
+	InternalLinks        string                `yaml:"internal_links"`         // legacy alias for OnBroken
+	OnBroken             string                `yaml:"on_broken"`              // "error" (default) | "warn" | "ignore"
+	OnBrokenAnchor       string                `yaml:"on_broken_anchor"`       // "error" (default) | "warn" | "ignore"
+	Report               string                `yaml:"report"`                 // "pretty" (default) | "json" | "github-actions"
+	OnRelativeLinks      string                `yaml:"on_relative_links"`      // "warn" (default) | "error" | "ignore"
+	OnLocalLinks         string                `yaml:"on_local_links"`         // "warn" (default) | "error" | "ignore"
+	OnUnverifiedInternal string                `yaml:"on_unverified_internal"` // "warn" (default) | "error" | "ignore" — extension-less internal links that didn't resolve in-lane
+	CheckAnchors         *bool                 `yaml:"check_anchors"`
+	CheckImages          *bool                 `yaml:"check_images"`
+	WarnRelativeLinks    *bool                 `yaml:"warn_relative_links"` // legacy; prefer OnRelativeLinks
+	WarnLocalLinks       *bool                 `yaml:"warn_local_links"`    // legacy; prefer OnLocalLinks
+	SameSitePolicy       string                `yaml:"same_site_policy"`
+	Exclude              []string              `yaml:"exclude"`
+	Ignore               []string              `yaml:"ignore"`
+	FailBuild            *bool                 `yaml:"fail_build"`
+	External             ExternalCheckSettings `yaml:"external"`
 }
 
 type ExternalCheckSettings struct {
@@ -388,6 +389,13 @@ func (s *LinkValidationSettings) EffectiveOnLocalLinks() string {
 	return "warn"
 }
 
+func (s *LinkValidationSettings) EffectiveOnUnverifiedInternal() string {
+	if s.OnUnverifiedInternal != "" {
+		return s.OnUnverifiedInternal
+	}
+	return "warn"
+}
+
 func (s *LinkValidationSettings) EffectiveReport() string {
 	if s.Report != "" {
 		return s.Report
@@ -407,16 +415,16 @@ func (s *LinkValidationSettings) EffectiveExternalOnBroken() string {
 // ---------------------------------------------------------------------------
 
 type ContentLintSettings struct {
-	Enabled *bool             `yaml:"enabled"`
-	Rules   ContentLintRules  `yaml:"rules"`
+	Enabled *bool            `yaml:"enabled"`
+	Rules   ContentLintRules `yaml:"rules"`
 }
 
 type ContentLintRules struct {
-	HeadingMaxLength     int      `yaml:"heading_max_length"`
-	HeadingIncrement     *bool    `yaml:"heading_increment"`
-	ImageAltRequired     *bool    `yaml:"image_alt_required"`
-	NoEmptyLinks         *bool    `yaml:"no_empty_links"`
-	FrontmatterRequired  []string `yaml:"frontmatter_required"`
+	HeadingMaxLength    int      `yaml:"heading_max_length"`
+	HeadingIncrement    *bool    `yaml:"heading_increment"`
+	ImageAltRequired    *bool    `yaml:"image_alt_required"`
+	NoEmptyLinks        *bool    `yaml:"no_empty_links"`
+	FrontmatterRequired []string `yaml:"frontmatter_required"`
 }
 
 // ---------------------------------------------------------------------------
@@ -439,7 +447,7 @@ type DeployConfig struct {
 	SiteID         string `yaml:"site_id"`         // Netlify site ID
 	ProjectName    string `yaml:"project_name"`    // Cloudflare Pages project name
 	ProjectID      string `yaml:"project_id"`      // Vercel project ID
-	Command        string `yaml:"command"`          // Custom deploy command
+	Command        string `yaml:"command"`         // Custom deploy command
 	RedirectFormat string `yaml:"redirect_format"` // html, netlify, vercel, all (default: all)
 }
 
@@ -448,15 +456,15 @@ type DeployConfig struct {
 // ---------------------------------------------------------------------------
 
 type CollectionSiteConfig struct {
-	Enabled    *bool                     `yaml:"enabled"`
-	Path       string                    `yaml:"path"`
-	URLPrefix  string                    `yaml:"url_prefix"`
-	Sort       string                    `yaml:"sort"`
-	Layout     string                    `yaml:"layout"`
-	Permalink  string                    `yaml:"permalink"`
-	Paginate   int                       `yaml:"paginate"`
-	Feed       *bool                     `yaml:"feed"`
-	Tabs       *bool                     `yaml:"tabs"`
+	Enabled      *bool                     `yaml:"enabled"`
+	Path         string                    `yaml:"path"`
+	URLPrefix    string                    `yaml:"url_prefix"`
+	Sort         string                    `yaml:"sort"`
+	Layout       string                    `yaml:"layout"`
+	Permalink    string                    `yaml:"permalink"`
+	Paginate     int                       `yaml:"paginate"`
+	Feed         *bool                     `yaml:"feed"`
+	Tabs         *bool                     `yaml:"tabs"`
 	Sidebar      *CollectionSidebarConfig  `yaml:"sidebar"`
 	TOC          *CollectionTOCConfig      `yaml:"toc"`
 	PrevNext     *CollectionPrevNextConfig `yaml:"prev_next"`
@@ -470,11 +478,11 @@ type CollectionSiteConfig struct {
 
 // VersioningConfig controls docs versioning for a collection.
 type VersioningConfig struct {
-	Enabled                  *bool          `yaml:"enabled"`
-	LastVersion              string         `yaml:"last_version"`
-	PublishLatestAtVersionURL bool          `yaml:"publish_latest_at_version_url"`
-	Fallback                 string         `yaml:"fallback"` // "" (inherit site), "default", or "omit"
-	Versions                 []VersionEntry `yaml:"versions"`
+	Enabled                   *bool          `yaml:"enabled"`
+	LastVersion               string         `yaml:"last_version"`
+	PublishLatestAtVersionURL bool           `yaml:"publish_latest_at_version_url"`
+	Fallback                  string         `yaml:"fallback"` // "" (inherit site), "default", or "omit"
+	Versions                  []VersionEntry `yaml:"versions"`
 }
 
 // VersionEntry describes one version of a versioned docs collection.

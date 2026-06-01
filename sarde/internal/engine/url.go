@@ -1,6 +1,11 @@
 package engine
 
-import "strings"
+import (
+	"crypto/sha256"
+	"fmt"
+	"sort"
+	"strings"
+)
 
 // URLResolver resolves site-root-relative, prefix-free paths into final URLs.
 // It is the single chokepoint for basePath, lang, and version prefixing.
@@ -49,6 +54,33 @@ func (r *URLResolver) URL(relPath, lang, version string) string {
 	}
 
 	return applyBasePath(r.BasePath, rel)
+}
+
+// CacheKey returns a deterministic digest of every field that affects URL
+// resolution. The page-render cache must fold this into its content hash:
+// rendered HTML embeds resolved links, so a change to base path, base URL,
+// i18n, version, or collection layout must bust otherwise-identical content.
+// Maps are sorted so the key is stable across map-iteration order.
+func (r *URLResolver) CacheKey() string {
+	langs := sortedSetKeys(r.Languages)
+	versions := sortedSetKeys(r.VersionIDs)
+	mounts := append([]string(nil), r.CollectionMounts...)
+	sort.Strings(mounts)
+
+	raw := fmt.Sprintf("bp=%s\x00bu=%s\x00i18n=%t\x00dl=%s\x00st=%s\x00langs=%s\x00mounts=%s\x00vers=%s",
+		r.BasePath, r.BaseURL, r.I18nEnabled, r.DefaultLang, r.Strategy,
+		strings.Join(langs, ","), strings.Join(mounts, ","), strings.Join(versions, ","))
+	sum := sha256.Sum256([]byte(raw))
+	return fmt.Sprintf("%x", sum)
+}
+
+func sortedSetKeys(m map[string]bool) []string {
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
 }
 
 // AbsURL returns the fully-qualified URL (origin + resolved path).

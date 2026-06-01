@@ -1,6 +1,9 @@
 package linkrender
 
 import (
+	"path"
+	"strings"
+
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
 	"github.com/frostybee/sarde/internal/engine"
@@ -64,6 +67,14 @@ func (r *Renderer) ResolveHref(href string) (resolvedURL string) {
 	dest := ClassifyDest(href)
 
 	if dest.Kind == LinkExternal {
+		raw := dest.Raw
+		// Site-absolute internal URL ("/docs/plugins/auth"): not a .md ref, but
+		// still internal — it needs base-path application and, when it matches a
+		// page, validation. Exclude protocol-relative "//host".
+		if strings.HasPrefix(raw, "/") && !strings.HasPrefix(raw, "//") {
+			return r.resolveSiteAbsolute(raw)
+		}
+		// Truly external: http(s)://, mailto:, tel:, data:, etc.
 		r.recordLinkRef(dest, nil, "", links.StatusExternal)
 		return href
 	}
@@ -84,6 +95,76 @@ func (r *Renderer) ResolveHref(href string) (resolvedURL string) {
 	}
 
 	return result.URL
+}
+
+// resolveSiteAbsolute handles site-absolute internal hrefs without a .md
+// extension (e.g. "/docs/plugins/auth"). It applies the base path / lang /
+// version prefixing the plain pass-through used to skip, and validates the
+// target against the page index in the current lane:
+//
+//   - Found:        resolve to the canonical URL, record StatusOK (or defer an
+//                   anchor check when a #fragment is present).
+//   - Not found, page-like (no file extension on the basename, not the site
+//     root): apply base path and record StatusUnverified — surfaced as an
+//     `unverified_internal` finding (cross-lane target or a typo).
+//   - Not found, static asset (basename has an extension) or site root ("/"):
+//     apply base path and record StatusExternal — never flagged.
+func (r *Renderer) resolveSiteAbsolute(raw string) string {
+	// Split fragment and query (mirrors ClassifyDest).
+	pathPart := raw
+	var fragment, query string
+	if idx := strings.IndexByte(pathPart, '#'); idx >= 0 {
+		fragment = pathPart[idx+1:]
+		pathPart = pathPart[:idx]
+	}
+	if idx := strings.IndexByte(pathPart, '?'); idx >= 0 {
+		query = pathPart[idx+1:]
+		pathPart = pathPart[:idx]
+	}
+
+	// Normalize to canonical permalink form: trailing slash for page-like paths,
+	// unchanged for assets (dotted basename) and the site root.
+	relP := content.NormalizePermalink(pathPart)
+
+	// Synthetic dest so graph recording / anchor deferral can reuse the existing
+	// helpers. Treated as a content-root internal link.
+	dest := ParsedDest{Kind: LinkContentRoot, Raw: raw, Fragment: fragment, Query: query}
+
+	target := r.PageIndex.LookupInLane(relP, r.CurrentPage.Lang, r.CurrentPage.Version)
+	if target != nil {
+		version := engine.ResolvePageVersion(r.CurrentPage)
+		url := withSuffix(r.URLResolver.URL(target.RelPermalink, r.CurrentPage.Lang, version), fragment, query)
+		result := ResolveResult{URL: url, TargetPermalink: target.Permalink, Found: true}
+		if fragment != "" {
+			r.appendPendingAnchor(dest, target, result)
+		} else {
+			r.recordLinkRef(dest, target, url, links.StatusOK)
+		}
+		return url
+	}
+
+	// Not found: apply base path only (no lang/version inference — the target may
+	// be a static asset or a legitimate cross-lane page we can't resolve yet).
+	url := withSuffix(r.URLResolver.URL(relP, "", ""), fragment, query)
+	if pathPart == "/" || path.Ext(path.Base(pathPart)) != "" {
+		// Static asset or the site root — never flagged.
+		r.recordLinkRef(dest, nil, url, links.StatusExternal)
+	} else {
+		// Page-like but unresolved — surface as unverified so the checker reports it.
+		r.recordLinkRef(dest, nil, url, links.StatusUnverified)
+	}
+	return url
+}
+
+// withSuffix re-attaches a #fragment and/or ?query to a resolved URL.
+func withSuffix(url, fragment, query string) string {
+	if fragment != "" {
+		url += "#" + fragment
+	}
+	if query != "" {
+		url += "?" + query
+	}
+	return url
 }
 
 func (r *Renderer) appendPendingAnchor(dest ParsedDest, targetPage *engine.Page, result ResolveResult) {
@@ -134,9 +215,9 @@ func (r *Renderer) recordLinkRef(dest ParsedDest, targetPage *engine.Page, resol
 		collName = page.Collection.Name
 	}
 	r.LinkGraph.Record(links.LinkRef{
-		FromPage:   page,
-		FromFile:   page.FilePath,
-		RawDest:    dest.Raw,
+		FromPage: page,
+		FromFile: page.FilePath,
+		RawDest:  dest.Raw,
 		Dim: links.DimKey{
 			Collection: collName,
 			Lang:       page.Lang,
