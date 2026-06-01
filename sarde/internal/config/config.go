@@ -315,17 +315,91 @@ type SearchSettings struct {
 // ---------------------------------------------------------------------------
 
 type LinkValidationSettings struct {
-	Enabled           *bool    `yaml:"enabled"`
-	Level             string   `yaml:"level"`
-	InternalLinks     string   `yaml:"internal_links"` // "error" (default) | "warn" | "ignore"
-	CheckAnchors      *bool    `yaml:"check_anchors"`
-	CheckImages       *bool    `yaml:"check_images"`
-	WarnRelativeLinks *bool    `yaml:"warn_relative_links"`
-	WarnLocalLinks    *bool    `yaml:"warn_local_links"`
-	SameSitePolicy    string   `yaml:"same_site_policy"`
-	Exclude           []string `yaml:"exclude"`
-	Ignore            []string `yaml:"ignore"`
-	FailBuild         *bool    `yaml:"fail_build"`
+	Enabled           *bool                 `yaml:"enabled"`
+	Level             string                `yaml:"level"`
+	InternalLinks     string                `yaml:"internal_links"` // legacy alias for OnBroken
+	OnBroken          string                `yaml:"on_broken"`          // "error" (default) | "warn" | "ignore"
+	OnBrokenAnchor    string                `yaml:"on_broken_anchor"`   // "error" (default) | "warn" | "ignore"
+	Report            string                `yaml:"report"`             // "pretty" (default) | "json" | "github-actions"
+	OnRelativeLinks   string                `yaml:"on_relative_links"`  // "warn" (default) | "error" | "ignore"
+	OnLocalLinks      string                `yaml:"on_local_links"`     // "warn" (default) | "error" | "ignore"
+	CheckAnchors      *bool                 `yaml:"check_anchors"`
+	CheckImages       *bool                 `yaml:"check_images"`
+	WarnRelativeLinks *bool                 `yaml:"warn_relative_links"` // legacy; prefer OnRelativeLinks
+	WarnLocalLinks    *bool                 `yaml:"warn_local_links"`    // legacy; prefer OnLocalLinks
+	SameSitePolicy    string                `yaml:"same_site_policy"`
+	Exclude           []string              `yaml:"exclude"`
+	Ignore            []string              `yaml:"ignore"`
+	FailBuild         *bool                 `yaml:"fail_build"`
+	External          ExternalCheckSettings `yaml:"external"`
+}
+
+type ExternalCheckSettings struct {
+	Check       *bool    `yaml:"check"`       // default: false
+	Concurrency int      `yaml:"concurrency"` // default: 8
+	Timeout     string   `yaml:"timeout"`     // default: "10s" (parsed with time.ParseDuration)
+	Cache       string   `yaml:"cache"`       // default: ".sarde/linkcache.json"
+	CacheTTL    string   `yaml:"cache_ttl"`   // default: "72h"
+	OnBroken    string   `yaml:"on_broken"`   // "warn" (default) | "error" | "ignore"
+	Ignore      []string `yaml:"ignore"`      // URL glob patterns to skip
+	Method      string   `yaml:"method"`      // "head-then-get" (default) | "head" | "get"
+}
+
+func (s *LinkValidationSettings) EffectiveOnBroken() string {
+	if s.OnBroken != "" {
+		return s.OnBroken
+	}
+	if s.InternalLinks != "" {
+		return s.InternalLinks
+	}
+	return "error"
+}
+
+func (s *LinkValidationSettings) EffectiveOnBrokenAnchor() string {
+	if s.OnBrokenAnchor != "" {
+		return s.OnBrokenAnchor
+	}
+	return "error"
+}
+
+func (s *LinkValidationSettings) EffectiveOnRelativeLinks() string {
+	if s.OnRelativeLinks != "" {
+		return s.OnRelativeLinks
+	}
+	if s.WarnRelativeLinks != nil {
+		if *s.WarnRelativeLinks {
+			return "warn"
+		}
+		return "ignore"
+	}
+	return "warn"
+}
+
+func (s *LinkValidationSettings) EffectiveOnLocalLinks() string {
+	if s.OnLocalLinks != "" {
+		return s.OnLocalLinks
+	}
+	if s.WarnLocalLinks != nil {
+		if *s.WarnLocalLinks {
+			return "warn"
+		}
+		return "ignore"
+	}
+	return "warn"
+}
+
+func (s *LinkValidationSettings) EffectiveReport() string {
+	if s.Report != "" {
+		return s.Report
+	}
+	return "pretty"
+}
+
+func (s *LinkValidationSettings) EffectiveExternalOnBroken() string {
+	if s.External.OnBroken != "" {
+		return s.External.OnBroken
+	}
+	return "warn"
 }
 
 // ---------------------------------------------------------------------------

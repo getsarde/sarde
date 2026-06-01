@@ -31,7 +31,6 @@ func TestLinkRenderHookIntegration(t *testing.T) {
 	lr := r.LinkRenderer()
 	lr.PageIndex = idx
 	lr.URLResolver = &engine.URLResolver{BasePath: "/"}
-	lr.Policy = "warn"
 
 	r.SetLinkContext(currentPage)
 

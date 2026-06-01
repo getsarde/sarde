@@ -238,12 +238,18 @@ server:
   live_reload: true
   port: 4727
 link_validation:
-  check_anchors: true
   enabled: true
-  ignore:
-  - https://discord.gg/
-  - https://github.com/
-  level: warn
+  on_broken: "error"
+  on_broken_anchor: "error"
+  on_relative_links: "error"
+  on_local_links: "warn"
+  same_site_policy: "error"
+  report: "pretty"
+  check_anchors: true
+  exclude: []
+  ignore: []
+  external:
+    check: false
 content_lint:
   enabled: true
   rules:

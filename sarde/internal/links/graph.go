@@ -10,10 +10,11 @@ import (
 type LinkStatus int
 
 const (
-	StatusOK           LinkStatus = iota // resolved successfully
-	StatusBrokenTarget                   // target page not found in index
-	StatusBrokenAnchor                   // target page found but heading ID missing
-	StatusExternal                       // external URL, unchecked by internal resolver
+	StatusOK             LinkStatus = iota // resolved successfully
+	StatusBrokenTarget                     // target page not found in index
+	StatusBrokenAnchor                     // target page found but heading ID missing
+	StatusExternal                         // external URL, unchecked by internal resolver
+	StatusExternalBroken                   // external URL probed and returned non-2xx/3xx
 )
 
 // DimKey identifies the content dimension a link was resolved in.
@@ -107,4 +108,16 @@ func (g *LinkGraph) ExternalRefs() []LinkRef {
 		}
 	}
 	return ext
+}
+
+// MarkExternalBroken transitions all refs whose RawDest equals url
+// from StatusExternal to StatusExternalBroken.
+func (g *LinkGraph) MarkExternalBroken(url string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for i := range g.refs {
+		if g.refs[i].RawDest == url && g.refs[i].Status == StatusExternal {
+			g.refs[i].Status = StatusExternalBroken
+		}
+	}
 }

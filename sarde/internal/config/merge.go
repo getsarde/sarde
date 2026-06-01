@@ -308,6 +308,11 @@ func mergeLinkValidation(base, over *LinkValidationSettings) {
 	mergeBoolP(&base.Enabled, over.Enabled)
 	mergeStr(&base.Level, over.Level)
 	mergeStr(&base.InternalLinks, over.InternalLinks)
+	mergeStr(&base.OnBroken, over.OnBroken)
+	mergeStr(&base.OnBrokenAnchor, over.OnBrokenAnchor)
+	mergeStr(&base.Report, over.Report)
+	mergeStr(&base.OnRelativeLinks, over.OnRelativeLinks)
+	mergeStr(&base.OnLocalLinks, over.OnLocalLinks)
 	mergeBoolP(&base.CheckAnchors, over.CheckAnchors)
 	mergeBoolP(&base.CheckImages, over.CheckImages)
 	mergeBoolP(&base.WarnRelativeLinks, over.WarnRelativeLinks)
@@ -317,6 +322,20 @@ func mergeLinkValidation(base, over *LinkValidationSettings) {
 	if len(over.Exclude) > 0 {
 		base.Exclude = over.Exclude
 	}
+	if len(over.Ignore) > 0 {
+		base.Ignore = over.Ignore
+	}
+	mergeExternalCheck(&base.External, &over.External)
+}
+
+func mergeExternalCheck(base, over *ExternalCheckSettings) {
+	mergeBoolP(&base.Check, over.Check)
+	mergeInt(&base.Concurrency, over.Concurrency)
+	mergeStr(&base.Timeout, over.Timeout)
+	mergeStr(&base.Cache, over.Cache)
+	mergeStr(&base.CacheTTL, over.CacheTTL)
+	mergeStr(&base.OnBroken, over.OnBroken)
+	mergeStr(&base.Method, over.Method)
 	if len(over.Ignore) > 0 {
 		base.Ignore = over.Ignore
 	}

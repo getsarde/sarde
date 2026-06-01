@@ -10,21 +10,6 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
-// BrokenLink records an unresolvable internal link.
-type BrokenLink struct {
-	SourceFile string
-	RawHref    string
-	Dest       ParsedDest
-}
-
-// PendingAnchorCheck records a deferred anchor validation.
-type PendingAnchorCheck struct {
-	SourceFile      string
-	TargetPermalink string
-	Fragment        string
-	RawHref         string
-}
-
 // Renderer is a Goldmark node renderer for ast.KindLink that resolves internal
 // links through the page index and URL resolver. External links pass through.
 //
@@ -34,11 +19,9 @@ type Renderer struct {
 	CurrentPage *engine.Page
 	PageIndex   *content.PageIndex
 	URLResolver *engine.URLResolver
-	Policy      string // "error" | "warn" | "ignore"; empty = "error"
 	LinkGraph   *links.LinkGraph
 
-	PendingAnchors []PendingAnchorCheck
-	BrokenLinks    []BrokenLink
+	PendingAnchors []links.PendingAnchorCheck
 }
 
 // NewRenderer creates a link renderer with no page context.
@@ -55,22 +38,13 @@ func (r *Renderer) SetPage(page *engine.Page) {
 // Reset clears accumulated state between page renders.
 func (r *Renderer) Reset() {
 	r.PendingAnchors = r.PendingAnchors[:0]
-	r.BrokenLinks = r.BrokenLinks[:0]
 }
 
 // DrainPendingAnchors returns and clears collected anchor checks.
-func (r *Renderer) DrainPendingAnchors() []PendingAnchorCheck {
-	out := make([]PendingAnchorCheck, len(r.PendingAnchors))
+func (r *Renderer) DrainPendingAnchors() []links.PendingAnchorCheck {
+	out := make([]links.PendingAnchorCheck, len(r.PendingAnchors))
 	copy(out, r.PendingAnchors)
 	r.PendingAnchors = r.PendingAnchors[:0]
-	return out
-}
-
-// DrainBrokenLinks returns and clears collected broken links.
-func (r *Renderer) DrainBrokenLinks() []BrokenLink {
-	out := make([]BrokenLink, len(r.BrokenLinks))
-	copy(out, r.BrokenLinks)
-	r.BrokenLinks = r.BrokenLinks[:0]
 	return out
 }
 
@@ -108,24 +82,38 @@ func (r *Renderer) renderLink(w util.BufWriter, source []byte, node ast.Node, en
 
 	if !result.Found {
 		r.recordLinkRef(dest, nil, "", links.StatusBrokenTarget)
-		r.handleBroken(dest)
-		r.writeOpenTag(w, r.brokenHref(href), n)
+		r.writeOpenTag(w, "#", n)
 		return ast.WalkContinue, nil
 	}
 
-	// Record pending anchor validation if there's a fragment.
+	targetPage := r.PageIndex.LookupByPermalink(result.TargetPermalink)
+
 	if dest.Fragment != "" && result.TargetPermalink != "" {
-		r.PendingAnchors = append(r.PendingAnchors, PendingAnchorCheck{
-			SourceFile:      r.CurrentPage.FilePath,
+		// Defer graph recording: the definitive status (OK or BrokenAnchor) will
+		// be written by links.ValidateAnchors after all headings are populated.
+		page := r.CurrentPage
+		collName := ""
+		if page.Collection != nil {
+			collName = page.Collection.Name
+		}
+		r.PendingAnchors = append(r.PendingAnchors, links.PendingAnchorCheck{
+			SourceFile:      page.FilePath,
 			TargetPermalink: result.TargetPermalink,
 			Fragment:        dest.Fragment,
 			RawHref:         href,
+			FromPage:        page,
+			TargetPage:      targetPage,
+			Dim: links.DimKey{
+				Collection: collName,
+				Lang:       page.Lang,
+				Version:    page.Version,
+			},
+			Kind:     mapLinkKind(dest.Kind),
+			Resolved: result.URL,
 		})
+	} else {
+		r.recordLinkRef(dest, targetPage, result.URL, links.StatusOK)
 	}
-
-	// Record successful resolution.
-	targetPage := r.PageIndex.LookupByPermalink(result.TargetPermalink)
-	r.recordLinkRef(dest, targetPage, result.URL, links.StatusOK)
 
 	r.writeOpenTag(w, result.URL, n)
 	return ast.WalkContinue, nil
@@ -172,33 +160,6 @@ func mapLinkKind(k LinkKind) links.LinkKind {
 	default:
 		return links.KindExternal
 	}
-}
-
-func (r *Renderer) handleBroken(dest ParsedDest) {
-	policy := r.effectivePolicy()
-	if policy == "ignore" {
-		return
-	}
-	r.BrokenLinks = append(r.BrokenLinks, BrokenLink{
-		SourceFile: r.CurrentPage.FilePath,
-		RawHref:    dest.Raw,
-		Dest:       dest,
-	})
-}
-
-func (r *Renderer) brokenHref(original string) string {
-	policy := r.effectivePolicy()
-	if policy == "ignore" {
-		return original
-	}
-	return "#"
-}
-
-func (r *Renderer) effectivePolicy() string {
-	if r.Policy == "" {
-		return "error"
-	}
-	return r.Policy
 }
 
 func (r *Renderer) writeOpenTag(w util.BufWriter, href string, n *ast.Link) {

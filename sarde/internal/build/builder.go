@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,7 +20,6 @@ import (
 	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/content/markdown"
-	"github.com/frostybee/sarde/internal/content/markdown/extensions/linkrender"
 	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/links"
@@ -63,6 +63,10 @@ type SiteBuilder struct {
 
 	urlResolver  *engine.URLResolver // URL resolver for basePath prefixing
 	linkGraph    *links.LinkGraph
+	lastCoverage links.CoverageSummary
+
+	checkOnly          bool               // when true, Build() returns after link validation
+	checkReportResult  *links.ReportResult // stored for Check() to read after Build() returns
 
 	// Last-build state for incremental rebuild.
 	lastCollections    map[string]*engine.Collection
@@ -410,9 +414,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	var validationMu sync.Mutex
 	validationData := make(map[string]engine.ValidationEntry)
 
-	// Internal link resolution: accumulated pending anchor checks and broken links.
-	var pendingAnchors []linkrender.PendingAnchorCheck
-	var brokenLinks []linkrender.BrokenLink
+	// Internal link resolution: accumulated pending anchor checks.
+	var pendingAnchors []links.PendingAnchorCheck
 
 	// Render markdown for all pages (after asset enhancement so image
 	// renderer can access processed resource data for <picture> generation).
@@ -446,7 +449,6 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				lr := renderer.LinkRenderer()
 				lr.PageIndex = pageIndex
 				lr.URLResolver = urlResolver
-				lr.Policy = b.config.LinkValidation.InternalLinks
 				lr.LinkGraph = b.linkGraph
 
 				// Pre-process shortcodes before Goldmark.
@@ -480,9 +482,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				renderer.SetLinkContext(page)
 
 				result, err := renderer.Render(processed)
-				// Drain link resolution results before returning renderer to pool.
+				// Drain pending anchor checks before returning renderer to pool.
 				pagePendingAnchors := renderer.LinkRenderer().DrainPendingAnchors()
-				pageBrokenLinks := renderer.LinkRenderer().DrainBrokenLinks()
 				b.rendererPool <- renderer // return to pool
 				if err != nil {
 					return fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
@@ -491,13 +492,12 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				page.Headings = result.Headings
 				page.HasCodeBlocks = result.HasCodeBlocks
 				page.HasImages = result.HasImages
-				if len(result.Links) > 0 || len(pagePendingAnchors) > 0 || len(pageBrokenLinks) > 0 {
+				if len(result.Links) > 0 || len(pagePendingAnchors) > 0 {
 					validationMu.Lock()
 					if len(result.Links) > 0 {
 						validationData[page.Permalink] = engine.ValidationEntry{Links: result.Links, FilePath: page.FilePath}
 					}
 					pendingAnchors = append(pendingAnchors, pagePendingAnchors...)
-					brokenLinks = append(brokenLinks, pageBrokenLinks...)
 					validationMu.Unlock()
 				}
 
@@ -523,7 +523,6 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		lr := b.mdRenderer.LinkRenderer()
 		lr.PageIndex = pageIndex
 		lr.URLResolver = urlResolver
-		lr.Policy = b.config.LinkValidation.InternalLinks
 		lr.LinkGraph = b.linkGraph
 
 		deps := markdownRenderDeps{
@@ -541,9 +540,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			if len(links) > 0 {
 				validationData[page.Permalink] = engine.ValidationEntry{Links: links, FilePath: page.FilePath}
 			}
-			// Drain link resolution results from serial renderer.
+			// Drain pending anchor checks from serial renderer.
 			pendingAnchors = append(pendingAnchors, lr.DrainPendingAnchors()...)
-			brokenLinks = append(brokenLinks, lr.DrainBrokenLinks()...)
 		}
 	}
 	recordTiming("Rendering markdown")
@@ -551,30 +549,103 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	populatePageIndexHeadings(pageIndex, allPages)
 
 	// Validate pending anchor checks now that all heading IDs are populated.
-	for _, check := range pendingAnchors {
-		if !pageIndex.HasHeading(check.TargetPermalink, check.Fragment) {
-			brokenLinks = append(brokenLinks, linkrender.BrokenLink{
-				SourceFile: check.SourceFile,
-				RawHref:    check.RawHref,
-			})
+	// ValidateAnchors writes definitive StatusOK or StatusBrokenAnchor entries
+	// into the link graph.
+	links.ValidateAnchors(b.linkGraph, pendingAnchors, pageIndex)
+
+	// Compute link coverage summary across all rendered lanes.
+	var langCodes []string
+	if isMultiLang {
+		langCodes = b.config.I18n.LanguageCodes()
+	}
+	expectedLanes := links.EnumerateLanes(collections, langCodes)
+	b.lastCoverage = links.ComputeCoverage(b.linkGraph, allPages, expectedLanes)
+
+	// Generate structured link validation report from the link graph.
+	if config.BoolVal(b.config.LinkValidation.Enabled, true) {
+		lvc := b.config.LinkValidation
+
+		// CHECK-5: optional external link probing (runs before report generation).
+		extCfg := lvc.External
+		if config.BoolVal(extCfg.Check, false) {
+			timeout, err := time.ParseDuration(extCfg.Timeout)
+			if err != nil || timeout <= 0 {
+				timeout = 10 * time.Second
+			}
+			cacheTTL, err := time.ParseDuration(extCfg.CacheTTL)
+			if err != nil || cacheTTL <= 0 {
+				cacheTTL = 72 * time.Hour
+			}
+			concurrency := extCfg.Concurrency
+			if concurrency <= 0 {
+				concurrency = 8
+			}
+			cachePath := extCfg.Cache
+			if cachePath == "" {
+				cachePath = filepath.Join(".sarde", "linkcache.json")
+			}
+			if !filepath.IsAbs(cachePath) {
+				cachePath = filepath.Join(b.projectDir, cachePath)
+			}
+			if err := links.CheckExternalLinks(b.linkGraph, links.ExternalCheckConfig{
+				Enabled:     true,
+				Concurrency: concurrency,
+				Timeout:     timeout,
+				CachePath:   cachePath,
+				CacheTTL:    cacheTTL,
+				OnBroken:    lvc.EffectiveExternalOnBroken(),
+				Ignore:      extCfg.Ignore,
+				Method:      extCfg.Method,
+			}); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: external link check failed: %v\n", err)
+			}
+		}
+
+		siteURL := ""
+		if b.config.Site.URL != "" {
+			siteURL = strings.TrimRight(b.config.Site.URL, "/")
+		}
+		reportResult := links.GenerateReport(links.ReportInput{
+			Graph:    b.linkGraph,
+			Coverage: b.lastCoverage,
+			Config: links.LinkCheckConfig{
+				OnBroken:         lvc.EffectiveOnBroken(),
+				OnBrokenAnchor:   lvc.EffectiveOnBrokenAnchor(),
+				OnRelativeLinks:  lvc.EffectiveOnRelativeLinks(),
+				OnLocalLinks:     lvc.EffectiveOnLocalLinks(),
+				SameSitePolicy:   lvc.SameSitePolicy,
+				ReportFormat:     lvc.EffectiveReport(),
+				Exclude:          lvc.Exclude,
+				OnExternalBroken: lvc.EffectiveExternalOnBroken(),
+			},
+			SiteURL: siteURL,
+		})
+		b.checkReportResult = &reportResult
+		if reportResult.Output != "" {
+			fmt.Fprint(os.Stderr, reportResult.Output)
+		}
+		for _, f := range reportResult.Findings {
+			if f.Policy == "warn" {
+				warnings = append(warnings, engine.ValidationWarning{
+					File:    f.Ref.FromFile,
+					Message: fmt.Sprintf("%s: %s", f.Type.Label(), f.Ref.RawDest),
+					Level:   "warn",
+				})
+			}
+		}
+		if reportResult.HasErrors {
+			return nil, fmt.Errorf("build failed: link validation errors found")
 		}
 	}
 
-	// Report broken internal links according to policy.
-	if len(brokenLinks) > 0 {
-		policy := b.config.LinkValidation.InternalLinks
-		if policy == "" {
-			policy = "error"
-		}
-		if policy != "ignore" {
-			for _, bl := range brokenLinks {
-				msg := fmt.Sprintf("broken internal link in %s → %q", bl.SourceFile, bl.RawHref)
-				warnings = append(warnings, engine.ValidationWarning{Message: msg, File: bl.SourceFile})
-			}
-			if policy == "error" {
-				return nil, fmt.Errorf("build failed: %d broken internal link(s) found (set link_validation.internal_links: warn to downgrade)", len(brokenLinks))
-			}
-		}
+	// Check-only mode: return after link validation without rendering or writing.
+	if b.checkOnly {
+		recordTiming("Link validation")
+		return &engine.BuildResult{
+			PageCount: len(allPages),
+			Duration:  time.Since(start),
+			Warnings:  warnings,
+		}, nil
 	}
 
 	// Bundle global CSS/JS assets (processes head.custom_css/custom_js from config).

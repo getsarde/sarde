@@ -97,6 +97,11 @@ search:
 link_validation:
   enabled: true
   level: "warn"
+  on_broken: "error"
+  on_broken_anchor: "error"
+  report: "pretty"
+  on_relative_links: "warn"
+  on_local_links: "warn"
   check_anchors: true
   check_images: true
   warn_relative_links: true
@@ -104,6 +109,15 @@ link_validation:
   same_site_policy: "ignore"
   exclude: []
   fail_build: false
+  external:
+    check: false
+    concurrency: 8
+    timeout: "10s"
+    cache: ".sarde/linkcache.json"
+    cache_ttl: "72h"
+    on_broken: "warn"
+    ignore: []
+    method: "head-then-get"
 
 content_lint:
   enabled: true
