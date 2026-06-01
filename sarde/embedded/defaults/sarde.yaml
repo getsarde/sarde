@@ -112,6 +112,11 @@ link_validation:
   warn_relative_links: true
   warn_local_links: true
   same_site_policy: "ignore"
+  # Links prefixed with this string resolve at the site root, bypassing all
+  # collection/lang/version lane logic — an escape hatch for links to other
+  # parts of the deployment (e.g. site:/pricing). Such links are never
+  # validated or flagged. Set to "" to disable.
+  site_root_escape_prefix: "site:"
   exclude: []
   fail_build: false
   external:

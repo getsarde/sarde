@@ -24,6 +24,13 @@ type Renderer struct {
 	URLResolver *engine.URLResolver
 	LinkGraph   *links.LinkGraph
 
+	// Collections is the per-build collection registry, used to detect when a
+	// link target lives in an unversioned collection (cross-dimension resolution).
+	Collections map[string]*engine.Collection
+	// SiteRootEscapePrefix is the configured prefix (e.g. "site:") that routes a
+	// link to the site root, bypassing collection/lane logic. Empty disables it.
+	SiteRootEscapePrefix string
+
 	PendingAnchors []links.PendingAnchorCheck
 }
 
@@ -64,6 +71,13 @@ func (r *Renderer) ResolveHref(href string) (resolvedURL string) {
 		return href
 	}
 
+	// Site-root escape (configurable prefix, e.g. "site:/pricing"): resolve at
+	// the site root, bypassing all collection/lane logic. Checked before
+	// classification so the prefix never collides with normal link parsing.
+	if r.SiteRootEscapePrefix != "" && strings.HasPrefix(href, r.SiteRootEscapePrefix) {
+		return r.resolveSiteRoot(href, strings.TrimPrefix(href, r.SiteRootEscapePrefix))
+	}
+
 	dest := ClassifyDest(href)
 
 	if dest.Kind == LinkExternal {
@@ -79,7 +93,11 @@ func (r *Renderer) ResolveHref(href string) (resolvedURL string) {
 		return href
 	}
 
-	result := ResolveInternalLink(dest, r.CurrentPage, r.PageIndex, r.URLResolver.URL)
+	result := ResolveInternalLink(dest, r.CurrentPage, ResolveContext{
+		PageIndex:   r.PageIndex,
+		URLResolver: r.URLResolver.URL,
+		Collections: r.Collections,
+	})
 
 	if !result.Found {
 		r.recordLinkRef(dest, nil, "", links.StatusBrokenTarget)
@@ -156,13 +174,38 @@ func (r *Renderer) resolveSiteAbsolute(raw string) string {
 	return url
 }
 
-// withSuffix re-attaches a #fragment and/or ?query to a resolved URL.
-func withSuffix(url, fragment, query string) string {
-	if fragment != "" {
-		url += "#" + fragment
+// resolveSiteRoot handles the configured site-root escape (e.g. "site:/pricing").
+// It applies the base path with no lang/version segments and records the link as
+// a deliberate, unchecked escape: never validated against the index, never flagged.
+// This is for links to other parts of the deployment that Sarde does not own.
+func (r *Renderer) resolveSiteRoot(rawHref, rest string) string {
+	pathPart := rest
+	var fragment, query string
+	if idx := strings.IndexByte(pathPart, '#'); idx >= 0 {
+		fragment = pathPart[idx+1:]
+		pathPart = pathPart[:idx]
 	}
+	if idx := strings.IndexByte(pathPart, '?'); idx >= 0 {
+		query = pathPart[idx+1:]
+		pathPart = pathPart[:idx]
+	}
+
+	relP := content.NormalizePermalink(pathPart)
+	url := withSuffix(r.URLResolver.URL(relP, "", ""), fragment, query)
+
+	dest := ParsedDest{Kind: LinkSiteRoot, Raw: rawHref, Fragment: fragment, Query: query}
+	r.recordLinkRef(dest, nil, url, links.StatusExternal)
+	return url
+}
+
+// withSuffix re-attaches a ?query and/or #fragment to a resolved URL in the
+// canonical order (path?query#fragment).
+func withSuffix(url, fragment, query string) string {
 	if query != "" {
 		url += "?" + query
+	}
+	if fragment != "" {
+		url += "#" + fragment
 	}
 	return url
 }
@@ -243,6 +286,8 @@ func mapLinkKind(k LinkKind) links.LinkKind {
 		return links.KindExternal
 	case LinkAmbiguous:
 		return links.KindAmbiguous
+	case LinkSiteRoot:
+		return links.KindExternal
 	default:
 		return links.KindExternal
 	}

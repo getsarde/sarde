@@ -319,8 +319,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	}
 	urlResolver := b.urlResolver
 	// Digest of all resolution-affecting state; folded into page-cache keys so a
-	// base-path / i18n / version / mount change busts stale rendered HTML.
-	b.resolutionKey = urlResolver.CacheKey()
+	// base-path / i18n / version / mount / escape-prefix change busts stale
+	// rendered HTML.
+	b.resolutionKey = urlResolver.CacheKey() + "|escape=" + b.config.LinkValidation.SiteRootEscapePrefix
 	resolvePermalinks(urlResolver, allPages)
 
 	// Resolve per-language taxonomy permalinks through the URLResolver.
@@ -457,6 +458,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				lr.PageIndex = pageIndex
 				lr.URLResolver = urlResolver
 				lr.LinkGraph = b.linkGraph
+				lr.Collections = collections
+				lr.SiteRootEscapePrefix = b.config.LinkValidation.SiteRootEscapePrefix
 
 				// Pre-process shortcodes before Goldmark.
 				processed, scWarns := scProcessor.Process(page.RawContent, page, siteCtx, renderer)
@@ -531,6 +534,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		lr.PageIndex = pageIndex
 		lr.URLResolver = urlResolver
 		lr.LinkGraph = b.linkGraph
+		lr.Collections = collections
+		lr.SiteRootEscapePrefix = b.config.LinkValidation.SiteRootEscapePrefix
 
 		deps := markdownRenderDeps{
 			scProcessor:    scProcessor,

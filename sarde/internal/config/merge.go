@@ -319,6 +319,7 @@ func mergeLinkValidation(base, over *LinkValidationSettings) {
 	mergeBoolP(&base.WarnRelativeLinks, over.WarnRelativeLinks)
 	mergeBoolP(&base.WarnLocalLinks, over.WarnLocalLinks)
 	mergeStr(&base.SameSitePolicy, over.SameSitePolicy)
+	mergeStr(&base.SiteRootEscapePrefix, over.SiteRootEscapePrefix)
 	mergeBoolP(&base.FailBuild, over.FailBuild)
 	if len(over.Exclude) > 0 {
 		base.Exclude = over.Exclude

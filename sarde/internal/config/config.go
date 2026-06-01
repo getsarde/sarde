@@ -329,6 +329,7 @@ type LinkValidationSettings struct {
 	WarnRelativeLinks    *bool                 `yaml:"warn_relative_links"` // legacy; prefer OnRelativeLinks
 	WarnLocalLinks       *bool                 `yaml:"warn_local_links"`    // legacy; prefer OnLocalLinks
 	SameSitePolicy       string                `yaml:"same_site_policy"`
+	SiteRootEscapePrefix string                `yaml:"site_root_escape_prefix"` // prefix (e.g. "site:") routing a link to the site root, bypassing lane logic
 	Exclude              []string              `yaml:"exclude"`
 	Ignore               []string              `yaml:"ignore"`
 	FailBuild            *bool                 `yaml:"fail_build"`

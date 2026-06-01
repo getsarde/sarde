@@ -312,10 +312,15 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		mergedValidation[k] = v
 	}
 
-	// Configure link resolver for incremental re-render.
+	// Configure link resolver for incremental re-render. Collections and the
+	// escape prefix must match the full build so hrefs render identically; the
+	// LinkGraph is deliberately left unset — incremental rebuilds don't run link
+	// validation, and b.linkGraph is only reset by a full Build().
 	lr := b.mdRenderer.LinkRenderer()
 	lr.PageIndex = newPageIndex
 	lr.URLResolver = b.urlResolver
+	lr.Collections = b.lastCollections
+	lr.SiteRootEscapePrefix = b.config.LinkValidation.SiteRootEscapePrefix
 
 	deps := markdownRenderDeps{
 		scProcessor:    b.lastScProcessor,

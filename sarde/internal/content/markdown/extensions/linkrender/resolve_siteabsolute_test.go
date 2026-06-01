@@ -126,3 +126,67 @@ func TestResolveSiteAbsolute_TrulyExternalUnaffected(t *testing.T) {
 		t.Errorf("status = %v, want StatusExternal", ref.Status)
 	}
 }
+
+func TestResolveSiteRoot_BasePathOnly(t *testing.T) {
+	r, graph := buildSiteAbsoluteRenderer(t)
+	r.SiteRootEscapePrefix = "site:"
+
+	got := r.ResolveHref("site:/pricing")
+	if want := "/web-course/pricing/"; got != want {
+		t.Errorf("ResolveHref = %q, want %q (base path, no lane segments)", got, want)
+	}
+	if ref := lastRef(t, graph); ref.Status != links.StatusExternal {
+		t.Errorf("status = %v, want StatusExternal (escape never flagged)", ref.Status)
+	}
+}
+
+func TestResolveSiteRoot_WithFragment(t *testing.T) {
+	r, _ := buildSiteAbsoluteRenderer(t)
+	r.SiteRootEscapePrefix = "site:"
+
+	// Query then fragment ordering: path?query#fragment.
+	got := r.ResolveHref("site:/pricing?ref=nav#plans")
+	if want := "/web-course/pricing/?ref=nav#plans"; got != want {
+		t.Errorf("ResolveHref = %q, want %q", got, want)
+	}
+	// A site-root escape is never deferred for anchor validation.
+	if got := len(r.PendingAnchors); got != 0 {
+		t.Errorf("expected no pending anchor checks for site-root escape, got %d", got)
+	}
+}
+
+func TestResolveSiteRoot_DisabledWhenPrefixEmpty(t *testing.T) {
+	r, _ := buildSiteAbsoluteRenderer(t) // SiteRootEscapePrefix defaults to ""
+
+	// With the escape disabled, "site:/x" is an unrecognized scheme and passes through.
+	got := r.ResolveHref("site:/pricing")
+	if want := "site:/pricing"; got != want {
+		t.Errorf("ResolveHref = %q, want %q (passthrough when escape disabled)", got, want)
+	}
+}
+
+func TestResolveSiteRoot_LaneFreeWithI18n(t *testing.T) {
+	graph := links.NewLinkGraph()
+	r := &Renderer{
+		CurrentPage: &engine.Page{
+			PageIdentity: engine.PageIdentity{RelPermalink: "/fr/docs/guide/intro/"},
+			PageI18n:     engine.PageI18n{Lang: "fr"},
+		},
+		PageIndex: content.BuildPageIndex(nil),
+		URLResolver: &engine.URLResolver{
+			BasePath:    "/",
+			I18nEnabled: true,
+			DefaultLang: "en",
+			Strategy:    "prefix-except-default",
+			Languages:   map[string]bool{"en": true, "fr": true},
+		},
+		LinkGraph:            graph,
+		SiteRootEscapePrefix: "site:",
+	}
+
+	// A French page's site-root escape must NOT pick up a /fr/ prefix.
+	got := r.ResolveHref("site:/pricing")
+	if want := "/pricing/"; got != want {
+		t.Errorf("ResolveHref = %q, want %q (lane-free, no /fr/ prefix)", got, want)
+	}
+}

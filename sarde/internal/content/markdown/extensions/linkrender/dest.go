@@ -14,6 +14,7 @@ const (
 	LinkContentRoot                 // leading / (within collection)
 	LinkAnchorOnly                  // starts with #
 	LinkAmbiguous                   // bare name — rejected as ambiguous
+	LinkSiteRoot                    // configured escape prefix (e.g. site:/x) — site-root, lane-free
 )
 
 // ParsedDest is a classified, cleaned link destination.
