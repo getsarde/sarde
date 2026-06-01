@@ -105,7 +105,7 @@ link_validation:
   # Extension-less internal links (e.g. /docs/plugins/auth) that don't resolve to a
   # known page in the current lane — possibly cross-collection/cross-lane or a typo.
   # Static assets (/img/logo.png) and the site root (/) are never flagged.
-  # `sarde check --strict` escalates this to "error".
+  # `sarde check-links --strict` escalates this to "error".
   on_unverified_internal: "warn"
   check_anchors: true
   check_images: true

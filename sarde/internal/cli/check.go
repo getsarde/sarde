@@ -11,20 +11,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var checkCmd = &cobra.Command{
-	Use:   "check",
-	Short: "Check links without building",
-	Long:  "Run link validation (internal and optionally external) without rendering templates or writing output.",
-	RunE:  runCheck,
+var checkLinksCmd = &cobra.Command{
+	Use:     "check-links",
+	Aliases: []string{"check"},
+	Short:   "Check links without building",
+	Long:    "Run link validation (internal and optionally external) without rendering templates or writing output.\n\nAliased as 'check' for backward compatibility.",
+	RunE:    runCheck,
 }
 
 func init() {
-	checkCmd.Flags().Bool("strict", false, "Treat all link issues as errors (exit 1)")
-	checkCmd.Flags().Bool("external", false, "Also probe external URLs")
-	checkCmd.Flags().String("report", "", "Report format: pretty, json, github-actions")
-	checkCmd.Flags().String("base-path", "", "Override URL base path (e.g. /docs/)")
-	checkCmd.Flags().String("content", "", "Override content directory path")
-	rootCmd.AddCommand(checkCmd)
+	checkLinksCmd.Flags().Bool("strict", false, "Treat all link issues as errors (exit 1)")
+	checkLinksCmd.Flags().Bool("external", false, "Also probe external URLs")
+	checkLinksCmd.Flags().String("report", "", "Report format: pretty, json, github-actions")
+	checkLinksCmd.Flags().String("base-path", "", "Override URL base path (e.g. /docs/)")
+	checkLinksCmd.Flags().String("content", "", "Override content directory path")
+	rootCmd.AddCommand(checkLinksCmd)
 }
 
 func runCheck(cmd *cobra.Command, args []string) error {
