@@ -5,19 +5,21 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/frostybee/sarde/internal/content/markdown/extensions/linkrender"
+	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
+	"github.com/frostybee/sarde/internal/content/markdown/icons"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
-	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
-	"github.com/frostybee/sarde/internal/content/markdown/icons"
 )
 
 type linkCardRenderer struct {
 	blockedSchemes []string
+	linkRenderer   *linkrender.Renderer
 }
 
-func NewRenderer(blockedSchemes []string) renderer.NodeRenderer {
-	return &linkCardRenderer{blockedSchemes: blockedSchemes}
+func NewRenderer(blockedSchemes []string, lr *linkrender.Renderer) renderer.NodeRenderer {
+	return &linkCardRenderer{blockedSchemes: blockedSchemes, linkRenderer: lr}
 }
 
 func (r *linkCardRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
@@ -32,12 +34,17 @@ func (r *linkCardRenderer) render(w util.BufWriter, source []byte, node ast.Node
 			return ast.WalkSkipChildren, nil
 		}
 
+		href := lc.Href
+		if r.linkRenderer != nil {
+			href = r.linkRenderer.ResolveHref(href)
+		}
+
 		title := lc.Title
 		if title == "" {
 			title = domainFromURL(lc.Href)
 		}
 		_, _ = fmt.Fprintf(w, "<a href=\"%s\" class=\"sarde-link-card\" target=\"_blank\" rel=\"noopener noreferrer\">\n",
-			htmlutil.EscapeHTML(lc.Href))
+			htmlutil.EscapeHTML(href))
 		if lc.Icon != "" {
 			if svg := icons.GetWithClass(lc.Icon, "sarde-link-card-icon"); svg != "" {
 				_, _ = w.WriteString(svg)

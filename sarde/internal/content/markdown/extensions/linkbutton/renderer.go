@@ -4,20 +4,21 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/frostybee/sarde/internal/content/markdown/extensions/linkrender"
+	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
 	"github.com/frostybee/sarde/internal/content/markdown/icons"
-
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
-	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
 )
 
 type linkButtonRenderer struct {
 	blockedSchemes []string
+	linkRenderer   *linkrender.Renderer
 }
 
-func NewRenderer(blockedSchemes []string) renderer.NodeRenderer {
-	return &linkButtonRenderer{blockedSchemes: blockedSchemes}
+func NewRenderer(blockedSchemes []string, lr *linkrender.Renderer) renderer.NodeRenderer {
+	return &linkButtonRenderer{blockedSchemes: blockedSchemes, linkRenderer: lr}
 }
 
 func (r *linkButtonRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
@@ -32,10 +33,15 @@ func (r *linkButtonRenderer) render(w util.BufWriter, source []byte, node ast.No
 			return ast.WalkSkipChildren, nil
 		}
 
-		classes := []string{"sarde-link-button", "sarde-link-button-" + lb.Variant}
-		isExternal := strings.HasPrefix(lb.Href, "http://") || strings.HasPrefix(lb.Href, "https://")
+		href := lb.Href
+		if r.linkRenderer != nil {
+			href = r.linkRenderer.ResolveHref(href)
+		}
 
-		attrs := fmt.Sprintf("href=\"%s\" class=\"%s\"", htmlutil.EscapeHTML(lb.Href), htmlutil.EscapeHTML(strings.Join(classes, " ")))
+		classes := []string{"sarde-link-button", "sarde-link-button-" + lb.Variant}
+		isExternal := strings.HasPrefix(href, "http://") || strings.HasPrefix(href, "https://")
+
+		attrs := fmt.Sprintf("href=\"%s\" class=\"%s\"", htmlutil.EscapeHTML(href), htmlutil.EscapeHTML(strings.Join(classes, " ")))
 
 		if isExternal {
 			attrs += ` target="_blank" rel="noopener noreferrer"`

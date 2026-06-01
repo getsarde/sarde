@@ -53,6 +53,62 @@ func (r *Renderer) RegisterFuncs(reg gmrenderer.NodeRendererFuncRegisterer) {
 	reg.Register(ast.KindLink, r.renderLink)
 }
 
+// ResolveHref classifies, resolves, records in the link graph, and handles
+// pending anchors for a given href. Returns the resolved URL. Card/button
+// extension renderers call this to share the same resolution infrastructure.
+func (r *Renderer) ResolveHref(href string) (resolvedURL string) {
+	if r.CurrentPage == nil || r.PageIndex == nil || r.URLResolver == nil {
+		return href
+	}
+
+	dest := ClassifyDest(href)
+
+	if dest.Kind == LinkExternal {
+		r.recordLinkRef(dest, nil, "", links.StatusExternal)
+		return href
+	}
+
+	result := ResolveInternalLink(dest, r.CurrentPage, r.PageIndex, r.URLResolver.URL)
+
+	if !result.Found {
+		r.recordLinkRef(dest, nil, "", links.StatusBrokenTarget)
+		return "#"
+	}
+
+	targetPage := r.PageIndex.LookupByPermalink(result.TargetPermalink)
+
+	if dest.Fragment != "" && result.TargetPermalink != "" {
+		r.appendPendingAnchor(dest, targetPage, result)
+	} else {
+		r.recordLinkRef(dest, targetPage, result.URL, links.StatusOK)
+	}
+
+	return result.URL
+}
+
+func (r *Renderer) appendPendingAnchor(dest ParsedDest, targetPage *engine.Page, result ResolveResult) {
+	page := r.CurrentPage
+	collName := ""
+	if page.Collection != nil {
+		collName = page.Collection.Name
+	}
+	r.PendingAnchors = append(r.PendingAnchors, links.PendingAnchorCheck{
+		SourceFile:      page.FilePath,
+		TargetPermalink: result.TargetPermalink,
+		Fragment:        dest.Fragment,
+		RawHref:         dest.Raw,
+		FromPage:        page,
+		TargetPage:      targetPage,
+		Dim: links.DimKey{
+			Collection: collName,
+			Lang:       page.Lang,
+			Version:    page.Version,
+		},
+		Kind:     mapLinkKind(dest.Kind),
+		Resolved: result.URL,
+	})
+}
+
 func (r *Renderer) renderLink(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
 		w.WriteString("</a>")
@@ -62,60 +118,9 @@ func (r *Renderer) renderLink(w util.BufWriter, source []byte, node ast.Node, en
 	n := node.(*ast.Link)
 	href := string(n.Destination)
 
-	// Graceful degradation: no page context → pass through.
-	if r.CurrentPage == nil || r.PageIndex == nil || r.URLResolver == nil {
-		r.writeOpenTag(w, href, n)
-		return ast.WalkContinue, nil
-	}
+	resolved := r.ResolveHref(href)
 
-	dest := ClassifyDest(href)
-
-	// External and empty links pass through, but record in the graph.
-	if dest.Kind == LinkExternal {
-		r.recordLinkRef(dest, nil, "", links.StatusExternal)
-		r.writeOpenTag(w, href, n)
-		return ast.WalkContinue, nil
-	}
-
-	// Resolve using the page index and URL resolver.
-	result := ResolveInternalLink(dest, r.CurrentPage, r.PageIndex, r.URLResolver.URL)
-
-	if !result.Found {
-		r.recordLinkRef(dest, nil, "", links.StatusBrokenTarget)
-		r.writeOpenTag(w, "#", n)
-		return ast.WalkContinue, nil
-	}
-
-	targetPage := r.PageIndex.LookupByPermalink(result.TargetPermalink)
-
-	if dest.Fragment != "" && result.TargetPermalink != "" {
-		// Defer graph recording: the definitive status (OK or BrokenAnchor) will
-		// be written by links.ValidateAnchors after all headings are populated.
-		page := r.CurrentPage
-		collName := ""
-		if page.Collection != nil {
-			collName = page.Collection.Name
-		}
-		r.PendingAnchors = append(r.PendingAnchors, links.PendingAnchorCheck{
-			SourceFile:      page.FilePath,
-			TargetPermalink: result.TargetPermalink,
-			Fragment:        dest.Fragment,
-			RawHref:         href,
-			FromPage:        page,
-			TargetPage:      targetPage,
-			Dim: links.DimKey{
-				Collection: collName,
-				Lang:       page.Lang,
-				Version:    page.Version,
-			},
-			Kind:     mapLinkKind(dest.Kind),
-			Resolved: result.URL,
-		})
-	} else {
-		r.recordLinkRef(dest, targetPage, result.URL, links.StatusOK)
-	}
-
-	r.writeOpenTag(w, result.URL, n)
+	r.writeOpenTag(w, resolved, n)
 	return ast.WalkContinue, nil
 }
 
