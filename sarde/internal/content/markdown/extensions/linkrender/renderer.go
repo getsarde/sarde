@@ -4,6 +4,7 @@ import (
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
 	"github.com/frostybee/sarde/internal/engine"
+	"github.com/frostybee/sarde/internal/links"
 	"github.com/yuin/goldmark/ast"
 	gmrenderer "github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
@@ -34,6 +35,7 @@ type Renderer struct {
 	PageIndex   *content.PageIndex
 	URLResolver *engine.URLResolver
 	Policy      string // "error" | "warn" | "ignore"; empty = "error"
+	LinkGraph   *links.LinkGraph
 
 	PendingAnchors []PendingAnchorCheck
 	BrokenLinks    []BrokenLink
@@ -94,8 +96,9 @@ func (r *Renderer) renderLink(w util.BufWriter, source []byte, node ast.Node, en
 
 	dest := ClassifyDest(href)
 
-	// External and empty links pass through.
+	// External and empty links pass through, but record in the graph.
 	if dest.Kind == LinkExternal {
+		r.recordLinkRef(dest, nil, "", links.StatusExternal)
 		r.writeOpenTag(w, href, n)
 		return ast.WalkContinue, nil
 	}
@@ -104,6 +107,7 @@ func (r *Renderer) renderLink(w util.BufWriter, source []byte, node ast.Node, en
 	result := ResolveInternalLink(dest, r.CurrentPage, r.PageIndex, r.URLResolver.URL)
 
 	if !result.Found {
+		r.recordLinkRef(dest, nil, "", links.StatusBrokenTarget)
 		r.handleBroken(dest)
 		r.writeOpenTag(w, r.brokenHref(href), n)
 		return ast.WalkContinue, nil
@@ -119,8 +123,55 @@ func (r *Renderer) renderLink(w util.BufWriter, source []byte, node ast.Node, en
 		})
 	}
 
+	// Record successful resolution.
+	targetPage := r.PageIndex.LookupByPermalink(result.TargetPermalink)
+	r.recordLinkRef(dest, targetPage, result.URL, links.StatusOK)
+
 	r.writeOpenTag(w, result.URL, n)
 	return ast.WalkContinue, nil
+}
+
+func (r *Renderer) recordLinkRef(dest ParsedDest, targetPage *engine.Page, resolved string, status links.LinkStatus) {
+	if r.LinkGraph == nil {
+		return
+	}
+	page := r.CurrentPage
+	collName := ""
+	if page.Collection != nil {
+		collName = page.Collection.Name
+	}
+	r.LinkGraph.Record(links.LinkRef{
+		FromPage:   page,
+		FromFile:   page.FilePath,
+		RawDest:    dest.Raw,
+		Dim: links.DimKey{
+			Collection: collName,
+			Lang:       page.Lang,
+			Version:    page.Version,
+		},
+		Kind:       mapLinkKind(dest.Kind),
+		Resolved:   resolved,
+		TargetPage: targetPage,
+		Fragment:   dest.Fragment,
+		Status:     status,
+	})
+}
+
+func mapLinkKind(k LinkKind) links.LinkKind {
+	switch k {
+	case LinkRelative:
+		return links.KindRelative
+	case LinkContentRoot:
+		return links.KindContentRoot
+	case LinkAnchorOnly:
+		return links.KindAnchorOnly
+	case LinkExternal:
+		return links.KindExternal
+	case LinkAmbiguous:
+		return links.KindAmbiguous
+	default:
+		return links.KindExternal
+	}
 }
 
 func (r *Renderer) handleBroken(dest ParsedDest) {

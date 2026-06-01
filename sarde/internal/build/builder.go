@@ -22,6 +22,7 @@ import (
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/linkrender"
 	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
+	"github.com/frostybee/sarde/internal/links"
 	"github.com/frostybee/sarde/internal/i18n"
 	"github.com/frostybee/sarde/internal/plugin"
 	"github.com/frostybee/sarde/internal/plugin/announcements"
@@ -61,6 +62,7 @@ type SiteBuilder struct {
 	built        bool                    // true after first Build(); gates one-time registrations
 
 	urlResolver  *engine.URLResolver // URL resolver for basePath prefixing
+	linkGraph    *links.LinkGraph
 
 	// Last-build state for incremental rebuild.
 	lastCollections    map[string]*engine.Collection
@@ -401,6 +403,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		pageCache = NewPageCache(b.projectDir)
 	}
 
+	// Link graph: records every link resolution attempt for CHECK-phase validation.
+	b.linkGraph = links.NewLinkGraph()
+
 	// Validation data: collected links per page for post-build link validation.
 	var validationMu sync.Mutex
 	validationData := make(map[string]engine.ValidationEntry)
@@ -442,6 +447,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				lr.PageIndex = pageIndex
 				lr.URLResolver = urlResolver
 				lr.Policy = b.config.LinkValidation.InternalLinks
+				lr.LinkGraph = b.linkGraph
 
 				// Pre-process shortcodes before Goldmark.
 				processed, scWarns := scProcessor.Process(page.RawContent, page, siteCtx, renderer)
@@ -518,6 +524,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		lr.PageIndex = pageIndex
 		lr.URLResolver = urlResolver
 		lr.Policy = b.config.LinkValidation.InternalLinks
+		lr.LinkGraph = b.linkGraph
 
 		deps := markdownRenderDeps{
 			scProcessor:    scProcessor,
