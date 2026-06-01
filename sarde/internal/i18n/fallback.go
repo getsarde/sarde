@@ -1,6 +1,8 @@
 package i18n
 
 import (
+	"sort"
+
 	"github.com/frostybee/sarde/internal/engine"
 )
 
@@ -41,12 +43,22 @@ func GenerateFallbacks(pages []*engine.Page, languageCodes []string, defaultLang
 		}
 	}
 
+	// Iterate defaultPages in sorted key order. Go randomizes map iteration,
+	// which would otherwise make the fallback slice order (and therefore
+	// last-write-wins page-index population downstream) nondeterministic.
+	fbKeys := make([]string, 0, len(defaultPages))
+	for k := range defaultPages {
+		fbKeys = append(fbKeys, k)
+	}
+	sort.Strings(fbKeys)
+
 	var fallbacks []*engine.Page
 	for _, lang := range languageCodes {
 		if lang == defaultLang {
 			continue
 		}
-		for fbKey, defPage := range defaultPages {
+		for _, fbKey := range fbKeys {
+			defPage := defaultPages[fbKey]
 			lookupKey := lang + ":" + fbKey
 			if exists[lookupKey] {
 				continue

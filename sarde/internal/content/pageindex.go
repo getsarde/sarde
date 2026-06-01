@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 )
 
@@ -39,8 +40,19 @@ func BuildPageIndex(pages []*engine.Page) *PageIndex {
 		assets:      make(map[string]bool),
 	}
 	for _, p := range pages {
+		// First-match semantics (matching bySlug below). A collision means two
+		// distinct pages claim the same URL/lane key — keep the first and warn,
+		// rather than silently last-write-wins (which, combined with map-ordered
+		// page generation, made link checking nondeterministic).
 		if p.Permalink != "" {
-			idx.byPermalink[p.Permalink] = p
+			if existing, ok := idx.byPermalink[p.Permalink]; ok {
+				if existing != p {
+					devlog.Warn("pages", "permalink collision: %q claimed by %q and %q — keeping first",
+						p.Permalink, existing.FilePath, p.FilePath)
+				}
+			} else {
+				idx.byPermalink[p.Permalink] = p
+			}
 		}
 		if p.Slug != "" {
 			if _, exists := idx.bySlug[p.Slug]; !exists {
@@ -55,7 +67,14 @@ func BuildPageIndex(pages []*engine.Page) *PageIndex {
 				lane = make(map[string]*engine.Page)
 				idx.byLane[key] = lane
 			}
-			lane[p.RelPermalink] = p
+			if existing, ok := lane[p.RelPermalink]; ok {
+				if existing != p {
+					devlog.Warn("pages", "lane collision: %q (lang=%q version=%q) claimed by %q and %q — keeping first",
+						p.RelPermalink, p.Lang, p.Version, existing.FilePath, p.FilePath)
+				}
+			} else {
+				lane[p.RelPermalink] = p
+			}
 		}
 	}
 	return idx

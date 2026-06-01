@@ -308,6 +308,17 @@ func setPageIndexHeadings(idx *content.PageIndex, page *engine.Page) {
 	if idx == nil || page == nil || len(page.Headings) == 0 {
 		return
 	}
+	// First-match: if another page already registered headings for this
+	// permalink, two distinct pages claim the same URL. Keep the first and
+	// warn — overwriting would make anchor validation depend on page order
+	// (the source of the nondeterministic broken_anchor counts). Do NOT merge
+	// heading sets: that would let anchors pass against headings from the page
+	// that does not serve at this URL, silently hiding broken links.
+	if existing := idx.HeadingsFor(page.Permalink); existing != nil {
+		devlog.Warn("pages", "heading collision: %q already has headings; skipping %q",
+			page.Permalink, page.FilePath)
+		return
+	}
 	ids := make([]string, len(page.Headings))
 	for i, h := range page.Headings {
 		ids[i] = h.ID

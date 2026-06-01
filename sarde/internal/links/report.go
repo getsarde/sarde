@@ -214,6 +214,25 @@ func classifyRefs(refs []LinkRef, cfg LinkCheckConfig, siteURL string) []Finding
 			})
 		}
 	}
+
+	// Sort findings deterministically. The link graph records refs in
+	// goroutine-completion order during parallel render, so without this the
+	// report output (and ReportResult.Findings) would drift between runs.
+	// Type first keeps each finding category grouped in the pretty report.
+	sort.Slice(findings, func(i, j int) bool {
+		a, b := findings[i], findings[j]
+		if a.Type != b.Type {
+			return a.Type < b.Type
+		}
+		if a.Ref.FromFile != b.Ref.FromFile {
+			return a.Ref.FromFile < b.Ref.FromFile
+		}
+		if a.Ref.RawDest != b.Ref.RawDest {
+			return a.Ref.RawDest < b.Ref.RawDest
+		}
+		return a.Ref.Fragment < b.Ref.Fragment
+	})
+
 	return findings
 }
 

@@ -1,6 +1,7 @@
 package i18n
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/frostybee/sarde/internal/engine"
@@ -191,5 +192,66 @@ func TestGenerateFallbacks_RelPermalinkIsLangFree(t *testing.T) {
 	}
 	if fallbacks[0].RelPermalink != "/docs/api/" {
 		t.Errorf("RelPermalink = %q, want /docs/api/ (lang-free)", fallbacks[0].RelPermalink)
+	}
+}
+
+// TestGenerateFallbacks_DeterministicOrder guards against the nondeterministic
+// broken_anchor regression: GenerateFallbacks used to iterate defaultPages in
+// Go map order, so the returned slice (and downstream last-write-wins page-index
+// population) varied between runs. With ≥6 pages, an unsorted iteration would
+// almost certainly produce a different order across 50 calls.
+func TestGenerateFallbacks_DeterministicOrder(t *testing.T) {
+	paths := []string{
+		"docs/intro.md",
+		"docs/install.md",
+		"docs/config.md",
+		"docs/api.md",
+		"blog/first.md",
+		"blog/second.md",
+		"about.md",
+		"contact.md",
+	}
+	pages := make([]*engine.Page, 0, len(paths))
+	for _, p := range paths {
+		rel := "/" + p[:len(p)-len(".md")] + "/"
+		pages = append(pages, &engine.Page{
+			PageIdentity: engine.PageIdentity{RelPermalink: rel, Permalink: rel},
+			PageI18n:     engine.PageI18n{Lang: "en", LangRelPath: p},
+		})
+	}
+
+	orderOf := func(fbs []*engine.Page) []string {
+		out := make([]string, len(fbs))
+		for i, fb := range fbs {
+			out[i] = fb.LangRelPath
+		}
+		return out
+	}
+
+	first := orderOf(GenerateFallbacks(pages, []string{"en", "fr"}, "en", defaultOpts))
+	if len(first) != len(paths) {
+		t.Fatalf("expected %d fallbacks, got %d", len(paths), len(first))
+	}
+
+	// The order must equal the sorted LangRelPath order (the deterministic key).
+	wantSorted := append([]string(nil), paths...)
+	sort.Strings(wantSorted)
+	for i := range wantSorted {
+		if first[i] != wantSorted[i] {
+			t.Fatalf("fallback order not sorted: got %v, want %v", first, wantSorted)
+		}
+	}
+
+	// And it must be identical across many invocations.
+	for run := 0; run < 50; run++ {
+		got := orderOf(GenerateFallbacks(pages, []string{"en", "fr"}, "en", defaultOpts))
+		if len(got) != len(first) {
+			t.Fatalf("run %d: length changed: got %d, want %d", run, len(got), len(first))
+		}
+		for i := range got {
+			if got[i] != first[i] {
+				t.Fatalf("run %d: order changed at %d: got %v, want %v", run, i, got, first)
+			}
+		}
 	}
 }
