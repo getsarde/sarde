@@ -604,3 +604,334 @@ func TestResolveInternalLink_SiteRoot(t *testing.T) {
 		t.Errorf("URL = %q, want /pricing#plans (no lane segments)", result.URL)
 	}
 }
+
+// langVersionResolver inserts a non-default /<lang>/ outer prefix and a
+// /<version>/ segment after the /docs mount, mirroring engine.URLResolver closely
+// enough for assertions. lang "" or "en" yields no prefix; version "" yields none.
+// (versionInPath ignores lang, so cross-lane ?lang= tests use this resolver.)
+func langVersionResolver(relPath, lang, version string) string {
+	out := relPath
+	if version != "" {
+		out = "/docs/" + version + out[len("/docs"):]
+	}
+	if lang != "" && lang != "en" {
+		out = "/" + lang + out
+	}
+	return out
+}
+
+func TestExtractLaneOverrides(t *testing.T) {
+	tests := []struct {
+		name        string
+		query       string
+		wantLang    string
+		wantHasLang bool
+		wantVer     string
+		wantHasVer  bool
+		wantRest    string
+	}{
+		{"empty", "", "", false, "", false, ""},
+		{"ordinary", "highlight=true", "", false, "", false, "highlight=true"},
+		{"lang only", "lang=de", "de", true, "", false, ""},
+		{"version only", "version=v1", "", false, "v1", true, ""},
+		{"both", "lang=de&version=v1", "de", true, "v1", true, ""},
+		{"lang plus other", "lang=de&tab=2", "de", true, "", false, "tab=2"},
+		{"false-positive substring", "clang=c", "", false, "", false, "clang=c"},
+		{"empty version stripped, no override", "version=", "", false, "", false, ""},
+		{"empty lang stripped, no override", "lang=", "", false, "", false, ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			lang, hasLang, ver, hasVer, rest := extractLaneOverrides(tt.query)
+			if lang != tt.wantLang || hasLang != tt.wantHasLang {
+				t.Errorf("lang = %q,%v; want %q,%v", lang, hasLang, tt.wantLang, tt.wantHasLang)
+			}
+			if ver != tt.wantVer || hasVer != tt.wantHasVer {
+				t.Errorf("version = %q,%v; want %q,%v", ver, hasVer, tt.wantVer, tt.wantHasVer)
+			}
+			if rest != tt.wantRest {
+				t.Errorf("rest = %q; want %q", rest, tt.wantRest)
+			}
+		})
+	}
+}
+
+func TestResolveInternalLink_LangOverride_RelativeLink(t *testing.T) {
+	// The French translation of auth lives in the (de, "") lane.
+	dePage := &engine.Page{
+		PageIdentity: engine.PageIdentity{RelPermalink: "/docs/auth/", Permalink: "/de/docs/auth/"},
+		PageI18n:     engine.PageI18n{Lang: "de"},
+	}
+	idx := &mockPageIndex{
+		pages: map[laneEntry]*engine.Page{
+			{"/docs/auth/", "de", ""}: dePage,
+		},
+	}
+	currentPage := &engine.Page{
+		PageIdentity: engine.PageIdentity{RelPermalink: "/docs/intro/"},
+		PageI18n:     engine.PageI18n{Lang: "en", LangRelPath: "docs/intro.md"},
+	}
+
+	dest := ClassifyDest("./auth.md?lang=de")
+	result := ResolveInternalLink(dest, currentPage, ctxOf(idx, langVersionResolver))
+
+	if !result.Found {
+		t.Fatal("?lang=de should resolve into the de lane")
+	}
+	if result.URL != "/de/docs/auth/" {
+		t.Errorf("URL = %q, want /de/docs/auth/", result.URL)
+	}
+	if result.TargetPermalink != "/de/docs/auth/" {
+		t.Errorf("TargetPermalink = %q, want /de/docs/auth/", result.TargetPermalink)
+	}
+}
+
+func TestResolveInternalLink_LangOverride_ContentRoot(t *testing.T) {
+	dePage := &engine.Page{
+		PageIdentity: engine.PageIdentity{RelPermalink: "/docs/guide/api/", Permalink: "/de/docs/guide/api/"},
+		PageI18n:     engine.PageI18n{Lang: "de"},
+	}
+	idx := &mockPageIndex{
+		pages: map[laneEntry]*engine.Page{
+			{"/docs/guide/api/", "de", ""}: dePage,
+		},
+	}
+	currentPage := &engine.Page{
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/intro/"},
+		PageI18n:          engine.PageI18n{Lang: "en", LangRelPath: "docs/intro.md"},
+		PageRelationships: engine.PageRelationships{Collection: makeCollection("docs", false, "")},
+	}
+
+	dest := ClassifyDest("/guide/api.md?lang=de")
+	result := ResolveInternalLink(dest, currentPage, ctxOf(idx, langVersionResolver))
+
+	if !result.Found {
+		t.Fatal("content-root ?lang=de should resolve into the de lane")
+	}
+	if result.URL != "/de/docs/guide/api/" {
+		t.Errorf("URL = %q, want /de/docs/guide/api/", result.URL)
+	}
+}
+
+func TestResolveInternalLink_VersionOverride_SameCollection(t *testing.T) {
+	docs := makeCollection("docs", true, "v2")
+
+	// v1 target (older version) registered in the v1 lane.
+	target := &engine.Page{
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/guide/api/", Permalink: "/docs/v1/guide/api/"},
+		PageI18n:          engine.PageI18n{Lang: "en"},
+		PageVersioning:    engine.PageVersioning{Version: "v1"},
+		PageRelationships: engine.PageRelationships{Collection: docs},
+	}
+	idx := &mockPageIndex{
+		pages: map[laneEntry]*engine.Page{
+			{"/docs/guide/api/", "en", "v1"}: target,
+		},
+	}
+	// Source is on the latest version (v2) and explicitly links into v1.
+	currentPage := &engine.Page{
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/guide/auth/"},
+		PageI18n:          engine.PageI18n{Lang: "en", LangRelPath: "docs/guide/auth.md"},
+		PageVersioning:    engine.PageVersioning{Version: "v2", VersionRelPath: "guide/auth"},
+		PageRelationships: engine.PageRelationships{Collection: docs},
+	}
+	ctx := ResolveContext{
+		PageIndex:   idx,
+		URLResolver: versionInPath,
+		Collections: map[string]*engine.Collection{"docs": docs},
+	}
+
+	dest := ClassifyDest("./api.md?version=v1")
+	result := ResolveInternalLink(dest, currentPage, ctx)
+
+	if !result.Found {
+		t.Fatal("?version=v1 should resolve into the v1 lane")
+	}
+	if result.URL != "/docs/v1/guide/api/" {
+		t.Errorf("URL = %q, want /docs/v1/guide/api/", result.URL)
+	}
+}
+
+func TestResolveInternalLink_BothOverrides(t *testing.T) {
+	docs := makeCollection("docs", true, "v2")
+
+	target := &engine.Page{
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/guide/api/", Permalink: "/de/docs/v1/guide/api/"},
+		PageI18n:          engine.PageI18n{Lang: "de"},
+		PageVersioning:    engine.PageVersioning{Version: "v1"},
+		PageRelationships: engine.PageRelationships{Collection: docs},
+	}
+	idx := &mockPageIndex{
+		pages: map[laneEntry]*engine.Page{
+			{"/docs/guide/api/", "de", "v1"}: target,
+		},
+	}
+	currentPage := &engine.Page{
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/guide/auth/"},
+		PageI18n:          engine.PageI18n{Lang: "en", LangRelPath: "docs/guide/auth.md"},
+		PageVersioning:    engine.PageVersioning{Version: "v2", VersionRelPath: "guide/auth"},
+		PageRelationships: engine.PageRelationships{Collection: docs},
+	}
+	ctx := ResolveContext{
+		PageIndex:   idx,
+		URLResolver: langVersionResolver,
+		Collections: map[string]*engine.Collection{"docs": docs},
+	}
+
+	dest := ClassifyDest("./api.md?lang=de&version=v1")
+	result := ResolveInternalLink(dest, currentPage, ctx)
+
+	if !result.Found {
+		t.Fatal("?lang=de&version=v1 should resolve into the (de, v1) lane")
+	}
+	if result.URL != "/de/docs/v1/guide/api/" {
+		t.Errorf("URL = %q, want /de/docs/v1/guide/api/", result.URL)
+	}
+}
+
+func TestResolveInternalLink_OverridePreservesOtherQuery(t *testing.T) {
+	dePage := &engine.Page{
+		PageIdentity: engine.PageIdentity{RelPermalink: "/docs/auth/", Permalink: "/de/docs/auth/"},
+		PageI18n:     engine.PageI18n{Lang: "de"},
+	}
+	idx := &mockPageIndex{
+		pages: map[laneEntry]*engine.Page{
+			{"/docs/auth/", "de", ""}: dePage,
+		},
+	}
+	currentPage := &engine.Page{
+		PageIdentity: engine.PageIdentity{RelPermalink: "/docs/intro/"},
+		PageI18n:     engine.PageI18n{Lang: "en", LangRelPath: "docs/intro.md"},
+	}
+
+	dest := ClassifyDest("./auth.md?lang=de&highlight=x")
+	result := ResolveInternalLink(dest, currentPage, ctxOf(idx, langVersionResolver))
+
+	if !result.Found {
+		t.Fatal("override link should resolve")
+	}
+	if result.URL != "/de/docs/auth/?highlight=x" {
+		t.Errorf("URL = %q, want /de/docs/auth/?highlight=x (lang stripped, highlight preserved)", result.URL)
+	}
+}
+
+func TestResolveInternalLink_LangOverride_NotFound(t *testing.T) {
+	// Only an en page exists; ?lang=ja targets a lane that has nothing.
+	enPage := &engine.Page{
+		PageIdentity: engine.PageIdentity{RelPermalink: "/docs/auth/", Permalink: "/docs/auth/"},
+		PageI18n:     engine.PageI18n{Lang: "en"},
+	}
+	idx := &mockPageIndex{
+		pages: map[laneEntry]*engine.Page{
+			{"/docs/auth/", "en", ""}: enPage,
+		},
+	}
+	currentPage := &engine.Page{
+		PageIdentity: engine.PageIdentity{RelPermalink: "/docs/intro/"},
+		PageI18n:     engine.PageI18n{Lang: "en", LangRelPath: "docs/intro.md"},
+	}
+
+	dest := ClassifyDest("./auth.md?lang=ja")
+	result := ResolveInternalLink(dest, currentPage, ctxOf(idx, langVersionResolver))
+
+	if result.Found {
+		t.Error("?lang=ja with no ja lane must not resolve (broken target)")
+	}
+}
+
+func TestResolveInternalLink_VersionOverride_NotFound(t *testing.T) {
+	docs := makeCollection("docs", true, "v2")
+	target := &engine.Page{
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/guide/api/", Permalink: "/docs/v1/guide/api/"},
+		PageI18n:          engine.PageI18n{Lang: "en"},
+		PageVersioning:    engine.PageVersioning{Version: "v1"},
+		PageRelationships: engine.PageRelationships{Collection: docs},
+	}
+	idx := &mockPageIndex{
+		pages: map[laneEntry]*engine.Page{
+			{"/docs/guide/api/", "en", "v1"}: target,
+		},
+	}
+	currentPage := &engine.Page{
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/guide/auth/"},
+		PageI18n:          engine.PageI18n{Lang: "en", LangRelPath: "docs/guide/auth.md"},
+		PageVersioning:    engine.PageVersioning{Version: "v1", VersionRelPath: "guide/auth"},
+		PageRelationships: engine.PageRelationships{Collection: docs},
+	}
+	ctx := ResolveContext{
+		PageIndex:   idx,
+		URLResolver: versionInPath,
+		Collections: map[string]*engine.Collection{"docs": docs},
+	}
+
+	dest := ClassifyDest("./api.md?version=v99")
+	result := ResolveInternalLink(dest, currentPage, ctx)
+
+	if result.Found {
+		t.Error("?version=v99 with no such lane must not resolve (broken target)")
+	}
+}
+
+func TestResolveInternalLink_EmptyVersionKey(t *testing.T) {
+	docs := makeCollection("docs", true, "v2")
+	target := &engine.Page{
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/guide/api/", Permalink: "/docs/v1/guide/api/"},
+		PageI18n:          engine.PageI18n{Lang: "en"},
+		PageVersioning:    engine.PageVersioning{Version: "v1"},
+		PageRelationships: engine.PageRelationships{Collection: docs},
+	}
+	idx := &mockPageIndex{
+		pages: map[laneEntry]*engine.Page{
+			{"/docs/guide/api/", "en", "v1"}: target,
+		},
+	}
+	currentPage := &engine.Page{
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/guide/auth/"},
+		PageI18n:          engine.PageI18n{Lang: "en", LangRelPath: "docs/guide/auth.md"},
+		PageVersioning:    engine.PageVersioning{Version: "v1", VersionRelPath: "guide/auth"},
+		PageRelationships: engine.PageRelationships{Collection: docs},
+	}
+	ctx := ResolveContext{
+		PageIndex:   idx,
+		URLResolver: versionInPath,
+		Collections: map[string]*engine.Collection{"docs": docs},
+	}
+
+	// Empty value is a no-op: behaves exactly like ./api.md (same v1 lane).
+	dest := ClassifyDest("./api.md?version=")
+	result := ResolveInternalLink(dest, currentPage, ctx)
+
+	if !result.Found {
+		t.Fatal("empty ?version= should be a no-op and resolve in the current (v1) lane")
+	}
+	if result.URL != "/docs/v1/guide/api/" {
+		t.Errorf("URL = %q, want /docs/v1/guide/api/", result.URL)
+	}
+}
+
+func TestResolveInternalLink_OrdinaryQuery_Passthrough(t *testing.T) {
+	// "clang=c" contains the "lang=" substring but is not the reserved key.
+	target := &engine.Page{
+		PageIdentity: engine.PageIdentity{RelPermalink: "/docs/auth/", Permalink: "/docs/auth/"},
+		PageI18n:     engine.PageI18n{Lang: "en"},
+	}
+	idx := &mockPageIndex{
+		pages: map[laneEntry]*engine.Page{
+			{"/docs/auth/", "en", ""}: target,
+		},
+	}
+	currentPage := &engine.Page{
+		PageIdentity: engine.PageIdentity{RelPermalink: "/docs/intro/"},
+		PageI18n:     engine.PageI18n{Lang: "en", LangRelPath: "docs/intro.md"},
+	}
+
+	dest := ClassifyDest("./auth.md?clang=c")
+	result := ResolveInternalLink(dest, currentPage, ctxOf(idx, identityResolver))
+
+	if !result.Found {
+		t.Fatal("ordinary query link should resolve in the same lane")
+	}
+	if result.URL != "/docs/auth/?clang=c" {
+		t.Errorf("URL = %q, want /docs/auth/?clang=c (query preserved verbatim)", result.URL)
+	}
+}

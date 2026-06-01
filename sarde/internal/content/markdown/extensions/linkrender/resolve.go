@@ -1,6 +1,7 @@
 package linkrender
 
 import (
+	"net/url"
 	"path"
 	"strings"
 
@@ -118,49 +119,107 @@ func lookupAndResolve(
 	currentPage *engine.Page,
 	ctx ResolveContext,
 ) ResolveResult {
+	lookupLang := currentPage.Lang
+	lookupVersion := currentPage.Version
+
 	// Cross-dimension: when the target collection (first path segment of the
 	// logical path) is unversioned, drop the version coordinate so a versioned
 	// page (e.g. docs/v1) can link into an unversioned collection (e.g. blog).
 	// Within the same versioned collection the source version is preserved.
-	lookupVersion := currentPage.Version
 	if ctx.Collections != nil {
 		if isUnversioned(ctx.Collections[firstPathSegment(logical)]) {
 			lookupVersion = ""
 		}
 	}
 
+	// Explicit cross-lane overrides (?lang=, ?version=) deliberately resolve the
+	// target in a different language/version lane (Hugo relref-style). They win
+	// over the implicit lane and the auto-drop above. Reserved keys are stripped
+	// from the query echoed onto the output URL; other params are preserved.
+	ovLang, hasLang, ovVersion, hasVersion, outQuery := extractLaneOverrides(dest.Query)
+	if hasLang {
+		lookupLang = ovLang
+	}
+	if hasVersion {
+		lookupVersion = ovVersion
+	}
+
 	// Compute the expected RelPermalink from the logical filesystem path.
 	relPermalink := content.ComputePermalinkFromRelPath(logical + ".md")
 
-	target := ctx.PageIndex.LookupInLane(relPermalink, currentPage.Lang, lookupVersion)
+	target := ctx.PageIndex.LookupInLane(relPermalink, lookupLang, lookupVersion)
 
 	// Fallback: try as a directory index (e.g. ./guides/ → guides/_index.md).
 	if target == nil {
 		indexLogical := logical + "/_index"
 		indexRelPermalink := content.ComputePermalinkFromRelPath(indexLogical + ".md")
-		target = ctx.PageIndex.LookupInLane(indexRelPermalink, currentPage.Lang, lookupVersion)
+		target = ctx.PageIndex.LookupInLane(indexRelPermalink, lookupLang, lookupVersion)
 	}
 
 	// Fallback: try as index.md (leaf bundle).
 	if target == nil {
 		indexLogical := logical + "/index"
 		indexRelPermalink := content.ComputePermalinkFromRelPath(indexLogical + ".md")
-		target = ctx.PageIndex.LookupInLane(indexRelPermalink, currentPage.Lang, lookupVersion)
+		target = ctx.PageIndex.LookupInLane(indexRelPermalink, lookupLang, lookupVersion)
 	}
 
 	if target == nil {
 		return ResolveResult{Found: false}
 	}
 
-	// The URL version segment comes from the TARGET, not the source: "" for an
-	// unversioned or latest-version target, the version ID otherwise.
-	url := ctx.URLResolver(target.RelPermalink, currentPage.Lang, engine.ResolvePageVersion(target))
+	// The emitted URL's lang/version come from the resolved TARGET's own lane, so
+	// an explicit override is reflected in the output: lang is "" (default) or the
+	// code, version is "" for an unversioned/latest target or the version ID.
+	url := ctx.URLResolver(target.RelPermalink, target.Lang, engine.ResolvePageVersion(target))
 
 	return ResolveResult{
-		URL:             withSuffix(url, dest.Fragment, dest.Query),
+		URL:             withSuffix(url, dest.Fragment, outQuery),
 		TargetPermalink: target.Permalink,
 		Found:           true,
 	}
+}
+
+// extractLaneOverrides pulls the reserved cross-lane keys (lang, version) out of
+// a link's query string so an author can deliberately resolve in a different
+// language/version lane (Hugo relref-style). It returns the override values with
+// presence flags and the remaining query (reserved keys removed).
+//
+// Fast path: a query that contains neither "lang=" nor "version=" is returned
+// verbatim, so ordinary queries are never re-encoded or reordered. The reserved
+// keys are always stripped from the returned query when present, but only an
+// empty value is a no-op for lane selection — it does not override the lane (this
+// avoids silently misdirecting a typo to the default/latest lane), yet the stray
+// reserved key is still removed from the output URL. When a reserved key is
+// present, surviving params are re-encoded via url.Values.Encode(), which sorts
+// keys alphabetically; acceptable since link query params are not order-sensitive.
+func extractLaneOverrides(query string) (lang string, hasLang bool, version string, hasVersion bool, rest string) {
+	if query == "" || (!strings.Contains(query, "lang=") && !strings.Contains(query, "version=")) {
+		return "", false, "", false, query
+	}
+	values, err := url.ParseQuery(query)
+	if err != nil {
+		return "", false, "", false, query // malformed: leave untouched
+	}
+	reserved := false
+	if values.Has("lang") {
+		reserved = true
+		if v := values.Get("lang"); v != "" {
+			lang, hasLang = v, true
+		}
+		values.Del("lang")
+	}
+	if values.Has("version") {
+		reserved = true
+		if v := values.Get("version"); v != "" {
+			version, hasVersion = v, true
+		}
+		values.Del("version")
+	}
+	if !reserved {
+		// Substring matched but no real reserved key (e.g. "clang=c"). Preserve verbatim.
+		return "", false, "", false, query
+	}
+	return lang, hasLang, version, hasVersion, values.Encode()
 }
 
 // firstPathSegment returns the first slash-separated segment of a logical path
