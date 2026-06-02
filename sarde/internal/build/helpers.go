@@ -309,14 +309,13 @@ func setPageIndexHeadings(idx *content.PageIndex, page *engine.Page) {
 		return
 	}
 	// First-match: if another page already registered headings for this
-	// permalink, two distinct pages claim the same URL. Keep the first and
-	// warn — overwriting would make anchor validation depend on page order
-	// (the source of the nondeterministic broken_anchor counts). Do NOT merge
-	// heading sets: that would let anchors pass against headings from the page
-	// that does not serve at this URL, silently hiding broken links.
+	// permalink, two distinct pages claim the same URL. Keep the first —
+	// overwriting would make anchor validation depend on page order (the source
+	// of the nondeterministic broken_anchor counts). Do NOT merge heading sets:
+	// that would let anchors pass against headings from the page that does not
+	// serve at this URL, silently hiding broken links. Silent: the same URL
+	// collision is already recorded (and reported) via byPermalink in BuildPageIndex.
 	if existing := idx.HeadingsFor(page.Permalink); existing != nil {
-		devlog.Warn("pages", "heading collision: %q already has headings; skipping %q",
-			page.Permalink, page.FilePath)
 		return
 	}
 	ids := make([]string, len(page.Headings))
@@ -405,6 +404,49 @@ func stringSlicesEqual(a, b []string) bool {
 }
 
 const warnCollapseThreshold = 3
+
+// collisionWarnThreshold is intentionally higher than warnCollapseThreshold:
+// collision lines carry the kept/dropped file paths needed to fix the dup, and a
+// real site has only a handful of distinct colliding URLs. The summary (which
+// drops the file paths) is reserved for pathological, systemic dup bugs.
+const collisionWarnThreshold = 10
+
+// emitCollisionWarnings reports duplicate-URL page collisions deduped by URL and
+// capped per build. Up to collisionWarnThreshold distinct URLs each get a detail
+// line (URL + kept + dropped files); past that they collapse to one count + URL
+// summary. Order follows first-seen (deterministic after the fallback-sort fix).
+func emitCollisionWarnings(collisions []content.Collision) {
+	if len(collisions) == 0 {
+		return
+	}
+
+	type agg struct {
+		kept    string
+		dropped []string
+	}
+	byKey := make(map[string]*agg)
+	var order []string
+	for _, c := range collisions {
+		a, ok := byKey[c.Permalink]
+		if !ok {
+			a = &agg{kept: c.KeptFile}
+			byKey[c.Permalink] = a
+			order = append(order, c.Permalink)
+		}
+		a.dropped = append(a.dropped, c.DroppedFile)
+	}
+
+	if len(order) <= collisionWarnThreshold {
+		for _, k := range order {
+			a := byKey[k]
+			devlog.Warn("pages", "URL collision: %q resolved by %d pages — keeping %q, ignoring %s",
+				k, len(a.dropped)+1, a.kept, strings.Join(a.dropped, ", "))
+		}
+		return
+	}
+	devlog.Warn("pages", "%d duplicate-URL collisions (multiple pages resolve to one URL; keeping first match) — %s",
+		len(order), strings.Join(order, ", "))
+}
 
 func emitTaxonomyWarnings(warnings []string) {
 	if len(warnings) == 0 {

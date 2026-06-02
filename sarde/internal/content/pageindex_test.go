@@ -63,6 +63,49 @@ func TestPageIndexSlugCollision(t *testing.T) {
 	}
 }
 
+func TestBuildPageIndex_RecordsPermalinkCollision(t *testing.T) {
+	// Two distinct pages claiming the same Permalink. Because they also share
+	// RelPermalink within one lane, this is simultaneously a byLane dup — it must
+	// be recorded exactly once (via byPermalink), never double-counted.
+	first := &engine.Page{PageIdentity: engine.PageIdentity{
+		RelPermalink: "/docs/guide/", Permalink: "/docs/guide/", FilePath: "content/docs/a.md",
+	}}
+	second := &engine.Page{PageIdentity: engine.PageIdentity{
+		RelPermalink: "/docs/guide/", Permalink: "/docs/guide/", FilePath: "content/docs/b.md",
+	}}
+	idx := BuildPageIndex([]*engine.Page{first, second})
+
+	cols := idx.Collisions()
+	if len(cols) != 1 {
+		t.Fatalf("Collisions() returned %d entries, want 1 (recorded once via byPermalink)", len(cols))
+	}
+	got := cols[0]
+	if got.Permalink != "/docs/guide/" {
+		t.Errorf("Collision.Permalink = %q, want /docs/guide/", got.Permalink)
+	}
+	if got.KeptFile != first.FilePath {
+		t.Errorf("Collision.KeptFile = %q, want %q (first registered)", got.KeptFile, first.FilePath)
+	}
+	if got.DroppedFile != second.FilePath {
+		t.Errorf("Collision.DroppedFile = %q, want %q (later page)", got.DroppedFile, second.FilePath)
+	}
+	// First-match resolution preserved: the first page wins the URL.
+	if idx.LookupByPermalink("/docs/guide/") != first {
+		t.Error("LookupByPermalink should return the first-registered page")
+	}
+}
+
+func TestBuildPageIndex_NoCollisionWhenDistinct(t *testing.T) {
+	pages := []*engine.Page{
+		{PageIdentity: engine.PageIdentity{RelPermalink: "/blog/hello/", Permalink: "/blog/hello/", FilePath: "a.md"}},
+		{PageIdentity: engine.PageIdentity{RelPermalink: "/docs/guide/", Permalink: "/docs/guide/", FilePath: "b.md"}},
+	}
+	idx := BuildPageIndex(pages)
+	if got := len(idx.Collisions()); got != 0 {
+		t.Errorf("Collisions() returned %d entries, want 0 for a clean index", got)
+	}
+}
+
 func TestPageIndexEmptySlugOrPermalink(t *testing.T) {
 	orphan := &engine.Page{PageIdentity: engine.PageIdentity{Slug: "orphan", RelPermalink: "", Permalink: ""}}
 	pages := []*engine.Page{

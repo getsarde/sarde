@@ -6,7 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 )
 
@@ -14,6 +13,16 @@ import (
 type laneKey struct {
 	Lang    string
 	Version string // "" for latest/unversioned
+}
+
+// Collision records two distinct pages that resolve to the same Permalink.
+// The first page registered at a URL is kept; later pages are dropped (first-match
+// semantics). These are accumulated rather than logged inline so the builder can
+// dedupe and cap them once per build (see emitCollisionWarnings).
+type Collision struct {
+	Permalink   string
+	KeptFile    string // first page registered at this URL
+	DroppedFile string // a later page that resolved to the same URL
 }
 
 // PageIndex provides O(1) lookups of pages by permalink, slug, heading ID,
@@ -24,6 +33,7 @@ type PageIndex struct {
 	byLane      map[laneKey]map[string]*engine.Page // relPermalink → *Page per (lang, version)
 	headings    map[string][]string
 	assets      map[string]bool
+	collisions  []Collision // distinct pages sharing one Permalink (first-match kept)
 
 	mu sync.RWMutex // protects headings (written concurrently during parallel render)
 }
@@ -41,14 +51,21 @@ func BuildPageIndex(pages []*engine.Page) *PageIndex {
 	}
 	for _, p := range pages {
 		// First-match semantics (matching bySlug below). A collision means two
-		// distinct pages claim the same URL/lane key — keep the first and warn,
-		// rather than silently last-write-wins (which, combined with map-ordered
-		// page generation, made link checking nondeterministic).
+		// distinct pages claim the same URL/lane key — keep the first, rather than
+		// silently last-write-wins (which, combined with map-ordered page
+		// generation, made link checking nondeterministic).
+		//
+		// Only byPermalink collisions are recorded for reporting: a byLane
+		// collision (same RelPermalink within one lane) implies the same Permalink,
+		// so it is already captured here. byLane keeps first-match silently.
 		if p.Permalink != "" {
 			if existing, ok := idx.byPermalink[p.Permalink]; ok {
 				if existing != p {
-					devlog.Warn("pages", "permalink collision: %q claimed by %q and %q — keeping first",
-						p.Permalink, existing.FilePath, p.FilePath)
+					idx.collisions = append(idx.collisions, Collision{
+						Permalink:   p.Permalink,
+						KeptFile:    existing.FilePath,
+						DroppedFile: p.FilePath,
+					})
 				}
 			} else {
 				idx.byPermalink[p.Permalink] = p
@@ -59,7 +76,8 @@ func BuildPageIndex(pages []*engine.Page) *PageIndex {
 				idx.bySlug[p.Slug] = p
 			}
 		}
-		// Lane index: register by RelPermalink within (lang, version).
+		// Lane index: register by RelPermalink within (lang, version). First-match,
+		// silent — any collision here is also a byPermalink collision (above).
 		if p.RelPermalink != "" {
 			key := laneKey{Lang: p.Lang, Version: p.Version}
 			lane, ok := idx.byLane[key]
@@ -67,17 +85,18 @@ func BuildPageIndex(pages []*engine.Page) *PageIndex {
 				lane = make(map[string]*engine.Page)
 				idx.byLane[key] = lane
 			}
-			if existing, ok := lane[p.RelPermalink]; ok {
-				if existing != p {
-					devlog.Warn("pages", "lane collision: %q (lang=%q version=%q) claimed by %q and %q — keeping first",
-						p.RelPermalink, p.Lang, p.Version, existing.FilePath, p.FilePath)
-				}
-			} else {
+			if _, ok := lane[p.RelPermalink]; !ok {
 				lane[p.RelPermalink] = p
 			}
 		}
 	}
 	return idx
+}
+
+// Collisions returns the distinct-page permalink collisions recorded during
+// BuildPageIndex (first-match kept). Empty when no two pages share a URL.
+func (idx *PageIndex) Collisions() []Collision {
+	return idx.collisions
 }
 
 // HasPage reports whether a page with the given permalink exists.

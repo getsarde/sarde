@@ -268,6 +268,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	newPageIndex := content.BuildPageIndex(patchedAllPages)
 	newPageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
 	populatePageIndexHeadings(newPageIndex, patchedAllPages)
+	emitCollisionWarnings(newPageIndex.Collisions())
 
 	if newTaxByLang != nil {
 		for _, langTax := range newTaxByLang {

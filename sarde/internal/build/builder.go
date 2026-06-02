@@ -560,6 +560,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	recordTiming("Rendering markdown")
 
 	populatePageIndexHeadings(pageIndex, allPages)
+	emitCollisionWarnings(pageIndex.Collisions())
 
 	// Validate pending anchor checks now that all heading IDs are populated.
 	// ValidateAnchors writes definitive StatusOK or StatusBrokenAnchor entries
