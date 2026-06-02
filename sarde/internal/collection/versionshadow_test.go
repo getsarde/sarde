@@ -76,13 +76,12 @@ func TestResolveVersionShadowing(t *testing.T) {
 	}
 }
 
-func TestResolveVersionShadowing_SectionPagesKept(t *testing.T) {
-	// Section pages (_index.md) are structural — they define the section tree,
-	// IndexPage, and navigation. Even if a loose _index.md shadows the latest
-	// version's _index.md at the same URL, the loose one must be kept.
+func TestResolveVersionShadowing_SectionPagesKeptButNotRendered(t *testing.T) {
+	// Section pages (_index.md) are structural (section tree, IndexPage, nav) so
+	// they stay in kept, but get render=false to prevent double output.
 	section := looseSection("en", "/docs/", "content/docs/_index.md")
 	v2Section := versionedPage("en", "/docs/", "v2", "content/docs/v2/_index.md")
-	// A leaf page at the same collection SHOULD still be dropped.
+	// A leaf page at the same collection SHOULD still be dropped entirely.
 	leaf := loosePage("en", "/docs/guide/x/", "content/docs/guide/x.md")
 	v2Leaf := versionedPage("en", "/docs/guide/x/", "v2", "content/docs/v2/guide/x.md")
 
@@ -101,6 +100,16 @@ func TestResolveVersionShadowing_SectionPagesKept(t *testing.T) {
 	}
 	if !keptSet[section] {
 		t.Error("loose section page must be kept (structural)")
+	}
+	// Section page should be marked render=false.
+	if r, ok := section.Params["render"].(bool); !ok || r {
+		t.Error("shadowed section page must have render=false")
+	}
+	// The v2 section page should NOT have render=false.
+	if v2Section.Params != nil {
+		if r, ok := v2Section.Params["render"].(bool); ok && !r {
+			t.Error("v2 section page must NOT have render=false")
+		}
 	}
 }
 

@@ -43,10 +43,21 @@ func ResolveVersionShadowing(pages []*engine.Page, lastVersion string) (kept []*
 
 	kept = make([]*engine.Page, 0, len(pages))
 	for _, p := range pages {
-		if p.Version == "" && p.Kind != engine.KindSection {
+		if p.Version == "" {
 			if owner, ok := owners[laneURL{p.Lang, p.RelPermalink}]; ok && owner != p {
-				drops = append(drops, ShadowDrop{Dropped: p, Owner: owner})
-				continue
+				if p.Kind == engine.KindSection {
+					// Section pages are structural (section tree, IndexPage, nav) so
+					// they stay in col.Pages, but they must not be rendered to disk —
+					// the latest-version's section page owns the output path. Setting
+					// render=false uses the existing renderablePages filter in builder.go.
+					if p.Params == nil {
+						p.Params = make(map[string]any)
+					}
+					p.Params["render"] = false
+				} else {
+					drops = append(drops, ShadowDrop{Dropped: p, Owner: owner})
+					continue
+				}
 			}
 		}
 		kept = append(kept, p)
