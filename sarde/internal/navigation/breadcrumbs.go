@@ -28,11 +28,11 @@ func BuildBreadcrumbs(page *engine.Page, collection *engine.Collection) []engine
 		URL:   "/" + collection.Name + "/",
 	})
 
-	// Sections in root-to-leaf order.
+	// Sections in root-to-leaf order. Skip the root section (Parent==nil)
+	// because it's already represented by the collection root crumb above.
 	for i := len(sections) - 1; i >= 0; i-- {
 		sec := sections[i]
-		// Skip transparent sections — they shouldn't appear in breadcrumbs.
-		if sec.Transparent {
+		if sec.Parent == nil || sec.Transparent {
 			continue
 		}
 		crumbs = append(crumbs, engine.BreadcrumbItem{
@@ -124,7 +124,7 @@ func BuildBreadcrumbsVersioned(page *engine.Page, col *engine.Collection) []engi
 		})
 	}
 
-	// Section chain.
+	// Section chain. Skip root section (Parent==nil) — already the collection crumb.
 	var sections []*engine.Section
 	sec := page.Section
 	for sec != nil {
@@ -133,7 +133,7 @@ func BuildBreadcrumbsVersioned(page *engine.Page, col *engine.Collection) []engi
 	}
 	for i := len(sections) - 1; i >= 0; i-- {
 		s := sections[i]
-		if s.Transparent {
+		if s.Parent == nil || s.Transparent {
 			continue
 		}
 		crumbs = append(crumbs, engine.BreadcrumbItem{Label: s.Title, URL: s.Permalink})
