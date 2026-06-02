@@ -239,11 +239,14 @@ server:
   port: 4727
 link_validation:
   enabled: true
-  on_broken: "error"
-  on_broken_anchor: "error"
-  on_relative_links: "error"
+  # Policies kept at "warn" so `sarde dev`/`build` don't hard-fail on this
+  # fixture's intentional broken links. `check-links` still reports every
+  # finding, and `check-links --strict` still treats them as errors for CI.
+  on_broken: "warn"
+  on_broken_anchor: "warn"
+  on_relative_links: "warn"
   on_local_links: "warn"
-  same_site_policy: "error"
+  same_site_policy: "warn"
   report: "pretty"
   check_anchors: true
   exclude: []

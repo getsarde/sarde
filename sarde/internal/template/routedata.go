@@ -178,7 +178,11 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 					rd.Breadcrumbs = navigation.BuildBreadcrumbsTabbed(page, col, rd.ActiveTab)
 				}
 			} else if col.CompositeNavTrees != nil {
-				key := collection.LangVersionKey(page.Lang, page.Version)
+				ver := page.Version
+				if ver == "" && col.Config.Versioning != nil && col.Config.Versioning.LastVersion != "" {
+					ver = col.Config.Versioning.LastVersion
+				}
+				key := collection.LangVersionKey(page.Lang, ver)
 				if navTree, ok := col.CompositeNavTrees[key]; ok && navTree != nil {
 					rd.Sidebar = navigation.MarkActive(navTree, page)
 				}

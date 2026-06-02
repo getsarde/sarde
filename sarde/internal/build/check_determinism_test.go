@@ -2,7 +2,9 @@ package build
 
 import (
 	"fmt"
+	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/frostybee/sarde/embedded"
@@ -10,18 +12,19 @@ import (
 	"github.com/frostybee/sarde/internal/links"
 )
 
-// createCollisionFixture builds a multi-language, versioned-docs site that
-// reproduces the permalink collision behind the nondeterministic broken_anchor
-// bug. The unversioned docs/guide/link-test.md and the latest-version
-// docs/v2/guide/link-test.md both resolve to /docs/guide/link-test/ (and their
-// fr/ar fallbacks both to /<lang>/docs/guide/link-test/), but carry DIFFERENT
-// headings: the unversioned page has "Broken Targets"; the v2 page does not.
+// createCollisionFixture builds a multi-language, versioned-docs site where a
+// loose (unversioned) docs/guide/link-test.md sits at the same logical path as
+// the latest-version docs/v2/guide/link-test.md. Both would resolve to
+// /docs/guide/link-test/ (and their fr/ar fallbacks to /<lang>/docs/guide/link-test/).
 //
-// Each fallback page renders a same-page anchor #broken-targets. Whether that
-// anchor validates depends on which colliding page populated the heading index
-// — which, before the fix, flipped run-to-run because GenerateFallbacks
-// iterated a Go map. After the fix the ordering (and the first-match index
-// policy) is deterministic.
+// This was the source of the historical nondeterministic broken_anchor count.
+// It is now resolved at the source: ResolveVersionShadowing drops the loose page
+// (the latest version owns the bare URL), so the v2 page deterministically serves
+// the URL. The fixture therefore exercises BOTH the version-shadowing drop and the
+// downstream determinism guarantees. The pages carry DIFFERENT same-page anchors:
+// the loose page links #broken-targets to its "## Broken Targets" heading, while
+// the v2 page links #broken-targets but only has "## Broken Anchor" — so once the
+// loose page is dropped, #broken-targets is a (deterministically) broken anchor.
 func createCollisionFixture(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
@@ -100,12 +103,35 @@ func findingKeys(findings []links.Finding) []string {
 	return keys
 }
 
+// TestCheck_VersionShadowingResolved verifies the loose (unversioned) page that
+// shadows the latest version is dropped: the v2 page owns /docs/guide/link-test/
+// and the loose page contributes no findings. (The loose path "/docs/guide/link-test.md"
+// has no version segment, unlike the v1/v2 paths, so it is uniquely identifiable.)
+func TestCheck_VersionShadowingResolved(t *testing.T) {
+	dir := createCollisionFixture(t)
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  dir,
+		Config:      collisionCheckConfig(),
+		ThemeConfig: buildThemeConfig(),
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+	res, err := builder.Check(CheckOptions{})
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+	for _, f := range res.Findings {
+		if strings.Contains(filepath.ToSlash(f.Ref.FromFile), "/docs/guide/link-test.md") {
+			t.Errorf("finding originates from the dropped loose page (%s) — version shadowing not resolved", f.Ref.FromFile)
+		}
+	}
+}
+
 // TestCheck_BrokenAnchorCountIsDeterministic guards the nondeterministic
 // broken_anchor regression at the full pipeline level: a fresh SiteBuilder runs
-// Check() many times on the same colliding fixture and must return an identical
-// broken_anchor count and finding set every time. Before the fix, the fr/ar
-// fallback collision flipped the count between runs (observed 5/3/4 on the real
-// test site).
+// Check() many times on the same fixture and must return an identical
+// broken_anchor count and finding set every time. The historical flip (observed
+// 5/3/4 on the real test site) came from the loose-vs-latest URL shadowing; with
+// the shadowing now resolved by dropping the loose page, results are stable.
 func TestCheck_BrokenAnchorCountIsDeterministic(t *testing.T) {
 	dir := createCollisionFixture(t)
 
