@@ -109,8 +109,8 @@ func BuildBreadcrumbsVersioned(page *engine.Page, col *engine.Collection) []engi
 		{Label: col.Title, URL: "/" + col.Name + "/"},
 	}
 
-	// Insert version crumb for non-latest pages.
-	if page.Version != "" && col.Versioning != nil {
+	// Insert version crumb only for older versions (not the latest).
+	if page.Version != "" && col.Versioning != nil && col.Versioning.LastVersion != page.Version {
 		versionLabel := page.Version
 		for _, vd := range col.Versioning.Versions {
 			if vd.ID == page.Version && vd.Label != "" {
@@ -118,14 +118,9 @@ func BuildBreadcrumbsVersioned(page *engine.Page, col *engine.Collection) []engi
 				break
 			}
 		}
-		isLast := col.Versioning.LastVersion == page.Version
-		versionURL := "/" + col.Name + "/" + page.Version + "/"
-		if isLast {
-			versionURL = "/" + col.Name + "/"
-		}
 		crumbs = append(crumbs, engine.BreadcrumbItem{
 			Label: versionLabel,
-			URL:   versionURL,
+			URL:   "/" + col.Name + "/" + page.Version + "/",
 		})
 	}
 

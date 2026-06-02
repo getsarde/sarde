@@ -12,7 +12,6 @@ import (
 	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/navigation"
 	"github.com/frostybee/sarde/internal/workers"
@@ -103,19 +102,14 @@ func BuildCollectionsWithOptions(
 		// 5. Filter drafts and future content
 		pages = filterExcluded(pages, includeDrafts, includeFuture, includeExpired, now)
 
-		// 5b. Resolve version shadowing: drop loose (unversioned) pages that
-		// resolve to the same bare URL as the latest-version page. Done before
-		// section-tree/index-page/nav so a dropped loose _index.md can never
-		// become IndexPage or a nav node, and before i18n fallback generation so
-		// fallbacks are not produced for dropped pages. One drop = one warning
-		// (no N-claimant explosion), so no dedup/cap is needed.
+		// 5b. Normalize root-level pages in versioned collections: assign
+		// Version=lastVersion to pages at the collection root (no vN/ directory).
+		// The latest version's content lives at the root; older versions live in
+		// vN/ subdirectories. This ensures every page in a versioned collection
+		// has a concrete Version, eliminating URL collisions between root pages
+		// and "latest" pages that previously required ResolveVersionShadowing.
 		if collCfg.Versioning != nil && collCfg.Versioning.Enabled && collCfg.Versioning.LastVersion != "" {
-			var drops []ShadowDrop
-			pages, drops = ResolveVersionShadowing(pages, collCfg.Versioning.LastVersion)
-			for _, d := range drops {
-				devlog.Warn("pages", "version shadowing: %q (no version dir) shadows latest version %q at %s — dropped; keeping %q",
-					d.Dropped.FilePath, collCfg.Versioning.LastVersion, d.Dropped.RelPermalink, d.Owner.FilePath)
-			}
+			normalizeRootVersionPages(pages, collCfg.Versioning.LastVersion)
 		}
 
 		// 6. Sort pages
@@ -802,4 +796,23 @@ func filterByLang(pages []*engine.Page, lang string) []*engine.Page {
 		}
 	}
 	return result
+}
+
+// normalizeRootVersionPages assigns Version=lastVersion to pages at the
+// collection root (Version=="") in a versioned collection. The latest version's
+// content lives at the root without a vN/ directory; this normalization ensures
+// every page in the collection has a concrete Version value.
+func normalizeRootVersionPages(pages []*engine.Page, lastVersion string) {
+	if lastVersion == "" {
+		return
+	}
+	for _, p := range pages {
+		if p.Version != "" {
+			continue
+		}
+		p.Version = lastVersion
+		if parts := strings.SplitN(p.LangRelPath, "/", 2); len(parts) == 2 {
+			p.VersionRelPath = parts[1]
+		}
+	}
 }

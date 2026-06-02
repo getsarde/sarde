@@ -2,9 +2,7 @@ package build
 
 import (
 	"fmt"
-	"path/filepath"
 	"sort"
-	"strings"
 	"testing"
 
 	"github.com/frostybee/sarde/embedded"
@@ -12,34 +10,20 @@ import (
 	"github.com/frostybee/sarde/internal/links"
 )
 
-// createCollisionFixture builds a multi-language, versioned-docs site where a
-// loose (unversioned) docs/guide/link-test.md sits at the same logical path as
-// the latest-version docs/v2/guide/link-test.md. Both would resolve to
-// /docs/guide/link-test/ (and their fr/ar fallbacks to /<lang>/docs/guide/link-test/).
-//
-// This was the source of the historical nondeterministic broken_anchor count.
-// It is now resolved at the source: ResolveVersionShadowing drops the loose page
-// (the latest version owns the bare URL), so the v2 page deterministically serves
-// the URL. The fixture therefore exercises BOTH the version-shadowing drop and the
-// downstream determinism guarantees. The pages carry DIFFERENT same-page anchors:
-// the loose page links #broken-targets to its "## Broken Targets" heading, while
-// the v2 page links #broken-targets but only has "## Broken Anchor" — so once the
-// loose page is dropped, #broken-targets is a (deterministically) broken anchor.
-func createCollisionFixture(t *testing.T) string {
+// createVersionedFixture builds a multi-language, versioned-docs site where
+// the latest version (v2) lives at the collection root and v1 lives in a v1/
+// subdirectory. The v2 page at the root has a broken same-page anchor
+// (#broken-targets with no matching heading) to exercise deterministic anchor
+// validation across i18n fallback lanes.
+func createVersionedFixture(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
 
 	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n# Home\n")
-	writeFixture(t, dir, "content/docs/_index.md", "---\ntitle: Docs\n---\n")
 
-	// Unversioned page: HAS a "Broken Targets" heading → #broken-targets is valid here.
+	// Latest version (v2) at root — NO "Broken Targets" heading → #broken-targets is broken.
+	writeFixture(t, dir, "content/docs/_index.md", "---\ntitle: Docs v2\n---\n")
 	writeFixture(t, dir, "content/docs/guide/link-test.md",
-		"---\ntitle: Link Test (unversioned)\n---\n"+
-			"## Broken Targets\n\nAnchor to [section](#broken-targets).\n")
-
-	// v2 (latest) page: NO "Broken Targets" heading → #broken-targets is broken here.
-	writeFixture(t, dir, "content/docs/v2/_index.md", "---\ntitle: Docs v2\n---\n")
-	writeFixture(t, dir, "content/docs/v2/guide/link-test.md",
 		"---\ntitle: Link Test (v2)\n---\n"+
 			"## Broken Anchor\n\nAnchor to [section](#broken-targets).\n")
 
@@ -51,7 +35,7 @@ func createCollisionFixture(t *testing.T) string {
 	return dir
 }
 
-func collisionCheckConfig() *config.SiteConfig {
+func versionedCheckConfig() *config.SiteConfig {
 	cfg := config.Defaults()
 	cfg.Build.Minify = config.BoolPtr(false)
 	cfg.Build.Cache = config.BoolPtr(false)
@@ -74,7 +58,6 @@ func collisionCheckConfig() *config.SiteConfig {
 			},
 		},
 	}
-	// Record anchor findings (not "ignore") so the flip is observable as a count.
 	cfg.LinkValidation.Enabled = config.BoolPtr(true)
 	cfg.LinkValidation.OnBroken = "warn"
 	cfg.LinkValidation.OnBrokenAnchor = "warn"
@@ -103,15 +86,14 @@ func findingKeys(findings []links.Finding) []string {
 	return keys
 }
 
-// TestCheck_VersionShadowingResolved verifies the loose (unversioned) page that
-// shadows the latest version is dropped: the v2 page owns /docs/guide/link-test/
-// and the loose page contributes no findings. (The loose path "/docs/guide/link-test.md"
-// has no version segment, unlike the v1/v2 paths, so it is uniquely identifiable.)
-func TestCheck_VersionShadowingResolved(t *testing.T) {
-	dir := createCollisionFixture(t)
+// TestCheck_RootVersionServesCorrectURL verifies that root-level pages in a
+// versioned collection are correctly identified as the latest version and
+// produce findings attributed to the root path (not a vN/ path).
+func TestCheck_RootVersionServesCorrectURL(t *testing.T) {
+	dir := createVersionedFixture(t)
 	builder := NewSiteBuilder(BuildOptions{
 		ProjectDir:  dir,
-		Config:      collisionCheckConfig(),
+		Config:      versionedCheckConfig(),
 		ThemeConfig: buildThemeConfig(),
 		EmbeddedFS:  embedded.ThemeFS(),
 	})
@@ -119,26 +101,30 @@ func TestCheck_VersionShadowingResolved(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Check failed: %v", err)
 	}
+	// The root link-test.md should produce broken_anchor findings (it links
+	// #broken-targets but has no such heading).
+	var foundBrokenAnchor bool
 	for _, f := range res.Findings {
-		if strings.Contains(filepath.ToSlash(f.Ref.FromFile), "/docs/guide/link-test.md") {
-			t.Errorf("finding originates from the dropped loose page (%s) — version shadowing not resolved", f.Ref.FromFile)
+		if f.Type == links.FindingBrokenAnchor {
+			foundBrokenAnchor = true
 		}
+	}
+	if !foundBrokenAnchor {
+		t.Error("expected broken_anchor finding from root v2 page, got none")
 	}
 }
 
 // TestCheck_BrokenAnchorCountIsDeterministic guards the nondeterministic
 // broken_anchor regression at the full pipeline level: a fresh SiteBuilder runs
 // Check() many times on the same fixture and must return an identical
-// broken_anchor count and finding set every time. The historical flip (observed
-// 5/3/4 on the real test site) came from the loose-vs-latest URL shadowing; with
-// the shadowing now resolved by dropping the loose page, results are stable.
+// broken_anchor count and finding set every time.
 func TestCheck_BrokenAnchorCountIsDeterministic(t *testing.T) {
-	dir := createCollisionFixture(t)
+	dir := createVersionedFixture(t)
 
 	run := func() (int, []string) {
 		builder := NewSiteBuilder(BuildOptions{
 			ProjectDir:  dir,
-			Config:      collisionCheckConfig(),
+			Config:      versionedCheckConfig(),
 			ThemeConfig: buildThemeConfig(),
 			EmbeddedFS:  embedded.ThemeFS(),
 		})

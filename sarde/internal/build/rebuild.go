@@ -152,6 +152,22 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 			return b.Build()
 		}
 
+		// Normalize version for root-level pages in versioned collections.
+		// BuildSinglePage leaves Version="" for root pages (no vN/ directory);
+		// the full build normalizes them in BuildCollectionsWithOptions, but the
+		// incremental path skips that step. preserveStablePageState below copies
+		// old.Version, but we normalize first as a safety net.
+		if e.newPage.Version == "" {
+			if col := e.old.Collection; col != nil {
+				if vc := col.Config.Versioning; vc != nil && vc.Enabled && vc.LastVersion != "" {
+					e.newPage.Version = vc.LastVersion
+					if parts := strings.SplitN(e.newPage.LangRelPath, "/", 2); len(parts) == 2 {
+						e.newPage.VersionRelPath = parts[1]
+					}
+				}
+			}
+		}
+
 		preserveStablePageState(e.newPage, e.old)
 
 		if b.urlResolver != nil {

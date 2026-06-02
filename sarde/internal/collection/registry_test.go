@@ -535,3 +535,50 @@ func TestBuildPages_HeroTransferred(t *testing.T) {
 		t.Errorf("Hero.Actions[0].Variant = %q, want %q", hero.Actions[0].Variant, "primary")
 	}
 }
+
+func TestNormalizeRootVersionPages(t *testing.T) {
+	t.Run("assigns lastVersion to root pages", func(t *testing.T) {
+		pages := []*engine.Page{
+			{PageIdentity: engine.PageIdentity{RelPermalink: "/docs/guide/intro/"}, PageI18n: engine.PageI18n{LangRelPath: "docs/guide/intro.md"}},
+			{PageIdentity: engine.PageIdentity{RelPermalink: "/docs/"}, PageI18n: engine.PageI18n{LangRelPath: "docs/_index.md"}},
+		}
+		normalizeRootVersionPages(pages, "v2")
+
+		for _, p := range pages {
+			if p.Version != "v2" {
+				t.Errorf("page %s: Version = %q, want %q", p.RelPermalink, p.Version, "v2")
+			}
+		}
+		if pages[0].VersionRelPath != "guide/intro.md" {
+			t.Errorf("VersionRelPath = %q, want %q", pages[0].VersionRelPath, "guide/intro.md")
+		}
+		if pages[1].VersionRelPath != "_index.md" {
+			t.Errorf("VersionRelPath = %q, want %q", pages[1].VersionRelPath, "_index.md")
+		}
+	})
+
+	t.Run("skips already-versioned pages", func(t *testing.T) {
+		pages := []*engine.Page{
+			{PageVersioning: engine.PageVersioning{Version: "v1", VersionRelPath: "guide/intro.md"}, PageI18n: engine.PageI18n{LangRelPath: "docs/v1/guide/intro.md"}},
+		}
+		normalizeRootVersionPages(pages, "v2")
+
+		if pages[0].Version != "v1" {
+			t.Errorf("Version = %q, want %q (should not be overwritten)", pages[0].Version, "v1")
+		}
+		if pages[0].VersionRelPath != "guide/intro.md" {
+			t.Errorf("VersionRelPath = %q, want %q", pages[0].VersionRelPath, "guide/intro.md")
+		}
+	})
+
+	t.Run("no-op with empty lastVersion", func(t *testing.T) {
+		pages := []*engine.Page{
+			{PageI18n: engine.PageI18n{LangRelPath: "docs/guide/intro.md"}},
+		}
+		normalizeRootVersionPages(pages, "")
+
+		if pages[0].Version != "" {
+			t.Errorf("Version = %q, want empty (no-op)", pages[0].Version)
+		}
+	})
+}
