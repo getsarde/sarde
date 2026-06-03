@@ -5,6 +5,7 @@
   {{ component "Head" . }}
 </head>
 <body class="sarde-layout-{{ .Layout }} starter-theme">
+  {{ component "Header" . }}
   {{ if .HasSidebar }}
   <nav class="sarde-mobile-nav" aria-label="Section navigation">
     <button class="sarde-menu-toggle" id="sarde-menu-toggle"
@@ -27,7 +28,6 @@
   <div class="sarde-sidebar-backdrop" id="sarde-sidebar-backdrop"></div>
   {{ end }}
   <div class="sarde-main-frame">
-    {{ component "Header" . }}
     <main class="sarde-content-area">
       <div class="sarde-content-grid">
         <div class="sarde-content-panel">

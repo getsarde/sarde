@@ -4,6 +4,7 @@
 <script defer src="{{ relURL "/assets/js/toc-scrollspy.js" }}"></script>
 <script defer src="{{ relURL "/assets/js/prefetch.js" }}"></script>
 <script defer src="{{ relURL "/assets/js/heading-anchors.js" }}"></script>
+{{ if .GlobalNav }}<script defer src="{{ relURL "/assets/js/header-nav.js" }}"></script>{{ end }}
 {{ if .HasSidebar }}<script defer src="{{ relURL "/assets/js/docs-sidebar-drawer.js" }}"></script>{{ end }}
 {{ if .IsTabbed }}<script defer src="{{ relURL "/assets/js/docs-tab-switcher.js" }}"></script>{{ end }}
 {{ if .AllTranslations }}<script defer src="{{ relURL "/assets/js/lang-switcher.js" }}"></script>{{ end }}
