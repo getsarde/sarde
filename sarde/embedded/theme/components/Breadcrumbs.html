@@ -2,7 +2,7 @@
 <nav class="sarde-breadcrumbs" aria-label="Breadcrumb">
   <ol>
   {{ range .Breadcrumbs }}
-    <li>{{ if .Current }}<span aria-current="page">{{ .Label }}</span>{{ else }}<a href="{{ .URL }}">{{ .Label }}</a>{{ end }}</li>
+    <li>{{ if or .Current (not .URL) }}<span{{ if .Current }} aria-current="page"{{ end }}>{{ .Label }}</span>{{ else }}<a href="{{ .URL }}">{{ .Label }}</a>{{ end }}</li>
   {{ end }}
   </ol>
 </nav>

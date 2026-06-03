@@ -91,6 +91,71 @@ func TestBuildSectionTree_IndexPage(t *testing.T) {
 	}
 }
 
+// findSection returns the child section with the given slug, or nil.
+func findSection(sections []*engine.Section, slug string) *engine.Section {
+	for _, s := range sections {
+		if s.Slug == slug {
+			return s
+		}
+	}
+	return nil
+}
+
+func TestBuildSectionTree_InferredSection(t *testing.T) {
+	// "reference" and "reference/api" have no _index.md; "guide" does.
+	guideIndex := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Guide", Slug: "guide", Kind: engine.KindSection, RelPermalink: "/docs/guide/"}}
+	pages := []*engine.Page{
+		{PageIdentity: engine.PageIdentity{Title: "Docs", Slug: "docs", Kind: engine.KindSection, RelPermalink: "/docs/"}},
+		guideIndex,
+		{PageIdentity: engine.PageIdentity{Title: "Intro", Slug: "intro", Kind: engine.KindPage, RelPermalink: "/docs/guide/intro/"}},
+		{PageIdentity: engine.PageIdentity{Title: "Limits", Slug: "limits", Kind: engine.KindPage, RelPermalink: "/docs/reference/api/limits/"}},
+	}
+	roots := BuildSectionTree(pages, "docs")
+	if len(roots) != 1 {
+		t.Fatalf("roots = %d, want 1", len(roots))
+	}
+	root := roots[0]
+
+	// Explicit _index.md sibling keeps its IndexPage and title.
+	guide := findSection(root.Sections, "guide")
+	if guide == nil {
+		t.Fatal("guide section missing")
+	}
+	if guide.IndexPage != guideIndex {
+		t.Error("guide should keep its explicit IndexPage")
+	}
+	if guide.Title != "Guide" {
+		t.Errorf("guide.Title = %q, want %q", guide.Title, "Guide")
+	}
+
+	// Inferred top-level section.
+	ref := findSection(root.Sections, "reference")
+	if ref == nil {
+		t.Fatal("inferred reference section missing")
+	}
+	if ref.IndexPage != nil {
+		t.Error("inferred reference should have nil IndexPage")
+	}
+	if ref.Render {
+		t.Error("inferred reference should have Render=false")
+	}
+	if ref.Title != "Reference" {
+		t.Errorf("reference.Title = %q, want %q", ref.Title, "Reference")
+	}
+
+	// Nested inferred section, with the leaf page assigned to it.
+	api := findSection(ref.Sections, "api")
+	if api == nil {
+		t.Fatal("inferred reference/api section missing")
+	}
+	if api.IndexPage != nil {
+		t.Error("inferred api should have nil IndexPage")
+	}
+	if len(api.Pages) != 1 || api.Pages[0].Slug != "limits" {
+		t.Errorf("api.Pages = %v, want [limits]", api.Pages)
+	}
+}
+
 func TestSectionDir(t *testing.T) {
 	tests := []struct {
 		permalink, collection, want string

@@ -3,6 +3,7 @@ package collection
 import (
 	"strings"
 
+	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/engine"
 )
 
@@ -37,6 +38,33 @@ func BuildSectionTree(pages []*engine.Page, collectionName string) []*engine.Sec
 		}
 		sectionMap[dirPath] = sec
 		page.Section = sec
+	}
+
+	// Inference pass: create phantom sections for directories that contain
+	// pages but have no _index.md, so navigation works without a mandatory
+	// _index.md. A phantom section has IndexPage==nil and Render==false, which
+	// downstream consumers (BuildNavTree, breadcrumbs) already treat as a
+	// label-only, non-clickable group.
+	for _, page := range pages {
+		if page.Kind == engine.KindSection {
+			continue
+		}
+		dirPath := sectionDir(pageDir(page.RelPermalink)+"/", collectionName)
+		for p := dirPath; p != ""; p = parentDir(p) {
+			if _, exists := sectionMap[p]; exists {
+				continue // real or already-created phantom — keep walking up
+			}
+			slug := p
+			if idx := strings.LastIndex(p, "/"); idx >= 0 {
+				slug = p[idx+1:]
+			}
+			sectionMap[p] = &engine.Section{
+				Title:     content.FilenameToTitle(slug + ".md"),
+				Slug:      slug,
+				Permalink: "/" + collectionName + "/" + p + "/",
+				Render:    false, // no page renders here → label-only group
+			}
+		}
 	}
 
 	// Wire parent-child relationships

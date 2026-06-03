@@ -77,7 +77,11 @@ func resolveRouteAssets(r *engine.URLResolver, rd *engine.RouteData) {
 	}
 
 	for i := range rd.Breadcrumbs {
-		rd.Breadcrumbs[i].URL = r.URL(rd.Breadcrumbs[i].URL, lang, ver)
+		// Skip empty URLs (inferred/phantom sections render as plain text);
+		// resolving "" would expand to the base path. Mirrors resolveNavNodes.
+		if rd.Breadcrumbs[i].URL != "" {
+			rd.Breadcrumbs[i].URL = r.URL(rd.Breadcrumbs[i].URL, lang, ver)
+		}
 	}
 	if rd.Pagination != nil {
 		if rd.Pagination.Prev != nil {

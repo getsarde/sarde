@@ -35,9 +35,13 @@ func BuildBreadcrumbs(page *engine.Page, collection *engine.Collection) []engine
 		if sec.Parent == nil || sec.Transparent {
 			continue
 		}
+		url := sec.Permalink
+		if sec.IndexPage == nil {
+			url = "" // phantom section: nothing renders here
+		}
 		crumbs = append(crumbs, engine.BreadcrumbItem{
 			Label: sec.Title,
-			URL:   sec.Permalink,
+			URL:   url,
 		})
 	}
 
@@ -82,7 +86,11 @@ func BuildBreadcrumbsTabbed(page *engine.Page, col *engine.Collection, tab *engi
 		if s.Transparent {
 			continue
 		}
-		crumbs = append(crumbs, engine.BreadcrumbItem{Label: s.Title, URL: s.Permalink})
+		url := s.Permalink
+		if s.IndexPage == nil {
+			url = "" // phantom section: nothing renders here
+		}
+		crumbs = append(crumbs, engine.BreadcrumbItem{Label: s.Title, URL: url})
 	}
 
 	if page.Kind != engine.KindSection {
@@ -136,7 +144,11 @@ func BuildBreadcrumbsVersioned(page *engine.Page, col *engine.Collection) []engi
 		if s.Parent == nil || s.Transparent {
 			continue
 		}
-		crumbs = append(crumbs, engine.BreadcrumbItem{Label: s.Title, URL: s.Permalink})
+		url := s.Permalink
+		if s.IndexPage == nil {
+			url = "" // phantom section: nothing renders here
+		}
+		crumbs = append(crumbs, engine.BreadcrumbItem{Label: s.Title, URL: url})
 	}
 
 	if page.Kind != engine.KindSection {

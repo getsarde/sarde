@@ -15,7 +15,7 @@
               <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ else }}<span>{{ .Label }}</span>{{ end }}</summary>
               <ul>
               {{ range .Children }}
-                <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ if .Page }}{{ if not (.Page.Badge.IsEmpty) }} <span class="badge {{ .Page.Badge.CSSClass }}">{{ .Page.Badge.Text }}</span>{{ end }}{{ end }}</li>
+                <li>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ else }}<span>{{ .Label }}</span>{{ end }}{{ if .Page }}{{ if not (.Page.Badge.IsEmpty) }} <span class="badge {{ .Page.Badge.CSSClass }}">{{ .Page.Badge.Text }}</span>{{ end }}{{ end }}</li>
               {{ end }}
               </ul>
             </details>

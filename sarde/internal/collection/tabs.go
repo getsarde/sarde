@@ -86,18 +86,20 @@ func BuildTabsI18n(col *engine.Collection, contentDir string, langs []string) []
 	for _, sec := range topSections {
 		tabPages := pagesForSection(sec, col)
 		tab := &engine.DocsTab{
-			Title:       sec.IndexPage.Title,
-			Description: sec.IndexPage.Description,
-			Slug:        sec.Slug,
-			Weight:      sec.IndexPage.Weight,
-			Permalink:   sec.Permalink,
-			Section:     sec,
-			IndexPage:   sec.IndexPage,
-			Pages:       tabPages,
-			NavTrees:    make(map[string]*engine.NavTree),
+			Title:     sec.Title,
+			Slug:      sec.Slug,
+			Permalink: sec.Permalink,
+			Section:   sec,
+			IndexPage: sec.IndexPage,
+			Pages:     tabPages,
+			NavTrees:  make(map[string]*engine.NavTree),
 		}
-		if icon, ok := sec.IndexPage.Params["icon"].(string); ok {
-			tab.Icon = icon
+		if sec.IndexPage != nil {
+			tab.Description = sec.IndexPage.Description
+			tab.Weight = sec.IndexPage.Weight
+			if icon, ok := sec.IndexPage.Params["icon"].(string); ok {
+				tab.Icon = icon
+			}
 		}
 
 		for _, lang := range langs {
@@ -207,20 +209,25 @@ func FindTabForPage(tabs []*engine.DocsTab, page *engine.Page) *engine.DocsTab {
 }
 
 // buildTab creates a single DocsTab with its nav tree (single language).
+// A phantom top-level section (no _index.md) still becomes a tab, titled from
+// the directory name with no icon/description — the section's own fields cover
+// the IndexPage-derived ones when IndexPage is nil.
 func buildTab(sec *engine.Section, col *engine.Collection, contentDir string) *engine.DocsTab {
 	tabPages := pagesForSection(sec, col)
 	tab := &engine.DocsTab{
-		Title:       sec.IndexPage.Title,
-		Description: sec.IndexPage.Description,
-		Slug:        sec.Slug,
-		Weight:      sec.IndexPage.Weight,
-		Permalink:   sec.Permalink,
-		Section:     sec,
-		IndexPage:   sec.IndexPage,
-		Pages:       tabPages,
+		Title:     sec.Title,
+		Slug:      sec.Slug,
+		Permalink: sec.Permalink,
+		Section:   sec,
+		IndexPage: sec.IndexPage,
+		Pages:     tabPages,
 	}
-	if icon, ok := sec.IndexPage.Params["icon"].(string); ok {
-		tab.Icon = icon
+	if sec.IndexPage != nil {
+		tab.Description = sec.IndexPage.Description
+		tab.Weight = sec.IndexPage.Weight
+		if icon, ok := sec.IndexPage.Params["icon"].(string); ok {
+			tab.Icon = icon
+		}
 	}
 
 	// Build a temporary collection scoped to this tab's pages
