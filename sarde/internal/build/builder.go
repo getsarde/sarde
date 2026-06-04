@@ -79,6 +79,9 @@ type SiteBuilder struct {
 	lastOutputDir      string
 	lastAssetPipeline  *asset.Pipeline
 	globalCSSURLs      []string
+	themeJSURL         string
+	themeJSContent     []byte
+	themeJSFilename    string
 	lastScProcessor    *shortcode.Processor
 	lastShortcodesHash string
 	lastPageCache      *PageCache
@@ -685,6 +688,17 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	}
 	b.globalCSSURLs = assetPipeline.GlobalCSSURLs()
 
+	// Bundle embedded theme JS into a single minified file.
+	jsContent, jsFilename, err := BundleEmbeddedJS(b.embeddedFS, b.devMode)
+	if err != nil {
+		return nil, fmt.Errorf("bundling embedded theme JS: %w", err)
+	}
+	if jsFilename != "" {
+		b.themeJSURL = "/assets/js/" + jsFilename
+		b.themeJSContent = jsContent
+		b.themeJSFilename = jsFilename
+	}
+
 	// Load template engine (needs SiteContext + asset pipeline + plugin funcs + i18n for funcMap closures).
 	b.tmplEngine.SetSiteContext(siteCtx)
 	b.tmplEngine.SetURLResolver(urlResolver)
@@ -1040,8 +1054,22 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		return nil, fmt.Errorf("writing bundled files: %w", err)
 	}
 
-	// Write embedded theme-level static assets (JS helpers like copy-code, spoiler, tabs, prefetch).
-	if err := WriteEmbeddedAssets(b.embeddedFS, outputDir, tracker); err != nil {
+	// Write the bundled theme JS file.
+	if b.themeJSFilename != "" {
+		destPath, err := safeOutputPath(outputDir, "assets/js/"+b.themeJSFilename)
+		if err != nil {
+			return nil, err
+		}
+		if tracker != nil {
+			tracker.Track(destPath)
+		}
+		if err := writeFile(destPath, b.themeJSContent); err != nil {
+			return nil, fmt.Errorf("writing bundled theme JS: %w", err)
+		}
+	}
+
+	// Write embedded theme-level static assets (skip individual JS files — they're bundled above).
+	if err := WriteEmbeddedAssets(b.embeddedFS, outputDir, tracker, []string{"assets/js/"}); err != nil {
 		return nil, fmt.Errorf("writing embedded theme assets: %w", err)
 	}
 

@@ -1,15 +1,3 @@
-<script defer src="{{ relURL "/assets/js/theme-toggle.js" }}"></script>
-<script defer src="{{ relURL "/assets/js/copy-code.js" }}"></script>
-<script defer src="{{ relURL "/assets/js/spoiler.js" }}"></script>
-<script defer src="{{ relURL "/assets/js/tabs.js" }}"></script>
-<script defer src="{{ relURL "/assets/js/toc-scrollspy.js" }}"></script>
-<script defer src="{{ relURL "/assets/js/prefetch.js" }}"></script>
-<script defer src="{{ relURL "/assets/js/heading-anchors.js" }}"></script>
-{{ if .GlobalNav }}<script defer src="{{ relURL "/assets/js/header-nav.js" }}"></script>{{ end }}
-{{ if .HasSidebar }}<script defer src="{{ relURL "/assets/js/docs-sidebar-drawer.js" }}"></script>{{ end }}
-{{ if .IsTabbed }}<script defer src="{{ relURL "/assets/js/docs-tab-switcher.js" }}"></script>{{ end }}
-{{ if .AllTranslations }}<script defer src="{{ relURL "/assets/js/lang-switcher.js" }}"></script>{{ end }}
-{{ if .Versions }}<script defer src="{{ relURL "/assets/js/version-switcher.js" }}"></script>{{ end }}
 {{ range .Scripts }}<script defer src="{{ . }}"></script>
 {{ end }}
 {{ range .InlineScripts }}<script>{{ . }}</script>
