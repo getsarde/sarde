@@ -34,6 +34,7 @@ import (
 	"github.com/frostybee/sarde/internal/shortcode"
 	"github.com/frostybee/sarde/internal/taxonomy"
 	sardetemplate "github.com/frostybee/sarde/internal/template"
+	"github.com/frostybee/sarde/internal/theme"
 	"github.com/frostybee/sarde/internal/theme/syntax"
 	"github.com/frostybee/sarde/internal/workers"
 )
@@ -82,6 +83,9 @@ type SiteBuilder struct {
 	themeJSURL         string
 	themeJSContent     []byte
 	themeJSFilename    string
+	tokenCSSURL        string
+	tokenCSSContent    string
+	tokenCSSFilename   string
 	lastScProcessor    *shortcode.Processor
 	lastShortcodesHash string
 	lastPageCache      *PageCache
@@ -699,7 +703,29 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		b.themeJSFilename = jsFilename
 	}
 
+	// Externalize theme token CSS (design tokens) as a fingerprinted file.
+	if b.themeConfig != nil {
+		tokenCSS := theme.GenerateCSS(b.themeConfig.Tokens, b.themeConfig.DarkTokens) +
+			theme.GenerateLightDarkCSS(b.themeConfig.Tokens, b.themeConfig.DarkTokens)
+		if tokenCSS != "" {
+			if !b.devMode {
+				if minified, err := asset.TransformCSS(tokenCSS, true); err == nil {
+					tokenCSS = minified
+				}
+			}
+			hash := asset.Fingerprint([]byte(tokenCSS))
+			if b.devMode {
+				b.tokenCSSFilename = "tokens-theme.css"
+			} else {
+				b.tokenCSSFilename = asset.FingerprintedName("tokens-theme.css", hash)
+			}
+			b.tokenCSSContent = tokenCSS
+			b.tokenCSSURL = "/assets/css/" + b.tokenCSSFilename
+		}
+	}
+
 	// Load template engine (needs SiteContext + asset pipeline + plugin funcs + i18n for funcMap closures).
+	b.tmplEngine.SetTokenCSSURL(b.tokenCSSURL)
 	b.tmplEngine.SetSiteContext(siteCtx)
 	b.tmplEngine.SetURLResolver(urlResolver)
 	b.tmplEngine.SetAssetPipeline(assetPipeline.Resolver(), assetPipeline.Manifest())
@@ -1065,6 +1091,13 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		}
 		if err := writeFile(destPath, b.themeJSContent); err != nil {
 			return nil, fmt.Errorf("writing bundled theme JS: %w", err)
+		}
+	}
+
+	// Write the externalized theme token CSS file.
+	if b.tokenCSSFilename != "" {
+		if err := WriteEmbeddedCSS(outputDir, b.tokenCSSContent, b.tokenCSSFilename, tracker); err != nil {
+			return nil, fmt.Errorf("writing theme token CSS: %w", err)
 		}
 	}
 

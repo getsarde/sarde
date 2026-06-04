@@ -33,6 +33,7 @@ type Engine struct {
 	site           *engine.SiteContext
 	cachedCSS      string // embedded CSS, loaded once
 	cssURL         string // external CSS bundle URL (set during Load)
+	tokenCSSURL    string // external token CSS URL (set by builder)
 	chromaCSS      string // dynamically generated Chroma syntax theme CSS
 	assetResolver  *asset.Resolver
 	assetManifest  *asset.Manifest
@@ -76,6 +77,9 @@ func (e *Engine) SetImageProcessor(p *asset.ImageProcessor) {
 // SetChromaCSS sets dynamically generated Chroma syntax highlighting CSS.
 // Must be called before Load().
 func (e *Engine) SetChromaCSS(css string) { e.chromaCSS = css }
+
+// SetTokenCSSURL sets the external URL for the theme token CSS file.
+func (e *Engine) SetTokenCSSURL(url string) { e.tokenCSSURL = url }
 
 // SetPluginFuncs sets additional template functions provided by plugins.
 // Must be called before Load().

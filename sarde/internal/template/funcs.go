@@ -39,6 +39,7 @@ func (e *Engine) buildFuncMap(
 	dataCache := &e.dataCache
 	cachedCSS := e.cachedCSS
 	cssURLPtr := &e.cssURL
+	tokenCSSURLPtr := &e.tokenCSSURL
 	assetResolverPtr := &e.assetResolver
 	assetManifestPtr := &e.assetManifest
 	imageProcessorPtr := &e.imageProcessor
@@ -238,8 +239,16 @@ func (e *Engine) buildFuncMap(
 				return ""
 			}
 			var sb strings.Builder
-			// Token <style> block (always inline — small, per-build).
-			if rd.Theme != nil && rd.Theme.StyleTag != "" {
+			// Token CSS: external file when URL is set, inline fallback otherwise.
+			if tokenCSSURLPtr != nil && *tokenCSSURLPtr != "" {
+				url := *tokenCSSURLPtr
+				if r := *urlResolverPtr; r != nil {
+					url = r.URL(url, "", "")
+				}
+				sb.WriteString(`<link rel="stylesheet" href="`)
+				sb.WriteString(url)
+				sb.WriteString("\">\n")
+			} else if rd.Theme != nil && rd.Theme.StyleTag != "" {
 				sb.WriteString(string(rd.Theme.StyleTag))
 				sb.WriteByte('\n')
 			}
