@@ -14,7 +14,14 @@
 	}
 
 	.sarde-sidebar-nav li {
+	  display: flex;
+	  align-items: baseline;
+	  flex-wrap: wrap;
+	  gap: var(--sd-space-1);
 	  margin-bottom: var(--sd-space-1);
+	}
+	.sarde-sidebar-nav li > details {
+	  width: 100%;
 	}
 
 	.sarde-sidebar-nav a {
@@ -366,29 +373,78 @@
 	  }
 	}
 
-	/* ── Theme Toggle ── */
+	/* ── Theme Toggle (3-way pill) ── */
 	.sarde-theme-toggle {
-	  background: none;
-	  border: 1px solid var(--sd-border);
-	  border-radius: var(--sd-radius-sm);
-	  padding: var(--sd-space-2);
-	  cursor: pointer;
-	  color: var(--sd-text-muted);
-	  transition: color var(--sd-transition-fast), background var(--sd-transition-fast);
+	  position: relative;
 	  display: flex;
 	  align-items: center;
-	  justify-content: center;
-	  width: 2rem;
-	  height: 2rem;
+	  border-radius: 9999px;
+	  padding: 0.25rem;
+	  background-color: var(--sd-gray-3);
+	}
+	:root.dark .sarde-theme-toggle {
+	  background-color: var(--sd-gray-7);
 	}
 
-	.sarde-theme-toggle:hover {
+	.sarde-theme-toggle-indicator {
+	  position: absolute;
+	  top: 0.25rem;
+	  left: 0.25rem;
+	  width: 1.75rem;
+	  height: 1.75rem;
+	  border-radius: 9999px;
+	  background-color: var(--sd-white);
+	  box-shadow: var(--sd-shadow-sm);
+	  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+	:root.dark .sarde-theme-toggle-indicator {
+	  background-color: var(--sd-gray-5);
+	}
+	.sarde-theme-toggle-indicator.pos-system {
+	  transform: translateX(1.75rem);
+	}
+	.sarde-theme-toggle-indicator.pos-dark {
+	  transform: translateX(3.5rem);
+	}
+
+	.sarde-theme-toggle-btn {
+	  position: relative;
+	  z-index: 10;
+	  display: flex;
+	  width: 1.75rem;
+	  height: 1.75rem;
+	  align-items: center;
+	  justify-content: center;
+	  border-radius: 9999px;
+	  border: none;
+	  background: transparent;
+	  cursor: pointer;
+	  transition: color 150ms;
+	  padding: 0;
+	  color: var(--sd-text-muted);
+	}
+	.sarde-theme-toggle-btn:hover {
+	  color: var(--sd-gray-7);
+	}
+	:root.dark .sarde-theme-toggle-btn {
+	  color: var(--sd-gray-4);
+	}
+	:root.dark .sarde-theme-toggle-btn:hover {
+	  color: var(--sd-gray-3);
+	}
+	.sarde-theme-toggle-btn.selected {
 	  color: var(--sd-text);
-	  background: var(--sd-hover);
+	}
+	:root.dark .sarde-theme-toggle-btn.selected {
+	  color: var(--sd-white);
+	}
+	.sarde-theme-toggle-btn svg {
+	  width: 1rem;
+	  height: 1rem;
 	}
 
 	/* ── Focus Rings ── */
-	.sarde-theme-toggle:focus-visible,
+	.sarde-theme-toggle-btn:focus-visible,
 	.sarde-search-trigger:focus-visible,
 	.sarde-lang-switcher-trigger:focus-visible,
 	.sarde-tab-trigger:focus-visible {
@@ -657,7 +713,10 @@
 	    gap: var(--sd-space-1);
 	  }
 
-	  .sarde-theme-toggle,
+	  .sarde-header-actions > .sarde-theme-toggle {
+	    display: none;
+	  }
+
 	  .sarde-lang-switcher-trigger,
 	  .sarde-version-switcher-trigger {
 	    width: 2rem;
