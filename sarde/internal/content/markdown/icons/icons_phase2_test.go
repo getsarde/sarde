@@ -225,6 +225,23 @@ func TestTablerResolves(t *testing.T) {
 	}
 }
 
+func TestSimpleIconsResolves(t *testing.T) {
+	svg := GetWithClass("simple-icons:github", "c")
+	if svg == "" || !strings.Contains(svg, `viewBox="0 0 24 24"`) {
+		t.Errorf("simple-icons:github did not resolve correctly: %q", svg)
+	}
+	// Simple Icons are fill glyphs that bake fill="currentColor" so they inherit
+	// the surrounding text color (not a hardcoded black fill).
+	if !strings.Contains(svg, `fill="currentColor"`) {
+		t.Errorf("simple-icons:github should inherit currentColor, got: %q", svg)
+	}
+	// The "brands" set alias routes to the same simple-icons collection, so it
+	// resolves to a byte-identical SVG.
+	if alias := GetWithClass("brands:github", "c"); alias != svg {
+		t.Errorf("brands:github should equal simple-icons:github (alias):\n brands = %q\n simple = %q", alias, svg)
+	}
+}
+
 func TestLoadedSetLicenses(t *testing.T) {
 	got := map[string]string{}
 	for _, s := range LoadedSetLicenses() {
@@ -235,6 +252,9 @@ func TestLoadedSetLicenses(t *testing.T) {
 	}
 	if got["tabler"] != "MIT" {
 		t.Errorf("tabler license = %q, want MIT", got["tabler"])
+	}
+	if got["simple-icons"] != "CC0-1.0" {
+		t.Errorf("simple-icons license = %q, want CC0-1.0", got["simple-icons"])
 	}
 }
 

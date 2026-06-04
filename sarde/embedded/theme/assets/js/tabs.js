@@ -42,7 +42,7 @@
 
   document.addEventListener('click', function (e) {
     if (!e.target.matches) return;
-    if (e.target.matches('.sarde-tabs .tab-button') || e.target.matches('.sarde-code-group .code-group-tab')) {
+    if (e.target.matches('.sarde-tabs .sarde-tab-button') || e.target.matches('.sarde-code-group .sarde-code-group-tab')) {
       var label = e.target.dataset.tabLabel;
       if (label) {
         saveLabel(label);

@@ -20,6 +20,17 @@ var lucideJSON []byte
 //go:embed tabler.json
 var tablerJSON []byte
 
+//go:embed simple-icons.json
+var simpleiconsJSON []byte
+
+// setAliases maps a friendly set name to the canonical collection prefix it
+// resolves to. "brands" is an alias for the Simple Icons logo set, so
+// "brands:github" and "simple-icons:github" resolve to the same icon and dedupe
+// to one canonical sprite id / one license-attribution row.
+var setAliases = map[string]string{
+	"brands": "simple-icons",
+}
+
 // IconifyCollection represents an Iconify JSON icon collection.
 type IconifyCollection struct {
 	Prefix  string                      `json:"prefix"`
@@ -147,6 +158,7 @@ func ensureLoaded() {
 		}{
 			{"lucide", lucideJSON},
 			{"tabler", tablerJSON},
+			{"simple-icons", simpleiconsJSON},
 		} {
 			var col IconifyCollection
 			if err := json.Unmarshal(set.data, &col); err == nil {
@@ -322,6 +334,11 @@ func lookupIcon(name string) (resolvedIcon, string, bool) {
 
 	bare := !strings.Contains(name, ":")
 	setName, iconName := parseIconID(name)
+	// Canonicalize set aliases (e.g. "brands" -> "simple-icons") so the alias and
+	// its canonical name share one collection, one sprite id, and one license row.
+	if c, ok := setAliases[setName]; ok {
+		setName = c
+	}
 
 	// 1. Local directory (bare names only).
 	if bare {

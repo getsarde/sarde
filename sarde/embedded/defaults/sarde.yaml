@@ -95,7 +95,8 @@ search:
   provider: "orama"
 
 icons:
-  # Icon set used for bare (prefixless) names. Bundled sets: lucide, tabler.
+  # Icon set used for bare (prefixless) names. Bundled sets: lucide, tabler,
+  # simple-icons (brand/tech logos; also referenceable via the "brands" alias).
   default_prefix: "lucide"
   # Extra Iconify JSON sets to load: - { prefix: "mdi", file: "icons/mdi.json" }
   sets: []
