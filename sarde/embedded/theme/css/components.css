@@ -737,6 +737,12 @@
 	  }
 	}
 
+	.sarde-sidebar-footer .sarde-lang-switcher-menu,
+	.sarde-sidebar-footer .sarde-version-switcher-menu {
+	  top: auto;
+	  bottom: calc(100% + var(--sd-space-1));
+	}
+
 	/* Version Banner */
 	.sarde-version-banner {
 	  border-radius: var(--sd-radius);
