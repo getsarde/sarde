@@ -1,8 +1,8 @@
 (function () {
-  var modal = document.getElementById("search-modal");
-  var input = document.getElementById("search-input");
-  var results = document.getElementById("search-results");
-  var empty = document.getElementById("search-empty");
+  var modal = document.getElementById("sarde-search-modal");
+  var input = document.getElementById("sarde-search-input");
+  var results = document.getElementById("sarde-search-results");
+  var empty = document.getElementById("sarde-search-empty");
   var triggers = document.querySelectorAll("[data-search-trigger]");
   if (!modal || !input || !results) return;
 
@@ -15,11 +15,11 @@
       fetch(_base + "/search-index.json").then(function (r) { return r.json(); })
     ]).then(function (arr) {
       var orama = arr[0], docs = arr[1];
-      return orama.create({
-        schema: { id: "string", title: "string", url: "string", content: "string", section: "string", version: "string" }
-      }).then(function (db) {
-        return orama.insertMultiple(db, docs).then(function () { return { orama: orama, db: db }; });
+      var db = orama.create({
+        schema: { id: "string", title: "string", url: "string", content: "string", description: "string", section: "string", tags: "string[]", version: "enum", lang: "enum" }
       });
+      orama.insertMultiple(db, docs);
+      return { orama: orama, db: db };
     });
     return dbPromise;
   }
@@ -64,6 +64,7 @@
   });
 
   var searchVersion = modal.getAttribute("data-search-version") || "";
+  var searchLang = modal.getAttribute("data-search-lang") || "";
 
   function runSearch(term) {
     if (!term) {
@@ -72,9 +73,13 @@
       return;
     }
     loadIndex().then(function (ctx) {
-      var opts = { term: term, properties: ["title", "content", "section"], limit: 20 };
+      var opts = { term: term, properties: ["title", "content", "description", "section", "tags"], limit: 20 };
       if (searchVersion) {
         opts.where = { version: { eq: searchVersion } };
+      }
+      if (searchLang) {
+        opts.where = opts.where || {};
+        opts.where.lang = { eq: searchLang };
       }
       return ctx.orama.search(ctx.db, opts);
     }).then(function (res) {
@@ -96,20 +101,21 @@
       var d = h.document || h;
       var li = document.createElement("li");
       var a = document.createElement("a");
+      a.className = "sarde-search-result";
       a.href = d.url || "#";
       if (d.section) {
-        var sec = document.createElement("span");
-        sec.className = "search-section";
+        var sec = document.createElement("div");
+        sec.className = "sarde-search-result-breadcrumb";
         sec.textContent = d.section;
         a.appendChild(sec);
       }
-      var title = document.createElement("span");
-      title.className = "search-title";
+      var title = document.createElement("div");
+      title.className = "sarde-search-result-title";
       title.textContent = d.title || d.url || "";
       a.appendChild(title);
       if (d.description) {
-        var p = document.createElement("p");
-        p.className = "search-desc";
+        var p = document.createElement("div");
+        p.className = "sarde-search-result-excerpt";
         p.textContent = d.description;
         a.appendChild(p);
       }

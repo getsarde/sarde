@@ -41,6 +41,7 @@ type searchDocument struct {
 	Section     string   `json:"section,omitempty"`
 	Tags        []string `json:"tags,omitempty"`
 	Version     string   `json:"version,omitempty"`
+	Lang        string   `json:"lang,omitempty"`
 }
 
 func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
@@ -48,6 +49,7 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 	excludePatterns := cfgStringSlice(cfg, "exclude")
 
 	var docs []searchDocument
+	seen := make(map[string]bool)
 	for _, page := range ctx.Pages {
 		if page.Draft {
 			continue
@@ -55,6 +57,11 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		if shouldExclude(page.Permalink, excludePatterns) {
 			continue
 		}
+		url := page.URL()
+		if seen[url] {
+			continue
+		}
+		seen[url] = true
 
 		raw := string(page.Content)
 		if cutoff := maxLen * 3; len(raw) > cutoff {
@@ -71,14 +78,15 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		}
 
 		docs = append(docs, searchDocument{
-			ID:          page.Permalink,
+			ID:          url,
 			Title:       page.Title,
-			URL:         page.URL(),
+			URL:         url,
 			Description: page.Description,
 			Content:     content,
 			Section:     section,
 			Tags:        page.Tags,
 			Version:     page.Version,
+			Lang:        page.Lang,
 		})
 	}
 
