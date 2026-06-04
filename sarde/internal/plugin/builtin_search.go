@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/fs"
 	"strings"
+
+	"github.com/frostybee/sarde/internal/engine"
 )
 
 //go:embed all:search_assets
@@ -41,6 +43,9 @@ type searchDocument struct {
 	Section     string   `json:"section,omitempty"`
 	Tags        []string `json:"tags,omitempty"`
 	Version     string   `json:"version,omitempty"`
+	Breadcrumb  string   `json:"breadcrumb,omitempty"`
+	Kind        string   `json:"kind,omitempty"`
+	Anchor      string   `json:"anchor,omitempty"`
 	Lang        string   `json:"-"`
 }
 
@@ -77,6 +82,8 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 			section = page.Collection.Name
 		}
 
+		breadcrumb := buildBreadcrumb(page)
+
 		docs = append(docs, searchDocument{
 			ID:          url,
 			Title:       page.Title,
@@ -86,8 +93,29 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 			Section:     section,
 			Tags:        page.Tags,
 			Version:     page.Version,
+			Breadcrumb:  breadcrumb,
+			Kind:        "page",
 			Lang:        page.Lang,
 		})
+
+		for _, h := range page.Headings {
+			hURL := url + "#" + h.ID
+			if seen[hURL] {
+				continue
+			}
+			seen[hURL] = true
+			docs = append(docs, searchDocument{
+				ID:         hURL,
+				Title:      h.Text,
+				URL:        hURL,
+				Section:    section,
+				Breadcrumb: breadcrumb + " > " + page.Title,
+				Kind:       "heading",
+				Anchor:     h.ID,
+				Version:    page.Version,
+				Lang:       page.Lang,
+			})
+		}
 	}
 
 	byLang := make(map[string][]searchDocument)
@@ -114,8 +142,29 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 	if err := writeSearchAssets(ctx); err != nil {
 		return err
 	}
-	ctx.Log(fmt.Sprintf("Built search index (%d pages, %d languages)", total, len(byLang)))
+	ctx.Log(fmt.Sprintf("Built search index (%d documents, %d languages)", total, len(byLang)))
 	return nil
+}
+
+func buildBreadcrumb(page *engine.Page) string {
+	var parts []string
+	if page.Collection != nil {
+		parts = append(parts, page.Collection.Title)
+	}
+	var sectionParts []string
+	for s := page.Section; s != nil; s = s.Parent {
+		title := s.Title
+		if title == "" && s.IndexPage != nil {
+			title = s.IndexPage.Title
+		}
+		if title != "" {
+			sectionParts = append(sectionParts, title)
+		}
+	}
+	for i := len(sectionParts) - 1; i >= 0; i-- {
+		parts = append(parts, sectionParts[i])
+	}
+	return strings.Join(parts, " > ")
 }
 
 func writeSearchAssets(ctx *BuildDoneContext) error {
