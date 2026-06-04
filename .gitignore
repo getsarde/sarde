@@ -47,3 +47,5 @@ desktop/dist/
 .coderoo-cache/
 .cache/
 dist1
+
+*.png

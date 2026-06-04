@@ -12,11 +12,11 @@
     if (dbPromise) return dbPromise;
     dbPromise = Promise.all([
       import(_base + "/assets/vendor/orama/orama.esm.js"),
-      fetch(_base + "/search-index.json").then(function (r) { return r.json(); })
+      fetch(_base + "/search-index." + (searchLang || "en") + ".json").then(function (r) { return r.json(); })
     ]).then(function (arr) {
       var orama = arr[0], docs = arr[1];
       var db = orama.create({
-        schema: { id: "string", title: "string", url: "string", content: "string", description: "string", section: "string", tags: "string[]", version: "enum", lang: "enum" }
+        schema: { id: "string", title: "string", url: "string", content: "string", description: "string", section: "string", tags: "string[]", version: "enum" }
       });
       orama.insertMultiple(db, docs);
       return { orama: orama, db: db };
@@ -73,13 +73,9 @@
       return;
     }
     loadIndex().then(function (ctx) {
-      var opts = { term: term, properties: ["title", "content", "description", "section", "tags"], limit: 20 };
+      var opts = { term: term, properties: ["title", "content", "description", "section", "tags"], limit: 20, tolerance: 1 };
       if (searchVersion) {
         opts.where = { version: { eq: searchVersion } };
-      }
-      if (searchLang) {
-        opts.where = opts.where || {};
-        opts.where.lang = { eq: searchLang };
       }
       return ctx.orama.search(ctx.db, opts);
     }).then(function (res) {

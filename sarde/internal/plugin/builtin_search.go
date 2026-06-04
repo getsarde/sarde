@@ -41,7 +41,7 @@ type searchDocument struct {
 	Section     string   `json:"section,omitempty"`
 	Tags        []string `json:"tags,omitempty"`
 	Version     string   `json:"version,omitempty"`
-	Lang        string   `json:"lang,omitempty"`
+	Lang        string   `json:"-"`
 }
 
 func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
@@ -90,18 +90,31 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		})
 	}
 
-	data, err := json.Marshal(docs)
-	if err != nil {
-		return err
+	byLang := make(map[string][]searchDocument)
+	for _, d := range docs {
+		lang := d.Lang
+		if lang == "" {
+			lang = "en"
+		}
+		byLang[lang] = append(byLang[lang], d)
 	}
-	if err := ctx.WriteFile("search-index.json", data); err != nil {
-		return err
+
+	total := 0
+	for lang, langDocs := range byLang {
+		data, err := json.Marshal(langDocs)
+		if err != nil {
+			return err
+		}
+		if err := ctx.WriteFile(fmt.Sprintf("search-index.%s.json", lang), data); err != nil {
+			return err
+		}
+		total += len(langDocs)
 	}
 
 	if err := writeSearchAssets(ctx); err != nil {
 		return err
 	}
-	ctx.Log(fmt.Sprintf("Built search index (%d pages)", len(docs)))
+	ctx.Log(fmt.Sprintf("Built search index (%d pages, %d languages)", total, len(byLang)))
 	return nil
 }
 
