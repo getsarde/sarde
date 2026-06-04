@@ -6,13 +6,13 @@
     {{ if .Children }}
     <li>
       <details{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}>
-        <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ else }}<span>{{ .Label }}</span>{{ end }}</summary>
+        <summary><span>{{ .Label }}</span></summary>
         <ul>
         {{ range .Children }}
           {{ if .Children }}
           <li>
             <details{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}>
-              <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ else }}<span>{{ .Label }}</span>{{ end }}</summary>
+              <summary><span>{{ .Label }}</span></summary>
               <ul>
               {{ range .Children }}
                 <li>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ else }}<span>{{ .Label }}</span>{{ end }}{{ if .Page }}{{ if not (.Page.Badge.IsEmpty) }} <span class="sarde-badge {{ .Page.Badge.CSSClass }}">{{ .Page.Badge.Text }}</span>{{ end }}{{ end }}</li>

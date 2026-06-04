@@ -116,9 +116,10 @@
 	  width: 2rem;
 	  height: 2rem;
 	  padding: 0.4rem;
-	  background-color: var(--sd-text);
-	  color: var(--sd-bg);
-	  box-shadow: 0 2px 8px oklch(0 0 0 / 0.15);
+	  background-color: var(--sd-bg);
+	  color: var(--sd-text);
+	  border: 1px solid var(--sd-border);
+	  box-shadow: var(--sd-shadow-sm);
 	  cursor: pointer;
 	  display: flex;
 	  align-items: center;
