@@ -20,6 +20,7 @@ import (
 	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/content/markdown"
+	"github.com/frostybee/sarde/internal/content/markdown/icons"
 	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/i18n"
@@ -179,6 +180,11 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		if err := b.pluginMgr.RunConfigSetup(b.config); err != nil {
 			return nil, err
 		}
+
+		// Icon system: set the default prefix and load extra Iconify sets plus
+		// the local icons/ directory. Run-once alongside the embedded sets;
+		// editing icon source files needs a dev-server restart to take effect.
+		b.loadIconSources()
 	}
 
 	// Phase 2: DISCOVER
@@ -296,6 +302,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		Pages:            allPages,
 		BuildTime:        time.Now(),
 		EditURL:          b.config.Site.EditURL,
+		IconLicenses:     buildIconLicenses(),
 	}
 
 	// Resolve all Permalink fields through the URL resolver.
@@ -407,6 +414,14 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	scProcessor := shortcode.NewProcessor(scRegistry)
 	shortcodesHash := scRegistry.TemplateHash()
 
+	// The icon render mode (inline <svg> vs sprite <use> refs) changes rendered
+	// markdown, so it must participate in the page-cache key — otherwise toggling
+	// icons.render would serve stale content for unchanged pages.
+	iconRenderKey := "icon-inline"
+	if icons.SpriteMode() {
+		iconRenderKey = "icon-sprite"
+	}
+
 	var pageCache *PageCache
 	// Disable the cache in check mode: a forced fresh render guarantees the link
 	// graph is fully populated (a cache hit would skip link recording, making
@@ -470,7 +485,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				}
 
 				// Check cache first.
-				hash := ContentHash(processed + shortcodesHash + b.resolutionKey)
+				hash := ContentHash(processed + shortcodesHash + b.resolutionKey + iconRenderKey)
 				if pageCache != nil {
 					if entry := pageCache.Get(hash); entry != nil {
 						page.Content = htmltemplate.HTML(entry.HTML)
@@ -541,6 +556,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			scProcessor:    scProcessor,
 			shortcodesHash: shortcodesHash,
 			resolutionKey:  b.resolutionKey,
+			iconRenderKey:  iconRenderKey,
 			pageCache:      pageCache,
 			assetPipeline:  assetPipeline,
 		}
@@ -1036,6 +1052,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	}
 	recordTiming("Writing assets")
 
+	// Warn if an attribution-required icon set was used without configuring
+	// icons.attribution (after render, so used-set tracking is complete).
+	b.warnIconAttribution()
+
 	// Plugin hook: BuildDone (parallel, after all files written).
 	buildLogger := engine.NewBuildLogger()
 	var pluginWarnings []engine.ValidationWarning
@@ -1106,6 +1126,108 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		LogMessages:     buildLogger.Messages(),
 		PhaseTimings:    timings,
 	}, nil
+}
+
+// loadIconSources configures the icon engine from b.config.Icons: the default
+// prefix, any extra Iconify sets (explicit files plus a sets_dir of *.json),
+// and the local icons/ directory. Failures are warnings, never fatal — a
+// missing or malformed icon source must not break the build.
+func (b *SiteBuilder) loadIconSources() {
+	ic := b.config.Icons
+	icons.SetDefaultPrefix(ic.DefaultPrefix)
+	icons.SetRenderMode(ic.Render)
+
+	resolve := func(p string) string {
+		if filepath.IsAbs(p) {
+			return p
+		}
+		return filepath.Join(b.projectDir, p)
+	}
+	loadSet := func(path string) {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			devlog.Warn("icons", "read set %s: %v", path, err)
+			return
+		}
+		if err := icons.LoadCollection(data); err != nil {
+			devlog.Warn("icons", "load set %s: %v", path, err)
+		}
+	}
+
+	for _, set := range ic.Sets {
+		if set.File != "" {
+			loadSet(resolve(set.File))
+		}
+	}
+	if ic.SetsDir != "" {
+		dir := resolve(ic.SetsDir)
+		if entries, err := os.ReadDir(dir); err != nil {
+			if !os.IsNotExist(err) {
+				devlog.Warn("icons", "read sets_dir %s: %v", dir, err)
+			}
+		} else {
+			for _, e := range entries {
+				if !e.IsDir() && strings.EqualFold(filepath.Ext(e.Name()), ".json") {
+					loadSet(filepath.Join(dir, e.Name()))
+				}
+			}
+		}
+	}
+
+	localDir := ic.LocalDir
+	if localDir == "" {
+		localDir = "icons"
+	}
+	if err := icons.LoadIconDirectory(resolve(localDir)); err != nil {
+		devlog.Warn("icons", "load local dir %s: %v", localDir, err)
+	}
+}
+
+// buildIconLicenses converts the loaded icon sets' license metadata into the
+// engine type exposed to templates as .Site.IconLicenses.
+func buildIconLicenses() []engine.IconLicense {
+	sets := icons.LoadedSetLicenses()
+	out := make([]engine.IconLicense, 0, len(sets))
+	for _, s := range sets {
+		out = append(out, engine.IconLicense{Prefix: s.Prefix, Title: s.Title, SPDX: s.SPDX, URL: s.URL})
+	}
+	return out
+}
+
+// warnIconAttribution emits a build-end warning for any icon set actually used
+// whose license requires attribution when no icons.attribution is configured.
+// The bundled sets (Lucide ISC / Tabler MIT) never trip this; it guards opt-in
+// sets added via icons.sets / sets_dir. Brand/logo icons may carry separate
+// trademark constraints regardless of SPDX license.
+func (b *SiteBuilder) warnIconAttribution() {
+	if strings.TrimSpace(b.config.Icons.Attribution) != "" {
+		return
+	}
+	for _, s := range icons.UsedSetLicenses() {
+		if !requiresAttribution(s.SPDX) {
+			continue
+		}
+		label := s.Title
+		if label == "" {
+			label = s.SPDX
+		}
+		devlog.Warn("icons", "set %q (%s) requires attribution; set icons.attribution or render a credits page from .Site.IconLicenses", s.Prefix, label)
+	}
+}
+
+// requiresAttribution reports whether an SPDX license id needs an attribution
+// notice (CC-BY family, OFL, or a GPL/copyleft license).
+func requiresAttribution(spdx string) bool {
+	s := strings.ToUpper(strings.TrimSpace(spdx))
+	switch {
+	case strings.HasPrefix(s, "CC-BY"):
+		return true
+	case strings.HasPrefix(s, "OFL"):
+		return true
+	case strings.Contains(s, "GPL"):
+		return true
+	}
+	return false
 }
 
 // registerSubpackagePlugins wires plugins whose assets live in their own

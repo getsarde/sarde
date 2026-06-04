@@ -17,6 +17,7 @@ import (
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/filetree"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/gallery"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/highlight"
+	"github.com/frostybee/sarde/internal/content/markdown/extensions/icon"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/imagecompare"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/kbd"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/linkbutton"
@@ -188,6 +189,7 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) goldmark.Markdown {
 		// Inline extensions
 		&badge.Extension{},
 		&kbd.Extension{},
+		&icon.Extension{},
 		&highlight.Extension{},
 		&annotation.Extension{},
 		// Image renderer (always present; lookup swapped at runtime via r.imgRend.Lookup)

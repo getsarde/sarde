@@ -1,6 +1,7 @@
 package build
 
 import (
+	"bytes"
 	"fmt"
 	htmltemplate "html/template"
 	"sort"
@@ -12,6 +13,7 @@ import (
 	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/content/markdown"
+	"github.com/frostybee/sarde/internal/content/markdown/icons"
 	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/shortcode"
@@ -115,11 +117,35 @@ func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext)
 		}
 	}
 
+	// Sprite render mode: collect the <use> references this finished page emitted
+	// (from both Markdown ::icon[] and template {{ icon }}) and inject the hidden
+	// <symbol> sprite before </body>. No-op (and zero overhead) in inline mode.
+	if icons.SpriteMode() {
+		if sprite := icons.SpriteForHTML(html); sprite != nil {
+			html = injectBeforeBodyClose(html, sprite)
+		}
+	}
+
 	return RenderedPage{
 		Page:    page,
 		HTML:    html,
 		OutPath: PageOutputPath(b.urlResolver.OutputRelPath(page.RelPermalink, page.Lang, resolvePageVersion(page))),
 	}, nil
+}
+
+// injectBeforeBodyClose splices extra into html immediately before the final
+// </body>, mirroring the dev server's live-reload injection. The html is
+// returned unchanged when no </body> is present (e.g. redirect stubs).
+func injectBeforeBodyClose(html, extra []byte) []byte {
+	idx := bytes.LastIndex(html, []byte("</body>"))
+	if idx == -1 {
+		return html
+	}
+	out := make([]byte, 0, len(html)+len(extra))
+	out = append(out, html[:idx]...)
+	out = append(out, extra...)
+	out = append(out, html[idx:]...)
+	return out
 }
 
 // ---------------------------------------------------------------------------
@@ -130,6 +156,7 @@ type markdownRenderDeps struct {
 	scProcessor    *shortcode.Processor
 	shortcodesHash string
 	resolutionKey  string
+	iconRenderKey  string
 	pageCache      *PageCache
 	assetPipeline  *asset.Pipeline
 }
@@ -144,7 +171,7 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 	}
 
 	processed, scWarns := deps.scProcessor.Process(page.RawContent, page, siteCtx, b.mdRenderer)
-	hash := ContentHash(processed + deps.shortcodesHash + deps.resolutionKey)
+	hash := ContentHash(processed + deps.shortcodesHash + deps.resolutionKey + deps.iconRenderKey)
 
 	if deps.pageCache != nil {
 		if entry := deps.pageCache.Get(hash); entry != nil {

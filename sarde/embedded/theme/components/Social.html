@@ -1,0 +1,7 @@
+{{ if .Site.Config.Social }}
+<div class="sarde-social">
+  {{ range .Site.Config.Social }}
+  <a class="sarde-social-link" href="{{ .URL }}"{{ if .Label }} aria-label="{{ .Label }}"{{ end }} target="_blank" rel="noopener noreferrer">{{ icon .Icon "sarde-social-icon" }}</a>
+  {{ end }}
+</div>
+{{ end }}

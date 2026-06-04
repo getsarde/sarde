@@ -54,6 +54,29 @@ func testFuncMapBuild() htmltemplate.FuncMap {
 
 // ── String tests ──
 
+func TestFnIcon(t *testing.T) {
+	// name only → decorative, no class
+	got := string(fnIcon("rocket"))
+	if !strings.Contains(got, "<svg") || !strings.Contains(got, `aria-hidden="true"`) {
+		t.Errorf("fnIcon(rocket) = %q", got)
+	}
+	// name + class
+	got = string(fnIcon("rocket", "sarde-icon"))
+	if !strings.Contains(got, `class="sarde-icon"`) {
+		t.Errorf("fnIcon with class = %q", got)
+	}
+	// name + class + key/val pair
+	got = string(fnIcon("arrow-up", "sarde-icon", "rotate", "90"))
+	if !strings.Contains(got, `style="transform: rotate(90deg)"`) {
+		t.Errorf("fnIcon with rotate = %q", got)
+	}
+	// trailing odd arg is ignored (no panic, still renders)
+	got = string(fnIcon("rocket", "sarde-icon", "rotate"))
+	if !strings.Contains(got, `class="sarde-icon"`) {
+		t.Errorf("fnIcon odd arg = %q", got)
+	}
+}
+
 func TestFnTitle(t *testing.T) {
 	if got := fnTitle("hello world"); got != "Hello World" {
 		t.Errorf("got %q", got)

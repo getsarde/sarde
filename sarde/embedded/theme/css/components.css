@@ -802,4 +802,46 @@
 	  color: var(--sd-text-muted);
 	}
 
+	/* ── Icons ── */
+	.sarde-icon {
+	  width: 1.25rem;
+	  height: 1.25rem;
+	  flex-shrink: 0;
+	}
+	.sarde-icon-inline {
+	  width: 1em;
+	  height: 1em;
+	  vertical-align: -0.125em;
+	}
+	.sarde-icon-sm {
+	  width: 1rem;
+	  height: 1rem;
+	}
+	.sarde-icon-lg {
+	  width: 2rem;
+	  height: 2rem;
+	}
+
+	/* ── Social links ── */
+	.sarde-social {
+	  display: flex;
+	  align-items: center;
+	  gap: 0.75rem;
+	}
+	.sarde-social-link {
+	  display: inline-flex;
+	  align-items: center;
+	  justify-content: center;
+	  color: var(--sd-text-muted);
+	  transition: color 0.15s ease;
+	}
+	.sarde-social-link:hover {
+	  color: var(--sd-accent);
+	}
+	.sarde-social-icon {
+	  width: 1.25rem;
+	  height: 1.25rem;
+	  flex-shrink: 0;
+	}
+
 }

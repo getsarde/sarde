@@ -613,6 +613,16 @@ type SiteContext struct {
 	Languages   []Language
 	DefaultLang string
 	EditURL     string // base URL for "edit this page" links (e.g. https://github.com/user/repo/edit/main/content)
+	IconLicenses []IconLicense // license metadata for loaded icon sets (for an attribution/credits page)
+}
+
+// IconLicense is the license metadata of a loaded icon set, exposed to
+// templates as .Site.IconLicenses so a theme/author can render a credits page.
+type IconLicense struct {
+	Prefix string
+	Title  string
+	SPDX   string
+	URL    string
 }
 
 // Language represents a configured language for i18n.

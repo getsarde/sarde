@@ -94,6 +94,21 @@ search:
   enabled: true
   provider: "orama"
 
+icons:
+  # Icon set used for bare (prefixless) names. Bundled sets: lucide, tabler.
+  default_prefix: "lucide"
+  # Extra Iconify JSON sets to load: - { prefix: "mdi", file: "icons/mdi.json" }
+  sets: []
+  # Directory of additional Iconify *.json sets, auto-discovered by prefix.
+  sets_dir: ""
+  # Directory of local *.svg files, referenced by filename (icons/logo.svg -> ::icon[logo]).
+  local_dir: "icons"
+  # Attribution line shown/credited for sets whose license requires it.
+  attribution: ""
+  # Output mode: "inline" (a full <svg> per use) or "sprite" (one hidden
+  # <symbol> per unique icon per page, referenced via <use>).
+  render: "inline"
+
 link_validation:
   enabled: true
   level: "warn"

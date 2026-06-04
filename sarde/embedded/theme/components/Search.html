@@ -1,6 +1,6 @@
 {{ if or (not .Site.Config) (ne .Site.Config.Search.Provider "disabled") }}
 <button type="button" class="sarde-search-trigger" data-search-trigger aria-label="{{ t "nav.search" }}" title="{{ t "nav.search" }}">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+  {{ icon "search" }}
   <span class="sarde-search-trigger-text">{{ t "nav.search" }}</span>
   <span class="sarde-search-kbd" aria-hidden="true"><kbd>⌘</kbd><kbd>K</kbd></span>
 </button>

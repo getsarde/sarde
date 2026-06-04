@@ -2,8 +2,8 @@
 <button class="sarde-nav-toggle" id="sarde-nav-toggle" type="button"
         aria-expanded="false" aria-controls="sarde-global-nav"
         aria-label="Menu" data-sarde-nav-toggle>
-  <svg class="sarde-nav-icon-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-  <svg class="sarde-nav-icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+  {{ icon "menu" "sarde-nav-icon-open" "width" "20" "height" "20" }}
+  {{ icon "x" "sarde-nav-icon-close" "width" "20" "height" "20" }}
 </button>
 <nav class="sarde-header-nav" id="sarde-global-nav">
   {{ range .GlobalNav.Items }}

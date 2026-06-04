@@ -18,6 +18,7 @@ import (
 	"github.com/frostybee/sarde/internal/asset"
 	"github.com/frostybee/sarde/internal/component"
 	"github.com/frostybee/sarde/internal/content"
+	"github.com/frostybee/sarde/internal/content/markdown/icons"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
@@ -64,6 +65,9 @@ func (e *Engine) buildFuncMap(
 		"plainify":    fnPlainify,
 		"safeHTML":    fnSafeHTML,
 		"highlight":   fnHighlight,
+
+		// ── Icons ──
+		"icon": fnIcon,
 
 		// ── Dates ──
 		"dateFormat": fnDateFormat,
@@ -669,6 +673,29 @@ func lookupPage(pi *content.PageIndex, site *engine.SiteContext, slug string) *e
 
 func fnSafeHTML(s string) htmltemplate.HTML {
 	return htmltemplate.HTML(s)
+}
+
+// fnIcon renders an inline SVG icon via icons.Render. The first variadic arg is
+// a CSS class; the remaining args are key/value attribute pairs (a trailing odd
+// arg is ignored):
+//
+//	{{ icon "rocket" }}
+//	{{ icon "rocket" "sarde-icon-lg" }}
+//	{{ icon "arrow-up" "sarde-icon" "rotate" "90" "title" "Up" }}
+//
+// The SVG body is trusted build-time icon data and icons.Render escapes all
+// attribute values, so wrapping the result in template.HTML is safe.
+func fnIcon(name string, args ...string) htmltemplate.HTML {
+	var class string
+	attrs := make(map[string]string)
+	if len(args) > 0 {
+		class = args[0]
+		pairs := args[1:]
+		for i := 0; i+1 < len(pairs); i += 2 {
+			attrs[pairs[i]] = pairs[i+1]
+		}
+	}
+	return htmltemplate.HTML(icons.Render(name, class, attrs))
 }
 
 func fnHighlight(code, lang string) htmltemplate.HTML {

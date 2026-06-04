@@ -8,6 +8,7 @@ import (
 
 	"github.com/frostybee/sarde/embedded"
 	"github.com/frostybee/sarde/internal/config"
+	"github.com/frostybee/sarde/internal/content/markdown/icons"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/theme"
 )
@@ -98,6 +99,50 @@ func TestBuild_EndToEnd(t *testing.T) {
 
 	// 404 page.
 	assertFixtureFileExists(t, distDir, "404.html")
+}
+
+// TestBuild_IconRenderModeBustsPageCache guards the page-cache key: toggling
+// icons.render must invalidate cached pages so content re-renders in the new
+// mode. Regression — the cache key previously omitted the icon render mode, so a
+// warm cache served stale inline icons after switching to sprite (and the serial
+// render path needed the key threaded through markdownRenderDeps).
+func TestBuild_IconRenderModeBustsPageCache(t *testing.T) {
+	dir := t.TempDir()
+	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n# Home\n")
+	writeFixture(t, dir, "content/docs/_index.md", "---\ntitle: Docs\n---\n")
+	writeFixture(t, dir, "content/docs/icons.md", "---\ntitle: Icons\nweight: 1\n---\nStars ::icon[star] ::icon[star] ::icon[star]\n")
+	themeCfg := buildThemeConfig()
+	defer icons.SetRenderMode("inline") // restore global mode for other tests
+
+	build := func(render string) string {
+		cfg := config.Defaults()
+		cfg.Icons.Render = render
+		cfg.Build.Minify = config.BoolPtr(false)
+		b := NewSiteBuilder(BuildOptions{ProjectDir: dir, Config: cfg, ThemeConfig: themeCfg, EmbeddedFS: embedded.ThemeFS()})
+		if _, err := b.Build(); err != nil {
+			t.Fatalf("build (%s) failed: %v", render, err)
+		}
+		data, err := os.ReadFile(filepath.Join(dir, "dist", "docs", "icons", "index.html"))
+		if err != nil {
+			t.Fatalf("read output (%s): %v", render, err)
+		}
+		return string(data)
+	}
+
+	// First build (inline) warms the on-disk page cache with inline <svg> bodies.
+	if inline := build("inline"); strings.Contains(inline, `<use href="#i-lucide-star"`) {
+		t.Fatalf("inline build unexpectedly emitted <use> sprite refs")
+	}
+
+	// Second build (same project dir → warm cache) in sprite mode must bust the
+	// cache and re-render with <use> refs + a <symbol>, not serve stale inline HTML.
+	sprite := build("sprite")
+	if !strings.Contains(sprite, `<use href="#i-lucide-star"`) {
+		t.Error("sprite build did not emit <use> refs — render-mode change did not invalidate the page cache")
+	}
+	if !strings.Contains(sprite, `<symbol id="i-lucide-star"`) {
+		t.Error("sprite build did not emit the <symbol> definition")
+	}
 }
 
 func TestBuild_HomeHero_BackCompatConfig(t *testing.T) {

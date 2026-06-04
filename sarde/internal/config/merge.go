@@ -139,6 +139,7 @@ func mergeConfig(base, over *SiteConfig) {
 	mergePrefetch(&base.Prefetch, &over.Prefetch)
 	mergeImages(&base.Images, &over.Images)
 	mergeSearch(&base.Search, &over.Search)
+	mergeIcons(&base.Icons, &over.Icons)
 	mergeLinkValidation(&base.LinkValidation, &over.LinkValidation)
 	mergeContentLint(&base.ContentLint, &over.ContentLint)
 	mergeAnalytics(&base.Analytics, &over.Analytics)
@@ -302,6 +303,17 @@ func mergeImages(base, over *ImageSettings) {
 func mergeSearch(base, over *SearchSettings) {
 	mergeBoolP(&base.Enabled, over.Enabled)
 	mergeStr(&base.Provider, over.Provider)
+}
+
+func mergeIcons(base, over *IconSettings) {
+	mergeStr(&base.DefaultPrefix, over.DefaultPrefix)
+	if len(over.Sets) > 0 {
+		base.Sets = over.Sets
+	}
+	mergeStr(&base.SetsDir, over.SetsDir)
+	mergeStr(&base.LocalDir, over.LocalDir)
+	mergeStr(&base.Attribution, over.Attribution)
+	mergeStr(&base.Render, over.Render)
 }
 
 func mergeLinkValidation(base, over *LinkValidationSettings) {

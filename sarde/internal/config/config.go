@@ -44,6 +44,7 @@ type SiteConfig struct {
 	Prefetch       PrefetchSettings                 `yaml:"prefetch"`
 	Images         ImageSettings                    `yaml:"images"`
 	Search         SearchSettings                   `yaml:"search"`
+	Icons          IconSettings                     `yaml:"icons"`
 	LinkValidation LinkValidationSettings           `yaml:"link_validation"`
 	ContentLint    ContentLintSettings              `yaml:"content_lint"`
 	Analytics      AnalyticsSettings                `yaml:"analytics"`
@@ -308,6 +309,33 @@ type ImageSettings struct {
 type SearchSettings struct {
 	Enabled  *bool  `yaml:"enabled"`
 	Provider string `yaml:"provider"`
+}
+
+// ---------------------------------------------------------------------------
+// Icons
+// ---------------------------------------------------------------------------
+
+// IconSettings configures the SVG icon system: the default set used for bare
+// (prefixless) names, extra Iconify sets to load, a directory of local *.svg
+// files (resolved before any set), an attribution line for sets that require
+// one, and the output render mode.
+type IconSettings struct {
+	DefaultPrefix string    `yaml:"default_prefix"`
+	Sets          []IconSet `yaml:"sets"`
+	SetsDir       string    `yaml:"sets_dir"`
+	LocalDir      string    `yaml:"local_dir"`
+	Attribution   string    `yaml:"attribution"`
+	// Render selects the icon output mode: "inline" (default) emits a full SVG
+	// per use; "sprite" emits one hidden <symbol> per unique icon per page and
+	// references it with <use>.
+	Render string `yaml:"render"`
+}
+
+// IconSet names an extra Iconify JSON collection to load, by prefix, from a
+// file path (relative to the project root).
+type IconSet struct {
+	Prefix string `yaml:"prefix"`
+	File   string `yaml:"file"`
 }
 
 // ---------------------------------------------------------------------------
