@@ -9,7 +9,7 @@ const config = {
     dateFormat: cfg.date_format || 'short',
 };
 
-const ICON_SVG = '<svg class="last-updated__icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+const ICON_SVG = '<svg class="sarde-last-updated-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
     + '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>'
     + '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>'
     + '</svg>';
@@ -70,7 +70,7 @@ function init() {
 
     // Build badge with safe DOM methods
     const badge = document.createElement('div');
-    badge.className = 'last-updated last-updated--' + config.position;
+    badge.className = 'sarde-last-updated sarde-last-updated-' + config.position;
 
     const iconContainer = document.createElement('span');
     iconContainer.innerHTML = ICON_SVG; // hardcoded SVG, no user input
@@ -87,15 +87,15 @@ function init() {
     if (config.position === 'top') {
         const readingTime = document.querySelector('.sarde-reading-time');
         if (readingTime && readingTime.parentNode) {
-            if (!readingTime.parentNode.classList.contains('last-updated-row')) {
+            if (!readingTime.parentNode.classList.contains('sarde-last-updated-row')) {
                 const row = document.createElement('div');
-                row.className = 'last-updated-row';
+                row.className = 'sarde-last-updated-row';
                 readingTime.parentNode.insertBefore(row, readingTime);
                 row.appendChild(readingTime);
             }
             readingTime.parentNode.appendChild(badge);
         } else {
-            const anchor = document.querySelector('.page-description') || document.querySelector('.page-title');
+            const anchor = document.querySelector('.sarde-page-description') || document.querySelector('.sarde-page-title');
             if (anchor && anchor.parentNode) {
                 anchor.parentNode.insertBefore(badge, anchor.nextSibling);
             }

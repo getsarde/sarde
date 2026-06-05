@@ -66,18 +66,18 @@ function ensureLightbox() {
     lightbox.style.setProperty('--il-bg-opacity', String(config.bgOpacity));
 
     const toolbar = document.createElement('div');
-    toolbar.className = 'image-lightbox__toolbar';
+    toolbar.className = 'sarde-image-lightbox-toolbar';
 
     // Zoom out button
     const zoomOutBtn = document.createElement('button');
-    zoomOutBtn.className = 'image-lightbox__btn';
+    zoomOutBtn.className = 'sarde-image-lightbox-btn';
     zoomOutBtn.setAttribute('aria-label', 'Zoom out');
     zoomOutBtn.innerHTML = svgIcon('<line x1="5" y1="12" x2="19" y2="12"/>');
     zoomOutBtn.addEventListener('click', function (e) { e.stopPropagation(); zoomOut(); });
 
     // Zoom level indicator (clickable to reset)
     zoomLevelEl = document.createElement('button');
-    zoomLevelEl.className = 'image-lightbox__btn image-lightbox__zoom-level';
+    zoomLevelEl.className = 'sarde-image-lightbox-btn sarde-image-lightbox-zoom-level';
     zoomLevelEl.setAttribute('aria-label', 'Reset zoom');
     zoomLevelEl.textContent = '100%';
     zoomLevelEl.style.width = 'auto';
@@ -88,14 +88,14 @@ function ensureLightbox() {
 
     // Zoom in button
     const zoomInBtn = document.createElement('button');
-    zoomInBtn.className = 'image-lightbox__btn';
+    zoomInBtn.className = 'sarde-image-lightbox-btn';
     zoomInBtn.setAttribute('aria-label', 'Zoom in');
     zoomInBtn.innerHTML = svgIcon('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>');
     zoomInBtn.addEventListener('click', function (e) { e.stopPropagation(); zoomIn(); });
 
     // Close button
     const closeBtn = document.createElement('button');
-    closeBtn.className = 'image-lightbox__btn image-lightbox__btn--close';
+    closeBtn.className = 'sarde-image-lightbox-btn sarde-image-lightbox-btn-close';
     closeBtn.setAttribute('aria-label', 'Close lightbox');
     closeBtn.innerHTML = '&times;';
     closeBtn.addEventListener('click', function (e) { e.stopPropagation(); closeLightbox(); });
@@ -106,7 +106,7 @@ function ensureLightbox() {
     toolbar.appendChild(closeBtn);
 
     lightboxImg = document.createElement('img');
-    lightboxImg.className = 'image-lightbox__img';
+    lightboxImg.className = 'sarde-image-lightbox-img';
     lightboxImg.alt = '';
     lightboxImg.draggable = false;
 
@@ -171,7 +171,7 @@ function ensureLightbox() {
     lightboxImg.addEventListener('click', function (e) { e.stopPropagation(); });
 
     lightboxCaption = document.createElement('div');
-    lightboxCaption.className = 'image-lightbox__caption';
+    lightboxCaption.className = 'sarde-image-lightbox-caption';
 
     lightbox.appendChild(toolbar);
     lightbox.appendChild(lightboxImg);
@@ -182,7 +182,7 @@ function ensureLightbox() {
     });
 
     lightbox.addEventListener('wheel', function (e) {
-        if (!lightbox.classList.contains('is-active')) return;
+        if (!lightbox.classList.contains('active')) return;
         e.preventDefault();
         if (e.deltaY < 0) { zoomIn(); } else { zoomOut(); }
     }, { passive: false });
@@ -200,13 +200,13 @@ function openLightbox(src, alt) {
     lightboxImg.src = src;
     lightboxImg.alt = alt;
     lightboxCaption.textContent = alt;
-    lightbox.classList.add('is-active');
+    lightbox.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
 function closeLightbox() {
     if (!lightbox) return;
-    lightbox.classList.remove('is-active');
+    lightbox.classList.remove('active');
     document.body.style.overflow = '';
 }
 
@@ -231,7 +231,7 @@ function onClick(e) {
 }
 
 function onKeyDown(e) {
-    if (!lightbox || !lightbox.classList.contains('is-active')) return;
+    if (!lightbox || !lightbox.classList.contains('active')) return;
     if (e.key === 'Escape') { e.preventDefault(); closeLightbox(); }
     else if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn(); }
     else if (e.key === '-') { e.preventDefault(); zoomOut(); }

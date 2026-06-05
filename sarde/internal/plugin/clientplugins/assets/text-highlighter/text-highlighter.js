@@ -321,7 +321,7 @@ function ensureToolbar() {
     for (var i = 0; i < COLORS.length; i++) {
         var btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'sarde-thl-toolbar__color';
+        btn.className = 'sarde-thl-toolbar-color';
         btn.setAttribute('data-color', COLORS[i]);
         btn.setAttribute('aria-label', COLORS[i] + ' highlight');
         btn.addEventListener('click', onColorClick);
@@ -330,13 +330,13 @@ function ensureToolbar() {
 
     // Separator
     var sep = document.createElement('span');
-    sep.className = 'sarde-thl-toolbar__sep';
+    sep.className = 'sarde-thl-toolbar-sep';
     toolbar.appendChild(sep);
 
     // Clear all button
     var clearBtn = document.createElement('button');
     clearBtn.type = 'button';
-    clearBtn.className = 'sarde-thl-toolbar__clear';
+    clearBtn.className = 'sarde-thl-toolbar-clear';
     clearBtn.setAttribute('aria-label', 'Clear all highlights');
     clearBtn.title = 'Clear all highlights';
     clearBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
@@ -354,7 +354,7 @@ function showToolbar(rect) {
     toolbar.style.visibility = 'hidden';
     toolbar.style.opacity = '0';
     toolbar.style.pointerEvents = 'none';
-    toolbar.classList.add('sarde-thl-toolbar--visible');
+    toolbar.classList.add('is-visible');
 
     var tw = toolbar.offsetWidth;
     var th = toolbar.offsetHeight;
@@ -378,7 +378,7 @@ function showToolbar(rect) {
 }
 
 function hideToolbar() {
-    if (toolbar) toolbar.classList.remove('sarde-thl-toolbar--visible');
+    if (toolbar) toolbar.classList.remove('is-visible');
     toolbarVisible = false;
 }
 
@@ -392,7 +392,7 @@ function showRemovePopup(markEl) {
 
     var removeBtn = document.createElement('button');
     removeBtn.type = 'button';
-    removeBtn.className = 'sarde-thl-remove__btn thl-remove__btn--danger';
+    removeBtn.className = 'sarde-thl-remove-btn sarde-thl-remove-btn-danger';
     removeBtn.textContent = 'Remove';
     removeBtn.addEventListener('click', function () {
         var hlId = parseInt(markEl.getAttribute('data-thl-id') || '-1', 10);
@@ -421,7 +421,7 @@ function showRemovePopup(markEl) {
     removePopup.style.left = left + 'px';
 
     removePopup.offsetHeight;
-    removePopup.classList.add('sarde-thl-remove--visible');
+    removePopup.classList.add('is-visible');
     removeVisible = true;
 }
 

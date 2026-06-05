@@ -7,12 +7,12 @@
    ======================================== */
 .sarde-reading-progress {
     position: fixed;
-    top: 0;
+    top: var(--sd-nav-height, 4rem);
     left: 0;
     width: 100%;
     height: var(--rp-bar-height, 3px);
     background: transparent;
-    z-index: calc(var(--sd-z-sticky, 100) + 1);
+    z-index: var(--sd-z-header, 20);
     overflow: hidden;
     pointer-events: none;
 }

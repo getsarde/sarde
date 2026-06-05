@@ -7,7 +7,7 @@ const config = {
 };
 
 // External-link SVG icon (arrow-up-right)
-const ICON_SVG = '<svg class="external-link-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+const ICON_SVG = '<svg class="sarde-external-link-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
     + '<path d="M7 7h10v10"/><path d="M7 17 17 7"/>'
     + '</svg>';
 

@@ -152,7 +152,7 @@ function goToMatch(index) {
 
     // Remove active class from current
     if (currentIndex >= 0 && marks[currentIndex]) {
-        marks[currentIndex].classList.remove('search-hl--active');
+        marks[currentIndex].classList.remove('is-active');
     }
 
     // Wrap around
@@ -160,7 +160,7 @@ function goToMatch(index) {
     if (index >= marks.length) index = 0;
 
     currentIndex = index;
-    marks[currentIndex].classList.add('search-hl--active');
+    marks[currentIndex].classList.add('is-active');
 
     // Scroll into view
     marks[currentIndex].scrollIntoView({
@@ -190,24 +190,24 @@ function createBadge() {
     if (!config.showBadge) return;
 
     badge = document.createElement('div');
-    badge.className = 'search-hl-badge';
+    badge.className = 'sarde-search-hl-badge';
     badge.setAttribute('role', 'status');
     badge.setAttribute('aria-live', 'polite');
 
     // Match count
     var count = document.createElement('span');
-    count.className = 'search-hl-badge__count';
+    count.className = 'sarde-search-hl-badge-count';
     count.textContent = marks.length + ' match' + (marks.length !== 1 ? 'es' : '');
     badge.appendChild(count);
 
     // Separator
     var sep = document.createElement('span');
-    sep.className = 'search-hl-badge__sep';
+    sep.className = 'sarde-search-hl-badge-sep';
     badge.appendChild(sep);
 
     // Prev button
     var prev = document.createElement('button');
-    prev.className = 'search-hl-badge__btn';
+    prev.className = 'sarde-search-hl-badge-btn';
     prev.setAttribute('aria-label', 'Previous match');
     prev.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
     prev.addEventListener('click', function () { goToMatch(currentIndex - 1); });
@@ -215,7 +215,7 @@ function createBadge() {
 
     // Next button
     var next = document.createElement('button');
-    next.className = 'search-hl-badge__btn';
+    next.className = 'sarde-search-hl-badge-btn';
     next.setAttribute('aria-label', 'Next match');
     next.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
     next.addEventListener('click', function () { goToMatch(currentIndex + 1); });
@@ -223,12 +223,12 @@ function createBadge() {
 
     // Separator
     var sep2 = document.createElement('span');
-    sep2.className = 'search-hl-badge__sep';
+    sep2.className = 'sarde-search-hl-badge-sep';
     badge.appendChild(sep2);
 
     // Dismiss button
     var dismiss = document.createElement('button');
-    dismiss.className = 'search-hl-badge__btn search-hl-badge__btn--dismiss';
+    dismiss.className = 'sarde-search-hl-badge-btn sarde-search-hl-badge-btn-dismiss';
     dismiss.setAttribute('aria-label', 'Dismiss highlights');
     dismiss.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
     dismiss.addEventListener('click', function () {
@@ -247,7 +247,7 @@ function createBadge() {
 
     // Make visible — force a layout read to ensure the transition plays
     badge.offsetHeight;
-    badge.classList.add('search-hl-badge--visible');
+    badge.classList.add('is-visible');
 }
 
 // ── Init ─────────────────────────────────────────────────────

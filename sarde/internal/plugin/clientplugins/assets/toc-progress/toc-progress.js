@@ -39,7 +39,7 @@ function update() {
     // Fallback: Alpine's single active link
     if (firstIdx === -1) {
         for (var k = 0; k < allLinks.length; k++) {
-            if (allLinks[k].classList.contains('is-active')) {
+            if (allLinks[k].classList.contains('active')) {
                 firstIdx = k;
                 lastIdx = k;
                 break;
@@ -50,9 +50,9 @@ function update() {
     // Apply classes to links in range
     for (var j = 0; j < allLinks.length; j++) {
         if (firstIdx !== -1 && j >= firstIdx && j <= lastIdx) {
-            allLinks[j].classList.add('toc-progress-visible');
+            allLinks[j].classList.add('sarde-toc-progress-visible');
         } else {
-            allLinks[j].classList.remove('toc-progress-visible');
+            allLinks[j].classList.remove('sarde-toc-progress-visible');
         }
     }
 }
@@ -137,10 +137,10 @@ function cleanup() {
     visibleIds = new Set();
     headings = [];
     for (var i = 0; i < allLinks.length; i++) {
-        allLinks[i].classList.remove('toc-progress-visible');
+        allLinks[i].classList.remove('sarde-toc-progress-visible');
     }
     window.removeEventListener('scroll', onScroll);
-    if (tocNav) tocNav.classList.remove('toc-progress-active');
+    if (tocNav) tocNav.classList.remove('sarde-toc-progress-active');
     tocNav = null;
     allLinks = [];
 }
@@ -150,7 +150,7 @@ function init() {
     tocNav = (document.querySelector('nav.toc'));
     if (!tocNav) return;
 
-    tocNav.classList.add('toc-progress-active');
+    tocNav.classList.add('sarde-toc-progress-active');
     allLinks = Array.from(tocNav.querySelectorAll('a'));
     if (allLinks.length === 0) return;
 

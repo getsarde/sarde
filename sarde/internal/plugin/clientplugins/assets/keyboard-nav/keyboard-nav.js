@@ -55,14 +55,14 @@ function showHint() {
     hint.className = 'sarde-kbd-nav-hint';
     hint.setAttribute('role', 'status');
     hint.innerHTML =
-        '<span class="kbd-nav-hint__keys">' +
-            '<kbd class="kbd-nav-hint__key">&larr;</kbd>' +
-            '<kbd class="kbd-nav-hint__key">&rarr;</kbd>' +
+        '<span class="sarde-kbd-nav-hint-keys">' +
+            '<kbd class="sarde-kbd-nav-hint-key">&larr;</kbd>' +
+            '<kbd class="sarde-kbd-nav-hint-key">&rarr;</kbd>' +
         '</span>' +
         '<span>Navigate between pages</span>';
     document.body.appendChild(hint);
     requestAnimationFrame(function () {
-        requestAnimationFrame(function () { hint.classList.add('is-visible'); });
+        requestAnimationFrame(function () { hint.classList.add('visible'); });
     });
 }
 

@@ -130,14 +130,14 @@ function injectReadingTime() {
     const timeText = formatReadingTime(minutes);
 
     // Clock SVG icon
-    const clockSvg = '<svg class="reading-time__icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+    const clockSvg = '<svg class="sarde-reading-time-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
 
     const badge = document.createElement('div');
     badge.className = 'sarde-reading-time';
     badge.innerHTML = clockSvg + '<span>' + timeText + '</span>';
 
     // Insert after .page-description or .page-title
-    const anchor = document.querySelector('.page-description') || document.querySelector('.page-title');
+    const anchor = document.querySelector('.sarde-page-description') || document.querySelector('.sarde-page-title');
     if (anchor && anchor.parentNode) {
         anchor.parentNode.insertBefore(badge, anchor.nextSibling);
     }

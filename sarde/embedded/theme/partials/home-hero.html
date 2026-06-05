@@ -9,7 +9,7 @@
 {{ $hasCode := and .Homepage .Homepage.Hero.Code .Homepage.Hero.Code.Body }}
 {{ $hasStats := and .Homepage .Homepage.Hero.Stats }}
 {{ $hasPanel := or $hasCode $hasStats }}
-<section class="sarde-hero hero sarde-hero-bg-{{ $background }} hero-bg-{{ $background }}">
+<section class="sarde-hero sarde-hero-bg-{{ $background }}">
   <div class="sarde-hero-inner{{ if $hasPanel }} sarde-hero-inner-with-panel{{ end }}">
     <div class="sarde-hero-copy">
       {{ if and .Homepage .Homepage.Hero.Eyebrow }}

@@ -20,9 +20,9 @@ btn.setAttribute('tabindex', '0');
 
 // Build inner HTML (hardcoded SVG -- no user data)
 const progressRingHtml = SHOW_PROGRESS_RING
-    ? '<svg class="scroll-progress-ring" viewBox="0 0 47 47">' +
-      '<circle cx="23.5" cy="23.5" r="22" fill="none" stroke-width="3" class="scroll-progress-track"/>' +
-      '<circle cx="23.5" cy="23.5" r="22" fill="none" stroke-width="3" stroke-linecap="round" class="scroll-progress-circle" style="transform:rotate(-90deg);transform-origin:center;"/>' +
+    ? '<svg class="sarde-scroll-progress-ring" viewBox="0 0 47 47">' +
+      '<circle cx="23.5" cy="23.5" r="22" fill="none" stroke-width="3" class="sarde-scroll-progress-track"/>' +
+      '<circle cx="23.5" cy="23.5" r="22" fill="none" stroke-width="3" stroke-linecap="round" class="sarde-scroll-progress-circle" style="transform:rotate(-90deg);transform-origin:center;"/>' +
       '</svg>'
     : '';
 
@@ -35,22 +35,22 @@ document.body.appendChild(btn);
 let tooltip = null;
 if (SHOW_TOOLTIP) {
     tooltip = document.createElement('div');
-    tooltip.className = 'scroll-to-top-tooltip';
+    tooltip.className = 'sarde-scroll-to-top-tooltip';
     tooltip.id = 'scroll-to-top-tooltip';
     tooltip.textContent = 'Scroll to top';
     const arrow = document.createElement('div');
-    arrow.className = 'scroll-to-top-tooltip-arrow';
+    arrow.className = 'sarde-scroll-to-top-tooltip-arrow';
     tooltip.appendChild(arrow);
     btn.appendChild(tooltip);
     btn.setAttribute('aria-describedby', 'scroll-to-top-tooltip');
 }
 
 function showTooltip() {
-    if (tooltip) tooltip.classList.add('is-visible');
+    if (tooltip) tooltip.classList.add('visible');
 }
 
 function hideTooltip() {
-    if (tooltip) tooltip.classList.remove('is-visible');
+    if (tooltip) tooltip.classList.remove('visible');
 }
 
 function doScrollToTop() {
@@ -90,9 +90,9 @@ function onScroll() {
 
     const thresholdVal = THRESHOLD >= 10 && THRESHOLD <= 99 ? THRESHOLD : 30;
     if (scrollPct > thresholdVal / 100) {
-        btn.classList.add('is-visible');
+        btn.classList.add('visible');
     } else {
-        btn.classList.remove('is-visible');
+        btn.classList.remove('visible');
     }
 }
 
@@ -116,17 +116,17 @@ btn.addEventListener('mousedown', function () { isKeyboard = false; });
 btn.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
         doScrollToTop();
-        btn.classList.remove('is-keyboard-focus');
+        btn.classList.remove('keyboard-focus');
     }
 });
 
 btn.addEventListener('focus', function () {
-    if (isKeyboard) { showTooltip(); btn.classList.add('is-keyboard-focus'); }
+    if (isKeyboard) { showTooltip(); btn.classList.add('keyboard-focus'); }
 });
 
 btn.addEventListener('blur', function () {
     hideTooltip();
-    btn.classList.remove('is-keyboard-focus');
+    btn.classList.remove('keyboard-focus');
 });
 
 // Touch handlers

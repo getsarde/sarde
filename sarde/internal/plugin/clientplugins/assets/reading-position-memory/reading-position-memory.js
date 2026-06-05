@@ -63,7 +63,7 @@ function dismissToast() {
         toastTimeout = null;
     }
     if (activeToast) {
-        activeToast.classList.remove('rpm-toast--visible');
+        activeToast.classList.remove('is-visible');
         const toast = activeToast;
         setTimeout(() => {
             if (toast.parentNode) toast.parentNode.removeChild(toast);
@@ -76,18 +76,18 @@ function showToast(scrollY, percent) {
     dismissToast();
 
     const toast = document.createElement('div');
-    toast.className = 'rpm-toast rpm-toast--' + config.toastPosition;
+    toast.className = 'sarde-rpm-toast sarde-rpm-toast-' + config.toastPosition;
     toast.setAttribute('role', 'status');
 
     const message = document.createElement('span');
-    message.className = 'rpm-toast__message';
+    message.className = 'sarde-rpm-toast-message';
     message.textContent = 'Continue where you left off? (' + percent + '%)';
 
     const actions = document.createElement('span');
-    actions.className = 'rpm-toast__actions';
+    actions.className = 'sarde-rpm-toast-actions';
 
     const jumpBtn = document.createElement('button');
-    jumpBtn.className = 'rpm-toast__btn rpm-toast__btn--jump';
+    jumpBtn.className = 'sarde-rpm-toast-btn sarde-rpm-toast-btn-jump';
     jumpBtn.textContent = 'Jump';
     jumpBtn.setAttribute('aria-label', 'Jump to saved position');
     jumpBtn.addEventListener('click', () => {
@@ -96,7 +96,7 @@ function showToast(scrollY, percent) {
     });
 
     const dismissBtn = document.createElement('button');
-    dismissBtn.className = 'rpm-toast__btn rpm-toast__btn--dismiss';
+    dismissBtn.className = 'sarde-rpm-toast-btn sarde-rpm-toast-btn-dismiss';
     dismissBtn.textContent = '×';
     dismissBtn.setAttribute('aria-label', 'Dismiss');
     dismissBtn.addEventListener('click', dismissToast);
@@ -111,7 +111,7 @@ function showToast(scrollY, percent) {
 
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-            toast.classList.add('rpm-toast--visible');
+            toast.classList.add('is-visible');
         });
     });
 

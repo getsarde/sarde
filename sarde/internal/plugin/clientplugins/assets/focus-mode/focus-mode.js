@@ -42,15 +42,15 @@ function save(enabled) {
 
 function applyFocusMode(enabled) {
     if (enabled) {
-        document.body.classList.add('is-focus-mode');
+        document.body.classList.add('focus-mode');
     } else {
-        document.body.classList.remove('is-focus-mode');
+        document.body.classList.remove('focus-mode');
     }
     updateTooltip(enabled);
 }
 
 function toggle() {
-    const next = !document.body.classList.contains('is-focus-mode');
+    const next = !document.body.classList.contains('focus-mode');
     applyFocusMode(next);
     save(next);
 }
@@ -62,10 +62,10 @@ let tooltip = null;
 let isKeyboard = false;
 
 // Expand icon (enter focus mode) — compress arrows pointing inward
-const ICON_ENTER = '<svg class="icon-enter" viewBox="0 0 24 24"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+const ICON_ENTER = '<svg class="sarde-icon-enter" viewBox="0 0 24 24"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
 
 // Exit icon (leave focus mode) — expand arrows pointing outward
-const ICON_EXIT = '<svg class="icon-exit" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+const ICON_EXIT = '<svg class="sarde-icon-exit" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
 
 function updateTooltip(enabled) {
     if (tooltip) {
@@ -78,11 +78,11 @@ function updateTooltip(enabled) {
 }
 
 function showTooltip() {
-    if (tooltip) tooltip.classList.add('is-visible');
+    if (tooltip) tooltip.classList.add('visible');
 }
 
 function hideTooltip() {
-    if (tooltip) tooltip.classList.remove('is-visible');
+    if (tooltip) tooltip.classList.remove('visible');
 }
 
 function createButton() {
@@ -90,7 +90,7 @@ function createButton() {
     if (document.querySelector('.sarde-focus-mode-btn')) return;
 
     btn = document.createElement('button');
-    btn.className = 'focus-mode-btn pos-' + config.buttonPosition;
+    btn.className = 'sarde-focus-mode-btn pos-' + config.buttonPosition;
     btn.setAttribute('aria-label', 'Enter focus mode');
     btn.setAttribute('aria-pressed', 'false');
     btn.setAttribute('role', 'button');
@@ -104,7 +104,7 @@ function createButton() {
     tooltip.textContent = 'Focus mode';
 
     const arrow = document.createElement('div');
-    arrow.className = 'focus-mode-tooltip-arrow';
+    arrow.className = 'sarde-focus-mode-tooltip-arrow';
     tooltip.appendChild(arrow);
 
     btn.appendChild(tooltip);
@@ -115,7 +115,7 @@ function createButton() {
     // Show button after a short delay (matches scroll-to-top pattern)
     requestAnimationFrame(function () {
         requestAnimationFrame(function () {
-            if (btn) btn.classList.add('is-visible');
+            if (btn) btn.classList.add('visible');
         });
     });
 
@@ -133,20 +133,20 @@ function createButton() {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             toggle();
-            btn.classList.remove('is-keyboard-focus');
+            btn.classList.remove('keyboard-focus');
         }
     });
 
     btn.addEventListener('focus', function () {
         if (isKeyboard) {
             showTooltip();
-            if (btn) btn.classList.add('is-keyboard-focus');
+            if (btn) btn.classList.add('keyboard-focus');
         }
     });
 
     btn.addEventListener('blur', function () {
         hideTooltip();
-        if (btn) btn.classList.remove('is-keyboard-focus');
+        if (btn) btn.classList.remove('keyboard-focus');
     });
 
     btn.addEventListener('mousedown', function () {

@@ -9,8 +9,8 @@ import (
 	"github.com/yuin/goldmark/text"
 )
 
-// :::details[Summary text]  or  :::details[Summary text] open  or  :::details{open}[Summary text]  or  :::details
-var openingRegex = regexp.MustCompile(`^:{3,}\s*details(?:\{open\})?(?:\[([^\]]*)\])?\s*(open)?\s*$`)
+// :::details[Summary text]  or  :::details[Summary text]{open}  or  :::details{open}[Summary text]  or  :::details
+var openingRegex = regexp.MustCompile(`^:{3,}\s*details(?:\{open\})?(?:\[([^\]]*)\])?(?:\{open\})?\s*(open)?\s*$`)
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
 var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 

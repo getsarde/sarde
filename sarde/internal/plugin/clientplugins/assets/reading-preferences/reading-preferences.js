@@ -108,9 +108,9 @@ function resetPrefs() {
         if (wasVisible) {
             createPanel();
             panelOpen = true;
-            if (btn) btn.classList.add('is-panel-open');
+            if (btn) btn.classList.add('panel-open');
             panel.offsetHeight;
-            panel.classList.add('sarde-reading-prefs-panel--visible');
+            panel.classList.add('is-visible');
         }
     }
 }
@@ -120,14 +120,14 @@ function togglePanel() { panelOpen ? closePanel() : openPanel(); }
 function openPanel() {
     if (!panel) createPanel();
     panelOpen = true;
-    if (btn) btn.classList.add('is-panel-open');
-    if (panel) { panel.offsetHeight; panel.classList.add('sarde-reading-prefs-panel--visible'); }
+    if (btn) btn.classList.add('panel-open');
+    if (panel) { panel.offsetHeight; panel.classList.add('is-visible'); }
 }
 
 function closePanel() {
     panelOpen = false;
-    if (btn) btn.classList.remove('is-panel-open');
-    if (panel) panel.classList.remove('sarde-reading-prefs-panel--visible');
+    if (btn) btn.classList.remove('panel-open');
+    if (panel) panel.classList.remove('is-visible');
 }
 
 function formatValue(val, unit) {
@@ -182,13 +182,13 @@ function createButtonGroup(label, options, activeValue, onChange) {
     btnGroup.className = 'sarde-reading-prefs-btngroup';
     for (const key of Object.keys(options)) {
         const item = document.createElement('button');
-        item.className = 'sarde-reading-prefs-btngroup__item';
-        if (key === activeValue) item.classList.add('is-active');
+        item.className = 'sarde-reading-prefs-btngroup-item';
+        if (key === activeValue) item.classList.add('active');
         item.textContent = options[key];
         item.setAttribute('aria-label', options[key]);
         item.addEventListener('click', () => {
-            for (const s of btnGroup.querySelectorAll('.sarde-reading-prefs-btngroup-item')) s.classList.remove('is-active');
-            item.classList.add('is-active');
+            for (const s of btnGroup.querySelectorAll('.sarde-reading-prefs-btngroup-item')) s.classList.remove('active');
+            item.classList.add('active');
             onChange(key);
         });
         btnGroup.appendChild(item);
@@ -279,7 +279,7 @@ function createButton() {
 
     document.body.appendChild(btn);
     requestAnimationFrame(() => {
-        requestAnimationFrame(() => { if (btn) btn.classList.add('is-visible'); });
+        requestAnimationFrame(() => { if (btn) btn.classList.add('visible'); });
     });
 
     btn.addEventListener('click', (e) => {
@@ -290,12 +290,12 @@ function createButton() {
     });
     btn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        if (btn) btn.classList.add('is-active');
+        if (btn) btn.classList.add('active');
     }, { passive: false });
     btn.addEventListener('touchend', (e) => {
         e.preventDefault();
         togglePanel();
-        if (btn) btn.classList.remove('is-active');
+        if (btn) btn.classList.remove('active');
     }, { passive: false });
 }
 
