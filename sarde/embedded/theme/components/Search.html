@@ -7,13 +7,26 @@
 <div id="sarde-search-modal" class="sarde-search-modal" role="dialog" aria-modal="true" aria-label="{{ t "nav.search" }}" data-search-version="{{ .Version }}" data-search-lang="{{ .Lang }}" hidden>
   <div class="sarde-search-modal-backdrop" data-search-close></div>
   <div class="sarde-search-modal-panel">
-    <input id="sarde-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="{{ t "nav.search" }}" aria-label="{{ t "nav.search" }}">
-    <ul id="sarde-search-results" role="listbox" aria-label="{{ t "search.results" }}"></ul>
-    <div id="sarde-search-empty" class="sarde-search-empty" hidden>{{ t "search.no_results" }}</div>
+    <div class="sarde-search-input-row">
+      <span class="sarde-search-input-icon">{{ icon "search" "" "width" "18" "height" "18" }}</span>
+      <input id="sarde-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="{{ t "nav.search" }}" aria-label="{{ t "nav.search" }}">
+      <button type="button" class="sarde-search-close" data-search-close aria-label="Close">{{ icon "x" "" "width" "18" "height" "18" }}</button>
+    </div>
+    <div id="sarde-search-filters" class="sarde-search-filters" hidden></div>
+    <div id="sarde-search-initial" class="sarde-search-initial"></div>
+    <ul id="sarde-search-results" role="listbox" aria-label="{{ t "search.results" }}" hidden></ul>
+    <div id="sarde-search-empty" class="sarde-search-empty" hidden>
+      {{ icon "search-x" "sarde-search-empty-icon" "width" "32" "height" "32" }}
+      <p class="sarde-search-empty-title">No results found</p>
+      <ul class="sarde-search-empty-tips" id="sarde-search-empty-tips">
+        <li>Check for typos in your search term</li>
+        <li>Try using different or more general keywords</li>
+      </ul>
+    </div>
     <div class="sarde-search-footer" aria-hidden="true">
-      <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> Navigate</span>
-      <span><kbd>&crarr;</kbd> Open</span>
-      <span><kbd>Esc</kbd> Close</span>
+      <span><kbd>{{ icon "arrow-up" "" "width" "12" "height" "12" }}</kbd><kbd>{{ icon "arrow-down" "" "width" "12" "height" "12" }}</kbd> to navigate</span>
+      <span><kbd>Enter</kbd> to select</span>
+      <span><kbd>Esc</kbd> to close</span>
     </div>
   </div>
 </div>
