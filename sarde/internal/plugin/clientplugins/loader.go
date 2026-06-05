@@ -12,7 +12,9 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
+	"os"
 	"sort"
+	"sync"
 
 	"github.com/evanw/esbuild/pkg/api"
 	"gopkg.in/yaml.v3"
@@ -50,6 +52,7 @@ var (
 	manifest       Manifest
 	pluginDefaults map[string]map[string]any
 
+	bundleMu      sync.RWMutex
 	bundleCSS     []byte
 	bundleJS      []byte
 	bundleCSSURL  string
@@ -62,11 +65,21 @@ func init() {
 	if err := yaml.Unmarshal(manifestData, &manifest); err != nil {
 		panic("clientplugins: bad manifest.yaml: " + err.Error())
 	}
-	precomputeBundles()
+	computeBundles(assetsFS, "assets/")
 	precomputeDefaults()
 }
 
-func precomputeBundles() {
+// RecomputeFromDir reloads and rebundles all plugin client assets from the
+// given filesystem directory. For use by 'sarde dev --theme-dev' only.
+func RecomputeFromDir(dir string) error {
+	if _, err := os.Stat(dir); err != nil {
+		return fmt.Errorf("clientplugins: cannot access asset dir %s: %w", dir, err)
+	}
+	computeBundles(os.DirFS(dir), "")
+	return nil
+}
+
+func computeBundles(fsys fs.FS, pathPrefix string) {
 	slugs := sortedSlugs()
 
 	var cssBuilder, jsBuilder bytes.Buffer
@@ -74,7 +87,7 @@ func precomputeBundles() {
 	for _, slug := range slugs {
 		entry := manifest.Plugins[slug]
 		if entry.Assets.CSS != "" {
-			data, err := fs.ReadFile(assetsFS, "assets/"+entry.Assets.CSS)
+			data, err := fs.ReadFile(fsys, pathPrefix+entry.Assets.CSS)
 			if err == nil && len(data) > 0 {
 				cssBuilder.WriteString("/* " + slug + " */\n")
 				cssBuilder.Write(data)
@@ -82,7 +95,7 @@ func precomputeBundles() {
 			}
 		}
 		if entry.Assets.JS != "" {
-			data, err := fs.ReadFile(assetsFS, "assets/"+entry.Assets.JS)
+			data, err := fs.ReadFile(fsys, pathPrefix+entry.Assets.JS)
 			if err == nil && len(data) > 0 {
 				jsBuilder.WriteString("/* " + slug + " */\n;(function(){\n")
 				jsBuilder.Write(data)
@@ -90,6 +103,16 @@ func precomputeBundles() {
 			}
 		}
 	}
+
+	bundleMu.Lock()
+	defer bundleMu.Unlock()
+
+	bundleCSS = nil
+	bundleJS = nil
+	bundleCSSURL = ""
+	bundleJSURL = ""
+	bundleCSSPath = ""
+	bundleJSPath = ""
 
 	if rawCSS := cssBuilder.Bytes(); len(rawCSS) > 0 {
 		bundleCSS = minifyCSS(rawCSS)
@@ -210,11 +233,16 @@ func RegisterAll(mgr *plugin.Manager, enabled []string, configs map[string]map[s
 			BeforeRender: func(ctx *plugin.BeforeRenderContext) error {
 				rd := ctx.RouteData
 
-				if bundleCSSURL != "" {
-					rd.Styles = appendUnique(rd.Styles, bundleCSSURL)
+				bundleMu.RLock()
+				cssURL := bundleCSSURL
+				jsURL := bundleJSURL
+				bundleMu.RUnlock()
+
+				if cssURL != "" {
+					rd.Styles = appendUnique(rd.Styles, cssURL)
 				}
-				if bundleJSURL != "" {
-					rd.ModuleScripts = appendUnique(rd.ModuleScripts, bundleJSURL)
+				if jsURL != "" {
+					rd.ModuleScripts = appendUnique(rd.ModuleScripts, jsURL)
 				}
 
 				for _, pc := range activePlugins {
@@ -225,13 +253,18 @@ func RegisterAll(mgr *plugin.Manager, enabled []string, configs map[string]map[s
 				return nil
 			},
 			BuildDone: func(ctx *plugin.BuildDoneContext) error {
-				if len(bundleCSS) > 0 {
-					if err := ctx.WriteFile(bundleCSSPath, bundleCSS); err != nil {
+				bundleMu.RLock()
+				css, cssPath := bundleCSS, bundleCSSPath
+				js, jsPath := bundleJS, bundleJSPath
+				bundleMu.RUnlock()
+
+				if len(css) > 0 {
+					if err := ctx.WriteFile(cssPath, css); err != nil {
 						return err
 					}
 				}
-				if len(bundleJS) > 0 {
-					if err := ctx.WriteFile(bundleJSPath, bundleJS); err != nil {
+				if len(js) > 0 {
+					if err := ctx.WriteFile(jsPath, js); err != nil {
 						return err
 					}
 				}

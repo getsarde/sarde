@@ -41,11 +41,12 @@ import (
 
 // BuildOptions provides the inputs for creating a SiteBuilder.
 type BuildOptions struct {
-	ProjectDir  string
-	Config      *config.SiteConfig
-	ThemeConfig *engine.ThemeConfig
-	EmbeddedFS  fs.FS
-	DevMode     bool // Skip heavy optimizations during serve (image processing, minification, etc.)
+	ProjectDir      string
+	Config          *config.SiteConfig
+	ThemeConfig     *engine.ThemeConfig
+	EmbeddedFS      fs.FS
+	DevMode         bool   // Skip heavy optimizations during serve (image processing, minification, etc.)
+	PluginAssetsDir string // If set, recompute plugin client bundles from disk (theme-dev mode)
 }
 
 // SiteBuilder orchestrates the full six-phase build pipeline.
@@ -94,6 +95,12 @@ type SiteBuilder struct {
 
 // NewSiteBuilder creates a SiteBuilder with all dependencies initialized.
 func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
+	if opts.PluginAssetsDir != "" {
+		if err := clientplugins.RecomputeFromDir(opts.PluginAssetsDir); err != nil {
+			devlog.Warn("build", "Plugin live-reload failed: %v", err)
+		}
+	}
+
 	mgr := plugin.NewManager()
 	mgr.RegisterBuiltins(opts.Config.Plugins.Enabled, opts.Config.Plugins.Config)
 	registerSubpackagePlugins(mgr, opts.Config.Plugins.Enabled, opts.Config.Plugins.Config)

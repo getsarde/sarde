@@ -2,7 +2,9 @@ package embedded
 
 import (
 	"embed"
+	"fmt"
 	"io/fs"
+	"os"
 )
 
 // DefaultsYAML contains the embedded default site configuration.
@@ -35,5 +37,22 @@ func I18nFS() fs.FS {
 func ThemeFS() fs.FS {
 	sub, _ := fs.Sub(themeFS, "theme")
 	return sub
+}
+
+// ThemeDirFS returns a live disk-backed fs.FS rooted at the given directory.
+// Used by 'sarde dev --theme-dev' for live-reload of theme assets during
+// framework development. In production, ThemeFS() is used instead.
+func ThemeDirFS(dir string) (fs.FS, error) {
+	info, err := os.Stat(dir)
+	if err != nil {
+		return nil, fmt.Errorf("theme dev dir not accessible: %w", err)
+	}
+	if !info.IsDir() {
+		return nil, fmt.Errorf("theme dev path is not a directory: %s", dir)
+	}
+	if _, err := os.Stat(dir + "/css"); err != nil {
+		return nil, fmt.Errorf("theme dev dir missing css/ subdirectory — did you point to embedded/theme/? path: %s", dir)
+	}
+	return os.DirFS(dir), nil
 }
 

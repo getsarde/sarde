@@ -30,6 +30,7 @@ func init() {
 	devCmd.Flags().String("base-path", "", "Override URL base path (e.g. /docs/)")
 	devCmd.Flags().String("content", "", "Override content directory path")
 	devCmd.Flags().Bool("watch-stdin", false, "Exit when stdin closes (sidecar/child-process mode)")
+	devCmd.Flags().String("theme-dev", "", "Path to embedded/theme/ source dir for live-reload (framework dev only)")
 	rootCmd.AddCommand(devCmd)
 }
 
@@ -84,6 +85,38 @@ func runServe(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Theme dev mode: read theme assets from disk instead of go:embed.
+	themeDevDir, _ := cmd.Flags().GetString("theme-dev")
+	if themeDevDir == "" {
+		themeDevDir = os.Getenv("SARDE_THEME_DEV")
+	}
+
+	var themeFS = embedded.ThemeFS()
+	var pluginAssetsDir string
+	var themeDevWatchDirs []string
+
+	if themeDevDir != "" {
+		if !filepath.IsAbs(themeDevDir) {
+			themeDevDir, _ = filepath.Abs(themeDevDir)
+		}
+		liveFS, fsErr := embedded.ThemeDirFS(themeDevDir)
+		if fsErr != nil {
+			return fmt.Errorf("--theme-dev: %w", fsErr)
+		}
+		themeFS = liveFS
+		themeDevWatchDirs = append(themeDevWatchDirs, themeDevDir)
+		devlog.Log("sarde", "Theme dev mode: %s", themeDevDir)
+
+		// Infer plugin assets dir from theme dir (embedded/theme → repo root → internal/plugin/clientplugins/assets).
+		repoRoot := filepath.Dir(filepath.Dir(themeDevDir))
+		candidate := filepath.Join(repoRoot, "internal", "plugin", "clientplugins", "assets")
+		if _, statErr := os.Stat(candidate); statErr == nil {
+			pluginAssetsDir = candidate
+			themeDevWatchDirs = append(themeDevWatchDirs, pluginAssetsDir)
+			devlog.Log("sarde", "Plugin dev mode: %s", pluginAssetsDir)
+		}
+	}
+
 	// Builder factory: creates a fresh SiteBuilder on each rebuild.
 	builderFactory := func() *build.SiteBuilder {
 		// Re-resolve config to pick up sarde.yaml changes.
@@ -114,11 +147,12 @@ func runServe(cmd *cobra.Command, args []string) error {
 		}
 
 		return build.NewSiteBuilder(build.BuildOptions{
-			ProjectDir:  projectDir,
-			Config:      latestCfg,
-			ThemeConfig: latestThemeCfg,
-			EmbeddedFS:  embedded.ThemeFS(),
-			DevMode:     true,
+			ProjectDir:      projectDir,
+			Config:          latestCfg,
+			ThemeConfig:     latestThemeCfg,
+			EmbeddedFS:      themeFS,
+			DevMode:         true,
+			PluginAssetsDir: pluginAssetsDir,
 		})
 	}
 
@@ -155,6 +189,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 		Version:        "v" + Version,
 		BasePath:       cfg.Build.BasePath,
 		BuilderFactory: builderFactory,
+		ThemeDevDirs:   themeDevWatchDirs,
 	})
 
 	// Graceful shutdown on SIGINT/SIGTERM.

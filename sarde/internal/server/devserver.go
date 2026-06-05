@@ -30,6 +30,7 @@ type Options struct {
 	Version        string
 	BasePath       string // normalized: "/docs/" or "/"
 	BuilderFactory func() *build.SiteBuilder
+	ThemeDevDirs   []string // external dirs to watch as ChangeTemplate (for --theme-dev)
 }
 
 // DevServer runs the development HTTP server with live reload.
@@ -74,6 +75,9 @@ func New(opts Options) *DevServer {
 	}
 
 	ds.watcher = NewWatcher(opts.ProjectDir, opts.OutputDir, 50*time.Millisecond, ds.onFileChange)
+	for _, dir := range opts.ThemeDevDirs {
+		ds.watcher.AddExternalDir(dir, ChangeTemplate)
+	}
 	return ds
 }
 
