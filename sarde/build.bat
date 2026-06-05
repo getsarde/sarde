@@ -15,6 +15,7 @@ if "%1"=="test"    goto test
 if "%1"=="bench"   goto bench
 if "%1"=="vet"     goto vet
 if "%1"=="clean"   goto clean
+if "%1"=="vendor"  goto vendor
 echo Unknown target: %1
 exit /b 1
 
@@ -41,6 +42,10 @@ goto end
 
 :vet
 go vet .\...
+goto end
+
+:vendor
+go run .\cmd\vendor-shiki
 goto end
 
 :clean

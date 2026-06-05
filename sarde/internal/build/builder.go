@@ -84,6 +84,9 @@ type SiteBuilder struct {
 	themeJSURL         string
 	themeJSContent     []byte
 	themeJSFilename    string
+	shikiJSURL         string
+	shikiJSContent     []byte
+	shikiJSFilename    string
 	tokenCSSURL        string
 	tokenCSSContent    string
 	tokenCSSFilename   string
@@ -710,6 +713,23 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		b.themeJSFilename = jsFilename
 	}
 
+	// Bundle Shiki enhancement JS if enabled.
+	if shikiCfg := b.config.Markdown.Codeblocks.Shiki; shikiCfg != nil && shikiCfg.Enabled {
+		codeLangs := collectCodeLanguages(allPages)
+		if len(codeLangs) > 0 {
+			vendorFS := embedded.VendorFS()
+			shikiContent, shikiFilename, err := BundleShikiJS(vendorFS, codeLangs, shikiCfg.LightTheme, shikiCfg.DarkTheme, b.devMode)
+			if err != nil {
+				return nil, fmt.Errorf("bundling Shiki JS: %w", err)
+			}
+			if shikiFilename != "" {
+				b.shikiJSURL = "/assets/js/" + shikiFilename
+				b.shikiJSContent = shikiContent
+				b.shikiJSFilename = shikiFilename
+			}
+		}
+	}
+
 	// Externalize theme token CSS (design tokens) as a fingerprinted file.
 	if b.themeConfig != nil {
 		tokenCSS := theme.GenerateCSS(b.themeConfig.Tokens, b.themeConfig.DarkTokens) +
@@ -1098,6 +1118,20 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		}
 		if err := writeFile(destPath, b.themeJSContent); err != nil {
 			return nil, fmt.Errorf("writing bundled theme JS: %w", err)
+		}
+	}
+
+	// Write the bundled Shiki enhancement JS file.
+	if b.shikiJSFilename != "" {
+		destPath, err := safeOutputPath(outputDir, "assets/js/"+b.shikiJSFilename)
+		if err != nil {
+			return nil, err
+		}
+		if tracker != nil {
+			tracker.Track(destPath)
+		}
+		if err := writeFile(destPath, b.shikiJSContent); err != nil {
+			return nil, fmt.Errorf("writing Shiki enhancement JS: %w", err)
 		}
 	}
 

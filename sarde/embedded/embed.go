@@ -27,6 +27,11 @@ var i18nFS embed.FS
 //go:embed all:theme
 var themeFS embed.FS
 
+// vendorFS contains vendored third-party ESM packages (e.g. Shiki).
+//
+//go:embed all:vendor
+var vendorFS embed.FS
+
 // I18nFS returns the embedded i18n filesystem rooted at "i18n/".
 func I18nFS() fs.FS {
 	sub, _ := fs.Sub(i18nFS, "i18n")
@@ -36,6 +41,12 @@ func I18nFS() fs.FS {
 // ThemeFS returns the embedded theme filesystem rooted at "theme/".
 func ThemeFS() fs.FS {
 	sub, _ := fs.Sub(themeFS, "theme")
+	return sub
+}
+
+// VendorFS returns the embedded vendor filesystem rooted at "vendor/".
+func VendorFS() fs.FS {
+	sub, _ := fs.Sub(vendorFS, "vendor")
 	return sub
 }
 

@@ -62,6 +62,11 @@ markdown:
   triple_colon_callouts: true
   typographer: true
   unsafe: false
+  codeblocks:
+    shiki:
+      enabled: true
+      light_theme: "github-light"
+      dark_theme: "github-dark"
 images:
   formats:
   - webp

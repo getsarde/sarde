@@ -98,7 +98,7 @@ presets:
       text-muted: "oklch(0.705 0.015 286)"
       border: "oklch(0.920 0.004 286)"
       font-sans: "system-ui, -apple-system, sans-serif"
-      font-mono: "ui-monospace, 'SF Mono', monospace"
+      font-mono: "'JetBrains Mono', ui-monospace, 'SF Mono', monospace"
       radius: "0.375rem"
     dark_tokens:
       accent: "oklch(0.985 0.002 286)"
@@ -118,7 +118,7 @@ presets:
       text-muted: "oklch(0.504 0.012 256)"
       border: "oklch(0.880 0.007 256)"
       font-sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
-      font-mono: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace"
+      font-mono: "'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace"
       radius: "0.375rem"
     dark_tokens:
       bg: "oklch(0.157 0.016 256)"
@@ -137,7 +137,7 @@ presets:
       text-muted: "oklch(0.429 0.012 60)"
       border: "oklch(0.869 0.006 70)"
       font-sans: "'Merriweather', 'Georgia', serif"
-      font-mono: "'Source Code Pro', ui-monospace, monospace"
+      font-mono: "'JetBrains Mono', 'Source Code Pro', ui-monospace, monospace"
       radius: "0.25rem"
     dark_tokens:
       bg: "oklch(0.216 0.009 56)"

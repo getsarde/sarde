@@ -101,6 +101,9 @@ func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext)
 	if b.themeJSURL != "" {
 		rd.Scripts = append([]string{b.themeJSURL}, rd.Scripts...)
 	}
+	if b.shikiJSURL != "" && page.HasCodeBlocks {
+		rd.ModuleScripts = append(rd.ModuleScripts, b.shikiJSURL)
+	}
 	if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, siteCtx, b.urlResolver); err != nil {
 		return RenderedPage{}, err
 	}

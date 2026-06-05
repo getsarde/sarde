@@ -278,6 +278,21 @@ func mergeMarkdown(base, over *MarkdownSettings) {
 	mergeStr(&base.Codeblocks.LightTheme, over.Codeblocks.LightTheme)
 	mergeStr(&base.Codeblocks.DarkTheme, over.Codeblocks.DarkTheme)
 	mergeStr(&base.Codeblocks.Theme, over.Codeblocks.Theme)
+	mergeShiki(&base.Codeblocks.Shiki, over.Codeblocks.Shiki)
+}
+
+func mergeShiki(base **ShikiSettings, over *ShikiSettings) {
+	if over == nil {
+		return
+	}
+	if *base == nil {
+		*base = &ShikiSettings{}
+	}
+	if over.Enabled {
+		(*base).Enabled = true
+	}
+	mergeStr(&(*base).LightTheme, over.LightTheme)
+	mergeStr(&(*base).DarkTheme, over.DarkTheme)
 }
 
 func mergePrefetch(base, over *PrefetchSettings) {

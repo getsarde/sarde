@@ -13,12 +13,13 @@ import (
 
 // Renderer renders fenced code blocks with Chroma syntax highlighting.
 type Renderer struct {
-	HasCodeBlocks bool // set true when at least one fenced code block is rendered
+	HasCodeBlocks bool
+	Languages     map[string]bool
 }
 
 // NewRenderer returns a new code block renderer.
 func NewRenderer() *Renderer {
-	return &Renderer{}
+	return &Renderer{Languages: make(map[string]bool)}
 }
 
 // RegisterFuncs registers the fenced code block renderer.
@@ -59,6 +60,9 @@ func (r *Renderer) renderFencedCodeBlock(w util.BufWriter, source []byte, node a
 	r.HasCodeBlocks = true
 
 	info := ParseInfoString(infoStr)
+	if info.Language != "" {
+		r.Languages[info.Language] = true
+	}
 
 	// Get Chroma lexer
 	lexer := getLexer(info.Language)

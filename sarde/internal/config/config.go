@@ -272,10 +272,17 @@ type MarkdownTOCSettings struct {
 }
 
 type CodeblocksSettings struct {
-	Style      string `yaml:"style"`
+	Style      string         `yaml:"style"`
+	LightTheme string         `yaml:"light_theme"`
+	DarkTheme  string         `yaml:"dark_theme"`
+	Theme      string         `yaml:"theme"`
+	Shiki      *ShikiSettings `yaml:"shiki"`
+}
+
+type ShikiSettings struct {
+	Enabled    bool   `yaml:"enabled"`
 	LightTheme string `yaml:"light_theme"`
 	DarkTheme  string `yaml:"dark_theme"`
-	Theme      string `yaml:"theme"`
 }
 
 // ---------------------------------------------------------------------------

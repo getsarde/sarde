@@ -438,9 +438,7 @@
 	    font-size: 0.75rem;
 	    z-index: 10;
 	    opacity: 0;
-	    transition: all var(--sd-transition-fast) var(--sd-ease-default);
-	    backdrop-filter: blur(8px);
-	    -webkit-backdrop-filter: blur(8px);
+	    transition: opacity var(--sd-transition-fast) var(--sd-ease-default);
 	}
 
 	.sarde-code-block:hover .sarde-copy-btn {
