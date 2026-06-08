@@ -5,13 +5,13 @@
   {{ range .Sidebar.Root.Children }}
     {{ if .Children }}
     <li>
-      <details{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}>
+      <details{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}{{ if .HasActive }} class="has-active"{{ end }}>
         <summary><span>{{ .Label }}</span></summary>
         <ul>
         {{ range .Children }}
           {{ if .Children }}
           <li>
-            <details{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}>
+            <details{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}{{ if .HasActive }} class="has-active"{{ end }}>
               <summary><span>{{ .Label }}</span></summary>
               <ul>
               {{ range .Children }}

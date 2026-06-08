@@ -69,7 +69,7 @@
 	  --sd-bg: var(--sd-white);
 	  --sd-bg-surface: var(--sd-gray-1);
 	  --sd-bg-nav: var(--sd-bg);
-	  --sd-bg-sidebar: var(--sd-bg);
+	  --sd-bg-sidebar: var(--sd-gray-1);
 	  --sd-bg-footer: var(--sd-bg);
 	  --sd-bg-toc: transparent;
 	  --sd-bg-inline-code: var(--sd-gray-2);

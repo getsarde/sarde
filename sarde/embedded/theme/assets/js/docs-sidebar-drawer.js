@@ -39,7 +39,9 @@
 
     toggle.setAttribute('aria-expanded', 'false');
     sidebar.classList.remove('is-open');
-    sidebar.setAttribute('aria-hidden', 'true');
+    if (!mq.matches) {
+      sidebar.setAttribute('aria-hidden', 'true');
+    }
     document.body.classList.remove('sarde-sidebar-open');
 
     if (backdrop) {
@@ -100,11 +102,8 @@
 
   // Resize: reset when crossing to desktop
   function onBreakpoint(e) {
-    if (e.matches && isOpen) {
-      reset();
-    }
     if (e.matches) {
-      sidebar.removeAttribute('aria-hidden');
+      reset();
     } else if (!isOpen) {
       sidebar.setAttribute('aria-hidden', 'true');
     }

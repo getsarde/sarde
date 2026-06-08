@@ -213,7 +213,7 @@
 	    transform: none;
 	    transition: none;
 	    visibility: visible;
-	    border-inline-end: 1px solid var(--sd-hairline);
+	    border-inline-end: 1px solid var(--sd-border);
 	  }
 
 	  .sarde-sidebar-footer {
