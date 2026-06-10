@@ -43,6 +43,15 @@
 
   btn.addEventListener('click', toggle);
 
+  var sidebar = document.getElementById('sarde-sidebar');
+  if (sidebar) {
+    sidebar.addEventListener('click', function (e) {
+      if (isCollapsed() && !btn.contains(e.target)) {
+        expand();
+      }
+    });
+  }
+
   function onBreakpoint(e) {
     if (!e.matches) {
       document.documentElement.classList.remove(CLASS_COLLAPSED);
