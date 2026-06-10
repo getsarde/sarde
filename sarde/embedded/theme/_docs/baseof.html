@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ .Lang }}" dir="{{ .Dir }}">
 <head>
-  <script>(function(){var t=localStorage.getItem('sd-theme')||'system';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme:dark)').matches);if(d){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark'}})()</script>
+  <script>(function(){var t=localStorage.getItem('sd-theme')||'system';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme:dark)').matches);if(d){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark'}if(localStorage.getItem('sd-sidebar')==='collapsed'&&matchMedia('(min-width:1024px)').matches){document.documentElement.classList.add('sd-sidebar-collapsed')}})()</script>
   {{ component "Head" . }}
 </head>
 <body class="sarde-layout-{{ .Layout }}">
@@ -15,6 +15,11 @@
       {{ icon "x" "sarde-menu-icon-close" "width" "20" "height" "20" }}
     </button>
     <aside class="sarde-sidebar" id="sarde-sidebar">
+      <button class="sarde-sidebar-toggle" id="sarde-sidebar-toggle"
+              aria-expanded="true" aria-label="Collapse sidebar" type="button">
+        {{ icon "panel-left-close" "sarde-sidebar-toggle-collapse" "width" "16" "height" "16" }}
+        {{ icon "panel-left-open" "sarde-sidebar-toggle-expand" "width" "16" "height" "16" }}
+      </button>
       <div class="sarde-sidebar-content">
         {{ component "Sidebar" . }}
       </div>

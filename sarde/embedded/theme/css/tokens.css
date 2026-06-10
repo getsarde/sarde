@@ -134,6 +134,7 @@
 	  /* ── Layout ── */
 	  --sd-nav-height: 4rem;
 	  --sd-sidebar-width: 280px;
+  --sd-sidebar-collapsed-width: 40px;
 	  --sd-toc-width: 240px;
 	  --sd-content-width: 768px;
 
