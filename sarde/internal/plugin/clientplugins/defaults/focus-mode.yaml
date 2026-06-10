@@ -2,7 +2,7 @@ fields:
   enable_hotkey:
     type: toggle
     label: "Enable Hotkey"
-    hint: "Press F to toggle focus mode on/off"
+    hint: "Press Shift+F to toggle focus mode on/off"
     default: true
   show_button:
     type: toggle

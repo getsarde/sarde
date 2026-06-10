@@ -45,6 +45,38 @@ func TestFileHandler_CleanURL(t *testing.T) {
 	}
 }
 
+func TestFileHandler_NoStoreHeader(t *testing.T) {
+	// The dev server must mark all build output non-cacheable so stable-named
+	// assets (e.g. the non-fingerprinted sarde.js bundle) are never served
+	// stale from the browser's disk cache after a rebuild.
+	tmpDir := t.TempDir()
+	assetsDir := filepath.Join(tmpDir, "assets", "js")
+	os.MkdirAll(assetsDir, 0o755)
+	os.WriteFile(filepath.Join(assetsDir, "sarde.js"), []byte("console.log('x')"), 0o644)
+
+	ds := &DevServer{outputDir: tmpDir}
+	handler := ds.fileHandler()
+
+	cases := []struct {
+		name string
+		path string
+	}{
+		{"served asset", "/assets/js/sarde.js"},
+		{"missing file", "/does/not/exist.js"},
+	}
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest("GET", tt.path, nil)
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, req)
+
+			if got := w.Header().Get("Cache-Control"); got != "no-store" {
+				t.Errorf("Cache-Control = %q, want %q", got, "no-store")
+			}
+		})
+	}
+}
+
 func TestFileHandler_404Fallback(t *testing.T) {
 	tmpDir := t.TempDir()
 	os.WriteFile(filepath.Join(tmpDir, "404.html"), []byte("<html>not found</html>"), 0o644)

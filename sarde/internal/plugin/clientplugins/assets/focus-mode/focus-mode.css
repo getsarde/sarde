@@ -75,6 +75,22 @@ body.focus-mode .sarde-focus-mode-btn {
     border-color: var(--sd-border-accent, var(--sd-blue));
 }
 
+/* Active-state indicator: a contrasting status dot in the top corner of the
+   button (complements the enter/exit icon swap + aria-pressed). Uses a red
+   "on" color so it stands out against the blue button; override
+   --sd-focus-mode-indicator to retheme. */
+body.focus-mode .sarde-focus-mode-btn::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    inset-inline-end: -4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--sd-focus-mode-indicator, var(--sd-red, #dc2626));
+    border: 2px solid var(--sd-bg, #fff);
+}
+
 body.focus-mode .sarde-focus-mode-btn:hover {
     background-color: var(--sd-bg-accent, var(--sd-blue));
     color: var(--sd-text-invert, #fff);

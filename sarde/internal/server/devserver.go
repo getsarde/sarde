@@ -270,6 +270,12 @@ func devRequestLogger(next http.Handler) http.Handler {
 // fileHandler returns an HTTP handler that serves static files with clean URL support.
 func (ds *DevServer) fileHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Dev server: never let the browser cache build output. Embedded
+		// theme/plugin assets keep stable URLs across rebuilds (e.g. the
+		// non-fingerprinted sarde.js bundle), so without this a fixed asset
+		// can be served stale from disk cache and mask freshly-built changes.
+		w.Header().Set("Cache-Control", "no-store")
+
 		urlPath := r.URL.Path
 
 		// Try the exact file first.

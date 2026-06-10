@@ -13,6 +13,10 @@ const config = {
 
 const STORAGE_KEY = 'sarde_focus_mode';
 
+// Shortcut hint shown in the tooltip / aria-label (omitted when the hotkey is off).
+const HOTKEY_HINT = config.enableHotkey ? ' (⇧F)' : '';
+const HOTKEY_HINT_ARIA = config.enableHotkey ? ' (Shift+F)' : '';
+
 // Set the CSS custom property for animation speed
 document.documentElement.style.setProperty('--focus-mode-speed', config.animationSpeed + 'ms');
 
@@ -69,10 +73,10 @@ const ICON_EXIT = '<svg class="sarde-icon-exit" viewBox="0 0 24 24"><polyline po
 
 function updateTooltip(enabled) {
     if (tooltip) {
-        tooltip.firstChild.textContent = enabled ? 'Exit focus mode' : 'Focus mode';
+        tooltip.firstChild.textContent = (enabled ? 'Exit focus mode' : 'Focus mode') + HOTKEY_HINT;
     }
     if (btn) {
-        btn.setAttribute('aria-label', enabled ? 'Exit focus mode' : 'Enter focus mode');
+        btn.setAttribute('aria-label', (enabled ? 'Exit focus mode' : 'Enter focus mode') + HOTKEY_HINT_ARIA);
         btn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
     }
 }
@@ -91,7 +95,7 @@ function createButton() {
 
     btn = document.createElement('button');
     btn.className = 'sarde-focus-mode-btn pos-' + config.buttonPosition;
-    btn.setAttribute('aria-label', 'Enter focus mode');
+    btn.setAttribute('aria-label', 'Enter focus mode' + HOTKEY_HINT_ARIA);
     btn.setAttribute('aria-pressed', 'false');
     btn.setAttribute('role', 'button');
     btn.setAttribute('tabindex', '0');
@@ -101,7 +105,7 @@ function createButton() {
     tooltip = document.createElement('div');
     tooltip.className = 'sarde-focus-mode-tooltip';
     tooltip.id = 'sarde-focus-mode-tooltip';
-    tooltip.textContent = 'Focus mode';
+    tooltip.textContent = 'Focus mode' + HOTKEY_HINT;
 
     const arrow = document.createElement('div');
     arrow.className = 'sarde-focus-mode-tooltip-arrow';
@@ -180,7 +184,7 @@ function isTyping() {
 
 function onKeyDown(e) {
     if (!config.enableHotkey) return;
-    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
     if (isTyping()) return;
 
     // Track keyboard usage for focus styling
@@ -188,7 +192,10 @@ function onKeyDown(e) {
         isKeyboard = true;
     }
 
-    if (e.key === 'f' || e.key === 'F') {
+    // Require Shift+F so a stray single keypress can't silently toggle focus
+    // mode (which hides the sidebar and persists across reloads). With Shift
+    // held, e.key resolves to 'F'; accept 'f' too in case of Caps Lock.
+    if (e.shiftKey && (e.key === 'F' || e.key === 'f')) {
         e.preventDefault();
         toggle();
     }

@@ -5,6 +5,9 @@ docs/
 coderoo-go/content/
 /content/
 
+*.png
+*.txt
+
 # Go binaries
 *.exe
 *.exe~
@@ -48,4 +51,3 @@ desktop/dist/
 .cache/
 dist1
 
-*.png
