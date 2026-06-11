@@ -1,12 +1,20 @@
 package server
 
 import (
+	"errors"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/frostybee/sarde/embedded"
+	"github.com/frostybee/sarde/internal/build"
+	"github.com/frostybee/sarde/internal/config"
+	"github.com/frostybee/sarde/internal/engine"
+	"github.com/frostybee/sarde/internal/theme"
 )
 
 func TestFileHandler_CleanURL(t *testing.T) {
@@ -166,5 +174,104 @@ func TestInjectScript_SkipsWebSocket(t *testing.T) {
 
 	if strings.Contains(w.Body.String(), "<script>") {
 		t.Error("script should not be injected for /ws")
+	}
+}
+
+// --- lifecycle tests (Stop nil-guard, Ready port reporting) ---
+
+// testBuilderFactory returns a BuilderFactory over a minimal real project so
+// the dev server's initial build can run during lifecycle tests.
+func testBuilderFactory(t *testing.T) (func() *build.SiteBuilder, string) {
+	t.Helper()
+	dir := t.TempDir()
+	os.MkdirAll(filepath.Join(dir, "content"), 0o755)
+	os.WriteFile(filepath.Join(dir, "sarde.yaml"), []byte("site:\n  title: \"Lifecycle Test\"\n"), 0o644)
+	os.WriteFile(filepath.Join(dir, "content", "_index.md"), []byte("---\ntitle: Home\n---\n# Home\n"), 0o644)
+
+	thm, _ := theme.LoadFromFS(embedded.ThemeFS(), ".")
+	light := theme.ResolveTokens(theme.DefaultTokens(), thm, "", nil)
+	light = theme.DeriveTokens(light)
+	dark := theme.ResolveDarkTokens(theme.DefaultDarkTokens(), thm, "", nil)
+	themeCfg := &engine.ThemeConfig{
+		Name:        "default",
+		Tokens:      light,
+		DarkTokens:  dark,
+		DarkEnabled: true,
+		StyleTag:    theme.GenerateStyleTag(light, dark),
+	}
+
+	cfg := config.Defaults()
+	factory := func() *build.SiteBuilder {
+		return build.NewSiteBuilder(build.BuildOptions{
+			ProjectDir:  dir,
+			Config:      cfg,
+			ThemeConfig: themeCfg,
+			EmbeddedFS:  embedded.ThemeFS(),
+		})
+	}
+	return factory, dir
+}
+
+// Stop before Start must not panic (ds.server used to be nil until Start ran).
+func TestDevServer_StopBeforeStart_NoPanic(t *testing.T) {
+	ds := New(Options{ProjectDir: t.TempDir(), OutputDir: t.TempDir()})
+	if err := ds.Stop(); err != nil {
+		t.Fatalf("Stop before Start: %v", err)
+	}
+}
+
+func TestDevServer_StopThenStart_ReadyClosedWithoutPort(t *testing.T) {
+	ds := New(Options{ProjectDir: t.TempDir(), OutputDir: t.TempDir()})
+	if err := ds.Stop(); err != nil {
+		t.Fatalf("Stop: %v", err)
+	}
+	err := ds.Start()
+	if !errors.Is(err, http.ErrServerClosed) {
+		t.Fatalf("Start after Stop = %v, want http.ErrServerClosed", err)
+	}
+	if _, ok := <-ds.Ready(); ok {
+		t.Error("Ready should be closed without a port when stopped before serving")
+	}
+}
+
+// When the requested port is occupied, Ready must report the actually-bound
+// port, not the requested one.
+func TestDevServer_Ready_ReportsActualPortOnConflict(t *testing.T) {
+	busy, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer busy.Close()
+	busyPort := busy.Addr().(*net.TCPAddr).Port
+
+	factory, projDir := testBuilderFactory(t)
+	ds := New(Options{
+		ProjectDir:     projDir,
+		OutputDir:      filepath.Join(projDir, "dist"),
+		Host:           "127.0.0.1",
+		Port:           busyPort,
+		BuilderFactory: factory,
+	})
+
+	done := make(chan error, 1)
+	go func() { done <- ds.Start() }()
+
+	port, ok := <-ds.Ready()
+	if !ok {
+		t.Fatal("Ready closed without a port")
+	}
+	if port == busyPort {
+		t.Errorf("port = %d, must differ from the occupied port", port)
+	}
+	if port <= 0 {
+		t.Errorf("port = %d, want > 0", port)
+	}
+
+	if err := ds.Stop(); err != nil {
+		t.Errorf("Stop: %v", err)
+	}
+	// Join the Start goroutine so TempDir cleanup doesn't race the build.
+	if err := <-done; err != nil && !errors.Is(err, http.ErrServerClosed) {
+		t.Errorf("Start returned %v, want nil or ErrServerClosed", err)
 	}
 }

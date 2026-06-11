@@ -244,6 +244,37 @@ func TestFnAfter(t *testing.T) {
 	}
 }
 
+// Negative n values must be clamped, not panic via reflect.Slice / make.
+func TestFnFirst_NegativeN(t *testing.T) {
+	list := []string{"a", "b", "c"}
+	got := fnFirst(-1, list).([]string)
+	if len(got) != 0 {
+		t.Errorf("got %v, want empty", got)
+	}
+}
+
+func TestFnLast_NegativeN(t *testing.T) {
+	list := []string{"a", "b", "c"}
+	got := fnLast(-1, list).([]string)
+	if len(got) != 0 {
+		t.Errorf("got %v, want empty", got)
+	}
+}
+
+func TestFnAfter_NegativeN(t *testing.T) {
+	list := []string{"a", "b", "c"}
+	got := fnAfter(-1, list).([]string)
+	if len(got) != 3 {
+		t.Errorf("got %v, want full list", got)
+	}
+}
+
+func TestFnSeq_NegativeN(t *testing.T) {
+	if got := fnSeq(-1); got != nil {
+		t.Errorf("got %v, want nil", got)
+	}
+}
+
 func TestFnIn(t *testing.T) {
 	list := []string{"a", "b", "c"}
 	if !fnIn(list, "b") {

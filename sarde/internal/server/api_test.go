@@ -7,13 +7,19 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/frostybee/sarde/embedded"
+	"github.com/frostybee/sarde/internal/build"
 	"github.com/frostybee/sarde/internal/project"
 )
 
 func setupAPITest(t *testing.T) (*APIServer, string) {
+	return setupAPITestWithFactory(t, nil)
+}
+
+func setupAPITestWithFactory(t *testing.T, pf project.PreviewFactory) (*APIServer, string) {
 	t.Helper()
 
 	// Create a test project.
@@ -25,10 +31,61 @@ func setupAPITest(t *testing.T) (*APIServer, string) {
 	os.WriteFile(filepath.Join(dir, "content", "blog", "post.md"), []byte("---\ntitle: Post\ndate: \"2025-01-01T00:00:00Z\"\n---\n# Post\n"), 0o644)
 
 	hub := project.NewEventHub()
-	pm := project.NewProjectManager(hub, embedded.ThemeFS(), nil)
+	pm := project.NewProjectManager(hub, embedded.ThemeFS(), pf)
 
 	srv := NewAPIServer(pm, hub)
 	return srv, dir
+}
+
+// apiStubPreview implements project.PreviewServer with a pre-resolved port.
+type apiStubPreview struct {
+	stop  chan struct{}
+	ready chan int
+}
+
+func newAPIStubPreview(port int) *apiStubPreview {
+	s := &apiStubPreview{stop: make(chan struct{}), ready: make(chan int, 1)}
+	s.ready <- port
+	close(s.ready)
+	return s
+}
+
+func (s *apiStubPreview) Start() error      { <-s.stop; return http.ErrServerClosed }
+func (s *apiStubPreview) Stop() error       { close(s.stop); return nil }
+func (s *apiStubPreview) Ready() <-chan int { return s.ready }
+
+// The preview/start endpoint must report the actually-bound port.
+func TestAPI_PreviewStart_ReturnsActualPort(t *testing.T) {
+	factory := func(projectDir, outputDir string, port int, liveReload bool, bf func() *build.SiteBuilder) project.PreviewServer {
+		return newAPIStubPreview(8123)
+	}
+	srv, dir := setupAPITestWithFactory(t, factory)
+
+	w := apiRequest(t, srv, "POST", "/api/project/open", map[string]any{"dir": dir})
+	if w.Code != 200 {
+		t.Fatalf("open status = %d (body: %s)", w.Code, w.Body.String())
+	}
+
+	w = apiRequest(t, srv, "POST", "/api/preview/start", nil)
+	if w.Code != 200 {
+		t.Fatalf("preview/start status = %d (body: %s)", w.Code, w.Body.String())
+	}
+	resp := parseResponse(t, w)
+	data, ok := resp.Data.(map[string]any)
+	if !ok {
+		t.Fatalf("data = %T, want object (body: %s)", resp.Data, w.Body.String())
+	}
+	if port, _ := data["port"].(float64); int(port) != 8123 {
+		t.Errorf("port = %v, want 8123 (actual bound port)", data["port"])
+	}
+	if url, _ := data["url"].(string); !strings.Contains(url, ":8123") {
+		t.Errorf("url = %q, want it to contain :8123", url)
+	}
+
+	w = apiRequest(t, srv, "POST", "/api/preview/stop", nil)
+	if w.Code != 200 {
+		t.Fatalf("preview/stop status = %d (body: %s)", w.Code, w.Body.String())
+	}
 }
 
 func apiRequest(t *testing.T, srv *APIServer, method, path string, body any) *httptest.ResponseRecorder {

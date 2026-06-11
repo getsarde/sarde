@@ -31,6 +31,13 @@ type CheckResult struct {
 // Check runs the build pipeline through link validation and returns the
 // report without rendering templates or writing HTML to disk.
 func (b *SiteBuilder) Check(opts CheckOptions) (*CheckResult, error) {
+	// Snapshot the validation settings before applying the per-call
+	// overrides; b.config is shared (e.g. with a reused dev-server builder),
+	// so the overrides must not leak past this call. A value copy suffices:
+	// the overrides below only REPLACE fields (strings and fresh BoolPtr
+	// pointers), never write through existing pointers or into the slices.
+	saved := b.config.LinkValidation
+
 	if opts.External {
 		b.config.LinkValidation.External.Check = config.BoolPtr(true)
 	}
@@ -49,7 +56,10 @@ func (b *SiteBuilder) Check(opts CheckOptions) (*CheckResult, error) {
 	b.config.LinkValidation.Enabled = config.BoolPtr(true)
 
 	b.checkOnly = true
-	defer func() { b.checkOnly = false }()
+	defer func() {
+		b.checkOnly = false
+		b.config.LinkValidation = saved
+	}()
 
 	buildResult, buildErr := b.Build()
 

@@ -28,6 +28,10 @@ import (
 type PreviewServer interface {
 	Start() error
 	Stop() error
+	// Ready reports the actual bound port: sent once after the listener
+	// binds, then the channel is closed. Closed without a value if the
+	// server fails or is stopped before binding.
+	Ready() <-chan int
 }
 
 // PreviewFactory creates a PreviewServer. Set by the caller to break the import cycle.
@@ -266,16 +270,65 @@ func (pm *ProjectManager) Validate() (*build.ValidateResult, error) {
 	return builder.Validate()
 }
 
-// StartPreview starts the dev server and returns the actual port.
+// StartPreview starts the dev server and returns the actual bound port.
 func (pm *ProjectManager) StartPreview(port int) (int, error) {
+	ds, err := pm.installPreview(port)
+	if err != nil {
+		return 0, err
+	}
+
+	startErr := make(chan error, 1)
+	go func() {
+		err := ds.Start()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			pm.mu.Lock()
+			// Only tear down if this server is still the active one; a
+			// Stop + restart may have installed a new devServer since.
+			if pm.devServer == ds {
+				pm.devServer = nil
+				pm.state = StateOpen
+			}
+			pm.eventHub.Broadcast(Event{Type: "preview:error", Data: map[string]any{"error": err.Error()}})
+			pm.mu.Unlock()
+		}
+		startErr <- err // sent after teardown so the waiter observes cleaned-up state
+	}()
+
+	// Wait for the bind LOCK-FREE: the initial build runs inside Start and
+	// must not block other ProjectManager operations.
+	actualPort, ok := <-ds.Ready()
+	if !ok {
+		// Start returned before binding; its error is authoritative.
+		err := <-startErr
+		if err == nil || errors.Is(err, http.ErrServerClosed) {
+			return 0, fmt.Errorf("preview stopped before it became ready")
+		}
+		return 0, err
+	}
+
+	pm.mu.Lock()
+	defer pm.mu.Unlock()
+	if pm.devServer != ds {
+		// StopPreview/CloseProject won the race after binding; its
+		// preview:stopped event already fired — don't announce a dead server.
+		return 0, fmt.Errorf("preview was stopped while starting")
+	}
+	pm.eventHub.Broadcast(Event{Type: "preview:started", Data: map[string]any{"port": actualPort}})
+	return actualPort, nil
+}
+
+// installPreview validates state, constructs the dev server via the factory,
+// and registers it as the active preview — all under pm.mu. The blocking
+// wait for the bound port happens in StartPreview, outside the lock.
+func (pm *ProjectManager) installPreview(port int) (PreviewServer, error) {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
 
 	if pm.state == StateClosed {
-		return 0, fmt.Errorf("no project open")
+		return nil, fmt.Errorf("no project open")
 	}
 	if pm.devServer != nil {
-		return 0, fmt.Errorf("preview already running")
+		return nil, fmt.Errorf("preview already running")
 	}
 
 	if port == 0 {
@@ -287,11 +340,11 @@ func (pm *ProjectManager) StartPreview(port int) (int, error) {
 
 	outputDir, err := build.ResolveOutputDir(pm.projectDir, pm.config.Build.Output)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	if pm.previewFactory == nil {
-		return 0, fmt.Errorf("preview not available (no preview factory configured)")
+		return nil, fmt.Errorf("preview not available (no preview factory configured)")
 	}
 
 	ds := pm.previewFactory(pm.projectDir, outputDir, port, config.BoolVal(pm.config.Server.LiveReload, true), func() *build.SiteBuilder {
@@ -308,25 +361,9 @@ func (pm *ProjectManager) StartPreview(port int) (int, error) {
 		return pm.newBuilder(d)
 	})
 
-	go func() {
-		if err := ds.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			pm.mu.Lock()
-			// Only tear down if this server is still the active one; a
-			// Stop + restart may have installed a new devServer since.
-			if pm.devServer == ds {
-				pm.devServer = nil
-				pm.state = StateOpen
-			}
-			pm.eventHub.Broadcast(Event{Type: "preview:error", Data: map[string]any{"error": err.Error()}})
-			pm.mu.Unlock()
-		}
-	}()
-
 	pm.devServer = ds
 	pm.state = StatePreviewing
-
-	pm.eventHub.Broadcast(Event{Type: "preview:started", Data: map[string]any{"port": port}})
-	return port, nil
+	return ds, nil
 }
 
 // StopPreview stops the dev server.

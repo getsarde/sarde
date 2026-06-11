@@ -2,6 +2,7 @@ package content
 
 import (
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -200,11 +201,26 @@ func NormalizePermalink(permalink string) string {
 	if permalink == "" || permalink == "/" {
 		return permalink
 	}
-	if strings.Contains(filepath.Base(permalink), ".") {
+	// File-like only when the last segment has a real extension. A digit-only
+	// suffix (/docs/v1.2, /release-2.0) is a versioned page path, not a file.
+	if ext := path.Ext(path.Base(permalink)); ext != "" && !isAllDigits(ext[1:]) {
 		return permalink
 	}
 	if !strings.HasSuffix(permalink, "/") {
 		return permalink + "/"
 	}
 	return permalink
+}
+
+// isAllDigits reports whether s is non-empty and consists only of ASCII digits.
+func isAllDigits(s string) bool {
+	if s == "" {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return false
+		}
+	}
+	return true
 }

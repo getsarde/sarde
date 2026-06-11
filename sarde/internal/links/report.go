@@ -3,7 +3,7 @@ package links
 import (
 	"fmt"
 	"net/url"
-	"path/filepath"
+	"path"
 	"sort"
 	"strings"
 )
@@ -254,9 +254,12 @@ func buildSummaryLine(cov CoverageSummary, findings []Finding) string {
 		cov.TotalLinks, cov.TotalLanes, brokenTargets, brokenAnchors, externalBroken, warnCount)
 }
 
+// shouldExcludeRef matches link destinations against exclude globs using
+// path.Match for platform-independent, slash-separated semantics (same as
+// matchesIgnorePattern in external.go).
 func shouldExcludeRef(rawDest string, patterns []string) bool {
 	for _, p := range patterns {
-		if matched, _ := filepath.Match(p, rawDest); matched {
+		if matched, _ := path.Match(p, rawDest); matched {
 			return true
 		}
 	}

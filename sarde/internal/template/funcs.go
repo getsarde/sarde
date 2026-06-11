@@ -839,6 +839,9 @@ func fnFirst(n int, list any) any {
 	if v.Kind() != reflect.Slice {
 		return list
 	}
+	if n < 0 {
+		n = 0
+	}
 	if n > v.Len() {
 		n = v.Len()
 	}
@@ -849,6 +852,9 @@ func fnLast(n int, list any) any {
 	v := reflect.ValueOf(list)
 	if v.Kind() != reflect.Slice {
 		return list
+	}
+	if n < 0 {
+		n = 0
 	}
 	l := v.Len()
 	if n > l {
@@ -861,6 +867,9 @@ func fnAfter(n int, list any) any {
 	v := reflect.ValueOf(list)
 	if v.Kind() != reflect.Slice {
 		return list
+	}
+	if n < 0 {
+		n = 0
 	}
 	if n > v.Len() {
 		n = v.Len()
@@ -970,6 +979,9 @@ func fnIn(list any, value any) bool {
 func fnSeq(args ...int) []int {
 	switch len(args) {
 	case 1:
+		if args[0] < 0 {
+			return nil
+		}
 		result := make([]int, args[0])
 		for i := range result {
 			result[i] = i + 1

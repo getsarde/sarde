@@ -178,7 +178,9 @@ func extractZipFile(f *zip.File, dest string) error {
 	}
 	defer rc.Close()
 
-	out, err := os.OpenFile(dest, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, f.Mode()|0o200)
+	// Windows-created archives often record mode 0; OR in 0o644 so extracted
+	// files are always readable (mode 0|0o200 would be write-only).
+	out, err := os.OpenFile(dest, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, f.Mode().Perm()|0o644)
 	if err != nil {
 		return fmt.Errorf("creating %s: %w", dest, err)
 	}
@@ -229,7 +231,9 @@ func ExtractTarGz(tarPath, destDir string, stripComponents int) error {
 			if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
 				return err
 			}
-			out, err := os.OpenFile(dest, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.FileMode(hdr.Mode)|0o200)
+			// Same readability guarantee as extractZipFile: entries with
+			// recorded mode 0 must not come out write-only.
+			out, err := os.OpenFile(dest, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.FileMode(hdr.Mode).Perm()|0o644)
 			if err != nil {
 				return fmt.Errorf("creating %s: %w", dest, err)
 			}

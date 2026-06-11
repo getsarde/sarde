@@ -67,20 +67,17 @@ func (p *galleryParser) Close(node ast.Node, reader text.Reader, pc parser.Conte
 	gallery := node.(*GalleryBlock)
 	deleteDepth(pc, node)
 
-	// Walk children to find image nodes parsed by goldmark
+	// Walk children to find image nodes parsed by goldmark.
+	// Alt text lives in the image node's text children; img.Title is the
+	// optional tooltip from ![alt](src "title") and must not be used as alt.
 	var walk func(n ast.Node)
 	walk = func(n ast.Node) {
 		if n.Kind() == ast.KindImage {
 			img := n.(*ast.Image)
 			gallery.Images = append(gallery.Images, GalleryImage{
 				Src: string(img.Destination),
-				Alt: string(img.Title),
+				Alt: extractText(n, reader.Source()),
 			})
-			// If Title is empty, try to get alt text from children
-			if gallery.Images[len(gallery.Images)-1].Alt == "" {
-				alt := extractText(n, reader.Source())
-				gallery.Images[len(gallery.Images)-1].Alt = alt
-			}
 		}
 		for c := n.FirstChild(); c != nil; c = c.NextSibling() {
 			walk(c)

@@ -384,6 +384,11 @@ func applyResizeOp(src image.Image, op ResizeOp, width, height int) image.Image 
 		}
 		return imaging.Fit(src, width, height, imaging.Lanczos)
 	case ResizeOpFitHeight:
+		if height == 0 {
+			// No target height given — degrade to a width-driven
+			// proportional scale instead of producing a 0x0 image.
+			return imaging.Resize(src, width, 0, imaging.Lanczos)
+		}
 		return imaging.Resize(src, 0, height, imaging.Lanczos)
 	default: // ResizeOpScale, ResizeOpFitWidth, ""
 		return imaging.Resize(src, width, 0, imaging.Lanczos)

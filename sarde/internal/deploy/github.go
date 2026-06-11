@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 // GitHubPagesDeployer deploys to GitHub Pages by force-pushing to a branch.
@@ -34,21 +35,50 @@ func (d *GitHubPagesDeployer) Deploy(distDir string) error {
 	}
 
 	// Initialize git repo, commit, and push.
-	cmds := [][]string{
-		{"init"},
-		{"add", "."},
-		{"commit", "-m", "deploy site"},
-		{"remote", "add", "origin", remote},
-		{"push", "--force", "origin", "HEAD:" + d.Branch},
+	if err := gitRun(tmpDir, "init"); err != nil {
+		return fmt.Errorf("git init: %w", err)
 	}
 
-	for _, args := range cmds {
+	// Fresh CI environments have no committer identity configured and
+	// `git commit` would fail with exit status 128 ("Please tell me who
+	// you are"). Probe after init so local/global config both resolve.
+	email, _ := gitOutput(tmpDir, "config", "user.email")
+	hasIdentity := strings.TrimSpace(email) != ""
+
+	for _, args := range deployCommands(remote, d.Branch, hasIdentity) {
 		if err := gitRun(tmpDir, args...); err != nil {
-			return fmt.Errorf("git %s: %w", args[0], err)
+			return fmt.Errorf("git %s: %w", gitCmdLabel(args), err)
 		}
 	}
 
 	return nil
+}
+
+// deployCommands returns the git commands to run after `git init`, in order.
+// Without a configured identity, the commit carries one-shot -c overrides.
+func deployCommands(remote, branch string, hasIdentity bool) [][]string {
+	commit := []string{"commit", "-m", "deploy site"}
+	if !hasIdentity {
+		commit = append([]string{"-c", "user.name=sarde-deploy", "-c", "user.email=sarde-deploy@localhost"}, commit...)
+	}
+	return [][]string{
+		{"add", "."},
+		commit,
+		{"remote", "add", "origin", remote},
+		{"push", "--force", "origin", "HEAD:" + branch},
+	}
+}
+
+// gitCmdLabel returns the git subcommand name, skipping any leading -c flags.
+func gitCmdLabel(args []string) string {
+	for i := 0; i < len(args); i++ {
+		if args[i] == "-c" {
+			i++ // skip the -c value
+			continue
+		}
+		return args[i]
+	}
+	return "git"
 }
 
 func gitRun(dir string, args ...string) error {

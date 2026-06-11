@@ -297,6 +297,20 @@ func TestApplyResizeOp_FitHeight(t *testing.T) {
 	}
 }
 
+// fit_height without a target height must degrade to a width-driven scale,
+// not produce a 0x0 image.
+func TestApplyResizeOp_FitHeight_NoHeight(t *testing.T) {
+	src := image.NewRGBA(image.Rect(0, 0, 1600, 900))
+	resized := applyResizeOp(src, ResizeOpFitHeight, 800, 0)
+	b := resized.Bounds()
+	if b.Dx() != 800 {
+		t.Errorf("width = %d, want 800", b.Dx())
+	}
+	if b.Dy() != 450 {
+		t.Errorf("height = %d, want 450 (proportional to width)", b.Dy())
+	}
+}
+
 func TestApplyResizeOp_DefaultIsScale(t *testing.T) {
 	src := image.NewRGBA(image.Rect(0, 0, 1600, 900))
 	resized := applyResizeOp(src, "", 800, 0)

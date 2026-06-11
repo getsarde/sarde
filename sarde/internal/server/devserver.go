@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/term"
@@ -45,7 +46,13 @@ type DevServer struct {
 	hub        *Hub
 	watcher    *Watcher
 	rebuilder  *Rebuilder
-	server     *http.Server
+	server     *http.Server // constructed in New(), immutable afterwards
+
+	ready     chan int // actual bound port; sent once then closed (closed empty on pre-bind failure)
+	readyOnce sync.Once
+
+	stopMu  sync.Mutex
+	stopped bool
 }
 
 // New creates a new DevServer.
@@ -78,31 +85,16 @@ func New(opts Options) *DevServer {
 	for _, dir := range opts.ThemeDevDirs {
 		ds.watcher.AddExternalDir(dir, ChangeTemplate)
 	}
+	ds.ready = make(chan int, 1)
+	// Constructing the server here (single write before any goroutine exists)
+	// avoids the Start/Stop data race on ds.server.
+	ds.server = &http.Server{Handler: devRequestLogger(ds.buildHandler())}
 	return ds
 }
 
-// Start runs the initial build, starts the file watcher, and serves HTTP.
-// It blocks until the server is stopped.
-func (ds *DevServer) Start() error {
-	// Initial build (treated as a config change to force full init).
-	result := ds.rebuilder.Rebuild(FileChange{Kind: ChangeConfig})
-	if result.Error != nil {
-		devlog.Error("build", "Initial build failed: %v", result.Error)
-		devlog.Warn("build", "Serving stale output (if any). Waiting for file changes...")
-		if ds.liveReload {
-			msg := ToReloadMessage(FileChange{Kind: ChangeConfig}, result, ds.projectDir)
-			ds.hub.SetPendingError(&msg)
-		}
-	} else {
-		devlog.Log("build", "Built %d pages in %s", result.PageCount, result.Duration)
-	}
-
-	// Start file watcher.
-	if err := ds.watcher.Start(); err != nil {
-		return fmt.Errorf("starting file watcher: %w", err)
-	}
-
-	// Build HTTP handler.
+// buildHandler assembles the dev HTTP handler (file serving, live-reload
+// script injection, base-path routing). All inputs are set in New().
+func (ds *DevServer) buildHandler() http.Handler {
 	mux := http.NewServeMux()
 	if ds.liveReload {
 		mux.HandleFunc("/ws", ds.hub.HandleWS)
@@ -125,31 +117,88 @@ func (ds *DevServer) Start() error {
 	} else {
 		mux.Handle("/", handler)
 	}
+	return mux
+}
 
-	var devHandler http.Handler = mux
-	devHandler = devRequestLogger(devHandler)
-	ds.server = &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", ds.host, ds.port),
-		Handler: devHandler,
-	}
+// Ready reports the actual bound port: the port is sent once after the
+// listener binds, then the channel is closed. If Start fails or the server
+// is stopped before binding, the channel is closed without a value.
+func (ds *DevServer) Ready() <-chan int { return ds.ready }
 
-	// Bind the listener, retrying up to 10 consecutive ports on EADDRINUSE.
-	var ln net.Listener
+func (ds *DevServer) signalReady(port int) {
+	ds.readyOnce.Do(func() {
+		if port > 0 {
+			ds.ready <- port // cap 1, never blocks
+		}
+		close(ds.ready)
+	})
+}
+
+func (ds *DevServer) isStopped() bool {
+	ds.stopMu.Lock()
+	defer ds.stopMu.Unlock()
+	return ds.stopped
+}
+
+// bind acquires the TCP listener, retrying up to 10 consecutive ports on
+// EADDRINUSE, and returns the listener plus the actually-bound port.
+func (ds *DevServer) bind() (net.Listener, int, error) {
 	basePort := ds.port
 	for i := 0; i < 10; i++ {
 		tryAddr := fmt.Sprintf("%s:%d", ds.host, basePort+i)
-		var listenErr error
-		ln, listenErr = net.Listen("tcp", tryAddr)
+		ln, listenErr := net.Listen("tcp", tryAddr)
 		if listenErr == nil {
-			ds.server.Addr = tryAddr
-			break
+			return ln, ln.Addr().(*net.TCPAddr).Port, nil
 		}
 		if i == 9 {
-			return fmt.Errorf("could not bind to any port in range %d–%d: %w", basePort, basePort+9, listenErr)
+			return nil, 0, fmt.Errorf("could not bind to any port in range %d–%d: %w", basePort, basePort+9, listenErr)
 		}
 		devlog.Warn("server", "Port %d in use, trying %d...", basePort+i, basePort+i+1)
 	}
-	actualPort := ln.Addr().(*net.TCPAddr).Port
+	return nil, 0, fmt.Errorf("could not bind to any port starting at %d", basePort)
+}
+
+// Start binds the listener, runs the initial build, starts the file watcher,
+// and serves HTTP. It blocks until the server is stopped. The listener is
+// bound up front so Ready() reports the actual port immediately; connections
+// arriving before the initial build finishes queue in the accept backlog.
+func (ds *DevServer) Start() error {
+	defer ds.signalReady(0) // closes ready on every failure/early-return path
+
+	ln, actualPort, err := ds.bind()
+	if err != nil {
+		return err
+	}
+	defer ln.Close() // releases the port on post-bind failure paths; harmless double-close after Shutdown
+
+	if ds.isStopped() { // Stop raced before/at bind
+		return http.ErrServerClosed
+	}
+	ds.signalReady(actualPort)
+
+	// Initial build (treated as a config change to force full init).
+	result := ds.rebuilder.Rebuild(FileChange{Kind: ChangeConfig})
+	if result.Error != nil {
+		devlog.Error("build", "Initial build failed: %v", result.Error)
+		devlog.Warn("build", "Serving stale output (if any). Waiting for file changes...")
+		if ds.liveReload {
+			msg := ToReloadMessage(FileChange{Kind: ChangeConfig}, result, ds.projectDir)
+			ds.hub.SetPendingError(&msg)
+		}
+	} else {
+		devlog.Log("build", "Built %d pages in %s", result.PageCount, result.Duration)
+	}
+
+	// Start file watcher.
+	if err := ds.watcher.Start(); err != nil {
+		return fmt.Errorf("starting file watcher: %w", err)
+	}
+	if ds.isStopped() {
+		// Stop raced during the build: its watcher.Stop() saw started==false
+		// and was a no-op, so shut the watcher down here.
+		ds.watcher.Stop()
+		return http.ErrServerClosed
+	}
 
 	localURL := fmt.Sprintf("http://localhost:%d", actualPort)
 	if ds.basePath != "/" {
@@ -159,6 +208,8 @@ func (ds *DevServer) Start() error {
 	devlog.Log("watch", "Watching: content/, layouts/, assets/, data/")
 
 	// Emit JSON ready signal on stdout for the Tauri desktop app to detect.
+	// This deliberately stays AFTER the initial build — the desktop app
+	// navigates to the URL when it sees this line.
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
 		fmt.Fprintf(os.Stdout, "{\"ready\":true,\"port\":%d}\n", actualPort)
 	}
@@ -166,12 +217,24 @@ func (ds *DevServer) Start() error {
 	return ds.server.Serve(ln)
 }
 
-// Stop gracefully shuts down the dev server.
+// Stop gracefully shuts down the dev server. Safe to call before, during, or
+// after Start; the server is single-use afterwards.
 func (ds *DevServer) Stop() error {
-	ds.watcher.Stop()
+	ds.stopMu.Lock()
+	ds.stopped = true
+	ds.stopMu.Unlock()
 
+	if ds.watcher != nil {
+		ds.watcher.Stop()
+	}
+	if ds.server == nil {
+		// Zero-value DevServer (tests construct bare literals); nothing to shut down.
+		return nil
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+	// Shutdown before Serve is safe: it marks the server in-shutdown, so a
+	// later Serve returns http.ErrServerClosed immediately.
 	return ds.server.Shutdown(ctx)
 }
 

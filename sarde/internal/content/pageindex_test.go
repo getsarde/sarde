@@ -303,6 +303,13 @@ func TestNormalizePermalink(t *testing.T) {
 		{"/blog/post/", "/blog/post/"},
 		{"/file.xml", "/file.xml"},
 		{"/feed/atom.xml", "/feed/atom.xml"},
+		// Digit-only "extensions" are versioned page paths, not files.
+		{"/docs/v1.2", "/docs/v1.2/"},
+		{"/docs/v1.2/", "/docs/v1.2/"},
+		{"/release-2.0", "/release-2.0/"},
+		// Real extensions (containing letters) stay file-like.
+		{"/jquery.min.js", "/jquery.min.js"},
+		{"/archive.tar.gz", "/archive.tar.gz"},
 	}
 	for _, tt := range tests {
 		if got := NormalizePermalink(tt.input); got != tt.want {

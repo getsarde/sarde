@@ -301,6 +301,35 @@ func TestGenerateReport_Exclude(t *testing.T) {
 	}
 }
 
+// Slash-containing glob patterns must behave identically on every platform
+// (path.Match semantics, not filepath.Match).
+func TestGenerateReport_ExcludeGlob(t *testing.T) {
+	graph := NewLinkGraph()
+	graph.Record(LinkRef{
+		FromFile: "guide.md",
+		RawDest:  "/drafts/wip",
+		Status:   StatusBrokenTarget,
+	})
+	graph.Record(LinkRef{
+		FromFile: "guide.md",
+		RawDest:  "/docs/kept",
+		Status:   StatusBrokenTarget,
+	})
+
+	result := GenerateReport(ReportInput{
+		Graph:    graph,
+		Coverage: CoverageSummary{TotalLinks: 2, TotalLanes: 1},
+		Config:   LinkCheckConfig{OnBroken: "error", Exclude: []string{"/drafts/*"}, ReportFormat: "pretty"},
+	})
+
+	if len(result.Findings) != 1 {
+		t.Fatalf("expected 1 finding (glob-excluded filtered), got %d", len(result.Findings))
+	}
+	if result.Findings[0].Ref.RawDest != "/docs/kept" {
+		t.Errorf("expected '/docs/kept', got %q", result.Findings[0].Ref.RawDest)
+	}
+}
+
 func TestGenerateReport_JSONFormat(t *testing.T) {
 	graph := NewLinkGraph()
 	graph.Record(LinkRef{

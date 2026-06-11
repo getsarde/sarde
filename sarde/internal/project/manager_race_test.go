@@ -11,11 +11,21 @@ import (
 
 // stubPreview satisfies PreviewServer; Start blocks like the real dev server.
 type stubPreview struct {
-	stop chan struct{}
+	stop  chan struct{}
+	ready chan int
 }
 
-func (s *stubPreview) Start() error { <-s.stop; return http.ErrServerClosed }
-func (s *stubPreview) Stop() error  { close(s.stop); return nil }
+// newStubPreview returns a stub whose Ready() immediately yields port.
+func newStubPreview(port int) *stubPreview {
+	s := &stubPreview{stop: make(chan struct{}), ready: make(chan int, 1)}
+	s.ready <- port
+	close(s.ready)
+	return s
+}
+
+func (s *stubPreview) Start() error      { <-s.stop; return http.ErrServerClosed }
+func (s *stubPreview) Stop() error       { close(s.stop); return nil }
+func (s *stubPreview) Ready() <-chan int { return s.ready }
 
 // TestProjectManager_PreviewFactory_LifecycleRace exercises the builder
 // factory closure (as the dev server's Rebuilder would, from watcher timer
@@ -29,7 +39,7 @@ func TestProjectManager_PreviewFactory_LifecycleRace(t *testing.T) {
 	var captured func() *build.SiteBuilder
 	factory := func(projectDir, outputDir string, port int, liveReload bool, builderFactory func() *build.SiteBuilder) PreviewServer {
 		captured = builderFactory
-		return &stubPreview{stop: make(chan struct{})}
+		return newStubPreview(port)
 	}
 
 	pm := NewProjectManager(hub, embedded.ThemeFS(), factory)

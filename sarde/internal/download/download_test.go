@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -219,6 +220,93 @@ func TestIsInsideDir(t *testing.T) {
 	}
 	if !isInsideDir(base, filepath.Join(base, "sub", "file.txt")) {
 		t.Error("should accept path inside base")
+	}
+}
+
+// Archive entries with recorded mode 0 (e.g. Windows-created zips, GitHub
+// archives) must extract as readable files, not write-only 0o200.
+func TestExtractZip_ZeroModeEntriesAreReadable(t *testing.T) {
+	dir := t.TempDir()
+	zipPath := filepath.Join(dir, "zero.zip")
+
+	f, err := os.Create(zipPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := zip.NewWriter(f)
+	// Unix creator version with all permission bits zero — Mode() returns 0.
+	hdr := &zip.FileHeader{Name: "theme.yaml", Method: zip.Deflate}
+	hdr.CreatorVersion = 3 << 8
+	fw, err := w.CreateHeader(hdr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fw.Write([]byte("name: zero"))
+	w.Close()
+	f.Close()
+
+	destDir := filepath.Join(dir, "out")
+	if err := ExtractZip(zipPath, destDir, 0); err != nil {
+		t.Fatalf("ExtractZip: %v", err)
+	}
+
+	extracted := filepath.Join(destDir, "theme.yaml")
+	data, err := os.ReadFile(extracted)
+	if err != nil {
+		t.Fatalf("extracted file not readable: %v", err)
+	}
+	if string(data) != "name: zero" {
+		t.Errorf("content = %q, want %q", data, "name: zero")
+	}
+	if runtime.GOOS != "windows" {
+		info, err := os.Stat(extracted)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if info.Mode()&0o444 == 0 {
+			t.Errorf("mode %v lacks read permission", info.Mode())
+		}
+	}
+}
+
+func TestExtractTarGz_ZeroModeEntriesAreReadable(t *testing.T) {
+	dir := t.TempDir()
+	tarPath := filepath.Join(dir, "zero.tar.gz")
+
+	f, err := os.Create(tarPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gw := gzip.NewWriter(f)
+	tw := tar.NewWriter(gw)
+	content := "name: zero"
+	tw.WriteHeader(&tar.Header{Name: "theme.yaml", Size: int64(len(content)), Mode: 0})
+	tw.Write([]byte(content))
+	tw.Close()
+	gw.Close()
+	f.Close()
+
+	destDir := filepath.Join(dir, "out")
+	if err := ExtractTarGz(tarPath, destDir, 0); err != nil {
+		t.Fatalf("ExtractTarGz: %v", err)
+	}
+
+	extracted := filepath.Join(destDir, "theme.yaml")
+	data, err := os.ReadFile(extracted)
+	if err != nil {
+		t.Fatalf("extracted file not readable: %v", err)
+	}
+	if string(data) != content {
+		t.Errorf("content = %q, want %q", data, content)
+	}
+	if runtime.GOOS != "windows" {
+		info, err := os.Stat(extracted)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if info.Mode()&0o444 == 0 {
+			t.Errorf("mode %v lacks read permission", info.Mode())
+		}
 	}
 }
 

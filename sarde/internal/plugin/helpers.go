@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"path/filepath"
+	"path"
 	"strings"
 )
 
@@ -83,15 +83,17 @@ func cfgStringSlice(cfg map[string]any, key string) []string {
 	}
 }
 
-// shouldExclude checks if a path matches any exclude pattern.
-func shouldExclude(path string, patterns []string) bool {
+// shouldExclude checks if a URL path matches any exclude pattern.
+// Uses path.Match (slash-separated glob semantics on every platform);
+// filepath.Match would make patterns behave differently on Windows.
+func shouldExclude(urlPath string, patterns []string) bool {
 	for _, pattern := range patterns {
-		if matched, _ := filepath.Match(pattern, path); matched {
+		if matched, _ := path.Match(pattern, urlPath); matched {
 			return true
 		}
 		// Also check without trailing slash.
-		trimmed := strings.TrimRight(path, "/")
-		if matched, _ := filepath.Match(pattern, trimmed); matched {
+		trimmed := strings.TrimRight(urlPath, "/")
+		if matched, _ := path.Match(pattern, trimmed); matched {
 			return true
 		}
 	}
