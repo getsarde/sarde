@@ -70,16 +70,17 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Replay any pending build error inside the locked section: all writes to
+	// a conn must happen under h.mu (Broadcast writes under it too), since
+	// gorilla/websocket connections do not support concurrent writers.
 	h.mu.Lock()
 	h.clients[conn] = true
-	pending := h.pendingError
-	h.mu.Unlock()
-
-	if pending != nil {
-		if data, err := json.Marshal(pending); err == nil {
+	if h.pendingError != nil {
+		if data, err := json.Marshal(h.pendingError); err == nil {
 			conn.WriteMessage(websocket.TextMessage, data)
 		}
 	}
+	h.mu.Unlock()
 
 	// Read pump — blocks until client disconnects.
 	for {

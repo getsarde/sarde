@@ -86,23 +86,9 @@ func parseTOML(content string) (map[string]interface{}, string, error) {
 }
 
 func parseJSON(content string) (map[string]interface{}, string, error) {
-	// Find the closing brace, accounting for nesting
-	depth := 0
-	endIdx := -1
-	for i, ch := range content {
-		switch ch {
-		case '{':
-			depth++
-		case '}':
-			depth--
-			if depth == 0 {
-				endIdx = i
-				goto found
-			}
-		}
-	}
-found:
+	endIdx := jsonObjectEnd(content)
 	if endIdx < 0 {
+		// No balanced closing brace — not JSON frontmatter, all body.
 		return map[string]interface{}{}, content, nil
 	}
 
@@ -116,6 +102,41 @@ found:
 		return nil, "", err
 	}
 	return fm, body, nil
+}
+
+// jsonObjectEnd returns the index of the brace closing the JSON object that
+// starts at content[0], or -1 if the object is never closed. Braces inside
+// string literals (including escaped quotes) are ignored.
+func jsonObjectEnd(content string) int {
+	depth := 0
+	inString := false
+	escaped := false
+	for i := 0; i < len(content); i++ {
+		c := content[i]
+		if inString {
+			switch {
+			case escaped:
+				escaped = false
+			case c == '\\':
+				escaped = true
+			case c == '"':
+				inString = false
+			}
+			continue
+		}
+		switch c {
+		case '"':
+			inString = true
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return i
+			}
+		}
+	}
+	return -1
 }
 
 // ParseFrontmatter is a convenience function that parses raw file bytes into

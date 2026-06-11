@@ -27,8 +27,7 @@ func (r *codeGroupRenderer) renderCodeGroup(w util.BufWriter, source []byte, nod
 		var labels []string
 		for c := node.FirstChild(); c != nil; c = c.NextSibling() {
 			if fc, ok := c.(*ast.FencedCodeBlock); ok {
-				info := string(fc.Info.Text(source))
-				label := extractLabel(info)
+				label := extractLabel(infoString(fc, source))
 				labels = append(labels, label)
 			}
 		}
@@ -63,8 +62,7 @@ func (r *codeGroupRenderer) renderCodeGroup(w util.BufWriter, source []byte, nod
 					activeClass, idx, htmlutil.EscapeHTML(labels[idx]), hiddenAttr)
 
 				// Render the code block content
-				info := string(fc.Info.Text(source))
-				lang := extractLang(info)
+				lang := extractLang(infoString(fc, source))
 
 				_, _ = fmt.Fprintf(w, "<pre><code class=\"language-%s\">", htmlutil.EscapeHTML(lang))
 				lines := fc.Lines()
@@ -83,6 +81,15 @@ func (r *codeGroupRenderer) renderCodeGroup(w util.BufWriter, source []byte, nod
 	}
 
 	return ast.WalkContinue, nil
+}
+
+// infoString returns the info string of a fenced code block, or "" when the
+// block has no info string (Info is nil for a bare ``` fence).
+func infoString(fc *ast.FencedCodeBlock, source []byte) string {
+	if fc.Info == nil {
+		return ""
+	}
+	return string(fc.Info.Text(source))
 }
 
 // extractLabel gets the display label from a fenced code info string.

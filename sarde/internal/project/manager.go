@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/frostybee/sarde/embedded"
@@ -32,6 +33,18 @@ type PreviewServer interface {
 // PreviewFactory creates a PreviewServer. Set by the caller to break the import cycle.
 type PreviewFactory func(projectDir, outputDir string, port int, liveReload bool, builderFactory func() *build.SiteBuilder) PreviewServer
 
+// builderDeps is an immutable snapshot of the inputs for constructing a
+// SiteBuilder. Published atomically so builds can run without holding pm.mu.
+// Never nil once a project has been opened; CloseProject deliberately leaves
+// the last-known-good snapshot so a straggler watcher rebuild that fires
+// after DevServer.Stop() builds stale-but-valid deps instead of panicking
+// on a nil config.
+type builderDeps struct {
+	projectDir string
+	config     *config.SiteConfig
+	themeCfg   *engine.ThemeConfig
+}
+
 // ProjectManager is the unified API for content CRUD, config management, and build lifecycle.
 // It bridges the desktop app (Tauri) and CLI to the site engine.
 type ProjectManager struct {
@@ -40,6 +53,7 @@ type ProjectManager struct {
 	state          ProjectState
 	config         *config.SiteConfig
 	themeCfg       *engine.ThemeConfig
+	deps           atomic.Pointer[builderDeps]
 	embeddedFS     fs.FS
 	eventHub       *EventHub
 	devServer      PreviewServer
@@ -84,9 +98,7 @@ func (pm *ProjectManager) OpenProject(dir string) (*ProjectInfo, error) {
 		return nil, err
 	}
 
-	pm.projectDir = absDir
-	pm.config = cfg
-	pm.themeCfg = themeCfg
+	pm.setProjectConfig(absDir, cfg, themeCfg)
 	pm.state = StateOpen
 
 	info := pm.buildProjectInfo()
@@ -103,6 +115,10 @@ func (pm *ProjectManager) CloseProject() error {
 		pm.stopPreviewLocked()
 	}
 
+	// pm.deps is intentionally NOT cleared: a watcher timer rebuild can fire
+	// after DevServer.Stop() returns (Stop joins only the fsnotify loop, not
+	// armed timers), and its builder factory must never observe nil deps.
+	// Build/Validate can't reach the stale snapshot — they gate on pm.state.
 	pm.projectDir = ""
 	pm.config = nil
 	pm.themeCfg = nil
@@ -203,11 +219,12 @@ func (pm *ProjectManager) Build() (*engine.BuildResult, error) {
 		return nil, fmt.Errorf("no project open")
 	}
 	pm.state = StateBuilding
+	d := pm.deps.Load()
 	pm.mu.Unlock()
 
 	pm.eventHub.Broadcast(Event{Type: "build:started"})
 
-	builder := pm.newBuilder()
+	builder := pm.newBuilder(d)
 	result, err := builder.Build()
 
 	// Only transition out of StateBuilding if we're still building. A
@@ -242,9 +259,10 @@ func (pm *ProjectManager) Validate() (*build.ValidateResult, error) {
 		pm.mu.RUnlock()
 		return nil, fmt.Errorf("no project open")
 	}
+	d := pm.deps.Load()
 	pm.mu.RUnlock()
 
-	builder := pm.newBuilder()
+	builder := pm.newBuilder(d)
 	return builder.Validate()
 }
 
@@ -277,15 +295,29 @@ func (pm *ProjectManager) StartPreview(port int) (int, error) {
 	}
 
 	ds := pm.previewFactory(pm.projectDir, outputDir, port, config.BoolVal(pm.config.Server.LiveReload, true), func() *build.SiteBuilder {
-		return pm.newBuilder()
+		// Freshness barrier: UpdateSettings writes sarde.yaml and publishes
+		// the re-resolved snapshot inside one pm.mu critical section. The
+		// watcher's config-change rebuild can fire (debounce) before that
+		// section ends; loading under RLock orders this rebuild after the
+		// publish so it builds with the settings that triggered it. No
+		// deadlock: Stop() never joins the watcher timer goroutine, so a
+		// writer holding pm.mu always completes.
+		pm.mu.RLock()
+		d := pm.deps.Load()
+		pm.mu.RUnlock()
+		return pm.newBuilder(d)
 	})
 
 	go func() {
 		if err := ds.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			pm.mu.Lock()
+			// Only tear down if this server is still the active one; a
+			// Stop + restart may have installed a new devServer since.
+			if pm.devServer == ds {
+				pm.devServer = nil
+				pm.state = StateOpen
+			}
 			pm.eventHub.Broadcast(Event{Type: "preview:error", Data: map[string]any{"error": err.Error()}})
-			pm.devServer = nil
-			pm.state = StateOpen
 			pm.mu.Unlock()
 		}
 	}()
@@ -644,8 +676,7 @@ func (pm *ProjectManager) UpdateSettings(input SettingsInput) error {
 	if err != nil {
 		return err
 	}
-	pm.config = cfg
-	pm.themeCfg = themeCfg
+	pm.setProjectConfig(pm.projectDir, cfg, themeCfg)
 
 	pm.eventHub.Broadcast(Event{Type: "config:changed"})
 	return nil
@@ -745,11 +776,24 @@ func (pm *ProjectManager) contentDir() string {
 	return filepath.Join(pm.projectDir, dir)
 }
 
-func (pm *ProjectManager) newBuilder() *build.SiteBuilder {
+// setProjectConfig sets the authoritative project fields and publishes the
+// matching builder snapshot. Caller must hold pm.mu (write).
+func (pm *ProjectManager) setProjectConfig(dir string, cfg *config.SiteConfig, themeCfg *engine.ThemeConfig) {
+	pm.projectDir = dir
+	pm.config = cfg
+	pm.themeCfg = themeCfg
+	pm.deps.Store(&builderDeps{projectDir: dir, config: cfg, themeCfg: themeCfg})
+}
+
+// newBuilder constructs a SiteBuilder from a deps snapshot. Lock-free; safe
+// from any goroutine. d must come from pm.deps.Load(), which is non-nil
+// whenever a builder is reachable (Build/Validate gate on pm.state; the
+// preview factory closure only exists after a successful StartPreview).
+func (pm *ProjectManager) newBuilder(d *builderDeps) *build.SiteBuilder {
 	return build.NewSiteBuilder(build.BuildOptions{
-		ProjectDir:  pm.projectDir,
-		Config:      pm.config,
-		ThemeConfig: pm.themeCfg,
+		ProjectDir:  d.projectDir,
+		Config:      d.config,
+		ThemeConfig: d.themeCfg,
 		EmbeddedFS:  pm.embeddedFS,
 	})
 }

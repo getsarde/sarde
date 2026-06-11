@@ -60,6 +60,86 @@ func TestParse_JSON(t *testing.T) {
 	}
 }
 
+// Braces inside JSON string values must not confuse the end-of-frontmatter
+// detection (a naive brace counter truncates at the } inside the string).
+func TestParse_JSON_BracesInStrings(t *testing.T) {
+	raw := []byte("{\"title\": \"Hello\", \"description\": \"use {} in code blocks\"}\nJSON body.\n")
+	p := &Parser{}
+	fm, body, err := p.Parse(raw)
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+	if fm["title"] != "Hello" {
+		t.Errorf("title = %v, want %q", fm["title"], "Hello")
+	}
+	if fm["description"] != "use {} in code blocks" {
+		t.Errorf("description = %v, want %q", fm["description"], "use {} in code blocks")
+	}
+	if body != "JSON body.\n" {
+		t.Errorf("body = %q, want %q", body, "JSON body.\n")
+	}
+}
+
+func TestParse_JSON_NestedObjectsWithBraces(t *testing.T) {
+	raw := []byte("{\"title\": \"T\", \"params\": {\"snippet\": \"if (x) { y() }\"}}\nBody.\n")
+	p := &Parser{}
+	fm, body, err := p.Parse(raw)
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+	params, ok := fm["params"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("params = %T, want map", fm["params"])
+	}
+	if params["snippet"] != "if (x) { y() }" {
+		t.Errorf("snippet = %v, want %q", params["snippet"], "if (x) { y() }")
+	}
+	if body != "Body.\n" {
+		t.Errorf("body = %q, want %q", body, "Body.\n")
+	}
+}
+
+func TestParse_JSON_EscapedQuotesInStrings(t *testing.T) {
+	raw := []byte("{\"title\": \"say \\\"hi\\\" {}\"}\nBody.\n")
+	p := &Parser{}
+	fm, body, err := p.Parse(raw)
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+	if fm["title"] != `say "hi" {}` {
+		t.Errorf("title = %v, want %q", fm["title"], `say "hi" {}`)
+	}
+	if body != "Body.\n" {
+		t.Errorf("body = %q, want %q", body, "Body.\n")
+	}
+}
+
+// An unterminated opening brace is not JSON frontmatter — the whole content
+// is the body, mirroring the YAML/TOML missing-closing-delimiter behavior.
+func TestParse_JSON_UnclosedBrace(t *testing.T) {
+	raw := []byte("{\"title\": \"never closed\"\nBody text.\n")
+	p := &Parser{}
+	fm, body, err := p.Parse(raw)
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+	if len(fm) != 0 {
+		t.Errorf("fm should be empty, got %v", fm)
+	}
+	if body != string(raw) {
+		t.Errorf("body = %q, want full content", body)
+	}
+}
+
+func TestParse_JSON_MalformedReturnsError(t *testing.T) {
+	raw := []byte("{\"title\": bad}\nBody.\n")
+	p := &Parser{}
+	_, _, err := p.Parse(raw)
+	if err == nil {
+		t.Fatal("expected error for malformed JSON frontmatter, got nil")
+	}
+}
+
 func TestParse_NoFrontmatter(t *testing.T) {
 	raw := []byte("Just some content\nwith no frontmatter.\n")
 	p := &Parser{}

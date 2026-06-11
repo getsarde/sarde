@@ -1,6 +1,9 @@
 package imagerender
 
 import (
+	"bufio"
+	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/frostybee/sarde/internal/asset"
@@ -113,6 +116,52 @@ func TestImageRenderer_ParsesAttributes(t *testing.T) {
 	}
 	if receivedOpts.Height != 400 {
 		t.Errorf("lookup received Height = %d, want 400", receivedOpts.Height)
+	}
+}
+
+// The fallback <img> path must HTML-escape the destination so a quote in an
+// image URL cannot break out of the src attribute (XSS).
+func TestRenderImage_FallbackEscapesDestination(t *testing.T) {
+	r := NewRenderer(nil) // nil lookup forces the fallback path
+
+	n := ast.NewImage(ast.NewLink())
+	n.Destination = []byte(`x.png" onerror="alert(1)`)
+
+	var buf bytes.Buffer
+	w := bufio.NewWriter(&buf)
+	if _, err := r.renderImage(w, nil, n, true); err != nil {
+		t.Fatalf("renderImage failed: %v", err)
+	}
+	w.Flush()
+	out := buf.String()
+
+	if strings.Contains(out, `onerror="alert(1)`) {
+		t.Errorf("destination not escaped, attribute breakout possible:\n%s", out)
+	}
+	if !strings.Contains(out, `src="x.png&quot; onerror=&quot;alert(1)"`) {
+		t.Errorf("expected escaped destination in src attribute:\n%s", out)
+	}
+}
+
+func TestRenderImage_FallbackPlainDestination(t *testing.T) {
+	r := NewRenderer(nil)
+
+	n := ast.NewImage(ast.NewLink())
+	n.Destination = []byte("https://example.com/photo.jpg")
+
+	var buf bytes.Buffer
+	w := bufio.NewWriter(&buf)
+	if _, err := r.renderImage(w, nil, n, true); err != nil {
+		t.Fatalf("renderImage failed: %v", err)
+	}
+	w.Flush()
+	out := buf.String()
+
+	if !strings.Contains(out, `src="https://example.com/photo.jpg"`) {
+		t.Errorf("plain destination should pass through unchanged:\n%s", out)
+	}
+	if !strings.Contains(out, `loading="lazy"`) {
+		t.Errorf("fallback img should keep lazy loading:\n%s", out)
 	}
 }
 

@@ -69,7 +69,7 @@ func (r *Renderer) renderImage(w util.BufWriter, source []byte, node ast.Node, e
 
 	// Fallback: standard <img> rendering.
 	w.WriteString("<img src=\"")
-	w.WriteString(dest)
+	w.WriteString(escapeAttr(dest))
 	w.WriteString("\" alt=\"")
 	w.WriteString(escapeAttr(alt))
 	w.WriteByte('"')
