@@ -32,15 +32,37 @@
 	.sarde-taxonomy-term-description { color: var(--sd-text-muted); font-size: 1.125rem; margin: 0 0 0.5rem; }
 	.sarde-taxonomy-term-count { font-size: 0.875rem; color: var(--sd-text-muted); margin: 0; }
 
-	.sarde-tag-sidebar { padding: 1rem 0; }
-	.sarde-tag-sidebar-title { font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sd-text-muted); margin: 0 0 0.75rem; }
+	.sarde-tag-sidebar {
+		padding: 1rem;
+		background: var(--sd-bg-surface);
+		border: 1px solid var(--sd-border);
+		border-radius: var(--sd-radius-lg);
+	}
+	.sarde-tag-sidebar-title {
+		font-size: 0.8125rem; font-weight: 700; text-transform: uppercase;
+		letter-spacing: 0.05em; color: var(--sd-text-muted);
+		margin: 0 0 0.75rem; display: flex; align-items: center; gap: 0.375rem;
+	}
 	.sarde-tag-sidebar-list { display: flex; flex-direction: column; gap: 0.25rem; }
 	.sarde-tag-sidebar-item {
 		display: flex; justify-content: space-between; align-items: center;
-		padding: 0.25rem 0.5rem; border-radius: 0.25rem;
+		padding: 0.375rem 0.5rem; border-radius: var(--sd-radius-sm);
+		border-inline-start: 2px solid transparent;
 		text-decoration: none; color: var(--sd-text-muted);
-		font-size: 0.875rem; transition: background 0.15s, color 0.15s;
+		font-size: 0.875rem; transition: background 0.15s, color 0.15s, border-color 0.15s;
 	}
-	.sarde-tag-sidebar-item:hover { background: var(--sd-bg-surface); color: var(--sd-text); }
-	.sarde-tag-sidebar-count { font-size: 0.75rem; opacity: 0.6; }
+	.sarde-tag-sidebar-item:hover {
+		background: var(--sd-bg);
+		color: var(--sd-text);
+		border-inline-start-color: var(--sd-accent);
+	}
+	.sarde-tag-sidebar-count {
+		font-size: 0.75rem; font-weight: 500; color: var(--sd-text-muted);
+		background: var(--sd-bg); padding: 0.0625rem 0.375rem;
+		border-radius: var(--sd-radius-full); min-width: 1.25rem; text-align: center;
+	}
+
+	:root.dark .sarde-tag-sidebar { background: var(--sd-gray-9); border-color: var(--sd-gray-7); }
+	:root.dark .sarde-tag-sidebar-count { background: var(--sd-gray-7); }
+	:root.dark .sarde-tag-sidebar-item:hover { background: var(--sd-gray-8); }
 }

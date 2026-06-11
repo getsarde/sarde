@@ -116,4 +116,46 @@
 	.sarde-post-cover { margin: -1rem -1rem 2rem; }
 	.sarde-post-cover img { width: 100%; max-height: 24rem; object-fit: cover; display: block; border-radius: 0 0 0.5rem 0.5rem; }
 
+	/* ── Blog + Tag Sidebar Layout ── */
+	.sarde-blog-with-sidebar {
+	  max-width: 72rem;
+	  margin: 0 auto;
+	  padding: 0 var(--sd-space-4);
+	}
+
+	@media (min-width: 1024px) {
+	  .sarde-blog-with-sidebar {
+	    display: flex;
+	    gap: var(--sd-space-8);
+	  }
+
+	  .sarde-blog-with-sidebar > .sarde-blog-container,
+	  .sarde-blog-with-sidebar > .sarde-blog-container-wide {
+	    flex: 1;
+	    min-width: 0;
+	  }
+
+	  .sarde-blog-with-sidebar > .sarde-tag-sidebar {
+	    width: 220px;
+	    flex-shrink: 0;
+	    position: sticky;
+	    top: calc(var(--sd-nav-height) + var(--sd-space-8));
+	    align-self: flex-start;
+	  }
+	}
+
+	@media (max-width: 1023px) {
+	  .sarde-blog-with-sidebar > .sarde-tag-sidebar {
+	    border-top: 1px solid var(--sd-border);
+	    margin-top: var(--sd-space-6);
+	    padding-top: var(--sd-space-6);
+	  }
+
+	  .sarde-blog-with-sidebar .sarde-tag-sidebar-list {
+	    flex-direction: row;
+	    flex-wrap: wrap;
+	    gap: var(--sd-space-2);
+	  }
+	}
+
 }

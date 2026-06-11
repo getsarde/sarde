@@ -1,7 +1,7 @@
 {{ $tags := topTerms "tags" 20 }}
 {{ if $tags }}
 <aside class="sarde-tag-sidebar">
-  <h3 class="sarde-tag-sidebar-title">{{ t "taxonomy.tags" }}</h3>
+  <h3 class="sarde-tag-sidebar-title">{{ icon "tag" "" "width" "14" "height" "14" }} {{ t "taxonomy.tags" }}</h3>
   <div class="sarde-tag-sidebar-list">
     {{ range $tags }}
     <a href="{{ relURL .Permalink }}" class="sarde-tag-sidebar-item">
