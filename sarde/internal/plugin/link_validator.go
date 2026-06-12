@@ -40,8 +40,8 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 
 	checkAnchors := config.BoolVal(settings.CheckAnchors, true)
 	checkImages := config.BoolVal(settings.CheckImages, true)
-	warnRelative := config.BoolVal(settings.WarnRelativeLinks, true)
-	warnLocal := config.BoolVal(settings.WarnLocalLinks, true)
+	warnRelative := settings.EffectiveOnRelativeLinks() != "ignore"
+	warnLocal := settings.EffectiveOnLocalLinks() != "ignore"
 	sameSitePolicy := settings.SameSitePolicy
 	if sameSitePolicy == "" {
 		sameSitePolicy = "ignore"

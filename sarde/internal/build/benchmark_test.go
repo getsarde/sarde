@@ -269,8 +269,9 @@ func copyBenchmarkFile(src, dst string) error {
 func resolveBenchmarkSite(b *testing.B, projectDir string) (*config.SiteConfig, *engine.ThemeConfig) {
 	b.Helper()
 	cfg, err := config.Resolve(config.ResolveOptions{
-		ConfigPath: filepath.Join(projectDir, "sarde.yaml"),
-		EnvPrefix:  "SARDE",
+		ConfigPath:   filepath.Join(projectDir, "sarde.yaml"),
+		EnvPrefix:    "SARDE",
+		KnownPlugins: KnownPluginNames(),
 	})
 	if err != nil {
 		b.Fatalf("resolving config: %v", err)

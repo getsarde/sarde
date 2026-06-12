@@ -33,10 +33,11 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 		configPath = filepath.Join(projectDir, configPath)
 	}
 	cfg, err := config.Resolve(config.ResolveOptions{
-		ConfigPath: configPath,
-		CLIFlags:   CollectCLIFlags(cmd),
-		EnvPrefix:  "SARDE",
-		Strict:     true,
+		ConfigPath:   configPath,
+		CLIFlags:     CollectCLIFlags(cmd),
+		EnvPrefix:    "SARDE",
+		Strict:       true,
+		KnownPlugins: build.KnownPluginNames(),
 	})
 	if err != nil {
 		return fmt.Errorf("resolving config: %w", err)

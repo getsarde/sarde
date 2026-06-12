@@ -352,7 +352,6 @@ type IconSet struct {
 type LinkValidationSettings struct {
 	Enabled              *bool                 `yaml:"enabled"`
 	Level                string                `yaml:"level"`
-	InternalLinks        string                `yaml:"internal_links"`         // legacy alias for OnBroken
 	OnBroken             string                `yaml:"on_broken"`              // "error" (default) | "warn" | "ignore"
 	OnBrokenAnchor       string                `yaml:"on_broken_anchor"`       // "error" (default) | "warn" | "ignore"
 	Report               string                `yaml:"report"`                 // "pretty" (default) | "json" | "github-actions"
@@ -361,8 +360,6 @@ type LinkValidationSettings struct {
 	OnUnverifiedInternal string                `yaml:"on_unverified_internal"` // "warn" (default) | "error" | "ignore" — extension-less internal links that didn't resolve in-lane
 	CheckAnchors         *bool                 `yaml:"check_anchors"`
 	CheckImages          *bool                 `yaml:"check_images"`
-	WarnRelativeLinks    *bool                 `yaml:"warn_relative_links"` // legacy; prefer OnRelativeLinks
-	WarnLocalLinks       *bool                 `yaml:"warn_local_links"`    // legacy; prefer OnLocalLinks
 	SameSitePolicy       string                `yaml:"same_site_policy"`
 	SiteRootEscapePrefix string                `yaml:"site_root_escape_prefix"` // prefix (e.g. "site:") routing a link to the site root, bypassing lane logic
 	Exclude              []string              `yaml:"exclude"`
@@ -386,9 +383,6 @@ func (s *LinkValidationSettings) EffectiveOnBroken() string {
 	if s.OnBroken != "" {
 		return s.OnBroken
 	}
-	if s.InternalLinks != "" {
-		return s.InternalLinks
-	}
 	return "error"
 }
 
@@ -403,24 +397,12 @@ func (s *LinkValidationSettings) EffectiveOnRelativeLinks() string {
 	if s.OnRelativeLinks != "" {
 		return s.OnRelativeLinks
 	}
-	if s.WarnRelativeLinks != nil {
-		if *s.WarnRelativeLinks {
-			return "warn"
-		}
-		return "ignore"
-	}
 	return "warn"
 }
 
 func (s *LinkValidationSettings) EffectiveOnLocalLinks() string {
 	if s.OnLocalLinks != "" {
 		return s.OnLocalLinks
-	}
-	if s.WarnLocalLinks != nil {
-		if *s.WarnLocalLinks {
-			return "warn"
-		}
-		return "ignore"
 	}
 	return "warn"
 }

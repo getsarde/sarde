@@ -1424,3 +1424,16 @@ func registerSubpackagePlugins(mgr *plugin.Manager, enabled []string, configs ma
 	}
 	clientplugins.RegisterAll(mgr, enabled, configs)
 }
+
+// subpackagePluginNames lists Go subpackage plugins registered via
+// registerSubpackagePlugins (not in plugin.BuiltinNames()).
+var subpackagePluginNames = []string{"katex", "mermaid", "announcements", "social_cards"}
+
+// KnownPluginNames returns the union of all valid plugin names from the
+// Go-side registry, subpackage plugins, and client-side manifest.
+func KnownPluginNames() []string {
+	names := plugin.BuiltinNames()
+	names = append(names, subpackagePluginNames...)
+	names = append(names, clientplugins.PluginSlugs()...)
+	return names
+}

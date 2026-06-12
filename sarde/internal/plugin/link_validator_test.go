@@ -118,7 +118,6 @@ func TestLinkValidatorRelativeLink(t *testing.T) {
 }
 
 func TestLinkValidatorRelativeLinksDisabled(t *testing.T) {
-	f := false
 	data := map[string]engine.ValidationEntry{
 		"/page/": {
 			FilePath: "content/page.md",
@@ -127,7 +126,7 @@ func TestLinkValidatorRelativeLinksDisabled(t *testing.T) {
 	}
 
 	ctx, warnings := buildTestContext(nil, data, "")
-	ctx.Config.LinkValidation.WarnRelativeLinks = &f
+	ctx.Config.LinkValidation.OnRelativeLinks = "ignore"
 	linkValidatorBuildDone(ctx)
 
 	if len(*warnings) != 0 {

@@ -147,10 +147,11 @@ func resolveAll(cmd *cobra.Command, projectDir string) (*config.SiteConfig, *eng
 	}
 
 	cfg, err := config.Resolve(config.ResolveOptions{
-		ConfigPath: configPath,
-		CLIFlags:   CollectCLIFlags(cmd),
-		EnvPrefix:  "SARDE",
-		Strict:     true,
+		ConfigPath:   configPath,
+		CLIFlags:     CollectCLIFlags(cmd),
+		EnvPrefix:    "SARDE",
+		Strict:       true,
+		KnownPlugins: build.KnownPluginNames(),
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("resolving config: %w", err)

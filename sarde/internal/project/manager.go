@@ -838,9 +838,10 @@ func (pm *ProjectManager) newBuilder(d *builderDeps) *build.SiteBuilder {
 func (pm *ProjectManager) resolveConfig(projectDir string) (*config.SiteConfig, *engine.ThemeConfig, error) {
 	configPath := filepath.Join(projectDir, consts.FileSiteConfig)
 	cfg, err := config.Resolve(config.ResolveOptions{
-		ConfigPath: configPath,
-		EnvPrefix:  "SARDE",
-		Strict:     true,
+		ConfigPath:   configPath,
+		EnvPrefix:    "SARDE",
+		Strict:       true,
+		KnownPlugins: build.KnownPluginNames(),
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("resolving config: %w", err)

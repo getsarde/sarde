@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"path/filepath"
 
 	"github.com/frostybee/sarde/internal/consts"
@@ -10,11 +11,12 @@ import (
 
 // ResolveOptions provides inputs for the 5-layer config cascade.
 type ResolveOptions struct {
-	ConfigPath string         // path to sarde.yaml (default: "sarde.yaml")
-	ThemeDir   string         // path to active theme dir (empty = skip theme layer)
-	CLIFlags   map[string]any // flag overrides from Cobra
-	EnvPrefix  string         // env var prefix (default: "SARDE")
-	Strict     bool           // reject unknown fields in user sarde.yaml
+	ConfigPath   string         // path to sarde.yaml (default: "sarde.yaml")
+	ThemeDir     string         // path to active theme dir (empty = skip theme layer)
+	CLIFlags     map[string]any // flag overrides from Cobra
+	EnvPrefix    string         // env var prefix (default: "SARDE")
+	Strict       bool           // reject unknown fields in user sarde.yaml
+	KnownPlugins []string       // valid plugin names (collected by build layer from registries)
 }
 
 // Resolve loads and merges all config layers, returning the final SiteConfig.
@@ -79,7 +81,11 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 	}
 
 	// Validate the merged config.
-	if errs := Validate(cfg); len(errs) > 0 {
+	errs, warns := Validate(cfg, opts.KnownPlugins)
+	for _, w := range warns {
+		log.Printf("config warning: %s", w.Error())
+	}
+	if len(errs) > 0 {
 		return nil, fmt.Errorf("config validation failed:\n%s", validate.FormatErrors(errs))
 	}
 
@@ -349,7 +355,6 @@ func mergeIcons(base, over *IconSettings) {
 func mergeLinkValidation(base, over *LinkValidationSettings) {
 	mergeBoolP(&base.Enabled, over.Enabled)
 	mergeStr(&base.Level, over.Level)
-	mergeStr(&base.InternalLinks, over.InternalLinks)
 	mergeStr(&base.OnBroken, over.OnBroken)
 	mergeStr(&base.OnBrokenAnchor, over.OnBrokenAnchor)
 	mergeStr(&base.Report, over.Report)
@@ -358,8 +363,6 @@ func mergeLinkValidation(base, over *LinkValidationSettings) {
 	mergeStr(&base.OnUnverifiedInternal, over.OnUnverifiedInternal)
 	mergeBoolP(&base.CheckAnchors, over.CheckAnchors)
 	mergeBoolP(&base.CheckImages, over.CheckImages)
-	mergeBoolP(&base.WarnRelativeLinks, over.WarnRelativeLinks)
-	mergeBoolP(&base.WarnLocalLinks, over.WarnLocalLinks)
 	mergeStr(&base.SameSitePolicy, over.SameSitePolicy)
 	mergeStr(&base.SiteRootEscapePrefix, over.SiteRootEscapePrefix)
 	mergeBoolP(&base.FailBuild, over.FailBuild)

@@ -202,7 +202,7 @@ plugins:
   - search
   - seo
   - redirects
-  - link_checker
+  - link_validator
   - content_lint
   - llms_txt
   - katex

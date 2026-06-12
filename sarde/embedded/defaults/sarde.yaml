@@ -129,8 +129,6 @@ link_validation:
   on_unverified_internal: "warn"
   check_anchors: true
   check_images: true
-  warn_relative_links: true
-  warn_local_links: true
   same_site_policy: "ignore"
   # Links prefixed with this string resolve at the site root, bypassing all
   # collection/lang/version lane logic — an escape hatch for links to other
