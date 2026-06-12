@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/frostybee/sarde/internal/consts"
+	"github.com/frostybee/sarde/internal/validate"
 )
 
 // ResolveOptions provides inputs for the 5-layer config cascade.
@@ -13,6 +14,7 @@ type ResolveOptions struct {
 	ThemeDir   string         // path to active theme dir (empty = skip theme layer)
 	CLIFlags   map[string]any // flag overrides from Cobra
 	EnvPrefix  string         // env var prefix (default: "SARDE")
+	Strict     bool           // reject unknown fields in user sarde.yaml
 }
 
 // Resolve loads and merges all config layers, returning the final SiteConfig.
@@ -44,7 +46,15 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 	if configPath == "" {
 		configPath = consts.FileSiteConfig
 	}
-	userCfg, err := LoadFile(configPath)
+	var (
+		userCfg *SiteConfig
+		err     error
+	)
+	if opts.Strict {
+		userCfg, err = LoadFileStrict(configPath)
+	} else {
+		userCfg, err = LoadFile(configPath)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -66,6 +76,11 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 	// Apply i18n defaults and validation.
 	if err := normalizeI18n(&cfg.I18n); err != nil {
 		return nil, err
+	}
+
+	// Validate the merged config.
+	if errs := Validate(cfg); len(errs) > 0 {
+		return nil, fmt.Errorf("config validation failed:\n%s", validate.FormatErrors(errs))
 	}
 
 	return cfg, nil

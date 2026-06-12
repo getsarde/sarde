@@ -3,6 +3,7 @@ package taxonomy
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -255,5 +256,112 @@ func TestEnrich_NoMetadataFile(t *testing.T) {
 	// Label should still default to Name.
 	if tax["tags"].Terms["go"].Label != "Go" {
 		t.Errorf("Label not set to Name")
+	}
+}
+
+func TestEnrich_CustomSlugCollisionMergesPages(t *testing.T) {
+	dir, tax := setupEnrichTest(t, `
+go:
+  permalink: "rust"
+`)
+	cfg := map[string]config.TaxonomyConfig{"tags": {UndefinedTags: "ignore"}}
+
+	warnings, err := EnrichTaxonomies(tax, cfg, dir, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(warnings) != 1 {
+		t.Fatalf("expected exactly 1 collision warning, got %d: %v", len(warnings), warnings)
+	}
+	if strings.Contains(warnings[0], ": term ") {
+		t.Errorf("warning must not contain %q (emitTaxonomyWarnings rewrites it): %q", ": term ", warnings[0])
+	}
+
+	if _, ok := tax["tags"].Terms["go"]; ok {
+		t.Error("old slug \"go\" should be removed after re-key")
+	}
+	survivor := tax["tags"].Terms["rust"]
+	if survivor == nil {
+		t.Fatal("term \"rust\" missing after merge")
+	}
+	if survivor.Name != "Rust" {
+		t.Errorf("survivor should keep existing metadata, Name = %q", survivor.Name)
+	}
+	if len(survivor.Pages) != 4 {
+		t.Fatalf("merged pages = %d, want 4 (3 from go + 1 from rust)", len(survivor.Pages))
+	}
+	if survivor.Pages[0].Title != "Post 2" {
+		t.Errorf("merged pages not sorted by date desc, first = %q", survivor.Pages[0].Title)
+	}
+}
+
+func TestReKeyTerms_SameCustomSlugDeterministic(t *testing.T) {
+	tax := &engine.Taxonomy{
+		Name: "tags",
+		Terms: map[string]*engine.TaxonomyTerm{
+			"go":   {Name: "Go", Slug: "go", CustomSlug: "lang", Pages: []*engine.Page{{PageIdentity: engine.PageIdentity{Title: "G"}}}},
+			"rust": {Name: "Rust", Slug: "rust", CustomSlug: "lang", Pages: []*engine.Page{{PageIdentity: engine.PageIdentity{Title: "R"}}}},
+		},
+	}
+	warnings := reKeyTerms(tax)
+
+	if len(warnings) != 1 {
+		t.Fatalf("expected 1 warning, got %d: %v", len(warnings), warnings)
+	}
+	if len(tax.Terms) != 1 {
+		t.Fatalf("expected 1 surviving term, got %d", len(tax.Terms))
+	}
+	survivor := tax.Terms["lang"]
+	if survivor == nil {
+		t.Fatal("term \"lang\" missing")
+	}
+	// "go" sorts before "rust", so Go inserts first and wins.
+	if survivor.Name != "Go" {
+		t.Errorf("survivor = %q, want deterministic winner \"Go\"", survivor.Name)
+	}
+	if len(survivor.Pages) != 2 {
+		t.Errorf("merged pages = %d, want 2", len(survivor.Pages))
+	}
+}
+
+func TestReKeyTerms_ChainReKeyNoFalseCollision(t *testing.T) {
+	tax := &engine.Taxonomy{
+		Name: "tags",
+		Terms: map[string]*engine.TaxonomyTerm{
+			"go":   {Name: "Go", Slug: "go", CustomSlug: "rust"},
+			"rust": {Name: "Rust", Slug: "rust", CustomSlug: "systems"},
+		},
+	}
+	warnings := reKeyTerms(tax)
+
+	if len(warnings) != 0 {
+		t.Fatalf("chain re-key must not warn, got: %v", warnings)
+	}
+	if got := tax.Terms["rust"]; got == nil || got.Name != "Go" {
+		t.Errorf("Terms[\"rust\"] should be the re-keyed Go term, got %+v", got)
+	}
+	if got := tax.Terms["systems"]; got == nil || got.Name != "Rust" {
+		t.Errorf("Terms[\"systems\"] should be the re-keyed Rust term, got %+v", got)
+	}
+}
+
+func TestReKeyTerms_SharedPageDeduped(t *testing.T) {
+	shared := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Shared"}}
+	tax := &engine.Taxonomy{
+		Name: "tags",
+		Terms: map[string]*engine.TaxonomyTerm{
+			"go":   {Name: "Go", Slug: "go", CustomSlug: "lang", Pages: []*engine.Page{shared}},
+			"rust": {Name: "Rust", Slug: "rust", CustomSlug: "lang", Pages: []*engine.Page{shared}},
+		},
+	}
+	reKeyTerms(tax)
+
+	survivor := tax.Terms["lang"]
+	if survivor == nil {
+		t.Fatal("term \"lang\" missing")
+	}
+	if len(survivor.Pages) != 1 {
+		t.Errorf("shared page must appear once, got %d entries", len(survivor.Pages))
 	}
 }

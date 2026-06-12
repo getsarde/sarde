@@ -110,6 +110,10 @@ func DownloadFile(srcURL string) (string, error) {
 		return "", fmt.Errorf("downloading %s: HTTP %d", srcURL, resp.StatusCode)
 	}
 
+	// Best-effort early rejection when the server declares a length. For
+	// chunked/unknown-length responses ContentLength is -1 and this never
+	// fires; the post-copy size check below (paired with the LimitReader) is
+	// the actual enforcement.
 	if resp.ContentLength > maxDownloadSize {
 		return "", fmt.Errorf("download too large: %d bytes (max %d)", resp.ContentLength, maxDownloadSize)
 	}

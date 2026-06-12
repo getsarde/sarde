@@ -840,6 +840,7 @@ func (pm *ProjectManager) resolveConfig(projectDir string) (*config.SiteConfig, 
 	cfg, err := config.Resolve(config.ResolveOptions{
 		ConfigPath: configPath,
 		EnvPrefix:  "SARDE",
+		Strict:     true,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("resolving config: %w", err)

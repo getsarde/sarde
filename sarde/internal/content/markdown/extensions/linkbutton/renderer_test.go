@@ -1,13 +1,17 @@
 package linkbutton_test
 
 import (
+	"bytes"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/frostybee/sarde/internal/content"
 	"github.com/frostybee/sarde/internal/content/markdown"
+	"github.com/frostybee/sarde/internal/content/markdown/extensions/linkbutton"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/links"
+	"github.com/yuin/goldmark"
 )
 
 func setupTestEnv() (*markdown.Renderer, *engine.Page, *links.LinkGraph) {
@@ -151,5 +155,78 @@ func TestLinkButtonContentRootHref(t *testing.T) {
 	}
 	if refs[0].Status != links.StatusOK {
 		t.Errorf("Expected StatusOK, got: %v", refs[0].Status)
+	}
+}
+
+// Per-block label state must not leak between blocks parsed by the same
+// (shared) block-parser instance — regression for the hasLabel-on-parser bug.
+func TestLinkButtonConsecutiveBlocks_BodyCaptureIndependent(t *testing.T) {
+	md := goldmark.New(goldmark.WithExtensions(&linkbutton.Extension{}))
+
+	src := ":::link-button[Labeled]{href=\"https://example.com/a\"}\n" +
+		"body must be ignored\n" +
+		":::\n\n" +
+		":::link-button{href=\"https://example.com/b\"}\n" +
+		"Body Becomes Label\n" +
+		":::\n"
+
+	var buf bytes.Buffer
+	if err := md.Convert([]byte(src), &buf); err != nil {
+		t.Fatalf("Convert: %v", err)
+	}
+	html := buf.String()
+
+	if !strings.Contains(html, ">Labeled</a>") {
+		t.Errorf("first block should render its explicit label, got: %s", html)
+	}
+	if strings.Contains(html, "body must be ignored") {
+		t.Errorf("first block has an explicit label; body lines must be ignored, got: %s", html)
+	}
+	if !strings.Contains(html, ">Body Becomes Label</a>") {
+		t.Errorf("second block has no label; body must become the content, got: %s", html)
+	}
+}
+
+// The same goldmark instance rendered from many goroutines must keep labeled
+// and unlabeled blocks independent (per-block state lives on the AST node,
+// not the shared parser).
+func TestLinkButtonSharedParserConcurrent(t *testing.T) {
+	md := goldmark.New(goldmark.WithExtensions(&linkbutton.Extension{}))
+
+	labeled := ":::link-button[Fixed]{href=\"https://example.com/a\"}\nignored\n:::\n"
+	unlabeled := ":::link-button{href=\"https://example.com/b\"}\nFromBody\n:::\n"
+
+	var wg sync.WaitGroup
+	errs := make(chan string, 64)
+	for g := 0; g < 32; g++ {
+		wg.Add(1)
+		go func(g int) {
+			defer wg.Done()
+			for i := 0; i < 6; i++ {
+				src, wantContent, banned := labeled, ">Fixed</a>", "ignored"
+				if (g+i)%2 == 0 {
+					src, wantContent, banned = unlabeled, ">FromBody</a>", ""
+				}
+				var buf bytes.Buffer
+				if err := md.Convert([]byte(src), &buf); err != nil {
+					errs <- "convert: " + err.Error()
+					return
+				}
+				out := buf.String()
+				if !strings.Contains(out, wantContent) {
+					errs <- "missing " + wantContent + " in: " + out
+					return
+				}
+				if banned != "" && strings.Contains(out, banned) {
+					errs <- "body leaked into labeled block: " + out
+					return
+				}
+			}
+		}(g)
+	}
+	wg.Wait()
+	close(errs)
+	for e := range errs {
+		t.Error(e)
 	}
 }

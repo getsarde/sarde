@@ -93,6 +93,7 @@ type SiteBuilder struct {
 	lastScProcessor    *shortcode.Processor
 	lastShortcodesHash string
 	lastPageCache      *PageCache
+	lastIconRenderKey  string
 	lastValidationData map[string]engine.ValidationEntry
 }
 
@@ -1200,6 +1201,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	b.lastScProcessor = scProcessor
 	b.lastShortcodesHash = shortcodesHash
 	b.lastPageCache = pageCache
+	b.lastIconRenderKey = iconRenderKey
 	b.lastValidationData = validationData
 	b.built = true
 

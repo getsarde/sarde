@@ -39,7 +39,7 @@ func runThemeRemove(cmd *cobra.Command, args []string) error {
 	}
 
 	configPath, _ := cmd.Flags().GetString("config")
-	cfg, err := config.Resolve(config.ResolveOptions{ConfigPath: configPath})
+	cfg, err := config.Resolve(config.ResolveOptions{ConfigPath: configPath, Strict: true})
 	if err != nil {
 		cfg = config.Defaults()
 	}

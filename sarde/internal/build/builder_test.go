@@ -145,6 +145,43 @@ func TestBuild_IconRenderModeBustsPageCache(t *testing.T) {
 	}
 }
 
+// TestContentRebuild_IconRenderKeyThreaded guards the incremental-rebuild
+// page-cache key: ContentRebuild must reuse the icon render key from the last
+// full build. Regression — markdownRenderDeps in ContentRebuild left
+// iconRenderKey empty, so incremental cache keys never matched full-build keys
+// (wasted re-renders, latent sprite/inline inconsistency).
+func TestContentRebuild_IconRenderKeyThreaded(t *testing.T) {
+	dir := t.TempDir()
+	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n# Home\n")
+	writeFixture(t, dir, "content/docs/_index.md", "---\ntitle: Docs\n---\n")
+	writeFixture(t, dir, "content/docs/icons.md", "---\ntitle: Icons\nweight: 1\n---\nStars ::icon[star]\n")
+	defer icons.SetRenderMode("inline") // restore global mode for other tests
+
+	cfg := config.Defaults()
+	cfg.Icons.Render = "sprite"
+	cfg.Build.Minify = config.BoolPtr(false)
+	b := NewSiteBuilder(BuildOptions{ProjectDir: dir, Config: cfg, ThemeConfig: buildThemeConfig(), EmbeddedFS: embedded.ThemeFS()})
+	if _, err := b.Build(); err != nil {
+		t.Fatalf("full build failed: %v", err)
+	}
+	if b.lastIconRenderKey != "icon-sprite" {
+		t.Fatalf("lastIconRenderKey = %q after sprite build, want %q", b.lastIconRenderKey, "icon-sprite")
+	}
+
+	writeFixture(t, dir, "content/docs/icons.md", "---\ntitle: Icons\nweight: 1\n---\nMore stars ::icon[star] ::icon[star]\n")
+	if _, err := b.ContentRebuild([]string{filepath.Join(dir, "content", "docs", "icons.md")}); err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(dir, "dist", "docs", "icons", "index.html"))
+	if err != nil {
+		t.Fatalf("read rebuilt output: %v", err)
+	}
+	if !strings.Contains(string(data), `<use href="#i-lucide-star"`) {
+		t.Error("incremental rebuild did not render sprite <use> refs")
+	}
+}
+
 func TestBuild_HomeHero_BackCompatConfig(t *testing.T) {
 	projDir := createFixtureSite(t)
 	cfg := config.Defaults()

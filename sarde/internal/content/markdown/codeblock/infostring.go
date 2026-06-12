@@ -98,6 +98,10 @@ func ParseInfoString(info string) CodeBlockInfo {
 	return result
 }
 
+// maxLineRangeSpan caps how many lines a single range like {1-1000000} may
+// expand to, so hostile or typo'd info strings cannot allocate unbounded maps.
+const maxLineRangeSpan = 10000
+
 // parseLineRanges parses "2-5,8,10-12" into a set of line numbers.
 func parseLineRanges(s string) map[int]bool {
 	lines := make(map[int]bool)
@@ -111,12 +115,18 @@ func parseLineRanges(s string) map[int]bool {
 			start, err1 := strconv.Atoi(strings.TrimSpace(part[:idx]))
 			end, err2 := strconv.Atoi(strings.TrimSpace(part[idx+1:]))
 			if err1 == nil && err2 == nil {
+				if start < 1 {
+					start = 1
+				}
+				if end-start+1 > maxLineRangeSpan {
+					end = start + maxLineRangeSpan - 1
+				}
 				for i := start; i <= end; i++ {
 					lines[i] = true
 				}
 			}
 		} else {
-			if n, err := strconv.Atoi(part); err == nil {
+			if n, err := strconv.Atoi(part); err == nil && n >= 1 {
 				lines[n] = true
 			}
 		}

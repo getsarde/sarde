@@ -68,6 +68,9 @@ func runImportObsidian(cmd *cobra.Command, args []string) error {
 			fmt.Printf(", %d items skipped", result.ItemsSkipped)
 		}
 		fmt.Println()
+		for _, w := range result.Warnings {
+			fmt.Fprintf(os.Stderr, "warning: %s\n", w)
+		}
 	}
 
 	return nil

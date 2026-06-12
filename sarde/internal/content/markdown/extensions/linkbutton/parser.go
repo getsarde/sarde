@@ -13,10 +13,8 @@ import (
 var openingRegex = regexp.MustCompile(`^(:{3,})\s*link-button(?:\[([^\]]*)\])?(?:\{([^}]*)\})?\s*$`)
 var attrRegex = regexp.MustCompile(`(\w+)="([^"]*)"`)
 
-// linkButtonParser is stateless between blocks; hasLabel is reset in Open on each new block.
-type linkButtonParser struct {
-	hasLabel bool
-}
+// linkButtonParser is stateless; per-block parse state lives on LinkButtonBlock.
+type linkButtonParser struct{}
 
 func NewParser() parser.BlockParser         { return &linkButtonParser{} }
 func (p *linkButtonParser) Trigger() []byte { return []byte{':'} }
@@ -52,8 +50,6 @@ func (p *linkButtonParser) Open(parent ast.Node, reader text.Reader, pc parser.C
 		content = attrs["label"]
 	}
 
-	p.hasLabel = content != ""
-
 	return &LinkButtonBlock{
 		Href:          attrs["href"],
 		Variant:       variant,
@@ -61,6 +57,7 @@ func (p *linkButtonParser) Open(parent ast.Node, reader text.Reader, pc parser.C
 		IconPlacement: iconPlacement,
 		Content:       content,
 		ColonCount:    colonCount,
+		HasLabel:      content != "",
 	}, parser.NoChildren
 }
 
@@ -75,7 +72,7 @@ func (p *linkButtonParser) Continue(node ast.Node, reader text.Reader, pc parser
 	}
 
 	// Only use body content when no explicit label was given in the opening tag.
-	if !p.hasLabel && trimmed != "" {
+	if !lb.HasLabel && trimmed != "" {
 		if lb.Content != "" {
 			lb.Content += " "
 		}

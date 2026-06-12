@@ -574,6 +574,30 @@ func TestEnv_IntField(t *testing.T) {
 	}
 }
 
+func TestEnv_InvalidBoolIgnored(t *testing.T) {
+	cfg := Defaults()
+	original := BoolVal(cfg.Build.Drafts, false)
+	t.Setenv("SARDE_BUILD_DRAFTS", "maybe")
+
+	applyEnvOverrides(cfg, "SARDE")
+
+	if BoolVal(cfg.Build.Drafts, false) != original {
+		t.Error("invalid bool env value must leave Build.Drafts unchanged")
+	}
+}
+
+func TestEnv_InvalidIntIgnored(t *testing.T) {
+	cfg := Defaults()
+	original := cfg.Server.Port
+	t.Setenv("SARDE_SERVER_PORT", "abc")
+
+	applyEnvOverrides(cfg, "SARDE")
+
+	if cfg.Server.Port != original {
+		t.Errorf("invalid int env value must leave Server.Port unchanged, got %d", cfg.Server.Port)
+	}
+}
+
 func TestEnv_UnsetVarNoEffect(t *testing.T) {
 	cfg := Defaults()
 	originalTitle := cfg.Site.Title

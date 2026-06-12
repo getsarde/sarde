@@ -36,6 +36,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 		ConfigPath: configPath,
 		CLIFlags:   CollectCLIFlags(cmd),
 		EnvPrefix:  "SARDE",
+		Strict:     true,
 	})
 	if err != nil {
 		return fmt.Errorf("resolving config: %w", err)

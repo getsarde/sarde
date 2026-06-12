@@ -115,3 +115,49 @@ func TestPruneRevisions(t *testing.T) {
 		t.Errorf("got %d revisions, want 2", got)
 	}
 }
+
+// Regression: for extensionless files the suffix check is vacuous, so decoy
+// files like "README.123.backup" used to be listed as revisions (Sscanf
+// accepted the "123" prefix of the middle segment).
+func TestListRevisions_ExtensionlessIgnoresDecoys(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "README")
+	if err := os.WriteFile(path, []byte("content"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := CreateRevision(path); err != nil {
+		t.Fatalf("CreateRevision: %v", err)
+	}
+
+	revDir := filepath.Join(dir, ".revisions")
+	os.WriteFile(filepath.Join(revDir, "README.123.backup"), []byte("decoy"), 0o644)
+	os.WriteFile(filepath.Join(revDir, "README.notanumber"), []byte("decoy"), 0o644)
+
+	revs := ListRevisions(path)
+	if len(revs) != 1 {
+		var names []string
+		for _, r := range revs {
+			names = append(names, filepath.Base(r.Path))
+		}
+		t.Errorf("ListRevisions = %d entries %v, want exactly the genuine revision", len(revs), names)
+	}
+}
+
+func TestListRevisions_RejectsNonNumericMiddle(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "doc.md")
+	if err := os.WriteFile(path, []byte("content"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := CreateRevision(path); err != nil {
+		t.Fatalf("CreateRevision: %v", err)
+	}
+
+	revDir := filepath.Join(dir, ".revisions")
+	os.WriteFile(filepath.Join(revDir, "doc.123abc.md"), []byte("decoy"), 0o644)
+
+	revs := ListRevisions(path)
+	if len(revs) != 1 {
+		t.Errorf("ListRevisions = %d entries, want 1 (decoy with non-numeric middle excluded)", len(revs))
+	}
+}

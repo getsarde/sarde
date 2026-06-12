@@ -12,6 +12,11 @@ type LinkButtonBlock struct {
 	IconPlacement string
 	Content       string
 	ColonCount    int
+	// HasLabel records whether the opening tag carried an explicit label, so
+	// Continue knows to ignore body lines. It lives on the node because the
+	// parser instance is shared across blocks (and across pages rendered
+	// concurrently).
+	HasLabel bool
 }
 
 func (n *LinkButtonBlock) Kind() gast.NodeKind { return KindLinkButtonBlock }

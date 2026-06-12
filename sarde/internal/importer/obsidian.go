@@ -1,6 +1,7 @@
 package importer
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,10 +14,11 @@ import (
 
 // ImportResult holds statistics from an import operation.
 type ImportResult struct {
-	NotesConverted int `json:"notes_converted"`
-	ImagesCopied   int `json:"images_copied"`
-	LinksConverted int `json:"links_converted"`
-	ItemsSkipped   int `json:"items_skipped"`
+	NotesConverted int      `json:"notes_converted"`
+	ImagesCopied   int      `json:"images_copied"`
+	LinksConverted int      `json:"links_converted"`
+	ItemsSkipped   int      `json:"items_skipped"`
+	Warnings       []string `json:"warnings,omitempty"`
 }
 
 // Supported image extensions for copying.
@@ -87,9 +89,10 @@ func ImportObsidian(vaultPath, collection, contentDir string) (*ImportResult, er
 	}
 
 	// Copy image files.
-	copied, skipped := copyImages(vaultPath, filepath.Join(outDir, "assets"))
+	copied, skipped, warnings := copyImages(vaultPath, filepath.Join(outDir, "assets"))
 	result.ImagesCopied = copied
 	result.ItemsSkipped += skipped
+	result.Warnings = warnings
 
 	return result, nil
 }
@@ -180,8 +183,23 @@ func resolveWikilink(page string, wikilinkMap map[string]string) string {
 	return content.Slugify(page)
 }
 
-// copyImages walks the vault and copies image files to the assets directory.
-func copyImages(vaultPath, assetsDir string) (copied, skipped int) {
+// copiedImage tracks the first image written under a given basename so later
+// collisions can be compared by content and attributed in warnings.
+type copiedImage struct {
+	hash   [sha256.Size]byte
+	source string // vault-relative path of the first copy
+}
+
+// copyImages walks the vault and copies image files to the flat assets
+// directory (markdown embeds reference images by bare filename, so the layout
+// must stay flat). Duplicate basenames with identical content are copied once;
+// differing content is written under a deduped "<stem>-<n><ext>" name with a
+// warning, since markdown references to that basename resolve to the first copy.
+func copyImages(vaultPath, assetsDir string) (copied, skipped int, warnings []string) {
+	// Keys are lowercased: the output filesystem may be case-insensitive
+	// (Windows/macOS), where "Logo.png" and "logo.png" would silently collide.
+	seen := make(map[string]copiedImage)
+
 	filepath.Walk(vaultPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return nil
@@ -205,11 +223,43 @@ func copyImages(vaultPath, assetsDir string) (copied, skipped int) {
 			return nil
 		}
 
-		dst := filepath.Join(assetsDir, info.Name())
+		relSource := path
+		if rel, relErr := filepath.Rel(vaultPath, path); relErr == nil {
+			relSource = filepath.ToSlash(rel)
+		}
+		hash := sha256.Sum256(data)
+		name := info.Name()
+		key := strings.ToLower(name)
+
+		if prev, ok := seen[key]; ok {
+			if prev.hash == hash {
+				// Same content already copied once; not a new image.
+				return nil
+			}
+			// Different content under the same name: keep the first copy
+			// (walk order is deterministic), write this one deduped.
+			stem := strings.TrimSuffix(name, filepath.Ext(name))
+			dedupedName := ""
+			for n := 2; ; n++ {
+				candidate := fmt.Sprintf("%s-%d%s", stem, n, filepath.Ext(name))
+				if _, taken := seen[strings.ToLower(candidate)]; !taken {
+					dedupedName = candidate
+					break
+				}
+			}
+			warnings = append(warnings, fmt.Sprintf(
+				"image name collision: %q (from %s) differs from the copy already imported from %s; saved as %q — markdown references to %q resolve to the first copy",
+				name, relSource, prev.source, dedupedName, name))
+			name = dedupedName
+			key = strings.ToLower(name)
+		}
+
+		dst := filepath.Join(assetsDir, name)
 		if err := os.WriteFile(dst, data, 0o644); err != nil {
 			skipped++
 			return nil
 		}
+		seen[key] = copiedImage{hash: hash, source: relSource}
 		copied++
 		return nil
 	})

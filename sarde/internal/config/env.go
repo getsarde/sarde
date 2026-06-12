@@ -4,6 +4,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/frostybee/sarde/internal/devlog"
 )
 
 // applyEnvOverrides reads SARDE_-prefixed environment variables and applies
@@ -102,6 +104,7 @@ func lookupEnvBool(prefix, key string) (bool, bool) {
 	case "false", "0", "no", "off":
 		return false, true
 	default:
+		devlog.Warn("config", "ignoring %s_%s=%q: not a valid boolean (use true/false/1/0/yes/no/on/off)", prefix, key, v)
 		return false, false
 	}
 }
@@ -113,6 +116,7 @@ func lookupEnvInt(prefix, key string) (int, bool) {
 	}
 	n, err := strconv.Atoi(v)
 	if err != nil {
+		devlog.Warn("config", "ignoring %s_%s=%q: not a valid integer", prefix, key, v)
 		return 0, false
 	}
 	return n, true

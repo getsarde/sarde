@@ -189,13 +189,16 @@ func (p *ImageProcessor) ProcessImage(srcPath string, opts ImageOptions) ([]Imag
 		lqip = p.generateLQIP(src)
 	}
 
-	// Store in cache.
-	p.Cache.Put(cacheKey, &CacheEntry{
+	// Store in cache. A failed write is non-fatal (the variants were already
+	// produced) but means this image re-processes every build, so say so.
+	if err := p.Cache.Put(cacheKey, &CacheEntry{
 		SourceHash: srcHash,
 		Params:     params,
 		Variants:   variants,
 		LQIP:       lqip,
-	})
+	}); err != nil {
+		log.Printf("[WARN] failed to cache image metadata for %s: %v", srcPath, err)
+	}
 
 	return variants, lqip, nil
 }
@@ -432,24 +435,36 @@ func formatToExt(format string) string {
 	}
 }
 
-// saveImage writes an image to disk in the specified format.
+// saveImage writes an image to disk in the specified format. On encode
+// failure the partially-written file is removed so the variants cache never
+// holds corrupt output.
 func saveImage(img image.Image, path, ext string, quality int) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 
+	var encErr error
 	switch ext {
 	case ".png":
-		return png.Encode(f, img)
+		encErr = png.Encode(f, img)
 	case ".webp":
-		return webp.Encode(f, img, webp.Options{Quality: quality})
+		encErr = webp.Encode(f, img, webp.Options{Quality: quality})
 	case ".avif":
-		return encodeAVIF(f, img, quality)
+		encErr = encodeAVIF(f, img, quality)
 	default:
-		return jpeg.Encode(f, img, &jpeg.Options{Quality: quality})
+		encErr = jpeg.Encode(f, img, &jpeg.Options{Quality: quality})
 	}
+
+	closeErr := f.Close()
+	if encErr == nil {
+		encErr = closeErr
+	}
+	if encErr != nil {
+		os.Remove(path)
+		return encErr
+	}
+	return nil
 }
 
 // hashImage computes a fingerprint of an in-memory image by encoding it.

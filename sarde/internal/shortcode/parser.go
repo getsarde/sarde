@@ -23,16 +23,18 @@ var (
 // ParseParams extracts key=value pairs from a raw attribute string.
 func ParseParams(raw string) map[string]string {
 	params := make(map[string]string)
-	matches := reParam.FindAllStringSubmatch(raw, -1)
-	for _, m := range matches {
-		key := m[1]
+	// Index-based submatches distinguish "group matched the empty string"
+	// (key="") from "group did not participate", which string submatches
+	// cannot.
+	for _, m := range reParam.FindAllStringSubmatchIndex(raw, -1) {
+		key := raw[m[2]:m[3]]
 		switch {
-		case m[2] != "":
-			params[key] = m[2]
-		case m[3] != "":
-			params[key] = m[3]
-		default:
-			params[key] = m[4]
+		case m[4] >= 0: // double-quoted value
+			params[key] = raw[m[4]:m[5]]
+		case m[6] >= 0: // single-quoted value
+			params[key] = raw[m[6]:m[7]]
+		default: // bare value
+			params[key] = raw[m[8]:m[9]]
 		}
 	}
 	return params

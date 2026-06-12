@@ -343,6 +343,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		scProcessor:    b.lastScProcessor,
 		shortcodesHash: b.lastShortcodesHash,
 		resolutionKey:  b.resolutionKey,
+		iconRenderKey:  b.lastIconRenderKey,
 		pageCache:      b.lastPageCache,
 		assetPipeline:  b.lastAssetPipeline,
 	}

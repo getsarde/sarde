@@ -3,7 +3,9 @@ package plugin
 import (
 	"encoding/json"
 	"html/template"
+	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/engine"
@@ -164,6 +166,99 @@ func TestSearch_ContentTruncation(t *testing.T) {
 
 	if len(docs[0].Content) > 100 {
 		t.Errorf("content length = %d, should be truncated to 100", len(docs[0].Content))
+	}
+}
+
+func TestTruncateRuneSafe(t *testing.T) {
+	tests := []struct {
+		name string
+		s    string
+		max  int
+		want string
+	}{
+		{"ascii under max", "hello", 10, "hello"},
+		{"ascii exact", "hello", 5, "hello"},
+		{"ascii cut", "hello", 3, "hel"},
+		{"mid 2-byte rune", "ééé", 3, "é"},      // é = 2 bytes; cut at 3 lands mid-rune
+		{"mid 4-byte rune", "😀😀", 6, "😀"},      // 😀 = 4 bytes; cut at 6 lands mid-rune
+		{"boundary 2-byte", "ééé", 4, "éé"},     // cut on a rune boundary keeps both
+		{"max zero", "héllo", 0, ""},
+		{"max negative", "héllo", -5, ""},
+		{"empty", "", 5, ""},
+	}
+	for _, tt := range tests {
+		got := truncateRuneSafe(tt.s, tt.max)
+		if got != tt.want {
+			t.Errorf("%s: truncateRuneSafe(%q, %d) = %q, want %q", tt.name, tt.s, tt.max, got, tt.want)
+		}
+		if !utf8.ValidString(got) {
+			t.Errorf("%s: result %q is not valid UTF-8", tt.name, got)
+		}
+	}
+}
+
+func TestSearch_TruncationRuneSafe(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+
+	// 200 two-byte runes → 400 bytes stripped; max_content_length 101 lands
+	// mid-rune and must back off to a rune boundary.
+	content := "<p>" + strings.Repeat("é", 200) + "</p>"
+
+	ctx := &BuildDoneContext{
+		Config:    config.Defaults(),
+		OutputDir: outDir,
+		Pages: []*engine.Page{
+			{PageIdentity: engine.PageIdentity{Title: "Accents", RelPermalink: "/accents/"}, PageContent: engine.PageContent{Content: template.HTML(content)}},
+		},
+	}
+	ctx.SetWarnings(&warnings)
+
+	cfg := map[string]any{"max_content_length": 101}
+	if err := searchBuildDone(ctx, cfg); err != nil {
+		t.Fatalf("searchBuildDone: %v", err)
+	}
+
+	data, err := readTestFile(outDir, "search-index.en.json")
+	if err != nil {
+		t.Fatalf("reading search-index.en.json: %v", err)
+	}
+	if !utf8.Valid(data) {
+		t.Error("search index file is not valid UTF-8")
+	}
+	var docs []searchDocument
+	if err := json.Unmarshal(data, &docs); err != nil {
+		t.Fatalf("unmarshaling search index: %v", err)
+	}
+	if len(docs) != 1 {
+		t.Fatalf("expected 1 document, got %d", len(docs))
+	}
+	got := docs[0].Content
+	if len(got) > 101 {
+		t.Errorf("content length = %d, want <= 101", len(got))
+	}
+	if !utf8.ValidString(got) {
+		t.Errorf("truncated content is not valid UTF-8: %q", got)
+	}
+	if strings.ContainsRune(got, utf8.RuneError) {
+		t.Errorf("truncated content contains replacement char: %q", got)
+	}
+}
+
+func TestBuildBreadcrumb_CycleSafe(t *testing.T) {
+	a := &engine.Section{Title: "A"}
+	b := &engine.Section{Title: "B"}
+	a.Parent = b
+	b.Parent = a // deliberate cycle
+
+	page := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Title: "P"},
+		PageRelationships: engine.PageRelationships{Section: a},
+	}
+	// The assertion is that this returns at all (depth-capped walk).
+	got := buildBreadcrumb(page)
+	if got == "" {
+		t.Error("expected non-empty breadcrumb")
 	}
 }
 

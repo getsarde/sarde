@@ -8,6 +8,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"math"
+	"strings"
 	"time"
 
 	"golang.org/x/image/font"
@@ -241,7 +242,7 @@ func resolveAccent(cfg map[string]any, siteCfg *config.SiteConfig) color.NRGBA {
 
 // parseHexColor parses a "#rrggbb" or "#rgb" hex string into an NRGBA color.
 func parseHexColor(hex string) color.NRGBA {
-	hex = trimPrefix(hex, "#")
+	hex = strings.TrimPrefix(hex, "#")
 	if len(hex) == 3 {
 		r := hexVal(hex[0]) * 17
 		g := hexVal(hex[1]) * 17
@@ -255,13 +256,6 @@ func parseHexColor(hex string) color.NRGBA {
 		return color.NRGBA{R: r, G: g, B: b, A: 0xff}
 	}
 	return color.NRGBA{R: 0x1a, G: 0x1a, B: 0x2e, A: 0xff}
-}
-
-func trimPrefix(s, prefix string) string {
-	if len(s) > 0 && s[:len(prefix)] == prefix {
-		return s[len(prefix):]
-	}
-	return s
 }
 
 func hexVal(b byte) uint8 {

@@ -217,6 +217,11 @@ func TestParseHexColor(t *testing.T) {
 		{"#e94560", color.NRGBA{233, 69, 96, 255}},
 		{"#fff", color.NRGBA{255, 255, 255, 255}},
 		{"#abc", color.NRGBA{170, 187, 204, 255}},
+		{"fff", color.NRGBA{255, 255, 255, 255}},
+		// Invalid lengths (incl. empty) fall back to the default; the old
+		// hand-rolled trimPrefix panicked on inputs shorter than the prefix.
+		{"", color.NRGBA{0x1a, 0x1a, 0x2e, 255}},
+		{"#f", color.NRGBA{0x1a, 0x1a, 0x2e, 255}},
 	}
 	for _, tt := range tests {
 		got := parseHexColor(tt.input)

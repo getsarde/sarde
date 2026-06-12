@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/frostybee/sarde/internal/consts"
@@ -128,10 +129,11 @@ func ResolveOutputDir(projectDir, configured string) (string, error) {
 		return "", fmt.Errorf("empty output directory")
 	}
 
+	// Reject any literal ".." segment in the raw (pre-Clean) path. This is
+	// strictly stronger than checking the cleaned path — Clean never introduces
+	// ".." but can erase one (e.g. "foo/../bar" → "bar"), and we want to reject
+	// such paths too.
 	rawOutput := filepath.FromSlash(output)
-	if !filepath.IsAbs(rawOutput) && hasParentSegment(filepath.Clean(rawOutput)) {
-		return "", fmt.Errorf("output directory must not contain traversal: %q", configured)
-	}
 	if !filepath.IsAbs(rawOutput) && hasParentSegment(rawOutput) {
 		return "", fmt.Errorf("output directory must not contain traversal: %q", configured)
 	}
@@ -205,5 +207,11 @@ func samePath(a, b string) bool {
 	if err != nil {
 		return false
 	}
-	return strings.EqualFold(filepath.Clean(absA), filepath.Clean(absB))
+	ca, cb := filepath.Clean(absA), filepath.Clean(absB)
+	// Case-insensitive comparison only where the filesystem convention is
+	// case-insensitive; on Linux distinct casings are distinct paths.
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+		return strings.EqualFold(ca, cb)
+	}
+	return ca == cb
 }

@@ -57,7 +57,7 @@ func EnrichTaxonomies(
 		}
 
 		// Re-key terms that have a custom slug from the permalink field.
-		reKeyTerms(tax)
+		warnings = append(warnings, reKeyTerms(tax)...)
 
 		// Validate undefined tags against metadata definitions.
 		cfg := taxCfg[name]
@@ -82,8 +82,12 @@ func EnrichTaxonomies(
 
 // reKeyTerms updates terms that have a CustomSlug set from the permalink
 // metadata field. The term is removed from the old key and re-inserted
-// under the new slug, and its Slug/Permalink are updated.
-func reKeyTerms(tax *engine.Taxonomy) {
+// under the new slug, and its Slug/Permalink are updated. When two terms
+// resolve to the same slug, the displaced term's pages are merged into the
+// surviving term (deduped) and a warning is returned instead of silently
+// dropping it.
+func reKeyTerms(tax *engine.Taxonomy) []string {
+	var warnings []string
 	var toReKey []struct {
 		oldSlug string
 		newSlug string
@@ -96,13 +100,51 @@ func reKeyTerms(tax *engine.Taxonomy) {
 			}{slug, term.CustomSlug})
 		}
 	}
+	// Map iteration order is random; sort so collision outcomes are
+	// deterministic across builds.
+	sort.Slice(toReKey, func(i, j int) bool { return toReKey[i].oldSlug < toReKey[j].oldSlug })
+
+	// Phase 1: remove every re-keyed term first, so a term vacating a slug
+	// does not falsely collide with another term moving into it.
+	moved := make(map[string]*engine.TaxonomyTerm, len(toReKey))
 	for _, rk := range toReKey {
-		term := tax.Terms[rk.oldSlug]
+		moved[rk.oldSlug] = tax.Terms[rk.oldSlug]
 		delete(tax.Terms, rk.oldSlug)
+	}
+
+	// Phase 2: re-insert under the new slugs, merging pages on collision.
+	for _, rk := range toReKey {
+		term := moved[rk.oldSlug]
+		if existing, ok := tax.Terms[rk.newSlug]; ok {
+			existing.Pages = mergeTermPages(existing.Pages, term.Pages)
+			warnings = append(warnings, fmt.Sprintf(
+				"taxonomy %q: permalink %q of %q collides with an existing slug — merged %d page(s) into the existing entry (check data/%s.yml)",
+				tax.Name, rk.newSlug, term.Name, len(term.Pages), tax.Name))
+			continue
+		}
 		term.Slug = rk.newSlug
 		term.Permalink = "/" + tax.Name + "/" + rk.newSlug + "/"
 		tax.Terms[rk.newSlug] = term
 	}
+	return warnings
+}
+
+// mergeTermPages unions two page lists, deduped by page identity, sorted by
+// date descending (the order EnrichTaxonomies establishes per term).
+func mergeTermPages(a, b []*engine.Page) []*engine.Page {
+	seen := make(map[*engine.Page]struct{}, len(a)+len(b))
+	merged := make([]*engine.Page, 0, len(a)+len(b))
+	for _, list := range [][]*engine.Page{a, b} {
+		for _, p := range list {
+			if _, ok := seen[p]; ok {
+				continue
+			}
+			seen[p] = struct{}{}
+			merged = append(merged, p)
+		}
+	}
+	sort.Slice(merged, func(i, j int) bool { return merged[i].Date.After(merged[j].Date) })
+	return merged
 }
 
 // validateUndefinedTerms checks for terms found in pages but not in metadata.

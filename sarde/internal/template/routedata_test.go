@@ -389,3 +389,33 @@ func TestBuildRouteData_TranslationsAndAllTranslations(t *testing.T) {
 		t.Errorf("AllTranslations[2] = %+v, want ar fallback", rd.AllTranslations[2])
 	}
 }
+
+// Regression: col.Config.Versioning was read without the col.Config nil guard
+// used by the other config accesses in the same block.
+func TestBuildRouteData_NilCollectionConfig(t *testing.T) {
+	col := &engine.Collection{Name: "docs", Title: "Docs"} // Config deliberately nil
+	page := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Title: "P", Kind: engine.KindPage},
+		PageRelationships: engine.PageRelationships{Collection: col},
+	}
+
+	rd := BuildRouteData(page, baseSite(), nil) // must not panic
+
+	if rd.Version != "" || rd.Versions != nil {
+		t.Errorf("no versioning config → version fields must stay empty, got Version=%q Versions=%v", rd.Version, rd.Versions)
+	}
+}
+
+// Regression: the headerLinks block read site.Config without the site nil
+// guard used by the other site accesses in the same function.
+func TestBuildRouteData_NilSite(t *testing.T) {
+	page := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "P", Kind: engine.KindPage},
+	}
+
+	rd := BuildRouteData(page, nil, nil) // must not panic
+
+	if rd.GlobalNav != nil {
+		t.Errorf("nil site → GlobalNav should be nil, got %+v", rd.GlobalNav)
+	}
+}

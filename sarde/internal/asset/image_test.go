@@ -735,3 +735,21 @@ func TestEncodeAVIF_Stub(t *testing.T) {
 		t.Errorf("error = %v, want ErrAVIFNotAvailable", err)
 	}
 }
+
+// Regression: a failed encode used to leave a partial (e.g. 0-byte) file in
+// the variants cache; saveImage must remove it.
+func TestSaveImage_RemovesPartialFileOnEncodeFailure(t *testing.T) {
+	img := image.NewRGBA(image.Rect(0, 0, 4, 4))
+	path := filepath.Join(t.TempDir(), "out.avif")
+
+	err := saveImage(img, path, ".avif", 80)
+	if err == nil {
+		t.Skip("AVIF encoder available in this build; failure path not reachable via .avif")
+	}
+	if !errors.Is(err, ErrAVIFNotAvailable) {
+		t.Fatalf("expected ErrAVIFNotAvailable, got %v", err)
+	}
+	if _, statErr := os.Stat(path); !os.IsNotExist(statErr) {
+		t.Errorf("partial file should be removed on encode failure, stat err = %v", statErr)
+	}
+}

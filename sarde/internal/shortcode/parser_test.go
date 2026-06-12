@@ -199,3 +199,19 @@ func TestRegexClosing(t *testing.T) {
 		}
 	}
 }
+
+func TestParseParams_EmptyQuotedValues(t *testing.T) {
+	params := ParseParams(` a="" b=2 c='' d=raw`)
+	if v, ok := params["a"]; !ok || v != "" {
+		t.Errorf(`expected a="" present and empty, got %q (present=%v)`, v, ok)
+	}
+	if v, ok := params["c"]; !ok || v != "" {
+		t.Errorf(`expected c='' present and empty, got %q (present=%v)`, v, ok)
+	}
+	if params["b"] != "2" {
+		t.Errorf("expected b=2, got %q", params["b"])
+	}
+	if params["d"] != "raw" {
+		t.Errorf("expected d=raw, got %q", params["d"])
+	}
+}

@@ -79,14 +79,12 @@ func CheckExternalLinks(graph *LinkGraph, cfg ExternalCheckConfig) error {
 
 		client := &http.Client{Timeout: timeout}
 		var mu sync.Mutex
-		sem := make(chan struct{}, concurrency)
 		g := new(errgroup.Group)
+		g.SetLimit(concurrency)
 
 		for _, u := range toProbe {
 			u := u
 			g.Go(func() error {
-				sem <- struct{}{}
-				defer func() { <-sem }()
 				res := probeURL(context.Background(), client, u, method)
 				mu.Lock()
 				cache.Entries[u] = res

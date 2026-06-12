@@ -2,7 +2,6 @@ package devlog
 
 import (
 	"os"
-	"strings"
 
 	"golang.org/x/term"
 )
@@ -48,25 +47,4 @@ func statusColor(code int) func(string) string {
 	default:
 		return Green
 	}
-}
-
-// StripAnsi removes ANSI escape sequences from a string.
-func StripAnsi(s string) string {
-	var b strings.Builder
-	b.Grow(len(s))
-	inEsc := false
-	for i := 0; i < len(s); i++ {
-		if s[i] == '\033' {
-			inEsc = true
-			continue
-		}
-		if inEsc {
-			if s[i] == 'm' {
-				inEsc = false
-			}
-			continue
-		}
-		b.WriteByte(s[i])
-	}
-	return b.String()
 }

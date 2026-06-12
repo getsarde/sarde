@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/frostybee/sarde/internal/engine"
 )
@@ -68,14 +69,8 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		}
 		seen[url] = true
 
-		raw := string(page.Content)
-		if cutoff := maxLen * 3; len(raw) > cutoff {
-			raw = raw[:cutoff]
-		}
-		content := stripHTML(raw)
-		if len(content) > maxLen {
-			content = content[:maxLen]
-		}
+		raw := truncateRuneSafe(string(page.Content), maxLen*3)
+		content := truncateRuneSafe(stripHTML(raw), maxLen)
 
 		section := ""
 		if page.Collection != nil {
@@ -146,13 +141,28 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 	return nil
 }
 
+// truncateRuneSafe cuts s to at most max bytes without splitting a UTF-8 rune.
+func truncateRuneSafe(s string, max int) string {
+	if max < 0 {
+		max = 0
+	}
+	if len(s) <= max {
+		return s
+	}
+	for max > 0 && !utf8.RuneStart(s[max]) {
+		max--
+	}
+	return s[:max]
+}
+
 func buildBreadcrumb(page *engine.Page) string {
 	var parts []string
 	if page.Collection != nil {
 		parts = append(parts, page.Collection.Title)
 	}
 	var sectionParts []string
-	for s := page.Section; s != nil; s = s.Parent {
+	// Depth cap guards against a (mis-assembled) circular section tree.
+	for s, depth := page.Section, 0; s != nil && depth < 100; s, depth = s.Parent, depth+1 {
 		title := s.Title
 		if title == "" && s.IndexPage != nil {
 			title = s.IndexPage.Title

@@ -101,3 +101,61 @@ func assertLineSet(t *testing.T, label string, got, want map[int]bool) {
 		}
 	}
 }
+
+func TestParseLineRanges_Bounds(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		wantLen  int
+		contains []int
+		excludes []int
+	}{
+		{
+			name:     "huge range clamped to span cap",
+			input:    "1-1000000",
+			wantLen:  maxLineRangeSpan,
+			contains: []int{1, maxLineRangeSpan},
+			excludes: []int{maxLineRangeSpan + 1},
+		},
+		{
+			name:     "zero start clamped to 1",
+			input:    "0-5",
+			wantLen:  5,
+			contains: []int{1, 5},
+			excludes: []int{0},
+		},
+		{
+			name:    "zero single line ignored",
+			input:   "0",
+			wantLen: 0,
+		},
+		{
+			name:    "negative single line ignored",
+			input:   "-3",
+			wantLen: 0,
+		},
+		{
+			name:     "normal ranges unchanged",
+			input:    "2-5,8",
+			wantLen:  5,
+			contains: []int{2, 3, 4, 5, 8},
+			excludes: []int{1, 6, 7},
+		},
+	}
+	for _, tt := range tests {
+		got := parseLineRanges(tt.input)
+		if len(got) != tt.wantLen {
+			t.Errorf("%s: parseLineRanges(%q) has %d entries, want %d", tt.name, tt.input, len(got), tt.wantLen)
+		}
+		for _, n := range tt.contains {
+			if !got[n] {
+				t.Errorf("%s: parseLineRanges(%q) missing line %d", tt.name, tt.input, n)
+			}
+		}
+		for _, n := range tt.excludes {
+			if got[n] {
+				t.Errorf("%s: parseLineRanges(%q) should not contain line %d", tt.name, tt.input, n)
+			}
+		}
+	}
+}

@@ -123,11 +123,13 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 			rd.Paginator = buildPaginator(col, current)
 		}
 
-		if vc := col.Config.Versioning; vc != nil && vc.Enabled {
-			rd.Version = page.Version
-			rd.IsLatest = isLastVersion(page.Version, vc)
-			rd.VersionLabel, rd.VersionBanner = versionLabelAndBanner(page.Version, vc)
-			rd.Versions = buildVersionLinks(page, vc, col.Name)
+		if col.Config != nil {
+			if vc := col.Config.Versioning; vc != nil && vc.Enabled {
+				rd.Version = page.Version
+				rd.IsLatest = isLastVersion(page.Version, vc)
+				rd.VersionLabel, rd.VersionBanner = versionLabelAndBanner(page.Version, vc)
+				rd.Versions = buildVersionLinks(page, vc, col.Name)
+			}
 		}
 
 		// Sidebar and navigation for layouts with sidebar
@@ -253,8 +255,10 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 
 	// GlobalNav (collections + config header links)
 	var headerLinks []config.NavLink
-	if siteCfg, ok := site.Config.(*config.SiteConfig); ok && siteCfg != nil {
-		headerLinks = siteCfg.Header.Links
+	if site != nil && site.Config != nil {
+		if siteCfg, ok := site.Config.(*config.SiteConfig); ok {
+			headerLinks = siteCfg.Header.Links
+		}
 	}
 	rd.GlobalNav = navigation.BuildGlobalNav(site, col, headerLinks)
 

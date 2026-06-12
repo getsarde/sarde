@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -60,9 +61,13 @@ func ListRevisions(filePath string) []RevisionInfo {
 		if entry.IsDir() || !strings.HasPrefix(n, prefix) || !strings.HasSuffix(n, ext) {
 			continue
 		}
+		// The middle segment must be exactly the digits CreateRevision wrote.
+		// ParseInt (unlike Sscanf) rejects trailing garbage, which also keeps
+		// extensionless files (ext == "" → vacuous suffix check) from matching
+		// unrelated names like "README.123.backup".
 		middle := strings.TrimSuffix(strings.TrimPrefix(n, prefix), ext)
-		var ts int64
-		if _, err := fmt.Sscanf(middle, "%d", &ts); err != nil {
+		ts, err := strconv.ParseInt(middle, 10, 64)
+		if err != nil || ts <= 0 {
 			continue
 		}
 		info, err := entry.Info()

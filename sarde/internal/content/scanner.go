@@ -161,30 +161,6 @@ func (s *Scanner) DiscoverFiles(contentDir string) ([]ContentFile, error) {
 	return files, err
 }
 
-// ClassifyNode determines the NodeKind for a given file path.
-func ClassifyNode(contentDir, filePath string) engine.NodeKind {
-	contentDir = filepath.Clean(contentDir)
-	rel, _ := filepath.Rel(contentDir, filePath)
-	rel = filepath.ToSlash(rel)
-	base := filepath.Base(rel)
-	dir := filepath.Dir(rel)
-	if dir == "." {
-		dir = ""
-	}
-
-	// Check for sibling assets (for bundle detection)
-	dirAssets := make(map[string][]string)
-	absDir := filepath.Dir(filePath)
-	entries, _ := os.ReadDir(absDir)
-	for _, e := range entries {
-		if !e.IsDir() && strings.ToLower(filepath.Ext(e.Name())) != ".md" {
-			dirAssets[absDir] = append(dirAssets[absDir], filepath.Join(absDir, e.Name()))
-		}
-	}
-
-	return classifyKind(base, dir, filePath, dirAssets)
-}
-
 // ClassifyFile constructs a ContentFile for a single file path without walking
 // the entire content directory. Used by incremental rebuild.
 func (s *Scanner) ClassifyFile(contentDir, filePath string) (ContentFile, error) {

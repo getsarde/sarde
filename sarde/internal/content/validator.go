@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/frostybee/sarde/internal/engine"
+	"github.com/frostybee/sarde/internal/validate"
 	"gopkg.in/yaml.v3"
 )
 
@@ -24,6 +25,7 @@ func (v *Validator) Validate(fm map[string]interface{}, schema *engine.Frontmatt
 	}
 
 	var warnings []engine.ValidationWarning
+	var c validate.Checker
 
 	for name, def := range schema.Fields {
 		val, exists := fm[name]
@@ -44,14 +46,14 @@ func (v *Validator) Validate(fm map[string]interface{}, schema *engine.Frontmatt
 		// Type checking
 		if w := validateType(name, val, def); w != nil {
 			warnings = append(warnings, *w)
-			continue // skip constraint checks if type is wrong
+			continue
 		}
 
-		// Constraint checking
-		warnings = append(warnings, validateConstraints(name, val, def)...)
+		// Constraint checking (warning level) — delegated to Checker
+		validateConstraints(&c, name, val, def)
 	}
 
-	return warnings
+	return append(warnings, toWarnings(c.Errors())...)
 }
 
 func validateType(name string, val interface{}, def engine.FieldDef) *engine.ValidationWarning {
@@ -105,19 +107,11 @@ func validateType(name string, val interface{}, def engine.FieldDef) *engine.Val
 			}
 		}
 	case "enum", "select", "radio":
-		s, ok := val.(string)
-		if !ok {
+		if _, ok := val.(string); !ok {
 			return &engine.ValidationWarning{
 				Field:   name,
 				Message: fmt.Sprintf("expected string for %s, got %T", def.Type, val),
 				Level:   "error",
-			}
-		}
-		if len(def.Options) > 0 && !contains(def.Options, s) {
-			return &engine.ValidationWarning{
-				Field:   name,
-				Message: fmt.Sprintf("value %q not in options %v", s, def.Options),
-				Level:   "warning",
 			}
 		}
 	case "group":
@@ -134,41 +128,39 @@ func validateType(name string, val interface{}, def engine.FieldDef) *engine.Val
 	return nil
 }
 
-func validateConstraints(name string, val interface{}, def engine.FieldDef) []engine.ValidationWarning {
-	var warnings []engine.ValidationWarning
+func validateConstraints(c *validate.Checker, name string, val interface{}, def engine.FieldDef) {
+	// Enum check (moved from validateType — same trigger conditions)
+	if (def.Type == "enum" || def.Type == "select" || def.Type == "radio") && len(def.Options) > 0 {
+		if s, ok := val.(string); ok {
+			c.OneOf(name, s, def.Options)
+		}
+	}
 
 	// Numeric min/max
-	if def.Min != nil || def.Max != nil {
-		if n, ok := toFloat64(val); ok {
-			if def.Min != nil && n < *def.Min {
-				warnings = append(warnings, engine.ValidationWarning{
-					Field:   name,
-					Message: fmt.Sprintf("value %.0f is below minimum %.0f", n, *def.Min),
-					Level:   "warning",
-				})
-			}
-			if def.Max != nil && n > *def.Max {
-				warnings = append(warnings, engine.ValidationWarning{
-					Field:   name,
-					Message: fmt.Sprintf("value %.0f exceeds maximum %.0f", n, *def.Max),
-					Level:   "warning",
-				})
-			}
-		}
+	if n, ok := toFloat64(val); ok {
+		c.FloatMin(name, n, def.Min)
+		c.FloatMax(name, n, def.Max)
 	}
 
 	// String max_length
-	if def.MaxLength != nil {
-		if s, ok := val.(string); ok && len(s) > *def.MaxLength {
-			warnings = append(warnings, engine.ValidationWarning{
-				Field:   name,
-				Message: fmt.Sprintf("length %d exceeds max_length %d", len(s), *def.MaxLength),
-				Level:   "warning",
-			})
+	if s, ok := val.(string); ok {
+		c.MaxLength(name, s, def.MaxLength)
+	}
+}
+
+func toWarnings(errs []validate.Error) []engine.ValidationWarning {
+	if len(errs) == 0 {
+		return nil
+	}
+	ws := make([]engine.ValidationWarning, len(errs))
+	for i, e := range errs {
+		ws[i] = engine.ValidationWarning{
+			Field:   e.Path,
+			Message: e.Message,
+			Level:   "warning",
 		}
 	}
-
-	return warnings
+	return ws
 }
 
 // ---------------------------------------------------------------------------
@@ -260,11 +252,3 @@ func toFloat64(v interface{}) (float64, bool) {
 	return 0, false
 }
 
-func contains(list []string, s string) bool {
-	for _, item := range list {
-		if item == s {
-			return true
-		}
-	}
-	return false
-}
