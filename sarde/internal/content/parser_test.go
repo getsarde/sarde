@@ -308,22 +308,22 @@ func TestParseFrontmatter_SidebarGroup(t *testing.T) {
 }
 
 func TestParseFrontmatter_TOC(t *testing.T) {
-	raw := []byte("---\ntitle: Test\ntoc: false\ntoc_min_level: 2\ntoc_max_level: 4\n---\nBody.\n")
+	raw := []byte("---\ntitle: Test\ntoc:\n  enabled: false\n  min_level: 2\n  max_level: 4\n---\nBody.\n")
 	fm, _, err := ParseFrontmatter(raw)
 	if err != nil {
 		t.Fatalf("ParseFrontmatter error: %v", err)
 	}
-	if fm.TOC == nil {
-		t.Fatal("TOC should not be nil")
+	if fm.TOC.Enabled == nil {
+		t.Fatal("TOC.Enabled should not be nil")
 	}
-	if *fm.TOC != false {
-		t.Errorf("TOC = %v, want false", *fm.TOC)
+	if *fm.TOC.Enabled != false {
+		t.Errorf("TOC.Enabled = %v, want false", *fm.TOC.Enabled)
 	}
-	if fm.TOCMinLevel != 2 {
-		t.Errorf("TOCMinLevel = %d, want 2", fm.TOCMinLevel)
+	if fm.TOC.MinLevel != 2 {
+		t.Errorf("TOC.MinLevel = %d, want 2", fm.TOC.MinLevel)
 	}
-	if fm.TOCMaxLevel != 4 {
-		t.Errorf("TOCMaxLevel = %d, want 4", fm.TOCMaxLevel)
+	if fm.TOC.MaxLevel != 4 {
+		t.Errorf("TOC.MaxLevel = %d, want 4", fm.TOC.MaxLevel)
 	}
 }
 

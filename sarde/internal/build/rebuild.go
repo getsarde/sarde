@@ -549,6 +549,9 @@ func incrementalEligibilityFailure(old, next *engine.Page, cf content.ContentFil
 		!reflect.DeepEqual(old.Sidebar.Attrs, next.Sidebar.Attrs) {
 		return "sidebar fields changed"
 	}
+	if !reflect.DeepEqual(old.TOC, next.TOC) {
+		return "toc fields changed"
+	}
 	for _, key := range []string{
 		"render", "template", "layout", "type", "prev", "next",
 	} {

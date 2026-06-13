@@ -65,7 +65,7 @@ func collectCascade(page *engine.Page) map[string]any {
 // hasn't explicitly set that field itself.
 func applyCascadeField(page *engine.Page, key string, value any) {
 	switch key {
-	case "layout", "template", "type", "toc", "toc_min_level", "toc_max_level",
+	case "layout", "template", "type",
 		"pagefind", "icon", "edit_url", "show_updated":
 		if _, exists := page.Params[key]; !exists {
 			page.Params[key] = value
@@ -81,6 +81,19 @@ func applyCascadeField(page *engine.Page, key string, value any) {
 			}
 			if s, ok := subMap["group"].(string); ok && page.Sidebar.Group == "" {
 				page.Sidebar.Group = s
+			}
+		}
+
+	case "toc":
+		if subMap, ok := value.(map[string]any); ok {
+			if b, ok := subMap["enabled"].(bool); ok && page.TOC.Enabled == nil {
+				page.TOC.Enabled = &b
+			}
+			if n, ok := subMap["min_level"].(int); ok && page.TOC.MinLevel == 0 {
+				page.TOC.MinLevel = n
+			}
+			if n, ok := subMap["max_level"].(int); ok && page.TOC.MaxLevel == 0 {
+				page.TOC.MaxLevel = n
 			}
 		}
 

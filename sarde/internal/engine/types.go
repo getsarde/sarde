@@ -151,6 +151,13 @@ type PageSidebar struct {
 	Badge  Badge
 }
 
+// PageTOC holds per-page table-of-contents override fields.
+type PageTOC struct {
+	Enabled  *bool
+	MinLevel int
+	MaxLevel int
+}
+
 // PageI18n holds language and translation fields.
 type PageI18n struct {
 	Lang            string
@@ -180,6 +187,7 @@ type Page struct {
 	PageRelationships
 	PageTaxonomy
 	Sidebar PageSidebar
+	TOC     PageTOC
 	PageI18n
 	PageVersioning
 
@@ -230,9 +238,9 @@ type FrontmatterSidebar struct {
 
 // FrontmatterTOC holds table-of-contents override fields.
 type FrontmatterTOC struct {
-	TOC         *bool `yaml:"toc"`
-	TOCMinLevel int   `yaml:"toc_min_level"`
-	TOCMaxLevel int   `yaml:"toc_max_level"`
+	Enabled  *bool `yaml:"enabled"`
+	MinLevel int   `yaml:"min_level"`
+	MaxLevel int   `yaml:"max_level"`
 }
 
 // FrontmatterNav holds prev/next navigation override fields.
@@ -248,7 +256,7 @@ type Frontmatter struct {
 	FrontmatterIdentity `yaml:",inline"`
 	FrontmatterMeta     `yaml:",inline"`
 	Sidebar             FrontmatterSidebar `yaml:"sidebar"`
-	FrontmatterTOC      `yaml:",inline"`
+	TOC                 FrontmatterTOC     `yaml:"toc"`
 	FrontmatterNav      `yaml:",inline"`
 
 	Tags        []string       `yaml:"tags"`

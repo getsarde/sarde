@@ -466,15 +466,15 @@ func TestBuildPages_SidebarAttrsTransferred(t *testing.T) {
 }
 
 func TestBuildPages_TOCFieldsTransferred(t *testing.T) {
-	page := buildSinglePage(t, "title: Test\ntoc: true\ntoc_min_level: 2\ntoc_max_level: 5", "Body.")
-	if page.Params["toc"] != true {
-		t.Errorf("Params[toc] = %v, want true", page.Params["toc"])
+	page := buildSinglePage(t, "title: Test\ntoc:\n  enabled: true\n  min_level: 2\n  max_level: 5", "Body.")
+	if page.TOC.Enabled == nil || *page.TOC.Enabled != true {
+		t.Errorf("TOC.Enabled = %v, want true", page.TOC.Enabled)
 	}
-	if page.Params["toc_min_level"] != 2 {
-		t.Errorf("Params[toc_min_level] = %v, want 2", page.Params["toc_min_level"])
+	if page.TOC.MinLevel != 2 {
+		t.Errorf("TOC.MinLevel = %v, want 2", page.TOC.MinLevel)
 	}
-	if page.Params["toc_max_level"] != 5 {
-		t.Errorf("Params[toc_max_level] = %v, want 5", page.Params["toc_max_level"])
+	if page.TOC.MaxLevel != 5 {
+		t.Errorf("TOC.MaxLevel = %v, want 5", page.TOC.MaxLevel)
 	}
 }
 

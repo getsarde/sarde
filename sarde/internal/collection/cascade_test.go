@@ -10,7 +10,7 @@ import (
 func TestApplyCascade_Basic(t *testing.T) {
 	indexPage := &engine.Page{
 		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
-		Params:       map[string]any{consts.CascadeKey: map[string]any{"layout": "docs", "toc": true}},
+		Params:       map[string]any{consts.CascadeKey: map[string]any{"layout": "docs", "toc": map[string]any{"enabled": true}}},
 	}
 	sec := &engine.Section{IndexPage: indexPage}
 	child := &engine.Page{
@@ -24,8 +24,8 @@ func TestApplyCascade_Basic(t *testing.T) {
 	if child.Params["layout"] != "docs" {
 		t.Errorf("expected layout=docs, got %v", child.Params["layout"])
 	}
-	if child.Params["toc"] != true {
-		t.Errorf("expected toc=true, got %v", child.Params["toc"])
+	if child.TOC.Enabled == nil || *child.TOC.Enabled != true {
+		t.Errorf("expected TOC.Enabled=true, got %v", child.TOC.Enabled)
 	}
 }
 
@@ -51,11 +51,11 @@ func TestApplyCascade_ChildOverrides(t *testing.T) {
 func TestApplyCascade_MultiLevel(t *testing.T) {
 	grandparentIdx := &engine.Page{
 		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
-		Params:       map[string]any{consts.CascadeKey: map[string]any{"layout": "docs", "toc": false}},
+		Params:       map[string]any{consts.CascadeKey: map[string]any{"layout": "docs", "toc": map[string]any{"enabled": false}}},
 	}
 	parentIdx := &engine.Page{
 		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
-		Params:       map[string]any{consts.CascadeKey: map[string]any{"toc": true}},
+		Params:       map[string]any{consts.CascadeKey: map[string]any{"toc": map[string]any{"enabled": true}}},
 	}
 	grandparent := &engine.Section{IndexPage: grandparentIdx}
 	parent := &engine.Section{IndexPage: parentIdx, Parent: grandparent}
@@ -70,8 +70,8 @@ func TestApplyCascade_MultiLevel(t *testing.T) {
 	if child.Params["layout"] != "docs" {
 		t.Errorf("expected layout=docs from grandparent, got %v", child.Params["layout"])
 	}
-	if child.Params["toc"] != true {
-		t.Errorf("expected toc=true from parent (overrides grandparent), got %v", child.Params["toc"])
+	if child.TOC.Enabled == nil || *child.TOC.Enabled != true {
+		t.Errorf("expected TOC.Enabled=true from parent (overrides grandparent), got %v", child.TOC.Enabled)
 	}
 }
 
@@ -104,7 +104,7 @@ func TestApplyCascade_ParamsMerge(t *testing.T) {
 func TestApplyCascade_SectionPageFromParent(t *testing.T) {
 	parentIdx := &engine.Page{
 		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
-		Params:       map[string]any{consts.CascadeKey: map[string]any{"toc": true}},
+		Params:       map[string]any{consts.CascadeKey: map[string]any{"toc": map[string]any{"enabled": true}}},
 	}
 	parent := &engine.Section{IndexPage: parentIdx}
 	childIdx := &engine.Page{
@@ -116,8 +116,8 @@ func TestApplyCascade_SectionPageFromParent(t *testing.T) {
 
 	ApplyCascade([]*engine.Page{childIdx})
 
-	if childIdx.Params["toc"] != true {
-		t.Errorf("section _index.md should receive cascade from parent, got %v", childIdx.Params["toc"])
+	if childIdx.TOC.Enabled == nil || *childIdx.TOC.Enabled != true {
+		t.Errorf("section _index.md should receive TOC.Enabled=true from parent, got %v", childIdx.TOC.Enabled)
 	}
 }
 

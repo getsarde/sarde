@@ -441,6 +441,11 @@ func buildPage(
 			Attrs:  fm.Sidebar.Attrs,
 			Badge:  fm.Sidebar.Badge,
 		},
+		TOC: engine.PageTOC{
+			Enabled:  fm.TOC.Enabled,
+			MinLevel: fm.TOC.MinLevel,
+			MaxLevel: fm.TOC.MaxLevel,
+		},
 		PageI18n: engine.PageI18n{
 			Lang:        cf.Lang,
 			LangRelPath: cf.LangRelPath,
@@ -545,15 +550,6 @@ func mapFrontmatterToParams(page *engine.Page, fm *engine.Frontmatter, fmMap map
 	}
 	if fm.Pagefind != nil {
 		page.Params["pagefind"] = *fm.Pagefind
-	}
-	if fm.TOC != nil {
-		page.Params["toc"] = *fm.TOC
-	}
-	if fm.TOCMinLevel > 0 {
-		page.Params["toc_min_level"] = fm.TOCMinLevel
-	}
-	if fm.TOCMaxLevel > 0 {
-		page.Params["toc_max_level"] = fm.TOCMaxLevel
 	}
 	if fm.Layout != "" {
 		page.Params["layout"] = fm.Layout
