@@ -543,12 +543,14 @@ func incrementalEligibilityFailure(old, next *engine.Page, cf content.ContentFil
 	if boolParam(old.Params, "featured") != boolParam(next.Params, "featured") {
 		return "featured status changed"
 	}
-	if old.SidebarLabel != next.SidebarLabel || old.SidebarHidden != next.SidebarHidden || !reflect.DeepEqual(old.Badge, next.Badge) {
+	if old.Sidebar.Label != next.Sidebar.Label || old.Sidebar.Hidden != next.Sidebar.Hidden ||
+		old.Sidebar.Group != next.Sidebar.Group ||
+		!reflect.DeepEqual(old.Sidebar.Badge, next.Sidebar.Badge) ||
+		!reflect.DeepEqual(old.Sidebar.Attrs, next.Sidebar.Attrs) {
 		return "sidebar fields changed"
 	}
 	for _, key := range []string{
 		"render", "template", "layout", "type", "prev", "next",
-		"sidebar_group", "sidebar_attrs",
 	} {
 		if !reflect.DeepEqual(paramValue(old.Params, key), paramValue(next.Params, key)) {
 			return key + " changed"

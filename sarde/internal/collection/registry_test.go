@@ -453,20 +453,15 @@ func TestBuildPages_PrevNextTransferred(t *testing.T) {
 }
 
 func TestBuildPages_SidebarAttrsTransferred(t *testing.T) {
-	page := buildSinglePage(t, "title: Test\nsidebar_attrs:\n  icon: book\n  color: blue", "Body.")
-	raw, ok := page.Params["sidebar_attrs"]
-	if !ok {
-		t.Fatal("expected Params[sidebar_attrs] to be set")
+	page := buildSinglePage(t, "title: Test\nsidebar:\n  attrs:\n    icon: book\n    color: blue", "Body.")
+	if page.Sidebar.Attrs == nil {
+		t.Fatal("expected Sidebar.Attrs to be set")
 	}
-	attrs, ok := raw.(map[string]string)
-	if !ok {
-		t.Fatalf("expected map[string]string, got %T", raw)
+	if page.Sidebar.Attrs["icon"] != "book" {
+		t.Errorf("Sidebar.Attrs[icon] = %q, want %q", page.Sidebar.Attrs["icon"], "book")
 	}
-	if attrs["icon"] != "book" {
-		t.Errorf("sidebar_attrs[icon] = %q, want %q", attrs["icon"], "book")
-	}
-	if attrs["color"] != "blue" {
-		t.Errorf("sidebar_attrs[color] = %q, want %q", attrs["color"], "blue")
+	if page.Sidebar.Attrs["color"] != "blue" {
+		t.Errorf("Sidebar.Attrs[color] = %q, want %q", page.Sidebar.Attrs["color"], "blue")
 	}
 }
 
@@ -491,9 +486,9 @@ func TestBuildPages_PagefindTransferred(t *testing.T) {
 }
 
 func TestBuildPages_SidebarGroupTransferred(t *testing.T) {
-	page := buildSinglePage(t, "title: Test\nsidebar_group: Reference", "Body.")
-	if page.Params["sidebar_group"] != "Reference" {
-		t.Errorf("Params[sidebar_group] = %v, want %q", page.Params["sidebar_group"], "Reference")
+	page := buildSinglePage(t, "title: Test\nsidebar:\n  group: Reference", "Body.")
+	if page.Sidebar.Group != "Reference" {
+		t.Errorf("Sidebar.Group = %q, want %q", page.Sidebar.Group, "Reference")
 	}
 }
 

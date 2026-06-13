@@ -66,22 +66,21 @@ func collectCascade(page *engine.Page) map[string]any {
 func applyCascadeField(page *engine.Page, key string, value any) {
 	switch key {
 	case "layout", "template", "type", "toc", "toc_min_level", "toc_max_level",
-		"sidebar_group", "pagefind", "icon", "edit_url", "show_updated":
+		"pagefind", "icon", "edit_url", "show_updated":
 		if _, exists := page.Params[key]; !exists {
 			page.Params[key] = value
 		}
 
-	case "sidebar_label":
-		if page.SidebarLabel == "" {
-			if s, ok := value.(string); ok {
-				page.SidebarLabel = s
+	case "sidebar":
+		if subMap, ok := value.(map[string]any); ok {
+			if s, ok := subMap["label"].(string); ok && page.Sidebar.Label == "" {
+				page.Sidebar.Label = s
 			}
-		}
-
-	case "sidebar_hidden":
-		if !page.SidebarHidden {
-			if b, ok := value.(bool); ok {
-				page.SidebarHidden = b
+			if b, ok := subMap["hidden"].(bool); ok && !page.Sidebar.Hidden {
+				page.Sidebar.Hidden = b
+			}
+			if s, ok := subMap["group"].(string); ok && page.Sidebar.Group == "" {
+				page.Sidebar.Group = s
 			}
 		}
 

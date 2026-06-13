@@ -280,30 +280,30 @@ func TestParseFrontmatter_PrevNext(t *testing.T) {
 }
 
 func TestParseFrontmatter_SidebarAttrs(t *testing.T) {
-	raw := []byte("---\ntitle: Test\nsidebar_attrs:\n  icon: star\n  badge: new\n---\nBody.\n")
+	raw := []byte("---\ntitle: Test\nsidebar:\n  attrs:\n    icon: star\n    badge: new\n---\nBody.\n")
 	fm, _, err := ParseFrontmatter(raw)
 	if err != nil {
 		t.Fatalf("ParseFrontmatter error: %v", err)
 	}
-	if len(fm.SidebarAttrs) != 2 {
-		t.Fatalf("SidebarAttrs len = %d, want 2", len(fm.SidebarAttrs))
+	if len(fm.Sidebar.Attrs) != 2 {
+		t.Fatalf("Sidebar.Attrs len = %d, want 2", len(fm.Sidebar.Attrs))
 	}
-	if fm.SidebarAttrs["icon"] != "star" {
-		t.Errorf("SidebarAttrs[icon] = %q, want %q", fm.SidebarAttrs["icon"], "star")
+	if fm.Sidebar.Attrs["icon"] != "star" {
+		t.Errorf("Sidebar.Attrs[icon] = %q, want %q", fm.Sidebar.Attrs["icon"], "star")
 	}
-	if fm.SidebarAttrs["badge"] != "new" {
-		t.Errorf("SidebarAttrs[badge] = %q, want %q", fm.SidebarAttrs["badge"], "new")
+	if fm.Sidebar.Attrs["badge"] != "new" {
+		t.Errorf("Sidebar.Attrs[badge] = %q, want %q", fm.Sidebar.Attrs["badge"], "new")
 	}
 }
 
 func TestParseFrontmatter_SidebarGroup(t *testing.T) {
-	raw := []byte("---\ntitle: Test\nsidebar_group: \"API Reference\"\n---\nBody.\n")
+	raw := []byte("---\ntitle: Test\nsidebar:\n  group: \"API Reference\"\n---\nBody.\n")
 	fm, _, err := ParseFrontmatter(raw)
 	if err != nil {
 		t.Fatalf("ParseFrontmatter error: %v", err)
 	}
-	if fm.SidebarGroup != "API Reference" {
-		t.Errorf("SidebarGroup = %q, want %q", fm.SidebarGroup, "API Reference")
+	if fm.Sidebar.Group != "API Reference" {
+		t.Errorf("Sidebar.Group = %q, want %q", fm.Sidebar.Group, "API Reference")
 	}
 }
 

@@ -15,20 +15,20 @@
               <summary><span>{{ .Label }}</span></summary>
               <ul>
               {{ range .Children }}
-                <li>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ else }}<span>{{ .Label }}</span>{{ end }}{{ if .Page }}{{ if not (.Page.Badge.IsEmpty) }} <span class="sarde-badge {{ .Page.Badge.CSSClass }}">{{ .Page.Badge.Text }}</span>{{ end }}{{ end }}</li>
+                <li>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ else }}<span>{{ .Label }}</span>{{ end }}{{ if .Page }}{{ if not (.Page.Sidebar.Badge.IsEmpty) }} <span class="sarde-badge {{ .Page.Sidebar.Badge.CSSClass }}">{{ .Page.Sidebar.Badge.Text }}</span>{{ end }}{{ end }}</li>
               {{ end }}
               </ul>
             </details>
           </li>
           {{ else }}
-          <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ if .Page }}{{ if not (.Page.Badge.IsEmpty) }} <span class="sarde-badge {{ .Page.Badge.CSSClass }}">{{ .Page.Badge.Text }}</span>{{ end }}{{ end }}</li>
+          <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ if .Page }}{{ if not (.Page.Sidebar.Badge.IsEmpty) }} <span class="sarde-badge {{ .Page.Sidebar.Badge.CSSClass }}">{{ .Page.Sidebar.Badge.Text }}</span>{{ end }}{{ end }}</li>
           {{ end }}
         {{ end }}
         </ul>
       </details>
     </li>
     {{ else }}
-    <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ if .Page }}{{ if not (.Page.Badge.IsEmpty) }} <span class="sarde-badge {{ .Page.Badge.CSSClass }}">{{ .Page.Badge.Text }}</span>{{ end }}{{ end }}</li>
+    <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ .Label }}</a>{{ if .Page }}{{ if not (.Page.Sidebar.Badge.IsEmpty) }} <span class="sarde-badge {{ .Page.Sidebar.Badge.CSSClass }}">{{ .Page.Sidebar.Badge.Text }}</span>{{ end }}{{ end }}</li>
     {{ end }}
   {{ end }}
   </ul>

@@ -144,9 +144,11 @@ type PageTaxonomy struct {
 
 // PageSidebar holds sidebar presentation fields.
 type PageSidebar struct {
-	SidebarLabel  string
-	SidebarHidden bool
-	Badge         Badge
+	Label  string
+	Hidden bool
+	Group  string
+	Attrs  map[string]string
+	Badge  Badge
 }
 
 // PageI18n holds language and translation fields.
@@ -177,7 +179,7 @@ type Page struct {
 	PageMeta
 	PageRelationships
 	PageTaxonomy
-	PageSidebar
+	Sidebar PageSidebar
 	PageI18n
 	PageVersioning
 
@@ -190,46 +192,74 @@ type Page struct {
 // Frontmatter
 // ---------------------------------------------------------------------------
 
+// FrontmatterIdentity holds core identity fields parsed from frontmatter.
+type FrontmatterIdentity struct {
+	Title       string    `yaml:"title"`
+	Slug        string    `yaml:"slug"`
+	Date        time.Time `yaml:"date"`
+	Updated     time.Time `yaml:"updated"`
+	PublishDate time.Time `yaml:"publish_date"`
+	ExpiryDate  time.Time `yaml:"expiry_date"`
+	Aliases     []string  `yaml:"aliases"`
+	Layout      string    `yaml:"layout"`
+	Type        string    `yaml:"type"`
+	Template    string    `yaml:"template"`
+}
+
+// FrontmatterMeta holds editorial and behavioral override fields.
+type FrontmatterMeta struct {
+	Draft       bool          `yaml:"draft"`
+	Weight      int           `yaml:"weight"`
+	Description string        `yaml:"description"`
+	Image       string        `yaml:"image"`
+	Summary     string        `yaml:"summary"`
+	Render      *bool         `yaml:"render"`
+	Pagefind    *bool         `yaml:"pagefind"`
+	ShowUpdated *bool         `yaml:"show_updated"`
+	EditURL     *EditURLValue `yaml:"edit_url"`
+}
+
+// FrontmatterSidebar holds sidebar presentation fields.
+type FrontmatterSidebar struct {
+	Label  string            `yaml:"label"`
+	Hidden bool              `yaml:"hidden"`
+	Group  string            `yaml:"group"`
+	Attrs  map[string]string `yaml:"attrs"`
+	Badge  Badge             `yaml:"badge"`
+}
+
+// FrontmatterTOC holds table-of-contents override fields.
+type FrontmatterTOC struct {
+	TOC         *bool `yaml:"toc"`
+	TOCMinLevel int   `yaml:"toc_min_level"`
+	TOCMaxLevel int   `yaml:"toc_max_level"`
+}
+
+// FrontmatterNav holds prev/next navigation override fields.
+type FrontmatterNav struct {
+	Prev *NavOverride `yaml:"prev"`
+	Next *NavOverride `yaml:"next"`
+}
+
 // Frontmatter represents parsed frontmatter fields from a content file.
+// Sub-structs are embedded so all fields remain accessible as top-level
+// names (e.g. fm.Title, fm.Draft, fm.Sidebar.Label).
 type Frontmatter struct {
-	Title         string            `yaml:"title"`
-	Date          time.Time         `yaml:"date"`
-	Updated       time.Time         `yaml:"updated"`
-	Draft         bool              `yaml:"draft"`
-	PublishDate   time.Time         `yaml:"publish_date"`
-	ExpiryDate    time.Time         `yaml:"expiry_date"`
-	Slug          string            `yaml:"slug"`
-	Summary       string            `yaml:"summary"`
-	Template      string            `yaml:"template"`
-	Tags          []string          `yaml:"tags"`
-	Categories    []string          `yaml:"categories"`
-	Layout        string            `yaml:"layout"`
-	Type          string            `yaml:"type"`
-	Weight        int               `yaml:"weight"`
-	Description   string            `yaml:"description"`
-	Image         string            `yaml:"image"`
-	Aliases       []string          `yaml:"aliases"`
-	Transparent   bool              `yaml:"transparent"`
-	Render        *bool             `yaml:"render"`
-	Hero          *HeroConfig       `yaml:"hero"`
-	Pagefind      *bool             `yaml:"pagefind"`
-	SidebarLabel  string            `yaml:"sidebar_label"`
-	SidebarHidden bool              `yaml:"sidebar_hidden"`
-	SidebarGroup  string            `yaml:"sidebar_group"`
-	SidebarAttrs  map[string]string `yaml:"sidebar_attrs"`
-	Badge         Badge             `yaml:"badge"`
-	TOC           *bool             `yaml:"toc"`
-	TOCMinLevel   int               `yaml:"toc_min_level"`
-	TOCMaxLevel   int               `yaml:"toc_max_level"`
-	Prev          *NavOverride      `yaml:"prev"`
-	Next          *NavOverride      `yaml:"next"`
-	EditURL       *EditURLValue     `yaml:"edit_url"`
-	ShowUpdated   *bool             `yaml:"show_updated"`
-	Icon          string            `yaml:"icon"`
-	Head          []HeadTag         `yaml:"head"`
-	Banner        *PageBanner       `yaml:"banner"`
-	Cascade       map[string]any    `yaml:"cascade"`
-	Params        map[string]any    `yaml:"params"`
+	FrontmatterIdentity `yaml:",inline"`
+	FrontmatterMeta     `yaml:",inline"`
+	Sidebar             FrontmatterSidebar `yaml:"sidebar"`
+	FrontmatterTOC      `yaml:",inline"`
+	FrontmatterNav      `yaml:",inline"`
+
+	Tags        []string       `yaml:"tags"`
+	Categories  []string       `yaml:"categories"`
+	Transparent bool           `yaml:"transparent"`
+	Hero        *HeroConfig    `yaml:"hero"`
+	Icon        string         `yaml:"icon"`
+	Head        []HeadTag      `yaml:"head"`
+	Banner      *PageBanner    `yaml:"banner"`
+	Cascade     map[string]any `yaml:"cascade"`
+	Params      map[string]any `yaml:"params"`
 }
 
 // HeroConfig defines hero section fields for splash layout pages.

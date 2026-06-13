@@ -30,7 +30,7 @@ func BuildNavTree(collection *engine.Collection) *engine.NavTree {
 	// Add root-level pages (pages not in any section).
 	rootPages := findRootPages(collection)
 	for _, page := range rootPages {
-		if page.SidebarHidden {
+		if page.Sidebar.Hidden {
 			continue
 		}
 		node := pageToNode(page, 1)
@@ -89,20 +89,20 @@ func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int) *engine.
 		group.URL = sec.Permalink
 		group.Page = sec.IndexPage
 		group.Weight = sec.IndexPage.Weight
-		if sec.IndexPage.SidebarLabel != "" {
-			group.Label = sec.IndexPage.SidebarLabel
+		if sec.IndexPage.Sidebar.Label != "" {
+			group.Label = sec.IndexPage.Sidebar.Label
 		}
 	} else if sec.IndexPage != nil {
 		// Non-rendering but has index: use its weight/label.
 		group.Weight = sec.IndexPage.Weight
-		if sec.IndexPage.SidebarLabel != "" {
-			group.Label = sec.IndexPage.SidebarLabel
+		if sec.IndexPage.Sidebar.Label != "" {
+			group.Label = sec.IndexPage.Sidebar.Label
 		}
 	}
 
-	// Copy sidebar_attrs and DefaultOpen from section index page.
+	// Copy sidebar attrs and DefaultOpen from section index page.
 	if sec.IndexPage != nil {
-		group.Attrs = copyAttrs(sec.IndexPage.Params)
+		group.Attrs = cloneStringMap(sec.IndexPage.Sidebar.Attrs)
 		if group.Attrs != nil && group.Attrs["open"] == "true" {
 			group.DefaultOpen = true
 		}
@@ -115,7 +115,7 @@ func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int) *engine.
 
 	// Add child pages.
 	for _, page := range sec.Pages {
-		if page.SidebarHidden || page.Kind == engine.KindSection {
+		if page.Sidebar.Hidden || page.Kind == engine.KindSection {
 			continue
 		}
 		node := pageToNode(page, depth+1)
@@ -143,7 +143,7 @@ func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int) *engine.
 // directly to the parent node (hoisting).
 func addSectionChildren(parent *engine.NavNode, sec *engine.Section, depth int, maxDepth int) {
 	for _, page := range sec.Pages {
-		if page.SidebarHidden || page.Kind == engine.KindSection {
+		if page.Sidebar.Hidden || page.Kind == engine.KindSection {
 			continue
 		}
 		node := pageToNode(page, depth)
@@ -166,8 +166,8 @@ func addSectionChildren(parent *engine.NavNode, sec *engine.Section, depth int, 
 // pageToNode creates a leaf NavNode from a Page.
 func pageToNode(page *engine.Page, depth int) *engine.NavNode {
 	label := page.Title
-	if page.SidebarLabel != "" {
-		label = page.SidebarLabel
+	if page.Sidebar.Label != "" {
+		label = page.Sidebar.Label
 	}
 	return &engine.NavNode{
 		Label:  label,
@@ -176,7 +176,7 @@ func pageToNode(page *engine.Page, depth int) *engine.NavNode {
 		Weight: page.Weight,
 		Depth:  depth,
 		Page:   page,
-		Attrs:  copyAttrs(page.Params),
+		Attrs:  cloneStringMap(page.Sidebar.Attrs),
 	}
 }
 
@@ -242,33 +242,14 @@ func computeMaxDepth(root *engine.NavNode) int {
 	return max
 }
 
-// copyAttrs extracts sidebar_attrs from page Params if present.
-func copyAttrs(params map[string]any) map[string]string {
-	if params == nil {
+// cloneStringMap returns a shallow copy of a string map, or nil if empty.
+func cloneStringMap(m map[string]string) map[string]string {
+	if len(m) == 0 {
 		return nil
 	}
-	raw, ok := params["sidebar_attrs"]
-	if !ok {
-		return nil
+	result := make(map[string]string, len(m))
+	for k, v := range m {
+		result[k] = v
 	}
-	m, ok := raw.(map[string]string)
-	if ok {
-		result := make(map[string]string, len(m))
-		for k, v := range m {
-			result[k] = v
-		}
-		return result
-	}
-	// Handle map[string]any from YAML parsing.
-	ma, ok := raw.(map[string]any)
-	if ok {
-		result := make(map[string]string, len(ma))
-		for k, v := range ma {
-			if s, ok := v.(string); ok {
-				result[k] = s
-			}
-		}
-		return result
-	}
-	return nil
+	return result
 }

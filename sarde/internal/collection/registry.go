@@ -434,10 +434,12 @@ func buildPage(
 			Categories: fm.Categories,
 			Aliases:    fm.Aliases,
 		},
-		PageSidebar: engine.PageSidebar{
-			SidebarLabel:  fm.SidebarLabel,
-			SidebarHidden: fm.SidebarHidden,
-			Badge:         fm.Badge,
+		Sidebar: engine.PageSidebar{
+			Label:  fm.Sidebar.Label,
+			Hidden: fm.Sidebar.Hidden,
+			Group:  fm.Sidebar.Group,
+			Attrs:  fm.Sidebar.Attrs,
+			Badge:  fm.Sidebar.Badge,
 		},
 		PageI18n: engine.PageI18n{
 			Lang:        cf.Lang,
@@ -541,9 +543,6 @@ func mapFrontmatterToParams(page *engine.Page, fm *engine.Frontmatter, fmMap map
 	if fm.Next != nil {
 		page.Params["next"] = fm.Next
 	}
-	if len(fm.SidebarAttrs) > 0 {
-		page.Params["sidebar_attrs"] = fm.SidebarAttrs
-	}
 	if fm.Pagefind != nil {
 		page.Params["pagefind"] = *fm.Pagefind
 	}
@@ -555,9 +554,6 @@ func mapFrontmatterToParams(page *engine.Page, fm *engine.Frontmatter, fmMap map
 	}
 	if fm.TOCMaxLevel > 0 {
 		page.Params["toc_max_level"] = fm.TOCMaxLevel
-	}
-	if fm.SidebarGroup != "" {
-		page.Params["sidebar_group"] = fm.SidebarGroup
 	}
 	if fm.Layout != "" {
 		page.Params["layout"] = fm.Layout

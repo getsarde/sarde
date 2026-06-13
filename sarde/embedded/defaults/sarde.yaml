@@ -40,7 +40,7 @@ header:
 footer:
   text: ""
   links: []
-  credits: false
+  credits: true
 
 head:
   tags: []

@@ -1,14 +1,26 @@
 <footer class="sarde-footer">
-  {{ if .Site.Config.Footer.Links }}
-  <nav class="sarde-footer-links">
-    {{ range .Site.Config.Footer.Links }}
-    <a href="{{ if .External }}{{ .URL }}{{ else }}{{ relURL .URL }}{{ end }}"{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}</a>
+  <div class="sarde-footer-inner">
+    {{ if or .Site.Config.Footer.Links .Site.Config.Social }}
+    <div class="sarde-footer-top">
+      {{ if .Site.Config.Footer.Links }}
+      <nav class="sarde-footer-links" aria-label="Footer">
+        {{ range .Site.Config.Footer.Links }}
+        <a href="{{ if .External }}{{ .URL }}{{ else }}{{ relURL .URL }}{{ end }}"{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}</a>
+        {{ end }}
+      </nav>
+      {{ end }}
+      {{ component "Social" . }}
+    </div>
     {{ end }}
-  </nav>
-  {{ end }}
-  {{ component "Social" . }}
-  <p>&copy; {{ now.Year }} {{ .Site.Title }}</p>
-  {{ if boolVal .Site.Config.Footer.Credits false }}
-  <p class="sarde-credits">Built with <a href="https://sarde.dev" rel="noopener">Sarde</a></p>
-  {{ end }}
+    {{ if .Site.Config.Footer.Text }}
+    <p class="sarde-footer-text">{{ .Site.Config.Footer.Text }}</p>
+    {{ end }}
+    <div class="sarde-footer-bottom">
+      <span>&copy; {{ now.Year }} {{ .Site.Title }}</span>
+      {{ if boolVal .Site.Config.Footer.Credits true }}
+      <span class="sarde-footer-sep" aria-hidden="true"></span>
+      <span class="sarde-credits">Made with <a href="https://sarde.dev" rel="noopener">Sarde</a></span>
+      {{ end }}
+    </div>
+  </div>
 </footer>

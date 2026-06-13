@@ -143,7 +143,7 @@ func TestApplyCascade_NoCascade(t *testing.T) {
 func TestApplyCascade_SidebarLabel(t *testing.T) {
 	indexPage := &engine.Page{
 		PageIdentity: engine.PageIdentity{Kind: engine.KindSection},
-		Params:       map[string]any{consts.CascadeKey: map[string]any{"sidebar_label": "Guides"}},
+		Params:       map[string]any{consts.CascadeKey: map[string]any{"sidebar": map[string]any{"label": "Guides"}}},
 	}
 	sec := &engine.Section{IndexPage: indexPage}
 	child := &engine.Page{
@@ -154,8 +154,8 @@ func TestApplyCascade_SidebarLabel(t *testing.T) {
 
 	ApplyCascade([]*engine.Page{child})
 
-	if child.SidebarLabel != "Guides" {
-		t.Errorf("expected SidebarLabel=Guides, got %q", child.SidebarLabel)
+	if child.Sidebar.Label != "Guides" {
+		t.Errorf("expected Sidebar.Label=Guides, got %q", child.Sidebar.Label)
 	}
 }
 

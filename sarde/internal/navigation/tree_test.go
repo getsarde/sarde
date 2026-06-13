@@ -156,7 +156,7 @@ func TestBuildNavTree_SidebarHidden(t *testing.T) {
 		Config: docsConfig(),
 		Pages: []*engine.Page{
 			{PageIdentity: engine.PageIdentity{Title: "Visible", Slug: "visible", RelPermalink: "/docs/visible/", Kind: engine.KindPage}},
-			{PageIdentity: engine.PageIdentity{Title: "Hidden", Slug: "hidden", RelPermalink: "/docs/hidden/", Kind: engine.KindPage}, PageSidebar: engine.PageSidebar{SidebarHidden: true}},
+			{PageIdentity: engine.PageIdentity{Title: "Hidden", Slug: "hidden", RelPermalink: "/docs/hidden/", Kind: engine.KindPage}, Sidebar: engine.PageSidebar{Hidden: true}},
 		},
 	}
 
@@ -176,7 +176,7 @@ func TestBuildNavTree_SidebarLabel(t *testing.T) {
 		Title:  "Docs",
 		Config: docsConfig(),
 		Pages: []*engine.Page{
-			{PageIdentity: engine.PageIdentity{Title: "Advanced Configuration Guide", Slug: "config", RelPermalink: "/docs/config/", Kind: engine.KindPage}, PageSidebar: engine.PageSidebar{SidebarLabel: "Config"}},
+			{PageIdentity: engine.PageIdentity{Title: "Advanced Configuration Guide", Slug: "config", RelPermalink: "/docs/config/", Kind: engine.KindPage}, Sidebar: engine.PageSidebar{Label: "Config"}},
 		},
 	}
 
@@ -273,7 +273,7 @@ func TestBuildNavTree_SidebarAttrsOnNode(t *testing.T) {
 			{
 				PageIdentity: engine.PageIdentity{Title: "API Page", Slug: "api", RelPermalink: "/docs/api/", Kind: engine.KindPage},
 				PageMeta:     engine.PageMeta{Weight: 1},
-				Params:       map[string]any{"sidebar_attrs": map[string]string{"icon": "star", "data-new": "true"}},
+				Sidebar:      engine.PageSidebar{Attrs: map[string]string{"icon": "star", "data-new": "true"}},
 			},
 		},
 	}

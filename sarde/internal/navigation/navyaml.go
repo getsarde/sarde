@@ -83,14 +83,14 @@ func buildNodeFromYAMLItem(item navYAMLItem, lookup map[string]*engine.Page, dep
 		node.Slug = page.Slug
 		node.Weight = page.Weight
 		if node.Label == "" {
-			if page.SidebarLabel != "" {
-				node.Label = page.SidebarLabel
+			if page.Sidebar.Label != "" {
+				node.Label = page.Sidebar.Label
 			} else {
 				node.Label = page.Title
 			}
 		}
-		// Merge attrs: nav.yaml attrs first, then page sidebar_attrs overrides.
-		node.Attrs = mergeAttrs(item.Attrs, copyAttrs(page.Params))
+		// Merge attrs: nav.yaml attrs first, then page sidebar attrs overrides.
+		node.Attrs = mergeAttrs(item.Attrs, cloneStringMap(page.Sidebar.Attrs))
 		// Apply badge from nav.yaml (page badge can also be set via frontmatter).
 		badge := item.Badge
 		if badge.Variant == engine.BadgeVariantDefault && item.BadgeColor != "" {
@@ -99,7 +99,7 @@ func buildNodeFromYAMLItem(item navYAMLItem, lookup map[string]*engine.Page, dep
 			}
 		}
 		if !badge.IsEmpty() {
-			page.Badge = badge
+			page.Sidebar.Badge = badge
 		}
 	} else if item.URL != "" {
 		// External link.

@@ -92,12 +92,63 @@
 	/* ── Site Footer ── */
 	.sarde-footer {
 	  grid-area: footer;
-	  padding: var(--sd-space-6) var(--sd-space-4);
-	  text-align: center;
+	  padding: var(--sd-space-8) var(--sd-space-4) var(--sd-space-6);
 	  font-size: var(--sd-text-sm);
 	  color: var(--sd-text-muted);
 	  background: var(--sd-bg-footer);
 	  border-top: 1px solid var(--sd-border);
+	}
+	.sarde-footer-inner {
+	  max-width: var(--sd-content-max-width, 72rem);
+	  margin: 0 auto;
+	  display: flex;
+	  flex-direction: column;
+	  align-items: center;
+	  gap: var(--sd-space-4);
+	}
+	.sarde-footer-top {
+	  display: flex;
+	  flex-wrap: wrap;
+	  align-items: center;
+	  justify-content: center;
+	  gap: var(--sd-space-4);
+	}
+	.sarde-footer-links {
+	  display: flex;
+	  flex-wrap: wrap;
+	  align-items: center;
+	  gap: var(--sd-space-4);
+	}
+	.sarde-footer-links a {
+	  color: var(--sd-text-muted);
+	  text-decoration: none;
+	  transition: color 0.15s ease;
+	}
+	.sarde-footer-links a:hover {
+	  color: var(--sd-text-accent);
+	}
+	.sarde-footer-text {
+	  margin: 0;
+	  color: var(--sd-text-subtle);
+	}
+	.sarde-footer-bottom {
+	  display: flex;
+	  flex-wrap: wrap;
+	  align-items: center;
+	  justify-content: center;
+	  gap: var(--sd-space-2);
+	}
+	.sarde-footer-sep::before {
+	  content: "\00b7";
+	  color: var(--sd-text-subtle);
+	}
+	.sarde-credits a {
+	  color: var(--sd-text-muted);
+	  text-decoration: none;
+	  transition: color 0.15s ease;
+	}
+	.sarde-credits a:hover {
+	  color: var(--sd-text-accent);
 	}
 
 	/* ── Docs Layout (Starlight-style) ── */
