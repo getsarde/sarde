@@ -43,7 +43,7 @@ func (r *mermaidRenderer) render(w util.BufWriter, source []byte, node ast.Node,
 		code.Write(line.Value(source))
 	}
 
-	_, _ = w.WriteString("<div class=\"sarde-mermaid\">\n")
+	_, _ = w.WriteString("<div class=\"sarde-mermaid\" role=\"img\" aria-label=\"Mermaid diagram\">\n")
 	_, _ = w.WriteString(htmlutil.EscapeHTML(code.String()))
 	_, _ = w.WriteString("</div>\n")
 

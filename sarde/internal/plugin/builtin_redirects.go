@@ -131,7 +131,7 @@ func redirectHTML(target string) []byte {
 	title := "Redirecting to " + path.Base(strings.TrimSuffix(safe, "/"))
 
 	return []byte(fmt.Sprintf(`<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <title>%s</title>

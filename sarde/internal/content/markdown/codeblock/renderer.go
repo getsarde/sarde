@@ -51,7 +51,7 @@ func (r *Renderer) renderFencedCodeBlock(w util.BufWriter, source []byte, node a
 
 	// Mermaid blocks bypass Chroma and render as a plain div for client-side rendering
 	if strings.TrimSpace(infoStr) == "mermaid" {
-		_, _ = w.WriteString("<div class=\"sarde-mermaid\">\n")
+		_, _ = w.WriteString("<div class=\"sarde-mermaid\" role=\"img\" aria-label=\"Mermaid diagram\">\n")
 		_, _ = w.WriteString(escapeHTML(code))
 		_, _ = w.WriteString("</div>\n")
 		return ast.WalkSkipChildren, nil
@@ -201,7 +201,7 @@ func renderCodeBlock(w util.BufWriter, tokenLines []tokenLine, rawCode string, i
 func renderTitleBar(w util.BufWriter, info CodeBlockInfo) {
 	if info.IsTerminal {
 		_, _ = w.WriteString("<div class=\"sarde-code-title sarde-terminal-title\">\n")
-		_, _ = w.WriteString("<span class=\"sarde-terminal-dots\"><span></span><span></span><span></span></span>\n")
+		_, _ = w.WriteString("<span class=\"sarde-terminal-dots\" aria-hidden=\"true\"><span></span><span></span><span></span></span>\n")
 		if info.Title != "" {
 			_, _ = fmt.Fprintf(w, "<span class=\"sarde-code-title-text\">%s</span>\n", escapeHTML(info.Title))
 		} else {

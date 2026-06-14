@@ -1,5 +1,5 @@
 {{ if .VersionBanner }}
-<div class="sarde-version-banner{{ if eq .VersionBanner "unmaintained" }} is-unmaintained{{ end }}{{ if eq .VersionBanner "unreleased" }} is-unreleased{{ end }}" role="alert">
+<div class="sarde-version-banner{{ if eq .VersionBanner "unmaintained" }} is-unmaintained{{ end }}{{ if eq .VersionBanner "unreleased" }} is-unreleased{{ end }}" role="status">
   {{ if eq .VersionBanner "unmaintained" }}
   <p>{{ t "version.unmaintained_notice" }}{{ range .Versions }}{{ if .IsLatest }} <a href="{{ relURL .URL }}">{{ t "version.unmaintained_link" }}</a>{{ end }}{{ end }}</p>
   {{ else if eq .VersionBanner "unreleased" }}

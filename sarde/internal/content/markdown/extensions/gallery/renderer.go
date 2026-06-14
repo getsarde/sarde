@@ -68,16 +68,16 @@ func (r *galleryRenderer) render(w util.BufWriter, source []byte, node ast.Node,
 	_, _ = w.WriteString("<div class=\"sarde-gallery-grid\">\n")
 
 	for i, img := range g.Images {
-		_, _ = fmt.Fprintf(w, "<div class=\"sarde-gallery-item\" data-index=\"%d\">\n", i)
+		_, _ = fmt.Fprintf(w, "<div class=\"sarde-gallery-item\" data-index=\"%d\" role=\"button\" tabindex=\"0\" aria-label=\"View image %d of %d\">\n", i, i+1, len(g.Images))
 		_, _ = fmt.Fprintf(w, "<img src=\"%s\" alt=\"%s\" loading=\"lazy\" />\n", htmlutil.EscapeHTML(img.Src), htmlutil.EscapeHTML(img.Alt))
-		_, _ = w.WriteString("<div class=\"sarde-gallery-item-overlay\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><line x1=\"21\" y1=\"21\" x2=\"16.65\" y2=\"16.65\"/><line x1=\"11\" y1=\"8\" x2=\"11\" y2=\"14\"/><line x1=\"8\" y1=\"11\" x2=\"14\" y2=\"11\"/></svg></div>\n")
+		_, _ = w.WriteString("<div class=\"sarde-gallery-item-overlay\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><line x1=\"21\" y1=\"21\" x2=\"16.65\" y2=\"16.65\"/><line x1=\"11\" y1=\"8\" x2=\"11\" y2=\"14\"/><line x1=\"8\" y1=\"11\" x2=\"14\" y2=\"11\"/></svg></div>\n")
 		_, _ = w.WriteString("</div>\n")
 	}
 
 	_, _ = w.WriteString("</div>\n</div>\n")
 
 	// Lightbox
-	_, _ = fmt.Fprintf(w, "<div class=\"sarde-gallery-lightbox\" id=\"%s\">\n", lightboxID)
+	_, _ = fmt.Fprintf(w, "<div class=\"sarde-gallery-lightbox\" id=\"%s\" role=\"dialog\" aria-modal=\"true\" aria-label=\"Image gallery\">\n", lightboxID)
 	_, _ = w.WriteString("<button class=\"sarde-lightbox-close\" aria-label=\"Close lightbox\">&times;</button>\n")
 	_, _ = w.WriteString("<button class=\"sarde-lightbox-prev\" aria-label=\"Previous image\">&lsaquo;</button>\n")
 	_, _ = w.WriteString("<button class=\"sarde-lightbox-next\" aria-label=\"Next image\">&rsaquo;</button>\n")
@@ -107,13 +107,18 @@ func (r *galleryRenderer) render(w util.BufWriter, source []byte, node ast.Node,
     lbCounter.textContent = (idx+1) + ' / ' + images.length;
     lightbox.classList.add('active');
     document.body.style.overflow = 'hidden';
+    lightbox.querySelector('.sarde-lightbox-close').focus();
   }
   function hide() {
     lightbox.classList.remove('active');
     document.body.style.overflow = '';
+    if (trigger) { trigger.focus(); trigger = null; }
   }
+  var trigger = null;
+  var focusable = lightbox.querySelectorAll('button');
   items.forEach(function(item) {
-    item.addEventListener('click', function() { show(parseInt(item.dataset.index)); });
+    item.addEventListener('click', function() { trigger = item; show(parseInt(item.dataset.index)); });
+    item.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); trigger = item; show(parseInt(item.dataset.index)); } });
   });
   lightbox.querySelector('.sarde-lightbox-close').addEventListener('click', hide);
   lightbox.querySelector('.sarde-lightbox-prev').addEventListener('click', function() { show((current - 1 + images.length) %% images.length); });
@@ -124,6 +129,7 @@ func (r *galleryRenderer) render(w util.BufWriter, source []byte, node ast.Node,
     if (e.key === 'Escape') hide();
     if (e.key === 'ArrowLeft') show((current - 1 + images.length) %% images.length);
     if (e.key === 'ArrowRight') show((current + 1) %% images.length);
+    if (e.key === 'Tab') { e.preventDefault(); var idx = Array.prototype.indexOf.call(focusable, document.activeElement); focusable[(idx + (e.shiftKey ? -1 + focusable.length : 1)) %% focusable.length].focus(); }
   });
 })();
 </script>`, galleryID, lightboxID, buildImageJSON(g.Images))

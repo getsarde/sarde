@@ -3,12 +3,15 @@ package codegroup
 import (
 	"fmt"
 	"strings"
+	"sync/atomic"
 
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
 	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
 )
+
+var cgCounter atomic.Int64
 
 type codeGroupRenderer struct{}
 
@@ -23,6 +26,8 @@ func (r *codeGroupRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegistere
 
 func (r *codeGroupRenderer) renderCodeGroup(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
+		cgID := cgCounter.Add(1)
+
 		// Collect code block labels from fenced code block info strings
 		var labels []string
 		for c := node.FirstChild(); c != nil; c = c.NextSibling() {
@@ -41,8 +46,8 @@ func (r *codeGroupRenderer) renderCodeGroup(w util.BufWriter, source []byte, nod
 				activeClass = " is-active"
 				ariaSelected = "true"
 			}
-			_, _ = fmt.Fprintf(w, "<button class=\"sarde-code-group-tab%s\" role=\"tab\" aria-selected=\"%s\" data-tab=\"%d\" data-tab-label=\"%s\">%s</button>\n",
-				activeClass, ariaSelected, i, htmlutil.EscapeHTML(label), htmlutil.EscapeHTML(label))
+			_, _ = fmt.Fprintf(w, "<button class=\"sarde-code-group-tab%s\" role=\"tab\" aria-selected=\"%s\" data-tab=\"%d\" data-tab-label=\"%s\" id=\"cg-%d-tab-%d\" aria-controls=\"cg-%d-panel-%d\">%s</button>\n",
+				activeClass, ariaSelected, i, htmlutil.EscapeHTML(label), cgID, i, cgID, i, htmlutil.EscapeHTML(label))
 		}
 
 		_, _ = w.WriteString("</div>\n<div class=\"sarde-code-group-panels\">\n")
@@ -58,8 +63,8 @@ func (r *codeGroupRenderer) renderCodeGroup(w util.BufWriter, source []byte, nod
 				} else {
 					hiddenAttr = " hidden"
 				}
-				_, _ = fmt.Fprintf(w, "<div class=\"sarde-code-group-panel%s\" role=\"tabpanel\" data-tab=\"%d\" data-tab-label=\"%s\"%s>\n",
-					activeClass, idx, htmlutil.EscapeHTML(labels[idx]), hiddenAttr)
+				_, _ = fmt.Fprintf(w, "<div class=\"sarde-code-group-panel%s\" role=\"tabpanel\" data-tab=\"%d\" data-tab-label=\"%s\" id=\"cg-%d-panel-%d\" aria-labelledby=\"cg-%d-tab-%d\"%s>\n",
+					activeClass, idx, htmlutil.EscapeHTML(labels[idx]), cgID, idx, cgID, idx, hiddenAttr)
 
 				// Render the code block content
 				lang := extractLang(infoString(fc, source))

@@ -5,9 +5,10 @@
   {{ component "Head" . }}
 </head>
 <body class="sarde-layout-{{ .Layout }} starter-theme">
+  <a href="#main-content" class="sarde-skip-link">Skip to main content</a>
   {{ component "Header" . }}
   {{ if .HasSidebar }}
-  <nav class="sarde-mobile-nav" aria-label="Section navigation">
+  <nav class="sarde-mobile-nav" aria-label="Mobile navigation">
     <button class="sarde-menu-toggle" id="sarde-menu-toggle"
             aria-expanded="false" aria-label="Menu"
             aria-controls="sarde-sidebar" type="button">
@@ -28,7 +29,7 @@
   <div class="sarde-sidebar-backdrop" id="sarde-sidebar-backdrop"></div>
   {{ end }}
   <div class="sarde-main-frame">
-    <main class="sarde-content-area">
+    <main class="sarde-content-area" id="main-content">
       <div class="sarde-content-grid">
         <div class="sarde-content-panel">
           {{ if .Breadcrumbs }}{{ component "Breadcrumbs" . }}{{ end }}

@@ -76,9 +76,9 @@ func (r *imageCompareRenderer) render(w util.BufWriter, source []byte, node ast.
 		htmlutil.EscapeHTML(ic.AfterSrc), htmlutil.EscapeHTML(ic.AfterAlt))
 
 	// Handle
-	_, _ = w.WriteString("<div class=\"sarde-image-compare-handle\">\n")
+	_, _ = w.WriteString("<div class=\"sarde-image-compare-handle\" role=\"slider\" tabindex=\"0\" aria-label=\"Image comparison slider\" aria-valuenow=\"50\" aria-valuemin=\"0\" aria-valuemax=\"100\">\n")
 	_, _ = w.WriteString("<div class=\"sarde-image-compare-handle-line\"></div>\n")
-	_, _ = w.WriteString("<div class=\"sarde-image-compare-handle-button\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><polyline points=\"15 18 9 12 15 6\"/><polyline points=\"9 18 15 12 9 6\" transform=\"translate(6,0)\"/></svg></div>\n")
+	_, _ = w.WriteString("<div class=\"sarde-image-compare-handle-button\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\" focusable=\"false\"><polyline points=\"15 18 9 12 15 6\"/><polyline points=\"9 18 15 12 9 6\" transform=\"translate(6,0)\"/></svg></div>\n")
 	_, _ = w.WriteString("</div>\n")
 
 	// Labels
@@ -108,6 +108,20 @@ func (r *imageCompareRenderer) render(w util.BufWriter, source []byte, node ast.
   container.addEventListener('touchstart', function(e) { dragging = true; update(e.touches[0].clientX); e.preventDefault(); }, {passive:false});
   document.addEventListener('touchmove', function(e) { if (dragging) update(e.touches[0].clientX); });
   document.addEventListener('touchend', function() { dragging = false; });
+  handle.addEventListener('keydown', function(e) {
+    var pos = parseFloat(container.dataset.position);
+    var step = 5;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); updatePos(Math.max(0, pos - step)); }
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); updatePos(Math.min(100, pos + step)); }
+    else if (e.key === 'Home') { e.preventDefault(); updatePos(0); }
+    else if (e.key === 'End') { e.preventDefault(); updatePos(100); }
+  });
+  function updatePos(pos) {
+    container.dataset.position = pos;
+    handle.style.left = pos + '%%';
+    after.style.clipPath = 'inset(0 0 0 ' + pos + '%%)';
+    handle.setAttribute('aria-valuenow', Math.round(pos));
+  }
   update(container.getBoundingClientRect().left + container.getBoundingClientRect().width * 0.5);
 })();
 </script>`, containerID)

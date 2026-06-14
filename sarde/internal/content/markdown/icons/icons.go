@@ -210,7 +210,7 @@ func GetWithClass(name, class string) string {
 		return ""
 	}
 	body, viewBox := iconToSVG(ri)
-	return renderSVG(class, "16", "16", viewBox, nil, body)
+	return renderSVG(class, "16", "16", viewBox, []svgAttr{{"aria-hidden", "true"}, {"focusable", "false"}}, body)
 }
 
 // Render returns an inline SVG for the template func and the inline Markdown

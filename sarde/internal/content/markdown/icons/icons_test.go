@@ -102,14 +102,16 @@ func TestRenderDropsInvalidAttrKey(t *testing.T) {
 }
 
 func TestGetWithClassUnchanged(t *testing.T) {
-	// Block-extension path: no fallback, no ARIA, width/height hardcoded to 16.
+	// Block-extension path: no fallback, width/height hardcoded to 16, decorative aria-hidden.
 	got := GetWithClass("rocket", "sarde-aside-icon")
-	want := `<svg class="sarde-aside-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">`
-	if !strings.HasPrefix(got, want) {
-		t.Errorf("GetWithClass = %q,\nwant prefix %q", got, want)
+	if !strings.Contains(got, `class="sarde-aside-icon"`) {
+		t.Errorf("GetWithClass missing class: %q", got)
 	}
-	if strings.Contains(got, "aria-hidden") || strings.Contains(got, "role=") {
-		t.Errorf("block path should emit no ARIA: %q", got)
+	if !strings.Contains(got, `width="16"`) || !strings.Contains(got, `height="16"`) {
+		t.Errorf("GetWithClass should hardcode width/height to 16: %q", got)
+	}
+	if !strings.Contains(got, `aria-hidden="true"`) || !strings.Contains(got, `focusable="false"`) {
+		t.Errorf("GetWithClass should emit aria-hidden and focusable: %q", got)
 	}
 	if GetWithClass("definitely-not-real-zzz", "") != "" {
 		t.Error("GetWithClass should return empty for an unknown icon (no fallback)")

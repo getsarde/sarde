@@ -6,7 +6,7 @@
     {{ range $tags }}
     <a href="{{ relURL .Permalink }}" class="sarde-tag-sidebar-item">
       <span class="sarde-tag-sidebar-label">{{ .Label }}</span>
-      <span class="sarde-tag-sidebar-count">{{ len .Pages }}</span>
+      <span class="sarde-tag-sidebar-count">{{ len .Pages }}<span class="sr-only"> items</span></span>
     </a>
     {{ end }}
   </div>

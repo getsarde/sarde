@@ -2,12 +2,15 @@ package annotation
 
 import (
 	"fmt"
+	"sync/atomic"
 
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
 	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
 )
+
+var annCounter atomic.Int64
 
 type annotationRenderer struct{}
 
@@ -20,8 +23,9 @@ func (r *annotationRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegister
 func (r *annotationRenderer) render(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		a := node.(*Annotation)
-		_, _ = fmt.Fprintf(w, `<abbr class="sarde-annotation" title="%s" role="tooltip" tabindex="0">%s<span class="sarde-annotation-tooltip">%s</span></abbr>`,
-			htmlutil.EscapeHTML(a.Explanation), htmlutil.EscapeHTML(a.Label), htmlutil.EscapeHTML(a.Explanation))
+		id := annCounter.Add(1)
+		_, _ = fmt.Fprintf(w, `<abbr class="sarde-annotation" title="%s" aria-describedby="ann-%d" tabindex="0">%s<span class="sarde-annotation-tooltip" role="tooltip" id="ann-%d">%s</span></abbr>`,
+			htmlutil.EscapeHTML(a.Explanation), id, htmlutil.EscapeHTML(a.Label), id, htmlutil.EscapeHTML(a.Explanation))
 	}
 	return ast.WalkSkipChildren, nil
 }

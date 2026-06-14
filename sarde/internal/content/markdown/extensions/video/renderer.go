@@ -28,9 +28,9 @@ func (r *videoRenderer) render(w util.BufWriter, source []byte, node ast.Node, e
 
 	iframeAttrs := ` frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"`
 	if id, ok := extractYouTubeID(raw); ok {
-		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"sarde-video-wrapper\"><iframe src=\"https://www.youtube.com/embed/%s\"%s></iframe></div></div>\n", htmlutil.EscapeHTML(id), iframeAttrs)
+		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"sarde-video-wrapper\"><iframe src=\"https://www.youtube.com/embed/%s\" title=\"YouTube video\"%s></iframe></div></div>\n", htmlutil.EscapeHTML(id), iframeAttrs)
 	} else if id, ok := extractVimeoID(raw); ok {
-		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"sarde-video-wrapper\"><iframe src=\"https://player.vimeo.com/video/%s\"%s></iframe></div></div>\n", htmlutil.EscapeHTML(id), iframeAttrs)
+		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"sarde-video-wrapper\"><iframe src=\"https://player.vimeo.com/video/%s\" title=\"Vimeo video\"%s></iframe></div></div>\n", htmlutil.EscapeHTML(id), iframeAttrs)
 	} else {
 		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"sarde-video-wrapper\"><video src=\"%s\" controls></video></div></div>\n", htmlutil.EscapeHTML(raw))
 	}

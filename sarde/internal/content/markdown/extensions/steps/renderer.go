@@ -35,6 +35,7 @@ func (r *stepsRenderer) renderStepItem(w util.BufWriter, source []byte, node ast
 
 	if entering {
 		_, _ = fmt.Fprintf(w, "<div class=\"sarde-step\" data-step=\"%d\">\n", step.Index)
+		_, _ = fmt.Fprintf(w, "<span class=\"sr-only\">Step %d.</span>\n", step.Index)
 		_, _ = w.WriteString("<div class=\"sarde-step-content\">\n")
 		if step.Title != "" {
 			_, _ = fmt.Fprintf(w, "<h3 class=\"sarde-step-title\">%s</h3>\n", htmlutil.EscapeHTML(step.Title))

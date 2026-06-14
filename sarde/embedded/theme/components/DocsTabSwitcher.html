@@ -1,9 +1,9 @@
 {{ if .IsTabbed }}
 <div class="sarde-tab-switcher">
-  <button class="sarde-tab-trigger" data-sarde-tab-trigger aria-expanded="false" aria-haspopup="listbox">
+  <button class="sarde-tab-trigger" data-sarde-tab-trigger aria-expanded="false" aria-haspopup="true" aria-controls="sarde-tab-menu">
     {{ if .ActiveTab }}
     <span class="sarde-tab-active-label">
-      {{ if .ActiveTab.Icon }}<span class="sarde-tab-icon">{{ .ActiveTab.Icon }}</span>{{ end }}
+      {{ if .ActiveTab.Icon }}<span class="sarde-tab-icon" aria-hidden="true">{{ .ActiveTab.Icon }}</span>{{ end }}
       <span>{{ .ActiveTab.Title }}</span>
     </span>
     {{ else }}
@@ -11,11 +11,11 @@
     {{ end }}
     {{ icon "chevron-down" "sarde-tab-chevron" }}
   </button>
-  <ul class="sarde-tab-menu" data-sarde-tab-menu role="listbox" hidden>
+  <ul class="sarde-tab-menu" id="sarde-tab-menu" data-sarde-tab-menu role="menu" hidden>
     {{ range .DocsTabs }}
-    <li role="option"{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} aria-selected="true"{{ end }}>
-      <a href="{{ relURL .Permalink }}" class="sarde-tab-option{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} is-active{{ end }}">
-        {{ if .Icon }}<span class="sarde-tab-icon">{{ .Icon }}</span>{{ end }}
+    <li role="none">
+      <a href="{{ relURL .Permalink }}" role="menuitem" class="sarde-tab-option{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} is-active{{ end }}"{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} aria-current="page"{{ end }}>
+        {{ if .Icon }}<span class="sarde-tab-icon" aria-hidden="true">{{ .Icon }}</span>{{ end }}
         <span class="sarde-tab-option-text">
           <span class="sarde-tab-option-title">{{ .Title }}</span>
           {{ if .Description }}<span class="sarde-tab-option-desc">{{ .Description }}</span>{{ end }}

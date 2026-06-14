@@ -11,6 +11,7 @@ var KindTabItem = gast.NewNodeKind("TabItem")
 // TabsBlock is an AST node representing a tabs container.
 type TabsBlock struct {
 	gast.BaseBlock
+	ID int64
 }
 
 // Kind implements ast.Node.Kind.

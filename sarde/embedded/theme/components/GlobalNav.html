@@ -7,7 +7,7 @@
 </button>
 <nav class="sarde-header-nav" id="sarde-global-nav">
   {{ range .GlobalNav.Items }}
-  <a href="{{ .URL }}"{{ if .IsActive }} class="is-active" aria-current="page"{{ end }}{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}</a>
+  <a href="{{ .URL }}"{{ if .IsActive }} class="is-active" aria-current="page"{{ end }}{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}{{ if .External }}<span class="sr-only"> (opens in new tab)</span>{{ end }}</a>
   {{ end }}
 </nav>
 {{ end }}

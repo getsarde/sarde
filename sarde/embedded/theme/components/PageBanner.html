@@ -1,5 +1,5 @@
 {{ if .PageBanner }}
-<aside class="sarde-page-banner sarde-page-banner-{{ or .PageBanner.Variant "note" }}" role="note">
+<aside class="sarde-page-banner sarde-page-banner-{{ or .PageBanner.Variant "note" }}" aria-label="Page banner">
   <p>{{ .PageBanner.Content }}</p>
 </aside>
 {{ end }}

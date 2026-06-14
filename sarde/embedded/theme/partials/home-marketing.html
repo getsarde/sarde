@@ -58,7 +58,7 @@
       {{ range $recent }}
       <a class="sarde-recent-card" href="{{ .Permalink }}">
         <span class="sarde-recent-card-title">{{ .Title }}</span>
-        {{ if not .Date.IsZero }}<time class="sarde-recent-card-date">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
+        {{ if not .Date.IsZero }}<time class="sarde-recent-card-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
       </a>
       {{ end }}
     </div>

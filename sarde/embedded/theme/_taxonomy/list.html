@@ -10,9 +10,9 @@
   <div class="sarde-taxonomy-cloud">
     {{ range .TermEntries }}
     <a href="{{ relURL .Permalink }}" class="sarde-taxonomy-pill sarde-taxonomy-tier-{{ .PopTier }}"{{ if .Color }} style="--term-color: {{ .Color }}"{{ end }}>
-      {{ if .Icon }}<span class="sarde-term-icon">{{ .Icon }}</span>{{ end }}
+      {{ if .Icon }}<span class="sarde-term-icon" aria-hidden="true">{{ .Icon }}</span>{{ end }}
       <span class="sarde-term-label">{{ .Label }}</span>
-      <span class="sarde-term-count">{{ .Count }}</span>
+      <span class="sarde-term-count">{{ .Count }}<span class="sr-only"> items</span></span>
     </a>
     {{ end }}
   </div>
