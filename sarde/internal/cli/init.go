@@ -67,7 +67,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	quiet, _ := cmd.Flags().GetBool("quiet")
 	if !quiet {
 		fmt.Printf("Created new site at %s\n", absDir)
-		fmt.Println("  Run 'sarde serve' to start the dev server.")
+		fmt.Println("  Run 'sarde dev' to start the dev server.")
 	}
 
 	return nil
@@ -100,7 +100,7 @@ title: Welcome
 
 # Welcome to your new site
 
-Edit this page at ` + "`content/_index.md`" + `, then run ` + "`sarde serve`" + ` to see your changes.
+Edit this page at ` + "`content/_index.md`" + `, then run ` + "`sarde dev`" + ` to see your changes.
 `
 
 const blogPostContent = `---
@@ -114,7 +114,8 @@ This is your first blog post. Edit it or create new posts in ` + "`content/blog/
 
 const docsPageContent = `---
 title: Getting Started
-weight: 1
+sidebar:
+  order: 1
 ---
 
 Welcome to the documentation. Add more pages to ` + "`content/docs/`" + ` and they will appear in the sidebar automatically.
@@ -122,6 +123,6 @@ Welcome to the documentation. Add more pages to ` + "`content/docs/`" + ` and th
 ## Next Steps
 
 - Edit ` + "`sarde.yaml`" + ` to customize your site
-- Run ` + "`sarde serve`" + ` to start the dev server
+- Run ` + "`sarde dev`" + ` to start the dev server
 - Run ` + "`sarde build`" + ` to generate the static site
 `

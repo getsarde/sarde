@@ -163,7 +163,7 @@ func (pm *ProjectManager) CreateProject(dir string, opts CreateOpts) (*ProjectIn
 	}
 
 	// Write content/_index.md.
-	indexMD := "---\ntitle: Welcome\n---\n\n# Welcome to your new site\n\nEdit this page at `content/_index.md`, then run `sarde serve` to see your changes.\n"
+	indexMD := "---\ntitle: Welcome\n---\n\n# Welcome to your new site\n\nEdit this page at `content/_index.md`, then run `sarde dev` to see your changes.\n"
 	os.MkdirAll(filepath.Join(absDir, consts.DirContent), 0o755)
 	if err := os.WriteFile(filepath.Join(absDir, "content", "_index.md"), []byte(indexMD), 0o644); err != nil {
 		return nil, err
