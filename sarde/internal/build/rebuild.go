@@ -528,7 +528,7 @@ func incrementalEligibilityFailure(old, next *engine.Page, cf content.ContentFil
 	if old.Slug != next.Slug {
 		return "slug changed"
 	}
-	if old.Title != next.Title || !old.Date.Equal(next.Date) || old.Weight != next.Weight {
+	if old.Title != next.Title || !old.Date.Equal(next.Date) || old.Sidebar.Order != next.Sidebar.Order {
 		return "collection sort or navigation fields changed"
 	}
 	if old.Draft != next.Draft || !old.PublishDate.Equal(next.PublishDate) || !old.ExpiryDate.Equal(next.ExpiryDate) {

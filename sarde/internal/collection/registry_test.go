@@ -82,8 +82,8 @@ func TestBuildCollections_DocsDefaults(t *testing.T) {
 	if !ok {
 		t.Fatal("docs collection not found")
 	}
-	if docs.Config.SortBy != "weight" {
-		t.Errorf("SortBy = %q, want %q", docs.Config.SortBy, "weight")
+	if docs.Config.SortBy != "order" {
+		t.Errorf("SortBy = %q, want %q", docs.Config.SortBy, "order")
 	}
 	if docs.Config.Layout != engine.LayoutDocs {
 		t.Errorf("Layout = %q, want %q", docs.Config.Layout, engine.LayoutDocs)
@@ -175,8 +175,8 @@ func TestBuildCollections_DocsSortWeightAsc(t *testing.T) {
 	if len(contentPages) < 2 {
 		t.Fatalf("expected at least 2 docs pages, got %d", len(contentPages))
 	}
-	if contentPages[0].Weight > contentPages[1].Weight {
-		t.Errorf("docs should be sorted by weight asc: got %d, %d", contentPages[0].Weight, contentPages[1].Weight)
+	if contentPages[0].Sidebar.Order > contentPages[1].Sidebar.Order {
+		t.Errorf("docs should be sorted by weight asc: got %d, %d", contentPages[0].Sidebar.Order, contentPages[1].Sidebar.Order)
 	}
 }
 

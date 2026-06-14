@@ -88,13 +88,13 @@ func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int) *engine.
 	if sec.Render && sec.IndexPage != nil {
 		group.URL = sec.Permalink
 		group.Page = sec.IndexPage
-		group.Weight = sec.IndexPage.Weight
+		group.Order = sec.IndexPage.Sidebar.Order
 		if sec.IndexPage.Sidebar.Label != "" {
 			group.Label = sec.IndexPage.Sidebar.Label
 		}
 	} else if sec.IndexPage != nil {
 		// Non-rendering but has index: use its weight/label.
-		group.Weight = sec.IndexPage.Weight
+		group.Order = sec.IndexPage.Sidebar.Order
 		if sec.IndexPage.Sidebar.Label != "" {
 			group.Label = sec.IndexPage.Sidebar.Label
 		}
@@ -173,7 +173,7 @@ func pageToNode(page *engine.Page, depth int) *engine.NavNode {
 		Label:  label,
 		URL:    page.RelPermalink,
 		Slug:   page.Slug,
-		Weight: page.Weight,
+		Order: page.Sidebar.Order,
 		Depth:  depth,
 		Page:   page,
 		Attrs:  cloneStringMap(page.Sidebar.Attrs),
@@ -199,8 +199,8 @@ func sortNodesRecursive(node *engine.NavNode) {
 	}
 	sort.SliceStable(node.Children, func(i, j int) bool {
 		a, b := node.Children[i], node.Children[j]
-		if a.Weight != b.Weight {
-			return a.Weight < b.Weight
+		if a.Order != b.Order {
+			return a.Order < b.Order
 		}
 		return strings.ToLower(a.Label) < strings.ToLower(b.Label)
 	})

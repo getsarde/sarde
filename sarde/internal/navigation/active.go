@@ -75,7 +75,7 @@ func cloneNode(node *engine.NavNode, parent *engine.NavNode) *engine.NavNode {
 		Label:    node.Label,
 		URL:      node.URL,
 		Slug:     node.Slug,
-		Weight:   node.Weight,
+		Order:   node.Order,
 		Position: node.Position,
 		Depth:    node.Depth,
 		Page:     node.Page, // share Page pointer (immutable during render)

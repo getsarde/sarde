@@ -425,7 +425,6 @@ func buildPage(
 		},
 		PageMeta: engine.PageMeta{
 			Draft:       fm.Draft,
-			Weight:      fm.Weight,
 			Description: fm.Description,
 			Image:       fm.Image,
 		},
@@ -435,6 +434,7 @@ func buildPage(
 			Aliases:    fm.Aliases,
 		},
 		Sidebar: engine.PageSidebar{
+			Order:  fm.Sidebar.Order,
 			Label:  fm.Sidebar.Label,
 			Hidden: fm.Sidebar.Hidden,
 			Group:  fm.Sidebar.Group,

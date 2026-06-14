@@ -65,16 +65,16 @@ func TestValidate_TypeInt(t *testing.T) {
 	v := &Validator{}
 	schema := &engine.FrontmatterSchema{
 		Fields: map[string]engine.FieldDef{
-			"weight": {Type: "int"},
+			"order": {Type: "int"},
 		},
 	}
 	// Valid
-	warnings := v.Validate(map[string]interface{}{"weight": 5}, schema)
+	warnings := v.Validate(map[string]interface{}{"order": 5}, schema)
 	if len(warnings) != 0 {
 		t.Errorf("expected no warnings for int value, got %d", len(warnings))
 	}
 	// Invalid
-	warnings = v.Validate(map[string]interface{}{"weight": "heavy"}, schema)
+	warnings = v.Validate(map[string]interface{}{"order": "heavy"}, schema)
 	if len(warnings) != 1 {
 		t.Errorf("expected 1 warning for string value, got %d", len(warnings))
 	}

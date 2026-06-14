@@ -70,7 +70,7 @@ type ContentSummary struct {
 	Title  string    `json:"title"`
 	Draft  bool      `json:"draft"`
 	Date   time.Time `json:"date,omitempty"`
-	Weight int       `json:"weight"`
+	Order  int       `json:"order"`
 }
 
 // CollectionInfo provides metadata about a collection.

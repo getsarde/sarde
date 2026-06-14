@@ -30,8 +30,8 @@ func TestInferCollection_Blog(t *testing.T) {
 func TestInferCollection_Docs(t *testing.T) {
 	for _, name := range []string{"docs", "documentation", "courses", "tutorials", "guides", "reference", "lessons", "workshops"} {
 		cfg := InferCollection(name)
-		if cfg.SortBy != "weight" {
-			t.Errorf("%s: SortBy = %q, want %q", name, cfg.SortBy, "weight")
+		if cfg.SortBy != "order" {
+			t.Errorf("%s: SortBy = %q, want %q", name, cfg.SortBy, "order")
 		}
 		if cfg.SortOrder != "asc" {
 			t.Errorf("%s: SortOrder = %q, want %q", name, cfg.SortOrder, "asc")

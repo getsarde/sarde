@@ -73,6 +73,9 @@ func applyCascadeField(page *engine.Page, key string, value any) {
 
 	case "sidebar":
 		if subMap, ok := value.(map[string]any); ok {
+			if n, ok := subMap["order"].(int); ok && page.Sidebar.Order == 0 {
+				page.Sidebar.Order = n
+			}
 			if s, ok := subMap["label"].(string); ok && page.Sidebar.Label == "" {
 				page.Sidebar.Label = s
 			}

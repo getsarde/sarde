@@ -96,7 +96,7 @@ func BuildTabsI18n(col *engine.Collection, contentDir string, langs []string) []
 		}
 		if sec.IndexPage != nil {
 			tab.Description = sec.IndexPage.Description
-			tab.Weight = sec.IndexPage.Weight
+			tab.Order = sec.IndexPage.Sidebar.Order
 			if icon, ok := sec.IndexPage.Params["icon"].(string); ok {
 				tab.Icon = icon
 			}
@@ -224,7 +224,7 @@ func buildTab(sec *engine.Section, col *engine.Collection, contentDir string) *e
 	}
 	if sec.IndexPage != nil {
 		tab.Description = sec.IndexPage.Description
-		tab.Weight = sec.IndexPage.Weight
+		tab.Order = sec.IndexPage.Sidebar.Order
 		if icon, ok := sec.IndexPage.Params["icon"].(string); ok {
 			tab.Icon = icon
 		}
@@ -332,8 +332,8 @@ func filterTabPagesByLang(pages []*engine.Page, lang string) []*engine.Page {
 // sortTabs sorts tabs by weight ascending, then title alphabetically.
 func sortTabs(tabs []*engine.DocsTab) {
 	sort.SliceStable(tabs, func(i, j int) bool {
-		if tabs[i].Weight != tabs[j].Weight {
-			return tabs[i].Weight < tabs[j].Weight
+		if tabs[i].Order != tabs[j].Order {
+			return tabs[i].Order < tabs[j].Order
 		}
 		return strings.ToLower(tabs[i].Title) < strings.ToLower(tabs[j].Title)
 	})

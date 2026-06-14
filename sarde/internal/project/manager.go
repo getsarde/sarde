@@ -422,7 +422,7 @@ func (pm *ProjectManager) ListContent(collection string) ([]ContentSummary, erro
 			Title:  title,
 			Draft:  draft,
 			Date:   date,
-			Weight: weight,
+			Order: weight,
 		})
 	}
 

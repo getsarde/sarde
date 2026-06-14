@@ -122,16 +122,16 @@ func TestDiscoverFiles_NumericPrefix(t *testing.T) {
 	if f.Slug != "basics" {
 		t.Errorf("01-basics.md slug = %q, want %q", f.Slug, "basics")
 	}
-	if f.Weight != 1 {
-		t.Errorf("01-basics.md weight = %d, want 1", f.Weight)
+	if f.Order != 1 {
+		t.Errorf("01-basics.md weight = %d, want 1", f.Order)
 	}
 
 	f = byRel["courses/02-advanced.md"]
 	if f.Slug != "advanced" {
 		t.Errorf("02-advanced.md slug = %q, want %q", f.Slug, "advanced")
 	}
-	if f.Weight != 2 {
-		t.Errorf("02-advanced.md weight = %d, want 2", f.Weight)
+	if f.Order != 2 {
+		t.Errorf("02-advanced.md weight = %d, want 2", f.Order)
 	}
 }
 

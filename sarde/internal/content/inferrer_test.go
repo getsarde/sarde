@@ -93,8 +93,8 @@ func TestInfer_WeightFromPrefix(t *testing.T) {
 	inf := &Inferrer{}
 	inf.Infer(page, path)
 
-	if page.Weight != 3 {
-		t.Errorf("Weight = %d, want 3", page.Weight)
+	if page.Sidebar.Order != 3 {
+		t.Errorf("Weight = %d, want 3", page.Sidebar.Order)
 	}
 	if page.Slug != "advanced" {
 		t.Errorf("Slug = %q, want %q", page.Slug, "advanced")
@@ -178,8 +178,8 @@ func TestInfer_DatePrefixWithNumericRemainder(t *testing.T) {
 	if page.Slug != "intro" {
 		t.Errorf("Slug = %q, want %q", page.Slug, "intro")
 	}
-	if page.Weight != 1 {
-		t.Errorf("Weight = %d, want 1", page.Weight)
+	if page.Sidebar.Order != 1 {
+		t.Errorf("Weight = %d, want 1", page.Sidebar.Order)
 	}
 }
 

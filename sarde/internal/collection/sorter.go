@@ -8,7 +8,7 @@ import (
 )
 
 // SortPages sorts pages in-place by the given key and order.
-// Supported keys: "date", "weight", "title", "slug".
+// Supported keys: "date", "order", "title", "slug".
 // Order: "asc" or "desc" (defaults to "asc").
 // Uses stable sort to preserve filesystem order for ties.
 func SortPages(pages []*engine.Page, sortBy, sortOrder string) {
@@ -31,9 +31,9 @@ func comparePage(a, b *engine.Page, sortBy string) int {
 	switch sortBy {
 	case "date":
 		return a.Date.Compare(b.Date)
-	case "weight":
-		if a.Weight != b.Weight {
-			return a.Weight - b.Weight
+	case "order":
+		if a.Sidebar.Order != b.Sidebar.Order {
+			return a.Sidebar.Order - b.Sidebar.Order
 		}
 		// Tiebreaker: alphabetical by title
 		return strings.Compare(strings.ToLower(a.Title), strings.ToLower(b.Title))

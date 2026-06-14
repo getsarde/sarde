@@ -17,7 +17,7 @@ type ContentFile struct {
 	Kind           engine.NodeKind // home, section, page, bundle, standalone
 	CollectionName string          // top-level dir name, "" for root-level files
 	Slug           string          // derived from filename
-	Weight         int             // from numeric prefix
+	Order          int             // from numeric prefix
 	IsBundle       bool            // true if index.md with sibling assets
 	BundleAssets   []string        // sibling non-.md files (bundles only)
 	Lang           string          // language code (set by i18n detector)
@@ -136,7 +136,7 @@ func (s *Scanner) DiscoverFiles(contentDir string) ([]ContentFile, error) {
 			Kind:           kind,
 			CollectionName: collectionName,
 			Slug:           slug,
-			Weight:         weight,
+			Order:         weight,
 			IsBundle:       kind == engine.KindBundle,
 		}
 
@@ -220,7 +220,7 @@ func (s *Scanner) ClassifyFile(contentDir, filePath string) (ContentFile, error)
 		Kind:           kind,
 		CollectionName: collectionName,
 		Slug:           slug,
-		Weight:         weight,
+		Order:         weight,
 		IsBundle:       kind == engine.KindBundle,
 	}
 	if cf.IsBundle {

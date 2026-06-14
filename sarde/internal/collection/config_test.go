@@ -31,10 +31,10 @@ func TestMergeCollectionConfig_SortOverride(t *testing.T) {
 
 func TestMergeCollectionConfig_SortByOnly(t *testing.T) {
 	inferred := InferCollection("blog") // date desc
-	siteCfg := &config.CollectionSiteConfig{Sort: "weight"}
+	siteCfg := &config.CollectionSiteConfig{Sort: "order"}
 	merged := MergeCollectionConfig(inferred, siteCfg)
-	if merged.SortBy != "weight" {
-		t.Errorf("SortBy = %q, want %q", merged.SortBy, "weight")
+	if merged.SortBy != "order" {
+		t.Errorf("SortBy = %q, want %q", merged.SortBy, "order")
 	}
 	// SortOrder should remain from inferred
 	if merged.SortOrder != "desc" {
@@ -109,7 +109,7 @@ func TestParseSortString(t *testing.T) {
 		wantOrder string
 	}{
 		{"date desc", "date", "desc"},
-		{"weight asc", "weight", "asc"},
+		{"order asc", "order", "asc"},
 		{"title", "title", ""},
 		{"", "", ""},
 		{"slug desc", "slug", "desc"},

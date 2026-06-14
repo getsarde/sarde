@@ -38,7 +38,7 @@ func InferCollection(dirName string) *engine.CollectionConfig {
 
 	case docsNames[dirName]:
 		return &engine.CollectionConfig{
-			SortBy:    "weight",
+			SortBy:    "order",
 			SortOrder: "asc",
 			Layout:    engine.LayoutDocs,
 			Sidebar: &engine.SidebarConfig{

@@ -21,10 +21,10 @@ func TestBuildNavTree_BasicStructure(t *testing.T) {
 		Slug:      "guides",
 		Permalink: "/docs/guides/",
 		Render:    true,
-		IndexPage: &engine.Page{PageIdentity: engine.PageIdentity{Title: "Guides", Kind: engine.KindSection}, PageMeta: engine.PageMeta{Weight: 1}},
+		IndexPage: &engine.Page{PageIdentity: engine.PageIdentity{Title: "Guides", Kind: engine.KindSection}, Sidebar: engine.PageSidebar{Order: 1}},
 		Pages: []*engine.Page{
-			{PageIdentity: engine.PageIdentity{Title: "Auth", Slug: "auth", RelPermalink: "/docs/guides/auth/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 1}},
-			{PageIdentity: engine.PageIdentity{Title: "Deploy", Slug: "deploy", RelPermalink: "/docs/guides/deploy/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 2}},
+			{PageIdentity: engine.PageIdentity{Title: "Auth", Slug: "auth", RelPermalink: "/docs/guides/auth/", Kind: engine.KindPage}, Sidebar: engine.PageSidebar{Order: 1}},
+			{PageIdentity: engine.PageIdentity{Title: "Deploy", Slug: "deploy", RelPermalink: "/docs/guides/deploy/", Kind: engine.KindPage}, Sidebar: engine.PageSidebar{Order: 2}},
 		},
 	}
 	// Wire Section backrefs.
@@ -39,7 +39,7 @@ func TestBuildNavTree_BasicStructure(t *testing.T) {
 		Config:   docsConfig(),
 		Sections: []*engine.Section{sec},
 		Pages: []*engine.Page{
-			{PageIdentity: engine.PageIdentity{Title: "Getting Started", Slug: "getting-started", RelPermalink: "/docs/getting-started/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 0}},
+			{PageIdentity: engine.PageIdentity{Title: "Getting Started", Slug: "getting-started", RelPermalink: "/docs/getting-started/", Kind: engine.KindPage}, Sidebar: engine.PageSidebar{Order: 0}},
 			sec.IndexPage,
 			sec.Pages[0],
 			sec.Pages[1],
@@ -85,8 +85,8 @@ func TestBuildNavTree_TransparentSection(t *testing.T) {
 		Slug:        "internal",
 		Transparent: true,
 		Pages: []*engine.Page{
-			{PageIdentity: engine.PageIdentity{Title: "Page A", Slug: "a", RelPermalink: "/docs/a/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 1}},
-			{PageIdentity: engine.PageIdentity{Title: "Page B", Slug: "b", RelPermalink: "/docs/b/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 2}},
+			{PageIdentity: engine.PageIdentity{Title: "Page A", Slug: "a", RelPermalink: "/docs/a/", Kind: engine.KindPage}, Sidebar: engine.PageSidebar{Order: 1}},
+			{PageIdentity: engine.PageIdentity{Title: "Page B", Slug: "b", RelPermalink: "/docs/b/", Kind: engine.KindPage}, Sidebar: engine.PageSidebar{Order: 2}},
 		},
 	}
 	for _, p := range sec.Pages {
@@ -119,7 +119,7 @@ func TestBuildNavTree_NonRenderingSection(t *testing.T) {
 		Slug:      "advanced",
 		Permalink: "/docs/advanced/",
 		Render:    false,
-		IndexPage: &engine.Page{PageIdentity: engine.PageIdentity{Title: "Advanced", Kind: engine.KindSection}, PageMeta: engine.PageMeta{Weight: 10}},
+		IndexPage: &engine.Page{PageIdentity: engine.PageIdentity{Title: "Advanced", Kind: engine.KindSection}, Sidebar: engine.PageSidebar{Order: 10}},
 		Pages: []*engine.Page{
 			{PageIdentity: engine.PageIdentity{Title: "Internals", Slug: "internals", RelPermalink: "/docs/advanced/internals/", Kind: engine.KindPage}},
 		},
@@ -193,9 +193,9 @@ func TestBuildNavTree_WeightSorting(t *testing.T) {
 		Title:  "Docs",
 		Config: docsConfig(),
 		Pages: []*engine.Page{
-			{PageIdentity: engine.PageIdentity{Title: "Zebra", Slug: "z", RelPermalink: "/docs/z/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 3}},
-			{PageIdentity: engine.PageIdentity{Title: "Apple", Slug: "a", RelPermalink: "/docs/a/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 1}},
-			{PageIdentity: engine.PageIdentity{Title: "Mango", Slug: "m", RelPermalink: "/docs/m/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 2}},
+			{PageIdentity: engine.PageIdentity{Title: "Zebra", Slug: "z", RelPermalink: "/docs/z/", Kind: engine.KindPage}, Sidebar: engine.PageSidebar{Order: 3}},
+			{PageIdentity: engine.PageIdentity{Title: "Apple", Slug: "a", RelPermalink: "/docs/a/", Kind: engine.KindPage}, Sidebar: engine.PageSidebar{Order: 1}},
+			{PageIdentity: engine.PageIdentity{Title: "Mango", Slug: "m", RelPermalink: "/docs/m/", Kind: engine.KindPage}, Sidebar: engine.PageSidebar{Order: 2}},
 		},
 	}
 
@@ -221,8 +221,8 @@ func TestBuildNavTree_FlatList(t *testing.T) {
 		Render:    true,
 		IndexPage: &engine.Page{PageIdentity: engine.PageIdentity{Title: "Section", Kind: engine.KindSection}},
 		Pages: []*engine.Page{
-			{PageIdentity: engine.PageIdentity{Title: "B", Slug: "b", RelPermalink: "/docs/sec/b/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 2}},
-			{PageIdentity: engine.PageIdentity{Title: "A", Slug: "a", RelPermalink: "/docs/sec/a/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 1}},
+			{PageIdentity: engine.PageIdentity{Title: "B", Slug: "b", RelPermalink: "/docs/sec/b/", Kind: engine.KindPage}, Sidebar: engine.PageSidebar{Order: 2}},
+			{PageIdentity: engine.PageIdentity{Title: "A", Slug: "a", RelPermalink: "/docs/sec/a/", Kind: engine.KindPage}, Sidebar: engine.PageSidebar{Order: 1}},
 		},
 	}
 	for _, p := range sec.Pages {
@@ -236,7 +236,7 @@ func TestBuildNavTree_FlatList(t *testing.T) {
 		Config:   docsConfig(),
 		Sections: []*engine.Section{sec},
 		Pages: []*engine.Page{
-			{PageIdentity: engine.PageIdentity{Title: "Root", Slug: "root", RelPermalink: "/docs/root/", Kind: engine.KindPage}, PageMeta: engine.PageMeta{Weight: 0}},
+			{PageIdentity: engine.PageIdentity{Title: "Root", Slug: "root", RelPermalink: "/docs/root/", Kind: engine.KindPage}, Sidebar: engine.PageSidebar{Order: 0}},
 			sec.IndexPage,
 			sec.Pages[0],
 			sec.Pages[1],
@@ -272,8 +272,7 @@ func TestBuildNavTree_SidebarAttrsOnNode(t *testing.T) {
 		Pages: []*engine.Page{
 			{
 				PageIdentity: engine.PageIdentity{Title: "API Page", Slug: "api", RelPermalink: "/docs/api/", Kind: engine.KindPage},
-				PageMeta:     engine.PageMeta{Weight: 1},
-				Sidebar:      engine.PageSidebar{Attrs: map[string]string{"icon": "star", "data-new": "true"}},
+				Sidebar:      engine.PageSidebar{Order: 1, Attrs: map[string]string{"icon": "star", "data-new": "true"}},
 			},
 		},
 	}

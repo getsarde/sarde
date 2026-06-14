@@ -81,7 +81,7 @@ func buildNodeFromYAMLItem(item navYAMLItem, lookup map[string]*engine.Page, dep
 		node.Page = page
 		node.URL = page.RelPermalink
 		node.Slug = page.Slug
-		node.Weight = page.Weight
+		node.Order = page.Sidebar.Order
 		if node.Label == "" {
 			if page.Sidebar.Label != "" {
 				node.Label = page.Sidebar.Label

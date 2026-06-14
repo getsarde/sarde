@@ -91,7 +91,7 @@ theme:
 #     feed: true
 #   docs:
 #     title: "Documentation"
-#     sort: "weight"
+#     sort: "order"
 `
 
 const indexMDContent = `---

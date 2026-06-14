@@ -159,8 +159,10 @@ func extractSummary(fm map[string]any, body string) (title string, draft bool, d
 			date = parsed
 		}
 	}
-	if w, ok := fm["weight"].(int); ok {
-		weight = w
+	if sidebar, ok := fm["sidebar"].(map[string]any); ok {
+		if w, ok := sidebar["order"].(int); ok {
+			weight = w
+		}
 	}
 
 	wordCount = len(strings.Fields(body))

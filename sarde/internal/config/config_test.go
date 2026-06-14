@@ -410,7 +410,7 @@ func TestMergeServer_HostNotOverwrittenByZero(t *testing.T) {
 
 func TestMergeCollections_DeepMerge(t *testing.T) {
 	base := map[string]*CollectionSiteConfig{
-		"docs": {Path: "content/docs", Sort: "weight"},
+		"docs": {Path: "content/docs", Sort: "order"},
 	}
 	over := map[string]*CollectionSiteConfig{
 		"docs": {Layout: "doc"},
@@ -424,8 +424,8 @@ func TestMergeCollections_DeepMerge(t *testing.T) {
 	if base["docs"].Layout != "doc" {
 		t.Errorf("docs.Layout = %q, want %q (should apply override)", base["docs"].Layout, "doc")
 	}
-	if base["docs"].Sort != "weight" {
-		t.Errorf("docs.Sort = %q, want %q (should preserve base)", base["docs"].Sort, "weight")
+	if base["docs"].Sort != "order" {
+		t.Errorf("docs.Sort = %q, want %q (should preserve base)", base["docs"].Sort, "order")
 	}
 	if base["blog"] == nil || base["blog"].Path != "content/blog" {
 		t.Error("blog collection should be added from override")

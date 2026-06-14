@@ -152,9 +152,9 @@ func TestContentRebuild_StructuralChangesFallBackToFullBuild(t *testing.T) {
 			write: "---\ntitle: One Updated\ndate: 2025-01-02T00:00:00Z\n---\n# One Updated\nBody.\n",
 		},
 		{
-			name:  "weight",
+			name:  "order",
 			path:  "content/blog/one.md",
-			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nweight: 10\n---\n# One\nBody.\n",
+			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nsidebar:\n  order: 10\n---\n# One\nBody.\n",
 		},
 		{
 			name:  "render flag",

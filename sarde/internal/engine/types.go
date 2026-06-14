@@ -5,6 +5,8 @@ import (
 	"io/fs"
 	"strings"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 // ---------------------------------------------------------------------------
@@ -119,7 +121,6 @@ type PageContent struct {
 // PageMeta holds editorial metadata.
 type PageMeta struct {
 	Draft       bool
-	Weight      int
 	Description string
 	Image       string
 }
@@ -144,6 +145,7 @@ type PageTaxonomy struct {
 
 // PageSidebar holds sidebar presentation fields.
 type PageSidebar struct {
+	Order  int
 	Label  string
 	Hidden bool
 	Group  string
@@ -217,7 +219,6 @@ type FrontmatterIdentity struct {
 // FrontmatterMeta holds editorial and behavioral override fields.
 type FrontmatterMeta struct {
 	Draft       bool          `yaml:"draft"`
-	Weight      int           `yaml:"weight"`
 	Description string        `yaml:"description"`
 	Image       string        `yaml:"image"`
 	Summary     string        `yaml:"summary"`
@@ -229,6 +230,7 @@ type FrontmatterMeta struct {
 
 // FrontmatterSidebar holds sidebar presentation fields.
 type FrontmatterSidebar struct {
+	Order  int               `yaml:"order"`
 	Label  string            `yaml:"label"`
 	Hidden bool              `yaml:"hidden"`
 	Group  string            `yaml:"group"`
@@ -237,10 +239,30 @@ type FrontmatterSidebar struct {
 }
 
 // FrontmatterTOC holds table-of-contents override fields.
+//
+// Supports two YAML forms:
+//
+//	toc: false                      → FrontmatterTOC{Enabled: ptr(false)}
+//	toc:
+//	  enabled: true
+//	  min_level: 2                  → FrontmatterTOC{Enabled: ptr(true), MinLevel: 2}
 type FrontmatterTOC struct {
 	Enabled  *bool `yaml:"enabled"`
 	MinLevel int   `yaml:"min_level"`
 	MaxLevel int   `yaml:"max_level"`
+}
+
+func (t *FrontmatterTOC) UnmarshalYAML(value *yaml.Node) error {
+	if value.Kind == yaml.ScalarNode {
+		var b bool
+		if err := value.Decode(&b); err != nil {
+			return err
+		}
+		t.Enabled = &b
+		return nil
+	}
+	type plain FrontmatterTOC
+	return value.Decode((*plain)(t))
 }
 
 // FrontmatterNav holds prev/next navigation override fields.
@@ -396,7 +418,7 @@ type DocsTab struct {
 	Description string
 	Icon        string // emoji, icon name, or SVG path
 	Slug        string // directory name, used for URL prefix matching
-	Weight      int
+	Order       int
 	Permalink   string   // URL of the tab's index page
 	Section     *Section // the top-level section backing this tab
 	NavTree     *NavTree
@@ -440,7 +462,7 @@ type NavNode struct {
 	Label       string
 	URL         string
 	Slug        string
-	Weight      int
+	Order       int
 	Position    int
 	Children    []*NavNode
 	Parent      *NavNode

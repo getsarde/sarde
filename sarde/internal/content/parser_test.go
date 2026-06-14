@@ -24,7 +24,7 @@ func TestParse_YAML(t *testing.T) {
 }
 
 func TestParse_TOML(t *testing.T) {
-	raw := []byte("+++\ntitle = \"Hello TOML\"\nweight = 5\n+++\nTOML body.\n")
+	raw := []byte("+++\ntitle = \"Hello TOML\"\norder = 5\n+++\nTOML body.\n")
 	p := &Parser{}
 	fm, body, err := p.Parse(raw)
 	if err != nil {
@@ -34,8 +34,8 @@ func TestParse_TOML(t *testing.T) {
 		t.Errorf("title = %v, want %q", fm["title"], "Hello TOML")
 	}
 	// TOML numbers come as int64
-	if w, ok := fm["weight"].(int64); !ok || w != 5 {
-		t.Errorf("weight = %v (%T), want 5", fm["weight"], fm["weight"])
+	if w, ok := fm["order"].(int64); !ok || w != 5 {
+		t.Errorf("weight = %v (%T), want 5", fm["order"], fm["order"])
 	}
 	if body != "TOML body.\n" {
 		t.Errorf("body = %q, want %q", body, "TOML body.\n")
@@ -182,7 +182,7 @@ func TestParse_BOM(t *testing.T) {
 }
 
 func TestParseFrontmatter_TypedYAML(t *testing.T) {
-	raw := []byte("---\ntitle: \"Typed Test\"\ndraft: true\nweight: 10\ntags:\n  - go\n---\nBody content.\n")
+	raw := []byte("---\ntitle: \"Typed Test\"\ndraft: true\nsidebar:\n  order: 10\ntags:\n  - go\n---\nBody content.\n")
 	fm, body, err := ParseFrontmatter(raw)
 	if err != nil {
 		t.Fatalf("ParseFrontmatter error: %v", err)
@@ -193,8 +193,8 @@ func TestParseFrontmatter_TypedYAML(t *testing.T) {
 	if !fm.Draft {
 		t.Error("Draft should be true")
 	}
-	if fm.Weight != 10 {
-		t.Errorf("Weight = %d, want 10", fm.Weight)
+	if fm.Sidebar.Order != 10 {
+		t.Errorf("Weight = %d, want 10", fm.Sidebar.Order)
 	}
 	if len(fm.Tags) != 1 || fm.Tags[0] != "go" {
 		t.Errorf("Tags = %v, want [go]", fm.Tags)

@@ -51,16 +51,16 @@ func (inf *Inferrer) Infer(page *engine.Page, filePath string) error {
 		if filenameSlugRemainder != "" {
 			if w, clean, found := ExtractNumericPrefix(filenameSlugRemainder); found {
 				page.Slug = Slugify(clean)
-				if page.Weight == 0 {
-					page.Weight = w
+				if page.Sidebar.Order == 0 {
+					page.Sidebar.Order = w
 				}
 			} else {
 				page.Slug = Slugify(filenameSlugRemainder)
 			}
 		} else if w, clean, found := ExtractNumericPrefix(nameNoExt); found {
 			page.Slug = Slugify(clean)
-			if page.Weight == 0 {
-				page.Weight = w
+			if page.Sidebar.Order == 0 {
+				page.Sidebar.Order = w
 			}
 		} else if filename == "_index.md" || filename == "index.md" {
 			// Slug comes from parent directory
@@ -70,10 +70,10 @@ func (inf *Inferrer) Infer(page *engine.Page, filePath string) error {
 		}
 	}
 
-	// Weight from numeric prefix (if not already set by frontmatter or slug inference)
-	if page.Weight == 0 {
+	// Order from numeric prefix (if not already set by frontmatter or slug inference)
+	if page.Sidebar.Order == 0 {
 		if w, _, found := ExtractNumericPrefix(nameNoExt); found {
-			page.Weight = w
+			page.Sidebar.Order = w
 		}
 	}
 
