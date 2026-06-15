@@ -203,7 +203,7 @@ func TestBuild_HomeHero_BackCompatConfig(t *testing.T) {
 	}
 
 	distDir := filepath.Join(projDir, "dist")
-	assertFixtureFileContains(t, distDir, "index.html", `class="sarde-hero hero`)
+	assertFixtureFileContains(t, distDir, "index.html", `class="sarde-hero sarde-hero-bg-`)
 	assertFixtureFileContains(t, distDir, "index.html", "Velox")
 	assertFixtureFileContains(t, distDir, "index.html", "A blazing-fast Go HTTP router.")
 	assertFixtureFileContains(t, distDir, "index.html", "Get Started")

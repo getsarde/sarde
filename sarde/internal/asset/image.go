@@ -435,11 +435,11 @@ func formatToExt(format string) string {
 	}
 }
 
-// saveImage writes an image to disk in the specified format. On encode
-// failure the partially-written file is removed so the variants cache never
-// holds corrupt output.
+// saveImage writes an image to disk in the specified format using an atomic
+// tmp+rename so a crash or encode failure never leaves a corrupt file at path.
 func saveImage(img image.Image, path, ext string, quality int) error {
-	f, err := os.Create(path)
+	tmpPath := path + ".tmp"
+	f, err := os.Create(tmpPath)
 	if err != nil {
 		return err
 	}
@@ -461,8 +461,12 @@ func saveImage(img image.Image, path, ext string, quality int) error {
 		encErr = closeErr
 	}
 	if encErr != nil {
-		os.Remove(path)
+		os.Remove(tmpPath)
 		return encErr
+	}
+	if err := os.Rename(tmpPath, path); err != nil {
+		os.Remove(tmpPath)
+		return err
 	}
 	return nil
 }

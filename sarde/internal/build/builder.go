@@ -1,6 +1,7 @@
 package build
 
 import (
+	"context"
 	"fmt"
 	htmltemplate "html/template"
 	"io/fs"
@@ -34,8 +35,8 @@ import (
 	"github.com/frostybee/sarde/internal/shortcode"
 	"github.com/frostybee/sarde/internal/taxonomy"
 	sardetemplate "github.com/frostybee/sarde/internal/template"
+	"github.com/frostybee/kazari"
 	"github.com/frostybee/sarde/internal/theme"
-	"github.com/frostybee/sarde/internal/theme/syntax"
 	"github.com/frostybee/sarde/internal/workers"
 )
 
@@ -66,6 +67,7 @@ type SiteBuilder struct {
 
 	urlResolver   *engine.URLResolver // URL resolver for basePath prefixing
 	resolutionKey string              // digest of resolver state; folded into page-cache keys
+	rendererKey   string              // digest of renderer identity (e.g. Kazari CSS); invalidates cache on engine change
 	linkGraph     *links.LinkGraph
 	lastCoverage  links.CoverageSummary
 
@@ -84,9 +86,10 @@ type SiteBuilder struct {
 	themeJSURL         string
 	themeJSContent     []byte
 	themeJSFilename    string
-	shikiJSURL         string
-	shikiJSContent     []byte
-	shikiJSFilename    string
+	kazariEngine       *kazari.Engine
+	kazariJSURL        string
+	kazariJSContent    []byte
+	kazariJSFilename   string
 	tokenCSSURL        string
 	tokenCSSContent    string
 	tokenCSSFilename   string
@@ -116,12 +119,8 @@ func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
 		embeddedFS:  opts.EmbeddedFS,
 		devMode:     opts.DevMode,
 		scanner:     &content.Scanner{},
-		mdRenderer: markdown.NewRendererFromConfig(markdown.RendererConfig{
-			BlockedHrefSchemes: opts.Config.Security.BlockedHrefSchemes,
-			HeadingLinks:       config.BoolVal(opts.Config.Site.HeadingLinks, true),
-		}),
-		tmplEngine: sardetemplate.NewEngine(),
-		pluginMgr:  mgr,
+		tmplEngine:  sardetemplate.NewEngine(),
+		pluginMgr:   mgr,
 	}
 }
 
@@ -458,6 +457,23 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	// Internal link resolution: accumulated pending anchor checks.
 	var pendingAnchors []links.PendingAnchorCheck
 
+	// Initialize Kazari code block engine and markdown renderers on first build.
+	if b.kazariEngine == nil {
+		ke, err := markdown.BuildKazariEngine(context.Background(), &b.config.Markdown.Codeblocks)
+		if err != nil {
+			return nil, fmt.Errorf("initializing code block engine: %w", err)
+		}
+		b.kazariEngine = ke
+		b.rendererKey = ContentHash(b.kazariEngine.CSS())
+	}
+	if b.mdRenderer == nil {
+		b.mdRenderer = markdown.NewRendererFromConfig(markdown.RendererConfig{
+			BlockedHrefSchemes: b.config.Security.BlockedHrefSchemes,
+			HeadingLinks:       config.BoolVal(b.config.Site.HeadingLinks, true),
+			KazariEngine:       b.kazariEngine,
+		})
+	}
+
 	// Render markdown for all pages (after asset enhancement so image
 	// renderer can access processed resource data for <picture> generation).
 	markdownPages := countMarkdownPages(allPages)
@@ -470,6 +486,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				b.rendererPool <- markdown.NewRendererFromConfig(markdown.RendererConfig{
 					BlockedHrefSchemes: b.config.Security.BlockedHrefSchemes,
 					HeadingLinks:       config.BoolVal(b.config.Site.HeadingLinks, true),
+					KazariEngine:       b.kazariEngine,
 				})
 			}
 		}
@@ -503,7 +520,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 				}
 
 				// Check cache first.
-				hash := ContentHash(processed + shortcodesHash + b.resolutionKey + iconRenderKey)
+				hash := ContentHash(processed + shortcodesHash + b.resolutionKey + iconRenderKey + b.rendererKey)
 				if pageCache != nil {
 					if entry := pageCache.Get(hash); entry != nil {
 						page.Content = htmltemplate.HTML(entry.HTML)
@@ -575,6 +592,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			shortcodesHash: shortcodesHash,
 			resolutionKey:  b.resolutionKey,
 			iconRenderKey:  iconRenderKey,
+			rendererKey:    b.rendererKey,
 			pageCache:      pageCache,
 			assetPipeline:  assetPipeline,
 		}
@@ -714,21 +732,18 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		b.themeJSFilename = jsFilename
 	}
 
-	// Bundle Shiki enhancement JS if enabled.
-	if shikiCfg := b.config.Markdown.Codeblocks.Shiki; shikiCfg != nil && shikiCfg.Enabled {
-		codeLangs := collectCodeLanguages(allPages)
-		if len(codeLangs) > 0 {
-			vendorFS := embedded.VendorFS()
-			shikiContent, shikiFilename, err := BundleShikiJS(vendorFS, codeLangs, shikiCfg.LightTheme, shikiCfg.DarkTheme, b.devMode)
-			if err != nil {
-				return nil, fmt.Errorf("bundling Shiki JS: %w", err)
-			}
-			if shikiFilename != "" {
-				b.shikiJSURL = "/assets/js/" + shikiFilename
-				b.shikiJSContent = shikiContent
-				b.shikiJSFilename = shikiFilename
-			}
+	// Bundle Kazari interaction JS (handles copy, fullscreen, word-wrap, code-group tab sync).
+	{
+		kazariJS := []byte(b.kazariEngine.JS())
+		hash := asset.Fingerprint(kazariJS)
+		if b.devMode {
+			b.kazariJSFilename = "kazari.js"
+		} else {
+			b.kazariJSFilename = asset.FingerprintedName("kazari.js", hash)
 		}
+		b.kazariJSURL = "/assets/js/" + b.kazariJSFilename
+		b.kazariJSContent = kazariJS
+		siteCtx.KazariScriptURL = urlResolver.URL(b.kazariJSURL, "", "")
 	}
 
 	// Externalize theme token CSS (design tokens) as a fingerprinted file.
@@ -763,16 +778,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	if stringTable != nil {
 		b.tmplEngine.SetI18nStrings(stringTable)
 	}
-	// Generate Chroma syntax highlighting CSS from config theme names.
-	chromaCSS, err := syntax.GenerateChromaCSS(
-		b.config.Markdown.Codeblocks.LightTheme,
-		b.config.Markdown.Codeblocks.DarkTheme,
-	)
-	if err != nil {
-		devlog.Warn("build", "syntax highlighting: %v", err)
-	} else {
-		b.tmplEngine.SetChromaCSS(chromaCSS)
-	}
+	// Inject Kazari CSS (structural styles + theme color variables) into the CSS bundle.
+	b.tmplEngine.SetCodeBlockCSS(b.kazariEngine.CSS())
 
 	resolver := &engine.ThemeResolver{
 		ProjectDir: b.projectDir,
@@ -1122,17 +1129,17 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		}
 	}
 
-	// Write the bundled Shiki enhancement JS file.
-	if b.shikiJSFilename != "" {
-		destPath, err := safeOutputPath(outputDir, "assets/js/"+b.shikiJSFilename)
+	// Write the Kazari interaction JS file.
+	if b.kazariJSFilename != "" {
+		destPath, err := safeOutputPath(outputDir, "assets/js/"+b.kazariJSFilename)
 		if err != nil {
 			return nil, err
 		}
 		if tracker != nil {
 			tracker.Track(destPath)
 		}
-		if err := writeFile(destPath, b.shikiJSContent); err != nil {
-			return nil, fmt.Errorf("writing Shiki enhancement JS: %w", err)
+		if err := writeFile(destPath, b.kazariJSContent); err != nil {
+			return nil, fmt.Errorf("writing Kazari JS: %w", err)
 		}
 	}
 

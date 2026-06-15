@@ -3,15 +3,16 @@ package markdown
 import (
 	"bytes"
 	"path/filepath"
+	"strings"
 
+	"github.com/frostybee/kazari"
+	kazarimd "github.com/frostybee/kazari/goldmark"
 	"github.com/frostybee/sarde/internal/asset"
-	"github.com/frostybee/sarde/internal/content/markdown/codeblock"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/annotation"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/aside"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/badge"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/card"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/cardgrid"
-	"github.com/frostybee/sarde/internal/content/markdown/extensions/codegroup"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/details"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/figure"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/filetree"
@@ -50,9 +51,9 @@ var defaultBlockedHrefSchemes = []string{"javascript:", "data:", "vbscript:"}
 type Renderer struct {
 	md            goldmark.Markdown
 	imgRend       *imagerender.Renderer       // mutable reference — swap lookup without rebuilding Goldmark
-	codeRend      *codeblock.Renderer         // mutable reference — read HasCodeBlocks flag after render
 	linkCollector *linkcollector.Collector     // mutable reference — collects link destinations per page
 	linkRend      *linkrender.Renderer         // mutable reference — resolves internal links per page
+	kazariEngine  *kazari.Engine               // code block rendering engine; nil disables Kazari extensions
 }
 
 // SetImageLookup sets the lookup function for bundle-relative image processing.
@@ -134,6 +135,7 @@ func ImageLookupForPage(page *engine.Page, processor *asset.ImageProcessor) imag
 type RendererConfig struct {
 	BlockedHrefSchemes []string
 	HeadingLinks       bool
+	KazariEngine       *kazari.Engine
 }
 
 // NewRenderer creates a markdown renderer with all extensions and default security.
@@ -154,9 +156,9 @@ func NewRendererWithConfig(blockedHrefSchemes []string) *Renderer {
 func NewRendererFromConfig(cfg RendererConfig) *Renderer {
 	r := &Renderer{
 		imgRend:       imagerender.NewRenderer(nil),
-		codeRend:      codeblock.NewRenderer(),
 		linkCollector: linkcollector.NewCollector(),
 		linkRend:      linkrender.NewRenderer(),
+		kazariEngine:  cfg.KazariEngine,
 	}
 	r.md = r.buildMarkdown(cfg)
 	return r
@@ -172,7 +174,6 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) goldmark.Markdown {
 		&steps.Extension{},
 		&tabs.Extension{},
 		&details.Extension{},
-		&codegroup.Extension{},
 		&extmath.Extension{},
 		&spoiler.Extension{},
 		&filetree.Extension{},
@@ -198,6 +199,15 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) goldmark.Markdown {
 		&linkcollector.Extension{Collector: r.linkCollector},
 	}
 
+	// Kazari handles fenced code blocks and :::code-group containers.
+	// When no engine is configured (e.g. test helpers), fall back to Goldmark's default renderer.
+	if r.kazariEngine != nil {
+		extensions = append(extensions,
+			kazarimd.New(r.kazariEngine),
+			kazarimd.CodeGroups(r.kazariEngine),
+		)
+	}
+
 	var parserOpts []parser.Option
 	parserOpts = append(parserOpts, parser.WithAttribute())
 	if cfg.HeadingLinks {
@@ -211,7 +221,6 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) goldmark.Markdown {
 			gmhtml.WithHardWraps(),
 			gmhtml.WithUnsafe(),
 			gmrenderer.WithNodeRenderers(
-				util.Prioritized(r.codeRend, 100),
 				util.Prioritized(r.linkRend, 49),
 			),
 		),
@@ -220,7 +229,6 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) goldmark.Markdown {
 
 // ResetFlags zeroes content feature flags before each page render.
 func (r *Renderer) ResetFlags() {
-	r.codeRend.HasCodeBlocks = false
 	r.imgRend.HasImages = false
 	r.linkCollector.Reset()
 	r.linkRend.Reset()
@@ -245,10 +253,14 @@ func (r *Renderer) Render(markdown string) (engine.RenderResult, error) {
 		copy(links, r.linkCollector.Links)
 	}
 
+	// Detect code blocks: Kazari renders kz-* classes; without an engine, Goldmark
+	// produces plain <pre> blocks. Both indicate fenced code block presence.
+	hasCodeBlocks := strings.Contains(html, `class="kz-`) || strings.Contains(html, "<pre")
+
 	return engine.RenderResult{
 		HTML:          html,
 		Headings:      headings,
-		HasCodeBlocks: r.codeRend.HasCodeBlocks,
+		HasCodeBlocks: hasCodeBlocks,
 		HasImages:     r.imgRend.HasImages,
 		Links:         links,
 	}, nil

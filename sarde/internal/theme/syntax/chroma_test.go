@@ -54,16 +54,3 @@ func TestGenerateChromaCSS_InvalidDarkTheme(t *testing.T) {
 	}
 }
 
-func TestGenerateChromaCSS_ClassCompatibility(t *testing.T) {
-	css, err := GenerateChromaCSS("github", "dracula")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	// These class names must match what the hand-rolled codeblock renderer emits
-	// via tokenTypeClass() — they are Chroma's standard short names.
-	for _, cls := range []string{".k ", ".kd ", ".nc ", ".s2 ", ".nf ", ".c "} {
-		if !strings.Contains(css, ".chroma "+cls) {
-			t.Errorf("expected CSS to contain .chroma %s(standard Chroma class)", cls)
-		}
-	}
-}

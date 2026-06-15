@@ -101,9 +101,6 @@ func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext)
 	if b.themeJSURL != "" {
 		rd.Scripts = append([]string{b.themeJSURL}, rd.Scripts...)
 	}
-	if b.shikiJSURL != "" && page.HasCodeBlocks {
-		rd.ModuleScripts = append(rd.ModuleScripts, b.shikiJSURL)
-	}
 	if err := b.pluginMgr.RunBeforeRender(b.config, page, rd, siteCtx, b.urlResolver); err != nil {
 		return RenderedPage{}, err
 	}
@@ -163,6 +160,7 @@ type markdownRenderDeps struct {
 	shortcodesHash string
 	resolutionKey  string
 	iconRenderKey  string
+	rendererKey    string
 	pageCache      *PageCache
 	assetPipeline  *asset.Pipeline
 }
@@ -177,7 +175,7 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 	}
 
 	processed, scWarns := deps.scProcessor.Process(page.RawContent, page, siteCtx, b.mdRenderer)
-	hash := ContentHash(processed + deps.shortcodesHash + deps.resolutionKey + deps.iconRenderKey)
+	hash := ContentHash(processed + deps.shortcodesHash + deps.resolutionKey + deps.iconRenderKey + deps.rendererKey)
 
 	if deps.pageCache != nil {
 		if entry := deps.pageCache.Get(hash); entry != nil {

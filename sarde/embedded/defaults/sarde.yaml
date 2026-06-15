@@ -72,13 +72,10 @@ markdown:
     max_heading_level: 4
   codeblocks:
     style: "class"
-    light_theme: "github"
-    dark_theme: "dracula"
+    light_theme: "github-light"
+    dark_theme: "github-dark"
     theme: ""
-    shiki:
-      enabled: false
-      light_theme: "github-light"
-      dark_theme: "github-dark"
+    dark_mode_selector: ".dark"
 
 prefetch:
   enabled: true

@@ -124,9 +124,9 @@ func TestBuild_Plugins_Search(t *testing.T) {
 
 	distDir := filepath.Join(projDir, "dist")
 
-	data, err := os.ReadFile(filepath.Join(distDir, "search-index.json"))
+	data, err := os.ReadFile(filepath.Join(distDir, "search-index.en.json"))
 	if err != nil {
-		t.Fatalf("search-index.json not found: %v", err)
+		t.Fatalf("search-index.en.json not found: %v", err)
 	}
 
 	var docs []map[string]any

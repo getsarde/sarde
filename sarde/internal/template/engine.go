@@ -34,7 +34,7 @@ type Engine struct {
 	cachedCSS      string // embedded CSS, loaded once
 	cssURL         string // external CSS bundle URL (set during Load)
 	tokenCSSURL    string // external token CSS URL (set by builder)
-	chromaCSS      string // dynamically generated Chroma syntax theme CSS
+	codeBlockCSS   string // dynamically generated code block syntax theme CSS
 	assetResolver  *asset.Resolver
 	assetManifest  *asset.Manifest
 	imageProcessor *asset.ImageProcessor
@@ -74,9 +74,9 @@ func (e *Engine) SetImageProcessor(p *asset.ImageProcessor) {
 	e.imageProcessor = p
 }
 
-// SetChromaCSS sets dynamically generated Chroma syntax highlighting CSS.
+// SetCodeBlockCSS sets dynamically generated code block syntax theme CSS.
 // Must be called before Load().
-func (e *Engine) SetChromaCSS(css string) { e.chromaCSS = css }
+func (e *Engine) SetCodeBlockCSS(css string) { e.codeBlockCSS = css }
 
 // SetTokenCSSURL sets the external URL for the theme token CSS file.
 func (e *Engine) SetTokenCSSURL(url string) { e.tokenCSSURL = url }
@@ -145,8 +145,8 @@ func (e *Engine) Load(resolver *engine.ThemeResolver, devMode bool) error {
 
 	// Load, optionally minify, and fingerprint the embedded CSS bundle.
 	raw := loadEmbeddedCSS(resolver.EmbeddedFS)
-	if e.chromaCSS != "" {
-		raw += "\n" + e.chromaCSS
+	if e.codeBlockCSS != "" {
+		raw += "\n" + e.codeBlockCSS
 	}
 	processed, err := asset.TransformCSS(raw, !devMode)
 	if err != nil {

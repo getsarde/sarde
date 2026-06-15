@@ -18,7 +18,6 @@ import (
 	"github.com/frostybee/sarde/internal/plugin"
 	"github.com/frostybee/sarde/internal/taxonomy"
 	sardetemplate "github.com/frostybee/sarde/internal/template"
-	"github.com/frostybee/sarde/internal/theme/syntax"
 	"github.com/frostybee/sarde/internal/workers"
 )
 
@@ -306,13 +305,9 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	b.tmplEngine.SetSiteContext(b.lastSiteCtx)
 	b.tmplEngine.SetPageIndex(newPageIndex)
 
-	// Load template engine (skips re-parsing via loaded flag, just clears caches).
-	chromaCSS, err := syntax.GenerateChromaCSS(
-		b.config.Markdown.Codeblocks.LightTheme,
-		b.config.Markdown.Codeblocks.DarkTheme,
-	)
-	if err == nil {
-		b.tmplEngine.SetChromaCSS(chromaCSS)
+	// Inject Kazari CSS into the template engine (reuse existing engine on incremental rebuilds).
+	if b.kazariEngine != nil {
+		b.tmplEngine.SetCodeBlockCSS(b.kazariEngine.CSS())
 	}
 
 	resolver := &engine.ThemeResolver{
@@ -344,6 +339,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		shortcodesHash: b.lastShortcodesHash,
 		resolutionKey:  b.resolutionKey,
 		iconRenderKey:  b.lastIconRenderKey,
+		rendererKey:    b.rendererKey,
 		pageCache:      b.lastPageCache,
 		assetPipeline:  b.lastAssetPipeline,
 	}

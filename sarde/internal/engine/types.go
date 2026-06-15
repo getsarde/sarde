@@ -673,6 +673,7 @@ type SiteContext struct {
 	Languages   []Language
 	DefaultLang string
 	EditURL     string // base URL for "edit this page" links (e.g. https://github.com/user/repo/edit/main/content)
+	KazariScriptURL string // URL of the Kazari interaction JS file served globally on every page
 	IconLicenses []IconLicense // license metadata for loaded icon sets (for an attribution/credits page)
 }
 

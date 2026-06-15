@@ -39,9 +39,9 @@ func TestSearch_GeneratesIndex(t *testing.T) {
 		t.Fatalf("searchBuildDone failed: %v", err)
 	}
 
-	data, err := readTestFile(outDir, "search-index.json")
+	data, err := readTestFile(outDir, "search-index.en.json")
 	if err != nil {
-		t.Fatalf("reading search-index.json: %v", err)
+		t.Fatalf("reading search-index.en.json: %v", err)
 	}
 
 	var docs []searchDocument
@@ -89,7 +89,7 @@ func TestSearch_BuildDoneWritesVendorAssets(t *testing.T) {
 		t.Fatalf("searchBuildDone: %v", err)
 	}
 
-	for _, rel := range []string{"assets/vendor/orama/orama.esm.js", "assets/js/static-search.js", "search-index.json"} {
+	for _, rel := range []string{"assets/vendor/orama/orama.esm.js", "assets/js/static-search.js", "search-index.en.json"} {
 		if _, err := readTestFile(outDir, rel); err != nil {
 			t.Errorf("missing %s: %v", rel, err)
 		}
@@ -129,7 +129,7 @@ func TestSearch_IncludesDescription(t *testing.T) {
 	if err := searchBuildDone(ctx, nil); err != nil {
 		t.Fatal(err)
 	}
-	data, err := readTestFile(outDir, "search-index.json")
+	data, err := readTestFile(outDir, "search-index.en.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -160,10 +160,17 @@ func TestSearch_ContentTruncation(t *testing.T) {
 	cfg := map[string]any{"max_content_length": 100}
 	searchBuildDone(ctx, cfg)
 
-	data, _ := readTestFile(outDir, "search-index.json")
+	data, err := readTestFile(outDir, "search-index.en.json")
+	if err != nil {
+		t.Fatalf("reading search-index.en.json: %v", err)
+	}
 	var docs []searchDocument
-	json.Unmarshal(data, &docs)
-
+	if err := json.Unmarshal(data, &docs); err != nil {
+		t.Fatalf("unmarshaling search index: %v", err)
+	}
+	if len(docs) == 0 {
+		t.Fatal("expected at least 1 document in search index")
+	}
 	if len(docs[0].Content) > 100 {
 		t.Errorf("content length = %d, should be truncated to 100", len(docs[0].Content))
 	}

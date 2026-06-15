@@ -55,7 +55,7 @@ func TestContentRebuild_BodyOnlyUpdatesPageSearchAndValidation(t *testing.T) {
 
 	distDir := filepath.Join(dir, "dist")
 	assertFixtureFileContains(t, distDir, "blog/one/index.html", "Updated body")
-	assertFixtureFileContains(t, distDir, "search-index.json", "Updated body")
+	assertFixtureFileContains(t, distDir, "search-index.en.json", "Updated body")
 
 	entry, ok := builder.lastValidationData["/blog/one/"]
 	if !ok {
