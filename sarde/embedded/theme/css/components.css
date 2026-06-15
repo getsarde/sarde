@@ -386,10 +386,6 @@
 	  padding: 0.25rem;
 	  background-color: var(--sd-gray-3);
 	}
-	:root.dark .sarde-theme-toggle {
-	  background-color: var(--sd-gray-7);
-	}
-
 	.sarde-theme-toggle-indicator {
 	  position: absolute;
 	  top: 0.25rem;
@@ -400,9 +396,6 @@
 	  background-color: var(--sd-white);
 	  box-shadow: var(--sd-shadow-sm);
 	  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
-	}
-	:root.dark .sarde-theme-toggle-indicator {
-	  background-color: var(--sd-gray-5);
 	}
 	.sarde-theme-toggle-indicator.pos-system {
 	  transform: translateX(1.75rem);
@@ -430,17 +423,16 @@
 	.sarde-theme-toggle-btn:hover {
 	  color: var(--sd-gray-7);
 	}
-	:root.dark .sarde-theme-toggle-btn {
-	  color: var(--sd-gray-4);
-	}
-	:root.dark .sarde-theme-toggle-btn:hover {
-	  color: var(--sd-gray-3);
-	}
 	.sarde-theme-toggle-btn.selected {
 	  color: var(--sd-text);
 	}
-	:root.dark .sarde-theme-toggle-btn.selected {
-	  color: var(--sd-white);
+
+	:root[data-theme="dark"] {
+	  .sarde-theme-toggle { background-color: var(--sd-gray-7); }
+	  .sarde-theme-toggle-indicator { background-color: var(--sd-gray-5); }
+	  .sarde-theme-toggle-btn { color: var(--sd-gray-4); }
+	  .sarde-theme-toggle-btn:hover { color: var(--sd-gray-3); }
+	  .sarde-theme-toggle-btn.selected { color: var(--sd-white); }
 	}
 	.sarde-theme-toggle-btn svg {
 	  width: 1rem;
@@ -642,10 +634,12 @@
 	  font-size: var(--sd-text-sm);
 	}
 	.sarde-fallback-notice p { margin: 0; }
-	:root.dark .sarde-fallback-notice {
-	  background: oklch(0.26 0.06 75);
-	  color: oklch(0.91 0.09 75);
-	  border-color: oklch(0.48 0.11 75);
+	:root[data-theme="dark"] {
+	  .sarde-fallback-notice {
+	    background: oklch(0.26 0.06 75);
+	    color: oklch(0.91 0.09 75);
+	    border-color: oklch(0.48 0.11 75);
+	  }
 	}
 
 	/* Version Switcher */
@@ -762,21 +756,23 @@
 	  color: var(--sd-gray-7, #1e293b);
 	  border: 1px solid var(--sd-amber, #f59e0b);
 	}
-	:root.dark .sarde-version-banner.is-unmaintained {
-	  background: oklch(0.26 0.06 75);
-	  color: oklch(0.91 0.09 75);
-	  border-color: oklch(0.48 0.11 75);
-	}
-
 	.sarde-version-banner.is-unreleased {
 	  background: var(--sd-blue-low, #dbeafe);
 	  color: var(--sd-gray-7, #1e293b);
 	  border: 1px solid var(--sd-blue, #3b82f6);
 	}
-	:root.dark .sarde-version-banner.is-unreleased {
-	  background: oklch(0.26 0.06 230);
-	  color: oklch(0.91 0.09 230);
-	  border-color: oklch(0.48 0.11 230);
+
+	:root[data-theme="dark"] {
+	  .sarde-version-banner.is-unmaintained {
+	    background: oklch(0.26 0.06 75);
+	    color: oklch(0.91 0.09 75);
+	    border-color: oklch(0.48 0.11 75);
+	  }
+	  .sarde-version-banner.is-unreleased {
+	    background: oklch(0.26 0.06 230);
+	    color: oklch(0.91 0.09 230);
+	    border-color: oklch(0.48 0.11 230);
+	  }
 	}
 
 	/* Page Banner (per-page frontmatter) */
@@ -794,43 +790,43 @@
 	  color: var(--sd-gray-7, #1e293b);
 	  border-color: var(--sd-blue, #3b82f6);
 	}
-	:root.dark .sarde-page-banner-note {
-	  background: oklch(0.26 0.06 230);
-	  color: oklch(0.91 0.09 230);
-	  border-color: oklch(0.48 0.11 230);
-	}
-
 	.sarde-page-banner-tip {
 	  background: var(--sd-green-low, #dcfce7);
 	  color: var(--sd-gray-7, #1e293b);
 	  border-color: var(--sd-green, #22c55e);
 	}
-	:root.dark .sarde-page-banner-tip {
-	  background: oklch(0.25 0.06 155);
-	  color: oklch(0.91 0.09 155);
-	  border-color: oklch(0.44 0.11 155);
-	}
-
 	.sarde-page-banner-caution {
 	  background: var(--sd-amber-low, #fef3c7);
 	  color: var(--sd-gray-7, #1e293b);
 	  border-color: var(--sd-amber, #f59e0b);
 	}
-	:root.dark .sarde-page-banner-caution {
-	  background: oklch(0.26 0.06 75);
-	  color: oklch(0.91 0.09 75);
-	  border-color: oklch(0.48 0.11 75);
-	}
-
 	.sarde-page-banner-danger {
 	  background: var(--sd-red-low, #fee2e2);
 	  color: var(--sd-gray-7, #1e293b);
 	  border-color: var(--sd-red, #ef4444);
 	}
-	:root.dark .sarde-page-banner-danger {
-	  background: oklch(0.26 0.06 25);
-	  color: oklch(0.91 0.09 25);
-	  border-color: oklch(0.48 0.11 25);
+
+	:root[data-theme="dark"] {
+	  .sarde-page-banner-note {
+	    background: oklch(0.26 0.06 230);
+	    color: oklch(0.91 0.09 230);
+	    border-color: oklch(0.48 0.11 230);
+	  }
+	  .sarde-page-banner-tip {
+	    background: oklch(0.25 0.06 155);
+	    color: oklch(0.91 0.09 155);
+	    border-color: oklch(0.44 0.11 155);
+	  }
+	  .sarde-page-banner-caution {
+	    background: oklch(0.26 0.06 75);
+	    color: oklch(0.91 0.09 75);
+	    border-color: oklch(0.48 0.11 75);
+	  }
+	  .sarde-page-banner-danger {
+	    background: oklch(0.26 0.06 25);
+	    color: oklch(0.91 0.09 25);
+	    border-color: oklch(0.48 0.11 25);
+	  }
 	}
 
 	/* ── Doc Card Grid (section index pages) ── */

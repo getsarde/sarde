@@ -862,7 +862,7 @@ type ThemeConfig struct {
 	Tokens      map[string]string
 	DarkTokens  map[string]string
 	DarkEnabled bool
-	StyleTag    template.HTML // pre-rendered <style> block with :root/:root.dark tokens
+	StyleTag    template.HTML // pre-rendered <style> block with :root/:root[data-theme="dark"] tokens
 }
 
 // ---------------------------------------------------------------------------

@@ -587,15 +587,16 @@
 	    background: var(--sd-bg-surface);
 	  }
 
-	  :root.dark .sarde-sidebar-toggle {
-	    background: var(--sd-gray-7);
-	    border-color: var(--sd-gray-5);
-	    color: var(--sd-gray-3);
-	  }
-
-	  :root.dark .sarde-sidebar-toggle:hover {
-	    background: var(--sd-gray-6);
-	    color: var(--sd-gray-1);
+	  :root[data-theme="dark"] {
+	    .sarde-sidebar-toggle {
+	      background: var(--sd-gray-7);
+	      border-color: var(--sd-gray-5);
+	      color: var(--sd-gray-3);
+	    }
+	    .sarde-sidebar-toggle:hover {
+	      background: var(--sd-gray-6);
+	      color: var(--sd-gray-1);
+	    }
 	  }
 
 	  .sarde-sidebar-toggle:focus-visible {

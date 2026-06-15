@@ -214,29 +214,6 @@
 	.sarde-aside-github.sarde-aside-gh-caution .sarde-aside-title,
 	.sarde-aside-github.sarde-aside-gh-caution .sarde-aside-icon { color: #d1242f; }
 
-	/* Dark mode */
-	@media (prefers-color-scheme: dark) {
-	    .sarde-aside-github.sarde-aside-gh-note { border-inline-start-color: #1f6feb; }
-	    .sarde-aside-github.sarde-aside-gh-note .sarde-aside-title,
-	    .sarde-aside-github.sarde-aside-gh-note .sarde-aside-icon { color: #58a6ff; }
-
-	    .sarde-aside-github.sarde-aside-gh-tip { border-inline-start-color: #2ea043; }
-	    .sarde-aside-github.sarde-aside-gh-tip .sarde-aside-title,
-	    .sarde-aside-github.sarde-aside-gh-tip .sarde-aside-icon { color: #3fb950; }
-
-	    .sarde-aside-github.sarde-aside-gh-important { border-inline-start-color: #bf3989; }
-	    .sarde-aside-github.sarde-aside-gh-important .sarde-aside-title,
-	    .sarde-aside-github.sarde-aside-gh-important .sarde-aside-icon { color: #d29be5; }
-
-	    .sarde-aside-github.sarde-aside-gh-warning { border-inline-start-color: #bb8009; }
-	    .sarde-aside-github.sarde-aside-gh-warning .sarde-aside-title,
-	    .sarde-aside-github.sarde-aside-gh-warning .sarde-aside-icon { color: #d29922; }
-
-	    .sarde-aside-github.sarde-aside-gh-caution { border-inline-start-color: #f85149; }
-	    .sarde-aside-github.sarde-aside-gh-caution .sarde-aside-title,
-	    .sarde-aside-github.sarde-aside-gh-caution .sarde-aside-icon { color: #ff7b72; }
-	}
-
 	/* Code blocks within GitHub alerts */
 	.sarde-aside-github .sarde-aside-content code:not(pre code) {
 	    background: rgba(175, 184, 193, 0.2);
@@ -245,7 +222,23 @@
 	    font-size: 85%;
 	}
 
-	@media (prefers-color-scheme: dark) {
+	/* Dark mode */
+	:root[data-theme="dark"] {
+	    .sarde-aside-github.sarde-aside-gh-note { border-inline-start-color: #1f6feb; }
+	    .sarde-aside-github.sarde-aside-gh-note .sarde-aside-title,
+	    .sarde-aside-github.sarde-aside-gh-note .sarde-aside-icon { color: #58a6ff; }
+	    .sarde-aside-github.sarde-aside-gh-tip { border-inline-start-color: #2ea043; }
+	    .sarde-aside-github.sarde-aside-gh-tip .sarde-aside-title,
+	    .sarde-aside-github.sarde-aside-gh-tip .sarde-aside-icon { color: #3fb950; }
+	    .sarde-aside-github.sarde-aside-gh-important { border-inline-start-color: #bf3989; }
+	    .sarde-aside-github.sarde-aside-gh-important .sarde-aside-title,
+	    .sarde-aside-github.sarde-aside-gh-important .sarde-aside-icon { color: #d29be5; }
+	    .sarde-aside-github.sarde-aside-gh-warning { border-inline-start-color: #bb8009; }
+	    .sarde-aside-github.sarde-aside-gh-warning .sarde-aside-title,
+	    .sarde-aside-github.sarde-aside-gh-warning .sarde-aside-icon { color: #d29922; }
+	    .sarde-aside-github.sarde-aside-gh-caution { border-inline-start-color: #f85149; }
+	    .sarde-aside-github.sarde-aside-gh-caution .sarde-aside-title,
+	    .sarde-aside-github.sarde-aside-gh-caution .sarde-aside-icon { color: #ff7b72; }
 	    .sarde-aside-github .sarde-aside-content code:not(pre code) {
 	        background: rgba(110, 118, 129, 0.4);
 	    }
@@ -3156,94 +3149,61 @@
 	   DARK MODE OVERRIDES
 	   ============================================================================= */
 
-	:root.dark .sarde-badge-default {
-	    background: var(--sd-gray-2);
-	    color: var(--sd-gray-6);
-	    border-color: var(--sd-gray-3);
-	}
+	:root[data-theme="dark"] {
+	    .sarde-badge-default {
+	        background: var(--sd-gray-2);
+	        color: var(--sd-gray-6);
+	        border-color: var(--sd-gray-3);
+	    }
+	    .sarde-badge-primary {
+	        background: var(--sd-indigo-low);
+	        color: var(--sd-indigo-high);
+	        border-color: color-mix(in oklch, var(--sd-indigo) 40%, transparent);
+	    }
+	    .sarde-badge-secondary {
+	        background: var(--sd-gray-2);
+	        color: var(--sd-gray-5);
+	        border-color: var(--sd-gray-3);
+	    }
+	    .sarde-badge-success {
+	        background: var(--sd-green-low);
+	        color: var(--sd-green-high);
+	        border-color: color-mix(in oklch, var(--sd-green) 40%, transparent);
+	    }
+	    .sarde-badge-warning {
+	        background: var(--sd-amber-low);
+	        color: var(--sd-amber-high);
+	        border-color: color-mix(in oklch, var(--sd-amber) 40%, transparent);
+	    }
+	    .sarde-badge-danger {
+	        background: var(--sd-red-low);
+	        color: var(--sd-red-high);
+	        border-color: color-mix(in oklch, var(--sd-red) 40%, transparent);
+	    }
+	    .sarde-badge-info {
+	        background: var(--sd-blue-low);
+	        color: var(--sd-blue-high);
+	        border-color: color-mix(in oklch, var(--sd-blue) 40%, transparent);
+	    }
+	    .sarde-badge-note {
+	        background: var(--sd-cyan-low);
+	        color: var(--sd-cyan-high);
+	        border-color: color-mix(in oklch, var(--sd-cyan) 40%, transparent);
+	    }
+	    .sarde-badge-tip {
+	        background: var(--sd-purple-low);
+	        color: var(--sd-purple-high);
+	        border-color: color-mix(in oklch, var(--sd-purple) 40%, transparent);
+	    }
 
-	:root.dark .sarde-badge-primary {
-	    background: var(--sd-indigo-low);
-	    color: var(--sd-indigo-high);
-	    border-color: color-mix(in oklch, var(--sd-indigo) 40%, transparent);
-	}
-
-	:root.dark .sarde-badge-secondary {
-	    background: var(--sd-gray-2);
-	    color: var(--sd-gray-5);
-	    border-color: var(--sd-gray-3);
-	}
-
-	:root.dark .sarde-badge-success {
-	    background: var(--sd-green-low);
-	    color: var(--sd-green-high);
-	    border-color: color-mix(in oklch, var(--sd-green) 40%, transparent);
-	}
-
-	:root.dark .sarde-badge-warning {
-	    background: var(--sd-amber-low);
-	    color: var(--sd-amber-high);
-	    border-color: color-mix(in oklch, var(--sd-amber) 40%, transparent);
-	}
-
-	:root.dark .sarde-badge-danger {
-	    background: var(--sd-red-low);
-	    color: var(--sd-red-high);
-	    border-color: color-mix(in oklch, var(--sd-red) 40%, transparent);
-	}
-
-	:root.dark .sarde-badge-info {
-	    background: var(--sd-blue-low);
-	    color: var(--sd-blue-high);
-	    border-color: color-mix(in oklch, var(--sd-blue) 40%, transparent);
-	}
-
-	:root.dark .sarde-badge-note {
-	    background: var(--sd-cyan-low);
-	    color: var(--sd-cyan-high);
-	    border-color: color-mix(in oklch, var(--sd-cyan) 40%, transparent);
-	}
-
-	:root.dark .sarde-badge-tip {
-	    background: var(--sd-purple-low);
-	    color: var(--sd-purple-high);
-	    border-color: color-mix(in oklch, var(--sd-purple) 40%, transparent);
-	}
-
-	/* Dark mode outline variants */
-	:root.dark .sarde-badge-outline.sarde-badge-primary {
-	    color: var(--sd-indigo-high);
-	    border-color: var(--sd-indigo-high);
-	}
-
-	:root.dark .sarde-badge-outline.sarde-badge-success {
-	    color: var(--sd-green-high);
-	    border-color: var(--sd-green-high);
-	}
-
-	:root.dark .sarde-badge-outline.sarde-badge-warning {
-	    color: var(--sd-amber-high);
-	    border-color: var(--sd-amber-high);
-	}
-
-	:root.dark .sarde-badge-outline.sarde-badge-danger {
-	    color: var(--sd-red-high);
-	    border-color: var(--sd-red-high);
-	}
-
-	:root.dark .sarde-badge-outline.sarde-badge-info {
-	    color: var(--sd-blue-high);
-	    border-color: var(--sd-blue-high);
-	}
-
-	:root.dark .sarde-badge-outline.sarde-badge-note {
-	    color: var(--sd-cyan-high);
-	    border-color: var(--sd-cyan-high);
-	}
-
-	:root.dark .sarde-badge-outline.sarde-badge-tip {
-	    color: var(--sd-purple-high);
-	    border-color: var(--sd-purple-high);
+	    /* Outline variants */
+	    .sarde-badge-outline.sarde-badge-primary { color: var(--sd-indigo-high); border-color: var(--sd-indigo-high); }
+	    .sarde-badge-outline.sarde-badge-success { color: var(--sd-green-high); border-color: var(--sd-green-high); }
+	    .sarde-badge-outline.sarde-badge-warning { color: var(--sd-amber-high); border-color: var(--sd-amber-high); }
+	    .sarde-badge-outline.sarde-badge-danger { color: var(--sd-red-high); border-color: var(--sd-red-high); }
+	    .sarde-badge-outline.sarde-badge-info { color: var(--sd-blue-high); border-color: var(--sd-blue-high); }
+	    .sarde-badge-outline.sarde-badge-note { color: var(--sd-cyan-high); border-color: var(--sd-cyan-high); }
+	    .sarde-badge-outline.sarde-badge-tip { color: var(--sd-purple-high); border-color: var(--sd-purple-high); }
 	}
 
 	/* =============================================================================
@@ -3380,9 +3340,11 @@
 	  padding: 0.125em 0.25em;
 	  border-radius: 0.125rem;
 	}
-	.dark mark {
-	  background: oklch(0.45 0.10 67);
-	  color: #fef9c3;
+	:root[data-theme="dark"] {
+	  mark {
+	    background: oklch(0.45 0.10 67);
+	    color: #fef9c3;
+	  }
 	}
 
 	/* -- spoiler -- */
@@ -3440,16 +3402,14 @@
 	}
 
 	/* Dark mode support */
-	:root.dark .sarde-spoiler,
-	.dark .sarde-spoiler {
-	    background-color: var(--sd-gray-7, #374151);
-	}
-
-	:root.dark .sarde-spoiler:hover,
-	:root.dark .sarde-spoiler:focus,
-	.dark .sarde-spoiler:hover,
-	.dark .sarde-spoiler:focus {
-	    background-color: var(--sd-gray-6, #4b5563);
+	:root[data-theme="dark"] {
+	    .sarde-spoiler {
+	        background-color: var(--sd-gray-7, #374151);
+	    }
+	    .sarde-spoiler:hover,
+	    .sarde-spoiler:focus {
+	        background-color: var(--sd-gray-6, #4b5563);
+	    }
 	}
 
 	/* Print - always show spoilers */
@@ -3558,19 +3518,18 @@
 	    cursor: help;
 	}
 
-	:root.dark .sarde-code-annotation {
-	    background: oklch(0.35 0.10 var(--sd-hue-amber));
-	    color: oklch(0.89 0.08 var(--sd-hue-amber));
-	}
-
-	/* Dark mode tooltip - invert colors */
-	:root.dark .sarde-annotation-tooltip {
-	    background: oklch(0.95 0.012 264);
-	    color: oklch(0.22 0.018 264);
-	}
-
-	:root.dark .sarde-annotation-tooltip::after {
-	    border-top-color: oklch(0.95 0.012 264);
+	:root[data-theme="dark"] {
+	    .sarde-code-annotation {
+	        background: oklch(0.35 0.10 var(--sd-hue-amber));
+	        color: oklch(0.89 0.08 var(--sd-hue-amber));
+	    }
+	    .sarde-annotation-tooltip {
+	        background: oklch(0.95 0.012 264);
+	        color: oklch(0.22 0.018 264);
+	    }
+	    .sarde-annotation-tooltip::after {
+	        border-top-color: oklch(0.95 0.012 264);
+	    }
 	}
 
 	/* Highlight annotation variant */

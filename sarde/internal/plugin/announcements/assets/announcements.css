@@ -48,24 +48,23 @@
     border-top: 2px solid var(--sd-red, #ef4444);
 }
 
-:root.dark .sarde-announcement-info {
-    background: hsl(224, 50%, 18%);
-    color: hsl(224, 80%, 90%);
-}
-
-:root.dark .sarde-announcement-warning {
-    background: hsl(38, 50%, 18%);
-    color: hsl(38, 80%, 90%);
-}
-
-:root.dark .sarde-announcement-success {
-    background: hsl(150, 40%, 15%);
-    color: hsl(150, 60%, 85%);
-}
-
-:root.dark .sarde-announcement-danger {
-    background: hsl(0, 45%, 18%);
-    color: hsl(0, 70%, 88%);
+:root[data-theme="dark"] {
+    .sarde-announcement-info {
+        background: hsl(224, 50%, 18%);
+        color: hsl(224, 80%, 90%);
+    }
+    .sarde-announcement-warning {
+        background: hsl(38, 50%, 18%);
+        color: hsl(38, 80%, 90%);
+    }
+    .sarde-announcement-success {
+        background: hsl(150, 40%, 15%);
+        color: hsl(150, 60%, 85%);
+    }
+    .sarde-announcement-danger {
+        background: hsl(0, 45%, 18%);
+        color: hsl(0, 70%, 88%);
+    }
 }
 
 .sarde-announcement-content {

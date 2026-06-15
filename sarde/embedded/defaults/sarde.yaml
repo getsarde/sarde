@@ -75,7 +75,7 @@ markdown:
     light_theme: "github-light"
     dark_theme: "github-dark"
     theme: ""
-    dark_mode_selector: ".dark"
+    dark_mode_selector: "[data-theme=\"dark\"]"
 
 prefetch:
   enabled: true

@@ -31,6 +31,17 @@
 	html {
 	  scroll-behavior: smooth;
 	  -webkit-text-size-adjust: 100%;
+	  color-scheme: light;
+	}
+
+	html[data-theme="dark"] {
+	  color-scheme: dark;
+	}
+
+	.sd-no-transition *,
+	.sd-no-transition *::before,
+	.sd-no-transition *::after {
+	  transition-duration: 0s !important;
 	}
 
 	body {
@@ -108,9 +119,9 @@
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
 	  *, *::before, *::after {
-	    animation-duration: 0.01ms !important;
+	    animation-duration: 0s !important;
 	    animation-iteration-count: 1 !important;
-	    transition-duration: 0.01ms !important;
+	    transition-duration: 0s !important;
 	    scroll-behavior: auto !important;
 	  }
 	}

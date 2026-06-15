@@ -26,8 +26,8 @@ func TestGenerateChromaCSS_DarkScoping(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if !strings.Contains(css, ".dark {") {
-		t.Error("expected dark theme CSS to be wrapped in .dark { }")
+	if !strings.Contains(css, `[data-theme="dark"] {`) {
+		t.Error(`expected dark theme CSS to be wrapped in [data-theme="dark"] { }`)
 	}
 }
 

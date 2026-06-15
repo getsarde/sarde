@@ -686,15 +686,17 @@
 }
 
 /* ── Dark mode callout adjustments ── */
-:root.dark .starter-callout--note {
-  background: color-mix(in srgb, var(--sarde-primary) 10%, var(--sarde-bg-surface));
-}
-:root.dark .starter-callout--tip {
-  background: color-mix(in srgb, #22c55e 10%, var(--sarde-bg-surface));
-}
-:root.dark .starter-callout--warning {
-  background: color-mix(in srgb, #f59e0b 10%, var(--sarde-bg-surface));
-}
-:root.dark .starter-callout--danger {
-  background: color-mix(in srgb, #ef4444 10%, var(--sarde-bg-surface));
+:root[data-theme="dark"] {
+  .starter-callout--note {
+    background: color-mix(in srgb, var(--sarde-primary) 10%, var(--sarde-bg-surface));
+  }
+  .starter-callout--tip {
+    background: color-mix(in srgb, #22c55e 10%, var(--sarde-bg-surface));
+  }
+  .starter-callout--warning {
+    background: color-mix(in srgb, #f59e0b 10%, var(--sarde-bg-surface));
+  }
+  .starter-callout--danger {
+    background: color-mix(in srgb, #ef4444 10%, var(--sarde-bg-surface));
+  }
 }

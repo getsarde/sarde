@@ -18,14 +18,14 @@ var themeChromaStylesCmd = &cobra.Command{
 
 Use --list to see all available style names.
 Use --style to specify a style (defaults to the configured light theme).
-Use --dark to wrap output in .dark { } scoping for dark mode.
+Use --dark to wrap output in [data-theme="dark"] { } scoping for dark mode.
 Use --output to write CSS to a file instead of stdout.`,
 	RunE: runThemeChromaStyles,
 }
 
 func init() {
 	themeChromaStylesCmd.Flags().String("style", "", "Chroma style name (default: configured light theme)")
-	themeChromaStylesCmd.Flags().Bool("dark", false, "Wrap output in .dark { } scoping")
+	themeChromaStylesCmd.Flags().Bool("dark", false, "Wrap output in [data-theme=\"dark\"] { } scoping")
 	themeChromaStylesCmd.Flags().Bool("list", false, "List all available Chroma style names")
 	themeChromaStylesCmd.Flags().StringP("output", "o", "", "Write CSS to file instead of stdout")
 	themeCmd.AddCommand(themeChromaStylesCmd)
@@ -62,7 +62,7 @@ func runThemeChromaStyles(cmd *cobra.Command, args []string) error {
 	}
 
 	if darkFlag {
-		css = ".dark {\n" + css + "}\n"
+		css = "[data-theme=\"dark\"] {\n" + css + "}\n"
 	}
 
 	outputPath, _ := cmd.Flags().GetString("output")

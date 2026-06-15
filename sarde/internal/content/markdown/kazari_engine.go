@@ -22,7 +22,7 @@ func BuildKazariEngine(ctx context.Context, cfg *config.CodeblocksSettings) (*ka
 
 	darkModeSelector := cfg.DarkModeSelector
 	if darkModeSelector == "" {
-		darkModeSelector = ".dark"
+		darkModeSelector = "[data-theme=\"dark\"]"
 	}
 
 	engine := kazari.New(

@@ -1,11 +1,11 @@
 @layer sarde.reset {
 	/* Sarde Default Theme — Dark Mode Non-Token Overrides
 	   Token-based dark mode swaps (colors, shadows, glass, asides) are handled
-	   by DefaultDarkTokens() → <style id="sd-theme"> :root.dark block.
+	   by DefaultDarkTokens() → <style id="sd-theme"> :root[data-theme="dark"] block.
 	   color-scheme is set by the Go-generated style tag (light-dark() support).
 	   This file handles rules that can't be expressed as --sd-* custom properties. */
 
-	:root.dark img:not([src*=".svg"]) {
+	:root[data-theme="dark"] img:not([src*=".svg"]) {
 	  opacity: 0.9;
 	}
 

@@ -17,7 +17,7 @@ func TestGenerateCSS_LightOnly(t *testing.T) {
 	if !strings.Contains(css, "--sd-bg: #ffffff") {
 		t.Error("expected --sd-bg")
 	}
-	if strings.Contains(css, ":root.dark") {
+	if strings.Contains(css, `[data-theme="dark"]`) {
 		t.Error("should not have dark block with nil dark tokens")
 	}
 }
@@ -30,8 +30,8 @@ func TestGenerateCSS_LightAndDark(t *testing.T) {
 	if !strings.Contains(css, ":root {") {
 		t.Error("expected :root block")
 	}
-	if !strings.Contains(css, ":root.dark {") {
-		t.Error("expected :root.dark block")
+	if !strings.Contains(css, `:root[data-theme="dark"] {`) {
+		t.Error(`expected :root[data-theme="dark"] block`)
 	}
 	if !strings.Contains(css, "--sd-bg: #0f172a") {
 		t.Error("expected dark --sd-bg")
@@ -118,8 +118,8 @@ func TestGenerateLightDarkCSS_ColorScheme(t *testing.T) {
 	if !strings.Contains(css, "color-scheme: light dark;") {
 		t.Error("expected color-scheme: light dark on :root")
 	}
-	if !strings.Contains(css, ":root.dark {\n  color-scheme: dark;\n}") {
-		t.Error("expected color-scheme: dark on :root.dark")
+	if !strings.Contains(css, ":root[data-theme=\"dark\"] {\n  color-scheme: dark;\n}") {
+		t.Error(`expected color-scheme: dark on :root[data-theme="dark"]`)
 	}
 }
 
@@ -147,8 +147,8 @@ func TestGenerateStyleTag_IncludesBothPaths(t *testing.T) {
 	if !strings.Contains(tag, ":root {") {
 		t.Error("expected legacy :root block")
 	}
-	if !strings.Contains(tag, ":root.dark {") {
-		t.Error("expected legacy :root.dark block")
+	if !strings.Contains(tag, `:root[data-theme="dark"] {`) {
+		t.Error(`expected legacy :root[data-theme="dark"] block`)
 	}
 	if !strings.Contains(tag, "@supports (color: light-dark(red, blue))") {
 		t.Error("expected @supports block with light-dark()")
@@ -179,7 +179,7 @@ func TestGenerateCSS_FullPipeline(t *testing.T) {
 	if !strings.Contains(css, "--sd-accent-hover:") {
 		t.Error("expected derived accent-hover")
 	}
-	if !strings.Contains(css, ":root.dark {") {
+	if !strings.Contains(css, `:root[data-theme="dark"] {`) {
 		t.Error("expected dark block")
 	}
 }

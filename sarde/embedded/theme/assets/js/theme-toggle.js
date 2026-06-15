@@ -10,9 +10,14 @@
   }
 
   function applyTheme(theme) {
-    var dark = isDark(theme);
-    document.documentElement.classList.toggle('dark', dark);
-    document.documentElement.style.colorScheme = dark ? 'dark' : '';
+    var root = document.documentElement;
+    root.classList.add('sd-no-transition');
+    root.setAttribute('data-theme', isDark(theme) ? 'dark' : 'light');
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        root.classList.remove('sd-no-transition');
+      });
+    });
   }
 
   function syncToggles(theme) {
