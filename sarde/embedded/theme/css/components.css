@@ -538,6 +538,12 @@
 	  font-size: 1.25rem;
 	  line-height: 1;
 	}
+	svg.sarde-tab-icon {
+	  width: 1.35em;
+	  height: 1.35em;
+	  stroke-width: 2.5;
+	  color: var(--sd-accent);
+	}
 
 	.sarde-tab-option-text {
 	  display: flex;
