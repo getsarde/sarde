@@ -111,14 +111,6 @@
 	  font-size: inherit;
 	}
 
-	.kazari-code pre {
-	  border: none;
-	  border-radius: 0;
-	  background: none;
-	  margin: 0;
-	  padding: 0;
-	}
-
 	/* ── Tables ── */
 	article table,
 	.content table {
