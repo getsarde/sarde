@@ -1,6 +1,9 @@
 package collection
 
 import (
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
 	"html/template"
 	"io"
 	"os"
@@ -394,6 +397,9 @@ func buildPage(
 		return nil, nil, err
 	}
 
+	contentDigest := rawDigest(raw)
+	frontmatterDigest := fmDigest(fmMap)
+
 	// Apply schema defaults
 	if schema != nil {
 		fmMap = content.ApplyDefaults(fmMap, schema)
@@ -421,7 +427,9 @@ func buildPage(
 			FilePath:    cf.FilePath,
 		},
 		PageContent: engine.PageContent{
-			RawContent: body,
+			RawContent:        body,
+			ContentDigest:     contentDigest,
+			FrontmatterDigest: frontmatterDigest,
 		},
 		PageMeta: engine.PageMeta{
 			Draft:       fm.Draft,
@@ -807,4 +815,21 @@ func normalizeRootVersionPages(pages []*engine.Page, lastVersion string) {
 			p.VersionRelPath = parts[1]
 		}
 	}
+}
+
+func rawDigest(data []byte) string {
+	h := sha256.Sum256(data)
+	return fmt.Sprintf("%x", h[:8])
+}
+
+func fmDigest(fmMap map[string]interface{}) string {
+	if len(fmMap) == 0 {
+		return ""
+	}
+	b, err := json.Marshal(fmMap)
+	if err != nil {
+		return ""
+	}
+	h := sha256.Sum256(b)
+	return fmt.Sprintf("%x", h[:8])
 }

@@ -23,7 +23,7 @@
       } else if (msg.type === "error") {
         showOverlay(msg);
       } else if (msg.type === "warning") {
-        showBanner(msg.error || "Warning");
+        console.warn("[sarde]", msg.error || "Warning");
       }
     };
 

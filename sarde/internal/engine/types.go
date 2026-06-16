@@ -108,14 +108,16 @@ func (p *PageIdentity) URL() string {
 
 // PageContent holds rendered content and content-derived metadata.
 type PageContent struct {
-	Content       template.HTML
-	Summary       template.HTML
-	RawContent    string
-	WordCount     int
-	ReadingTime   int
-	Headings      []Heading
-	HasCodeBlocks bool
-	HasImages     bool
+	Content           template.HTML
+	Summary           template.HTML
+	RawContent        string
+	ContentDigest     string // hex digest of raw file bytes (for incremental rebuild skip)
+	FrontmatterDigest string // hex digest of serialized frontmatter map (body-only change detection)
+	WordCount         int
+	ReadingTime       int
+	Headings          []Heading
+	HasCodeBlocks     bool
+	HasImages         bool
 }
 
 // PageMeta holds editorial metadata.

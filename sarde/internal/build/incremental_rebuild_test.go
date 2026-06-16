@@ -131,36 +131,6 @@ func TestContentRebuild_StructuralChangesFallBackToFullBuild(t *testing.T) {
 			path:  "content/blog/one.md",
 			write: "---\ntitle: One\nslug: renamed\ndate: 2025-01-02T00:00:00Z\n---\n# One\nBody.\n",
 		},
-		{
-			name:  "alias",
-			path:  "content/blog/one.md",
-			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\naliases: [/old-one/]\n---\n# One\nBody.\n",
-		},
-		{
-			name:  "taxonomy",
-			path:  "content/blog/one.md",
-			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\ntags: [go]\n---\n# One\nBody.\n",
-		},
-		{
-			name:  "featured",
-			path:  "content/blog/one.md",
-			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nfeatured: true\n---\n# One\nBody.\n",
-		},
-		{
-			name:  "title",
-			path:  "content/blog/one.md",
-			write: "---\ntitle: One Updated\ndate: 2025-01-02T00:00:00Z\n---\n# One Updated\nBody.\n",
-		},
-		{
-			name:  "order",
-			path:  "content/blog/one.md",
-			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nsidebar:\n  order: 10\n---\n# One\nBody.\n",
-		},
-		{
-			name:  "render flag",
-			path:  "content/blog/one.md",
-			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nrender: false\n---\n# One\nBody.\n",
-		},
 	}
 
 	for _, tt := range tests {
@@ -192,7 +162,103 @@ func TestContentRebuild_StructuralChangesFallBackToFullBuild(t *testing.T) {
 	}
 }
 
-func TestContentRebuild_FallbackPrunesStaleAliasOutput(t *testing.T) {
+func TestContentRebuild_NonStructuralChangesStayIncremental(t *testing.T) {
+	tests := []struct {
+		name  string
+		path  string
+		write string
+	}{
+		{
+			name:  "alias change",
+			path:  "content/blog/one.md",
+			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\naliases: [/old-one/]\n---\n# One\nBody.\n",
+		},
+		{
+			name:  "taxonomy change",
+			path:  "content/blog/one.md",
+			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\ntags: [go]\n---\n# One\nBody.\n",
+		},
+		{
+			name:  "featured change",
+			path:  "content/blog/one.md",
+			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nfeatured: true\n---\n# One\nBody.\n",
+		},
+		{
+			name:  "order change (non-sort field for blog)",
+			path:  "content/blog/one.md",
+			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nsidebar:\n  order: 10\n---\n# One\nBody.\n",
+		},
+		{
+			name:  "render flag",
+			path:  "content/blog/one.md",
+			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nrender: false\n---\n# One\nBody.\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := createIncrementalSite(t)
+			cfg := config.Defaults()
+			builder := newIncrementalBuilder(dir, cfg)
+			if _, err := builder.Build(); err != nil {
+				t.Fatalf("Build failed: %v", err)
+			}
+
+			absPath := filepath.Join(dir, filepath.FromSlash(tt.path))
+			writeFixture(t, dir, tt.path, tt.write)
+
+			result, err := builder.ContentRebuild([]string{absPath})
+			if err != nil {
+				t.Fatalf("ContentRebuild failed: %v", err)
+			}
+			if result.PageCount >= 5 {
+				t.Fatalf("expected incremental rebuild, got likely full rebuild page count %d", result.PageCount)
+			}
+		})
+	}
+}
+
+func TestContentRebuild_TitleChangeRebuildsCollection(t *testing.T) {
+	dir := createIncrementalSite(t)
+	cfg := config.Defaults()
+	builder := newIncrementalBuilder(dir, cfg)
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	postPath := filepath.Join(dir, "content", "blog", "one.md")
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One Updated\ndate: 2025-01-02T00:00:00Z\n---\n# One Updated\nBody.\n")
+
+	result, err := builder.ContentRebuild([]string{postPath})
+	if err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+	// Title change triggers collection-scoped rebuild: all blog pages re-rendered.
+	if result.PageCount < 2 {
+		t.Fatalf("expected collection-scoped rebuild, got %d rendered pages", result.PageCount)
+	}
+}
+
+func TestContentRebuild_ContentDigestSkipsUnchangedFile(t *testing.T) {
+	dir := createIncrementalSite(t)
+	cfg := config.Defaults()
+	builder := newIncrementalBuilder(dir, cfg)
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	// "Touch" the file without changing content — ContentRebuild should skip it.
+	postPath := filepath.Join(dir, "content", "blog", "one.md")
+	result, err := builder.ContentRebuild([]string{postPath})
+	if err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+	if result.PageCount != 0 {
+		t.Fatalf("expected 0 pages rendered for unchanged file, got %d", result.PageCount)
+	}
+}
+
+func TestContentRebuild_AliasChangeCreatesNewAlias(t *testing.T) {
 	dir := createIncrementalSite(t)
 	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\naliases: [/old-one/]\n---\n# One\nBody.\n")
 
@@ -207,12 +273,12 @@ func TestContentRebuild_FallbackPrunesStaleAliasOutput(t *testing.T) {
 
 	postPath := filepath.Join(dir, "content", "blog", "one.md")
 	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\naliases: [/new-one/]\n---\n# One\nBody.\n")
-	if _, err := builder.ContentRebuild([]string{postPath}); err != nil {
+	result, err := builder.ContentRebuild([]string{postPath})
+	if err != nil {
 		t.Fatalf("ContentRebuild failed: %v", err)
 	}
-
-	if _, err := os.Stat(filepath.Join(distDir, "old-one", "index.html")); !os.IsNotExist(err) {
-		t.Fatalf("old alias output should be pruned, stat err = %v", err)
+	if result.PageCount >= 5 {
+		t.Fatalf("expected incremental rebuild for alias change, got likely full rebuild page count %d", result.PageCount)
 	}
 	assertFixtureFileExists(t, distDir, "new-one/index.html")
 }

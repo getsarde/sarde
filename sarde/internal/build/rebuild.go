@@ -1,6 +1,7 @@
 package build
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/i18n"
+	"github.com/frostybee/sarde/internal/navigation"
 	"github.com/frostybee/sarde/internal/plugin"
 	"github.com/frostybee/sarde/internal/taxonomy"
 	sardetemplate "github.com/frostybee/sarde/internal/template"
@@ -49,6 +51,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	}
 	var parsed []parsedEntry
 	var warnings []engine.ValidationWarning
+	dirtyCollections := make(map[string]*engine.Collection)
 
 	for _, path := range changedPaths {
 		if !filepath.IsAbs(path) {
@@ -83,6 +86,18 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 			return b.Build()
 		}
 
+		// Layer 1: content digest gate — skip if raw bytes unchanged.
+		if old.ContentDigest != "" {
+			rawBytes, readErr := os.ReadFile(path)
+			if readErr == nil {
+				h := sha256.Sum256(rawBytes)
+				if old.ContentDigest == fmt.Sprintf("%x", h[:8]) {
+					devlog.Log("build", "ContentRebuild: content unchanged for %s, skipping", filepath.Base(path))
+					continue
+				}
+			}
+		}
+
 		// Determine collection config for parsing.
 		var collCfg *engine.CollectionConfig
 		var schema *engine.FrontmatterSchema
@@ -109,20 +124,36 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		}
 		warnings = append(warnings, pageWarnings...)
 
-		includeDrafts := config.BoolVal(b.config.Build.Drafts, false)
-		includeFuture := config.BoolVal(b.config.Build.Future, false)
-		includeExpired := config.BoolVal(b.config.Build.Expired, false)
-		now := time.Now()
-		wasExcluded := content.ShouldExclude(old.Draft, old.PublishDate, old.ExpiryDate, includeDrafts, includeFuture, includeExpired, now)
-		isExcluded := content.ShouldExclude(newPage.Draft, newPage.PublishDate, newPage.ExpiryDate, includeDrafts, includeFuture, includeExpired, now)
-		if wasExcluded != isExcluded {
-			devlog.Warn("build", "ContentRebuild: draft/publish status changed, falling back to full rebuild")
-			return b.Build()
-		}
+		// Layer 2: frontmatter digest gate — if frontmatter unchanged, this is
+		// a body-only change. Skip all eligibility checks and go straight to
+		// the incremental path.
+		if old.FrontmatterDigest != "" && old.FrontmatterDigest == newPage.FrontmatterDigest {
+			// Body-only change — always eligible for incremental rebuild.
+		} else {
+			// Frontmatter changed — classify the change.
+			includeDrafts := config.BoolVal(b.config.Build.Drafts, false)
+			includeFuture := config.BoolVal(b.config.Build.Future, false)
+			includeExpired := config.BoolVal(b.config.Build.Expired, false)
+			now := time.Now()
+			wasExcluded := content.ShouldExclude(old.Draft, old.PublishDate, old.ExpiryDate, includeDrafts, includeFuture, includeExpired, now)
+			isExcluded := content.ShouldExclude(newPage.Draft, newPage.PublishDate, newPage.ExpiryDate, includeDrafts, includeFuture, includeExpired, now)
+			if wasExcluded != isExcluded {
+				devlog.Warn("build", "ContentRebuild: draft/publish status changed, falling back to full rebuild")
+				return b.Build()
+			}
 
-		if reason := incrementalEligibilityFailure(old, newPage, cf); reason != "" {
-			devlog.Warn("build", "ContentRebuild: %s, falling back to full rebuild", reason)
-			return b.Build()
+			switch classifyChange(old, newPage, cf) {
+			case changeFullRebuild:
+				devlog.Warn("build", "ContentRebuild: site-structural change detected, falling back to full rebuild")
+				return b.Build()
+			case changeCollectionScoped:
+				if old.Collection != nil {
+					devlog.Log("build", "ContentRebuild: sort/nav change in %s, will rebuild collection", old.Collection.Name)
+					dirtyCollections[old.Collection.Name] = old.Collection
+				}
+			case changeIncremental:
+				// pass through — incremental path handles it
+			}
 		}
 
 		parsed = append(parsed, parsedEntry{
@@ -188,6 +219,25 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 
 		dirtyPermalinks[e.newPage.RelPermalink] = struct{}{}
 		addCollectionListDirty(col, dirtyPermalinks)
+	}
+
+	// Collection-scoped rebuild: re-sort and rebuild navigation for any
+	// collection whose sort or sidebar fields changed.
+	for colName, col := range dirtyCollections {
+		rebuildCollectionNav(col)
+		for _, p := range col.Pages {
+			dirtyPermalinks[p.RelPermalink] = struct{}{}
+		}
+		addCollectionListDirty(col, dirtyPermalinks)
+		devlog.Log("build", "ContentRebuild: rebuilt navigation for collection %q (%d pages)", colName, len(col.Pages))
+	}
+
+	// Dirty-mark old taxonomy terms for pages whose tags/categories changed,
+	// so removed-tag term pages are re-rendered.
+	if b.lastSiteCtx != nil && b.lastSiteCtx.Taxonomies != nil {
+		for _, e := range parsed {
+			addRemovedTermsDirty(e.old, e.newPage, b.lastSiteCtx.Taxonomies, b.config.Taxonomies, dirtyPermalinks)
+		}
 	}
 
 	// Fallback pages are regenerated below; taxonomy stubs are rendered
@@ -508,54 +558,141 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 // Incremental rebuild helpers
 // ---------------------------------------------------------------------------
 
-func incrementalEligibilityFailure(old, next *engine.Page, cf content.ContentFile) string {
+type changeClass int
+
+const (
+	changeIncremental      changeClass = iota // existing incremental path handles it
+	changeCollectionScoped                     // re-sort + re-nav one collection
+	changeFullRebuild                          // full site rebuild
+)
+
+func classifyChange(old, next *engine.Page, cf content.ContentFile) changeClass {
+	// Full rebuild — genuinely site-structural changes.
 	if old.RelPermalink != next.RelPermalink {
-		return "permalink changed"
+		return changeFullRebuild
 	}
 	if old.Kind != next.Kind {
-		return "content kind changed"
+		return changeFullRebuild
 	}
 	if collectionName(old) != cf.CollectionName {
-		return "collection membership changed"
+		return changeFullRebuild
 	}
 	if old.Lang != next.Lang || old.LangRelPath != next.LangRelPath {
-		return "language identity changed"
+		return changeFullRebuild
 	}
 	if old.Slug != next.Slug {
-		return "slug changed"
+		return changeFullRebuild
 	}
-	if old.Title != next.Title || !old.Date.Equal(next.Date) || old.Sidebar.Order != next.Sidebar.Order {
-		return "collection sort or navigation fields changed"
+
+	// Collection-scoped — sort fields (only check the field that matters
+	// for this collection's sort strategy).
+	sortBy := ""
+	if old.Collection != nil && old.Collection.Config != nil {
+		sortBy = old.Collection.Config.SortBy
 	}
-	if old.Draft != next.Draft || !old.PublishDate.Equal(next.PublishDate) || !old.ExpiryDate.Equal(next.ExpiryDate) {
-		return "publish state changed"
+	switch sortBy {
+	case "date":
+		if !old.Date.Equal(next.Date) {
+			return changeCollectionScoped
+		}
+	case "order":
+		if old.Sidebar.Order != next.Sidebar.Order {
+			return changeCollectionScoped
+		}
+	case "title":
+		if old.Title != next.Title {
+			return changeCollectionScoped
+		}
 	}
-	if !stringSlicesEqual(old.Aliases, next.Aliases) {
-		return "aliases changed"
+
+	// Collection-scoped — title always matters for nav display (sidebar
+	// labels, prev/next link text) regardless of sort strategy.
+	if old.Title != next.Title {
+		return changeCollectionScoped
 	}
-	if !stringSlicesEqual(old.Tags, next.Tags) || !stringSlicesEqual(old.Categories, next.Categories) {
-		return "taxonomy fields changed"
-	}
-	if boolParam(old.Params, "featured") != boolParam(next.Params, "featured") {
-		return "featured status changed"
-	}
+
+	// Collection-scoped — sidebar display fields affect the NavTree.
 	if old.Sidebar.Label != next.Sidebar.Label || old.Sidebar.Hidden != next.Sidebar.Hidden ||
 		old.Sidebar.Group != next.Sidebar.Group ||
 		!reflect.DeepEqual(old.Sidebar.Badge, next.Sidebar.Badge) ||
 		!reflect.DeepEqual(old.Sidebar.Attrs, next.Sidebar.Attrs) {
-		return "sidebar fields changed"
+		return changeCollectionScoped
 	}
-	if !reflect.DeepEqual(old.TOC, next.TOC) {
-		return "toc fields changed"
+
+	// Incremental — everything else. The existing incremental path already
+	// handles taxonomy (BuildTaxonomies + addTaxonomyDirtyForPage), aliases,
+	// TOC, featured status, and render/template/layout params.
+	return changeIncremental
+}
+
+// rebuildCollectionNav re-sorts the collection and rebuilds its navigation
+// (NavTree and PrevPage/NextPage). All functions used here are self-contained
+// and operate only on collection-local data.
+func rebuildCollectionNav(col *engine.Collection) {
+	if col == nil || col.Config == nil {
+		return
 	}
-	for _, key := range []string{
-		"render", "template", "layout", "type", "prev", "next",
-	} {
-		if !reflect.DeepEqual(paramValue(old.Params, key), paramValue(next.Params, key)) {
-			return key + " changed"
+	collection.SortPages(col.Pages, col.Config.SortBy, col.Config.SortOrder)
+
+	if engine.LayoutHasSidebar(col.Config.Layout) {
+		col.NavTree = navigation.BuildNavTree(col)
+		navigation.WirePrevNextFromTree(col.NavTree)
+		for lang := range col.NavTrees {
+			langCol := &engine.Collection{
+				Name:     col.Name,
+				Config:   col.Config,
+				Sections: col.Sections,
+			}
+			for _, p := range col.Pages {
+				if p.Lang == lang {
+					langCol.Pages = append(langCol.Pages, p)
+				}
+			}
+			col.NavTrees[lang] = navigation.BuildNavTree(langCol)
+			navigation.WirePrevNextFromTree(col.NavTrees[lang])
+		}
+	} else {
+		collection.WirePrevNext(col.Pages)
+	}
+}
+
+// addRemovedTermsDirty marks taxonomy term pages as dirty when a page's
+// tags or categories were removed. addTaxonomyDirtyForPage only catches
+// terms the page is currently IN (new taxonomy); this catches terms it
+// was removed FROM (old taxonomy).
+func addRemovedTermsDirty(old, next *engine.Page, oldTaxonomies map[string]*engine.Taxonomy, cfg map[string]config.TaxonomyConfig, dirty map[string]struct{}) {
+	oldTerms := make(map[string]bool)
+	newTerms := make(map[string]bool)
+	for _, t := range old.Tags {
+		oldTerms["tags:"+strings.ToLower(t)] = true
+	}
+	for _, c := range old.Categories {
+		oldTerms["categories:"+strings.ToLower(c)] = true
+	}
+	for _, t := range next.Tags {
+		newTerms["tags:"+strings.ToLower(t)] = true
+	}
+	for _, c := range next.Categories {
+		newTerms["categories:"+strings.ToLower(c)] = true
+	}
+	for key := range oldTerms {
+		if newTerms[key] {
+			continue
+		}
+		parts := strings.SplitN(key, ":", 2)
+		taxName, termSlug := parts[0], parts[1]
+		tax, ok := oldTaxonomies[taxName]
+		if !ok || !cfg[taxName].ShouldRender() {
+			continue
+		}
+		dirty[tax.Permalink] = struct{}{}
+		for _, term := range tax.Terms {
+			if strings.ToLower(term.Name) == termSlug || strings.ToLower(term.Slug) == termSlug {
+				dirty[term.Permalink] = struct{}{}
+				break
+			}
 		}
 	}
-	return ""
 }
 
 func collectionName(p *engine.Page) string {
