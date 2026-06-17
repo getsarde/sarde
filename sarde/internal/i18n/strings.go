@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"text/template"
@@ -18,6 +19,8 @@ type StringTable struct {
 	strings     map[string]map[string]string // lang → dotted-key → value
 	defaultLang string
 	tmplCache   sync.Map // key → *template.Template
+	strict      bool
+	misses      sync.Map // "lang\x00key" → true
 }
 
 // NewStringTable creates an empty StringTable with the given default language.
@@ -85,6 +88,25 @@ func (st *StringTable) Resolve(lang, key string, data ...any) string {
 	return buf.String()
 }
 
+// SetStrict enables strict mode, which records keys that fall back.
+func (st *StringTable) SetStrict(on bool) { st.strict = on }
+
+// Misses returns keys that fell back during resolution, grouped by language.
+func (st *StringTable) Misses() map[string][]string {
+	result := make(map[string][]string)
+	st.misses.Range(func(k, _ any) bool {
+		parts := strings.SplitN(k.(string), "\x00", 2)
+		if len(parts) == 2 {
+			result[parts[0]] = append(result[parts[0]], parts[1])
+		}
+		return true
+	})
+	for lang := range result {
+		sort.Strings(result[lang])
+	}
+	return result
+}
+
 func (st *StringTable) lookup(lang, key string) string {
 	if langStrings, ok := st.strings[lang]; ok {
 		if val, ok := langStrings[key]; ok {
@@ -92,6 +114,9 @@ func (st *StringTable) lookup(lang, key string) string {
 		}
 	}
 	if lang != st.defaultLang {
+		if st.strict {
+			st.misses.Store(lang+"\x00"+key, true)
+		}
 		if defStrings, ok := st.strings[st.defaultLang]; ok {
 			if val, ok := defStrings[key]; ok {
 				return val

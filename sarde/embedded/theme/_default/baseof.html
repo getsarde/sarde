@@ -5,7 +5,7 @@
   {{ component "Head" . }}
 </head>
 <body class="sarde-layout-{{ .Layout }}">
-  <a href="#main-content" class="sarde-skip-link">Skip to main content</a>
+  <a href="#main-content" class="sarde-skip-link">{{ t "nav.skip_to_content" }}</a>
   {{ component "Header" . }}
   <main id="main-content">
     {{ component "FallbackNotice" . }}

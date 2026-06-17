@@ -1,5 +1,5 @@
 {{ if .Breadcrumbs }}
-<nav class="sarde-breadcrumbs" aria-label="Breadcrumb">
+<nav class="sarde-breadcrumbs" aria-label="{{ t "nav.breadcrumb" }}">
   <ol>
   {{ range .Breadcrumbs }}
     <li>{{ if or .Current (not .URL) }}<span{{ if .Current }} aria-current="page"{{ end }}>{{ .Label }}</span>{{ else }}<a href="{{ .URL }}">{{ .Label }}</a>{{ end }}</li>

@@ -9,7 +9,7 @@
         {{ end }}
         {{ if .Page.ReadingTime }}
         <span class="sarde-meta-sep">&middot;</span>
-        <span>{{ .Page.ReadingTime }} min read</span>
+        <span>{{ tWithData "nav.reading_time" (dict "Minutes" .Page.ReadingTime) }}</span>
         {{ end }}
         {{ with index .Page.Extra "authors" }}
         <span class="sarde-meta-sep">&middot;</span>

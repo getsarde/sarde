@@ -652,6 +652,7 @@ type I18nSettings struct {
 	DefaultLanguage string                    `yaml:"default_language"`
 	Strategy        string                    `yaml:"strategy"` // "prefix-except-default" (default)
 	Fallback        string                    `yaml:"fallback"` // "default" | "omit"
+	Strict          bool                      `yaml:"strict"`
 	Languages       map[string]LanguageConfig `yaml:"languages"`
 }
 

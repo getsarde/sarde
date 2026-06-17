@@ -26,6 +26,7 @@ func init() {
 	buildCmd.Flags().StringP("output", "o", "", "Override output directory (default: dist)")
 	buildCmd.Flags().String("base-path", "", "Override URL base path (e.g. /docs/)")
 	buildCmd.Flags().String("content", "", "Override content directory path")
+	buildCmd.Flags().Bool("strict-i18n", false, "Warn on missing translation keys per language")
 	rootCmd.AddCommand(buildCmd)
 }
 
@@ -54,6 +55,11 @@ func runBuild(cmd *cobra.Command, args []string) error {
 			contentDir, _ = filepath.Abs(contentDir)
 		}
 		cfg.Content.Dir = contentDir
+	}
+
+	// Override strict i18n from CLI flag.
+	if strictI18n, _ := cmd.Flags().GetBool("strict-i18n"); strictI18n {
+		cfg.I18n.Strict = true
 	}
 
 	// Build.

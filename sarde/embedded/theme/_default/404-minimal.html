@@ -1,11 +1,11 @@
 {{ define "content" }}
 <div class="sarde-error-page error-page--minimal">
-  <h1>{{ if .Page.Content }}{{ .Page.Title }}{{ else }}Page Not Found{{ end }}</h1>
+  <h1>{{ if .Page.Content }}{{ .Page.Title }}{{ else }}{{ t "error.not_found" }}{{ end }}</h1>
   {{ if .Page.Content }}
     <div class="sarde-error-page__content">{{ .Page.Content }}</div>
   {{ else }}
-    <p>The page you requested could not be found.</p>
+    <p>{{ t "error.not_found_desc" }}</p>
   {{ end }}
-  <a href="{{ relURL "/" }}">Go back home</a>
+  <a href="{{ relURL "/" }}">{{ t "error.return_home" }}</a>
 </div>
 {{ end }}

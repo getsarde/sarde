@@ -165,6 +165,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("loading i18n strings: %w", err)
 	}
+	if b.config.I18n.Strict {
+		stringTable.SetStrict(true)
+	}
 
 	if isMultiLang {
 		// Configure scanner for multi-language detection
@@ -1220,6 +1223,19 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	sitemapCount := 0
 	if slices.Contains(b.config.Plugins.Enabled, "sitemap") {
 		sitemapCount = 1
+	}
+
+	if b.config.I18n.Strict && stringTable != nil {
+		for lang, keys := range stringTable.Misses() {
+			for _, key := range keys {
+				warnings = append(warnings, engine.ValidationWarning{
+					File:    "i18n/" + lang + ".yaml",
+					Field:   key,
+					Message: fmt.Sprintf("missing translation for key %q in language %q", key, lang),
+					Level:   "warning",
+				})
+			}
+		}
 	}
 
 	return &engine.BuildResult{

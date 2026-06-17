@@ -363,6 +363,22 @@ func (e *Engine) buildFuncMap(
 			))
 		},
 
+		// ── Map construction ──
+		"dict": func(pairs ...any) (map[string]any, error) {
+			if len(pairs)%2 != 0 {
+				return nil, fmt.Errorf("dict requires even number of args, got %d", len(pairs))
+			}
+			m := make(map[string]any, len(pairs)/2)
+			for i := 0; i < len(pairs); i += 2 {
+				k, ok := pairs[i].(string)
+				if !ok {
+					return nil, fmt.Errorf("dict key must be string, got %T", pairs[i])
+				}
+				m[k] = pairs[i+1]
+			}
+			return m, nil
+		},
+
 		// ── i18n ──
 		"t": func(key string) string {
 			if i18nStrings == nil || currentLang == nil {

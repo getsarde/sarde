@@ -1,13 +1,13 @@
 {{ if .GlobalNav }}
 <button class="sarde-nav-toggle" id="sarde-nav-toggle" type="button"
         aria-expanded="false" aria-controls="sarde-global-nav"
-        aria-label="Menu" data-sarde-nav-toggle>
+        aria-label="{{ t "nav.menu" }}" data-sarde-nav-toggle>
   {{ icon "menu" "sarde-nav-icon-open" "width" "20" "height" "20" }}
   {{ icon "x" "sarde-nav-icon-close" "width" "20" "height" "20" }}
 </button>
 <nav class="sarde-header-nav" id="sarde-global-nav">
   {{ range .GlobalNav.Items }}
-  <a href="{{ .URL }}"{{ if .IsActive }} class="is-active" aria-current="page"{{ end }}{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}{{ if .External }}<span class="sr-only"> (opens in new tab)</span>{{ end }}</a>
+  <a href="{{ .URL }}"{{ if .IsActive }} class="is-active" aria-current="page"{{ end }}{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}{{ if .External }}<span class="sr-only"> {{ t "nav.opens_new_tab" }}</span>{{ end }}</a>
   {{ end }}
 </nav>
 {{ end }}

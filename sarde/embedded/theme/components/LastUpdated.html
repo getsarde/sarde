@@ -1,3 +1,3 @@
 {{ if .Page }}{{ if and (not .Page.Updated.IsZero) (boolParam .Page.Params "show_updated" true) }}
-<p class="sarde-last-updated">Last updated: <time datetime="{{ .Page.Updated.Format "2006-01-02" }}">{{ .Page.Updated.Format "Jan 2, 2006" }}</time></p>
+<p class="sarde-last-updated">{{ t "last_updated_label" }}: <time datetime="{{ .Page.Updated.Format "2006-01-02" }}">{{ .Page.Updated.Format "Jan 2, 2006" }}</time></p>
 {{ end }}{{ end }}

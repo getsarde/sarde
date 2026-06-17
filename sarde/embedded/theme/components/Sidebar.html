@@ -1,6 +1,6 @@
 {{ component "DocsTabSwitcher" . }}
 {{ if .Sidebar }}
-<nav class="sarde-sidebar-nav" aria-label="Section navigation">
+<nav class="sarde-sidebar-nav" aria-label="{{ t "nav.section_nav" }}">
   <ul class="sarde-sidebar-tree">
   {{ range .Sidebar.Root.Children }}
     {{ if .Children }}

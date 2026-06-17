@@ -1,10 +1,10 @@
 {{ if .Pagination }}
-<nav class="sarde-pagination" aria-label="Page navigation">
+<nav class="sarde-pagination" aria-label="{{ t "nav.page_nav" }}">
   {{ if .Pagination.Prev }}
   <a href="{{ .Pagination.Prev.URL }}" class="sarde-pagination-prev" rel="prev">
     <span class="sarde-pagination-dir">
       {{ icon "chevron-left" }}
-      Previous
+      {{ t "nav.previous" }}
     </span>
     <span class="sarde-pagination-title">{{ .Pagination.Prev.Title }}</span>
   </a>
@@ -14,7 +14,7 @@
   {{ with .Pagination.Next }}
   <a href="{{ .URL }}" class="sarde-pagination-next" rel="next">
     <span class="sarde-pagination-dir">
-      Next
+      {{ t "nav.next" }}
       {{ icon "chevron-right" }}
     </span>
     <span class="sarde-pagination-title">{{ .Title }}</span>

@@ -3,9 +3,9 @@
     {{ if or .Site.Config.Footer.Links .Site.Config.Social }}
     <div class="sarde-footer-top">
       {{ if .Site.Config.Footer.Links }}
-      <nav class="sarde-footer-links" aria-label="Footer">
+      <nav class="sarde-footer-links" aria-label="{{ t "nav.footer" }}">
         {{ range .Site.Config.Footer.Links }}
-        <a href="{{ if .External }}{{ .URL }}{{ else }}{{ relURL .URL }}{{ end }}"{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}{{ if .External }}<span class="sr-only"> (opens in new tab)</span>{{ end }}</a>
+        <a href="{{ if .External }}{{ .URL }}{{ else }}{{ relURL .URL }}{{ end }}"{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}{{ if .External }}<span class="sr-only"> {{ t "nav.opens_new_tab" }}</span>{{ end }}</a>
         {{ end }}
       </nav>
       {{ end }}

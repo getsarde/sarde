@@ -6,9 +6,9 @@
     <div class="sarde-error-page__content">{{ .Page.Content }}</div>
   {{ else }}
     <div class="sarde-error-page__code">404</div>
-    <h1>Page Not Found</h1>
-    <p>The page you requested could not be found.</p>
+    <h1>{{ t "error.not_found" }}</h1>
+    <p>{{ t "error.not_found_desc" }}</p>
   {{ end }}
-  <a href="{{ relURL "/" }}" class="sarde-error-page__home">Return to homepage</a>
+  <a href="{{ relURL "/" }}" class="sarde-error-page__home">{{ t "error.return_home" }}</a>
 </div>
 {{ end }}

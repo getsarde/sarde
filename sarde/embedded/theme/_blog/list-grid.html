@@ -20,7 +20,7 @@
           <h3 class="sarde-post-card-title">{{ .Title }}</h3>
           <div class="sarde-post-card-meta">
             {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
-            {{ if .ReadingTime }}<span class="sarde-meta-sep">&middot;</span><span>{{ .ReadingTime }} min read</span>{{ end }}
+            {{ if .ReadingTime }}<span class="sarde-meta-sep">&middot;</span><span>{{ tWithData "nav.reading_time" (dict "Minutes" .ReadingTime) }}</span>{{ end }}
           </div>
           {{ if .Summary }}<p class="sarde-post-card-excerpt">{{ .Summary }}</p>{{ end }}
         </div>

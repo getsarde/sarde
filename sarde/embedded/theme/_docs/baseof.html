@@ -5,19 +5,19 @@
   {{ component "Head" . }}
 </head>
 <body class="sarde-layout-{{ .Layout }}">
-  <a href="#main-content" class="sarde-skip-link">Skip to main content</a>
+  <a href="#main-content" class="sarde-skip-link">{{ t "nav.skip_to_content" }}</a>
   {{ component "Header" . }}
   {{ if .HasSidebar }}
   <nav class="sarde-mobile-nav" aria-label="Mobile navigation">
     <button class="sarde-menu-toggle" id="sarde-menu-toggle"
-            aria-expanded="false" aria-label="Menu"
+            aria-expanded="false" aria-label="{{ t "nav.menu" }}"
             aria-controls="sarde-sidebar" type="button">
       {{ icon "menu" "sarde-menu-icon-open" "width" "20" "height" "20" }}
       {{ icon "x" "sarde-menu-icon-close" "width" "20" "height" "20" }}
     </button>
     <aside class="sarde-sidebar" id="sarde-sidebar">
       <button class="sarde-sidebar-toggle" id="sarde-sidebar-toggle"
-              aria-expanded="true" aria-label="Collapse sidebar" type="button">
+              aria-expanded="true" aria-label="{{ t "nav.collapse_sidebar" }}" type="button">
         {{ icon "panel-left-close" "sarde-sidebar-toggle-collapse" "width" "16" "height" "16" }}
         {{ icon "panel-left-open" "sarde-sidebar-toggle-expand" "width" "16" "height" "16" }}
       </button>
