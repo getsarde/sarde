@@ -211,6 +211,20 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 					rd.Homepage = mapHomepageSettings(&cfg.Homepage)
 				}
 			}
+		case engine.KindSection:
+			// Language-root _index.md (e.g. content/fr/_index.md) is KindSection
+			// because its dir != "", but it should render identically to KindHome.
+			if page.LangRelPath == "_index.md" {
+				rd.Template = "home"
+				rd.Layout = engine.LayoutDefault
+				if site != nil && site.Config != nil {
+					if cfg, ok := site.Config.(*config.SiteConfig); ok {
+						rd.Homepage = mapHomepageSettings(&cfg.Homepage)
+					}
+				}
+			} else {
+				rd.Template = consts.DirDefault + "/single"
+			}
 		case engine.KindTaxonomy:
 			rd.Template = consts.DirTaxonomy + "/list"
 			rd.Layout = engine.LayoutDefault
