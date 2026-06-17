@@ -4,8 +4,7 @@
   <span class="sarde-search-trigger-text">{{ t "nav.search" }}</span>
   <span class="sarde-search-kbd" aria-hidden="true"><kbd>⌘</kbd><kbd>K</kbd></span>
 </button>
-<div id="sarde-search-modal" class="sarde-search-modal" role="dialog" aria-modal="true" aria-label="{{ t "nav.search" }}" data-search-version="{{ .Version }}" data-search-lang="{{ .Lang }}" hidden>
-  <div class="sarde-search-modal-backdrop" data-search-close></div>
+<dialog id="sarde-search-modal" class="sarde-search-modal" aria-label="{{ t "nav.search" }}" data-search-version="{{ .Version }}" data-search-lang="{{ .Lang }}">
   <div class="sarde-search-modal-panel">
     <div class="sarde-search-input-row">
       <span class="sarde-search-input-icon">{{ icon "search" "" "width" "18" "height" "18" }}</span>
@@ -13,21 +12,31 @@
       <button type="button" class="sarde-search-close" data-search-close aria-label="Close">{{ icon "x" "" "width" "18" "height" "18" }}</button>
     </div>
     <div id="sarde-search-filters" class="sarde-search-filters" hidden></div>
-    <div id="sarde-search-initial" class="sarde-search-initial"></div>
-    <ul id="sarde-search-results" role="listbox" aria-label="{{ t "search.results" }}" aria-live="polite" hidden></ul>
-    <div id="sarde-search-empty" class="sarde-search-empty" hidden>
-      {{ icon "search-x" "sarde-search-empty-icon" "width" "32" "height" "32" }}
-      <p class="sarde-search-empty-title">No results found</p>
-      <ul class="sarde-search-empty-tips" id="sarde-search-empty-tips">
-        <li>Check for typos in your search term</li>
-        <li>Try using different or more general keywords</li>
-      </ul>
+    <div class="sarde-search-content-area">
+      <div id="sarde-search-body" class="sarde-search-body">
+        <div id="sarde-search-initial" class="sarde-search-initial"></div>
+        <ul id="sarde-search-results" role="listbox" aria-label="{{ t "search.results" }}" aria-live="polite" hidden></ul>
+        <div id="sarde-search-empty" class="sarde-search-empty" hidden>
+          {{ icon "search-x" "sarde-search-empty-icon" "width" "32" "height" "32" }}
+          <p class="sarde-search-empty-title">No results found</p>
+          <ul class="sarde-search-empty-tips" id="sarde-search-empty-tips">
+            <li>Check for typos in your search term</li>
+            <li>Try using different or more general keywords</li>
+          </ul>
+        </div>
+      </div>
+      <div id="sarde-search-preview" class="sarde-search-preview" aria-live="polite" hidden></div>
     </div>
     <div class="sarde-search-footer" aria-hidden="true">
       <span><kbd>{{ icon "arrow-up" "" "width" "12" "height" "12" }}</kbd><kbd>{{ icon "arrow-down" "" "width" "12" "height" "12" }}</kbd> to navigate</span>
       <span><kbd>Enter</kbd> to select</span>
       <span><kbd>Esc</kbd> to close</span>
+      <button type="button" id="sarde-search-mode-toggle" class="sarde-search-mode-toggle" aria-label="Switch to Full Search">
+        {{ icon "columns-2" "" "width" "14" "height" "14" }}
+        <span class="sarde-search-mode-label">Full Search</span>
+        <kbd class="sarde-search-mode-kbd">⌘<span class="sarde-search-mode-space">Space</span></kbd>
+      </button>
     </div>
   </div>
-</div>
+</dialog>
 {{ end }}

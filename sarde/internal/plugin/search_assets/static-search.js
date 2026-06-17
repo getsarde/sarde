@@ -22,6 +22,10 @@
   var PAGE_SIZE = 30;
   var RECENT_KEY = "sarde-recent-searches";
   var MAX_RECENTS = 5;
+  var isFullMode = false;
+  var panel = modal ? modal.querySelector(".sarde-search-modal-panel") : null;
+  var previewEl = document.getElementById("sarde-search-preview");
+  var modeToggleBtn = document.getElementById("sarde-search-mode-toggle");
 
   var SEARCH_ICON = '<svg viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21l-4.3-4.3"/></g></svg>';
   var HISTORY_ICON = '<svg viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9a9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5m4-1v5l4 2"/></g></svg>';
@@ -30,6 +34,8 @@
   var FOLDER_ICON = '<svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>';
   var ARROW_ICON = '<svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18l6-6l-6-6"/></svg>';
   var CHEVRON_SEP = '<svg class="sarde-breadcrumb-sep" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18l6-6l-6-6"/></svg>';
+  var COLUMNS_ICON = '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="18" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="18" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+  var LIST_ICON = '<svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>';
 
   // --- Recent searches (localStorage) ---
 
@@ -160,19 +166,19 @@
   // --- Open / Close ---
 
   function open() {
-    modal.hidden = false;
-    modal.removeAttribute("hidden");
+    if (modal.open) return;
+    modal.showModal();
     input.focus();
     renderInitialState();
     if (initial) initial.hidden = false;
     results.hidden = true;
     hideEmpty();
+    clearPreview();
     loadIndex();
   }
 
   function close() {
-    modal.hidden = true;
-    modal.setAttribute("hidden", "");
+    if (modal.open) modal.close();
     input.value = "";
     clearChildren(results);
     results.hidden = true;
@@ -184,6 +190,10 @@
     currentOffset = 0;
     isLoading = false;
     activeSection = "";
+    isFullMode = false;
+    if (panel) panel.classList.remove("is-full-mode");
+    clearPreview();
+    resetToggleButton();
     if (filtersEl) {
       filtersEl.querySelectorAll(".sarde-search-filter-chip").forEach(function (chip) {
         chip.classList.toggle("is-active", chip.getAttribute("data-section") === "");
@@ -197,16 +207,26 @@
     t.addEventListener("click", function (e) { e.preventDefault(); open(); });
   });
 
-  document.querySelectorAll("[data-search-close]").forEach(function (el) {
-    el.addEventListener("click", function (e) { e.preventDefault(); close(); });
+  modal.querySelector("[data-search-close]").addEventListener("click", function (e) {
+    e.preventDefault(); close();
+  });
+
+  modal.addEventListener("cancel", function (e) {
+    e.preventDefault();
+    close();
+  });
+
+  modal.addEventListener("click", function (e) {
+    if (e.target === modal) close();
   });
 
   document.addEventListener("keydown", function (e) {
     if ((e.ctrlKey || e.metaKey) && e.key === "k") {
       e.preventDefault();
       open();
-    } else if (e.key === "Escape" && !modal.hidden) {
-      close();
+    } else if ((e.ctrlKey || e.metaKey) && e.key === " " && modal.open) {
+      e.preventDefault();
+      setFullMode(!isFullMode);
     }
   });
 
@@ -318,7 +338,15 @@
       currentOffset = hits.length;
       selectedIndex = -1;
       if (hits.length) saveRecentSearch(term);
-      render(currentHits, term, currentTotal);
+      if (isFullMode) {
+        renderFullMode(currentHits, term, currentTotal);
+        if (currentHits.length) {
+          selectedIndex = 0;
+          updateSelection();
+        }
+      } else {
+        render(currentHits, term, currentTotal);
+      }
     }).catch(function () {
       clearChildren(results);
       currentHits = [];
@@ -341,7 +369,11 @@
       var hits = res && res.hits ? res.hits : [];
       currentHits = currentHits.concat(hits);
       currentOffset += hits.length;
-      appendResults(hits, term);
+      if (isFullMode) {
+        appendCompactResults(hits, term);
+      } else {
+        appendResults(hits, term);
+      }
       isLoading = false;
     }).catch(function () {
       removeSpinner();
@@ -408,6 +440,43 @@
       text = (start > 0 ? "..." : "") + content.slice(start, end) + (end < content.length ? "..." : "");
     }
     return highlight(text, term);
+  }
+
+  function countMatches(content, term) {
+    if (!content || !term) return 0;
+    var escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    var m = content.match(new RegExp(escaped, "gi"));
+    return m ? m.length : 0;
+  }
+
+  function extractSnippets(content, term, windowLen, maxSnippets) {
+    if (!content || !term) return [];
+    windowLen = windowLen || 100;
+    maxSnippets = maxSnippets || 5;
+    var escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    var re = new RegExp(escaped, "gi");
+    var match;
+    var windows = [];
+    while ((match = re.exec(content)) !== null) {
+      var s = Math.max(0, match.index - Math.floor(windowLen / 2));
+      var e = Math.min(content.length, s + windowLen);
+      windows.push([s, e]);
+    }
+    if (!windows.length) return [];
+    var merged = [windows[0]];
+    for (var i = 1; i < windows.length; i++) {
+      var last = merged[merged.length - 1];
+      if (windows[i][0] <= last[1]) {
+        last[1] = Math.max(last[1], windows[i][1]);
+      } else {
+        merged.push(windows[i]);
+      }
+    }
+    if (merged.length > maxSnippets) merged = merged.slice(0, maxSnippets);
+    return merged.map(function (w) {
+      var text = (w[0] > 0 ? "..." : "") + content.slice(w[0], w[1]) + (w[1] < content.length ? "..." : "");
+      return { text: text, startIdx: w[0] };
+    });
   }
 
   function render(hits, term, totalCount) {
@@ -540,6 +609,9 @@
         el.classList.remove("is-selected");
       }
     });
+    if (isFullMode && selectedIndex >= 0) {
+      updatePreview(selectedIndex);
+    }
   }
 
   function showSpinner(container) {
@@ -557,5 +629,288 @@
 
   function clearChildren(node) {
     while (node.firstChild) node.removeChild(node.firstChild);
+  }
+
+  // --- Full search mode ---
+
+  function resetToggleButton() {
+    if (!modeToggleBtn) return;
+    var iconEl = modeToggleBtn.querySelector("svg");
+    var labelEl = modeToggleBtn.querySelector(".sarde-search-mode-label");
+    if (iconEl) iconEl.outerHTML = COLUMNS_ICON;
+    if (labelEl) labelEl.textContent = "Full Search";
+    modeToggleBtn.setAttribute("aria-label", "Switch to Full Search");
+  }
+
+  function setFullMode(enabled) {
+    isFullMode = enabled;
+    if (panel) panel.classList.toggle("is-full-mode", enabled);
+
+    if (modeToggleBtn) {
+      var iconEl = modeToggleBtn.querySelector("svg");
+      var labelEl = modeToggleBtn.querySelector(".sarde-search-mode-label");
+      if (enabled) {
+        if (iconEl) iconEl.outerHTML = LIST_ICON;
+        if (labelEl) labelEl.textContent = "Simple Search";
+        modeToggleBtn.setAttribute("aria-label", "Switch to Simple Search");
+      } else {
+        resetToggleButton();
+      }
+    }
+
+    if (enabled) {
+      if (currentHits.length) {
+        renderFullMode(currentHits, lastTerm, currentTotal);
+        selectedIndex = 0;
+        updateSelection();
+      } else {
+        clearPreview();
+      }
+    } else {
+      clearPreview();
+      if (currentHits.length) {
+        render(currentHits, lastTerm, currentTotal);
+        updateSelection();
+      }
+    }
+  }
+
+  if (modeToggleBtn) {
+    modeToggleBtn.addEventListener("click", function () {
+      setFullMode(!isFullMode);
+    });
+  }
+
+  function renderFullMode(hits, term, totalCount) {
+    clearChildren(results);
+    if (!hits.length) {
+      results.hidden = true;
+      showEmpty();
+      return;
+    }
+    hideEmpty();
+    results.hidden = false;
+
+    var header = document.createElement("li");
+    header.className = "sarde-search-results-header";
+    header.textContent = totalCount + " result" + (totalCount !== 1 ? "s" : "") + " for '" + term + "'";
+    results.appendChild(header);
+
+    hits.forEach(function (h) {
+      var d = h.document || h;
+      results.appendChild(buildCompactResultItem(d, term));
+    });
+  }
+
+  function buildCompactResultItem(d, term) {
+    var li = document.createElement("li");
+    var a = document.createElement("a");
+    a.className = "sarde-search-result is-compact";
+    a.href = d.url || "#";
+    a.addEventListener("click", function (e) {
+      if (isFullMode) {
+        e.preventDefault();
+        var allItems = results.querySelectorAll(".sarde-search-result");
+        for (var i = 0; i < allItems.length; i++) {
+          if (allItems[i] === a) { selectedIndex = i; break; }
+        }
+        updateSelection();
+      }
+    });
+
+    var contentDiv = document.createElement("div");
+    contentDiv.className = "sarde-search-result-content";
+
+    var titleRow = document.createElement("div");
+    titleRow.className = "sarde-search-compact-title-row";
+    var titleEl = document.createElement("span");
+    titleEl.className = "sarde-search-result-title";
+    titleEl.innerHTML = highlight(d.title || d.url || "", term);
+    titleRow.appendChild(titleEl);
+    var mc = countMatches(d.content || "", term);
+    if (mc > 0) {
+      var badge = document.createElement("span");
+      badge.className = "sarde-search-compact-badge";
+      badge.textContent = mc;
+      titleRow.appendChild(badge);
+    } else if (d.content) {
+      var fuzzBadge = document.createElement("span");
+      fuzzBadge.className = "sarde-search-compact-badge sarde-search-compact-badge--fuzzy";
+      fuzzBadge.textContent = "~";
+      fuzzBadge.title = "Fuzzy match";
+      titleRow.appendChild(fuzzBadge);
+    }
+    contentDiv.appendChild(titleRow);
+
+    var metaRow = document.createElement("div");
+    metaRow.className = "sarde-search-compact-meta";
+    var pathEl = document.createElement("span");
+    pathEl.className = "sarde-search-result-compact-path";
+    pathEl.textContent = d.url || "";
+    metaRow.appendChild(pathEl);
+    if (d.section) {
+      var secEl = document.createElement("span");
+      secEl.className = "sarde-search-compact-section";
+      secEl.textContent = d.section.charAt(0).toUpperCase() + d.section.slice(1);
+      metaRow.appendChild(secEl);
+    }
+    contentDiv.appendChild(metaRow);
+
+    a.appendChild(contentDiv);
+    li.appendChild(a);
+    return li;
+  }
+
+  function appendCompactResults(hits, term) {
+    hits.forEach(function (h) {
+      var d = h.document || h;
+      results.appendChild(buildCompactResultItem(d, term));
+    });
+  }
+
+  function updatePreview(index) {
+    if (!previewEl || !isFullMode) return;
+    var h = currentHits[index];
+    if (!h) { clearPreview(); return; }
+    var doc = h.document || h;
+    previewEl.removeAttribute("hidden");
+    clearChildren(previewEl);
+
+    var headerEl = document.createElement("div");
+    headerEl.className = "sarde-search-preview-header";
+    var headerLabel = document.createElement("span");
+    headerLabel.textContent = "Preview";
+    headerEl.appendChild(headerLabel);
+    if (doc.url) {
+      var openLink = document.createElement("a");
+      openLink.className = "sarde-search-preview-open";
+      openLink.href = doc.url;
+      openLink.innerHTML = ARROW_ICON;
+      openLink.setAttribute("aria-label", "Open page");
+      openLink.title = "Open page";
+      openLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        var href = doc.url;
+        close();
+        window.location.href = href;
+      });
+      headerEl.appendChild(openLink);
+    }
+    previewEl.appendChild(headerEl);
+
+    var pathEl = document.createElement("div");
+    pathEl.className = "sarde-search-preview-path";
+    pathEl.textContent = doc.url || "";
+    previewEl.appendChild(pathEl);
+
+    var bc = doc.breadcrumb || doc.section || "";
+    if (bc) {
+      var bcEl = document.createElement("div");
+      bcEl.className = "sarde-search-preview-breadcrumb";
+      var parts = bc.split(" > ");
+      bcEl.innerHTML = parts.map(function (p) { return highlight(p, lastTerm); }).join(CHEVRON_SEP);
+      previewEl.appendChild(bcEl);
+    }
+
+    var titleEl = document.createElement("div");
+    titleEl.className = "sarde-search-preview-title";
+    titleEl.innerHTML = highlight(doc.title || doc.url || "", lastTerm);
+    previewEl.appendChild(titleEl);
+
+    var tags = doc.tags;
+    if (tags && tags.length) {
+      var tagsEl = document.createElement("div");
+      tagsEl.className = "sarde-search-preview-tags";
+      tags.forEach(function (tag) {
+        var pill = document.createElement("span");
+        pill.className = "sarde-search-preview-tag";
+        pill.innerHTML = highlight(tag, lastTerm);
+        tagsEl.appendChild(pill);
+      });
+      previewEl.appendChild(tagsEl);
+    }
+
+    var mc = countMatches(doc.content || "", lastTerm);
+    if (mc > 0) {
+      var mcEl = document.createElement("div");
+      mcEl.className = "sarde-search-preview-match-count";
+      mcEl.textContent = mc + " match" + (mc !== 1 ? "es" : "") + " in this page";
+      previewEl.appendChild(mcEl);
+    }
+
+    var baseUrl = (doc.url || "").split("#")[0];
+    var headings = [];
+    currentHits.forEach(function (hit) {
+      var d = hit.document || hit;
+      if (d.kind === "heading" && d.url && d.url.indexOf(baseUrl + "#") === 0) {
+        headings.push(d);
+      }
+    });
+    if (headings.length) {
+      var hdSection = document.createElement("div");
+      hdSection.className = "sarde-search-preview-headings";
+      var hdLabel = document.createElement("div");
+      hdLabel.className = "sarde-search-preview-headings-label";
+      hdLabel.textContent = "Matching sections";
+      hdSection.appendChild(hdLabel);
+      headings.forEach(function (hd) {
+        var link = document.createElement("a");
+        link.className = "sarde-search-preview-heading";
+        link.href = hd.url;
+        link.innerHTML = HASH_ICON + "<span>" + highlight(hd.title || "", lastTerm) + "</span>";
+        link.addEventListener("click", function (e) {
+          e.preventDefault();
+          var href = hd.url;
+          close();
+          window.location.href = href;
+        });
+        hdSection.appendChild(link);
+      });
+      previewEl.appendChild(hdSection);
+    }
+
+    var content = doc.content || "";
+    if (content) {
+      var snippets = extractSnippets(content, lastTerm);
+      if (snippets.length) {
+        var snippetsEl = document.createElement("div");
+        snippetsEl.className = "sarde-search-preview-snippets";
+        snippets.forEach(function (s, i) {
+          if (i > 0) {
+            var sep = document.createElement("div");
+            sep.className = "sarde-search-preview-snippet-sep";
+            sep.textContent = "...";
+            snippetsEl.appendChild(sep);
+          }
+          var snipEl = document.createElement("div");
+          snipEl.className = "sarde-search-preview-snippet";
+          snipEl.innerHTML = highlight(s.text, lastTerm);
+          snippetsEl.appendChild(snipEl);
+        });
+        previewEl.appendChild(snippetsEl);
+      } else {
+        var fallbackEl = document.createElement("div");
+        fallbackEl.className = "sarde-search-preview-excerpt";
+        var preview = content.length > 300 ? content.slice(0, 300) + "..." : content;
+        fallbackEl.textContent = preview;
+        previewEl.appendChild(fallbackEl);
+      }
+    } else if (doc.description) {
+      var descEl = document.createElement("div");
+      descEl.className = "sarde-search-preview-excerpt";
+      descEl.innerHTML = highlight(doc.description, lastTerm);
+      previewEl.appendChild(descEl);
+    } else {
+      var emptyEl = document.createElement("div");
+      emptyEl.className = "sarde-search-preview-empty";
+      emptyEl.textContent = "No preview available";
+      previewEl.appendChild(emptyEl);
+    }
+  }
+
+  function clearPreview() {
+    if (!previewEl) return;
+    previewEl.setAttribute("hidden", "");
+    clearChildren(previewEl);
   }
 })();
