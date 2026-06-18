@@ -789,6 +789,7 @@ type HeroData struct {
 	SecondaryCTA *HeroCTAData
 	Stats        []HeroStatData
 	Code         *HeroCodeData
+	Image        *HeroImageData
 	Background   string
 }
 
@@ -809,6 +810,15 @@ type HeroCodeData struct {
 	Title    string
 	Language string
 	Body     string
+}
+
+// HeroImageData holds the optional hero image/SVG for the homepage hero panel.
+type HeroImageData struct {
+	Src   string
+	Light string
+	Dark  string
+	Alt   string
+	HTML  template.HTML
 }
 
 // TranslationLink points to the same page in another language.

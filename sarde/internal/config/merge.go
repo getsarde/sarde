@@ -458,6 +458,9 @@ func mergeHomepage(base, over *HomepageSettings) {
 	if over.Hero.Code != nil {
 		base.Hero.Code = over.Hero.Code
 	}
+	if over.Hero.Image != nil {
+		base.Hero.Image = over.Hero.Image
+	}
 }
 
 func mergePlugins(base, over *PluginSettings) {

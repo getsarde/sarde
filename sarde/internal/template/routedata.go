@@ -2,6 +2,7 @@ package template
 
 import (
 	"fmt"
+	htmltemplate "html/template"
 	"strings"
 
 	"github.com/frostybee/sarde/internal/collection"
@@ -673,6 +674,15 @@ func mapHomepageSettings(s *config.HomepageSettings) *engine.HomepageData {
 			Title:    s.Hero.Code.Title,
 			Language: s.Hero.Code.Language,
 			Body:     s.Hero.Code.Body,
+		}
+	}
+	if s.Hero.Image != nil {
+		d.Hero.Image = &engine.HeroImageData{
+			Src:   s.Hero.Image.Src,
+			Light: s.Hero.Image.Light,
+			Dark:  s.Hero.Image.Dark,
+			Alt:   s.Hero.Image.Alt,
+			HTML:  htmltemplate.HTML(s.Hero.Image.HTML),
 		}
 	}
 	return d

@@ -7,8 +7,9 @@
   {{ $background = .Homepage.Hero.Background }}
 {{ end }}
 {{ $hasCode := and .Homepage .Homepage.Hero.Code .Homepage.Hero.Code.Body }}
+{{ $hasImage := and .Homepage .Homepage.Hero.Image }}
 {{ $hasStats := and .Homepage .Homepage.Hero.Stats }}
-{{ $hasPanel := or $hasCode $hasStats }}
+{{ $hasPanel := or $hasCode $hasImage $hasStats }}
 <section class="sarde-hero sarde-hero-bg-{{ $background }}">
   <div class="sarde-hero-inner{{ if $hasPanel }} sarde-hero-inner-with-panel{{ end }}">
     <div class="sarde-hero-copy">
@@ -32,7 +33,20 @@
     </div>
     {{ if $hasPanel }}
     <aside class="sarde-hero-proof" aria-label="Hero proof">
-      {{ if $hasCode }}
+      {{ if $hasImage }}
+      {{ with .Homepage.Hero.Image }}
+      <div class="sarde-hero-image">
+        {{ if .HTML }}
+          {{ .HTML }}
+        {{ else if and .Light .Dark }}
+          <img src="{{ relURL .Light }}" alt="{{ .Alt }}" class="sarde-hero-img-light">
+          <img src="{{ relURL .Dark }}" alt="{{ .Alt }}" class="sarde-hero-img-dark">
+        {{ else if .Src }}
+          <img src="{{ relURL .Src }}" alt="{{ .Alt }}">
+        {{ end }}
+      </div>
+      {{ end }}
+      {{ else if $hasCode }}
       {{ with .Homepage.Hero.Code }}
       <div class="sarde-hero-code-card">
         <div class="sarde-hero-code-header">

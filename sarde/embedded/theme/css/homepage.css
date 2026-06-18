@@ -209,6 +209,33 @@
 	  line-height: 1.4;
 	}
 
+	/* Hero image panel */
+	.sarde-hero-image {
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  min-width: 0;
+	}
+	.sarde-hero-image img,
+	.sarde-hero-image svg {
+	  width: 100%;
+	  max-width: 100%;
+	  height: auto;
+	  display: block;
+	}
+
+	/* Dark/light image variants */
+	:root[data-theme="dark"]  .sarde-hero-img-light { display: none; }
+	:root[data-theme="light"] .sarde-hero-img-dark  { display: none; }
+	@media (prefers-color-scheme: dark) {
+	  :root:not([data-theme="light"]) .sarde-hero-img-light { display: none; }
+	  :root:not([data-theme="dark"])  .sarde-hero-img-dark  { display: none; }
+	}
+	@media (prefers-color-scheme: light) {
+	  :root:not([data-theme="dark"]) .sarde-hero-img-dark { display: none; }
+	  :root:not([data-theme="light"]) .sarde-hero-img-light { display: none; }
+	}
+
 	/* Hero backgrounds */
 	.sarde-hero-bg-gradient {
 	  background:
@@ -734,6 +761,11 @@
 
 	  .sarde-hero-cta {
 	    flex: 1 1 100%;
+	  }
+
+	  .sarde-hero-image {
+	    max-width: 20rem;
+	    margin: 0 auto;
 	  }
 
 	  .sarde-hero-code {

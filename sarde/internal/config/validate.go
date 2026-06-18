@@ -86,6 +86,10 @@ func validateInterdependencies(c *validate.Checker, cfg *SiteConfig) {
 	c.LessOrEqual("toc.min_level", cfg.TOC.MinLevel, "toc.max_level", cfg.TOC.MaxLevel)
 	c.LessOrEqual("markdown.toc.min_heading_level", cfg.Markdown.TOC.MinHeadingLevel,
 		"markdown.toc.max_heading_level", cfg.Markdown.TOC.MaxHeadingLevel)
+	c.Check("homepage.hero.image",
+		"code and image are both set",
+		cfg.Homepage.Hero.Code == nil || cfg.Homepage.Hero.Image == nil,
+		"homepage.hero.code and homepage.hero.image are mutually exclusive; remove one")
 }
 
 // --- Per-collection, per-taxonomy, per-language checks ---

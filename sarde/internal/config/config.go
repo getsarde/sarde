@@ -599,14 +599,15 @@ type HomepageSettings struct {
 }
 
 type HeroSettings struct {
-	Eyebrow      string     `yaml:"eyebrow"`
-	Title        string     `yaml:"title"`
-	Subtitle     string     `yaml:"subtitle"`
-	CTA          *HeroCTA   `yaml:"cta"`
-	SecondaryCTA *HeroCTA   `yaml:"secondary_cta"`
-	Stats        []HeroStat `yaml:"stats"`
-	Code         *HeroCode  `yaml:"code"`
-	Background   string     `yaml:"background"`
+	Eyebrow      string             `yaml:"eyebrow"`
+	Title        string             `yaml:"title"`
+	Subtitle     string             `yaml:"subtitle"`
+	CTA          *HeroCTA           `yaml:"cta"`
+	SecondaryCTA *HeroCTA           `yaml:"secondary_cta"`
+	Stats        []HeroStat         `yaml:"stats"`
+	Code         *HeroCode          `yaml:"code"`
+	Image        *HeroImageSettings `yaml:"image"`
+	Background   string             `yaml:"background"`
 }
 
 type HeroCTA struct {
@@ -623,6 +624,14 @@ type HeroCode struct {
 	Title    string `yaml:"title"`
 	Language string `yaml:"language"`
 	Body     string `yaml:"body"`
+}
+
+type HeroImageSettings struct {
+	Src   string `yaml:"src"`
+	Light string `yaml:"light"`
+	Dark  string `yaml:"dark"`
+	Alt   string `yaml:"alt"`
+	HTML  string `yaml:"html"`
 }
 
 // ---------------------------------------------------------------------------
