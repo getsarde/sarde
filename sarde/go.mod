@@ -8,6 +8,7 @@ require (
 	github.com/evanw/esbuild v0.28.0
 	github.com/frostybee/kazari v0.0.0-00010101000000-000000000000
 	github.com/frostybee/nuri v0.0.0-00010101000000-000000000000
+	github.com/frostybee/valiant v0.0.0-00010101000000-000000000000
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gen2brain/avif v0.4.4
 	github.com/gen2brain/webp v0.5.5
@@ -32,7 +33,6 @@ replace (
 require (
 	github.com/dlclark/regexp2/v2 v2.1.1 // indirect
 	github.com/ebitengine/purego v0.8.3 // indirect
-	github.com/frostybee/valiant v0.0.0-00010101000000-000000000000 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect

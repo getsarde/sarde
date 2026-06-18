@@ -481,6 +481,13 @@ func buildPage(
 		return nil, nil, err
 	}
 
+	if pageWarnings := content.ValidatePageFields(page, fm); len(pageWarnings) > 0 {
+		for i := range pageWarnings {
+			pageWarnings[i].File = cf.RelPath
+		}
+		warnings = append(warnings, pageWarnings...)
+	}
+
 	// Compute permalink: use pattern if configured, else directory-based
 	isIndex := filepath.Base(cf.FilePath) == "_index.md" || filepath.Base(cf.FilePath) == "index.md"
 	if collCfg != nil && collCfg.Permalink != "" && !isIndex {
