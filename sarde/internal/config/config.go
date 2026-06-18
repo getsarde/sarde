@@ -272,6 +272,7 @@ type MarkdownTOCSettings struct {
 }
 
 type CodeblocksSettings struct {
+	Engine           string `yaml:"engine"`
 	Style            string `yaml:"style"`
 	LightTheme       string `yaml:"light_theme"`
 	DarkTheme        string `yaml:"dark_theme"`

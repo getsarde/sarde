@@ -60,6 +60,7 @@ func validateEnums(c *validate.Checker, cfg *SiteConfig) {
 	c.OneOf("prefetch.strategy", cfg.Prefetch.Strategy, []string{"hover", "visible", "idle"})
 	c.OneOf("images.placeholder", cfg.Images.Placeholder, []string{"lqip", "blur", "dominantColor", "none"})
 	c.OneOf("search.provider", cfg.Search.Provider, []string{"orama"})
+	c.OneOf("markdown.codeblocks.engine", cfg.Markdown.Codeblocks.Engine, []string{"nuri", "chroma"})
 	c.OneOf("markdown.codeblocks.style", cfg.Markdown.Codeblocks.Style, []string{"class"})
 	c.OneOf("build.last_updated", string(cfg.Build.LastUpdated), []string{"git", "mtime", "false", "off", "none"})
 }

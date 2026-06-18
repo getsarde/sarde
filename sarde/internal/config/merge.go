@@ -295,6 +295,7 @@ func mergeMarkdown(base, over *MarkdownSettings) {
 	mergeBoolP(&base.TripleColonCallouts, over.TripleColonCallouts)
 	mergeInt(&base.TOC.MinHeadingLevel, over.TOC.MinHeadingLevel)
 	mergeInt(&base.TOC.MaxHeadingLevel, over.TOC.MaxHeadingLevel)
+	mergeStr(&base.Codeblocks.Engine, over.Codeblocks.Engine)
 	mergeStr(&base.Codeblocks.Style, over.Codeblocks.Style)
 	mergeStr(&base.Codeblocks.LightTheme, over.Codeblocks.LightTheme)
 	mergeStr(&base.Codeblocks.DarkTheme, over.Codeblocks.DarkTheme)
