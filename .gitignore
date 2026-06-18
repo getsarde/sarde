@@ -4,6 +4,7 @@ docs/
 
 coderoo-go/content/
 /content/
+testsite/
 
 *.png
 *.txt
