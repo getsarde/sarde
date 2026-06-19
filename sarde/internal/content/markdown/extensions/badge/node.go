@@ -8,6 +8,7 @@ type Badge struct {
 	gast.BaseBlock
 	BadgeType string
 	Content   string
+	Icon      string
 }
 
 func (n *Badge) Kind() gast.NodeKind { return KindBadge }

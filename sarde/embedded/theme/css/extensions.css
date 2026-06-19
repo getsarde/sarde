@@ -2902,6 +2902,7 @@
 	    display: inline-flex;
 	    align-items: center;
 	    gap: 0.25em;
+	    margin: 0.15rem 0.3rem 0.15rem 0;
 	    padding: 0.2rem 0.55rem;
 	    font-size: var(--sd-text-xs);
 	    font-weight: var(--sd-weight-semibold);
@@ -2914,18 +2915,11 @@
 	    transition: all var(--sd-transition-fast);
 	}
 
-	/* Badge icon (inline SVG or font icon) */
-	.sarde-badge::before {
+	/* Badge icon (inline Lucide SVG) */
+	.sarde-badge-icon {
 	    flex-shrink: 0;
-	    width: 0.85em;
-	    height: 0.85em;
-	    background-color: currentColor;
-	    mask-size: contain;
-	    mask-repeat: no-repeat;
-	    mask-position: center;
-	    -webkit-mask-size: contain;
-	    -webkit-mask-repeat: no-repeat;
-	    -webkit-mask-position: center;
+	    width: 1.3em;
+	    height: 1.3em;
 	}
 
 	/* =============================================================================
@@ -2935,120 +2929,65 @@
 	/* Default/Neutral badge */
 	.sarde-badge,
 	.sarde-badge-default {
-	    background: var(--sd-gray-1);
+	    background: color-mix(in oklch, currentColor 8%, transparent);
 	    color: var(--sd-gray-6);
-	    border: 1px solid var(--sd-gray-2);
-	}
-
-	.sarde-badge::before,
-	.sarde-badge-default::before {
-	    content: "";
-	    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clip-rule='evenodd'/%3E%3C/svg%3E");
-	    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clip-rule='evenodd'/%3E%3C/svg%3E");
+	    border: 1px solid color-mix(in oklch, currentColor 20%, transparent);
 	}
 
 	/* Primary badge - Indigo */
 	.sarde-badge-primary {
-	    background: var(--sd-indigo-low);
+	    background: color-mix(in oklch, var(--sd-indigo) 15%, transparent);
 	    color: var(--sd-indigo);
-	    border: 1px solid color-mix(in oklch, var(--sd-indigo) 30%, transparent);
-	}
-
-	.sarde-badge-primary::before {
-	    content: "";
-	    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clip-rule='evenodd'/%3E%3C/svg%3E");
-	    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clip-rule='evenodd'/%3E%3C/svg%3E");
+	    border: 1px solid color-mix(in oklch, var(--sd-indigo) 40%, transparent);
 	}
 
 	/* Secondary badge */
 	.sarde-badge-secondary {
-	    background: var(--sd-gray-1);
+	    background: color-mix(in oklch, currentColor 8%, transparent);
 	    color: var(--sd-gray-5);
-	    border: 1px solid var(--sd-gray-2);
-	}
-
-	.sarde-badge-secondary::before {
-	    content: "";
-	    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z' clip-rule='evenodd'/%3E%3C/svg%3E");
-	    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z' clip-rule='evenodd'/%3E%3C/svg%3E");
+	    border: 1px solid color-mix(in oklch, currentColor 20%, transparent);
 	}
 
 	/* Success badge */
 	.sarde-badge-success {
-	    background: var(--sd-green-low);
+	    background: color-mix(in oklch, var(--sd-green) 15%, transparent);
 	    color: var(--sd-green);
-	    border: 1px solid color-mix(in oklch, var(--sd-green) 30%, transparent);
-	}
-
-	.sarde-badge-success::before {
-	    content: "";
-	    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clip-rule='evenodd'/%3E%3C/svg%3E");
-	    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clip-rule='evenodd'/%3E%3C/svg%3E");
+	    border: 1px solid color-mix(in oklch, var(--sd-green) 40%, transparent);
 	}
 
 	/* Warning badge */
 	.sarde-badge-warning {
-	    background: var(--sd-amber-low);
+	    background: color-mix(in oklch, var(--sd-amber) 15%, transparent);
 	    color: var(--sd-amber);
-	    border: 1px solid color-mix(in oklch, var(--sd-amber) 30%, transparent);
-	}
-
-	.sarde-badge-warning::before {
-	    content: "";
-	    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z' clip-rule='evenodd'/%3E%3C/svg%3E");
-	    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z' clip-rule='evenodd'/%3E%3C/svg%3E");
+	    border: 1px solid color-mix(in oklch, var(--sd-amber) 40%, transparent);
 	}
 
 	/* Danger badge */
 	.sarde-badge-danger {
-	    background: var(--sd-red-low);
+	    background: color-mix(in oklch, var(--sd-red) 15%, transparent);
 	    color: var(--sd-red);
-	    border: 1px solid color-mix(in oklch, var(--sd-red) 30%, transparent);
-	}
-
-	.sarde-badge-danger::before {
-	    content: "";
-	    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clip-rule='evenodd'/%3E%3C/svg%3E");
-	    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clip-rule='evenodd'/%3E%3C/svg%3E");
+	    border: 1px solid color-mix(in oklch, var(--sd-red) 40%, transparent);
 	}
 
 	/* Info badge */
 	.sarde-badge-info {
-	    background: var(--sd-blue-low);
+	    background: color-mix(in oklch, var(--sd-blue) 15%, transparent);
 	    color: var(--sd-blue);
-	    border: 1px solid color-mix(in oklch, var(--sd-blue) 30%, transparent);
-	}
-
-	.sarde-badge-info::before {
-	    content: "";
-	    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clip-rule='evenodd'/%3E%3C/svg%3E");
-	    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clip-rule='evenodd'/%3E%3C/svg%3E");
+	    border: 1px solid color-mix(in oklch, var(--sd-blue) 40%, transparent);
 	}
 
 	/* Note badge - Cyan/Teal */
 	.sarde-badge-note {
-	    background: var(--sd-cyan-low);
+	    background: color-mix(in oklch, var(--sd-cyan) 15%, transparent);
 	    color: var(--sd-cyan);
-	    border: 1px solid color-mix(in oklch, var(--sd-cyan) 30%, transparent);
-	}
-
-	.sarde-badge-note::before {
-	    content: "";
-	    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath d='M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z'/%3E%3C/svg%3E");
-	    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath d='M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z'/%3E%3C/svg%3E");
+	    border: 1px solid color-mix(in oklch, var(--sd-cyan) 40%, transparent);
 	}
 
 	/* Tip badge */
 	.sarde-badge-tip {
-	    background: var(--sd-purple-low);
+	    background: color-mix(in oklch, var(--sd-purple) 15%, transparent);
 	    color: var(--sd-purple);
-	    border: 1px solid color-mix(in oklch, var(--sd-purple) 30%, transparent);
-	}
-
-	.sarde-badge-tip::before {
-	    content: "";
-	    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath d='M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z'/%3E%3C/svg%3E");
-	    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath d='M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z'/%3E%3C/svg%3E");
+	    border: 1px solid color-mix(in oklch, var(--sd-purple) 40%, transparent);
 	}
 
 	/* =============================================================================
@@ -3125,7 +3064,7 @@
 	    letter-spacing: 0.03em;
 	}
 
-	.sarde-badge-sm::before {
+	.sarde-badge-sm .sarde-badge-icon {
 	    width: 0.75em;
 	    height: 0.75em;
 	}
@@ -3136,7 +3075,7 @@
 	    letter-spacing: 0.02em;
 	}
 
-	.sarde-badge-lg::before {
+	.sarde-badge-lg .sarde-badge-icon {
 	    width: 0.9em;
 	    height: 0.9em;
 	}
@@ -3145,7 +3084,7 @@
 	   NO ICON VARIANT
 	   ============================================================================= */
 
-	.sarde-badge-no-icon::before {
+	.sarde-badge-no-icon .sarde-badge-icon {
 	    display: none;
 	}
 

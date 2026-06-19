@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
+	"os"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -137,10 +138,20 @@ func ImageLookupForPage(page *engine.Page, processor *asset.ImageProcessor) imag
 	}
 }
 
-// rendererSalt is bumped only for behavioral changes not captured by the
-// auto-fingerprint (e.g. a Goldmark version upgrade that changes rendering
-// output without changing extension types or config).
-const rendererSalt = "1"
+// execIdentity returns a cheap identifier for the running binary (modtime + size).
+// Any recompilation produces a new binary, changing this value and auto-invalidating
+// the page cache — no manual salt bumping needed.
+func execIdentity() string {
+	exe, err := os.Executable()
+	if err != nil {
+		return "unknown"
+	}
+	info, err := os.Stat(exe)
+	if err != nil {
+		return "unknown"
+	}
+	return fmt.Sprintf("%d:%d", info.ModTime().UnixNano(), info.Size())
+}
 
 // RendererConfig controls markdown renderer behavior.
 type RendererConfig struct {
@@ -264,8 +275,8 @@ func computeFingerprint(extensions []goldmark.Extender, cfg RendererConfig) stri
 		kazariCSS = cfg.KazariEngine.CSS()
 	}
 
-	raw := fmt.Sprintf("salt=%s\x00exts=%s\x00hl=%t\x00schemes=%s\x00kazari=%t\x00css=%s",
-		rendererSalt,
+	raw := fmt.Sprintf("bin=%s\x00exts=%s\x00hl=%t\x00schemes=%s\x00kazari=%t\x00css=%s",
+		execIdentity(),
 		strings.Join(names, "|"),
 		cfg.HeadingLinks,
 		strings.Join(schemes, ","),

@@ -326,6 +326,13 @@ func devRequestLogger(next http.Handler) http.Handler {
 		start := time.Now()
 		sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(sw, r)
+		purpose := r.Header.Get("Purpose")
+		if purpose == "" {
+			purpose = r.Header.Get("Sec-Purpose")
+		}
+		if purpose == "prefetch" && sw.status == http.StatusOK {
+			return
+		}
 		devlog.Request(r.Method, r.URL.Path, sw.status, time.Since(start))
 	})
 }

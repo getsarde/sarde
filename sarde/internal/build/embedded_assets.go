@@ -85,6 +85,9 @@ func BundleEmbeddedJS(embeddedFS fs.FS, devMode bool) ([]byte, string, error) {
 			return err
 		}
 		if !d.IsDir() && filepath.Ext(path) == ".js" {
+			if devMode && filepath.Base(path) == "prefetch.js" {
+				return nil
+			}
 			files = append(files, path)
 		}
 		return nil

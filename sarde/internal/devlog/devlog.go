@@ -50,10 +50,10 @@ func Banner(version string, url string, hostFlag string, duration time.Duration)
 // Request prints an HTTP request log line.
 // Skips /ws and /favicon.ico.
 func Request(method, path string, status int, duration time.Duration) {
-	if path == "/ws" || path == "/favicon.ico" {
+	if path == "/ws" || strings.HasSuffix(path, "/favicon.ico") {
 		return
 	}
-	if strings.HasPrefix(path, "/assets/") {
+	if strings.Contains(path, "/assets/") {
 		return
 	}
 	if status == 304 {

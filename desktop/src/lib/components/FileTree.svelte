@@ -47,7 +47,8 @@
       const result = buildTree(await readDir(dir), dir)
       if (version === loadVersion) entries = result
     } catch (e) {
-      console.error('Failed to read directory:', e)
+      console.error('FileTree: loadTree failed for', dir, e)
+      addToast('error', `Failed to load directory: ${e}`)
       if (version === loadVersion) entries = []
     } finally {
       if (version === loadVersion) treeLoading = false
@@ -65,7 +66,9 @@
         try {
           item.children = buildTree(await readDir(item.path), item.path)
           await reloadExpanded(item.children)
-        } catch {}
+        } catch (e) {
+          console.error('FileTree: reloadExpanded failed for', item.path, e)
+        }
       }
     }
   }
@@ -91,7 +94,11 @@
     } else {
       try {
         item.children = buildTree(await readDir(item.path), item.path)
-      } catch { item.children = [] }
+      } catch (e) {
+        console.error('FileTree: toggleDir failed for', item.path, e)
+        addToast('error', `Cannot expand folder: ${e}`)
+        item.children = []
+      }
       expandedDirs.add(item.path)
     }
     expandedDirs = new Set(expandedDirs)

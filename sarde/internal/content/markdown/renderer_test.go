@@ -183,6 +183,9 @@ func TestRender_Badge(t *testing.T) {
 	if !strings.Contains(result.HTML, "sarde-badge") {
 		t.Errorf("expected badge, got: %s", result.HTML)
 	}
+	if !strings.Contains(result.HTML, "sarde-badge-icon") {
+		t.Errorf("expected inline Lucide SVG icon in badge, got: %s", result.HTML)
+	}
 }
 
 func TestRender_Kbd(t *testing.T) {

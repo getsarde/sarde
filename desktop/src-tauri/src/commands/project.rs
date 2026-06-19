@@ -2,6 +2,7 @@ use crate::state::{AppState, RecentProject};
 use crate::watcher;
 use std::fs;
 use std::path::PathBuf;
+use tauri_plugin_fs::FsExt;
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -35,6 +36,11 @@ pub fn open_project(dir: String, app_handle: tauri::AppHandle, state: tauri::Sta
             content_dir.display()
         ));
     }
+
+    // Grant the FS plugin access to the entire project tree so that frontend
+    // readDir/readTextFile/rename/mkdir calls work on any drive.
+    let scope = app_handle.fs_scope();
+    let _ = scope.allow_directory(&abs_dir, true);
 
     let title = config
         .get("site")
@@ -81,8 +87,8 @@ pub fn open_project(dir: String, app_handle: tauri::AppHandle, state: tauri::Sta
     let collections = scan_collections(&content_dir);
 
     Ok(ProjectInfo {
-        dir: abs_dir.to_string_lossy().to_string(),
-        content_dir: content_dir.to_string_lossy().to_string(),
+        dir: clean_path(&abs_dir),
+        content_dir: clean_path(&content_dir),
         state: "open".into(),
         title,
         collections,
@@ -279,8 +285,8 @@ pub fn get_project_info(state: tauri::State<AppState>) -> Result<ProjectInfo, St
     let collections = scan_collections(&content_dir);
 
     Ok(ProjectInfo {
-        dir: dir_string,
-        content_dir: content_dir.to_string_lossy().to_string(),
+        dir: clean_path(&std::path::PathBuf::from(&dir_string)),
+        content_dir: clean_path(&content_dir),
         state: "open".into(),
         title,
         collections,
@@ -296,6 +302,19 @@ pub fn list_recent_projects(state: tauri::State<AppState>) -> Vec<RecentProject>
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
+
+/// Strip the Windows `\\?\` verbatim prefix from canonicalized paths.
+fn clean_path(path: &std::path::Path) -> String {
+    let s = path.to_string_lossy();
+    #[cfg(windows)]
+    {
+        return s.strip_prefix("\\\\?\\").unwrap_or(&s).to_string();
+    }
+    #[cfg(not(windows))]
+    {
+        return s.into_owned();
+    }
+}
 
 fn read_site_config(project_dir: &PathBuf) -> Result<serde_yaml::Value, String> {
     let config_path = project_dir.join("sarde.yaml");

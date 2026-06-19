@@ -26,11 +26,13 @@ func (p *badgeParser) Open(parent ast.Node, reader text.Reader, pc parser.Contex
 	}
 
 	badgeType := "default"
+	icon := ""
 	if matches[1] != "" {
-		badgeType = parseType(matches[1])
+		badgeType = parseAttr(matches[1], "type", "default")
+		icon = parseAttr(matches[1], "icon", "")
 	}
 
-	return &Badge{BadgeType: badgeType}, parser.NoChildren
+	return &Badge{BadgeType: badgeType, Icon: icon}, parser.NoChildren
 }
 
 func (p *badgeParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
@@ -60,16 +62,20 @@ func (p *badgeParser) Close(node ast.Node, reader text.Reader, pc parser.Context
 func (p *badgeParser) CanInterruptParagraph() bool                                 { return false }
 func (p *badgeParser) CanAcceptIndentedLine() bool                                 { return false }
 
-func parseType(attrs string) string {
-	re := regexp.MustCompile(`type\s*=\s*"([^"]*)"`)
-	m := re.FindStringSubmatch(attrs)
-	if m != nil {
+func parseAttr(attrs, key, fallback string) string {
+	re := regexp.MustCompile(key + `\s*=\s*"([^"]*)"`)
+	if m := re.FindStringSubmatch(attrs); m != nil {
 		return m[1]
 	}
-	re2 := regexp.MustCompile(`type\s*=\s*'([^']*)'`)
-	m2 := re2.FindStringSubmatch(attrs)
-	if m2 != nil {
-		return m2[1]
+	re2 := regexp.MustCompile(key + `\s*=\s*'([^']*)'`)
+	if m := re2.FindStringSubmatch(attrs); m != nil {
+		return m[1]
 	}
-	return attrs
+	if fallback == "" {
+		return ""
+	}
+	if key == "type" {
+		return attrs
+	}
+	return fallback
 }
