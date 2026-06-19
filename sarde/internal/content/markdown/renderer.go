@@ -2,7 +2,11 @@ package markdown
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"fmt"
 	"path/filepath"
+	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/frostybee/kazari"
@@ -55,6 +59,7 @@ type Renderer struct {
 	linkCollector *linkcollector.Collector     // mutable reference — collects link destinations per page
 	linkRend      *linkrender.Renderer         // mutable reference — resolves internal links per page
 	kazariEngine  *kazari.Engine               // code block rendering engine; nil disables Kazari extensions
+	fingerprint   string                       // cache-busting digest; computed once at construction
 }
 
 // SetImageLookup sets the lookup function for bundle-relative image processing.
@@ -132,6 +137,11 @@ func ImageLookupForPage(page *engine.Page, processor *asset.ImageProcessor) imag
 	}
 }
 
+// rendererSalt is bumped only for behavioral changes not captured by the
+// auto-fingerprint (e.g. a Goldmark version upgrade that changes rendering
+// output without changing extension types or config).
+const rendererSalt = "1"
+
 // RendererConfig controls markdown renderer behavior.
 type RendererConfig struct {
 	BlockedHrefSchemes []string
@@ -161,11 +171,19 @@ func NewRendererFromConfig(cfg RendererConfig) *Renderer {
 		linkRend:      linkrender.NewRenderer(),
 		kazariEngine:  cfg.KazariEngine,
 	}
-	r.md = r.buildMarkdown(cfg)
+	r.md, r.fingerprint = r.buildMarkdown(cfg)
 	return r
 }
 
-func (r *Renderer) buildMarkdown(cfg RendererConfig) goldmark.Markdown {
+// Fingerprint returns a content-addressed digest of the renderer's identity:
+// registered extension types, config values, and Kazari CSS. The builder
+// includes this in the page-cache key so the cache auto-invalidates when
+// the rendering pipeline changes.
+func (r *Renderer) Fingerprint() string {
+	return r.fingerprint
+}
+
+func (r *Renderer) buildMarkdown(cfg RendererConfig) (goldmark.Markdown, string) {
 	extensions := []goldmark.Extender{
 		extension.GFM,
 		extension.Footnote,
@@ -216,7 +234,7 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) goldmark.Markdown {
 		parserOpts = append(parserOpts, parser.WithAutoHeadingID())
 	}
 
-	return goldmark.New(
+	md := goldmark.New(
 		goldmark.WithExtensions(extensions...),
 		goldmark.WithParserOptions(parserOpts...),
 		goldmark.WithRendererOptions(
@@ -227,6 +245,35 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) goldmark.Markdown {
 			),
 		),
 	)
+	return md, computeFingerprint(extensions, cfg)
+}
+
+func computeFingerprint(extensions []goldmark.Extender, cfg RendererConfig) string {
+	names := make([]string, len(extensions))
+	for i, ext := range extensions {
+		names[i] = reflect.TypeOf(ext).String()
+	}
+	sort.Strings(names)
+
+	schemes := make([]string, len(cfg.BlockedHrefSchemes))
+	copy(schemes, cfg.BlockedHrefSchemes)
+	sort.Strings(schemes)
+
+	kazariCSS := ""
+	if cfg.KazariEngine != nil {
+		kazariCSS = cfg.KazariEngine.CSS()
+	}
+
+	raw := fmt.Sprintf("salt=%s\x00exts=%s\x00hl=%t\x00schemes=%s\x00kazari=%t\x00css=%s",
+		rendererSalt,
+		strings.Join(names, "|"),
+		cfg.HeadingLinks,
+		strings.Join(schemes, ","),
+		cfg.KazariEngine != nil,
+		kazariCSS,
+	)
+	sum := sha256.Sum256([]byte(raw))
+	return fmt.Sprintf("%x", sum)
 }
 
 // ResetFlags zeroes content feature flags before each page render.

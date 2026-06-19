@@ -64,7 +64,7 @@ type SiteBuilder struct {
 
 	urlResolver   *engine.URLResolver // URL resolver for basePath prefixing
 	resolutionKey string              // digest of resolver state; folded into page-cache keys
-	rendererKey   string              // digest of renderer identity (e.g. Kazari CSS); invalidates cache on engine change
+	rendererKey   string              // auto-fingerprint of Renderer: extension set + config + Kazari CSS
 	linkGraph     *links.LinkGraph
 	lastCoverage  links.CoverageSummary
 
@@ -464,7 +464,6 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			return nil, fmt.Errorf("initializing code block engine: %w", err)
 		}
 		b.kazariEngine = ke
-		b.rendererKey = ContentHash(b.kazariEngine.CSS())
 	}
 	if b.mdRenderer == nil {
 		b.mdRenderer = markdown.NewRendererFromConfig(markdown.RendererConfig{
@@ -472,6 +471,9 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 			HeadingLinks:       config.BoolVal(b.config.Site.HeadingLinks, true),
 			KazariEngine:       b.kazariEngine,
 		})
+	}
+	if b.rendererKey == "" {
+		b.rendererKey = b.mdRenderer.Fingerprint()
 	}
 
 	// Render markdown for all pages (after asset enhancement so image

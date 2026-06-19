@@ -319,3 +319,31 @@ func TestRender_HasImages(t *testing.T) {
 		t.Error("expected HasImages=false for plain text")
 	}
 }
+
+func TestRenderer_Fingerprint_Stable(t *testing.T) {
+	cfg := RendererConfig{HeadingLinks: true}
+	r1 := NewRendererFromConfig(cfg)
+	r2 := NewRendererFromConfig(cfg)
+	if r1.Fingerprint() != r2.Fingerprint() {
+		t.Errorf("same config produced different fingerprints:\n  %s\n  %s", r1.Fingerprint(), r2.Fingerprint())
+	}
+	if len(r1.Fingerprint()) != 64 {
+		t.Errorf("fingerprint length = %d, want 64 (hex SHA-256)", len(r1.Fingerprint()))
+	}
+}
+
+func TestRenderer_Fingerprint_ChangesWithHeadingLinks(t *testing.T) {
+	r1 := NewRendererFromConfig(RendererConfig{HeadingLinks: true})
+	r2 := NewRendererFromConfig(RendererConfig{HeadingLinks: false})
+	if r1.Fingerprint() == r2.Fingerprint() {
+		t.Error("different HeadingLinks values should produce different fingerprints")
+	}
+}
+
+func TestRenderer_Fingerprint_ChangesWithBlockedSchemes(t *testing.T) {
+	r1 := NewRendererFromConfig(RendererConfig{BlockedHrefSchemes: []string{"javascript:"}})
+	r2 := NewRendererFromConfig(RendererConfig{BlockedHrefSchemes: []string{"javascript:", "data:"}})
+	if r1.Fingerprint() == r2.Fingerprint() {
+		t.Error("different BlockedHrefSchemes should produce different fingerprints")
+	}
+}
