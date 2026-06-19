@@ -3,9 +3,12 @@
     if (typeof window.mermaid === "undefined") return;
     var dark = document.documentElement.getAttribute("data-theme") === "dark";
     window.mermaid.initialize({
-      startOnLoad: true,
+      startOnLoad: false,
       theme: dark ? "dark" : "default",
       securityLevel: "strict"
+    });
+    window.mermaid.run({
+      querySelector: ".sarde-mermaid"
     });
   }
   if (document.readyState === "loading") {

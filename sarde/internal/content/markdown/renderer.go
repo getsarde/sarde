@@ -24,6 +24,7 @@ import (
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/linkbutton"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/linkcard"
 	extmath "github.com/frostybee/sarde/internal/content/markdown/extensions/math"
+	"github.com/frostybee/sarde/internal/content/markdown/extensions/mermaid"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/spoiler"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/steps"
 	"github.com/frostybee/sarde/internal/content/markdown/extensions/tabs"
@@ -187,6 +188,7 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) goldmark.Markdown {
 		&imagecompare.Extension{},
 		&video.Extension{},
 		&terminal.Extension{},
+		&mermaid.Extension{},
 		// Inline extensions
 		&badge.Extension{},
 		&kbd.Extension{},

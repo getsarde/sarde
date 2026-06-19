@@ -32,7 +32,6 @@ func (r *terminalRenderer) render(w util.BufWriter, source []byte, node ast.Node
 
 	tb := node.(*TerminalBlock)
 
-	// Extract text content from children if Content is empty
 	content := tb.Content
 	if strings.TrimSpace(content) == "" {
 		content = extractAllText(node, source)
@@ -40,7 +39,16 @@ func (r *terminalRenderer) render(w util.BufWriter, source []byte, node ast.Node
 	content = strings.TrimRight(content, "\n")
 	lines := strings.Split(content, "\n")
 
-	_, _ = w.WriteString("<div class=\"sarde-terminal\"><pre><code>")
+	_, _ = w.WriteString("<div class=\"sarde-terminal\">\n")
+	_, _ = w.WriteString("<div class=\"sarde-terminal-header\">\n")
+	_, _ = w.WriteString("<div class=\"sarde-terminal-buttons\">\n")
+	_, _ = w.WriteString("<span class=\"sarde-terminal-button close\"></span>\n")
+	_, _ = w.WriteString("<span class=\"sarde-terminal-button minimize\"></span>\n")
+	_, _ = w.WriteString("<span class=\"sarde-terminal-button maximize\"></span>\n")
+	_, _ = w.WriteString("</div>\n")
+	_, _ = w.WriteString("<span class=\"sarde-terminal-title\">Terminal</span>\n")
+	_, _ = w.WriteString("</div>\n")
+	_, _ = w.WriteString("<div class=\"sarde-terminal-body\"><pre><code>")
 
 	for i, line := range lines {
 		if i > 0 {
@@ -55,13 +63,12 @@ func (r *terminalRenderer) render(w util.BufWriter, source []byte, node ast.Node
 		_, _ = w.WriteString(styled)
 	}
 
-	_, _ = w.WriteString("</code></pre></div>\n")
+	_, _ = w.WriteString("</code></pre></div>\n</div>\n")
 
 	return ast.WalkSkipChildren, nil
 }
 
 func styleLine(line string) string {
-	// Command lines (starting with $, >, #)
 	if m := commandRegex.FindStringSubmatch(line); m != nil {
 		return fmt.Sprintf(`<span class="sarde-terminal-prompt">%s</span> <span class="sarde-terminal-command">%s</span>`,
 			htmlutil.EscapeHTML(m[1]), htmlutil.EscapeHTML(m[2]))
@@ -69,27 +76,22 @@ func styleLine(line string) string {
 
 	escaped := htmlutil.EscapeHTML(line)
 
-	// Error lines
 	if errorRegex.MatchString(line) {
 		return fmt.Sprintf(`<span class="sarde-terminal-error">%s</span>`, escaped)
 	}
 
-	// Warning lines
 	if warningRegex.MatchString(line) {
 		return fmt.Sprintf(`<span class="sarde-terminal-warning">%s</span>`, escaped)
 	}
 
-	// Success lines
 	if successRegex.MatchString(line) {
 		return fmt.Sprintf(`<span class="sarde-terminal-success">%s</span>`, escaped)
 	}
 
-	// Info lines (URLs, paths)
 	if infoRegex.MatchString(line) {
 		return fmt.Sprintf(`<span class="sarde-terminal-info">%s</span>`, escaped)
 	}
 
-	// Default output
 	return fmt.Sprintf(`<span class="sarde-terminal-output">%s</span>`, escaped)
 }
 
@@ -104,6 +106,9 @@ func extractAllText(n ast.Node, source []byte) string {
 				sb.WriteString("\n")
 			}
 		}
+		if node.Kind() == ast.KindParagraph && node != n.FirstChild() {
+			sb.WriteString("\n")
+		}
 		for c := node.FirstChild(); c != nil; c = c.NextSibling() {
 			walk(c)
 		}
@@ -111,4 +116,3 @@ func extractAllText(n ast.Node, source []byte) string {
 	walk(n)
 	return sb.String()
 }
-

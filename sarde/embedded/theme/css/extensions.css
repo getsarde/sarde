@@ -1060,6 +1060,21 @@
 	    position: relative;
 	}
 
+	.sarde-steps:has(.sarde-step) {
+	    counter-reset: step-counter;
+	    padding-inline-start: var(--sd-space-12);
+	}
+
+	.sarde-steps:has(.sarde-step)::before {
+	    content: "";
+	    position: absolute;
+	    inset-inline-start: calc(1rem);
+	    top: 0;
+	    bottom: 0;
+	    width: 2px;
+	    background: var(--sd-border);
+	}
+
 	.sarde-steps > ol {
 	    --step-size: 2rem;
 	    --step-connector: 2px;
@@ -3812,6 +3827,12 @@
 	  padding: 1rem;
 	  border-radius: 0.5rem;
 	  border: 1px solid var(--sd-border, #e2e8f0);
+	  overflow-x: auto;
+	}
+
+	.sarde-mermaid svg {
+	  max-width: 100%;
+	  height: auto;
 	}
 
 	/* -- video -- */
@@ -4346,36 +4367,6 @@
 	  border: 1px solid var(--sd-border);
 	  border-radius: 0.5rem;
 	  margin: 1.5rem 0;
-	}
-
-	/* Annotation Extension (inline) */
-	.sarde-annotation {
-	  text-decoration: underline dotted;
-	  text-underline-offset: 0.2em;
-	  cursor: help;
-	  position: relative;
-	}
-	.sarde-annotation-tooltip {
-	  display: none;
-	  position: absolute;
-	  bottom: 100%;
-	  left: 50%;
-	  transform: translateX(-50%);
-	  padding: 0.5rem 0.75rem;
-	  background: var(--sd-code-bg);
-	  color: white;
-	  font-size: 0.8125rem;
-	  border-radius: 0.375rem;
-	  white-space: normal;
-	  max-width: 300px;
-	  z-index: 10;
-	  pointer-events: none;
-	  margin-bottom: 0.25rem;
-	  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-	}
-	.sarde-annotation:hover .sarde-annotation-tooltip,
-	.sarde-annotation:focus .sarde-annotation-tooltip {
-	  display: block;
 	}
 
 }

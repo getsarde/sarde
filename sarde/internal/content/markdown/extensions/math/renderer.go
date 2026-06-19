@@ -2,12 +2,20 @@ package math
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
-	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
 )
+
+// escapeMathHTML escapes only < and > to prevent HTML injection while
+// preserving LaTeX-critical characters ({, }, &, \) that KaTeX needs.
+func escapeMathHTML(s string) string {
+	s = strings.ReplaceAll(s, "<", "&lt;")
+	s = strings.ReplaceAll(s, ">", "&gt;")
+	return s
+}
 
 type mathRenderer struct{}
 
@@ -24,7 +32,7 @@ func (r *mathRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 func (r *mathRenderer) renderInlineMath(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		math := node.(*InlineMath)
-		_, _ = fmt.Fprintf(w, `<span class="sarde-math sarde-math-inline">$%s$</span>`, htmlutil.EscapeHTML(math.Expression))
+		_, _ = fmt.Fprintf(w, `<span class="sarde-math sarde-math-inline">$%s$</span>`, escapeMathHTML(math.Expression))
 	}
 	return ast.WalkSkipChildren, nil
 }
@@ -32,7 +40,7 @@ func (r *mathRenderer) renderInlineMath(w util.BufWriter, source []byte, node as
 func (r *mathRenderer) renderDisplayMath(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		math := node.(*DisplayMath)
-		_, _ = fmt.Fprintf(w, "<div class=\"sarde-math sarde-math-block\">$$\n%s\n$$</div>", htmlutil.EscapeHTML(math.Expression))
+		_, _ = fmt.Fprintf(w, "<div class=\"sarde-math sarde-math-block\">$$\n%s\n$$</div>", escapeMathHTML(math.Expression))
 	}
 	return ast.WalkSkipChildren, nil
 }

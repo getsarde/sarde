@@ -9,7 +9,7 @@ import (
 	"github.com/yuin/goldmark/text"
 )
 
-var openingRegex = regexp.MustCompile(`^:{3,}\s*card(?:\{([^}]*)\})?(?:\[([^\]]*)\])?\s*$`)
+var openingRegex = regexp.MustCompile(`^:{3,}\s*card(?:\[([^\]]*)\])?(?:\{([^}]*)\})?\s*$`)
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
 var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 var attrRegex = regexp.MustCompile(`(\w+)="([^"]*)"`)
@@ -28,10 +28,10 @@ func (p *cardParser) Open(parent ast.Node, reader text.Reader, pc parser.Context
 	}
 	reader.Advance(len(line))
 
-	attrs := parseAttrs(matches[1])
-	title := attrs["title"]
-	if matches[2] != "" {
-		title = matches[2] // [bracket title] takes precedence
+	title := matches[1]
+	attrs := parseAttrs(matches[2])
+	if title == "" {
+		title = attrs["title"]
 	}
 
 	return &CardBlock{Title: title, Icon: attrs["icon"]}, parser.HasChildren
