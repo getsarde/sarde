@@ -5,9 +5,32 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/valiant"
 )
+
+var knownFrontmatterKeys = map[string]bool{
+	"title": true, "slug": true, "date": true, "updated": true,
+	"publish_date": true, "expiry_date": true, "aliases": true,
+	"layout": true, "type": true, "template": true,
+	"draft": true, "description": true, "image": true,
+	"summary": true, "render": true, "pagefind": true,
+	"show_updated": true, "edit_url": true,
+	"sidebar": true, "toc": true, "prev": true, "next": true,
+	"tags": true, "categories": true, "transparent": true,
+	"hero": true, "icon": true, "head": true, "banner": true,
+	"cascade": true, "params": true,
+}
+
+var knownSidebarKeys = map[string]bool{
+	"order": true, "label": true, "hidden": true,
+	"group": true, "attrs": true, "badge": true,
+}
+
+var knownTOCKeys = map[string]bool{
+	"enabled": true, "min_level": true, "max_level": true,
+}
 
 var validLayoutStrings = []string{
 	"default", "docs", "splash", "wide", "full",
@@ -24,7 +47,67 @@ func ValidatePageFields(page *engine.Page, fm *engine.Frontmatter) []engine.Vali
 	result = append(result, validateTOC(page)...)
 	result = append(result, validateSidebar(page)...)
 	result = append(result, validateLayout(fm)...)
+	result = append(result, validateSlug(fm)...)
+	result = append(result, validateHeadTags(fm)...)
 	return result
+}
+
+// DetectUnknownFields warns about frontmatter keys not recognized by Sarde.
+// Schema-defined custom fields, taxonomy keys from taxCfg, and children of
+// cascade/params are excluded.
+func DetectUnknownFields(fmMap map[string]any, schema *engine.FrontmatterSchema, taxCfg map[string]config.TaxonomyConfig, filePath string) []engine.ValidationWarning {
+	var warnings []engine.ValidationWarning
+
+	for key := range fmMap {
+		if knownFrontmatterKeys[key] {
+			continue
+		}
+		if key == "cascade" || key == "params" {
+			continue
+		}
+		if schema != nil {
+			if _, ok := schema.Fields[key]; ok {
+				continue
+			}
+		}
+		if _, ok := taxCfg[key]; ok {
+			continue
+		}
+		warnings = append(warnings, engine.ValidationWarning{
+			File:    filePath,
+			Field:   key,
+			Message: fmt.Sprintf("unknown frontmatter key %q", key),
+			Level:   "warning",
+		})
+	}
+
+	if sidebar, ok := fmMap["sidebar"].(map[string]any); ok {
+		for key := range sidebar {
+			if !knownSidebarKeys[key] {
+				warnings = append(warnings, engine.ValidationWarning{
+					File:    filePath,
+					Field:   "sidebar." + key,
+					Message: fmt.Sprintf("unknown sidebar key %q", key),
+					Level:   "warning",
+				})
+			}
+		}
+	}
+
+	if toc, ok := fmMap["toc"].(map[string]any); ok {
+		for key := range toc {
+			if !knownTOCKeys[key] {
+				warnings = append(warnings, engine.ValidationWarning{
+					File:    filePath,
+					Field:   "toc." + key,
+					Message: fmt.Sprintf("unknown toc key %q", key),
+					Level:   "warning",
+				})
+			}
+		}
+	}
+
+	return warnings
 }
 
 func validateIdentity(fm *engine.Frontmatter) []engine.ValidationWarning {
@@ -74,6 +157,34 @@ func validateLayout(fm *engine.Frontmatter) []engine.ValidationWarning {
 	v := valiant.FromStruct(fm)
 	v.Warn("Layout").OneOf(validLayoutStrings...)
 	return collectWarnings(v)
+}
+
+func validateSlug(fm *engine.Frontmatter) []engine.ValidationWarning {
+	if fm.Slug != "" && strings.TrimSpace(fm.Slug) == "" {
+		return []engine.ValidationWarning{{
+			Field:   "slug",
+			Message: "slug is whitespace-only; this would produce a broken URL",
+			Level:   "warning",
+		}}
+	}
+	return nil
+}
+
+func validateHeadTags(fm *engine.Frontmatter) []engine.ValidationWarning {
+	var warnings []engine.ValidationWarning
+	for i, ht := range fm.Head {
+		if ht.Tag == "" {
+			continue
+		}
+		if !engine.AllowedHeadTags[ht.Tag] {
+			warnings = append(warnings, engine.ValidationWarning{
+				Field:   fmt.Sprintf("head[%d].tag", i),
+				Message: fmt.Sprintf("head tag %q is not allowed; permitted tags: meta, link, script, style, noscript, base", ht.Tag),
+				Level:   "warning",
+			})
+		}
+	}
+	return warnings
 }
 
 // collectWarnings runs the validator and converts Valiant results to ValidationWarnings.

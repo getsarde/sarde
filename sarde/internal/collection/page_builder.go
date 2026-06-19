@@ -129,6 +129,11 @@ func buildPage(
 	contentDigest := rawDigest(raw)
 	frontmatterDigest := fmDigest(fmMap)
 
+	// Detect unknown frontmatter keys (always runs)
+	if unknownWarnings := content.DetectUnknownFields(fmMap, schema, taxCfg, cf.RelPath); len(unknownWarnings) > 0 {
+		warnings = append(warnings, unknownWarnings...)
+	}
+
 	// Apply schema defaults
 	if schema != nil {
 		fmMap = content.ApplyDefaults(fmMap, schema)
