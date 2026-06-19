@@ -21,6 +21,7 @@ import (
 
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/plugin"
+	"github.com/frostybee/sarde/internal/plugin/cfgutil"
 )
 
 //go:embed manifest.yaml
@@ -61,12 +62,21 @@ var (
 	bundleJSPath  string
 )
 
-func init() {
-	if err := yaml.Unmarshal(manifestData, &manifest); err != nil {
-		panic("clientplugins: bad manifest.yaml: " + err.Error())
-	}
-	computeBundles(assetsFS, "assets/")
-	precomputeDefaults()
+var initOnce sync.Once
+var initErr error
+
+// Initialize loads the embedded plugin manifest and pre-computes bundles.
+// Safe to call multiple times; only the first call does work.
+func Initialize() error {
+	initOnce.Do(func() {
+		if err := yaml.Unmarshal(manifestData, &manifest); err != nil {
+			initErr = fmt.Errorf("clientplugins: bad manifest.yaml: %w", err)
+			return
+		}
+		computeBundles(assetsFS, "assets/")
+		precomputeDefaults()
+	})
+	return initErr
 }
 
 // RecomputeFromDir reloads and rebundles all plugin client assets from the
@@ -239,10 +249,10 @@ func RegisterAll(mgr *plugin.Manager, enabled []string, configs map[string]map[s
 				bundleMu.RUnlock()
 
 				if cssURL != "" {
-					rd.Styles = appendUnique(rd.Styles, cssURL)
+					rd.Styles = cfgutil.AppendUnique(rd.Styles, cssURL)
 				}
 				if jsURL != "" {
-					rd.ModuleScripts = appendUnique(rd.ModuleScripts, jsURL)
+					rd.ModuleScripts = cfgutil.AppendUnique(rd.ModuleScripts, jsURL)
 				}
 
 				for _, pc := range activePlugins {
@@ -287,15 +297,6 @@ func PluginSlugs() []string {
 // Defaults returns the default config values for a plugin, or nil if unknown.
 func Defaults(slug string) map[string]any {
 	return pluginDefaults[slug]
-}
-
-func appendUnique(list []string, item string) []string {
-	for _, s := range list {
-		if s == item {
-			return list
-		}
-	}
-	return append(list, item)
 }
 
 func shouldInject(rule string, page *engine.Page, rd *engine.RouteData) bool {

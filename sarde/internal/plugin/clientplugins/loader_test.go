@@ -1,13 +1,22 @@
 package clientplugins
 
 import (
+	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/plugin"
+	"github.com/frostybee/sarde/internal/plugin/cfgutil"
 )
+
+func TestMain(m *testing.M) {
+	if err := Initialize(); err != nil {
+		panic("clientplugins.Initialize: " + err.Error())
+	}
+	os.Exit(m.Run())
+}
 
 func TestManifestParsed(t *testing.T) {
 	if len(manifest.Plugins) == 0 {
@@ -220,11 +229,11 @@ func TestPluginSlugs(t *testing.T) {
 
 func TestAppendUnique(t *testing.T) {
 	list := []string{"a", "b"}
-	list = appendUnique(list, "c")
+	list = cfgutil.AppendUnique(list, "c")
 	if len(list) != 3 {
 		t.Errorf("expected 3, got %d", len(list))
 	}
-	list = appendUnique(list, "b")
+	list = cfgutil.AppendUnique(list, "b")
 	if len(list) != 3 {
 		t.Errorf("expected 3 (no dup), got %d", len(list))
 	}

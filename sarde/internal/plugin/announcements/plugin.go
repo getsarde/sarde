@@ -13,9 +13,11 @@ import (
 	"io/fs"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/frostybee/sarde/internal/i18n"
 	"github.com/frostybee/sarde/internal/plugin"
+	"github.com/frostybee/sarde/internal/plugin/cfgutil"
 )
 
 //go:embed all:assets
@@ -24,24 +26,27 @@ var assetsFS embed.FS
 const pluginPrefix = "assets/plugins/announcements/"
 
 var (
-	jsData  []byte
-	cssData []byte
-	jsURL   string
-	cssURL  string
+	assetsOnce sync.Once
+	jsData     []byte
+	cssData    []byte
+	jsURL      string
+	cssURL     string
 )
 
-func init() {
-	jsData, _ = fs.ReadFile(assetsFS, "assets/announcements.js")
-	cssData, _ = fs.ReadFile(assetsFS, "assets/announcements.css")
+func ensureAssets() {
+	assetsOnce.Do(func() {
+		jsData, _ = fs.ReadFile(assetsFS, "assets/announcements.js")
+		cssData, _ = fs.ReadFile(assetsFS, "assets/announcements.css")
 
-	if len(jsData) > 0 {
-		h := sha256.Sum256(jsData)
-		jsURL = fmt.Sprintf("/assets/plugins/announcements/announcements.%x.js", h[:4])
-	}
-	if len(cssData) > 0 {
-		h := sha256.Sum256(cssData)
-		cssURL = fmt.Sprintf("/assets/plugins/announcements/announcements.%x.css", h[:4])
-	}
+		if len(jsData) > 0 {
+			h := sha256.Sum256(jsData)
+			jsURL = fmt.Sprintf("/assets/plugins/announcements/announcements.%x.js", h[:4])
+		}
+		if len(cssData) > 0 {
+			h := sha256.Sum256(cssData)
+			cssURL = fmt.Sprintf("/assets/plugins/announcements/announcements.%x.css", h[:4])
+		}
+	})
 }
 
 type pluginConfig struct {
@@ -66,6 +71,7 @@ type announcementItem struct {
 // a pointer to the current language (captured by closure, resolved at render time).
 // st and langPtr may be nil — the plugin degrades to raw message keys.
 func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plugin {
+	ensureAssets()
 	pcfg := cfgPluginConfig(cfg)
 	items := cfgItems(cfg)
 	active := hasActiveItems(items)
@@ -214,7 +220,7 @@ func cfgPluginConfig(cfg map[string]any) pluginConfig {
 		return pc
 	}
 
-	if mode := cfgString(cfg, "display_mode", ""); mode != "" {
+	if mode := cfgutil.String(cfg, "display_mode", ""); mode != "" {
 		validModes := map[string]bool{"stack": true, "first": true, "rotate": true}
 		if validModes[mode] {
 			pc.displayMode = mode
@@ -262,15 +268,15 @@ func cfgItems(cfg map[string]any) []announcementItem {
 			continue
 		}
 		items = append(items, announcementItem{
-			id:          cfgString(m, "id", "default"),
-			bannerType:  cfgString(m, "type", "info"),
-			messageKey:  cfgString(m, "message", ""),
-			dismissible: cfgBool(m, "dismissible", true),
-			active:      cfgBool(m, "active", true),
-			startDate:   cfgString(m, "start_date", ""),
-			endDate:     cfgString(m, "end_date", ""),
-			showOn:      cfgStringSlice(m, "show_on"),
-			hideOn:      cfgStringSlice(m, "hide_on"),
+			id:          cfgutil.String(m, "id", "default"),
+			bannerType:  cfgutil.String(m, "type", "info"),
+			messageKey:  cfgutil.String(m, "message", ""),
+			dismissible: cfgutil.Bool(m, "dismissible", true),
+			active:      cfgutil.Bool(m, "active", true),
+			startDate:   cfgutil.String(m, "start_date", ""),
+			endDate:     cfgutil.String(m, "end_date", ""),
+			showOn:      cfgutil.StringSlice(m, "show_on"),
+			hideOn:      cfgutil.StringSlice(m, "hide_on"),
 		})
 	}
 	return items
@@ -281,56 +287,3 @@ func hashHex(data []byte) string {
 	return fmt.Sprintf("%x", h[:4])
 }
 
-func cfgString(cfg map[string]any, key, fallback string) string {
-	if cfg == nil {
-		return fallback
-	}
-	v, ok := cfg[key]
-	if !ok {
-		return fallback
-	}
-	s, ok := v.(string)
-	if !ok {
-		return fallback
-	}
-	return s
-}
-
-func cfgBool(cfg map[string]any, key string, fallback bool) bool {
-	if cfg == nil {
-		return fallback
-	}
-	v, ok := cfg[key]
-	if !ok {
-		return fallback
-	}
-	b, ok := v.(bool)
-	if !ok {
-		return fallback
-	}
-	return b
-}
-
-func cfgStringSlice(cfg map[string]any, key string) []string {
-	if cfg == nil {
-		return nil
-	}
-	v, ok := cfg[key]
-	if !ok {
-		return nil
-	}
-	list, ok := v.([]any)
-	if !ok {
-		return nil
-	}
-	result := make([]string, 0, len(list))
-	for _, item := range list {
-		if s, ok := item.(string); ok {
-			result = append(result, s)
-		}
-	}
-	if len(result) == 0 {
-		return nil
-	}
-	return result
-}

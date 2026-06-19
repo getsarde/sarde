@@ -10,6 +10,7 @@ import (
 
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/plugin"
+	"github.com/frostybee/sarde/internal/plugin/cfgutil"
 	"github.com/frostybee/sarde/internal/workers"
 
 	"golang.org/x/image/font/opentype"
@@ -41,12 +42,12 @@ func beforeRender(ctx *plugin.BeforeRenderContext, cfg map[string]any, pending *
 		return nil
 	}
 
-	skipIfImage := cfgBool(cfg, "skip_if_image", true)
+	skipIfImage := cfgutil.Bool(cfg,"skip_if_image", true)
 	if skipIfImage && page.Image != "" {
 		return nil
 	}
 
-	collections := cfgStringSlice(cfg, "collections")
+	collections := cfgutil.StringSlice(cfg,"collections")
 	if len(collections) > 0 {
 		if page.Collection == nil || !inSlice(collections, page.Collection.Name) {
 			return nil
@@ -60,7 +61,7 @@ func beforeRender(ctx *plugin.BeforeRenderContext, cfg map[string]any, pending *
 		}
 	}
 
-	format := cfgString(cfg, "format", "png")
+	format := cfgutil.String(cfg,"format", "png")
 	relPath := computeCardPath(page, format)
 
 	cardURL := ctx.AbsURL("/"+relPath, "", "")
@@ -104,15 +105,15 @@ func buildDone(ctx *plugin.BuildDoneContext, cfg map[string]any, pending *sync.M
 
 	bgColor := resolveBackground(cfg, ctx.Config)
 	accentColor := resolveAccent(cfg, ctx.Config)
-	textColor := parseHexColor(cfgString(cfg, "text_color", "#ffffff"))
+	textColor := parseHexColor(cfgutil.String(cfg,"text_color", "#ffffff"))
 
 	siteTitle := ""
 	if ctx.Site != nil {
 		siteTitle = ctx.Site.Title
 	}
 
-	format := cfgString(cfg, "format", "png")
-	quality := cfgInt(cfg, "quality", 90)
+	format := cfgutil.String(cfg,"format", "png")
+	quality := cfgutil.Int(cfg,"quality", 90)
 
 	poolSize := workers.Count()
 	if poolSize > len(jobs) {
@@ -250,74 +251,3 @@ func inSlice(slice []string, item string) bool {
 	return false
 }
 
-func cfgString(cfg map[string]any, key, fallback string) string {
-	if cfg == nil {
-		return fallback
-	}
-	v, ok := cfg[key]
-	if !ok {
-		return fallback
-	}
-	s, ok := v.(string)
-	if !ok {
-		return fallback
-	}
-	return s
-}
-
-func cfgBool(cfg map[string]any, key string, fallback bool) bool {
-	if cfg == nil {
-		return fallback
-	}
-	v, ok := cfg[key]
-	if !ok {
-		return fallback
-	}
-	b, ok := v.(bool)
-	if !ok {
-		return fallback
-	}
-	return b
-}
-
-func cfgInt(cfg map[string]any, key string, fallback int) int {
-	if cfg == nil {
-		return fallback
-	}
-	v, ok := cfg[key]
-	if !ok {
-		return fallback
-	}
-	switch n := v.(type) {
-	case int:
-		return n
-	case float64:
-		return int(n)
-	default:
-		return fallback
-	}
-}
-
-func cfgStringSlice(cfg map[string]any, key string) []string {
-	if cfg == nil {
-		return nil
-	}
-	v, ok := cfg[key]
-	if !ok {
-		return nil
-	}
-	switch s := v.(type) {
-	case []string:
-		return s
-	case []any:
-		out := make([]string, 0, len(s))
-		for _, item := range s {
-			if str, ok := item.(string); ok {
-				out = append(out, str)
-			}
-		}
-		return out
-	default:
-		return nil
-	}
-}

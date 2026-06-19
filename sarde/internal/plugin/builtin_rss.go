@@ -27,17 +27,7 @@ func rssBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		baseURL = strings.TrimRight(ctx.Site.BaseURL, "/")
 	}
 
-	// Determine which collections should have feeds: explicit config list, or
-	// auto-detect collections with Feed enabled. BuildDone owns this directly
-	// (it has no access to the shared store populated during ContentLoaded).
-	feedCollections := cfgStringSlice(cfg, "collections")
-	if len(feedCollections) == 0 {
-		for name, col := range ctx.Collections {
-			if col.Config != nil && col.Config.Feed {
-				feedCollections = append(feedCollections, name)
-			}
-		}
-	}
+	feedCollections := feedEnabledCollections(cfg, ctx.Collections)
 
 	feedCount := 0
 	for _, colName := range feedCollections {

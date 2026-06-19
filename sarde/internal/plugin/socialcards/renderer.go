@@ -16,6 +16,7 @@ import (
 	"golang.org/x/image/math/fixed"
 
 	"github.com/frostybee/sarde/internal/config"
+	"github.com/frostybee/sarde/internal/plugin/cfgutil"
 )
 
 const (
@@ -213,7 +214,7 @@ func encodeImage(img *image.NRGBA, format string, quality int) ([]byte, error) {
 
 // resolveBackground determines the card background color.
 func resolveBackground(cfg map[string]any, siteCfg *config.SiteConfig) color.NRGBA {
-	if override := cfgString(cfg, "bg_color", ""); override != "" {
+	if override := cfgutil.String(cfg,"bg_color", ""); override != "" {
 		return parseHexColor(override)
 	}
 	if siteCfg != nil {
@@ -231,7 +232,7 @@ func resolveBackground(cfg map[string]any, siteCfg *config.SiteConfig) color.NRG
 
 // resolveAccent determines the card accent color.
 func resolveAccent(cfg map[string]any, siteCfg *config.SiteConfig) color.NRGBA {
-	if override := cfgString(cfg, "accent_color", ""); override != "" {
+	if override := cfgutil.String(cfg,"accent_color", ""); override != "" {
 		return parseHexColor(override)
 	}
 	if siteCfg != nil && siteCfg.Theme.AccentColor != "" {

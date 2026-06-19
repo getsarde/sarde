@@ -3,6 +3,8 @@ package plugin
 import (
 	"path"
 	"strings"
+
+	"github.com/frostybee/sarde/internal/engine"
 )
 
 // cfgString reads a string from plugin config with a fallback default.
@@ -81,6 +83,19 @@ func cfgStringSlice(cfg map[string]any, key string) []string {
 	default:
 		return nil
 	}
+}
+
+func feedEnabledCollections(cfg map[string]any, collections map[string]*engine.Collection) []string {
+	names := cfgStringSlice(cfg, "collections")
+	if len(names) > 0 {
+		return names
+	}
+	for name, col := range collections {
+		if col.Config != nil && col.Config.Feed {
+			names = append(names, name)
+		}
+	}
+	return names
 }
 
 // shouldExclude checks if a URL path matches any exclude pattern.

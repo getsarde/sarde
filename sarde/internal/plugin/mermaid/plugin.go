@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/frostybee/sarde/internal/plugin"
+	"github.com/frostybee/sarde/internal/plugin/cfgutil"
 )
 
 //go:embed all:assets
@@ -42,13 +43,13 @@ func New(cfg map[string]any) *plugin.Plugin {
 }
 
 func beforeRender(ctx *plugin.BeforeRenderContext, cfg map[string]any) error {
-	always := cfgBool(cfg, "always", false)
+	always := cfgutil.Bool(cfg, "always", false)
 	if !always && !needsMermaid(string(ctx.Page.Content)) {
 		return nil
 	}
 	rd := ctx.RouteData
 	for _, s := range runtimeScripts {
-		rd.Scripts = appendUnique(rd.Scripts, s)
+		rd.Scripts = cfgutil.AppendUnique(rd.Scripts, s)
 	}
 	return nil
 }
@@ -74,26 +75,3 @@ func needsMermaid(content string) bool {
 	return strings.Contains(content, `class="sarde-mermaid`)
 }
 
-func appendUnique(list []string, item string) []string {
-	for _, existing := range list {
-		if existing == item {
-			return list
-		}
-	}
-	return append(list, item)
-}
-
-func cfgBool(cfg map[string]any, key string, fallback bool) bool {
-	if cfg == nil {
-		return fallback
-	}
-	v, ok := cfg[key]
-	if !ok {
-		return fallback
-	}
-	b, ok := v.(bool)
-	if !ok {
-		return fallback
-	}
-	return b
-}

@@ -27,14 +27,7 @@ func atomBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		baseURL = strings.TrimRight(ctx.Site.BaseURL, "/")
 	}
 
-	feedCollections := cfgStringSlice(cfg, "collections")
-	if len(feedCollections) == 0 {
-		for name, col := range ctx.Collections {
-			if col.Config != nil && col.Config.Feed {
-				feedCollections = append(feedCollections, name)
-			}
-		}
-	}
+	feedCollections := feedEnabledCollections(cfg, ctx.Collections)
 
 	feedCount := 0
 	for _, colName := range feedCollections {
