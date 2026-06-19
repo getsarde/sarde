@@ -593,13 +593,13 @@
                     <Trash2 size={14} />
                   </AlertDialog.Trigger>
                   <AlertDialog.Portal>
-                    <AlertDialog.Overlay class="cr-alert-overlay" />
-                    <AlertDialog.Content class="cr-alert-content">
-                      <AlertDialog.Title class="cr-alert-title">Delete Collection</AlertDialog.Title>
-                      <AlertDialog.Description class="cr-alert-desc">Are you sure you want to delete "{col.name}"?</AlertDialog.Description>
-                      <div class="cr-alert-actions">
-                        <AlertDialog.Cancel class="cr-btn cr-btn-secondary cr-btn-sm">Cancel</AlertDialog.Cancel>
-                        <AlertDialog.Action class="cr-btn cr-btn-danger cr-btn-sm" onclick={() => handleDeleteCollection(col.name)}>Delete</AlertDialog.Action>
+                    <AlertDialog.Overlay class="sd-alert-overlay" />
+                    <AlertDialog.Content class="sd-alert-content">
+                      <AlertDialog.Title class="sd-alert-title">Delete Collection</AlertDialog.Title>
+                      <AlertDialog.Description class="sd-alert-desc">Are you sure you want to delete "{col.name}"?</AlertDialog.Description>
+                      <div class="sd-alert-actions">
+                        <AlertDialog.Cancel class="sd-btn sd-btn-secondary sd-btn-sm">Cancel</AlertDialog.Cancel>
+                        <AlertDialog.Action class="sd-btn sd-btn-danger sd-btn-sm" onclick={() => handleDeleteCollection(col.name)}>Delete</AlertDialog.Action>
                       </div>
                     </AlertDialog.Content>
                   </AlertDialog.Portal>
@@ -746,14 +746,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--cr-border);
+    border-bottom: 1px solid var(--sd-border);
   }
 
   .modal-header h2 {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .modal-header-right {
@@ -767,7 +767,7 @@
     align-items: center;
     gap: 5px;
     font-size: 12px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .modal-body {
@@ -788,7 +788,7 @@
     width: 160px;
     padding: 8px;
     gap: 2px;
-    border-right: 1px solid var(--cr-border);
+    border-right: 1px solid var(--sd-border);
     overflow-y: auto;
     flex-shrink: 0;
   }
@@ -796,9 +796,9 @@
   :global(.settings-link) {
     padding: 8px 12px;
     border: none;
-    border-radius: var(--cr-radius);
+    border-radius: var(--sd-radius);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-size: 13px;
     text-align: left;
     cursor: pointer;
@@ -806,13 +806,13 @@
   }
 
   :global(.settings-link:hover) {
-    color: var(--cr-text);
-    background: var(--cr-hover);
+    color: var(--sd-text);
+    background: var(--sd-hover);
   }
 
   :global(.settings-link[data-state="active"]) {
-    color: var(--cr-text);
-    background: var(--cr-active);
+    color: var(--sd-text);
+    background: var(--sd-active);
     font-weight: 500;
   }
 
@@ -826,12 +826,12 @@
     margin: 0 0 16px;
     font-size: 15px;
     font-weight: 600;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .section-desc {
     font-size: 12px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     margin: -8px 0 16px;
     line-height: 1.5;
   }
@@ -840,7 +840,7 @@
     margin: 20px 0 10px;
     font-size: 12px;
     font-weight: 600;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -849,7 +849,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-size: 13px;
     padding: 20px 0;
   }
@@ -868,7 +868,7 @@
     display: block;
     font-size: 12px;
     font-weight: 500;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     margin-bottom: 6px;
   }
 
@@ -878,10 +878,10 @@
     width: 100%;
     padding: 8px 10px;
     font-size: 13px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
-    background: var(--cr-bg-input);
-    color: var(--cr-text);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    background: var(--sd-bg-input);
+    color: var(--sd-text);
     outline: none;
     box-sizing: border-box;
     font-family: inherit;
@@ -894,14 +894,14 @@
   .field-hint {
     display: block;
     font-size: 11px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     margin-top: 4px;
   }
 
   .field-input:focus,
   .field-textarea:focus,
   .field-select:focus {
-    border-color: var(--cr-accent);
+    border-color: var(--sd-accent);
   }
 
   .field-textarea {
@@ -917,14 +917,14 @@
     align-items: center;
     gap: 8px;
     font-size: 13px;
-    color: var(--cr-text);
+    color: var(--sd-text);
     cursor: pointer;
   }
 
   .field-check input[type='checkbox'] {
     width: 16px;
     height: 16px;
-    accent-color: var(--cr-accent);
+    accent-color: var(--sd-accent);
     cursor: pointer;
   }
 
@@ -936,12 +936,12 @@
 
   .field-range {
     flex: 1;
-    accent-color: var(--cr-accent);
+    accent-color: var(--sd-accent);
   }
 
   .range-value {
     font-size: 12px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     min-width: 36px;
     text-align: right;
   }
@@ -957,9 +957,9 @@
     width: 36px;
     height: 36px;
     padding: 2px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
-    background: var(--cr-bg-input);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    background: var(--sd-bg-input);
     cursor: pointer;
     flex-shrink: 0;
   }
@@ -982,26 +982,26 @@
     align-items: center;
     gap: 6px;
     padding: 10px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
-    background: var(--cr-bg-input);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    background: var(--sd-bg-input);
     cursor: pointer;
     transition: border-color 0.15s;
   }
 
   :global(.theme-card:hover),
   :global(.theme-card[data-state="checked"]) {
-    border-color: var(--cr-accent);
+    border-color: var(--sd-accent);
   }
 
   :global(.theme-card[data-state="checked"]) {
-    background: var(--cr-accent-bg);
+    background: var(--sd-accent-bg);
   }
 
   .theme-preview {
     width: 100%;
     height: 48px;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
   }
 
   .theme-default  { background: linear-gradient(135deg, #1e1e2e, #313244); }
@@ -1012,26 +1012,26 @@
 
   .theme-name {
     font-size: 11px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   /* About */
   .about-block { line-height: 1.6; }
   .about-block p { margin: 0 0 4px; }
-  .about-name    { font-size: 16px; font-weight: 600; color: var(--cr-text); }
-  .about-version { font-size: 13px; color: var(--cr-accent); }
-  .about-detail  { font-size: 13px; color: var(--cr-text-muted); }
+  .about-name    { font-size: 16px; font-weight: 600; color: var(--sd-text); }
+  .about-version { font-size: 13px; color: var(--sd-accent); }
+  .about-detail  { font-size: 13px; color: var(--sd-text-muted); }
 
   .about-status {
     margin-top: 12px !important;
     font-size: 12px;
     padding: 6px 10px;
-    border-radius: var(--cr-radius);
+    border-radius: var(--sd-radius);
     display: inline-block;
   }
 
-  .about-online  { background: var(--cr-success-bg); color: var(--cr-success); }
-  .about-offline { background: var(--cr-danger-bg); color: var(--cr-danger); }
+  .about-online  { background: var(--sd-success-bg); color: var(--sd-success); }
+  .about-offline { background: var(--sd-danger-bg); color: var(--sd-danger); }
 
   /* YAML toggle button */
   :global(.yaml-toggle) {
@@ -1040,23 +1040,23 @@
     justify-content: center;
     width: 30px;
     height: 30px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
     transition: all 0.15s;
   }
 
   :global(.yaml-toggle:hover) {
-    color: var(--cr-text);
-    border-color: var(--cr-text-muted);
+    color: var(--sd-text);
+    border-color: var(--sd-text-muted);
   }
 
   :global(.yaml-toggle[data-state="on"]) {
-    color: var(--cr-accent);
-    border-color: var(--cr-accent);
-    background: var(--cr-active);
+    color: var(--sd-accent);
+    border-color: var(--sd-accent);
+    background: var(--sd-active);
   }
 
   .yaml-mode {
@@ -1069,9 +1069,9 @@
   .yaml-error {
     padding: 8px 12px;
     font-size: 12px;
-    color: var(--cr-danger);
-    background: var(--cr-danger-bg);
-    border-top: 1px solid var(--cr-border);
+    color: var(--sd-danger);
+    background: var(--sd-danger-bg);
+    border-top: 1px solid var(--sd-border);
   }
 
   /* Color presets */
@@ -1085,7 +1085,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    border: 2px solid var(--cr-border);
+    border: 2px solid var(--sd-border);
     overflow: hidden;
     cursor: pointer;
     display: flex;
@@ -1095,13 +1095,13 @@
   }
 
   .preset-swatch:hover {
-    border-color: var(--cr-text-muted);
+    border-color: var(--sd-text-muted);
     transform: scale(1.1);
   }
 
   .preset-swatch.active {
-    border-color: var(--cr-accent);
-    box-shadow: 0 0 0 2px var(--cr-accent-bg);
+    border-color: var(--sd-accent);
+    box-shadow: 0 0 0 2px var(--sd-accent-bg);
   }
 
   .swatch-half {
@@ -1121,9 +1121,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
-    background: var(--cr-bg-input);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    background: var(--sd-bg-input);
   }
 
   .collection-info {
@@ -1135,12 +1135,12 @@
   .collection-name {
     font-size: 13px;
     font-weight: 500;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .collection-meta {
     font-size: 11px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   :global(.collection-delete) {
@@ -1150,26 +1150,26 @@
     width: 28px;
     height: 28px;
     border: none;
-    border-radius: var(--cr-radius);
+    border-radius: var(--sd-radius);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
   }
 
   :global(.collection-delete:hover) {
-    color: var(--cr-danger);
-    background: var(--cr-danger-bg);
+    color: var(--sd-danger);
+    background: var(--sd-danger-bg);
   }
 
   /* AlertDialog for delete confirmation */
-  :global(.cr-alert-overlay) {
+  :global(.sd-alert-overlay) {
     position: fixed;
     inset: 0;
     z-index: 150;
-    background: var(--cr-bg-overlay);
+    background: var(--sd-bg-overlay);
   }
 
-  :global(.cr-alert-content) {
+  :global(.sd-alert-content) {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -1178,27 +1178,27 @@
     max-width: 340px;
     width: 90%;
     padding: 20px;
-    background: var(--cr-bg-base);
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-lg);
-    box-shadow: var(--cr-shadow-lg);
+    background: var(--sd-bg-base);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-lg);
+    box-shadow: var(--sd-shadow-lg);
   }
 
-  :global(.cr-alert-title) {
+  :global(.sd-alert-title) {
     margin: 0 0 6px;
     font-size: 15px;
     font-weight: 600;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
-  :global(.cr-alert-desc) {
+  :global(.sd-alert-desc) {
     margin: 0 0 16px;
     font-size: 13px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     line-height: 1.4;
   }
 
-  :global(.cr-alert-actions) {
+  :global(.sd-alert-actions) {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
@@ -1206,7 +1206,7 @@
 
   .empty-msg {
     font-size: 13px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     text-align: center;
     padding: 16px 0;
   }
@@ -1221,10 +1221,10 @@
     align-items: center;
     gap: 5px;
     padding: 8px 14px;
-    border: 1px solid var(--cr-accent);
-    border-radius: var(--cr-radius);
-    background: var(--cr-active);
-    color: var(--cr-accent);
+    border: 1px solid var(--sd-accent);
+    border-radius: var(--sd-radius);
+    background: var(--sd-active);
+    color: var(--sd-accent);
     font-size: 12px;
     font-weight: 500;
     font-family: inherit;
@@ -1234,7 +1234,7 @@
   }
 
   .add-btn:hover:not(:disabled) {
-    background: var(--cr-accent-bg);
+    background: var(--sd-accent-bg);
   }
 
   .add-btn:disabled {
@@ -1247,10 +1247,10 @@
     width: 100%;
     padding: 7px 10px;
     font-size: 12px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
-    background: var(--cr-bg-input);
-    color: var(--cr-text);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    background: var(--sd-bg-input);
+    color: var(--sd-text);
     outline: none;
     box-sizing: border-box;
     font-family: inherit;
@@ -1258,20 +1258,20 @@
   }
 
   .settings-search:focus {
-    border-color: var(--cr-accent);
+    border-color: var(--sd-accent);
   }
 
   .settings-search::placeholder {
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   /* URL validation */
   .field-invalid {
-    border-color: var(--cr-danger) !important;
+    border-color: var(--sd-danger) !important;
   }
 
   .field-hint-error {
-    color: var(--cr-danger) !important;
+    color: var(--sd-danger) !important;
   }
 
   /* Unsaved changes bar */
@@ -1280,10 +1280,10 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 16px;
-    border-top: 1px solid var(--cr-border);
+    border-top: 1px solid var(--sd-border);
     background: rgba(249, 226, 175, 0.06);
     font-size: 13px;
-    color: var(--cr-warning);
+    color: var(--sd-warning);
   }
 
   .dirty-actions {
@@ -1293,8 +1293,8 @@
 
   .dirty-btn {
     padding: 5px 14px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
     font-size: 12px;
     font-family: inherit;
     cursor: pointer;
@@ -1302,32 +1302,32 @@
   }
 
   .dirty-btn.cancel {
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .dirty-btn.cancel:hover {
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .dirty-btn.discard {
-    color: var(--cr-danger);
-    border-color: var(--cr-danger);
+    color: var(--sd-danger);
+    border-color: var(--sd-danger);
   }
 
   .dirty-btn.discard:hover {
-    background: var(--cr-danger-bg);
+    background: var(--sd-danger-bg);
   }
 
   .dirty-btn.save {
-    color: var(--cr-bg-base);
-    background: var(--cr-accent);
-    border-color: var(--cr-accent);
+    color: var(--sd-bg-base);
+    background: var(--sd-accent);
+    border-color: var(--sd-accent);
     font-weight: 600;
   }
 
   .dirty-btn.save:hover {
-    background: var(--cr-accent-hover);
-    border-color: var(--cr-accent-hover);
+    background: var(--sd-accent-hover);
+    border-color: var(--sd-accent-hover);
   }
 
   /* Interface theme picker */
@@ -1344,10 +1344,10 @@
     justify-content: center;
     gap: 5px;
     padding: 8px 10px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
-    background: var(--cr-bg-input);
-    color: var(--cr-text-muted);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    background: var(--sd-bg-input);
+    color: var(--sd-text-muted);
     font-size: 12px;
     font-family: inherit;
     cursor: pointer;
@@ -1355,13 +1355,13 @@
   }
 
   :global(.interface-theme-card:hover) {
-    color: var(--cr-text);
-    border-color: var(--cr-text-muted);
+    color: var(--sd-text);
+    border-color: var(--sd-text-muted);
   }
 
   :global(.interface-theme-card[data-state="checked"]) {
-    color: var(--cr-accent);
-    border-color: var(--cr-accent);
-    background: var(--cr-active);
+    color: var(--sd-accent);
+    border-color: var(--sd-accent);
+    background: var(--sd-active);
   }
 </style>

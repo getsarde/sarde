@@ -20,19 +20,19 @@
     display: block;
     font-size: 11px;
     font-weight: 600;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     margin-bottom: 4px;
   }
 
   .required {
-    color: var(--cr-danger);
+    color: var(--sd-danger);
     margin-left: 2px;
   }
 
   .field-error {
     display: block;
     font-size: 11px;
-    color: var(--cr-danger);
+    color: var(--sd-danger);
     margin-top: 3px;
   }
 </style>

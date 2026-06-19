@@ -519,7 +519,7 @@
   }
 
   .search-header {
-    border-bottom: 1px solid var(--cr-border);
+    border-bottom: 1px solid var(--sd-border);
   }
 
   .search-input-row {
@@ -531,7 +531,7 @@
 
   .search-input-row :global(.search-icon) {
     flex-shrink: 0;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .search-input {
@@ -539,18 +539,18 @@
     border: none;
     background: transparent;
     font-size: 13px;
-    color: var(--cr-text);
+    color: var(--sd-text);
     outline: none;
     font-family: inherit;
     min-width: 0;
   }
 
   .search-input::placeholder {
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .search-input.regex-error {
-    color: var(--cr-danger);
+    color: var(--sd-danger);
   }
 
   .toggle-replace-btn {
@@ -561,15 +561,15 @@
     height: 18px;
     border: none;
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     flex-shrink: 0;
   }
 
   .toggle-replace-btn:hover {
-    color: var(--cr-text);
-    background: var(--cr-hover);
+    color: var(--sd-text);
+    background: var(--sd-hover);
   }
 
   .search-option-btn {
@@ -580,21 +580,21 @@
     height: 22px;
     border: 1px solid transparent;
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     flex-shrink: 0;
   }
 
   .search-option-btn:hover {
-    color: var(--cr-text);
-    background: var(--cr-hover);
+    color: var(--sd-text);
+    background: var(--sd-hover);
   }
 
   .search-option-btn.active {
-    color: var(--cr-accent);
-    border-color: var(--cr-accent);
-    background: var(--cr-active);
+    color: var(--sd-accent);
+    border-color: var(--sd-accent);
+    background: var(--sd-active);
   }
 
   .replace-input-row {
@@ -606,24 +606,24 @@
 
   .replace-input-row :global(.replace-icon) {
     flex-shrink: 0;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .replace-all-btn {
     flex-shrink: 0;
     padding: 2px 8px;
     font-size: 11px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-sm);
-    background: var(--cr-bg-elevated);
-    color: var(--cr-text);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-sm);
+    background: var(--sd-bg-elevated);
+    color: var(--sd-text);
     cursor: pointer;
     white-space: nowrap;
   }
 
   .replace-all-btn:hover:not(:disabled) {
-    border-color: var(--cr-accent);
-    color: var(--cr-accent);
+    border-color: var(--sd-accent);
+    color: var(--sd-accent);
   }
 
   .replace-all-btn:disabled {
@@ -633,7 +633,7 @@
 
   .search-spinner {
     flex-shrink: 0;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     display: flex;
     animation: spin 1s linear infinite;
   }
@@ -645,8 +645,8 @@
   .search-summary {
     padding: 4px 10px 6px;
     font-size: 11px;
-    color: var(--cr-text-muted);
-    border-bottom: 1px solid var(--cr-border);
+    color: var(--sd-text-muted);
+    border-bottom: 1px solid var(--sd-border);
   }
 
   .results-list {
@@ -664,17 +664,17 @@
     align-items: center;
     gap: 5px;
     padding: 5px 10px 3px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-size: 11px;
     position: sticky;
     top: 0;
-    background: var(--cr-bg-base);
+    background: var(--sd-bg-base);
     z-index: 1;
   }
 
   .result-file-header :global(svg) {
     flex-shrink: 0;
-    color: var(--cr-accent);
+    color: var(--sd-accent);
   }
 
   .collapse-btn {
@@ -685,19 +685,19 @@
     height: 16px;
     border: none;
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     flex-shrink: 0;
   }
 
   .collapse-btn:hover {
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .result-file-name {
     font-weight: 600;
-    color: var(--cr-text);
+    color: var(--sd-text);
     white-space: nowrap;
   }
 
@@ -717,15 +717,15 @@
     height: 20px;
     border: none;
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     flex-shrink: 0;
   }
 
   .file-replace-btn:hover:not(:disabled) {
-    color: var(--cr-accent);
-    background: var(--cr-hover);
+    color: var(--sd-accent);
+    background: var(--sd-hover);
   }
 
   .file-replace-btn:disabled {
@@ -734,8 +734,8 @@
   }
 
   .result-match-count {
-    background: var(--cr-active);
-    color: var(--cr-accent);
+    background: var(--sd-active);
+    color: var(--sd-accent);
     border-radius: 10px;
     padding: 0 6px;
     font-size: 10px;
@@ -759,14 +759,14 @@
     background: transparent;
     cursor: pointer;
     text-align: left;
-    font-family: var(--cr-font-mono);
+    font-family: var(--sd-font-mono);
     font-size: 12px;
-    color: var(--cr-text);
+    color: var(--sd-text);
     white-space: nowrap;
   }
 
   .result-line:hover {
-    background: var(--cr-hover);
+    background: var(--sd-hover);
   }
 
   .match-replace-btn {
@@ -777,16 +777,16 @@
     height: 20px;
     border: none;
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     flex-shrink: 0;
     margin-right: 4px;
   }
 
   .match-replace-btn:hover:not(:disabled) {
-    color: var(--cr-accent);
-    background: var(--cr-hover);
+    color: var(--sd-accent);
+    background: var(--sd-hover);
   }
 
   .match-replace-btn:disabled {
@@ -797,7 +797,7 @@
   .result-linenum {
     flex-shrink: 0;
     font-size: 11px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     min-width: 28px;
     text-align: right;
     user-select: none;
@@ -810,12 +810,12 @@
 
   .result-before,
   .result-after {
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .result-highlight {
-    color: var(--cr-text);
-    background: var(--cr-selection);
+    color: var(--sd-text);
+    background: var(--sd-selection);
     border-radius: 2px;
     padding: 0 1px;
   }
@@ -824,6 +824,6 @@
     padding: 12px;
     margin: 0;
     font-size: 12px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 </style>

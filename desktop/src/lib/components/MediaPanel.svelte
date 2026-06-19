@@ -251,16 +251,16 @@
     display: flex;
     gap: 2px;
     padding: 6px 8px;
-    border-bottom: 1px solid var(--cr-border);
+    border-bottom: 1px solid var(--sd-border);
   }
 
   :global(.scope-tab) {
     flex: 1;
     padding: 4px 0;
     border: none;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
@@ -268,20 +268,20 @@
   }
 
   :global(.scope-tab:hover) {
-    background: var(--cr-hover);
-    color: var(--cr-text);
+    background: var(--sd-hover);
+    color: var(--sd-text);
   }
 
   :global(.scope-tab[data-state="active"]) {
-    background: var(--cr-active);
-    color: var(--cr-accent);
+    background: var(--sd-active);
+    color: var(--sd-accent);
   }
 
   .upload-area {
     display: flex;
     gap: 4px;
     padding: 6px 8px;
-    border-bottom: 1px solid var(--cr-border);
+    border-bottom: 1px solid var(--sd-border);
   }
 
   .upload-btn {
@@ -291,10 +291,10 @@
     justify-content: center;
     gap: 4px;
     padding: 5px 0;
-    border: 1px dashed var(--cr-border);
-    border-radius: var(--cr-radius-sm);
+    border: 1px dashed var(--sd-border);
+    border-radius: var(--sd-radius-sm);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
@@ -302,9 +302,9 @@
   }
 
   .upload-btn:hover:not(:disabled) {
-    background: var(--cr-hover);
-    color: var(--cr-text);
-    border-color: var(--cr-accent);
+    background: var(--sd-hover);
+    color: var(--sd-text);
+    border-color: var(--sd-accent);
   }
 
   .upload-btn:disabled {
@@ -318,7 +318,7 @@
     justify-content: center;
     gap: 6px;
     padding: 24px 12px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-size: 12px;
   }
 
@@ -334,7 +334,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .asset-grid {
@@ -351,20 +351,20 @@
     gap: 4px;
     padding: 6px 4px;
     border: 1px solid transparent;
-    border-radius: var(--cr-radius);
+    border-radius: var(--sd-radius);
     background: transparent;
     cursor: pointer;
     transition: background 0.12s, border-color 0.12s;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .asset-tile:hover {
-    background: var(--cr-hover);
+    background: var(--sd-hover);
   }
 
   .asset-tile.selected {
-    background: var(--cr-active);
-    border-color: var(--cr-accent);
+    background: var(--sd-active);
+    border-color: var(--sd-accent);
   }
 
   .tile-thumb {
@@ -373,8 +373,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--cr-radius-sm);
-    background: var(--cr-bg-input);
+    border-radius: var(--sd-radius-sm);
+    background: var(--sd-bg-input);
     overflow: hidden;
   }
 
@@ -382,12 +382,12 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
   }
 
   .tile-name {
     font-size: 10px;
-    color: var(--cr-text);
+    color: var(--sd-text);
     max-width: 90px;
     white-space: nowrap;
     overflow: hidden;
@@ -396,7 +396,7 @@
   }
 
   .asset-actions {
-    border-top: 1px solid var(--cr-border);
+    border-top: 1px solid var(--sd-border);
     padding: 8px;
     display: flex;
     flex-direction: column;
@@ -412,7 +412,7 @@
   .action-name {
     font-size: 11px;
     font-weight: 600;
-    color: var(--cr-text);
+    color: var(--sd-text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -420,7 +420,7 @@
 
   .action-meta {
     font-size: 10px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .action-buttons {
@@ -435,7 +435,7 @@
     gap: 4px;
     padding: 4px 10px;
     border: none;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
@@ -444,23 +444,23 @@
 
   .action-btn.insert {
     flex: 1;
-    background: var(--cr-accent);
+    background: var(--sd-accent);
     color: #000;
   }
 
   .action-btn.insert:hover {
-    background: var(--cr-accent-hover);
+    background: var(--sd-accent-hover);
   }
 
   .action-btn.delete {
     background: transparent;
-    color: var(--cr-text-muted);
-    border: 1px solid var(--cr-border);
+    color: var(--sd-text-muted);
+    border: 1px solid var(--sd-border);
   }
 
   .action-btn.delete:hover {
-    color: var(--cr-danger);
-    border-color: var(--cr-danger);
-    background: var(--cr-danger-bg);
+    color: var(--sd-danger);
+    border-color: var(--sd-danger);
+    background: var(--sd-danger-bg);
   }
 </style>

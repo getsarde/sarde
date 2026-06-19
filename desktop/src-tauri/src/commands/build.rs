@@ -1,3 +1,5 @@
+use std::sync::atomic::Ordering;
+
 use crate::state::AppState;
 use regex::Regex;
 use tauri::Emitter;
@@ -198,10 +200,11 @@ pub async fn start_preview(app: tauri::AppHandle) -> Result<u16, String> {
                 CommandEvent::Terminated(status) => {
                     *state.preview_child.lock().unwrap() = None;
                     *state.preview_port.lock().unwrap() = 0;
+                    let stopping = state.preview_stopping.swap(false, Ordering::SeqCst);
                     let _ = app_handle.emit("preview:stopped", ());
 
                     let code = status.code.unwrap_or(-1);
-                    if code != 0 {
+                    if code != 0 && !stopping {
                         let _ = app_handle.emit("preview:crashed", code);
                     }
                 }
@@ -219,6 +222,7 @@ pub async fn start_preview(app: tauri::AppHandle) -> Result<u16, String> {
 pub fn stop_preview(state: tauri::State<AppState>) -> Result<(), String> {
     let mut child = state.preview_child.lock().unwrap();
     if let Some(c) = child.take() {
+        state.preview_stopping.store(true, Ordering::SeqCst);
         let _ = c.kill();
     }
     *state.preview_port.lock().unwrap() = 0;

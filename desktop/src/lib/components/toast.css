@@ -1,34 +1,34 @@
 [data-sonner-toaster] {
   z-index: 300 !important;
-  font-family: var(--cr-font-ui) !important;
+  font-family: var(--sd-font-ui) !important;
 }
 
-.cr-toast {
+.sd-toast {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   padding: 10px 14px;
-  border-radius: var(--cr-radius);
-  background: var(--cr-bg-base);
-  border: 1px solid var(--cr-border);
+  border-radius: var(--sd-radius);
+  background: var(--sd-bg-base);
+  border: 1px solid var(--sd-border);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   font-size: 13px;
-  color: var(--cr-text);
+  color: var(--sd-text);
   max-width: 380px;
 }
 
-.cr-toast-info {
-  border-left: 3px solid var(--cr-info);
+.sd-toast-info {
+  border-left: 3px solid var(--sd-info);
 }
 
-.cr-toast-success {
-  border-left: 3px solid var(--cr-success);
+.sd-toast-success {
+  border-left: 3px solid var(--sd-success);
 }
 
-.cr-toast-warning {
-  border-left: 3px solid var(--cr-warning);
+.sd-toast-warning {
+  border-left: 3px solid var(--sd-warning);
 }
 
-.cr-toast-error {
-  border-left: 3px solid var(--cr-danger);
+.sd-toast-error {
+  border-left: 3px solid var(--sd-danger);
 }

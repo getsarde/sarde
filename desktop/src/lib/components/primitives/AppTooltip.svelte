@@ -11,11 +11,11 @@
 
 <Tooltip.Provider {delayDuration} skipDelayDuration={300}>
   <Tooltip.Root>
-    <Tooltip.Trigger class="cr-tooltip-trigger">
+    <Tooltip.Trigger class="sd-tooltip-trigger">
       {@render children()}
     </Tooltip.Trigger>
     <Tooltip.Portal>
-      <Tooltip.Content class="cr-tooltip-content" sideOffset={5}>
+      <Tooltip.Content class="sd-tooltip-content" sideOffset={5}>
         {content}
       </Tooltip.Content>
     </Tooltip.Portal>

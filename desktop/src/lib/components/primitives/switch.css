@@ -1,4 +1,4 @@
-.cr-switch {
+.sd-switch {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -6,38 +6,38 @@
   height: 20px;
   border-radius: 10px;
   border: none;
-  background: var(--cr-border);
+  background: var(--sd-border);
   cursor: pointer;
   padding: 0;
   transition: background 0.2s;
 }
 
-.cr-switch:focus-visible {
-  outline: 2px solid var(--cr-accent);
+.sd-switch:focus-visible {
+  outline: 2px solid var(--sd-accent);
   outline-offset: 2px;
 }
 
-.cr-switch[data-disabled] {
+.sd-switch[data-disabled] {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.cr-switch[data-state="checked"] {
-  background: var(--cr-accent);
+.sd-switch[data-state="checked"] {
+  background: var(--sd-accent);
 }
 
-.cr-switch-thumb {
+.sd-switch-thumb {
   position: absolute;
   top: 2px;
   left: 2px;
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--cr-bg-base);
+  background: var(--sd-bg-base);
   transition: transform 0.2s;
   pointer-events: none;
 }
 
-.cr-switch[data-state="checked"] .cr-switch-thumb {
+.sd-switch[data-state="checked"] .sd-switch-thumb {
   transform: translateX(16px);
 }

@@ -47,9 +47,9 @@
 
 <style>
   .review {
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-lg);
-    background: var(--cr-bg-input);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-lg);
+    background: var(--sd-bg-input);
     padding: 4px 0;
     margin-bottom: 18px;
   }
@@ -63,16 +63,16 @@
   }
 
   .review-row + .review-row {
-    border-top: 1px solid var(--cr-border);
+    border-top: 1px solid var(--sd-border);
   }
 
   .review-label {
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-weight: 500;
   }
 
   .review-value {
-    color: var(--cr-text);
+    color: var(--sd-text);
     text-align: right;
     max-width: 60%;
     overflow: hidden;
@@ -81,18 +81,18 @@
 
   .review-value code {
     font-size: 11px;
-    color: var(--cr-accent);
+    color: var(--sd-accent);
     word-break: break-all;
     white-space: normal;
   }
 
   .error-msg {
     font-size: 13px;
-    color: var(--cr-danger);
+    color: var(--sd-danger);
     margin: 0 0 12px;
     padding: 8px 10px;
-    background: var(--cr-danger-bg);
-    border-radius: var(--cr-radius);
+    background: var(--sd-danger-bg);
+    border-radius: var(--sd-radius);
   }
 
   .create-btn {
@@ -103,9 +103,9 @@
     width: 100%;
     padding: 12px;
     border: none;
-    border-radius: var(--cr-radius-lg);
-    background: var(--cr-accent);
-    color: var(--cr-bg-base);
+    border-radius: var(--sd-radius-lg);
+    background: var(--sd-accent);
+    color: var(--sd-bg-base);
     font-size: 15px;
     font-weight: 700;
     font-family: inherit;
@@ -114,7 +114,7 @@
   }
 
   .create-btn:hover:not(:disabled) {
-    background: var(--cr-accent-hover);
+    background: var(--sd-accent-hover);
     transform: translateY(-1px);
   }
 

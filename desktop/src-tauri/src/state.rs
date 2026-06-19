@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::sync::atomic::AtomicBool;
 use std::sync::Mutex;
 use tauri_plugin_shell::process::CommandChild;
 
@@ -18,6 +19,9 @@ pub struct AppState {
     pub preview_port: Mutex<u16>,
     /// Resolved path to the sarde sidecar binary.
     pub sidecar_path: Mutex<Option<PathBuf>>,
+    /// Set before killing the preview process so the Terminated handler
+    /// can distinguish an intentional stop from an unexpected crash.
+    pub preview_stopping: AtomicBool,
     /// File system watcher for content and config changes.
     pub watcher: Mutex<Option<watcher::Debouncer>>,
 }
@@ -38,6 +42,7 @@ impl AppState {
             preview_child: Mutex::new(None),
             preview_port: Mutex::new(0),
             sidecar_path: Mutex::new(None),
+            preview_stopping: AtomicBool::new(false),
             watcher: Mutex::new(None),
         }
     }

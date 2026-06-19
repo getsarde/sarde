@@ -1,17 +1,17 @@
-.cr-tooltip-trigger {
+.sd-tooltip-trigger {
   display: contents;
 }
 
-.cr-tooltip-content {
+.sd-tooltip-content {
   padding: 5px 9px;
-  background: var(--cr-bg-elevated);
-  border: 1px solid var(--cr-border);
-  border-radius: var(--cr-radius-sm);
+  background: var(--sd-bg-elevated);
+  border: 1px solid var(--sd-border);
+  border-radius: var(--sd-radius-sm);
   font-size: 12px;
-  color: var(--cr-text);
-  box-shadow: var(--cr-shadow-sm);
+  color: var(--sd-text);
+  box-shadow: var(--sd-shadow-sm);
   z-index: 400;
   pointer-events: none;
   white-space: nowrap;
-  font-family: var(--cr-font-ui);
+  font-family: var(--sd-font-ui);
 }

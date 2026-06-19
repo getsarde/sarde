@@ -198,9 +198,9 @@
     max-height: 380px;
     display: flex;
     flex-direction: column;
-    background: var(--cr-bg-base);
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-lg);
+    background: var(--sd-bg-base);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-lg);
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
     overflow: hidden;
     outline: none;
@@ -211,12 +211,12 @@
     align-items: center;
     gap: 8px;
     padding: 12px 14px;
-    border-bottom: 1px solid var(--cr-border);
+    border-bottom: 1px solid var(--sd-border);
   }
 
   :global(.palette-search-icon) {
     flex-shrink: 0;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   :global(.palette-input) {
@@ -224,13 +224,13 @@
     border: none;
     background: transparent;
     font-size: 14px;
-    color: var(--cr-text);
+    color: var(--sd-text);
     outline: none;
     font-family: inherit;
   }
 
   :global(.palette-input)::placeholder {
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   :global(.palette-list) {
@@ -243,7 +243,7 @@
     padding: 20px;
     text-align: center;
     font-size: 13px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   :global(.palette-item) {
@@ -253,21 +253,21 @@
     width: 100%;
     padding: 8px 10px;
     border: none;
-    border-radius: var(--cr-radius);
+    border-radius: var(--sd-radius);
     background: transparent;
-    color: var(--cr-text);
+    color: var(--sd-text);
     font-size: 13px;
     text-align: left;
     cursor: pointer;
   }
 
   :global(.palette-item[data-selected]) {
-    background: var(--cr-active);
+    background: var(--sd-active);
   }
 
   .palette-category {
     font-size: 11px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     min-width: 70px;
   }
 
@@ -277,11 +277,11 @@
 
   .palette-shortcut {
     font-size: 11px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     padding: 2px 6px;
-    border-radius: var(--cr-radius-sm);
-    background: var(--cr-bg-input);
-    border: 1px solid var(--cr-border);
+    border-radius: var(--sd-radius-sm);
+    background: var(--sd-bg-input);
+    border: 1px solid var(--sd-border);
     font-family: inherit;
   }
 </style>

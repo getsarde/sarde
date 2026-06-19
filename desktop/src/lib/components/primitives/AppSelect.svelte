@@ -17,16 +17,16 @@
 </script>
 
 <Select.Root type="single" {value} onValueChange={handleChange}>
-  <Select.Trigger class="cr-select-trigger" {id} {disabled}>
-    <span class="cr-select-value">{value || placeholder}</span>
+  <Select.Trigger class="sd-select-trigger" {id} {disabled}>
+    <span class="sd-select-value">{value || placeholder}</span>
     <ChevronDown size={13} />
   </Select.Trigger>
   <Select.Portal>
-    <Select.Content class="cr-select-content" sideOffset={4} position="popper">
+    <Select.Content class="sd-select-content" sideOffset={4} position="popper">
       <Select.Viewport>
         {#each options as opt}
-          <Select.Item class="cr-select-item" value={opt} label={opt}>
-            <span class="cr-select-item-text">{opt}</span>
+          <Select.Item class="sd-select-item" value={opt} label={opt}>
+            <span class="sd-select-item-text">{opt}</span>
             {#if opt === value}
               <Check size={12} />
             {/if}
@@ -38,7 +38,7 @@
 </Select.Root>
 
 <style>
-  :global(.cr-select-trigger) {
+  :global(.sd-select-trigger) {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -46,61 +46,61 @@
     box-sizing: border-box;
     padding: 5px 8px;
     font-size: 12px;
-    color: var(--cr-text);
-    background: var(--cr-bg-input);
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-sm);
+    color: var(--sd-text);
+    background: var(--sd-bg-input);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-sm);
     outline: none;
     font-family: inherit;
     cursor: pointer;
   }
 
-  :global(.cr-select-trigger:focus) {
-    border-color: var(--cr-accent);
+  :global(.sd-select-trigger:focus) {
+    border-color: var(--sd-accent);
   }
 
-  :global(.cr-select-trigger[data-disabled]) {
+  :global(.sd-select-trigger[data-disabled]) {
     opacity: 0.5;
     cursor: not-allowed;
   }
 
-  :global(.cr-select-value) {
+  :global(.sd-select-value) {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  :global(.cr-select-content) {
-    background: var(--cr-bg-elevated);
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-sm);
-    box-shadow: var(--cr-shadow-sm);
+  :global(.sd-select-content) {
+    background: var(--sd-bg-elevated);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-sm);
+    box-shadow: var(--sd-shadow-sm);
     z-index: 400;
     max-height: 200px;
     overflow-y: auto;
     min-width: var(--bits-select-trigger-width);
   }
 
-  :global(.cr-select-item) {
+  :global(.sd-select-item) {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 5px 8px;
     font-size: 12px;
-    color: var(--cr-text);
+    color: var(--sd-text);
     cursor: pointer;
     outline: none;
   }
 
-  :global(.cr-select-item[data-highlighted]) {
-    background: var(--cr-hover);
+  :global(.sd-select-item[data-highlighted]) {
+    background: var(--sd-hover);
   }
 
-  :global(.cr-select-item[data-selected]) {
-    color: var(--cr-accent);
+  :global(.sd-select-item[data-selected]) {
+    color: var(--sd-accent);
   }
 
-  :global(.cr-select-item-text) {
+  :global(.sd-select-item-text) {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

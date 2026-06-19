@@ -170,7 +170,7 @@
     min-width: 0;
     overflow: hidden;
     display: flex;
-    border-left: 1px solid var(--cr-border);
+    border-left: 1px solid var(--sd-border);
   }
 
   .preview-pane.split {

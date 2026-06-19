@@ -15,9 +15,9 @@
 
 <Dialog.Root {open} {onOpenChange}>
   <Dialog.Portal>
-    <Dialog.Overlay class="cr-dialog-overlay" />
+    <Dialog.Overlay class="sd-dialog-overlay" />
     <Dialog.Content
-      class="cr-dialog-content"
+      class="sd-dialog-content"
       aria-label={ariaLabel}
       style="--dialog-width: {width}"
       {onEscapeKeydown}

@@ -103,8 +103,8 @@
   .left-sidebar {
     display: flex;
     height: 100%;
-    background: var(--cr-bg-base);
-    border-right: 1px solid var(--cr-border);
+    background: var(--sd-bg-base);
+    border-right: 1px solid var(--sd-border);
   }
 
   .icon-strip {
@@ -114,8 +114,8 @@
     width: 44px;
     padding: 6px 0;
     gap: 2px;
-    background: var(--cr-bg-input);
-    border-right: 1px solid var(--cr-border);
+    background: var(--sd-bg-input);
+    border-right: 1px solid var(--sd-border);
   }
 
   .icon-btn {
@@ -125,21 +125,21 @@
     width: 36px;
     height: 36px;
     border: none;
-    border-radius: var(--cr-radius);
+    border-radius: var(--sd-radius);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
     transition: color 0.15s, background 0.15s;
   }
 
   .icon-btn:hover {
-    color: var(--cr-text);
-    background: var(--cr-hover);
+    color: var(--sd-text);
+    background: var(--sd-hover);
   }
 
   .icon-btn.active {
-    color: var(--cr-accent);
-    background: var(--cr-active);
+    color: var(--sd-accent);
+    background: var(--sd-active);
   }
 
   .icon-spacer {
@@ -162,8 +162,8 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--cr-text-muted);
-    border-bottom: 1px solid var(--cr-border);
+    color: var(--sd-text-muted);
+    border-bottom: 1px solid var(--sd-border);
   }
 
   .panel-title {
@@ -182,21 +182,21 @@
     width: 22px;
     height: 22px;
     border: none;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
   }
 
   .panel-action:hover {
-    color: var(--cr-text);
-    background: var(--cr-hover);
+    color: var(--sd-text);
+    background: var(--sd-hover);
   }
 
   .git-placeholder {
     padding: 12px;
     font-size: 12px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     overflow-y: auto;
     flex: 1;
   }

@@ -10,11 +10,11 @@
   toastOptions={{
     unstyled: true,
     classes: {
-      toast: 'cr-toast',
-      info: 'cr-toast-info',
-      success: 'cr-toast-success',
-      warning: 'cr-toast-warning',
-      error: 'cr-toast-error',
+      toast: 'sd-toast',
+      info: 'sd-toast-info',
+      success: 'sd-toast-success',
+      warning: 'sd-toast-warning',
+      error: 'sd-toast-error',
     },
   }}
 />

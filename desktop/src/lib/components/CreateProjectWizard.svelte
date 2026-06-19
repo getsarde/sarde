@@ -141,17 +141,17 @@
     width: 440px;
     max-width: 90vw;
     padding: 32px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-lg);
-    background: var(--cr-bg-input);
-    box-shadow: var(--cr-shadow-md);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-lg);
+    background: var(--sd-bg-input);
+    box-shadow: var(--sd-shadow-md);
   }
 
   h2 {
     margin: 0 0 20px;
     font-size: 20px;
     font-weight: 700;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   /* Step indicator */
@@ -178,50 +178,50 @@
     justify-content: center;
     font-size: 11px;
     font-weight: 700;
-    border: 2px solid var(--cr-border);
-    color: var(--cr-text-muted);
+    border: 2px solid var(--sd-border);
+    color: var(--sd-text-muted);
     background: transparent;
     transition: all 0.2s;
   }
 
   .step-item.active .step-dot {
-    border-color: var(--cr-accent);
-    color: var(--cr-accent);
-    background: var(--cr-active);
+    border-color: var(--sd-accent);
+    color: var(--sd-accent);
+    background: var(--sd-active);
   }
 
   .step-item.done .step-dot {
-    border-color: var(--cr-success);
-    color: var(--cr-success);
+    border-color: var(--sd-success);
+    color: var(--sd-success);
     background: rgba(166, 227, 161, 0.1);
   }
 
   .step-label {
     font-size: 11px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     white-space: nowrap;
   }
 
   .step-item.active .step-label {
-    color: var(--cr-text);
+    color: var(--sd-text);
     font-weight: 600;
   }
 
   .step-item.done .step-label {
-    color: var(--cr-success);
+    color: var(--sd-success);
   }
 
   .step-line {
     flex: 1;
     height: 1px;
-    background: var(--cr-border);
+    background: var(--sd-border);
     margin: 0 8px;
     min-width: 12px;
     transition: background 0.2s;
   }
 
   .step-line.done {
-    background: var(--cr-success);
+    background: var(--sd-success);
   }
 
   /* Step content area */
@@ -244,7 +244,7 @@
     gap: 6px;
     padding: 10px 18px;
     border: none;
-    border-radius: var(--cr-radius);
+    border-radius: var(--sd-radius);
     font-size: 13px;
     font-weight: 600;
     font-family: inherit;
@@ -253,12 +253,12 @@
   }
 
   .nav-btn.primary {
-    background: var(--cr-accent);
-    color: var(--cr-bg-base);
+    background: var(--sd-accent);
+    color: var(--sd-bg-base);
   }
 
   .nav-btn.primary:hover:not(:disabled) {
-    background: var(--cr-accent-hover);
+    background: var(--sd-accent-hover);
     transform: translateY(-1px);
   }
 
@@ -269,12 +269,12 @@
 
   .nav-btn.secondary {
     background: transparent;
-    color: var(--cr-text-muted);
-    border: 1px solid var(--cr-border);
+    color: var(--sd-text-muted);
+    border: 1px solid var(--sd-border);
   }
 
   .nav-btn.secondary:hover {
-    color: var(--cr-text);
-    border-color: var(--cr-text-muted);
+    color: var(--sd-text);
+    border-color: var(--sd-text-muted);
   }
 </style>

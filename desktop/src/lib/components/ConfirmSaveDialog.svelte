@@ -27,19 +27,19 @@
   .confirm-title {
     font-size: 15px;
     font-weight: 600;
-    color: var(--cr-text);
+    color: var(--sd-text);
     margin-bottom: 8px;
   }
 
   .confirm-message {
     font-size: 13px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     line-height: 1.5;
     margin: 0 0 20px;
   }
 
   .confirm-message strong {
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .confirm-actions {
@@ -55,7 +55,7 @@
   .btn {
     padding: 6px 14px;
     border: none;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     font-size: 13px;
     cursor: pointer;
     font-weight: 500;
@@ -63,8 +63,8 @@
   }
 
   .btn-primary {
-    background: var(--cr-accent);
-    color: var(--cr-bg-base);
+    background: var(--sd-accent);
+    color: var(--sd-bg-base);
   }
 
   .btn-primary:hover {
@@ -72,21 +72,21 @@
   }
 
   .btn-secondary {
-    background: var(--cr-bg-elevated);
-    color: var(--cr-text);
+    background: var(--sd-bg-elevated);
+    color: var(--sd-text);
   }
 
   .btn-secondary:hover {
-    background: var(--cr-bg-surface);
+    background: var(--sd-bg-surface);
   }
 
   .btn-ghost {
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .btn-ghost:hover {
-    background: var(--cr-bg-elevated);
-    color: var(--cr-text);
+    background: var(--sd-bg-elevated);
+    color: var(--sd-text);
   }
 </style>

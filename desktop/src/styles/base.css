@@ -13,23 +13,23 @@ html, body, #app {
 }
 
 body {
-  font-family: var(--cr-font-ui);
-  font-size: var(--cr-font-size);
-  color: var(--cr-text);
-  background: var(--cr-bg-base);
+  font-family: var(--sd-font-ui);
+  font-size: var(--sd-font-size);
+  color: var(--sd-text);
+  background: var(--sd-bg-base);
   -webkit-font-smoothing: antialiased;
 }
 
 /* Scrollbars */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--cr-scrollbar); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--cr-scrollbar-hover); }
-::-webkit-scrollbar-thumb:active { background: var(--cr-scrollbar-active); }
+::-webkit-scrollbar-thumb { background: var(--sd-scrollbar); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--sd-scrollbar-hover); }
+::-webkit-scrollbar-thumb:active { background: var(--sd-scrollbar-active); }
 
 /* Focus */
 *:focus-visible {
-  outline: 1px solid var(--cr-border-focus);
+  outline: 1px solid var(--sd-border-focus);
   outline-offset: -1px;
 }
 
@@ -42,12 +42,12 @@ body {
   justify-content: center;
   gap: 6px;
   padding: 6px 14px;
-  border: 1px solid var(--cr-border);
-  border-radius: var(--cr-radius);
+  border: 1px solid var(--sd-border);
+  border-radius: var(--sd-radius);
   background: transparent;
-  color: var(--cr-text);
+  color: var(--sd-text);
   font-size: 13px;
-  font-family: var(--cr-font-ui);
+  font-family: var(--sd-font-ui);
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
@@ -55,8 +55,8 @@ body {
 }
 
 .btn:hover {
-  background: var(--cr-hover);
-  color: var(--cr-text);
+  background: var(--sd-hover);
+  color: var(--sd-text);
 }
 
 .btn:disabled {
@@ -65,24 +65,24 @@ body {
 }
 
 .btn-primary {
-  background: var(--cr-accent);
-  border-color: var(--cr-accent);
-  color: var(--cr-accent-text);
+  background: var(--sd-accent);
+  border-color: var(--sd-accent);
+  color: var(--sd-accent-text);
   font-weight: 600;
 }
 
 .btn-primary:hover {
-  background: var(--cr-accent-hover);
-  border-color: var(--cr-accent-hover);
+  background: var(--sd-accent-hover);
+  border-color: var(--sd-accent-hover);
 }
 
 .btn-danger {
-  color: var(--cr-danger);
-  border-color: var(--cr-danger);
+  color: var(--sd-danger);
+  border-color: var(--sd-danger);
 }
 
 .btn-danger:hover {
-  background: var(--cr-danger-bg);
+  background: var(--sd-danger-bg);
 }
 
 /* Icon button */
@@ -93,43 +93,43 @@ body {
   width: 28px;
   height: 28px;
   border: none;
-  border-radius: var(--cr-radius-sm);
+  border-radius: var(--sd-radius-sm);
   background: transparent;
-  color: var(--cr-text-muted);
+  color: var(--sd-text-muted);
   cursor: pointer;
   transition: color 0.15s, background 0.15s;
 }
 
 .icon-btn:hover {
-  color: var(--cr-text);
-  background: var(--cr-hover);
+  color: var(--sd-text);
+  background: var(--sd-hover);
 }
 
 .icon-btn.active {
-  color: var(--cr-accent);
-  background: var(--cr-accent-bg);
+  color: var(--sd-accent);
+  background: var(--sd-accent-bg);
 }
 
 /* Inputs */
 .input {
   width: 100%;
   padding: 7px 10px;
-  border: 1px solid var(--cr-border);
-  border-radius: var(--cr-radius);
-  background: var(--cr-bg-input);
-  color: var(--cr-text);
+  border: 1px solid var(--sd-border);
+  border-radius: var(--sd-radius);
+  background: var(--sd-bg-input);
+  color: var(--sd-text);
   font-size: 13px;
-  font-family: var(--cr-font-ui);
+  font-family: var(--sd-font-ui);
   outline: none;
   transition: border-color 0.15s;
 }
 
 .input:focus {
-  border-color: var(--cr-border-focus);
+  border-color: var(--sd-border-focus);
 }
 
 .input::placeholder {
-  color: var(--cr-text-dim);
+  color: var(--sd-text-dim);
 }
 
 /* Badge */
@@ -142,10 +142,10 @@ body {
   font-weight: 500;
 }
 
-.badge-info { background: rgba(137, 180, 250, 0.12); color: var(--cr-info); }
-.badge-success { background: var(--cr-success-bg); color: var(--cr-success); }
-.badge-warning { background: var(--cr-warning-bg); color: var(--cr-warning); }
-.badge-danger { background: var(--cr-danger-bg); color: var(--cr-danger); }
+.badge-info { background: rgba(137, 180, 250, 0.12); color: var(--sd-info); }
+.badge-success { background: var(--sd-success-bg); color: var(--sd-success); }
+.badge-warning { background: var(--sd-warning-bg); color: var(--sd-warning); }
+.badge-danger { background: var(--sd-danger-bg); color: var(--sd-danger); }
 
 /* Utility */
 .hidden { display: none !important; }

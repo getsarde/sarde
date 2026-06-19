@@ -120,7 +120,7 @@
     padding: 12px;
     margin: 0;
     font-size: 12px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .empty-msg p { margin: 0 0 8px; }
@@ -128,15 +128,15 @@
   .add-fm-btn {
     padding: 4px 10px;
     font-size: 11px;
-    color: var(--cr-accent);
+    color: var(--sd-accent);
     background: transparent;
-    border: 1px solid var(--cr-accent);
-    border-radius: var(--cr-radius-sm);
+    border: 1px solid var(--sd-accent);
+    border-radius: var(--sd-radius-sm);
     cursor: pointer;
   }
 
   .add-fm-btn:hover {
-    background: var(--cr-active);
+    background: var(--sd-active);
   }
 
   .properties-form {
@@ -154,9 +154,9 @@
   .yaml-error {
     padding: 6px 8px;
     font-size: 11px;
-    color: var(--cr-danger);
-    background: var(--cr-danger-bg);
-    border-top: 1px solid var(--cr-border);
+    color: var(--sd-danger);
+    background: var(--sd-danger-bg);
+    border-top: 1px solid var(--sd-border);
     white-space: pre-wrap;
     word-break: break-word;
   }

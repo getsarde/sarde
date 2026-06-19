@@ -28,10 +28,10 @@
         EditorView.theme({
           '&': { height: '100%', fontSize: '12px' },
           '.cm-content': {
-            fontFamily: 'var(--cr-font-mono)',
+            fontFamily: 'var(--sd-font-mono)',
             padding: '8px',
           },
-          '.cm-cursor': { borderLeftColor: 'var(--cr-accent)' },
+          '.cm-cursor': { borderLeftColor: 'var(--sd-accent)' },
           '.cm-selectionBackground': { background: 'rgba(99, 102, 241, 0.2) !important' },
           '.cm-scroller': { overflow: 'auto' },
         }, { dark: true }),
@@ -84,9 +84,9 @@
   .yaml-editor {
     flex: 1;
     overflow: hidden;
-    background: var(--cr-bg-input);
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-sm);
+    background: var(--sd-bg-input);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-sm);
   }
 
   .yaml-editor :global(.cm-editor) {

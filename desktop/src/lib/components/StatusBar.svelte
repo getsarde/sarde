@@ -45,10 +45,10 @@
     justify-content: space-between;
     height: 24px;
     padding: 0 12px;
-    background: var(--cr-bg-surface);
-    border-top: 1px solid var(--cr-border);
+    background: var(--sd-bg-surface);
+    border-top: 1px solid var(--sd-border);
     font-size: 11px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     user-select: none;
     flex-shrink: 0;
   }
@@ -75,15 +75,15 @@
   }
 
   .saved .status-dot {
-    background: var(--cr-success);
+    background: var(--sd-success);
   }
 
   .unsaved .status-dot {
-    background: var(--cr-warning);
+    background: var(--sd-warning);
   }
 
   .saving .status-dot {
-    background: var(--cr-info, var(--cr-accent));
+    background: var(--sd-info, var(--sd-accent));
     animation: pulse 1s ease-in-out infinite;
   }
 
@@ -93,11 +93,11 @@
   }
 
   .connected .status-dot {
-    background: var(--cr-success);
+    background: var(--sd-success);
   }
 
   .disconnected .status-dot {
-    background: var(--cr-danger);
+    background: var(--sd-danger);
   }
 
   .status-btn {
@@ -110,10 +110,10 @@
   }
 
   .status-btn:hover {
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .warnings-indicator .status-dot {
-    background: var(--cr-warning);
+    background: var(--sd-warning);
   }
 </style>

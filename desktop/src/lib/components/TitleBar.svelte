@@ -100,15 +100,15 @@
   .titlebar {
     display: flex;
     align-items: center;
-    height: var(--cr-titlebar-height, 38px);
-    background: var(--cr-bg-surface);
-    border-bottom: 1px solid var(--cr-border);
+    height: var(--sd-titlebar-height, 38px);
+    background: var(--sd-bg-surface);
+    border-bottom: 1px solid var(--sd-border);
     user-select: none;
     flex-shrink: 0;
   }
 
   .titlebar-left {
-    width: var(--cr-icon-strip-width, 48px);
+    width: var(--sd-icon-strip-width, 48px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -136,7 +136,7 @@
     flex: 1;
     text-align: center;
     font-size: 13px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     pointer-events: none;
   }
 
@@ -148,15 +148,15 @@
     justify-content: center;
     border: none;
     background: transparent;
-    color: var(--cr-text-muted);
-    border-radius: var(--cr-radius-sm);
+    color: var(--sd-text-muted);
+    border-radius: var(--sd-radius-sm);
     cursor: pointer;
     transition: background 0.1s, color 0.1s;
   }
 
   .titlebar-btn:hover {
-    background: var(--cr-hover);
-    color: var(--cr-text);
+    background: var(--sd-hover);
+    color: var(--sd-text);
   }
 
   .win-controls {
@@ -167,20 +167,20 @@
 
   .wc-btn {
     width: 46px;
-    height: var(--cr-titlebar-height, 38px);
+    height: var(--sd-titlebar-height, 38px);
     display: flex;
     align-items: center;
     justify-content: center;
     border: none;
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
     transition: background 0.1s, color 0.1s;
   }
 
   .wc-btn:hover {
-    background: var(--cr-hover);
-    color: var(--cr-text);
+    background: var(--sd-hover);
+    color: var(--sd-text);
   }
 
   .close-btn:hover {

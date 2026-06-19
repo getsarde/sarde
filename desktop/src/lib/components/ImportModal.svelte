@@ -158,14 +158,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--cr-border);
+    border-bottom: 1px solid var(--sd-border);
   }
 
   .modal-header h2 {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .modal-body {
@@ -180,7 +180,7 @@
     display: block;
     font-size: 12px;
     font-weight: 500;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     margin-bottom: 6px;
   }
 
@@ -188,23 +188,23 @@
     width: 100%;
     padding: 8px 10px;
     font-size: 13px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
-    background: var(--cr-bg-input);
-    color: var(--cr-text);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    background: var(--sd-bg-input);
+    color: var(--sd-text);
     box-sizing: border-box;
   }
 
   .field-input:focus {
     outline: none;
-    border-color: var(--cr-accent);
+    border-color: var(--sd-accent);
   }
 
   .field-hint {
     display: block;
     margin-top: 4px;
     font-size: 11px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .location-row {
@@ -222,18 +222,18 @@
     align-items: center;
     gap: 6px;
     padding: 8px 12px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
-    background: var(--cr-bg-base);
-    color: var(--cr-text);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    background: var(--sd-bg-base);
+    color: var(--sd-text);
     font-size: 13px;
     cursor: pointer;
     white-space: nowrap;
   }
 
   .browse-btn:hover {
-    background: var(--cr-hover);
-    border-color: var(--cr-accent);
+    background: var(--sd-hover);
+    border-color: var(--sd-accent);
   }
 
   .btn-group {
@@ -242,7 +242,7 @@
     width: 100%;
   }
 
-  :global(.btn-group .cr-btn) {
+  :global(.btn-group .sd-btn) {
     flex: 1;
   }
 
@@ -256,15 +256,15 @@
   }
 
   .status-icon {
-    color: var(--cr-accent);
+    color: var(--sd-accent);
   }
 
   .status-icon.success {
-    color: var(--cr-success);
+    color: var(--sd-success);
   }
 
   .status-icon.error {
-    color: var(--cr-danger);
+    color: var(--sd-danger);
   }
 
   .status-icon.spinning {
@@ -279,11 +279,11 @@
   .status-message {
     margin: 0;
     font-size: 14px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .error-text {
-    color: var(--cr-danger);
+    color: var(--sd-danger);
   }
 
   .stats-grid {
@@ -303,11 +303,11 @@
   .stat-value {
     font-size: 20px;
     font-weight: 600;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .stat-label {
     font-size: 11px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 </style>

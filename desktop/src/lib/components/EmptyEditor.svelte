@@ -59,13 +59,13 @@
     margin: 0;
     font-size: 18px;
     font-weight: 600;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   p {
     margin: 0;
     font-size: 13px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     line-height: 1.5;
   }
 
@@ -80,10 +80,10 @@
     align-items: center;
     gap: 8px;
     padding: 10px 18px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
-    background: var(--cr-bg-input);
-    color: var(--cr-text);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    background: var(--sd-bg-input);
+    color: var(--sd-text);
     font-size: 13px;
     font-family: inherit;
     cursor: pointer;
@@ -91,11 +91,11 @@
   }
 
   .shortcut-card:hover {
-    border-color: var(--cr-accent);
+    border-color: var(--sd-accent);
   }
 
   .shortcut-card :global(svg) {
-    color: var(--cr-accent);
+    color: var(--sd-accent);
   }
 
   .keyhints {
@@ -108,7 +108,7 @@
 
   .keyhint {
     font-size: 12px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -116,11 +116,11 @@
 
   kbd {
     padding: 2px 6px;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     font-size: 11px;
     font-family: inherit;
-    background: var(--cr-bg-input);
-    border: 1px solid var(--cr-border);
-    color: var(--cr-text-muted);
+    background: var(--sd-bg-input);
+    border: 1px solid var(--sd-border);
+    color: var(--sd-text-muted);
   }
 </style>

@@ -69,8 +69,8 @@
     display: flex;
     flex-direction: column;
     height: 160px;
-    border-top: 1px solid var(--cr-border);
-    background: var(--cr-bg-surface);
+    border-top: 1px solid var(--sd-border);
+    background: var(--sd-bg-surface);
     flex-shrink: 0;
   }
 
@@ -79,14 +79,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 4px 10px;
-    border-bottom: 1px solid var(--cr-border);
+    border-bottom: 1px solid var(--sd-border);
     flex-shrink: 0;
   }
 
   .log-title {
     font-size: 11px;
     font-weight: 600;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -103,22 +103,22 @@
     width: 22px;
     height: 22px;
     border: none;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
   }
 
   .log-action:hover {
-    background: var(--cr-bg-elevated);
-    color: var(--cr-text);
+    background: var(--sd-bg-elevated);
+    color: var(--sd-text);
   }
 
   .log-list {
     flex: 1;
     overflow-y: auto;
     padding: 4px 0;
-    font-family: var(--cr-font-mono);
+    font-family: var(--sd-font-mono);
     font-size: 12px;
     line-height: 1.6;
   }
@@ -127,7 +127,7 @@
     padding: 16px;
     text-align: center;
     font-size: 12px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-family: inherit;
   }
 
@@ -142,32 +142,32 @@
   }
 
   .log-time {
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     flex-shrink: 0;
   }
 
   .log-text {
-    color: var(--cr-text);
+    color: var(--sd-text);
     word-break: break-all;
   }
 
   .log-entry.error .log-text {
-    color: var(--cr-danger);
+    color: var(--sd-danger);
   }
 
   .log-entry.success .log-text {
-    color: var(--cr-success);
+    color: var(--sd-success);
   }
 
   .log-entry.warning .log-text {
-    color: var(--cr-warning);
+    color: var(--sd-warning);
   }
 
   .log-file-link {
     display: inline;
     border: none;
     background: transparent;
-    color: var(--cr-accent);
+    color: var(--sd-accent);
     font-family: inherit;
     font-size: inherit;
     cursor: pointer;

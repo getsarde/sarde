@@ -167,9 +167,9 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background: var(--cr-bg-base);
-    color: var(--cr-text);
-    font-family: var(--cr-font-ui);
+    background: var(--sd-bg-base);
+    color: var(--sd-text);
+    font-family: var(--sd-font-ui);
   }
 
   .center-screen {
@@ -185,15 +185,15 @@
 
   .sub {
     margin: 0;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-size: 14px;
   }
 
   .spinner {
     width: 36px;
     height: 36px;
-    border: 3px solid var(--cr-border);
-    border-top-color: var(--cr-info);
+    border: 3px solid var(--sd-border);
+    border-top-color: var(--sd-info);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
@@ -203,8 +203,8 @@
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: var(--cr-danger);
-    color: var(--cr-bg-base);
+    background: var(--sd-danger);
+    color: var(--sd-bg-base);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -212,5 +212,5 @@
     font-weight: bold;
   }
 
-  .error-text { color: var(--cr-danger); margin: 0; }
+  .error-text { color: var(--sd-danger); margin: 0; }
 </style>

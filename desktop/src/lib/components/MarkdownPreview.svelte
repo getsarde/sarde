@@ -61,7 +61,7 @@
     flex-direction: column;
     flex: 1;
     overflow: hidden;
-    background: var(--cr-bg-base);
+    background: var(--sd-bg-base);
   }
 
   .viewport-bar {
@@ -69,8 +69,8 @@
     align-items: center;
     gap: 2px;
     padding: 4px 8px;
-    border-bottom: 1px solid var(--cr-border);
-    background: var(--cr-bg-surface);
+    border-bottom: 1px solid var(--sd-border);
+    background: var(--sd-bg-surface);
     flex-shrink: 0;
   }
 
@@ -81,27 +81,27 @@
     width: 26px;
     height: 22px;
     border: none;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
   }
 
   .viewport-btn:hover {
-    color: var(--cr-text);
-    background: var(--cr-hover);
+    color: var(--sd-text);
+    background: var(--sd-hover);
   }
 
   .viewport-btn.active {
-    color: var(--cr-accent);
-    background: var(--cr-active);
+    color: var(--sd-accent);
+    background: var(--sd-active);
   }
 
   .viewport-label {
     font-size: 10px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     margin-left: 4px;
-    font-family: var(--cr-font-mono);
+    font-family: var(--sd-font-mono);
   }
 
   .preview-frame {
@@ -114,7 +114,7 @@
     height: 100%;
     overflow-y: auto;
     padding: 24px 32px;
-    color: var(--cr-text);
+    color: var(--sd-text);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 15px;
     line-height: 1.7;
@@ -127,13 +127,13 @@
     justify-content: center;
     gap: 8px;
     height: 100%;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-size: 13px;
   }
 
   .preview-error {
     padding: 16px;
-    color: var(--cr-danger);
+    color: var(--sd-danger);
     font-size: 13px;
   }
 
@@ -143,8 +143,8 @@
     font-weight: 700;
     margin: 0 0 0.5em;
     padding-bottom: 0.3em;
-    border-bottom: 1px solid var(--cr-border);
-    color: var(--cr-text);
+    border-bottom: 1px solid var(--sd-border);
+    color: var(--sd-text);
   }
 
   .prose :global(h2) {
@@ -152,15 +152,15 @@
     font-weight: 600;
     margin: 1.5em 0 0.5em;
     padding-bottom: 0.2em;
-    border-bottom: 1px solid var(--cr-border);
-    color: var(--cr-text);
+    border-bottom: 1px solid var(--sd-border);
+    color: var(--sd-text);
   }
 
   .prose :global(h3) {
     font-size: 1.25em;
     font-weight: 600;
     margin: 1.2em 0 0.4em;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .prose :global(h4),
@@ -169,7 +169,7 @@
     font-size: 1.1em;
     font-weight: 600;
     margin: 1em 0 0.3em;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .prose :global(p) {
@@ -177,7 +177,7 @@
   }
 
   .prose :global(a) {
-    color: var(--cr-accent);
+    color: var(--sd-accent);
     text-decoration: none;
   }
 
@@ -187,24 +187,24 @@
 
   .prose :global(strong) {
     font-weight: 600;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .prose :global(code) {
-    font-family: var(--cr-font-mono);
+    font-family: var(--sd-font-mono);
     font-size: 0.875em;
     padding: 2px 6px;
-    border-radius: var(--cr-radius-sm);
-    background: var(--cr-bg-elevated);
-    color: var(--cr-danger);
+    border-radius: var(--sd-radius-sm);
+    background: var(--sd-bg-elevated);
+    color: var(--sd-danger);
   }
 
   .prose :global(pre) {
     margin: 0 0 1em;
     padding: 16px;
-    border-radius: var(--cr-radius);
-    background: var(--cr-bg-elevated);
-    border: 1px solid var(--cr-border);
+    border-radius: var(--sd-radius);
+    background: var(--sd-bg-elevated);
+    border: 1px solid var(--sd-border);
     overflow-x: auto;
     font-size: 13px;
     line-height: 1.5;
@@ -213,17 +213,17 @@
   .prose :global(pre code) {
     padding: 0;
     background: none;
-    color: var(--cr-text);
+    color: var(--sd-text);
     font-size: inherit;
   }
 
   .prose :global(blockquote) {
     margin: 0 0 1em;
     padding: 4px 16px;
-    border-left: 3px solid var(--cr-accent);
-    color: var(--cr-text-muted);
+    border-left: 3px solid var(--sd-accent);
+    color: var(--sd-text-muted);
     background: rgba(137, 180, 250, 0.04);
-    border-radius: 0 var(--cr-radius-sm) var(--cr-radius-sm) 0;
+    border-radius: 0 var(--sd-radius-sm) var(--sd-radius-sm) 0;
   }
 
   .prose :global(ul),
@@ -239,7 +239,7 @@
   .prose :global(hr) {
     margin: 2em 0;
     border: none;
-    border-top: 1px solid var(--cr-border);
+    border-top: 1px solid var(--sd-border);
   }
 
   .prose :global(table) {
@@ -252,41 +252,41 @@
   .prose :global(th),
   .prose :global(td) {
     padding: 8px 12px;
-    border: 1px solid var(--cr-border);
+    border: 1px solid var(--sd-border);
     text-align: left;
   }
 
   .prose :global(th) {
-    background: var(--cr-bg-elevated);
+    background: var(--sd-bg-elevated);
     font-weight: 600;
   }
 
   .prose :global(img) {
     max-width: 100%;
-    border-radius: var(--cr-radius);
+    border-radius: var(--sd-radius);
   }
 
   .prose :global(mark) {
     background: rgba(249, 226, 175, 0.2);
-    color: var(--cr-warning);
+    color: var(--sd-warning);
     padding: 1px 4px;
     border-radius: 2px;
   }
 
   .prose :global(kbd) {
-    font-family: var(--cr-font-mono);
+    font-family: var(--sd-font-mono);
     font-size: 0.85em;
     padding: 2px 6px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-sm);
-    background: var(--cr-bg-elevated);
-    box-shadow: 0 1px 0 var(--cr-border);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-sm);
+    background: var(--sd-bg-elevated);
+    box-shadow: 0 1px 0 var(--sd-border);
   }
 
   .prose :global(details) {
     margin: 0 0 1em;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
     padding: 8px 12px;
   }
 
@@ -298,8 +298,8 @@
   .prose :global(.footnotes) {
     margin-top: 2em;
     padding-top: 1em;
-    border-top: 1px solid var(--cr-border);
+    border-top: 1px solid var(--sd-border);
     font-size: 0.875em;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 </style>

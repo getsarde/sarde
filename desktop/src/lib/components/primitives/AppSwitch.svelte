@@ -12,13 +12,13 @@
 </script>
 
 <Switch.Root
-  class="cr-switch"
+  class="sd-switch"
   {id}
   {checked}
   {onCheckedChange}
   {disabled}
   aria-label={ariaLabel}
 >
-  <Switch.Thumb class="cr-switch-thumb" />
+  <Switch.Thumb class="sd-switch-thumb" />
 </Switch.Root>
 

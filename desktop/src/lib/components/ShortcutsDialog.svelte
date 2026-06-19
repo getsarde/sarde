@@ -69,14 +69,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--cr-border);
+    border-bottom: 1px solid var(--sd-border);
   }
 
   .shortcuts-header h2 {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .close-btn {
@@ -86,15 +86,15 @@
     width: 28px;
     height: 28px;
     border: none;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
   }
 
   .close-btn:hover {
-    color: var(--cr-text);
-    background: var(--cr-hover);
+    color: var(--sd-text);
+    background: var(--sd-hover);
   }
 
   .shortcuts-body {
@@ -117,7 +117,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .shortcut-row {
@@ -129,17 +129,17 @@
 
   .shortcut-desc {
     font-size: 13px;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .shortcut-keys {
-    font-family: var(--cr-font-mono);
+    font-family: var(--sd-font-mono);
     font-size: 11px;
     padding: 3px 8px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-sm);
-    background: var(--cr-bg-input);
-    color: var(--cr-text-muted);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-sm);
+    background: var(--sd-bg-input);
+    color: var(--sd-text-muted);
     white-space: nowrap;
   }
 </style>

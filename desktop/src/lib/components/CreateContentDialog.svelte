@@ -139,7 +139,7 @@
     margin: 0;
     font-size: 15px;
     font-weight: 600;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .dialog-body {
@@ -158,7 +158,7 @@
   .field label {
     font-size: 11px;
     font-weight: 600;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -167,23 +167,23 @@
   .field select {
     padding: 7px 10px;
     font-size: 13px;
-    color: var(--cr-text);
-    background: var(--cr-bg-input);
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-sm);
+    color: var(--sd-text);
+    background: var(--sd-bg-input);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-sm);
     outline: none;
     font-family: inherit;
   }
 
   .field input:focus,
   .field select:focus {
-    border-color: var(--cr-accent);
+    border-color: var(--sd-accent);
   }
 
   .slug-preview {
     font-size: 11px;
-    color: var(--cr-text-muted);
-    font-family: var(--cr-font-mono);
+    color: var(--sd-text-muted);
+    font-family: var(--sd-font-mono);
   }
 
   .dialog-footer {
@@ -196,7 +196,7 @@
   .btn {
     padding: 7px 16px;
     border: none;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
@@ -209,8 +209,8 @@
   }
 
   .btn-primary {
-    background: var(--cr-accent);
-    color: var(--cr-bg-base);
+    background: var(--sd-accent);
+    color: var(--sd-bg-base);
   }
 
   .btn-primary:hover:not(:disabled) {
@@ -218,11 +218,11 @@
   }
 
   .btn-secondary {
-    background: var(--cr-bg-elevated);
-    color: var(--cr-text);
+    background: var(--sd-bg-elevated);
+    color: var(--sd-text);
   }
 
   .btn-secondary:hover {
-    background: var(--cr-bg-surface);
+    background: var(--sd-bg-surface);
   }
 </style>

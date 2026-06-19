@@ -1,41 +1,41 @@
 /* Catppuccin Mocha */
 
 [data-theme="dark"] {
-  --cr-bg-base: #1e1e2e;
-  --cr-bg-surface: #252536;
-  --cr-bg-elevated: #2d2d44;
-  --cr-bg-input: #11111b;
-  --cr-bg-overlay: rgba(0, 0, 0, 0.6);
+  --sd-bg-base: #1e1e2e;
+  --sd-bg-surface: #252536;
+  --sd-bg-elevated: #2d2d44;
+  --sd-bg-input: #11111b;
+  --sd-bg-overlay: rgba(0, 0, 0, 0.6);
 
-  --cr-text: #cdd6f4;
-  --cr-text-muted: #6c7086;
-  --cr-text-dim: #45475a;
+  --sd-text: #cdd6f4;
+  --sd-text-muted: #6c7086;
+  --sd-text-dim: #45475a;
 
-  --cr-accent: #89b4fa;
-  --cr-accent-hover: #74c7ec;
-  --cr-accent-bg: rgba(137, 180, 250, 0.12);
-  --cr-accent-text: #1e1e2e;
+  --sd-accent: #89b4fa;
+  --sd-accent-hover: #74c7ec;
+  --sd-accent-bg: rgba(137, 180, 250, 0.12);
+  --sd-accent-text: #1e1e2e;
 
-  --cr-border: #313244;
-  --cr-border-focus: #89b4fa;
+  --sd-border: #313244;
+  --sd-border-focus: #89b4fa;
 
-  --cr-success: #a6e3a1;
-  --cr-success-bg: rgba(166, 227, 161, 0.1);
-  --cr-warning: #f9e2af;
-  --cr-warning-bg: rgba(249, 226, 175, 0.1);
-  --cr-danger: #f38ba8;
-  --cr-danger-bg: rgba(243, 139, 168, 0.1);
-  --cr-info: #89b4fa;
+  --sd-success: #a6e3a1;
+  --sd-success-bg: rgba(166, 227, 161, 0.1);
+  --sd-warning: #f9e2af;
+  --sd-warning-bg: rgba(249, 226, 175, 0.1);
+  --sd-danger: #f38ba8;
+  --sd-danger-bg: rgba(243, 139, 168, 0.1);
+  --sd-info: #89b4fa;
 
-  --cr-hover: rgba(255, 255, 255, 0.06);
-  --cr-active: rgba(137, 180, 250, 0.1);
-  --cr-selection: rgba(137, 180, 250, 0.2);
+  --sd-hover: rgba(255, 255, 255, 0.06);
+  --sd-active: rgba(137, 180, 250, 0.1);
+  --sd-selection: rgba(137, 180, 250, 0.2);
 
-  --cr-scrollbar: #45475a;
-  --cr-scrollbar-hover: #6c7086;
-  --cr-scrollbar-active: #9399b2;
+  --sd-scrollbar: #45475a;
+  --sd-scrollbar-hover: #6c7086;
+  --sd-scrollbar-active: #9399b2;
 
-  --cr-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-  --cr-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
-  --cr-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.4);
+  --sd-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --sd-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --sd-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.4);
 }

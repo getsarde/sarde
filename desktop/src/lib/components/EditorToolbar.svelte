@@ -157,8 +157,8 @@
     align-items: center;
     height: 36px;
     padding: 0 8px;
-    background: var(--cr-bg-surface);
-    border-bottom: 1px solid var(--cr-border);
+    background: var(--sd-bg-surface);
+    border-bottom: 1px solid var(--sd-border);
     gap: 4px;
     user-select: none;
     overflow: hidden;
@@ -179,21 +179,21 @@
     padding: 0 6px;
     border: none;
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-size: 13px;
     font-weight: 600;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     cursor: pointer;
     transition: background 0.12s, color 0.12s;
   }
 
   .tool-btn:hover {
-    background: var(--cr-bg-elevated);
-    color: var(--cr-text);
+    background: var(--sd-bg-elevated);
+    color: var(--sd-text);
   }
 
   .tool-btn:active {
-    background: var(--cr-bg-base);
+    background: var(--sd-bg-base);
   }
 
   .tool-btn:disabled {
@@ -202,15 +202,15 @@
   }
 
   :global(.tool-btn[data-state="on"]) {
-    color: var(--cr-accent);
-    background: var(--cr-active);
+    color: var(--sd-accent);
+    background: var(--sd-active);
   }
 
   .mode-group {
     display: flex;
     gap: 1px;
-    background: var(--cr-border);
-    border-radius: var(--cr-radius-sm);
+    background: var(--sd-border);
+    border-radius: var(--sd-radius-sm);
     overflow: hidden;
   }
 
@@ -221,19 +221,19 @@
     width: 28px;
     height: 24px;
     border: none;
-    background: var(--cr-bg-surface);
-    color: var(--cr-text-muted);
+    background: var(--sd-bg-surface);
+    color: var(--sd-text-muted);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
   }
 
-  .mode-btn:hover { background: var(--cr-bg-elevated); color: var(--cr-text); }
-  .mode-btn.active { background: var(--cr-active); color: var(--cr-accent); }
+  .mode-btn:hover { background: var(--sd-bg-elevated); color: var(--sd-text); }
+  .mode-btn.active { background: var(--sd-active); color: var(--sd-accent); }
 
   .tool-sep {
     width: 1px;
     height: 16px;
-    background: var(--cr-border);
+    background: var(--sd-border);
     margin: 0 2px;
     flex-shrink: 0;
   }
@@ -244,7 +244,7 @@
     gap: 6px;
     margin-left: auto;
     padding: 0 4px 0 8px;
-    border-left: 1px solid var(--cr-border);
+    border-left: 1px solid var(--sd-border);
     flex-shrink: 0;
   }
 
@@ -252,25 +252,25 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: var(--cr-text-muted);
+    background: var(--sd-text-muted);
     flex-shrink: 0;
     transition: background 0.3s;
   }
 
   .server-indicator.live {
-    background: var(--cr-success);
-    box-shadow: 0 0 4px color-mix(in srgb, var(--cr-success) 50%, transparent);
+    background: var(--sd-success);
+    box-shadow: 0 0 4px color-mix(in srgb, var(--sd-success) 50%, transparent);
   }
 
   .server-url {
     font-size: 11px;
-    color: var(--cr-text);
-    font-family: var(--cr-font-mono);
+    color: var(--sd-text);
+    font-family: var(--sd-font-mono);
     white-space: nowrap;
   }
 
   .server-url.muted {
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .preview-btn {
@@ -279,8 +279,8 @@
     gap: 5px;
     padding: 3px 10px;
     border: none;
-    border-radius: var(--cr-radius-sm);
-    background: var(--cr-accent);
+    border-radius: var(--sd-radius-sm);
+    background: var(--sd-accent);
     color: #fff;
     font-size: 12px;
     font-weight: 600;
@@ -290,7 +290,7 @@
   }
 
   .preview-btn:hover:not(:disabled) {
-    background: var(--cr-accent-hover);
+    background: var(--sd-accent-hover);
   }
 
   .preview-btn:disabled {
@@ -299,26 +299,26 @@
   }
 
   .preview-btn.start {
-    background: var(--cr-bg-elevated);
-    color: var(--cr-text);
-    border: 1px solid var(--cr-border);
+    background: var(--sd-bg-elevated);
+    color: var(--sd-text);
+    border: 1px solid var(--sd-border);
   }
 
   .preview-btn.start:hover:not(:disabled) {
-    background: var(--cr-accent);
+    background: var(--sd-accent);
     color: #fff;
     border-color: transparent;
   }
 
   .preview-btn.stop {
     background: transparent;
-    color: var(--cr-text-muted);
-    border: 1px solid var(--cr-border);
+    color: var(--sd-text-muted);
+    border: 1px solid var(--sd-border);
   }
 
   .preview-btn.stop:hover:not(:disabled) {
-    color: var(--cr-danger);
-    border-color: var(--cr-danger);
-    background: var(--cr-danger-bg);
+    color: var(--sd-danger);
+    border-color: var(--sd-danger);
+    background: var(--sd-danger-bg);
   }
 </style>

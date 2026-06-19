@@ -129,14 +129,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--cr-border);
+    border-bottom: 1px solid var(--sd-border);
   }
 
   .modal-header h2 {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .modal-body {
@@ -152,19 +152,19 @@
   }
 
   .deploy-icon {
-    color: var(--cr-accent);
+    color: var(--sd-accent);
   }
 
   .deploy-icon.muted {
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .deploy-icon.success {
-    color: var(--cr-success);
+    color: var(--sd-success);
   }
 
   .deploy-icon.error {
-    color: var(--cr-danger);
+    color: var(--sd-danger);
   }
 
   .deploy-icon.spinning {
@@ -179,11 +179,11 @@
   .deploy-message {
     margin: 0;
     font-size: 14px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .error-text {
-    color: var(--cr-danger);
+    color: var(--sd-danger);
   }
 
   .provider-badge {
@@ -192,8 +192,8 @@
     border-radius: 16px;
     font-size: 13px;
     font-weight: 500;
-    background: var(--cr-hover);
-    color: var(--cr-text);
+    background: var(--sd-hover);
+    color: var(--sd-text);
   }
 
   .btn-group {

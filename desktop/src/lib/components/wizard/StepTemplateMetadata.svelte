@@ -56,7 +56,7 @@
     display: block;
     font-size: 12px;
     font-weight: 500;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     margin-bottom: 8px;
   }
 
@@ -72,10 +72,10 @@
     align-items: center;
     gap: 6px;
     padding: 14px 8px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-lg);
-    background: var(--cr-bg-input);
-    color: var(--cr-text-muted);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-lg);
+    background: var(--sd-bg-input);
+    color: var(--sd-text-muted);
     cursor: pointer;
     text-align: center;
     font-family: inherit;
@@ -83,16 +83,16 @@
   }
 
   :global(.template-card:hover) {
-    border-color: var(--cr-text-muted);
-    color: var(--cr-text);
-    background: var(--cr-bg-elevated);
+    border-color: var(--sd-text-muted);
+    color: var(--sd-text);
+    background: var(--sd-bg-elevated);
   }
 
   :global(.template-card[data-state="checked"]) {
-    border-color: var(--cr-accent);
-    color: var(--cr-accent);
-    background: var(--cr-accent-bg);
-    box-shadow: 0 0 0 1px var(--cr-accent);
+    border-color: var(--sd-accent);
+    color: var(--sd-accent);
+    background: var(--sd-accent-bg);
+    box-shadow: 0 0 0 1px var(--sd-accent);
   }
 
   .template-name {
@@ -112,14 +112,14 @@
     display: block;
     font-size: 12px;
     font-weight: 500;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     margin-bottom: 6px;
   }
 
   .optional {
     font-weight: 400;
     font-size: 11px;
-    color: var(--cr-text-dim);
+    color: var(--sd-text-dim);
     font-style: italic;
   }
 
@@ -127,15 +127,15 @@
     width: 100%;
     padding: 10px 12px;
     font-size: 14px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
-    background: var(--cr-bg-input);
-    color: var(--cr-text);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    background: var(--sd-bg-input);
+    color: var(--sd-text);
     outline: none;
     box-sizing: border-box;
     font-family: inherit;
     resize: none;
   }
 
-  .field-input:focus { border-color: var(--cr-accent); }
+  .field-input:focus { border-color: var(--sd-accent); }
 </style>

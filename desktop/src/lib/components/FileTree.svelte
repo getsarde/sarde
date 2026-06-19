@@ -642,7 +642,7 @@
   .empty-msg {
     padding: 12px;
     font-size: 12px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     margin: 0;
   }
 
@@ -671,7 +671,7 @@
     padding-right: 8px;
     border: none;
     background: transparent;
-    color: var(--cr-text);
+    color: var(--sd-text);
     font-size: 13px;
     cursor: pointer;
     text-align: left;
@@ -680,12 +680,12 @@
   }
 
   .tree-row:hover {
-    background: var(--cr-hover);
+    background: var(--sd-hover);
   }
 
   .tree-file.active {
-    background: var(--cr-active);
-    color: var(--cr-accent);
+    background: var(--sd-active);
+    color: var(--sd-accent);
   }
 
   .tree-file.selected {
@@ -693,12 +693,12 @@
   }
 
   .tree-file.drag-over {
-    border-top: 2px solid var(--cr-accent);
+    border-top: 2px solid var(--sd-accent);
   }
 
   .tree-dir.drop-target {
-    background: var(--cr-active);
-    outline: 1px dashed var(--cr-accent);
+    background: var(--sd-active);
+    outline: 1px dashed var(--sd-accent);
     outline-offset: -1px;
   }
 
@@ -710,7 +710,7 @@
     height: 16px;
     flex-shrink: 0;
     transition: transform 0.15s ease;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .tree-arrow.expanded {
@@ -725,11 +725,11 @@
 
   .tree-icon {
     flex-shrink: 0;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .tree-dir .tree-icon {
-    color: var(--cr-accent);
+    color: var(--sd-accent);
   }
 
   .tree-name {
@@ -741,10 +741,10 @@
   .inline-input {
     flex: 1;
     min-width: 0;
-    background: var(--cr-bg-input);
-    border: 1px solid var(--cr-accent);
+    background: var(--sd-bg-input);
+    border: 1px solid var(--sd-accent);
     border-radius: 3px;
-    color: var(--cr-text);
+    color: var(--sd-text);
     font-size: 13px;
     font-family: inherit;
     padding: 1px 5px;
@@ -758,9 +758,9 @@
   /* Context menu (portaled — needs :global) */
   :global(.ctx-menu) {
     min-width: 160px;
-    background: var(--cr-bg-base);
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
+    background: var(--sd-bg-base);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     padding: 4px;
     overflow: hidden;
@@ -776,7 +776,7 @@
     border: none;
     border-radius: 5px;
     background: transparent;
-    color: var(--cr-text);
+    color: var(--sd-text);
     font-size: 13px;
     font-family: inherit;
     text-align: left;
@@ -784,21 +784,21 @@
   }
 
   :global(.ctx-item[data-highlighted]) {
-    background: var(--cr-hover);
+    background: var(--sd-hover);
     outline: none;
   }
 
   :global(.ctx-danger) {
-    color: var(--cr-danger);
+    color: var(--sd-danger);
   }
 
   :global(.ctx-danger[data-highlighted]) {
-    background: var(--cr-danger-bg);
+    background: var(--sd-danger-bg);
   }
 
   :global(.ctx-sep) {
     height: 1px;
-    background: var(--cr-border);
+    background: var(--sd-border);
     margin: 3px 0;
   }
 
@@ -808,15 +808,15 @@
     align-items: center;
     gap: 6px;
     padding: 6px 8px;
-    background: var(--cr-active);
-    border-bottom: 1px solid var(--cr-border);
+    background: var(--sd-active);
+    border-bottom: 1px solid var(--sd-border);
     flex-shrink: 0;
   }
 
   .bulk-count {
     font-size: 11px;
     font-weight: 600;
-    color: var(--cr-accent);
+    color: var(--sd-accent);
     flex: 1;
   }
 
@@ -827,21 +827,21 @@
     padding: 3px 8px;
     font-size: 11px;
     font-family: inherit;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-sm);
-    background: var(--cr-bg-elevated);
-    color: var(--cr-text-muted);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-sm);
+    background: var(--sd-bg-elevated);
+    color: var(--sd-text-muted);
     cursor: pointer;
   }
 
   .bulk-btn:hover {
-    color: var(--cr-text);
-    border-color: var(--cr-text-muted);
+    color: var(--sd-text);
+    border-color: var(--sd-text-muted);
   }
 
   .bulk-btn.danger:hover {
-    color: var(--cr-danger);
-    border-color: var(--cr-danger);
-    background: var(--cr-danger-bg);
+    color: var(--sd-danger);
+    border-color: var(--sd-danger);
+    background: var(--sd-danger-bg);
   }
 </style>

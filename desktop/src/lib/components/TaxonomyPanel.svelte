@@ -115,7 +115,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 6px 8px;
-    border-bottom: 1px solid var(--cr-border);
+    border-bottom: 1px solid var(--sd-border);
   }
 
   .tax-tabs {
@@ -129,22 +129,22 @@
     gap: 4px;
     padding: 4px 8px;
     border: none;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-size: 11px;
     font-family: inherit;
     cursor: pointer;
   }
 
   .tax-tab:hover {
-    color: var(--cr-text);
-    background: var(--cr-hover);
+    color: var(--sd-text);
+    background: var(--sd-hover);
   }
 
   .tax-tab.active {
-    color: var(--cr-accent);
-    background: var(--cr-active);
+    color: var(--sd-accent);
+    background: var(--sd-active);
     font-weight: 600;
   }
 
@@ -155,15 +155,15 @@
     width: 22px;
     height: 22px;
     border: none;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
   }
 
   .tax-refresh:hover:not(:disabled) {
-    color: var(--cr-text);
-    background: var(--cr-hover);
+    color: var(--sd-text);
+    background: var(--sd-hover);
   }
 
   .tax-refresh:disabled {
@@ -176,14 +176,14 @@
     gap: 6px;
     padding: 12px;
     font-size: 12px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .tax-empty {
     padding: 16px 12px;
     margin: 0;
     font-size: 12px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     text-align: center;
   }
 
@@ -198,17 +198,17 @@
     align-items: center;
     gap: 6px;
     padding: 4px 8px;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
   }
 
   .tax-item:hover {
-    background: var(--cr-hover);
+    background: var(--sd-hover);
   }
 
   .tax-name {
     flex: 1;
     font-size: 12px;
-    color: var(--cr-text);
+    color: var(--sd-text);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -217,8 +217,8 @@
   .tax-count {
     font-size: 10px;
     font-weight: 600;
-    color: var(--cr-accent);
-    background: var(--cr-active);
+    color: var(--sd-accent);
+    background: var(--sd-active);
     border-radius: 8px;
     padding: 1px 6px;
     flex-shrink: 0;
@@ -232,9 +232,9 @@
     height: 20px;
     border: none;
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     flex-shrink: 0;
     opacity: 0;
     transition: opacity 0.1s;
@@ -246,17 +246,17 @@
   }
 
   .tax-action:hover {
-    color: var(--cr-text);
-    background: var(--cr-hover);
+    color: var(--sd-text);
+    background: var(--sd-hover);
   }
 
   .tax-action.delete:hover {
-    color: var(--cr-danger);
-    background: var(--cr-danger-bg);
+    color: var(--sd-danger);
+    background: var(--sd-danger-bg);
   }
 
   .tax-action.confirm:hover {
-    color: var(--cr-success);
+    color: var(--sd-success);
   }
 
   .tax-edit-input {
@@ -265,10 +265,10 @@
     padding: 2px 6px;
     font-size: 12px;
     font-family: inherit;
-    border: 1px solid var(--cr-accent);
-    border-radius: var(--cr-radius-sm);
-    background: var(--cr-bg-base);
-    color: var(--cr-text);
+    border: 1px solid var(--sd-accent);
+    border-radius: var(--sd-radius-sm);
+    background: var(--sd-bg-base);
+    color: var(--sd-text);
     outline: none;
   }
 </style>

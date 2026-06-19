@@ -12,7 +12,7 @@
     ...rest
   } = $props()
 
-  let cls = $derived(`cr-btn cr-btn-${variant} cr-btn-${size}${fullWidth ? ' cr-btn-full' : ''}`)
+  let cls = $derived(`sd-btn sd-btn-${variant} sd-btn-${size}${fullWidth ? ' sd-btn-full' : ''}`)
 </script>
 
 <Button.Root

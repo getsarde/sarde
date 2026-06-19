@@ -98,8 +98,8 @@
     width: 72px;
     height: 72px;
     border-radius: 18px;
-    background: var(--cr-accent);
-    color: var(--cr-bg-base);
+    background: var(--sd-accent);
+    color: var(--sd-bg-base);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -112,13 +112,13 @@
     margin: 0;
     font-size: 28px;
     font-weight: 700;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .tagline {
     margin: 0;
     font-size: 14px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 
   .actions {
@@ -133,22 +133,22 @@
     gap: 8px;
     width: 180px;
     padding: 24px 16px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-lg);
-    background: var(--cr-bg-input);
-    color: var(--cr-text);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-lg);
+    background: var(--sd-bg-input);
+    color: var(--sd-text);
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s, transform 0.1s;
   }
 
   .action-card:hover {
-    border-color: var(--cr-accent);
-    background: var(--cr-accent-bg);
+    border-color: var(--sd-accent);
+    background: var(--sd-accent-bg);
     transform: translateY(-2px);
   }
 
   .action-card :global(svg) {
-    color: var(--cr-accent);
+    color: var(--sd-accent);
   }
 
   .action-label {
@@ -158,7 +158,7 @@
 
   .action-desc {
     font-size: 12px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     text-align: center;
   }
 
@@ -175,7 +175,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     margin: 0 0 8px;
   }
 
@@ -188,12 +188,12 @@
   .recent-row {
     display: flex;
     align-items: center;
-    border-radius: var(--cr-radius);
+    border-radius: var(--sd-radius);
     transition: background 0.15s;
   }
 
   .recent-row:hover {
-    background: var(--cr-hover);
+    background: var(--sd-hover);
   }
 
   .recent-item {
@@ -204,9 +204,9 @@
     min-width: 0;
     padding: 10px 12px;
     border: none;
-    border-radius: var(--cr-radius);
+    border-radius: var(--sd-radius);
     background: transparent;
-    color: var(--cr-text);
+    color: var(--sd-text);
     cursor: pointer;
     text-align: left;
   }
@@ -226,7 +226,7 @@
 
   .recent-path {
     font-size: 11px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -234,7 +234,7 @@
 
   .recent-date {
     font-size: 11px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     white-space: nowrap;
     flex-shrink: 0;
   }
@@ -246,9 +246,9 @@
     width: 24px;
     height: 24px;
     border: none;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
     opacity: 0;
     transition: opacity 0.15s;
@@ -260,7 +260,7 @@
   }
 
   .recent-remove:hover {
-    color: var(--cr-danger);
-    background: var(--cr-danger-bg);
+    color: var(--sd-danger);
+    background: var(--sd-danger-bg);
   }
 </style>

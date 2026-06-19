@@ -104,9 +104,9 @@
     width: 400px;
     max-width: 90vw;
     padding: 32px;
-    background: var(--cr-bg-base);
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-lg);
+    background: var(--sd-bg-base);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-lg);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   }
 
@@ -120,15 +120,15 @@
     width: 28px;
     height: 28px;
     border: none;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
   }
 
   .tour-close:hover {
-    color: var(--cr-text);
-    background: var(--cr-hover);
+    color: var(--sd-text);
+    background: var(--sd-hover);
   }
 
   .tour-content {
@@ -147,21 +147,21 @@
     align-items: center;
     justify-content: center;
     border-radius: 14px;
-    background: var(--cr-active);
-    color: var(--cr-accent);
+    background: var(--sd-active);
+    color: var(--sd-accent);
   }
 
   .tour-title {
     margin: 0;
     font-size: 20px;
     font-weight: 700;
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .tour-desc {
     margin: 0;
     font-size: 14px;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     line-height: 1.6;
     max-width: 320px;
   }
@@ -179,19 +179,19 @@
     height: 8px;
     border-radius: 50%;
     border: none;
-    background: var(--cr-border);
+    background: var(--sd-border);
     cursor: pointer;
     padding: 0;
     transition: background 0.15s, transform 0.15s;
   }
 
   .tour-dot.active {
-    background: var(--cr-accent);
+    background: var(--sd-accent);
     transform: scale(1.3);
   }
 
   .tour-dot:hover:not(.active) {
-    background: var(--cr-text-muted);
+    background: var(--sd-text-muted);
   }
 
   .tour-footer {
@@ -210,10 +210,10 @@
     align-items: center;
     gap: 4px;
     padding: 8px 16px;
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-size: 13px;
     font-weight: 500;
     font-family: inherit;
@@ -221,8 +221,8 @@
   }
 
   .tour-btn:hover {
-    color: var(--cr-text);
-    border-color: var(--cr-text-muted);
+    color: var(--sd-text);
+    border-color: var(--sd-text-muted);
   }
 
   .tour-btn.skip {
@@ -231,12 +231,12 @@
 
   .tour-btn.skip:hover {
     border-color: transparent;
-    background: var(--cr-hover);
+    background: var(--sd-hover);
   }
 
   .tour-btn.primary {
-    background: var(--cr-accent);
-    border-color: var(--cr-accent);
+    background: var(--sd-accent);
+    border-color: var(--sd-accent);
     color: #fff;
     font-weight: 600;
   }

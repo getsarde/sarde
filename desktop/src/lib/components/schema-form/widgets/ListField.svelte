@@ -48,15 +48,15 @@
     flex-wrap: wrap;
     gap: 4px;
     padding: 4px 6px;
-    background: var(--cr-bg-input);
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius-sm);
+    background: var(--sd-bg-input);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-sm);
     min-height: 28px;
     align-items: center;
   }
 
   .tag-input:focus-within {
-    border-color: var(--cr-accent);
+    border-color: var(--sd-accent);
   }
 
   .tag {
@@ -65,8 +65,8 @@
     gap: 2px;
     padding: 1px 6px;
     font-size: 11px;
-    color: var(--cr-text);
-    background: var(--cr-hover);
+    color: var(--sd-text);
+    background: var(--sd-hover);
     border-radius: 3px;
     white-space: nowrap;
   }
@@ -74,7 +74,7 @@
   .tag-remove {
     border: none;
     background: none;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     cursor: pointer;
     padding: 0 1px;
     font-size: 13px;
@@ -82,7 +82,7 @@
   }
 
   .tag-remove:hover {
-    color: var(--cr-text);
+    color: var(--sd-text);
   }
 
   .tag-add {
@@ -90,13 +90,13 @@
     min-width: 50px;
     border: none;
     background: transparent;
-    color: var(--cr-text);
+    color: var(--sd-text);
     font-size: 11px;
     outline: none;
     padding: 2px 0;
   }
 
   .tag-add::placeholder {
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
   }
 </style>

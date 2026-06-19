@@ -147,8 +147,8 @@
     align-items: center;
     justify-content: space-between;
     height: 38px;
-    background: var(--cr-bg-surface);
-    border-bottom: 1px solid var(--cr-border);
+    background: var(--sd-bg-surface);
+    border-bottom: 1px solid var(--sd-border);
     padding: 0 4px;
     gap: 8px;
     user-select: none;
@@ -174,7 +174,7 @@
     padding: 4px 10px;
     border: none;
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-size: 12px;
     border-radius: 4px 4px 0 0;
     cursor: pointer;
@@ -184,21 +184,21 @@
   }
 
   .tab:hover {
-    background: var(--cr-bg-elevated);
-    color: var(--cr-text);
+    background: var(--sd-bg-elevated);
+    color: var(--sd-text);
   }
 
   .tab.active {
-    background: var(--cr-bg-base);
-    color: var(--cr-text);
-    border-bottom: 2px solid var(--cr-accent);
+    background: var(--sd-bg-base);
+    color: var(--sd-text);
+    border-bottom: 2px solid var(--sd-accent);
   }
 
   .tab-dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--cr-accent);
+    background: var(--sd-accent);
     flex-shrink: 0;
   }
 
@@ -216,7 +216,7 @@
     height: 16px;
     border: none;
     background: transparent;
-    color: var(--cr-text-muted);
+    color: var(--sd-text-muted);
     font-size: 14px;
     line-height: 1;
     border-radius: 3px;
@@ -231,8 +231,8 @@
   }
 
   .tab-close:hover {
-    background: var(--cr-bg-surface);
-    color: var(--cr-text);
+    background: var(--sd-bg-surface);
+    color: var(--sd-text);
   }
 
   .tab-bar.embedded {
@@ -245,9 +245,9 @@
 
   :global(.ctx-menu) {
     min-width: 160px;
-    background: var(--cr-bg-surface);
-    border: 1px solid var(--cr-border);
-    border-radius: var(--cr-radius);
+    background: var(--sd-bg-surface);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     padding: 4px;
     font-size: 13px;
@@ -260,21 +260,21 @@
     padding: 6px 10px;
     border: none;
     background: transparent;
-    color: var(--cr-text);
+    color: var(--sd-text);
     text-align: left;
-    border-radius: var(--cr-radius-sm);
+    border-radius: var(--sd-radius-sm);
     cursor: pointer;
     font-size: 13px;
   }
 
   :global(.ctx-item[data-highlighted]) {
-    background: var(--cr-bg-elevated);
+    background: var(--sd-bg-elevated);
     outline: none;
   }
 
   :global(.ctx-sep) {
     height: 1px;
-    background: var(--cr-border);
+    background: var(--sd-border);
     margin: 4px 0;
   }
 </style>
