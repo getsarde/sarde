@@ -98,6 +98,7 @@
     <AppTooltip content="Table">
       <button class="tool-btn" disabled={!hasFile} onclick={() => editor?.insertText('\n| Col 1 | Col 2 | Col 3 |\n| ----- | ----- | ----- |\n| Cell  | Cell  | Cell  |\n')}><Table size={15} /></button>
     </AppTooltip>
+    {#if false}
     <div class="tool-sep"></div>
     <div class="mode-group">
       <AppTooltip content="Editor only">
@@ -110,6 +111,7 @@
         <button class="mode-btn" class:active={ui.previewMode === 'preview'} onclick={() => ui.previewMode = 'preview'}><Eye size={13} /></button>
       </AppTooltip>
     </div>
+    {/if}
   </div>
 
   <div class="preview-area">

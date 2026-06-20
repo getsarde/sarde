@@ -32,9 +32,6 @@
         const pageUrl = contentPathToUrl(doc.contentPath)
         openShell(`http://localhost:${preview.port}${pageUrl}`)
       }
-    } else if (ctrl && e.shiftKey && e.key === 'M') {
-      e.preventDefault()
-      cyclePreviewMode()
     } else if (ctrl && e.key === '/') {
       e.preventDefault()
       ui.shortcutsOpen = !ui.shortcutsOpen

@@ -3,7 +3,6 @@ const STORAGE_KEY = 'sarde-ui-state'
 const PERSISTED_KEYS = [
   'leftPanel',
   'rightPanel',
-  'previewMode',
   'settingsSection',
   'propertiesMode',
 ]
