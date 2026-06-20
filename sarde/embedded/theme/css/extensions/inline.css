@@ -1,0 +1,660 @@
+@layer sarde.components {
+	/* -- badge -- */
+	/**
+	 * Badge Component Styles
+	 * Comprehensive badge system with icons, variants, and dark mode support
+	 */
+
+	/* =============================================================================
+	   BASE BADGE STYLES
+	   ============================================================================= */
+
+	.sarde-badge {
+	    display: inline-flex;
+	    align-items: center;
+	    gap: 0.25em;
+	    margin: 0.15rem 0.3rem 0.15rem 0;
+	    padding: 0.2rem 0.55rem;
+	    font-size: var(--sd-text-xs);
+	    font-weight: var(--sd-weight-semibold);
+	    line-height: 1.4;
+	    letter-spacing: 0.025em;
+	    text-transform: uppercase;
+	    border-radius: var(--sd-radius-full);
+	    white-space: nowrap;
+	    vertical-align: middle;
+	    transition: all var(--sd-transition-fast);
+	}
+
+	/* Badge icon (inline Lucide SVG) */
+	.sarde-badge-icon {
+	    flex-shrink: 0;
+	    width: 1.3em;
+	    height: 1.3em;
+	}
+
+	/* =============================================================================
+	   BADGE TYPES - Color Variants
+	   ============================================================================= */
+
+	/* Default/Neutral badge */
+	.sarde-badge,
+	.sarde-badge-default {
+	    background: color-mix(in oklch, currentColor 8%, transparent);
+	    color: var(--sd-gray-6);
+	    border: 1px solid color-mix(in oklch, currentColor 20%, transparent);
+	}
+
+	/* Primary badge - Indigo */
+	.sarde-badge-primary {
+	    background: color-mix(in oklch, var(--sd-indigo) 15%, transparent);
+	    color: var(--sd-indigo);
+	    border: 1px solid color-mix(in oklch, var(--sd-indigo) 40%, transparent);
+	}
+
+	/* Secondary badge */
+	.sarde-badge-secondary {
+	    background: color-mix(in oklch, currentColor 8%, transparent);
+	    color: var(--sd-gray-5);
+	    border: 1px solid color-mix(in oklch, currentColor 20%, transparent);
+	}
+
+	/* Success badge */
+	.sarde-badge-success {
+	    background: color-mix(in oklch, var(--sd-green) 15%, transparent);
+	    color: var(--sd-green);
+	    border: 1px solid color-mix(in oklch, var(--sd-green) 40%, transparent);
+	}
+
+	/* Warning badge */
+	.sarde-badge-warning {
+	    background: color-mix(in oklch, var(--sd-amber) 15%, transparent);
+	    color: var(--sd-amber);
+	    border: 1px solid color-mix(in oklch, var(--sd-amber) 40%, transparent);
+	}
+
+	/* Danger badge */
+	.sarde-badge-danger {
+	    background: color-mix(in oklch, var(--sd-red) 15%, transparent);
+	    color: var(--sd-red);
+	    border: 1px solid color-mix(in oklch, var(--sd-red) 40%, transparent);
+	}
+
+	/* Info badge */
+	.sarde-badge-info {
+	    background: color-mix(in oklch, var(--sd-blue) 15%, transparent);
+	    color: var(--sd-blue);
+	    border: 1px solid color-mix(in oklch, var(--sd-blue) 40%, transparent);
+	}
+
+	/* Note badge - Cyan/Teal */
+	.sarde-badge-note {
+	    background: color-mix(in oklch, var(--sd-cyan) 15%, transparent);
+	    color: var(--sd-cyan);
+	    border: 1px solid color-mix(in oklch, var(--sd-cyan) 40%, transparent);
+	}
+
+	/* Tip badge */
+	.sarde-badge-tip {
+	    background: color-mix(in oklch, var(--sd-purple) 15%, transparent);
+	    color: var(--sd-purple);
+	    border: 1px solid color-mix(in oklch, var(--sd-purple) 40%, transparent);
+	}
+
+	/* =============================================================================
+	   OUTLINE VARIANTS
+	   ============================================================================= */
+
+	.sarde-badge-outline {
+	    background: transparent;
+	    border-width: 1px;
+	    border-style: solid;
+	}
+
+	.sarde-badge-outline.sarde-badge-default,
+	.sarde-badge-outline:not([class*="badge-"]) {
+	    color: var(--sd-gray-5);
+	    border-color: var(--sd-gray-3);
+	}
+
+	.sarde-badge-outline.sarde-badge-primary {
+	    color: var(--sd-indigo);
+	    background: transparent;
+	    border-color: var(--sd-indigo);
+	}
+
+	.sarde-badge-outline.sarde-badge-secondary {
+	    color: var(--sd-gray-5);
+	    background: transparent;
+	    border-color: var(--sd-gray-3);
+	}
+
+	.sarde-badge-outline.sarde-badge-success {
+	    color: var(--sd-green);
+	    background: transparent;
+	    border-color: var(--sd-green);
+	}
+
+	.sarde-badge-outline.sarde-badge-warning {
+	    color: var(--sd-amber);
+	    background: transparent;
+	    border-color: var(--sd-amber);
+	}
+
+	.sarde-badge-outline.sarde-badge-danger {
+	    color: var(--sd-red);
+	    background: transparent;
+	    border-color: var(--sd-red);
+	}
+
+	.sarde-badge-outline.sarde-badge-info {
+	    color: var(--sd-blue);
+	    background: transparent;
+	    border-color: var(--sd-blue);
+	}
+
+	.sarde-badge-outline.sarde-badge-note {
+	    color: var(--sd-cyan);
+	    background: transparent;
+	    border-color: var(--sd-cyan);
+	}
+
+	.sarde-badge-outline.sarde-badge-tip {
+	    color: var(--sd-purple);
+	    background: transparent;
+	    border-color: var(--sd-purple);
+	}
+
+	/* =============================================================================
+	   SIZE VARIANTS
+	   ============================================================================= */
+
+	.sarde-badge-sm {
+	    padding: 0.1rem 0.4rem;
+	    font-size: 0.65rem;
+	    letter-spacing: 0.03em;
+	}
+
+	.sarde-badge-sm .sarde-badge-icon {
+	    width: 0.75em;
+	    height: 0.75em;
+	}
+
+	.sarde-badge-lg {
+	    padding: 0.3rem 0.75rem;
+	    font-size: var(--sd-text-sm);
+	    letter-spacing: 0.02em;
+	}
+
+	.sarde-badge-lg .sarde-badge-icon {
+	    width: 0.9em;
+	    height: 0.9em;
+	}
+
+	/* =============================================================================
+	   NO ICON VARIANT
+	   ============================================================================= */
+
+	.sarde-badge-no-icon .sarde-badge-icon {
+	    display: none;
+	}
+
+	/* =============================================================================
+	   BADGE GROUP
+	   ============================================================================= */
+
+	.sarde-badge-group {
+	    display: inline-flex;
+	    flex-wrap: wrap;
+	    gap: var(--sd-space-2);
+	    align-items: center;
+	}
+
+	/* =============================================================================
+	   DARK MODE OVERRIDES
+	   ============================================================================= */
+
+	:root[data-theme="dark"] {
+	    .sarde-badge-default {
+	        background: var(--sd-gray-2);
+	        color: var(--sd-gray-6);
+	        border-color: var(--sd-gray-3);
+	    }
+	    .sarde-badge-primary {
+	        background: var(--sd-indigo-low);
+	        color: var(--sd-indigo-high);
+	        border-color: color-mix(in oklch, var(--sd-indigo) 40%, transparent);
+	    }
+	    .sarde-badge-secondary {
+	        background: var(--sd-gray-2);
+	        color: var(--sd-gray-5);
+	        border-color: var(--sd-gray-3);
+	    }
+	    .sarde-badge-success {
+	        background: var(--sd-green-low);
+	        color: var(--sd-green-high);
+	        border-color: color-mix(in oklch, var(--sd-green) 40%, transparent);
+	    }
+	    .sarde-badge-warning {
+	        background: var(--sd-amber-low);
+	        color: var(--sd-amber-high);
+	        border-color: color-mix(in oklch, var(--sd-amber) 40%, transparent);
+	    }
+	    .sarde-badge-danger {
+	        background: var(--sd-red-low);
+	        color: var(--sd-red-high);
+	        border-color: color-mix(in oklch, var(--sd-red) 40%, transparent);
+	    }
+	    .sarde-badge-info {
+	        background: var(--sd-blue-low);
+	        color: var(--sd-blue-high);
+	        border-color: color-mix(in oklch, var(--sd-blue) 40%, transparent);
+	    }
+	    .sarde-badge-note {
+	        background: var(--sd-cyan-low);
+	        color: var(--sd-cyan-high);
+	        border-color: color-mix(in oklch, var(--sd-cyan) 40%, transparent);
+	    }
+	    .sarde-badge-tip {
+	        background: var(--sd-purple-low);
+	        color: var(--sd-purple-high);
+	        border-color: color-mix(in oklch, var(--sd-purple) 40%, transparent);
+	    }
+
+	    /* Outline variants */
+	    .sarde-badge-outline.sarde-badge-primary { color: var(--sd-indigo-high); border-color: var(--sd-indigo-high); }
+	    .sarde-badge-outline.sarde-badge-success { color: var(--sd-green-high); border-color: var(--sd-green-high); }
+	    .sarde-badge-outline.sarde-badge-warning { color: var(--sd-amber-high); border-color: var(--sd-amber-high); }
+	    .sarde-badge-outline.sarde-badge-danger { color: var(--sd-red-high); border-color: var(--sd-red-high); }
+	    .sarde-badge-outline.sarde-badge-info { color: var(--sd-blue-high); border-color: var(--sd-blue-high); }
+	    .sarde-badge-outline.sarde-badge-note { color: var(--sd-cyan-high); border-color: var(--sd-cyan-high); }
+	    .sarde-badge-outline.sarde-badge-tip { color: var(--sd-purple-high); border-color: var(--sd-purple-high); }
+	}
+
+	/* =============================================================================
+	   ACCESSIBILITY - High Contrast Mode
+	   ============================================================================= */
+
+	@media (prefers-contrast: high) {
+	    .sarde-badge {
+	        border-width: 2px;
+	        font-weight: var(--sd-weight-bold);
+	    }
+
+	    .sarde-badge-outline {
+	        border-width: 2px;
+	    }
+	}
+
+	/* =============================================================================
+	   PRINT STYLES
+	   ============================================================================= */
+
+	@media print {
+	    .sarde-badge {
+	        border: 1px solid currentColor;
+	        background: transparent !important;
+	        -webkit-print-color-adjust: exact;
+	        print-color-adjust: exact;
+	    }
+
+	    .sarde-badge::before {
+	        display: none;
+	    }
+	}
+
+	/* -- kbd -- */
+	/**
+	 * Keyboard Shortcut Component Styles
+	 * Uses simplified semantic tokens
+	 */
+
+	kbd,
+	.sarde-kbd {
+	    display: inline-flex;
+	    align-items: center;
+	    justify-content: center;
+	    min-width: 1.5em;
+	    padding: 0.125rem 0.375rem;
+	    font-family: var(--sd-font-mono);
+	    font-size: var(--sd-text-xs);
+	    font-weight: var(--sd-weight-medium);
+	    line-height: 1;
+	    color: var(--sd-text);
+	    background: var(--sd-bg-surface);
+	    border: 1px solid var(--sd-border);
+	    border-radius: var(--sd-radius-sm);
+	    box-shadow: 0 1px 0 var(--sd-border), inset 0 -1px 0 var(--sd-gray-2);
+	    white-space: nowrap;
+	    vertical-align: baseline;
+	}
+
+	/* Keyboard shortcut group */
+	.sarde-kbd-group {
+	    display: inline-flex;
+	    align-items: center;
+	    gap: var(--sd-space-1);
+	}
+
+	.sarde-kbd-separator {
+	    color: var(--sd-text-subtle);
+	    font-size: var(--sd-text-xs);
+	}
+
+	/* Size variants */
+	kbd.sarde-kbd-sm,
+	.sarde-kbd.sarde-kbd-sm {
+	    padding: 0.0625rem 0.25rem;
+	    font-size: 0.625rem;
+	    min-width: 1.25em;
+	}
+
+	kbd.sarde-kbd-lg,
+	.sarde-kbd.sarde-kbd-lg {
+	    padding: 0.25rem 0.5rem;
+	    font-size: var(--sd-text-sm);
+	    min-width: 2em;
+	}
+
+	/* Special keys */
+	kbd.sarde-kbd-wide,
+	.sarde-kbd.sarde-kbd-wide {
+	    min-width: 4em;
+	}
+
+	/* Key icons (for special keys like arrows) */
+	.sarde-kbd-icon {
+	    font-size: 1.1em;
+	}
+
+	/* Keyboard combination display */
+	.sarde-keyboard-shortcut {
+	    display: inline-flex;
+	    align-items: center;
+	    gap: var(--sd-space-1);
+	}
+
+	.sarde-keyboard-shortcut .plus {
+	    color: var(--sd-text-subtle);
+	    font-size: var(--sd-text-sm);
+	    font-weight: var(--sd-weight-normal);
+	}
+
+	/* Pressed state */
+	kbd:active,
+	.sarde-kbd:active {
+	    box-shadow: none;
+	    transform: translateY(1px);
+	}
+
+	/* Print styles */
+	@media print {
+	    kbd,
+	    .sarde-kbd {
+	        background: var(--sd-white);
+	        border: 1px solid var(--sd-gray-7);
+	        box-shadow: none;
+	    }
+	}
+
+	/* -- highlight -- */
+	/* Highlight Extension */
+	mark {
+	  background: oklch(0.96 0.12 99);
+	  color: inherit;
+	  padding: 0.125em 0.25em;
+	  border-radius: 0.125rem;
+	}
+	:root[data-theme="dark"] {
+	  mark {
+	    background: oklch(0.45 0.10 67);
+	    color: #fef9c3;
+	  }
+	}
+
+	/* -- spoiler -- */
+	/**
+	 * Inline Spoiler Styles (Discord-style)
+	 *
+	 * Blurred text that reveals on hover/click
+	 * Syntax: ||spoiler text||
+	 */
+
+	.sarde-spoiler {
+	    /* Blur effect - hides the text */
+	    filter: blur(4px);
+	    -webkit-filter: blur(4px);
+
+	    /* Visual styling */
+	    background-color: var(--sd-gray-3, #d1d5db);
+	    color: transparent;
+	    padding: 0.1em 0.3em;
+	    border-radius: var(--sd-radius-sm, 4px);
+
+	    /* Smooth transition for reveal */
+	    transition: filter 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+
+	    /* Make it interactive */
+	    cursor: pointer;
+	    user-select: none;
+	}
+
+	/* Reveal on hover */
+	.sarde-spoiler:hover {
+	    filter: blur(0);
+	    -webkit-filter: blur(0);
+	    background-color: var(--sd-gray-2, #e5e7eb);
+	    color: inherit;
+	}
+
+	/* Reveal on focus (keyboard accessibility) */
+	.sarde-spoiler:focus {
+	    filter: blur(0);
+	    -webkit-filter: blur(0);
+	    background-color: var(--sd-gray-2, #e5e7eb);
+	    color: inherit;
+	    outline: 2px solid var(--sd-focus-ring, #6366f1);
+	    outline-offset: 1px;
+	}
+
+	/* Active/clicked state - keep revealed */
+	.sarde-spoiler:active,
+	.sarde-spoiler.revealed {
+	    filter: blur(0);
+	    -webkit-filter: blur(0);
+	    background-color: var(--sd-gray-2, #e5e7eb);
+	    color: inherit;
+	}
+
+	/* Dark mode support */
+	:root[data-theme="dark"] {
+	    .sarde-spoiler {
+	        background-color: var(--sd-gray-7, #374151);
+	    }
+	    .sarde-spoiler:hover,
+	    .sarde-spoiler:focus {
+	        background-color: var(--sd-gray-6, #4b5563);
+	    }
+	}
+
+	/* Print - always show spoilers */
+	@media print {
+	    .sarde-spoiler {
+	        filter: none !important;
+	        -webkit-filter: none !important;
+	        background-color: var(--sd-gray-2, #e5e7eb) !important;
+	        color: inherit !important;
+	    }
+	}
+
+	/* Reduced motion - instant reveal */
+	@media (prefers-reduced-motion: reduce) {
+	    .sarde-spoiler {
+	        transition: none;
+	    }
+	}
+
+	/* -- annotations -- */
+	/**
+	 * Annotation Component Styles
+	 * Uses semantic tokens from tokens.css
+	 */
+
+	.sarde-annotation {
+	    display: inline;
+	    position: relative;
+	    background: none;
+	    border: none;
+	    padding: 0;
+	    font-size: inherit;
+	    color: inherit;
+	    cursor: help;
+	    text-decoration: underline dotted currentColor;
+	    text-decoration-thickness: 2px;
+	    text-underline-offset: 3px;
+	}
+
+	.sarde-annotation-marker {
+	    display: inline-flex;
+	    align-items: center;
+	    justify-content: center;
+	    width: 1.25em;
+	    height: 1.25em;
+	    font-size: var(--sd-text-xs);
+	    font-weight: var(--sd-weight-bold);
+	    background: var(--sd-bg-accent);
+	    color: var(--sd-text-invert);
+	    border-radius: var(--sd-radius-full);
+	    vertical-align: super;
+	    cursor: help;
+	}
+
+	.sarde-annotation-tooltip {
+	    position: absolute;
+	    bottom: 100%;
+	    left: 50%;
+	    transform: translateX(-50%);
+	    padding: var(--sd-space-3) var(--sd-space-4);
+	    background: var(--sd-gray-7);
+	    color: var(--sd-white);
+	    border-radius: var(--sd-radius-md);
+	    font-size: var(--sd-text-sm);
+	    line-height: 1.5;
+	    white-space: normal;
+	    width: max-content;
+	    max-width: min(400px, 90vw);
+	    min-width: 180px;
+	    text-align: start;
+	    box-shadow: var(--sd-shadow-lg);
+	    z-index: var(--sd-z-toast);
+	    opacity: 0;
+	    visibility: hidden;
+	    transition: opacity var(--sd-transition-fast),
+	                visibility var(--sd-transition-fast);
+	    margin-bottom: var(--sd-space-2);
+	}
+
+	.sarde-annotation-tooltip::after {
+	    content: "";
+	    position: absolute;
+	    top: 100%;
+	    left: 50%;
+	    transform: translateX(-50%);
+	    border: 6px solid transparent;
+	    border-top-color: var(--sd-gray-7);
+	}
+
+	.sarde-annotation:hover .sarde-annotation-tooltip,
+	.sarde-annotation:focus .sarde-annotation-tooltip,
+	.sarde-annotation-marker:hover + .sarde-annotation-tooltip,
+	.sarde-annotation-marker:focus + .sarde-annotation-tooltip {
+	    opacity: 1;
+	    visibility: visible;
+	}
+
+	/* Annotation in code blocks */
+	.sarde-code-annotation {
+	    display: inline;
+	    background: var(--sd-amber-low);
+	    color: inherit;
+	    padding: 0 var(--sd-space-1);
+	    border-radius: var(--sd-radius-sm);
+	    font-style: normal;
+	    cursor: help;
+	}
+
+	:root[data-theme="dark"] {
+	    .sarde-code-annotation {
+	        background: oklch(0.35 0.10 var(--sd-hue-amber));
+	        color: oklch(0.89 0.08 var(--sd-hue-amber));
+	    }
+	    .sarde-annotation-tooltip {
+	        background: oklch(0.95 0.012 264);
+	        color: oklch(0.22 0.018 264);
+	    }
+	    .sarde-annotation-tooltip::after {
+	        border-top-color: oklch(0.95 0.012 264);
+	    }
+	}
+
+	/* Highlight annotation variant */
+	.sarde-annotation-highlight {
+	    background: var(--sd-bg-accent-subtle);
+	    color: inherit;
+	    border: none;
+	    padding: 0 var(--sd-space-1);
+	    text-decoration: none;
+	    border-radius: var(--sd-radius-sm);
+	}
+
+	/* Underline annotation variant */
+	.sarde-annotation-underline {
+	    background: transparent;
+	    border: none;
+	    border-bottom: 2px dotted var(--sd-border-accent);
+	    border-radius: 0;
+	    padding: 0;
+	}
+
+	/* Sidenote variant */
+	.sarde-sidenote {
+	    float: inline-end;
+	    clear: inline-end;
+	    width: 200px;
+	    margin-inline-end: -220px;
+	    margin-bottom: var(--sd-space-4);
+	    padding: var(--sd-space-3);
+	    background: var(--sd-bg-surface);
+	    border-inline-start: 3px solid var(--sd-border-accent);
+	    font-size: var(--sd-text-sm);
+	    color: var(--sd-text-muted);
+	    line-height: var(--sd-line-height);
+	}
+
+	@media (max-width: 1200px) {
+	    .sarde-sidenote {
+	        float: none;
+	        width: auto;
+	        margin: var(--sd-space-4) 0;
+	        margin-inline-end: 0;
+	    }
+	}
+
+	/* Print styles */
+	@media print {
+	    .sarde-annotation {
+	        text-decoration: underline;
+	    }
+
+	    .sarde-annotation-tooltip {
+	        display: none;
+	    }
+
+	    .sarde-sidenote {
+	        float: none;
+	        width: auto;
+	        margin: var(--sd-space-4) 0;
+	        border: 1px solid var(--sd-gray-4);
+	    }
+	}
+}

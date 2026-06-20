@@ -1,0 +1,266 @@
+@layer sarde.components {
+	/* -- asides -- */
+	/**
+	 * Astro Starlight-style Asides
+	 * Educational content callouts for notes, tips, cautions, and dangers
+	 * Uses simplified semantic tokens
+	 */
+
+	.sarde-aside {
+	    margin: var(--sd-space-6) 0;
+	    padding: var(--sd-space-4) var(--sd-space-6);
+	    padding-inline-start: var(--sd-space-4);
+	    border-inline-start: 4px solid;
+	    border-radius: 0 var(--sd-radius-lg) var(--sd-radius-lg) 0;
+	    font-size: var(--sd-text-base);
+	    line-height: var(--sd-line-height);
+	    color: var(--sd-text);
+	    position: relative;
+	    transition: transform 0.2s ease, box-shadow 0.2s ease;
+	}
+
+	[dir="rtl"] .sarde-aside {
+	    border-radius: var(--sd-radius-lg) 0 0 var(--sd-radius-lg);
+	}
+
+	.sarde-aside:hover {
+	    transform: translateX(2px);
+	    box-shadow: var(--sd-shadow-sm);
+	}
+
+	[dir="rtl"] .sarde-aside:hover {
+	    transform: translateX(-2px);
+	}
+
+	.sarde-aside-title {
+	    display: flex;
+	    align-items: center;
+	    gap: var(--sd-space-2);
+	    margin: 0 0 var(--sd-space-3) 0;
+	    font-weight: var(--sd-weight-bold);
+	    font-size: var(--sd-text-lg);
+	    line-height: var(--sd-line-height-headings);
+	    letter-spacing: -0.01em;
+	}
+
+	.sarde-aside-icon {
+	    width: 1.5rem;
+	    height: 1.5rem;
+	    flex-shrink: 0;
+	    opacity: 0.9;
+	}
+
+	.sarde-aside-content {
+	    margin: 0;
+	}
+
+	.sarde-aside-content > *:first-child {
+	    margin-top: 0;
+	}
+
+	.sarde-aside-content > *:last-child {
+	    margin-bottom: 0;
+	}
+
+	/* Note - Blue */
+	.sarde-aside-note {
+	    border-color: var(--sd-aside-note);
+	    background-color: var(--sd-aside-note-bg);
+	}
+
+	.sarde-aside-note .sarde-aside-title,
+	.sarde-aside-note .sarde-aside-icon {
+	    color: var(--sd-aside-note);
+	}
+
+	/* Tip - Purple */
+	.sarde-aside-tip {
+	    border-color: var(--sd-aside-tip);
+	    background-color: var(--sd-aside-tip-bg);
+	}
+
+	.sarde-aside-tip .sarde-aside-title,
+	.sarde-aside-tip .sarde-aside-icon {
+	    color: var(--sd-aside-tip);
+	}
+
+	/* Info - Cyan/Teal */
+	.sarde-aside-info {
+	    border-color: var(--sd-cyan, #06b6d4);
+	    background-color: var(--sd-cyan-low, rgba(6, 182, 212, 0.1));
+	}
+
+	.sarde-aside-info .sarde-aside-title,
+	.sarde-aside-info .sarde-aside-icon {
+	    color: var(--sd-cyan, #06b6d4);
+	}
+
+	/* Warning - Amber */
+	.sarde-aside-warning {
+	    border-color: var(--sd-aside-caution);
+	    background-color: var(--sd-aside-caution-bg);
+	}
+
+	.sarde-aside-warning .sarde-aside-title,
+	.sarde-aside-warning .sarde-aside-icon {
+	    color: var(--sd-aside-caution);
+	}
+
+	/* Danger - Red */
+	.sarde-aside-danger {
+	    border-color: var(--sd-aside-danger);
+	    background-color: var(--sd-aside-danger-bg);
+	}
+
+	.sarde-aside-danger .sarde-aside-title,
+	.sarde-aside-danger .sarde-aside-icon {
+	    color: var(--sd-aside-danger);
+	}
+
+	/* Success - Green */
+	.sarde-aside-success {
+	    border-color: var(--sd-green);
+	    background-color: var(--sd-green-low);
+	}
+
+	.sarde-aside-success .sarde-aside-title,
+	.sarde-aside-success .sarde-aside-icon {
+	    color: var(--sd-green);
+	}
+
+	/* Responsive adjustments */
+	@media (max-width: 768px) {
+	    .sarde-aside {
+	        margin: var(--sd-space-4) 0;
+	        padding: var(--sd-space-3) var(--sd-space-4);
+	        font-size: var(--sd-text-sm);
+	    }
+
+	    .sarde-aside-icon {
+	        width: 1.125rem;
+	        height: 1.125rem;
+	    }
+	}
+
+	/* Print styles */
+	@media print {
+	    .sarde-aside {
+	        border: 2px solid var(--sd-gray-6);
+	        page-break-inside: avoid;
+	    }
+	}
+
+	/* -- asides-github -- */
+	/**
+	 * GitHub-style Alerts (Modern GitHub Callouts)
+	 * Matches GitHub's current callout design with left accent border
+	 */
+
+	/* GitHub-style base */
+	.sarde-aside-github {
+	    padding: 0.5rem 1rem;
+	    border-inline-start: 0.25em solid #d0d7de;
+	    margin: 1rem 0;
+	    background: transparent !important;
+	    border-radius: 0;
+	}
+
+	.sarde-aside-github .sarde-aside-title {
+	    display: flex;
+	    align-items: center;
+	    font-weight: 600;
+	    font-size: 0.875rem;
+	    margin: 0 0 0.5rem 0;
+	    line-height: 1.5;
+	}
+
+	.sarde-aside-github .sarde-aside-icon {
+	    width: 1rem;
+	    height: 1rem;
+	    margin-inline-end: 0.5rem;
+	    flex-shrink: 0;
+	}
+
+	.sarde-aside-github .sarde-aside-content {
+	    font-size: 0.875rem;
+	    line-height: 1.6;
+	}
+
+	.sarde-aside-github .sarde-aside-content > *:first-child { margin-top: 0; }
+	.sarde-aside-github .sarde-aside-content > *:last-child  { margin-bottom: 0; }
+
+	/* GitHub Note - Blue */
+	.sarde-aside-github.sarde-aside-gh-note { border-inline-start-color: #54aeff; }
+	.sarde-aside-github.sarde-aside-gh-note .sarde-aside-title,
+	.sarde-aside-github.sarde-aside-gh-note .sarde-aside-icon { color: #0969da; }
+
+	/* GitHub Tip - Green */
+	.sarde-aside-github.sarde-aside-gh-tip { border-inline-start-color: #4ac26b; }
+	.sarde-aside-github.sarde-aside-gh-tip .sarde-aside-title,
+	.sarde-aside-github.sarde-aside-gh-tip .sarde-aside-icon { color: #116329; }
+
+	/* GitHub Important - Purple */
+	.sarde-aside-github.sarde-aside-gh-important { border-inline-start-color: #bf3989; }
+	.sarde-aside-github.sarde-aside-gh-important .sarde-aside-title,
+	.sarde-aside-github.sarde-aside-gh-important .sarde-aside-icon { color: #6e1a52; }
+
+	/* GitHub Warning - Orange/Yellow */
+	.sarde-aside-github.sarde-aside-gh-warning { border-inline-start-color: #d4a72c; }
+	.sarde-aside-github.sarde-aside-gh-warning .sarde-aside-title,
+	.sarde-aside-github.sarde-aside-gh-warning .sarde-aside-icon { color: #7d4e00; }
+
+	/* GitHub Caution - Red */
+	.sarde-aside-github.sarde-aside-gh-caution { border-inline-start-color: #ff818e; }
+	.sarde-aside-github.sarde-aside-gh-caution .sarde-aside-title,
+	.sarde-aside-github.sarde-aside-gh-caution .sarde-aside-icon { color: #d1242f; }
+
+	/* Code blocks within GitHub alerts */
+	.sarde-aside-github .sarde-aside-content code:not(pre code) {
+	    background: rgba(175, 184, 193, 0.2);
+	    padding: 0.2em 0.4em;
+	    border-radius: 6px;
+	    font-size: 85%;
+	}
+
+	/* Dark mode */
+	:root[data-theme="dark"] {
+	    .sarde-aside-github.sarde-aside-gh-note { border-inline-start-color: #1f6feb; }
+	    .sarde-aside-github.sarde-aside-gh-note .sarde-aside-title,
+	    .sarde-aside-github.sarde-aside-gh-note .sarde-aside-icon { color: #58a6ff; }
+	    .sarde-aside-github.sarde-aside-gh-tip { border-inline-start-color: #2ea043; }
+	    .sarde-aside-github.sarde-aside-gh-tip .sarde-aside-title,
+	    .sarde-aside-github.sarde-aside-gh-tip .sarde-aside-icon { color: #3fb950; }
+	    .sarde-aside-github.sarde-aside-gh-important { border-inline-start-color: #bf3989; }
+	    .sarde-aside-github.sarde-aside-gh-important .sarde-aside-title,
+	    .sarde-aside-github.sarde-aside-gh-important .sarde-aside-icon { color: #d29be5; }
+	    .sarde-aside-github.sarde-aside-gh-warning { border-inline-start-color: #bb8009; }
+	    .sarde-aside-github.sarde-aside-gh-warning .sarde-aside-title,
+	    .sarde-aside-github.sarde-aside-gh-warning .sarde-aside-icon { color: #d29922; }
+	    .sarde-aside-github.sarde-aside-gh-caution { border-inline-start-color: #f85149; }
+	    .sarde-aside-github.sarde-aside-gh-caution .sarde-aside-title,
+	    .sarde-aside-github.sarde-aside-gh-caution .sarde-aside-icon { color: #ff7b72; }
+	    .sarde-aside-github .sarde-aside-content code:not(pre code) {
+	        background: rgba(110, 118, 129, 0.4);
+	    }
+	}
+
+	/* Links */
+	.sarde-aside-github a { color: inherit; text-decoration: underline; font-weight: 500; }
+	.sarde-aside-github a:hover { text-decoration: none; }
+
+	/* Print */
+	@media print {
+	    .sarde-aside-github                  { border-inline-start: 3px solid; page-break-inside: avoid; }
+	    .sarde-aside-github.sarde-aside-gh-note    { border-inline-start-color: #0969da; }
+	    .sarde-aside-github.sarde-aside-gh-tip     { border-inline-start-color: #116329; }
+	    .sarde-aside-github.sarde-aside-gh-important { border-inline-start-color: #6e1a52; }
+	    .sarde-aside-github.sarde-aside-gh-warning { border-inline-start-color: #7d4e00; }
+	    .sarde-aside-github.sarde-aside-gh-caution { border-inline-start-color: #d1242f; }
+	}
+
+	/* Responsive */
+	@media (max-width: 768px) {
+	    .sarde-aside-github { padding: 0.5rem 0.75rem; font-size: 0.8125rem; }
+	    .sarde-aside-github .sarde-aside-icon { width: 0.875rem; height: 0.875rem; }
+	}
+}

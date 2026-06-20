@@ -165,8 +165,7 @@ func TestRender_CodeBlockSyntaxHighlighting(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Should have syntax highlighting classes
-	if !strings.Contains(result.HTML, "sarde-code-block") || !strings.Contains(result.HTML, "pre") {
-		// At minimum, should be wrapped in code/pre tags
+	if !strings.Contains(result.HTML, "kz-") && !strings.Contains(result.HTML, "<pre") {
 		if !strings.Contains(result.HTML, "<code") {
 			t.Errorf("expected code block, got: %s", result.HTML)
 		}

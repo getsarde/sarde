@@ -49,7 +49,7 @@ Final thoughts.
 func TestBuild_ClientPlugins_BundleOutput(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
-	cfg.Plugins.Enabled = []string{"scroll-to-top", "focus-mode", "code-fullscreen"}
+	cfg.Plugins.Enabled = []string{"scroll-to-top", "focus-mode", "code-collapsible"}
 	themeCfg := buildThemeConfig()
 
 	builder := NewSiteBuilder(BuildOptions{
@@ -94,7 +94,7 @@ func TestBuild_ClientPlugins_BundleOutput(t *testing.T) {
 func TestBuild_ClientPlugins_BundleOnEveryPage(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
-	cfg.Plugins.Enabled = []string{"scroll-to-top", "code-fullscreen", "image-lightbox"}
+	cfg.Plugins.Enabled = []string{"scroll-to-top", "code-collapsible", "image-lightbox"}
 	themeCfg := buildThemeConfig()
 
 	builder := NewSiteBuilder(BuildOptions{
@@ -127,7 +127,7 @@ func TestBuild_ClientPlugins_PerPageConfigInjection(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
 	cfg.Plugins.Enabled = []string{
-		"scroll-to-top", "code-fullscreen", "image-lightbox",
+		"scroll-to-top", "code-collapsible", "image-lightbox",
 		"toc-progress", "focus-mode",
 	}
 	themeCfg := buildThemeConfig()
@@ -149,9 +149,9 @@ func TestBuild_ClientPlugins_PerPageConfigInjection(t *testing.T) {
 	// guide.md has code blocks + images + headings + docs layout
 	guideHTML := readFixture(t, distDir, "docs/guide/index.html")
 
-	// Config for code-fullscreen should be injected (has_code_blocks → guide has code blocks)
-	if !strings.Contains(guideHTML, `code-fullscreen`) {
-		t.Error("guide page should have code-fullscreen config (has code blocks)")
+	// Config for code-collapsible should be injected (has_code_blocks → guide has code blocks)
+	if !strings.Contains(guideHTML, `code-collapsible`) {
+		t.Error("guide page should have code-collapsible config (has code blocks)")
 	}
 
 	// Config for image-lightbox should be injected (has_images → guide has images)
@@ -167,8 +167,8 @@ func TestBuild_ClientPlugins_PerPageConfigInjection(t *testing.T) {
 	// plain.md has no code blocks, no images → those config scripts should NOT be injected
 	plainHTML := readFixture(t, distDir, "docs/plain/index.html")
 
-	if strings.Contains(plainHTML, `code-fullscreen`) {
-		t.Error("plain page should NOT have code-fullscreen config (no code blocks)")
+	if strings.Contains(plainHTML, `code-collapsible`) {
+		t.Error("plain page should NOT have code-collapsible config (no code blocks)")
 	}
 
 	if strings.Contains(plainHTML, `image-lightbox`) {
@@ -491,7 +491,7 @@ func TestBuild_AllClientPlugins(t *testing.T) {
 		"image-lightbox", "keyboard-nav", "focus-mode",
 		"reading-progress", "search-highlighter", "text-highlighter",
 		"toc-progress", "last-updated", "reading-position-memory",
-		"reading-preferences", "code-fullscreen", "code-collapsible",
+		"reading-preferences", "code-collapsible",
 		"announcements",
 	}
 	cfg.Plugins.Config = map[string]map[string]any{
@@ -559,7 +559,7 @@ func TestBuild_AllClientPlugins(t *testing.T) {
 func TestBuild_ContentFeatureFlags(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
-	cfg.Plugins.Enabled = []string{"code-fullscreen", "image-lightbox"}
+	cfg.Plugins.Enabled = []string{"code-collapsible", "image-lightbox"}
 	themeCfg := buildThemeConfig()
 
 	builder := NewSiteBuilder(BuildOptions{
@@ -578,8 +578,8 @@ func TestBuild_ContentFeatureFlags(t *testing.T) {
 
 	// guide.md has code blocks + images → config scripts should be injected
 	guideHTML := readFixture(t, distDir, "docs/guide/index.html")
-	if !strings.Contains(guideHTML, `code-fullscreen`) {
-		t.Error("guide page should have code-fullscreen config (HasCodeBlocks=true)")
+	if !strings.Contains(guideHTML, `code-collapsible`) {
+		t.Error("guide page should have code-collapsible config (HasCodeBlocks=true)")
 	}
 	if !strings.Contains(guideHTML, `image-lightbox`) {
 		t.Error("guide page should have image-lightbox config (HasImages=true)")
@@ -587,8 +587,8 @@ func TestBuild_ContentFeatureFlags(t *testing.T) {
 
 	// plain.md has neither → config scripts should NOT be injected
 	plainHTML := readFixture(t, distDir, "docs/plain/index.html")
-	if strings.Contains(plainHTML, `code-fullscreen`) {
-		t.Error("plain page should NOT have code-fullscreen config (HasCodeBlocks=false)")
+	if strings.Contains(plainHTML, `code-collapsible`) {
+		t.Error("plain page should NOT have code-collapsible config (HasCodeBlocks=false)")
 	}
 	if strings.Contains(plainHTML, `image-lightbox`) {
 		t.Error("plain page should NOT have image-lightbox config (HasImages=false)")

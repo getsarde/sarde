@@ -1,0 +1,172 @@
+@layer sarde.components {
+	/* -- details -- */
+	/**
+	 * Details/Accordion Component Styles
+	 * Uses simplified semantic tokens
+	 */
+
+	.sarde-markdown-content details,
+	.sarde-details {
+	    margin: var(--sd-space-4) 0;
+	    border: 1px solid var(--sd-border);
+	    border-radius: var(--sd-radius-lg);
+	    background: var(--sd-bg-surface);
+	    overflow: hidden;
+	    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+	}
+
+	.sarde-markdown-content details[open],
+	.sarde-details[open] {
+	    border-color: var(--sd-text-accent);
+	    box-shadow: var(--sd-shadow-sm);
+	}
+
+	.sarde-markdown-content summary,
+	.sarde-details-summary {
+	    display: flex;
+	    align-items: center;
+	    gap: var(--sd-space-3);
+	    padding: var(--sd-space-4) var(--sd-space-4);
+	    cursor: pointer;
+	    user-select: none;
+	    font-weight: var(--sd-weight-semibold);
+	    color: var(--sd-text);
+	    background: var(--sd-bg-surface);
+	    transition: background-color 0.15s ease, color 0.15s ease;
+	    list-style: none;
+	}
+
+	.sarde-markdown-content summary::-webkit-details-marker {
+	    display: none;
+	}
+
+	/* Modern chevron icon instead of triangle */
+	.sarde-markdown-content summary::before,
+	.sarde-details-summary::before {
+	    content: "";
+	    width: 20px;
+	    height: 20px;
+	    flex-shrink: 0;
+	    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'%3E%3C/polyline%3E%3C/svg%3E");
+	    background-repeat: no-repeat;
+	    background-size: contain;
+	    opacity: 0.6;
+	    transition: transform 0.25s ease, opacity 0.2s ease;
+	}
+
+	.sarde-markdown-content details[open] summary::before,
+	.sarde-details[open] .sarde-details-summary::before {
+	    transform: rotate(90deg);
+	    opacity: 1;
+	}
+
+	.sarde-markdown-content summary:hover,
+	.sarde-details-summary:hover {
+	    background: var(--sd-hover);
+	}
+
+	.sarde-markdown-content summary:focus,
+	.sarde-details-summary:focus {
+	    outline: none;
+	}
+
+	.sarde-markdown-content summary:focus-visible,
+	.sarde-details-summary:focus-visible {
+	    box-shadow: inset 0 0 0 2px var(--sd-focus-ring);
+	}
+
+	.sarde-details-content {
+	    padding: var(--sd-space-4);
+	    border-top: 1px solid var(--sd-border);
+	}
+
+	.sarde-details-content > *:first-child {
+	    margin-top: 0;
+	}
+
+	.sarde-details-content > *:last-child {
+	    margin-bottom: 0;
+	}
+
+	/* Details group (accordion) */
+	.sarde-details-group {
+	    border: 1px solid var(--sd-border);
+	    border-radius: var(--sd-radius-lg);
+	    overflow: hidden;
+	}
+
+	.sarde-details-group details,
+	.sarde-details-group .sarde-details {
+	    margin: 0;
+	    border: none;
+	    border-radius: 0;
+	    border-bottom: 1px solid var(--sd-border);
+	}
+
+	.sarde-details-group details:last-child,
+	.sarde-details-group .sarde-details:last-child {
+	    border-bottom: none;
+	}
+
+	/* Filled variant */
+	details.sarde-details-filled summary,
+	.sarde-details.sarde-details-filled .sarde-details-summary {
+	    background: var(--sd-bg-accent-subtle);
+	}
+
+	details.sarde-details-filled[open] summary,
+	.sarde-details.sarde-details-filled[open] .sarde-details-summary {
+	    background: var(--sd-blue-low);
+	}
+
+	/* Borderless variant */
+	details.sarde-details-borderless,
+	.sarde-details.sarde-details-borderless {
+	    border: none;
+	    background: transparent;
+	}
+
+	details.sarde-details-borderless summary,
+	.sarde-details.sarde-details-borderless .sarde-details-summary {
+	    padding-inline-start: 0;
+	    padding-inline-end: 0;
+	    background: transparent;
+	}
+
+	details.sarde-details-borderless .sarde-details-content {
+	    padding-inline-start: 0;
+	    padding-inline-end: 0;
+	    border-top: none;
+	}
+
+	/* Responsive */
+	@media (max-width: 768px) {
+	    summary,
+	    .sarde-details-summary {
+	        padding: var(--sd-space-3);
+	        font-size: var(--sd-text-sm);
+	    }
+
+	    .sarde-details-content {
+	        padding: var(--sd-space-3);
+	    }
+	}
+
+	/* Print styles */
+	@media print {
+	    details,
+	    .sarde-details {
+	        border: 1px solid var(--sd-gray-4);
+	    }
+
+	    details[open],
+	    .sarde-details[open] {
+	        page-break-inside: avoid;
+	    }
+
+	    summary::before,
+	    .sarde-details-summary::before {
+	        display: none;
+	    }
+	}
+}

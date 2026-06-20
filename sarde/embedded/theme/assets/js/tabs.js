@@ -35,14 +35,12 @@
     document.querySelectorAll('.sarde-tabs').forEach(function (c) {
       activateTab(c, '.sarde-tab-button', '.sarde-tab-panel', label);
     });
-    document.querySelectorAll('.sarde-code-group').forEach(function (c) {
-      activateTab(c, '.sarde-code-group-tab', '.sarde-code-group-panel', label);
-    });
+
   }
 
   document.addEventListener('click', function (e) {
     if (!e.target.matches) return;
-    if (e.target.matches('.sarde-tabs .sarde-tab-button') || e.target.matches('.sarde-code-group .sarde-code-group-tab')) {
+    if (e.target.matches('.sarde-tabs .sarde-tab-button')) {
       var label = e.target.dataset.tabLabel;
       if (label) {
         saveLabel(label);

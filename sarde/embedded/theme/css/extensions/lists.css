@@ -1,0 +1,540 @@
+@layer sarde.components {
+	/* -- definition-list -- */
+	/**
+	 * Definition List Styles
+	 * Clean, modern styling inspired by contemporary documentation sites
+	 */
+
+	.sarde-markdown-content dl {
+	    --dl-term-color: var(--sd-text);
+	    --dl-desc-color: var(--sd-text-muted);
+	    --dl-accent: var(--sd-bg-accent);
+	    --dl-gap: var(--sd-space-6);
+
+	    margin: var(--sd-space-6) 0;
+	    padding: 0;
+	    display: flex;
+	    flex-direction: column;
+	    gap: var(--sd-space-1);
+	}
+
+	/* Definition Term */
+	.sarde-markdown-content dt {
+	    font-weight: var(--sd-weight-semibold);
+	    font-size: var(--sd-text-base);
+	    color: var(--dl-term-color);
+	    margin-top: var(--sd-space-4);
+	    padding: 0;
+	    display: flex;
+	    align-items: baseline;
+	    gap: var(--sd-space-3);
+	}
+
+	.sarde-markdown-content dt:first-child {
+	    margin-top: 0;
+	}
+
+	/* Accent dot before term */
+	.sarde-markdown-content dt::before {
+	    content: "";
+	    width: 6px;
+	    height: 6px;
+	    background: var(--dl-accent);
+	    border-radius: var(--sd-radius-full);
+	    flex-shrink: 0;
+	    position: relative;
+	    top: -1px;
+	}
+
+	/* Definition Term - code styling inside */
+	.sarde-markdown-content dt code {
+	    font-size: 0.9em;
+	    background: var(--sd-bg-surface);
+	    padding: 0.2rem 0.5rem;
+	    border-radius: var(--sd-radius-sm);
+	    font-family: var(--sd-font-mono);
+	    font-weight: var(--sd-weight-medium);
+	    color: var(--sd-text);
+	}
+
+	/* Definition Description */
+	.sarde-markdown-content dd {
+	    margin: 0;
+	    padding: var(--sd-space-2) 0 var(--sd-space-2) calc(6px + var(--sd-space-3) + var(--sd-space-4));
+	    color: var(--dl-desc-color);
+	    line-height: var(--sd-line-height);
+	    position: relative;
+	}
+
+	/* Subtle connecting line from dot to description */
+	.sarde-markdown-content dd::before {
+	    content: "";
+	    position: absolute;
+	    inset-inline-start: 2px;
+	    top: 0;
+	    bottom: 0;
+	    width: 2px;
+	    background: var(--sd-border);
+	    border-radius: 1px;
+	}
+
+	/* Last dd before next dt - cut the line */
+	.sarde-markdown-content dd:has(+ dt)::before,
+	.sarde-markdown-content dd:last-child::before {
+	    bottom: 50%;
+	}
+
+	/* Multiple definitions for same term */
+	.sarde-markdown-content dd + dd {
+	    padding-top: var(--sd-space-2);
+	}
+
+	.sarde-markdown-content dd + dd::before {
+	    top: 0;
+	}
+
+	/* Nested content in definitions */
+	.sarde-markdown-content dd > *:first-child {
+	    margin-top: 0;
+	}
+
+	.sarde-markdown-content dd > *:last-child {
+	    margin-bottom: 0;
+	}
+
+	/* Code blocks inside definitions */
+	.sarde-markdown-content dd pre {
+	    margin: var(--sd-space-3) 0;
+	}
+
+	/* Lists inside definitions */
+	.sarde-markdown-content dd ul,
+	.sarde-markdown-content dd ol {
+	    margin: var(--sd-space-3) 0;
+	    padding-inline-start: var(--sd-space-6);
+	}
+
+	.sarde-markdown-content dd li {
+	    margin-bottom: var(--sd-space-1);
+	    color: var(--sd-text);
+	}
+
+	/* Nested list markers inherit accent color */
+	.sarde-markdown-content dd li::marker {
+	    color: var(--dl-accent);
+	}
+
+	/* Strong/bold text inside dd */
+	.sarde-markdown-content dd strong {
+	    display: block;
+	    color: var(--sd-text);
+	    font-weight: var(--sd-weight-semibold);
+	    margin-top: var(--sd-space-2);
+	    margin-bottom: var(--sd-space-1);
+	}
+
+	/* First strong can be inline if followed by text */
+	.sarde-markdown-content dd > strong:first-child {
+	    margin-top: 0;
+	}
+
+	/* ==========================================================================
+	   Boxed Variant - Contained cards with hover effects
+	   ========================================================================== */
+
+	.sarde-markdown-content dl.sarde-dl-boxed {
+	    gap: var(--sd-space-4);
+	}
+
+	.sarde-markdown-content dl.sarde-dl-boxed dt {
+	    margin-top: 0;
+	    padding: var(--sd-space-3) var(--sd-space-4);
+	    background: var(--sd-bg-surface);
+	    border: 1px solid var(--sd-border);
+	    border-bottom: none;
+	    border-radius: var(--sd-radius-lg) var(--sd-radius-lg) 0 0;
+	    transition: background var(--sd-transition-fast),
+	                border-color var(--sd-transition-fast);
+	}
+
+	.sarde-markdown-content dl.sarde-dl-boxed dt::before {
+	    display: none;
+	}
+
+	.sarde-markdown-content dl.sarde-dl-boxed dd {
+	    padding: var(--sd-space-3) var(--sd-space-4);
+	    background: var(--sd-bg);
+	    border: 1px solid var(--sd-border);
+	    border-top: none;
+	    border-radius: 0 0 var(--sd-radius-lg) var(--sd-radius-lg);
+	    margin-bottom: var(--sd-space-2);
+	    box-shadow: var(--sd-shadow-sm);
+	    transition: box-shadow var(--sd-transition-fast),
+	                border-color var(--sd-transition-fast);
+	}
+
+	.sarde-markdown-content dl.sarde-dl-boxed dd::before {
+	    display: none;
+	}
+
+	.sarde-markdown-content dl.sarde-dl-boxed dd + dd {
+	    border-top: 1px dashed var(--sd-border);
+	    border-radius: 0 0 var(--sd-radius-lg) var(--sd-radius-lg);
+	    margin-top: -1px;
+	}
+
+	/* Hover effect for boxed variant */
+	.sarde-markdown-content dl.sarde-dl-boxed dt:hover {
+	    background: var(--sd-bg-accent-subtle);
+	    border-color: var(--sd-border-accent);
+	}
+
+	.sarde-markdown-content dl.sarde-dl-boxed dt:hover + dd {
+	    border-color: var(--sd-border-accent);
+	    box-shadow: var(--sd-shadow-md);
+	}
+
+	/* ==========================================================================
+	   Grid Variant - Term and definition side by side
+	   ========================================================================== */
+
+	.sarde-markdown-content dl.sarde-dl-grid {
+	    display: grid;
+	    grid-template-columns: minmax(140px, auto) 1fr;
+	    gap: 0;
+	    border: 1px solid var(--sd-border);
+	    border-radius: var(--sd-radius-lg);
+	    overflow: hidden;
+	    background: var(--sd-bg);
+	}
+
+	.sarde-markdown-content dl.sarde-dl-grid dt {
+	    margin: 0;
+	    padding: var(--sd-space-4);
+	    background: var(--sd-bg-surface);
+	    border-bottom: 1px solid var(--sd-border);
+	    border-inline-end: 1px solid var(--sd-border);
+	    align-items: flex-start;
+	}
+
+	.sarde-markdown-content dl.sarde-dl-grid dt::before {
+	    display: none;
+	}
+
+	.sarde-markdown-content dl.sarde-dl-grid dd {
+	    margin: 0;
+	    padding: var(--sd-space-4);
+	    border-bottom: 1px solid var(--sd-border);
+	    background: var(--sd-bg);
+	}
+
+	.sarde-markdown-content dl.sarde-dl-grid dd::before {
+	    display: none;
+	}
+
+	/* Remove bottom border on last row */
+	.sarde-markdown-content dl.sarde-dl-grid dt:nth-last-of-type(1),
+	.sarde-markdown-content dl.sarde-dl-grid dd:nth-last-of-type(1) {
+	    border-bottom: none;
+	}
+
+	/* Alternate row shading */
+	.sarde-markdown-content dl.sarde-dl-grid dt:nth-of-type(even) {
+	    background: var(--sd-hover);
+	}
+
+	.sarde-markdown-content dl.sarde-dl-grid dd:nth-of-type(even) {
+	    background: var(--sd-hover);
+	}
+
+	/* ==========================================================================
+	   Inline Variant - Compact, flowing style
+	   ========================================================================== */
+
+	.sarde-markdown-content dl.sarde-dl-inline {
+	    display: flex;
+	    flex-wrap: wrap;
+	    gap: var(--sd-space-2) var(--sd-space-4);
+	    align-items: baseline;
+	}
+
+	.sarde-markdown-content dl.sarde-dl-inline dt {
+	    margin: 0;
+	    font-size: var(--sd-text-sm);
+	}
+
+	.sarde-markdown-content dl.sarde-dl-inline dt::before {
+	    display: none;
+	}
+
+	.sarde-markdown-content dl.sarde-dl-inline dt::after {
+	    content: ":";
+	    margin-inline-start: var(--sd-space-1);
+	    color: var(--sd-text-subtle);
+	}
+
+	.sarde-markdown-content dl.sarde-dl-inline dd {
+	    margin: 0;
+	    padding: 0;
+	    font-size: var(--sd-text-sm);
+	}
+
+	.sarde-markdown-content dl.sarde-dl-inline dd::before {
+	    display: none;
+	}
+
+	.sarde-markdown-content dl.sarde-dl-inline dd::after {
+	    content: "·";
+	    margin-inline-start: var(--sd-space-4);
+	    color: var(--sd-text-subtle);
+	}
+
+	.sarde-markdown-content dl.sarde-dl-inline dd:last-child::after {
+	    display: none;
+	}
+
+	/* ==========================================================================
+	   Responsive
+	   ========================================================================== */
+
+	@media (max-width: 768px) {
+	    .sarde-markdown-content dl.sarde-dl-grid {
+	        grid-template-columns: 1fr;
+	    }
+
+	    .sarde-markdown-content dl.sarde-dl-grid dt {
+	        border-inline-end: none;
+	        border-bottom: none;
+	        padding-bottom: var(--sd-space-2);
+	    }
+
+	    .sarde-markdown-content dl.sarde-dl-grid dd {
+	        padding-top: var(--sd-space-2);
+	    }
+
+	    .sarde-markdown-content dl.sarde-dl-inline {
+	        flex-direction: column;
+	        gap: var(--sd-space-3);
+	    }
+
+	    .sarde-markdown-content dl.sarde-dl-inline dd::after {
+	        display: none;
+	    }
+	}
+
+	/* ==========================================================================
+	   Reduced Motion
+	   ========================================================================== */
+
+	@media (prefers-reduced-motion: reduce) {
+	    .sarde-markdown-content dl.sarde-dl-boxed dt,
+	    .sarde-markdown-content dl.sarde-dl-boxed dd {
+	        transition: none;
+	    }
+	}
+
+	/* ==========================================================================
+	   Print
+	   ========================================================================== */
+
+	@media print {
+	    .sarde-markdown-content dt::before {
+	        background: var(--sd-gray-5);
+	    }
+
+	    .sarde-markdown-content dd::before {
+	        background: var(--sd-gray-3);
+	    }
+
+	    .sarde-markdown-content dl.sarde-dl-boxed dt,
+	    .sarde-markdown-content dl.sarde-dl-boxed dd,
+	    .sarde-markdown-content dl.sarde-dl-grid {
+	        border-color: var(--sd-gray-3);
+	        box-shadow: none;
+	    }
+
+	    .sarde-markdown-content dt {
+	        page-break-after: avoid;
+	    }
+
+	    .sarde-markdown-content dd {
+	        page-break-inside: avoid;
+	    }
+	}
+
+
+	/* -- filetree -- */
+	/**
+	 * File Tree Component Styles
+	 * Uses simplified semantic tokens
+	 */
+
+	.sarde-file-tree {
+	    --file-tree-indent: 1.25rem;
+	    background: var(--sd-bg-surface);
+	    border: 1px solid var(--sd-border);
+	    border-radius: var(--sd-radius-lg);
+	    padding: var(--sd-space-4);
+	    margin: var(--sd-space-6) 0;
+	    font-family: var(--sd-font-mono);
+	    font-size: var(--sd-text-sm);
+	    line-height: var(--sd-line-height);
+	    overflow-x: auto;
+	}
+
+	.sarde-file-tree-header {
+	    display: flex;
+	    align-items: center;
+	    gap: var(--sd-space-2);
+	    padding-bottom: var(--sd-space-3);
+	    margin-bottom: var(--sd-space-3);
+	    border-bottom: 1px solid var(--sd-border);
+	    font-weight: var(--sd-weight-semibold);
+	    color: var(--sd-text);
+	}
+
+	.sarde-file-tree-header-icon {
+	    color: var(--sd-amber);
+	}
+
+	.sarde-file-tree-list {
+	    list-style: none;
+	    margin: 0;
+	    padding: 0;
+	}
+
+	.sarde-file-tree-item {
+	    position: relative;
+	    padding: 0.125rem 0;
+	    color: var(--sd-text-muted);
+	}
+
+	.sarde-file-tree-item::before {
+	    content: "";
+	    position: absolute;
+	    inset-inline-start: calc(var(--file-tree-indent) / 2 * -1);
+	    top: 0;
+	    bottom: 0;
+	    width: 1px;
+	    background: var(--sd-border);
+	}
+
+	.sarde-file-tree-item:last-child::before {
+	    bottom: 50%;
+	}
+
+	.sarde-file-tree-item::after {
+	    content: "";
+	    position: absolute;
+	    inset-inline-start: calc(var(--file-tree-indent) / 2 * -1);
+	    top: 50%;
+	    width: calc(var(--file-tree-indent) / 2);
+	    height: 1px;
+	    background: var(--sd-border);
+	}
+
+	.sarde-file-tree-list .sarde-file-tree-list {
+	    padding-inline-start: var(--file-tree-indent);
+	    margin-top: var(--sd-space-1);
+	}
+
+	/* Remove lines from top-level items */
+	.sarde-file-tree > .sarde-file-tree-list > .sarde-file-tree-item::before,
+	.sarde-file-tree > .sarde-file-tree-list > .sarde-file-tree-item::after {
+	    display: none;
+	}
+
+	.sarde-file-tree-entry {
+	    display: flex;
+	    align-items: center;
+	    gap: var(--sd-space-2);
+	}
+
+	.sarde-file-tree-icon {
+	    flex-shrink: 0;
+	    width: 1rem;
+	    height: 1rem;
+	}
+
+	.sarde-file-tree-icon.folder {
+	    color: var(--sd-amber);
+	}
+
+	.sarde-file-tree-icon.file {
+	    color: var(--sd-text-subtle);
+	}
+
+	/* File type icons by extension */
+	.sarde-file-tree-icon.file-js,
+	.sarde-file-tree-icon.file-ts {
+	    color: var(--sd-amber);
+	}
+
+	.sarde-file-tree-icon.file-css,
+	.sarde-file-tree-icon.file-scss {
+	    color: var(--sd-blue);
+	}
+
+	.sarde-file-tree-icon.file-html {
+	    color: var(--sd-red);
+	}
+
+	.sarde-file-tree-icon.file-json {
+	    color: var(--sd-green);
+	}
+
+	.sarde-file-tree-icon.file-md {
+	    color: oklch(0.58 0.22 305);
+	}
+
+	.sarde-file-tree-icon.file-php {
+	    color: oklch(0.56 0.22 264);
+	}
+
+	.sarde-file-tree-icon.file-py {
+	    color: var(--sd-blue);
+	}
+
+	.sarde-file-tree-name {
+	    color: var(--sd-text-muted);
+	}
+
+	.sarde-file-tree-name.folder-name {
+	    font-weight: var(--sd-weight-medium);
+	}
+
+	/* Highlight selected item */
+	.sarde-file-tree-item.highlighted .sarde-file-tree-name {
+	    color: var(--sd-text-accent);
+	    font-weight: var(--sd-weight-semibold);
+	}
+
+	/* Comment/annotation */
+	.sarde-file-tree-comment {
+	    color: var(--sd-text-subtle);
+	    font-style: italic;
+	    margin-inline-start: var(--sd-space-2);
+	}
+
+	/* Responsive */
+	@media (max-width: 768px) {
+	    .sarde-file-tree {
+	        padding: var(--sd-space-3);
+	        font-size: var(--sd-text-xs);
+	    }
+	}
+
+	/* Print styles */
+	@media print {
+	    .sarde-file-tree {
+	        background: var(--sd-white);
+	        border: 2px solid var(--sd-gray-7);
+	    }
+
+	    .sarde-file-tree-item::before,
+	    .sarde-file-tree-item::after {
+	        background: var(--sd-gray-4);
+	    }
+	}
+
+}

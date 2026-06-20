@@ -1,0 +1,385 @@
+@layer sarde.components {
+	/* -- tabs -- */
+	/**
+	 * Tab Component Styles
+	 * Uses simplified semantic tokens
+	 */
+
+	.sarde-tabs {
+	    margin: var(--sd-space-6) 0;
+	}
+
+	.sarde-tabs-header {
+	    display: flex;
+	    flex-wrap: wrap;
+	    gap: var(--sd-space-1);
+	    border-bottom: 2px solid var(--sd-border);
+	    margin-bottom: 0;
+	}
+
+	.sarde-tab-button {
+	    position: relative;
+	    padding: var(--sd-space-3) var(--sd-space-4);
+	    background: transparent;
+	    border: none;
+	    border-bottom: 2px solid transparent;
+	    margin-bottom: -2px;
+	    cursor: pointer;
+	    font-size: var(--sd-text-sm);
+	    font-weight: var(--sd-weight-medium);
+	    color: var(--sd-text-muted);
+	    transition: color 0.2s ease, background 0.2s ease;
+	    border-radius: var(--sd-radius-md) var(--sd-radius-md) 0 0;
+	}
+
+	/* Animated underline */
+	.sarde-tab-button::after {
+	    content: '';
+	    position: absolute;
+	    bottom: -2px;
+	    left: 0;
+	    width: 100%;
+	    height: 2px;
+	    background: var(--sd-text-accent);
+	    transform: scaleX(0);
+	    transform-origin: center;
+	    transition: transform 0.25s ease;
+	}
+
+	.sarde-tab-button:hover {
+	    background: var(--sd-hover);
+	    color: var(--sd-text);
+	}
+
+	.sarde-tab-button.is-active,
+	.sarde-tab-button[aria-selected="true"] {
+	    background: transparent;
+	    color: var(--sd-text-accent);
+	    font-weight: var(--sd-weight-semibold);
+	}
+
+	.sarde-tab-button.is-active::after,
+	.sarde-tab-button[aria-selected="true"]::after {
+	    transform: scaleX(1);
+	}
+
+	.sarde-tab-button:focus {
+	    outline: none;
+	}
+	.sarde-tab-button:focus-visible {
+	    box-shadow: 0 0 0 2px var(--sd-focus-ring);
+	}
+
+	.sarde-tab-content {
+	    display: none;
+	    padding: var(--sd-space-6);
+	    background: var(--sd-bg-surface);
+	    border: 1px solid var(--sd-border);
+	    border-top: none;
+	    border-radius: 0 0 var(--sd-radius-lg) var(--sd-radius-lg);
+	    animation: fadeIn 0.2s ease;
+	}
+
+	.sarde-tab-content.is-active,
+	.sarde-tab-content[data-active="true"] {
+	    display: block;
+	}
+
+	.sarde-tab-panel {
+	    display: none;
+	    padding: var(--sd-space-6);
+	    animation: fadeIn 0.2s ease;
+	}
+
+	.sarde-tab-panel.is-active,
+	.sarde-tab-panel[aria-hidden="false"] {
+	    display: block;
+	}
+
+	@keyframes fadeIn {
+	    from {
+	        opacity: 0;
+	        transform: translateY(4px);
+	    }
+	    to {
+	        opacity: 1;
+	        transform: translateY(0);
+	    }
+	}
+
+	/* Code tabs variant */
+	.sarde-code-tabs .sarde-tabs-header {
+	    background: var(--sd-gray-7);
+	    border-bottom-color: var(--sd-gray-6);
+	    border-radius: var(--sd-radius-lg) var(--sd-radius-lg) 0 0;
+	    padding: var(--sd-space-2);
+	    gap: var(--sd-space-1);
+	}
+
+	.sarde-code-tabs .sarde-tab-button {
+	    color: var(--sd-gray-4);
+	    background: transparent;
+	    font-family: var(--sd-font-mono);
+	    font-size: var(--sd-text-xs);
+	    padding: var(--sd-space-1) var(--sd-space-3);
+	    border-radius: var(--sd-radius-md);
+	}
+
+	.sarde-code-tabs .sarde-tab-button:hover {
+	    background: oklch(1 0 0 / 0.1);
+	    color: var(--sd-gray-2);
+	}
+
+	.sarde-code-tabs .sarde-tab-button.is-active,
+	.sarde-code-tabs .sarde-tab-button[aria-selected="true"] {
+	    background: oklch(1 0 0 / 0.15);
+	    color: var(--sd-gray-1);
+	    border-bottom-color: transparent;
+	}
+
+	.sarde-code-tabs .sarde-tab-content,
+	.sarde-code-tabs .sarde-tab-panel {
+	    background: var(--sd-gray-7);
+	    border: none;
+	    border-radius: 0 0 var(--sd-radius-lg) var(--sd-radius-lg);
+	    padding: 0;
+	}
+
+	.sarde-code-tabs .sarde-tab-content pre,
+	.sarde-code-tabs .sarde-tab-panel pre {
+	    margin: 0;
+	    border-radius: 0 0 var(--sd-radius-lg) var(--sd-radius-lg);
+	}
+
+	/* Responsive */
+	@media (max-width: 768px) {
+	    .sarde-tabs-header {
+	        gap: 0;
+	    }
+
+	    .sarde-tab-button {
+	        flex: 1;
+	        text-align: center;
+	        padding: var(--sd-space-2) var(--sd-space-3);
+	        font-size: var(--sd-text-sm);
+	    }
+	}
+
+	/* Print styles */
+	@media print {
+	    .sarde-tabs-header {
+	        display: none;
+	    }
+
+	    .sarde-tab-content,
+	    .sarde-tab-panel {
+	        display: block !important;
+	        border: 1px solid var(--sd-gray-3);
+	        page-break-inside: avoid;
+	    }
+
+	    .sarde-tab-content::before,
+	    .sarde-tab-panel::before {
+	        content: attr(data-tab-name);
+	        display: block;
+	        font-weight: var(--sd-weight-bold);
+	        margin-bottom: var(--sd-space-2);
+	    }
+	}
+
+	/* -- terminal -- */
+	/**
+	 * Terminal/Console Component Styles
+	 * Uses simplified semantic tokens
+	 * Always dark theme (terminal is inherently dark)
+	 */
+
+	.sarde-terminal {
+	    --terminal-bg: oklch(0.22 0.018 264);
+	    --terminal-text: oklch(0.90 0.012 264);
+	    --terminal-border: oklch(0.28 0.018 264);
+	    background: var(--terminal-bg);
+	    border: 1px solid var(--terminal-border);
+	    border-radius: var(--sd-radius-lg);
+	    overflow: hidden;
+	    margin: var(--sd-space-6) 0;
+	    font-family: var(--sd-font-mono);
+	}
+
+	.sarde-terminal-header {
+	    display: flex;
+	    align-items: center;
+	    gap: var(--sd-space-2);
+	    padding: var(--sd-space-3) var(--sd-space-4);
+	    background: rgba(255, 255, 255, 0.05);
+	    border-bottom: 1px solid var(--terminal-border);
+	}
+
+	.sarde-terminal-buttons {
+	    display: flex;
+	    gap: var(--sd-space-2);
+	}
+
+	.sarde-terminal-button {
+	    width: 12px;
+	    height: 12px;
+	    border-radius: var(--sd-radius-full);
+	    background: oklch(0.42 0.012 264);
+	}
+
+	.sarde-terminal-button.close {
+	    background: var(--sd-red);
+	}
+
+	.sarde-terminal-button.minimize {
+	    background: var(--sd-amber);
+	}
+
+	.sarde-terminal-button.maximize {
+	    background: var(--sd-green);
+	}
+
+	.sarde-terminal-title {
+	    flex: 1;
+	    text-align: center;
+	    color: var(--terminal-text);
+	    font-size: var(--sd-text-xs);
+	    opacity: 0.7;
+	}
+
+	.sarde-terminal-body {
+	    padding: var(--sd-space-4);
+	    font-size: var(--sd-text-sm);
+	    line-height: var(--sd-line-height);
+	    color: var(--terminal-text);
+	    overflow-x: auto;
+	}
+
+	.sarde-terminal-body pre {
+	    margin: 0;
+	    background: transparent;
+	    border: none;
+	    padding: 0;
+	}
+
+	.sarde-terminal-body code {
+	    background: transparent;
+	    color: inherit;
+	    padding: 0;
+	    font-size: inherit;
+	}
+
+	/* Terminal line types */
+	.sarde-terminal-line {
+	    display: block;
+	    white-space: pre-wrap;
+	    word-break: break-all;
+	}
+
+	.sarde-terminal-prompt {
+	    color: var(--sd-green);
+	    user-select: none;
+	}
+
+	.sarde-terminal-command {
+	    color: var(--terminal-text);
+	}
+
+	.sarde-terminal-output {
+	    color: oklch(0.65 0.012 264);
+	}
+
+	.sarde-terminal-error {
+	    color: var(--sd-red);
+	}
+
+	.sarde-terminal-success {
+	    color: var(--sd-green);
+	}
+
+	.sarde-terminal-warning {
+	    color: var(--sd-amber);
+	}
+
+	.sarde-terminal-info {
+	    color: var(--sd-blue);
+	}
+
+	/* Blinking cursor */
+	.sarde-terminal-cursor {
+	    display: inline-block;
+	    width: 8px;
+	    height: 1em;
+	    background: var(--terminal-text);
+	    animation: blink 1s step-end infinite;
+	    vertical-align: text-bottom;
+	}
+
+	@keyframes blink {
+	    0%, 100% { opacity: 1; }
+	    50% { opacity: 0; }
+	}
+
+	/* Copy button */
+	.sarde-terminal-copy {
+	    position: absolute;
+	    top: var(--sd-space-2);
+	    inset-inline-end: var(--sd-space-2);
+	    padding: var(--sd-space-1) var(--sd-space-2);
+	    background: rgba(255, 255, 255, 0.1);
+	    border: none;
+	    border-radius: var(--sd-radius-md);
+	    color: var(--terminal-text);
+	    font-size: var(--sd-text-xs);
+	    cursor: pointer;
+	    opacity: 0;
+	    transition: opacity var(--sd-transition-fast);
+	}
+
+	.sarde-terminal:hover .sarde-terminal-copy {
+	    opacity: 1;
+	}
+
+	.sarde-terminal-copy:hover {
+	    background: rgba(255, 255, 255, 0.2);
+	}
+
+	/* Responsive */
+	@media (max-width: 768px) {
+	    .sarde-terminal-body {
+	        padding: var(--sd-space-3);
+	        font-size: var(--sd-text-xs);
+	    }
+
+	    .sarde-terminal-header {
+	        padding: var(--sd-space-2) var(--sd-space-3);
+	    }
+	}
+
+	/* Print styles */
+	@media print {
+	    .sarde-terminal {
+	        background: var(--sd-gray-1);
+	        color: var(--sd-gray-7);
+	        border: 2px solid var(--sd-gray-7);
+	    }
+
+	    .sarde-terminal-header {
+	        display: none;
+	    }
+
+	    .sarde-terminal-body {
+	        color: var(--sd-gray-7);
+	    }
+
+	    .sarde-terminal-prompt,
+	    .sarde-terminal-command,
+	    .sarde-terminal-output {
+	        color: var(--sd-gray-7);
+	    }
+
+	    .sarde-terminal-error {
+	        color: var(--sd-red);
+	    }
+	}
+}

@@ -103,13 +103,6 @@ plugins:
       js: reading-preferences/reading-preferences.js
     module: true
 
-  code-fullscreen:
-    description: "Click-to-fullscreen on code blocks with keyboard support"
-    inject_when: has_code_blocks
-    assets:
-      css: code-fullscreen/code-fullscreen.css
-      js: code-fullscreen/code-fullscreen.js
-    module: true
 
   code-collapsible:
     description: "Auto-collapse long code blocks with expand/collapse toggle"
