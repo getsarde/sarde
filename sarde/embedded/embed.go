@@ -32,6 +32,16 @@ var themeFS embed.FS
 //go:embed all:vendor
 var vendorFS embed.FS
 
+// ScaffoldHeroLight contains the light-mode hero SVG for sarde init.
+//
+//go:embed scaffold/hero-light.svg
+var ScaffoldHeroLight []byte
+
+// ScaffoldHeroDark contains the dark-mode hero SVG for sarde init.
+//
+//go:embed scaffold/hero-dark.svg
+var ScaffoldHeroDark []byte
+
 // I18nFS returns the embedded i18n filesystem rooted at "i18n/".
 func I18nFS() fs.FS {
 	sub, _ := fs.Sub(i18nFS, "i18n")

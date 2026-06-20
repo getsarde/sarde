@@ -67,6 +67,18 @@ func BuildSectionTree(pages []*engine.Page, collectionName string) []*engine.Sec
 		}
 	}
 
+	// Ensure the collection root section exists. The phantom loop above skips
+	// path "" so the root is never auto-created. Without it, collection index
+	// pages have nowhere to attach and top-level pages have no section.
+	if _, exists := sectionMap[""]; !exists {
+		sectionMap[""] = &engine.Section{
+			Title:     content.FilenameToTitle(collectionName + ".md"),
+			Slug:      collectionName,
+			Permalink: "/" + collectionName + "/",
+			Render:    true,
+		}
+	}
+
 	// Wire parent-child relationships
 	for path, sec := range sectionMap {
 		if path == "" {

@@ -124,6 +124,31 @@ func BuildCollectionsWithOptions(
 			}
 		}
 
+		// Auto-create a synthetic index page when no _index.md exists,
+		// so every collection root renders a landing page.
+		if indexPage == nil && len(pages) > 0 {
+			indexPage = &engine.Page{
+				PageIdentity: engine.PageIdentity{
+					Title:        collectionTitle(name, nil),
+					Slug:         name,
+					RelPermalink: "/" + name + "/",
+					Kind:         engine.KindSection,
+				},
+				PageI18n: engine.PageI18n{
+					Lang: pages[0].Lang,
+				},
+				Params: map[string]any{},
+			}
+			for _, sec := range sections {
+				if sec.Permalink == "/"+name+"/" {
+					indexPage.Section = sec
+					sec.IndexPage = indexPage
+					break
+				}
+			}
+			pages = append(pages, indexPage)
+		}
+
 		col := &engine.Collection{
 			Name:      name,
 			Title:     collectionTitle(name, indexPage),

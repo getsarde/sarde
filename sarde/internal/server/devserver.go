@@ -380,8 +380,8 @@ func (ds *DevServer) fileHandler() http.Handler {
 			}
 		}
 
-		// Exact file exists.
-		if _, err := os.Stat(filePath); err == nil {
+		// Exact file exists (skip directories to avoid raw listings).
+		if info, err := os.Stat(filePath); err == nil && !info.IsDir() {
 			http.ServeFile(w, r, filePath)
 			return
 		}

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/frostybee/sarde/embedded"
 	"github.com/frostybee/sarde/internal/consts"
 	"github.com/spf13/cobra"
 )
@@ -41,6 +42,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 		filepath.Join(absDir, consts.DirContent, "blog"),
 		filepath.Join(absDir, consts.DirContent, "docs"),
 		filepath.Join(absDir, "static"),
+		filepath.Join(absDir, "static", "images"),
 	}
 	for _, d := range dirs {
 		if err := os.MkdirAll(d, 0o755); err != nil {
@@ -51,8 +53,12 @@ func runInit(cmd *cobra.Command, args []string) error {
 	files := map[string]string{
 		consts.FileSiteConfig: siteYAMLContent,
 		filepath.Join(consts.DirContent, "_index.md"):                    indexMDContent,
+		filepath.Join(consts.DirContent, "blog", "_index.md"):           blogIndexContent,
 		filepath.Join(consts.DirContent, "blog", "hello-world.md"):      blogPostContent,
+		filepath.Join(consts.DirContent, "docs", "_index.md"):           docsIndexContent,
 		filepath.Join(consts.DirContent, "docs", "getting-started.md"):  docsPageContent,
+		filepath.Join("static", "images", "hero-light.svg"):                string(embedded.ScaffoldHeroLight),
+		filepath.Join("static", "images", "hero-dark.svg"):               string(embedded.ScaffoldHeroDark),
 		filepath.Join("static", ".gitkeep"):                              "",
 		".gitignore":                                                     "dist/\n.cache/\n",
 	}
@@ -86,21 +92,41 @@ theme:
 
 # collections:
 #   blog:
-#     title: "Blog"
 #     sort: "date"
 #     feed: true
 #   docs:
-#     title: "Documentation"
 #     sort: "order"
+
+homepage:
+  hero:
+    title: "Welcome to My Site"
+    subtitle: "A modern site powered by Sarde. Edit sarde.yaml to make it yours."
+    background: gradient
+    cta:
+      label: "Get Started"
+      url: "/docs/getting-started"
+    secondary_cta:
+      label: "Read the Blog"
+      url: "/blog/hello-world"
+    image:
+      light: /images/hero-light.svg
+      dark: /images/hero-dark.svg
+      alt: "Hero illustration"
 `
 
 const indexMDContent = `---
 title: Welcome
 ---
+`
 
-# Welcome to your new site
+const blogIndexContent = `---
+title: Blog
+---
+`
 
-Edit this page at ` + "`content/_index.md`" + `, then run ` + "`sarde dev`" + ` to see your changes.
+const docsIndexContent = `---
+title: Documentation
+---
 `
 
 const blogPostContent = `---
