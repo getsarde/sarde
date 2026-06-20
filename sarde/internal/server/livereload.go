@@ -21,13 +21,14 @@ const (
 
 // ReloadMessage is sent to browsers over WebSocket.
 type ReloadMessage struct {
-	Type  ReloadType `json:"type"`
-	Path  string     `json:"path,omitempty"`
-	Error string     `json:"error,omitempty"`
-	File  string     `json:"file,omitempty"`
-	Line  int        `json:"line,omitempty"`
-	Col   int        `json:"col,omitempty"`
-	Frame string     `json:"frame,omitempty"`
+	Type      ReloadType `json:"type"`
+	Path      string     `json:"path,omitempty"`
+	Error     string     `json:"error,omitempty"`
+	File      string     `json:"file,omitempty"`
+	Line      int        `json:"line,omitempty"`
+	Col       int        `json:"col,omitempty"`
+	Frame     string     `json:"frame,omitempty"`
+	ChangedAt int64      `json:"changedAt,omitempty"` // Unix millis when the file change was first detected
 }
 
 // Hub manages WebSocket client connections and broadcasts reload messages.

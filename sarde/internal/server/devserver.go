@@ -310,6 +310,10 @@ func classifyBatch(changes []FileChange) FileChange {
 		if priority[c.Kind] > priority[best.Kind] {
 			best = c
 		}
+		// Keep the earliest detection timestamp for end-to-end timing.
+		if !c.DetectedAt.IsZero() && (best.DetectedAt.IsZero() || c.DetectedAt.Before(best.DetectedAt)) {
+			best.DetectedAt = c.DetectedAt
+		}
 	}
 	// Collect all content paths so ContentRebuild knows which files changed.
 	for _, c := range changes {

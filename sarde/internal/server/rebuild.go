@@ -154,10 +154,16 @@ func (r *Rebuilder) executeBuild(change FileChange) *RebuildResult {
 // ToReloadMessage converts a file change and rebuild result into a ReloadMessage
 // suitable for broadcasting to connected browsers.
 func ToReloadMessage(change FileChange, result *RebuildResult, projectDir string) ReloadMessage {
+	var changedAt int64
+	if !change.DetectedAt.IsZero() {
+		changedAt = change.DetectedAt.UnixMilli()
+	}
+
 	if result.Error != nil {
 		msg := ReloadMessage{
-			Type:  ReloadError,
-			Error: result.Error.Error(),
+			Type:      ReloadError,
+			Error:     result.Error.Error(),
+			ChangedAt: changedAt,
 		}
 		// Try to extract structured error info for the overlay.
 		if be := build.ParseBuildError(result.Error, projectDir); be != nil {
@@ -182,19 +188,14 @@ func ToReloadMessage(change FileChange, result *RebuildResult, projectDir string
 
 	if change.Kind == ChangeCSS {
 		return ReloadMessage{
-			Type: ReloadCSS,
-			Path: change.Path,
-		}
-	}
-
-	if len(result.Warnings) > 0 {
-		// Send reload with a follow-up warning.
-		return ReloadMessage{
-			Type: ReloadFull,
+			Type:      ReloadCSS,
+			Path:      change.Path,
+			ChangedAt: changedAt,
 		}
 	}
 
 	return ReloadMessage{
-		Type: ReloadFull,
+		Type:      ReloadFull,
+		ChangedAt: changedAt,
 	}
 }

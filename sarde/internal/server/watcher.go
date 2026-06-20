@@ -26,9 +26,10 @@ const (
 
 // FileChange represents a detected filesystem change.
 type FileChange struct {
-	Path  string
-	Paths []string // all changed file paths in the batch (populated for content changes)
-	Kind  ChangeKind
+	Path       string
+	Paths      []string   // all changed file paths in the batch (populated for content changes)
+	Kind       ChangeKind
+	DetectedAt time.Time // when fsnotify first reported this change
 }
 
 // externalWatch represents a directory outside the project tree that should
@@ -163,8 +164,9 @@ func (w *Watcher) loop() {
 			}
 
 			change := FileChange{
-				Path: event.Name,
-				Kind: w.classifyChange(event.Name),
+				Path:       event.Name,
+				Kind:       w.classifyChange(event.Name),
+				DetectedAt: time.Now(),
 			}
 			w.debounceChange(change)
 

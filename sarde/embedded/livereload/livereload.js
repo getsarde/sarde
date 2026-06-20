@@ -13,6 +13,7 @@
       try { msg = JSON.parse(e.data); } catch (_) { return; }
 
       if (msg.type === "reload") {
+        if (msg.changedAt) sessionStorage.setItem("__lr_changed_at", msg.changedAt);
         location.reload();
       } else if (msg.type === "css") {
         var links = document.querySelectorAll('link[rel="stylesheet"]');
@@ -175,5 +176,22 @@
     if (e.key === "Escape") removeOverlay();
   });
 
+  function showReloadTiming() {
+    var t = sessionStorage.getItem("__lr_changed_at");
+    if (!t) return;
+    sessionStorage.removeItem("__lr_changed_at");
+    var ms = Date.now() - parseInt(t, 10);
+    var el = document.createElement("div");
+    el.style.cssText =
+      "position:fixed;bottom:12px;right:12px;z-index:99997;background:#1e1e2e;color:#a6e3a1;" +
+      "padding:6px 12px;border-radius:6px;font-family:monospace;font-size:13px;" +
+      "opacity:1;transition:opacity 0.5s;pointer-events:none;border:1px solid #313244;";
+    el.textContent = "↻ " + ms + "ms";
+    document.body.appendChild(el);
+    setTimeout(function () { el.style.opacity = "0"; }, 3000);
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 3500);
+  }
+
+  showReloadTiming();
   connect();
 })();
