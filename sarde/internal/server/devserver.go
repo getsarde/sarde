@@ -81,7 +81,8 @@ func New(opts Options) *DevServer {
 		rebuilder:  NewRebuilder(opts.BuilderFactory, opts.ProjectDir),
 	}
 
-	ds.watcher = NewWatcher(opts.ProjectDir, opts.OutputDir, 50*time.Millisecond, ds.onFileChange)
+	ds.rebuilder.SetOnResult(ds.handleRebuildResult)
+	ds.watcher = NewWatcher(opts.ProjectDir, opts.OutputDir, 150*time.Millisecond, ds.onFileChange)
 	for _, dir := range opts.ThemeDevDirs {
 		ds.watcher.AddExternalDir(dir, ChangeTemplate)
 	}
@@ -260,13 +261,20 @@ func (ds *DevServer) onFileChange(changes []FileChange) {
 
 	// Any non-CSS change triggers a rebuild.
 	result := ds.rebuilder.Rebuild(representative)
+	if result == nil {
+		return
+	}
+	ds.handleRebuildResult(representative, result)
+}
+
+func (ds *DevServer) handleRebuildResult(change FileChange, result *RebuildResult) {
 	if result.Error != nil {
 		devlog.Error("build", "Rebuild failed: %v", result.Error)
 	} else {
 		devlog.Log("build", "Rebuilt %d pages in %s", result.PageCount, result.Duration)
 	}
 
-	msg := ToReloadMessage(representative, result, ds.projectDir)
+	msg := ToReloadMessage(change, result, ds.projectDir)
 	if result.Error != nil {
 		ds.hub.SetPendingError(&msg)
 	} else {
@@ -274,7 +282,6 @@ func (ds *DevServer) onFileChange(changes []FileChange) {
 	}
 	ds.hub.Broadcast(msg)
 
-	// Send a follow-up warning if there are warnings after a successful rebuild.
 	if result.Success && len(result.Warnings) > 0 {
 		var parts []string
 		for _, w := range result.Warnings {

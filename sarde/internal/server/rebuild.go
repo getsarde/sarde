@@ -21,11 +21,20 @@ type RebuildResult struct {
 // Rebuilder wraps SiteBuilder for dev-mode rebuilds.
 // It persists the builder across content/static changes and only creates
 // a new one when config or templates change.
+//
+// Coalescing: if a rebuild is already running, incoming requests are stored
+// as a single pending change (latest wins). When the active rebuild finishes,
+// the pending change triggers exactly one follow-up rebuild. This prevents
+// cascading queued rebuilds when editors emit rapid successive save events.
 type Rebuilder struct {
 	builderFactory func() *build.SiteBuilder
 	projectDir     string
 	builder        *build.SiteBuilder
-	mu             sync.Mutex
+	onResult       func(FileChange, *RebuildResult)
+
+	mu      sync.Mutex
+	running bool
+	pending *FileChange
 }
 
 // NewRebuilder creates a Rebuilder with the given factory function.
@@ -35,13 +44,56 @@ func NewRebuilder(factory func() *build.SiteBuilder, projectDir string) *Rebuild
 	return &Rebuilder{builderFactory: factory, projectDir: projectDir}
 }
 
+// SetOnResult registers a callback invoked after each completed rebuild
+// (including coalesced rebuilds that run inside the Rebuild loop).
+func (r *Rebuilder) SetOnResult(fn func(FileChange, *RebuildResult)) {
+	r.onResult = fn
+}
+
 // Rebuild runs a site build and returns the result.
 // Config or template changes create a fresh builder (full re-init).
 // Content or static changes reuse the existing builder (template engine skips Load).
+//
+// If a rebuild is already in progress, the change is stored as pending and this
+// call returns nil (the caller should skip logging/broadcasting). When the active
+// rebuild finishes, it picks up the pending change automatically and invokes
+// onResult for each intermediate result.
 func (r *Rebuilder) Rebuild(change FileChange) *RebuildResult {
 	r.mu.Lock()
-	defer r.mu.Unlock()
+	if r.running {
+		r.pending = &change
+		r.mu.Unlock()
+		return nil
+	}
+	r.running = true
+	r.mu.Unlock()
 
+	result := r.executeBuild(change)
+
+	for {
+		r.mu.Lock()
+		next := r.pending
+		r.pending = nil
+		if next == nil {
+			r.running = false
+			r.mu.Unlock()
+			return result
+		}
+		r.mu.Unlock()
+
+		if r.onResult != nil {
+			r.onResult(change, result)
+		}
+
+		devlog.Log("build", "Processing coalesced rebuild")
+		change = *next
+		result = r.executeBuild(change)
+	}
+}
+
+// executeBuild performs the actual build under the assumption that the caller
+// has set r.running = true.
+func (r *Rebuilder) executeBuild(change FileChange) *RebuildResult {
 	start := time.Now()
 
 	switch change.Kind {

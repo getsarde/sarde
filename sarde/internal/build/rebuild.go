@@ -15,7 +15,6 @@ import (
 	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/i18n"
-	"github.com/frostybee/sarde/internal/plugin"
 	"github.com/frostybee/sarde/internal/taxonomy"
 	sardetemplate "github.com/frostybee/sarde/internal/template"
 	"github.com/frostybee/sarde/internal/workers"
@@ -161,6 +160,10 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		})
 	}
 
+	if len(parsed) == 0 && len(dirtyCollections) == 0 {
+		return &engine.BuildResult{PageCount: 0, Duration: time.Since(start)}, nil
+	}
+
 	patchedAllPages := make([]*engine.Page, len(b.lastAllPages))
 	copy(patchedAllPages, b.lastAllPages)
 
@@ -301,10 +304,8 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		newTaxByLang = make(map[string]map[string]*engine.Taxonomy, len(langCodes))
 		for _, code := range langCodes {
 			langTax := taxonomy.BuildTaxonomies(patchedAllPages, b.config.Taxonomies, code)
-			if w, err := taxonomy.EnrichTaxonomies(langTax, b.config.Taxonomies, b.projectDir, code); err != nil {
+			if _, err := taxonomy.EnrichTaxonomies(langTax, b.config.Taxonomies, b.projectDir, code); err != nil {
 				return b.Build()
-			} else {
-				emitTaxonomyWarnings(w)
 			}
 			if b.urlResolver != nil {
 				for _, tax := range langTax {
@@ -319,10 +320,8 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		newTaxonomies = newTaxByLang[defaultLang]
 	} else {
 		newTaxonomies = taxonomy.BuildTaxonomies(patchedAllPages, b.config.Taxonomies, "")
-		if w, err := taxonomy.EnrichTaxonomies(newTaxonomies, b.config.Taxonomies, b.projectDir, ""); err != nil {
+		if _, err := taxonomy.EnrichTaxonomies(newTaxonomies, b.config.Taxonomies, b.projectDir, ""); err != nil {
 			return b.Build()
-		} else {
-			emitTaxonomyWarnings(w)
 		}
 	}
 
@@ -356,15 +355,6 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	// Inject Kazari CSS into the template engine (reuse existing engine on incremental rebuilds).
 	if b.kazariEngine != nil {
 		b.tmplEngine.SetCodeBlockCSS(b.kazariEngine.CSS())
-	}
-
-	resolver := &engine.ThemeResolver{
-		ProjectDir: b.projectDir,
-		ThemeName:  b.config.Theme.Name,
-		EmbeddedFS: b.embeddedFS,
-	}
-	if err := b.tmplEngine.Load(resolver, b.devMode); err != nil {
-		return b.Build()
 	}
 
 	mergedValidation := make(map[string]engine.ValidationEntry, len(b.lastValidationData))
@@ -518,26 +508,6 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	}
 	b.lastSiteCtx.Pages = patchedAllPages
 
-	rebuildLogger := engine.NewBuildLogger()
-	var pluginWarnings []engine.ValidationWarning
-	buildDoneCtx := &plugin.BuildDoneContext{
-		Config:         b.config,
-		OutputDir:      b.lastOutputDir,
-		Pages:          patchedAllPages,
-		Collections:    b.lastCollections,
-		Site:           b.lastSiteCtx,
-		Resolver:       b.urlResolver,
-		PageIndex:      newPageIndex,
-		ValidationData: mergedValidation,
-		DevMode:        b.devMode,
-	}
-	buildDoneCtx.SetWarnings(&pluginWarnings)
-	buildDoneCtx.SetLogger(rebuildLogger)
-	if err := b.pluginMgr.RunBuildDone(buildDoneCtx); err != nil {
-		return nil, err
-	}
-	warnings = append(warnings, pluginWarnings...)
-
 	b.lastAllPages = patchedAllPages
 	b.lastTaxByLang = newTaxByLang
 	b.lastPageIndex = newPageIndex
@@ -548,7 +518,7 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		Duration:    time.Since(start),
 		Warnings:    warnings,
 		OutputDir:   b.lastOutputDir,
-		LogMessages: rebuildLogger.Messages(),
+		LogMessages: nil,
 	}, nil
 }
 

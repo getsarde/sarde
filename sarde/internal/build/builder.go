@@ -287,15 +287,17 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	if isMultiLang {
 		langCodes := b.config.I18n.LanguageCodes()
 		taxByLang = make(map[string]map[string]*engine.Taxonomy, len(langCodes))
+		var allTaxWarnings []string
 		for _, code := range langCodes {
 			langTax := taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies, code)
 			w, err := taxonomy.EnrichTaxonomies(langTax, b.config.Taxonomies, b.projectDir, code)
 			if err != nil {
 				return nil, fmt.Errorf("enriching taxonomies for %s: %w", code, err)
 			}
-			emitTaxonomyWarnings(w)
+			allTaxWarnings = append(allTaxWarnings, w...)
 			taxByLang[code] = langTax
 		}
+		emitTaxonomyWarnings(dedupStrings(allTaxWarnings))
 		taxonomies = taxByLang[defaultLang]
 	} else {
 		taxonomies = taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies, "")
