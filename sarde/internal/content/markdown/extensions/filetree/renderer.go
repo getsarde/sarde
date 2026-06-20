@@ -1,12 +1,13 @@
 package filetree
 
 import (
+	"path/filepath"
 	"strings"
 
+	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
-	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
 )
 
 type filetreeRenderer struct{}
@@ -97,10 +98,17 @@ func renderListItems(w util.BufWriter, listNode ast.Node, source []byte) {
 			itemClass += " sarde-file-tree-file"
 		}
 
-		icon := getIcon(isFolder)
+		icon := getIcon(isFolder, name)
+		nameClass := "sarde-file-tree-name"
+		if isFolder {
+			nameClass += " folder-name"
+		}
+
 		_, _ = w.WriteString("<li class=\"" + itemClass + "\">\n")
+		_, _ = w.WriteString("<span class=\"sarde-file-tree-entry\">")
 		_, _ = w.WriteString(icon)
-		_, _ = w.WriteString("<span class=\"sarde-file-tree-name\">" + htmlutil.EscapeHTML(name) + "</span>\n")
+		_, _ = w.WriteString("<span class=\"" + nameClass + "\">" + htmlutil.EscapeHTML(name) + "</span>")
+		_, _ = w.WriteString("</span>\n")
 
 		if nestedList != nil {
 			_, _ = w.WriteString("<ul class=\"sarde-file-tree-list\">\n")
@@ -119,10 +127,16 @@ func renderItem(w util.BufWriter, name string, isFolder bool) {
 	} else {
 		itemClass += " sarde-file-tree-file"
 	}
-	icon := getIcon(isFolder)
+	icon := getIcon(isFolder, name)
+	nameClass := "sarde-file-tree-name"
+	if isFolder {
+		nameClass += " folder-name"
+	}
 	_, _ = w.WriteString("<li class=\"" + itemClass + "\">\n")
+	_, _ = w.WriteString("<span class=\"sarde-file-tree-entry\">")
 	_, _ = w.WriteString(icon)
-	_, _ = w.WriteString("<span class=\"sarde-file-tree-name\">" + htmlutil.EscapeHTML(name) + "</span>\n")
+	_, _ = w.WriteString("<span class=\"" + nameClass + "\">" + htmlutil.EscapeHTML(name) + "</span>")
+	_, _ = w.WriteString("</span>\n")
 	_, _ = w.WriteString("</li>\n")
 }
 
@@ -154,10 +168,27 @@ func extractAllText(n ast.Node, source []byte) string {
 	return sb.String()
 }
 
-func getIcon(isFolder bool) string {
+func getIcon(isFolder bool, name string) string {
 	if isFolder {
-		return `<svg class="sarde-file-tree-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`
+		return `<svg class="sarde-file-tree-icon folder" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`
 	}
-	return `<svg class="sarde-file-tree-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>`
+	cls := "sarde-file-tree-icon file"
+	if ext := fileExtClass(name); ext != "" {
+		cls += " " + ext
+	}
+	return `<svg class="` + cls + `" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>`
+}
+
+func fileExtClass(name string) string {
+	ext := strings.TrimPrefix(filepath.Ext(name), ".")
+	if ext == "" {
+		return ""
+	}
+	for _, c := range ext {
+		if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
+			return ""
+		}
+	}
+	return "file-" + ext
 }
 
