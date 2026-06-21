@@ -28,6 +28,7 @@ type NavNode struct {
 	DefaultOpen bool
 	Page        *Page
 	Attrs       map[string]string
+	Icon        string
 }
 
 // GlobalNav represents the top-level site navigation bar.

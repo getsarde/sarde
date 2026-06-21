@@ -100,9 +100,10 @@ func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int) *engine.
 		}
 	}
 
-	// Copy sidebar attrs and DefaultOpen from section index page.
+	// Copy sidebar attrs, icon, and DefaultOpen from section index page.
 	if sec.IndexPage != nil {
 		group.Attrs = cloneStringMap(sec.IndexPage.Sidebar.Attrs)
+		group.Icon = sec.IndexPage.Sidebar.Icon
 		if group.Attrs != nil && group.Attrs["open"] == "true" {
 			group.DefaultOpen = true
 		}
@@ -170,13 +171,14 @@ func pageToNode(page *engine.Page, depth int) *engine.NavNode {
 		label = page.Sidebar.Label
 	}
 	return &engine.NavNode{
-		Label:  label,
-		URL:    page.RelPermalink,
-		Slug:   page.Slug,
+		Label: label,
+		URL:   page.RelPermalink,
+		Slug:  page.Slug,
 		Order: page.Sidebar.Order,
-		Depth:  depth,
-		Page:   page,
-		Attrs:  cloneStringMap(page.Sidebar.Attrs),
+		Depth: depth,
+		Page:  page,
+		Attrs: cloneStringMap(page.Sidebar.Attrs),
+		Icon:  page.Sidebar.Icon,
 	}
 }
 

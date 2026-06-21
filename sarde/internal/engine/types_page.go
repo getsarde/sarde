@@ -84,6 +84,7 @@ type PageSidebar struct {
 	Group  string
 	Attrs  map[string]string
 	Badge  Badge
+	Icon   string
 }
 
 // PageTOC holds per-page table-of-contents override fields.
@@ -169,6 +170,7 @@ type FrontmatterSidebar struct {
 	Group  string            `yaml:"group"`
 	Attrs  map[string]string `yaml:"attrs"`
 	Badge  Badge             `yaml:"badge"`
+	Icon   string            `yaml:"icon"`
 }
 
 // FrontmatterTOC holds table-of-contents override fields.

@@ -182,6 +182,7 @@ func buildPage(
 			Group:  fm.Sidebar.Group,
 			Attrs:  fm.Sidebar.Attrs,
 			Badge:  fm.Sidebar.Badge,
+			Icon:   fm.Sidebar.Icon,
 		},
 		TOC: engine.PageTOC{
 			Enabled:  fm.TOC.Enabled,

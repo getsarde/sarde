@@ -72,14 +72,16 @@ func cloneNode(node *engine.NavNode, parent *engine.NavNode) *engine.NavNode {
 	}
 
 	clone := &engine.NavNode{
-		Label:    node.Label,
-		URL:      node.URL,
-		Slug:     node.Slug,
-		Order:   node.Order,
-		Position: node.Position,
-		Depth:    node.Depth,
-		Page:     node.Page, // share Page pointer (immutable during render)
-		Parent:   parent,
+		Label:       node.Label,
+		URL:         node.URL,
+		Slug:        node.Slug,
+		Order:       node.Order,
+		Position:    node.Position,
+		Depth:       node.Depth,
+		Page:        node.Page, // share Page pointer (immutable during render)
+		Parent:      parent,
+		Icon:        node.Icon,
+		DefaultOpen: node.DefaultOpen,
 	}
 
 	if node.Attrs != nil {

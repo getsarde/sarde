@@ -15,10 +15,10 @@
 
 	.sarde-sidebar-nav li {
 	  display: flex;
-	  align-items: baseline;
+	  align-items: center;
 	  flex-wrap: wrap;
 	  gap: var(--sd-space-1);
-	  margin-bottom: var(--sd-space-1);
+	  margin-bottom: 0;
 	}
 	.sarde-sidebar-nav li > details {
 	  width: 100%;
@@ -30,6 +30,7 @@
 	  gap: var(--sd-space-2);
 	  padding: var(--sd-space-2) var(--sd-space-3);
 	  color: var(--sd-text-muted);
+	  font-weight: var(--sd-weight-normal);
 	  text-decoration: none;
 	  border-radius: var(--sd-radius-md);
 	  transition: color var(--sd-transition-fast), background var(--sd-transition-fast);
@@ -43,22 +44,9 @@
 	.sarde-sidebar-nav a.active,
 	.sarde-sidebar-nav a[aria-current="page"] {
 	  color: var(--sd-text-accent);
-	  background: linear-gradient(
-	    to right,
-	    color-mix(in srgb, var(--sd-text-accent) 12%, transparent),
-	    color-mix(in srgb, var(--sd-text-accent) 5%, transparent)
-	  );
-	  font-weight: var(--sd-weight-semibold);
+	  background: color-mix(in srgb, var(--sd-text-accent) 10%, transparent);
+	  font-weight: var(--sd-weight-medium);
 	  position: relative;
-	}
-
-	[dir="rtl"] .sarde-sidebar-nav a.active,
-	[dir="rtl"] .sarde-sidebar-nav a[aria-current="page"] {
-	  background: linear-gradient(
-	    to left,
-	    color-mix(in srgb, var(--sd-text-accent) 12%, transparent),
-	    color-mix(in srgb, var(--sd-text-accent) 5%, transparent)
-	  );
 	}
 
 	.sarde-sidebar-nav a.active::before,
@@ -68,7 +56,7 @@
 	  inset-inline-start: 0;
 	  top: 15%;
 	  bottom: 15%;
-	  width: 2px;
+	  width: 3px;
 	  border-radius: 0 var(--sd-radius-full) var(--sd-radius-full) 0;
 	  background: var(--sd-text-accent);
 	}
@@ -81,8 +69,9 @@
 	.sarde-sidebar-nav details > summary {
 	  display: flex;
 	  align-items: center;
+	  gap: var(--sd-space-2);
 	  padding: var(--sd-space-2) var(--sd-space-3);
-	  font-weight: var(--sd-weight-semibold);
+	  font-weight: var(--sd-weight-medium);
 	  font-size: var(--sd-text-sm);
 	  color: var(--sd-text);
 	  cursor: pointer;
@@ -93,10 +82,6 @@
 
 	.sarde-sidebar-nav details > summary::-webkit-details-marker {
 	  display: none;
-	}
-
-	.sarde-sidebar-nav details.has-active > summary {
-	  background: var(--sd-bg-accent-subtle);
 	}
 
 	.sarde-sidebar-nav details > summary:hover {
@@ -114,6 +99,19 @@
 	@keyframes sidebar-reveal {
 	  from { opacity: 0; transform: translateY(-4px); }
 	  to { opacity: 1; transform: translateY(0); }
+	}
+
+	.sarde-sidebar-nav .sarde-sidebar-icon {
+	  width: 1.125rem;
+	  height: 1.125rem;
+	  flex-shrink: 0;
+	  opacity: 0.5;
+	}
+
+	.sarde-sidebar-nav a.active .sarde-sidebar-icon,
+	.sarde-sidebar-nav a[aria-current="page"] .sarde-sidebar-icon {
+	  opacity: 1;
+	  color: var(--sd-text-accent);
 	}
 
 	.sarde-sidebar-nav details > summary::after {
