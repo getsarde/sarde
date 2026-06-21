@@ -10,7 +10,7 @@ import (
 
 type iconRenderer struct{}
 
-// NewRenderer returns the node renderer for inline ::icon[...] tokens.
+// NewRenderer returns the node renderer for inline :icon[...] tokens.
 func NewRenderer() renderer.NodeRenderer { return &iconRenderer{} }
 
 func (r *iconRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {

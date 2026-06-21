@@ -9,6 +9,7 @@ import (
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
 	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
+	"github.com/frostybee/sarde/internal/content/markdown/icons"
 )
 
 var compareCounter atomic.Int64
@@ -78,7 +79,7 @@ func (r *imageCompareRenderer) render(w util.BufWriter, source []byte, node ast.
 	// Handle
 	_, _ = w.WriteString("<div class=\"sarde-image-compare-handle\" role=\"slider\" tabindex=\"0\" aria-label=\"Image comparison slider\" aria-valuenow=\"50\" aria-valuemin=\"0\" aria-valuemax=\"100\">\n")
 	_, _ = w.WriteString("<div class=\"sarde-image-compare-handle-line\"></div>\n")
-	_, _ = w.WriteString("<div class=\"sarde-image-compare-handle-button\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\" focusable=\"false\"><polyline points=\"15 18 9 12 15 6\"/><polyline points=\"9 18 15 12 9 6\" transform=\"translate(6,0)\"/></svg></div>\n")
+	_, _ = w.WriteString("<div class=\"sarde-image-compare-handle-button\">" + icons.GetWithClass("columns-2", "sarde-compare-handle-icon") + "</div>\n")
 	_, _ = w.WriteString("</div>\n")
 
 	// Labels

@@ -9,14 +9,14 @@ import (
 	"github.com/yuin/goldmark/text"
 )
 
-const iconPrefix = "::icon["
+const iconPrefix = ":icon["
+const iconPrefixLen = 6
 
-// attrRegex matches key="val", key='val', or key=bareval (swarm-icons grammar).
 var attrRegex = regexp.MustCompile(`(\w[\w-]*)=(?:"([^"]*)"|'([^']*)'|(\S+))`)
 
 type iconParser struct{}
 
-// NewParser returns the inline parser for ::icon[...] tokens.
+// NewParser returns the inline parser for :icon[...] tokens.
 func NewParser() parser.InlineParser { return &iconParser{} }
 
 func (p *iconParser) Trigger() []byte { return []byte{':'} }
@@ -29,25 +29,22 @@ func (p *iconParser) Parse(parent ast.Node, block text.Reader, pc parser.Context
 		return nil
 	}
 
-	closeIdx := strings.Index(s[len(iconPrefix):], "]")
+	closeIdx := strings.Index(s[iconPrefixLen:], "]")
 	if closeIdx < 1 {
-		// Empty (::icon[]) or unterminated → decline so it renders literally.
 		return nil
 	}
 
-	inner := s[len(iconPrefix) : len(iconPrefix)+closeIdx]
+	inner := s[iconPrefixLen : iconPrefixLen+closeIdx]
 	name, attrs := parseInner(inner)
 	if name == "" {
 		return nil
 	}
 
 	node := &Icon{Name: name, Attrs: attrs}
-	block.Advance(len(iconPrefix) + closeIdx + 1)
+	block.Advance(iconPrefixLen + closeIdx + 1)
 	return node
 }
 
-// parseInner splits `name attr="val" …` into the icon name (first whitespace
-// token) and an attribute map.
 func parseInner(inner string) (string, map[string]string) {
 	inner = strings.TrimSpace(inner)
 	if inner == "" {

@@ -19,6 +19,11 @@
 	    box-shadow: var(--sd-shadow-sm);
 	}
 
+	/* Standalone cards (outside a grid) get vertical spacing */
+	:not(.sarde-card-grid) > .sarde-card + .sarde-card {
+	    margin-top: var(--sd-space-4);
+	}
+
 	.sarde-card:hover {
 	    border-color: var(--sd-border-accent);
 	    box-shadow: var(--sd-shadow-md);

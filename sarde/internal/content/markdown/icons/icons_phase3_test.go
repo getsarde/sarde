@@ -101,9 +101,6 @@ func TestSpriteLocalIDScheme(t *testing.T) {
 		t.Fatalf("LoadIconDirectory: %v", err)
 	}
 	defer func() {
-		resolver.mu.Lock()
-		delete(resolver.localIcons, "brandmark")
-		resolver.mu.Unlock()
 		spriteSymbols.Delete("i-local-brandmark")
 	}()
 
@@ -176,9 +173,6 @@ func TestSpriteSymbolReplaceIDs(t *testing.T) {
 		t.Fatalf("LoadCollection: %v", err)
 	}
 	defer func() {
-		resolver.mu.Lock()
-		delete(resolver.collections, "zzsprite")
-		resolver.mu.Unlock()
 		spriteSymbols.Delete("i-zzsprite-grad")
 	}()
 

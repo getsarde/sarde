@@ -2,14 +2,14 @@ package icon
 
 import gast "github.com/yuin/goldmark/ast"
 
-// KindIcon is the node kind for inline ::icon[...] tokens.
+// KindIcon is the node kind for inline :icon[...] tokens.
 var KindIcon = gast.NewNodeKind("Icon")
 
-// Icon is an inline node for ::icon[name attr="val"] tokens.
+// Icon is an inline node for :icon[name attr="val"] tokens.
 type Icon struct {
 	gast.BaseInline
-	Name  string            // icon name, e.g. "rocket" or "lucide:rocket"
-	Attrs map[string]string // parsed attributes (class, rotate, title, …)
+	Name  string
+	Attrs map[string]string
 }
 
 func (n *Icon) Kind() gast.NodeKind { return KindIcon }

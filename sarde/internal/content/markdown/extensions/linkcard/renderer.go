@@ -61,7 +61,7 @@ func (r *linkCardRenderer) render(w util.BufWriter, source []byte, node ast.Node
 		if lc.Description != "" {
 			_, _ = fmt.Fprintf(w, "<p class=\"sarde-link-card-description\">%s</p>\n", htmlutil.EscapeHTML(lc.Description))
 		}
-		_, _ = w.WriteString("</div>\n<span class=\"sarde-link-card-arrow\">\u2192</span>\n</a>\n")
+		_, _ = w.WriteString("</div>\n" + icons.GetWithClass("arrow-right", "sarde-link-card-arrow") + "\n</a>\n")
 	}
 	return ast.WalkSkipChildren, nil
 }

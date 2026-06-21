@@ -6,6 +6,8 @@ require (
 	github.com/alecthomas/chroma/v2 v2.26.1
 	github.com/disintegration/imaging v1.6.2
 	github.com/evanw/esbuild v0.28.0
+	github.com/frostybee/go-swarm-icons v0.0.0
+	github.com/frostybee/go-swarm-icons/lucide v0.0.0-00010101000000-000000000000
 	github.com/frostybee/kazari v0.0.0-00010101000000-000000000000
 	github.com/frostybee/nuri v0.0.0-00010101000000-000000000000
 	github.com/frostybee/valiant v0.0.0-00010101000000-000000000000
@@ -25,6 +27,8 @@ require (
 )
 
 replace (
+	github.com/frostybee/go-swarm-icons => D:/Dev/my-repos/swarm-icons-go
+	github.com/frostybee/go-swarm-icons/lucide => D:/Dev/my-repos/swarm-icons-go/lucide
 	github.com/frostybee/kazari => D:/dev/my-repos/kazari
 	github.com/frostybee/nuri => D:/Dev/my-repos/irosashi
 	github.com/frostybee/valiant => D:/Dev/my-repos/valiant

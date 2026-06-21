@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
+	"github.com/frostybee/sarde/internal/content/markdown/icons"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
@@ -170,13 +171,13 @@ func extractAllText(n ast.Node, source []byte) string {
 
 func getIcon(isFolder bool, name string) string {
 	if isFolder {
-		return `<svg class="sarde-file-tree-icon folder" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`
+		return icons.GetWithClass("folder", "sarde-file-tree-icon folder")
 	}
 	cls := "sarde-file-tree-icon file"
 	if ext := fileExtClass(name); ext != "" {
 		cls += " " + ext
 	}
-	return `<svg class="` + cls + `" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>`
+	return icons.GetWithClass("file", cls)
 }
 
 func fileExtClass(name string) string {

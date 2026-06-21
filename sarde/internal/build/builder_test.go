@@ -110,7 +110,7 @@ func TestBuild_IconRenderModeBustsPageCache(t *testing.T) {
 	dir := t.TempDir()
 	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n# Home\n")
 	writeFixture(t, dir, "content/docs/_index.md", "---\ntitle: Docs\n---\n")
-	writeFixture(t, dir, "content/docs/icons.md", "---\ntitle: Icons\nweight: 1\n---\nStars ::icon[star] ::icon[star] ::icon[star]\n")
+	writeFixture(t, dir, "content/docs/icons.md", "---\ntitle: Icons\nweight: 1\n---\nStars :icon[star] :icon[star] :icon[star]\n")
 	themeCfg := buildThemeConfig()
 	defer icons.SetRenderMode("inline") // restore global mode for other tests
 
@@ -154,7 +154,7 @@ func TestContentRebuild_IconRenderKeyThreaded(t *testing.T) {
 	dir := t.TempDir()
 	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n# Home\n")
 	writeFixture(t, dir, "content/docs/_index.md", "---\ntitle: Docs\n---\n")
-	writeFixture(t, dir, "content/docs/icons.md", "---\ntitle: Icons\nweight: 1\n---\nStars ::icon[star]\n")
+	writeFixture(t, dir, "content/docs/icons.md", "---\ntitle: Icons\nweight: 1\n---\nStars :icon[star]\n")
 	defer icons.SetRenderMode("inline") // restore global mode for other tests
 
 	cfg := config.Defaults()
@@ -168,7 +168,7 @@ func TestContentRebuild_IconRenderKeyThreaded(t *testing.T) {
 		t.Fatalf("lastIconRenderKey = %q after sprite build, want %q", b.lastIconRenderKey, "icon-sprite")
 	}
 
-	writeFixture(t, dir, "content/docs/icons.md", "---\ntitle: Icons\nweight: 1\n---\nMore stars ::icon[star] ::icon[star]\n")
+	writeFixture(t, dir, "content/docs/icons.md", "---\ntitle: Icons\nweight: 1\n---\nMore stars :icon[star] :icon[star]\n")
 	if _, err := b.ContentRebuild([]string{filepath.Join(dir, "content", "docs", "icons.md")}); err != nil {
 		t.Fatalf("ContentRebuild failed: %v", err)
 	}

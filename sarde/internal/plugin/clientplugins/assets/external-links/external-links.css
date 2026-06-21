@@ -17,8 +17,8 @@ a:hover .sarde-external-link-icon {
 
 /* Don't show icon on image links or button-styled links */
 a:has(> img) .sarde-external-link-icon,
-.link-button .sarde-external-link-icon,
-.link-card .sarde-external-link-icon,
+.sarde-link-button .sarde-external-link-icon,
+.sarde-link-card .sarde-external-link-icon,
 .nav-link .sarde-external-link-icon,
 .brand-link .sarde-external-link-icon {
     display: none;

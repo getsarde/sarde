@@ -7,7 +7,7 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
-// Extension wires the inline ::icon[...] parser and renderer into Goldmark.
+// Extension wires the inline :icon[...] parser and renderer into Goldmark.
 type Extension struct{}
 
 func (e *Extension) Extend(m goldmark.Markdown) {
