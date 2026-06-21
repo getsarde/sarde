@@ -86,4 +86,22 @@
       if (summary) summary.focus();
     }
   });
+
+  var progressFill = mobileToc.querySelector('.sarde-mobile-toc-progress-fill');
+  if (progressFill) {
+    var circumference = 2 * Math.PI * 6;
+    progressFill.style.strokeDasharray = circumference;
+    progressFill.style.strokeDashoffset = circumference;
+    var scrollRaf = null;
+    window.addEventListener('scroll', function () {
+      if (scrollRaf) return;
+      scrollRaf = requestAnimationFrame(function () {
+        scrollRaf = null;
+        var scrollTop = window.scrollY;
+        var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        var progress = docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0;
+        progressFill.style.strokeDashoffset = circumference * (1 - progress);
+      });
+    }, { passive: true });
+  }
 })();

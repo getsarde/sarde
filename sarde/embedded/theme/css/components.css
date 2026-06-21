@@ -427,6 +427,31 @@
 	    text-overflow: ellipsis;
 	  }
 
+	  .sarde-mobile-toc-progress {
+	    flex-shrink: 0;
+	    transform: rotate(-90deg);
+	  }
+
+	  .sarde-mobile-toc-progress-track {
+	    fill: none;
+	    stroke: var(--sd-border);
+	    stroke-width: 1.5;
+	  }
+
+	  .sarde-mobile-toc-progress-fill {
+	    fill: none;
+	    stroke: var(--sd-text-accent);
+	    stroke-width: 1.5;
+	    stroke-linecap: round;
+	    stroke-dasharray: 37.7;
+	    stroke-dashoffset: 37.7;
+	    transition: stroke-dashoffset 100ms ease;
+	  }
+
+	  .sarde-mobile-toc[open] .sarde-mobile-toc-progress {
+	    visibility: hidden;
+	  }
+
 	  .sarde-mobile-toc[open] .sarde-mobile-toc-current {
 	    visibility: hidden;
 	  }
