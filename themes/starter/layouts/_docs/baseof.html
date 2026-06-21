@@ -29,31 +29,33 @@
   <div class="sarde-sidebar-backdrop" id="sarde-sidebar-backdrop"></div>
   {{ end }}
   <div class="sarde-main-frame">
-    <main class="sarde-content-area" id="main-content">
-      <div class="sarde-content-grid">
-        <div class="sarde-content-panel">
-          {{ if .Breadcrumbs }}{{ component "Breadcrumbs" . }}{{ end }}
-          {{ component "FallbackNotice" . }}
-          {{ component "VersionBanner" . }}
-          {{ component "PageBanner" . }}
-          {{ component "MobileTableOfContents" . }}
-          <article class="sarde-markdown-content"{{ if and .Page .Page.Updated (not .Page.Updated.IsZero) }} data-last-modified="{{ .Page.Updated.Unix }}"{{ end }}>
-            {{ block "content" . }}{{ .Page.Content }}{{ end }}
-          </article>
-          {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
+    <div class="sarde-content-columns">
+      {{ if .Page.Headings }}
+      <aside class="sarde-toc">
+        <div class="sarde-toc-inner">
+          {{ component "TableOfContents" . }}
         </div>
-        {{ if .Page.Headings }}
-        <aside class="sarde-toc">
-          <div class="sarde-toc-inner">
-            {{ component "TableOfContents" . }}
+      </aside>
+      {{ end }}
+      <div class="sarde-main-pane">
+        <main class="sarde-doc-body" id="main-content">
+          {{ announcementBanner }}
+          <div class="sarde-content-panel">
+            {{ if .Breadcrumbs }}{{ component "Breadcrumbs" . }}{{ end }}
+            {{ component "FallbackNotice" . }}
+            {{ component "VersionBanner" . }}
+            {{ component "PageBanner" . }}
+            {{ component "MobileTableOfContents" . }}
+            <article class="sarde-markdown-content"{{ if and .Page .Page.Updated (not .Page.Updated.IsZero) }} data-last-modified="{{ .Page.Updated.Unix }}"{{ end }}>
+              {{ block "content" . }}{{ .Page.Content }}{{ end }}
+            </article>
+            {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
           </div>
-        </aside>
-        {{ end }}
+        </main>
+        {{ component "Footer" . }}
       </div>
-    </main>
-    {{ component "Footer" . }}
+    </div>
   </div>
-  {{ announcementBanner }}
   {{ component "Scripts" . }}
 </body>
 </html>

@@ -179,7 +179,7 @@ body.focus-mode aside.sarde-toc {
     transform: translateX(-100%);
 }
 
-body.focus-mode .sarde-content-area {
+body.focus-mode .sarde-doc-body {
     padding-inline-start: 0;
 }
 
@@ -205,7 +205,7 @@ aside.sarde-toc {
                 visibility var(--focus-mode-speed, 300ms) ease;
 }
 
-.sarde-content-area {
+.sarde-doc-body {
     transition: padding-inline-start var(--focus-mode-speed, 300ms) ease;
 }
 
