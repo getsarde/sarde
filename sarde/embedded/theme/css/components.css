@@ -172,12 +172,13 @@
 	  color: var(--sd-text-accent);
 	}
 
-	.sarde-breadcrumb-icon {
-	  width: 16px;
-	  height: 16px;
+	.sarde-breadcrumbs .sarde-breadcrumb-icon {
+	  width: 20px;
+	  height: 20px;
+	  flex-shrink: 0;
 	}
 
-	.sarde-breadcrumb-sep {
+	.sarde-breadcrumbs .sarde-breadcrumb-sep {
 	  width: 16px;
 	  height: 16px;
 	  color: var(--sd-text-subtle);
@@ -288,7 +289,7 @@
 	  list-style: none;
 	  padding: 0;
 	  margin: 0;
-	  border-inline-start: 2px solid var(--sd-border);
+	  border-inline-start: 1px solid var(--sd-border);
 	}
 
 	.sarde-toc-nav a {
@@ -297,10 +298,14 @@
 	  line-height: 1.25rem;
 	  color: var(--sd-text-muted);
 	  text-decoration: none;
-	  border-inline-start: 2px solid transparent;
-	  margin-inline-start: -2px;
+	  border-inline-start: 1px solid transparent;
+	  margin-inline-start: -1px;
 	  transition: color var(--sd-transition-fast),
 	             border-color var(--sd-transition-fast);
+	}
+
+	:root[data-theme="dark"] .sarde-toc-nav a {
+	  color: oklch(0.80 0.01 286);
 	}
 
 	.sarde-toc-nav a:hover {
