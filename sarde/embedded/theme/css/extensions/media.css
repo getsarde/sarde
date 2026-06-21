@@ -7,7 +7,7 @@
 
 	.sarde-math-block {
 	  display: block;
-	  margin: 1.5rem 0;
+	  margin: var(--sd-space-8) 0;
 	  text-align: center;
 	  overflow-x: auto;
 	  padding: 1rem 0;
@@ -16,7 +16,7 @@
 	/* -- mermaid -- */
 	/* Mermaid Extension */
 	.sarde-mermaid {
-	  margin: 1.5rem 0;
+	  margin: var(--sd-space-8) 0;
 	  text-align: center;
 	  background: var(--sd-bg, #ffffff);
 	  padding: 1rem;
@@ -45,7 +45,7 @@
 
 	.sarde-video-container {
 	    position: relative;
-	    margin: var(--sd-space-6) 0;
+	    margin: var(--sd-space-8) 0;
 	    border-radius: var(--sd-video-radius);
 	    overflow: hidden;
 	    background: var(--sd-video-bg);
@@ -355,7 +355,7 @@
 
 	/* Video Extension */
 	.sarde-video-embed {
-	  margin: 1.5rem 0;
+	  margin: var(--sd-space-8) 0;
 	}
 	.sarde-video-wrapper {
 	  position: relative;
@@ -376,7 +376,7 @@
 
 	/* Figure Extension */
 	.sarde-figure {
-	  margin: 1.5rem 0;
+	  margin: var(--sd-space-8) 0;
 	  text-align: center;
 	}
 	.sarde-figure img {
@@ -400,7 +400,7 @@
 
 	/* Gallery Extension */
 	.sarde-gallery {
-	  margin: 1.5rem 0;
+	  margin: var(--sd-space-8) 0;
 	}
 	.sarde-gallery-title {
 	  margin: 0 0 0.75rem 0;
@@ -476,7 +476,7 @@
 
 	/* Image Compare Extension */
 	.sarde-image-compare-wrapper {
-	  margin: 1.5rem 0;
+	  margin: var(--sd-space-8) 0;
 	}
 	.sarde-image-compare-label {
 	  margin-bottom: 0.5rem;
@@ -561,6 +561,6 @@
 	  color: var(--sd-red);
 	  border: 1px solid var(--sd-border);
 	  border-radius: 0.5rem;
-	  margin: 1.5rem 0;
+	  margin: var(--sd-space-8) 0;
 	}
 }

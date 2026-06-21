@@ -6,7 +6,7 @@
 	 */
 
 	.sarde-tabs {
-	    margin: var(--sd-space-6) 0;
+	    margin: var(--sd-space-8) 0;
 	}
 
 	.sarde-tabs-header {
@@ -202,7 +202,7 @@
 	    border: 1px solid var(--terminal-border);
 	    border-radius: var(--sd-radius-lg);
 	    overflow: hidden;
-	    margin: var(--sd-space-6) 0;
+	    margin: var(--sd-space-8) 0;
 	    font-family: var(--sd-font-mono);
 	}
 

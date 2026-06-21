@@ -7,7 +7,7 @@
 	 */
 
 	.sarde-aside {
-	    margin: var(--sd-space-6) 0;
+	    margin: var(--sd-space-8) 0;
 	    padding: var(--sd-space-4) var(--sd-space-6);
 	    padding-inline-start: var(--sd-space-4);
 	    border-inline-start: 4px solid;
@@ -160,7 +160,7 @@
 	.sarde-aside-github {
 	    padding: 0.5rem 1rem;
 	    border-inline-start: 0.25em solid #d0d7de;
-	    margin: 1rem 0;
+	    margin: var(--sd-space-8) 0;
 	    background: transparent !important;
 	    border-radius: 0;
 	}

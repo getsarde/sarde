@@ -7,8 +7,8 @@
 	  font-weight: var(--sd-weight-bold);
 	  line-height: var(--sd-line-height-headings);
 	  color: var(--sd-text);
-	  margin-top: var(--sd-space-8);
-	  margin-bottom: var(--sd-space-3);
+	  margin-top: var(--sd-space-10);
+	  margin-bottom: var(--sd-space-4);
 	  scroll-margin-top: calc(var(--sd-nav-height) + var(--sd-space-4));
 	  position: relative;
 	}
@@ -46,13 +46,13 @@
 	/* ── Prose ── */
 	article p,
 	.content p {
-	  margin-bottom: var(--sd-space-4);
+	  margin-bottom: var(--sd-space-5);
 	}
 
 	article ul, article ol,
 	.content ul, .content ol {
 	  padding-inline-start: var(--sd-space-6);
-	  margin-bottom: var(--sd-space-4);
+	  margin-bottom: var(--sd-space-5);
 	}
 
 	article li,
@@ -71,7 +71,7 @@
 	  border-inline-start: 4px solid var(--sd-border);
 	  padding: var(--sd-space-1) var(--sd-space-4);
 	  color: var(--sd-text-muted);
-	  margin: var(--sd-space-6) 0;
+	  margin: var(--sd-space-8) 0;
 	}
 
 	article hr,
