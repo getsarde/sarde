@@ -347,7 +347,7 @@
 	  display: none;
 	}
 
-	@media (max-width: 1023px) {
+	@media (max-width: 1279px) {
 	  .sarde-mobile-toc {
 	    display: block;
 	    position: fixed;
@@ -527,6 +527,16 @@
 	    -webkit-mask-size: contain;
 	    -webkit-mask-repeat: no-repeat;
 	    -webkit-mask-position: center;
+	  }
+	}
+
+	@media (min-width: 1024px) and (max-width: 1279px) {
+	  .sarde-mobile-toc {
+	    inset-inline-start: var(--sd-sidebar-width);
+	  }
+
+	  .sd-sidebar-collapsed .sarde-mobile-toc {
+	    inset-inline-start: var(--sd-sidebar-collapsed-width);
 	  }
 	}
 

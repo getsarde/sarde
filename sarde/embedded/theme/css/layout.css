@@ -156,7 +156,7 @@
 	  min-height: 100vh;
 	}
 
-	@media (max-width: 1023px) {
+	@media (max-width: 1279px) {
 	  .sarde-layout-docs .sarde-content-area {
 	    padding-top: calc(var(--sd-mobile-toc-height) + var(--sd-space-8));
 	  }
@@ -392,9 +392,15 @@
 	  background: var(--sd-bg-toc);
 	}
 
-	@media (min-width: 1024px) {
+	@media (min-width: 1280px) {
 	  .sarde-toc {
 	    display: block;
+	  }
+	}
+
+	@media (min-width: 1024px) and (max-width: 1279px) {
+	  .sarde-content-grid {
+	    max-width: var(--sd-content-width);
 	  }
 	}
 
