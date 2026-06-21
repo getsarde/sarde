@@ -128,7 +128,7 @@ func TestBuild_ClientPlugins_PerPageConfigInjection(t *testing.T) {
 	cfg := config.Defaults()
 	cfg.Plugins.Enabled = []string{
 		"scroll-to-top", "code-collapsible", "image-lightbox",
-		"toc-progress", "focus-mode",
+		"focus-mode",
 	}
 	themeCfg := buildThemeConfig()
 
@@ -157,11 +157,6 @@ func TestBuild_ClientPlugins_PerPageConfigInjection(t *testing.T) {
 	// Config for image-lightbox should be injected (has_images → guide has images)
 	if !strings.Contains(guideHTML, `image-lightbox`) {
 		t.Error("guide page should have image-lightbox config (has images)")
-	}
-
-	// Config for toc-progress should be injected (has_toc → guide has headings + docs layout)
-	if !strings.Contains(guideHTML, `toc-progress`) {
-		t.Error("guide page should have toc-progress config (docs layout + headings)")
 	}
 
 	// plain.md has no code blocks, no images → those config scripts should NOT be injected
@@ -490,7 +485,7 @@ func TestBuild_AllClientPlugins(t *testing.T) {
 		"scroll-to-top", "copy-section-link", "external-links",
 		"image-lightbox", "keyboard-nav", "focus-mode",
 		"reading-progress", "search-highlighter", "text-highlighter",
-		"toc-progress", "last-updated", "reading-position-memory",
+		"last-updated", "reading-position-memory",
 		"reading-preferences", "code-collapsible",
 		"announcements",
 	}

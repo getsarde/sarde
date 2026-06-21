@@ -1,0 +1,33 @@
+site:
+  title: "My Site"
+  description: "A site built with Sarde"
+  url: "http://localhost:4727"
+
+theme:
+  name: "default"
+  # preset: "ocean"        # Try: ocean, forest, rose, clean, minimal, docs, academic
+  # overrides:
+  #   primary: "#6366f1"
+
+# collections:
+#   blog:
+#     sort: "date"
+#     feed: true
+#   docs:
+#     sort: "order"
+
+homepage:
+  hero:
+    title: "Welcome to My Site"
+    subtitle: "A modern site powered by Sarde. Edit sarde.yaml to make it yours."
+    background: gradient
+    cta:
+      label: "Get Started"
+      url: "/docs/getting-started"
+    secondary_cta:
+      label: "Read the Blog"
+      url: "/blog/hello-world"
+    image:
+      light: /images/hero-light.svg
+      dark: /images/hero-dark.svg
+      alt: "Hero illustration"

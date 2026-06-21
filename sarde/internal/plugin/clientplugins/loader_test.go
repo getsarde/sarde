@@ -220,7 +220,7 @@ func TestPluginSlugs(t *testing.T) {
 	for _, s := range slugs {
 		slugSet[s] = true
 	}
-	for _, expected := range []string{"scroll-to-top", "focus-mode", "code-collapsible", "toc-progress"} {
+	for _, expected := range []string{"scroll-to-top", "focus-mode", "code-collapsible"} {
 		if !slugSet[expected] {
 			t.Errorf("missing slug %q", expected)
 		}

@@ -8,12 +8,12 @@
   <a href="#main-content" class="sarde-skip-link">{{ t "nav.skip_to_content" }}</a>
   {{ component "Header" . }}
   <main id="main-content">
+    {{ announcementBanner }}
     {{ component "FallbackNotice" . }}
     {{ component "PageBanner" . }}
     {{ block "content" . }}{{ .Page.Content }}{{ end }}
   </main>
   {{ component "Footer" . }}
-  {{ announcementBanner }}
   {{ component "Scripts" . }}
 </body>
 </html>

@@ -71,13 +71,6 @@ plugins:
       js: text-highlighter/text-highlighter.js
     module: true
 
-  toc-progress:
-    description: "Animated progress indicator in the Table of Contents"
-    inject_when: has_toc
-    assets:
-      css: toc-progress/toc-progress.css
-      js: toc-progress/toc-progress.js
-    module: true
 
   last-updated:
     description: "Last updated badge with relative or absolute time"

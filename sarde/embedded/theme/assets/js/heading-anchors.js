@@ -4,6 +4,7 @@
   var svgNS = 'http://www.w3.org/2000/svg';
 
   headings.forEach(function (h) {
+    if (h.querySelector('.sarde-heading-anchor')) return;
     var a = document.createElement('a');
     a.className = 'sarde-heading-anchor';
     a.href = '#' + h.id;

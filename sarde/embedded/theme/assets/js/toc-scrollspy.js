@@ -19,16 +19,45 @@
 
   if (headingIds.length === 0) return;
 
-  function getNavOffset() {
+  var firstHeadingId = headingIds[0];
+  var lastHeadingId = headingIds[headingIds.length - 1];
+
+  // ── Narrow 53px detection strip just below the nav ────────────────
+  function getStripRootMargin() {
     var header = document.querySelector('.sarde-header');
-    var base = header ? header.offsetHeight : 64;
-    var mobileTocH = (window.innerWidth < 1024 && mobileToc) ? 48 : 0;
-    return base + mobileTocH + 8;
+    var navHeight = header ? header.offsetHeight : 64;
+    var mobileTocH = (window.innerWidth < 1280 && mobileToc) ? 48 : 0;
+    var topOffset = navHeight + mobileTocH + 32;
+    var bottomOffset = topOffset + 53 - window.innerHeight;
+    return '-' + topOffset + 'px 0% ' + bottomOffset + 'px';
   }
 
+  // ── Attribute a content element to its nearest preceding heading ───
+  function getElementHeading(el) {
+    var current = el;
+    while (current) {
+      if (/^H[2-6]$/.test(current.nodeName) && current.id) return current;
+      var prev = current.previousElementSibling;
+      while (prev) {
+        if (/^H[2-6]$/.test(prev.nodeName) && prev.id) return prev;
+        var last = prev.lastElementChild;
+        while (last) {
+          if (/^H[2-6]$/.test(last.nodeName) && last.id) return last;
+          last = last.lastElementChild;
+        }
+        prev = prev.previousElementSibling;
+      }
+      current = current.parentElement;
+    }
+    return null;
+  }
+
+  // ── Set the active TOC link ───────────────────────────────────────
   function setActive(id) {
     [].forEach.call(desktopLinks, function (link) {
-      link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+      var isActive = link.getAttribute('href') === '#' + id;
+      link.classList.toggle('active', isActive);
+      link.setAttribute('aria-current', isActive ? 'true' : 'false');
     });
 
     var activeText = '';
@@ -40,18 +69,69 @@
     if (currentSpan) currentSpan.textContent = activeText;
   }
 
-  var observer = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
-      if (entry.isIntersecting) {
-        setActive(entry.target.id);
-      }
-    });
-  }, { rootMargin: '-' + getNavOffset() + 'px 0px -60% 0px', threshold: 0 });
+  // ── Collect all elements to observe ───────────────────────────────
+  var elementsToObserve = [];
 
-  headingIds.forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) observer.observe(el);
-  });
+  function collectElements() {
+    elementsToObserve = [];
+    var content = document.querySelector('article.sarde-markdown-content');
+    if (!content) {
+      headingIds.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) elementsToObserve.push(el);
+      });
+      return;
+    }
+    var children = content.children;
+    for (var i = 0; i < children.length; i++) {
+      elementsToObserve.push(children[i]);
+    }
+    var deepHeadings = content.querySelectorAll('h2[id], h3[id], h4[id], h5[id], h6[id]');
+    [].forEach.call(deepHeadings, function (h) {
+      if (h.parentElement !== content) elementsToObserve.push(h);
+    });
+  }
+
+  // ── IntersectionObserver ──────────────────────────────────────────
+  var observer = null;
+
+  function observerCallback(entries) {
+    for (var i = 0; i < entries.length; i++) {
+      if (entries[i].isIntersecting) {
+        var heading = getElementHeading(entries[i].target);
+        if (heading && heading.id) {
+          setActive(heading.id);
+        } else {
+          setActive(firstHeadingId);
+        }
+        break;
+      }
+    }
+  }
+
+  function buildObserver() {
+    if (observer) observer.disconnect();
+    observer = new IntersectionObserver(observerCallback, {
+      rootMargin: getStripRootMargin(),
+      threshold: 0
+    });
+    elementsToObserve.forEach(function (el) { observer.observe(el); });
+  }
+
+  // ── Resize: rebuild observer (rootMargin depends on header height)
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(buildObserver, 200);
+  }, { passive: true });
+
+  // ── Smooth scroll on TOC link click ───────────────────────────────
+  function getNavOffset() {
+    var header = document.querySelector('.sarde-header');
+    var base = header ? header.offsetHeight : 64;
+    var mobileTocH = (window.innerWidth < 1024 && mobileToc) ? 48 : 0;
+    return base + mobileTocH + 8;
+  }
 
   [].forEach.call(desktopLinks, function (link) {
     link.addEventListener('click', function (e) {
@@ -65,43 +145,63 @@
     });
   });
 
-  if (!mobileToc) return;
-
-  [].forEach.call(mobileLinks, function (link) {
-    link.addEventListener('click', function () {
-      setTimeout(function () { mobileToc.open = false; }, 0);
+  // ── Mobile TOC behavior ───────────────────────────────────────────
+  if (mobileToc) {
+    [].forEach.call(mobileLinks, function (link) {
+      link.addEventListener('click', function () {
+        setTimeout(function () { mobileToc.open = false; }, 0);
+      });
     });
-  });
 
-  document.addEventListener('click', function (e) {
-    if (mobileToc.open && !mobileToc.contains(e.target)) {
-      mobileToc.open = false;
-    }
-  });
+    document.addEventListener('click', function (e) {
+      if (mobileToc.open && !mobileToc.contains(e.target)) {
+        mobileToc.open = false;
+      }
+    });
 
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && mobileToc.open) {
-      mobileToc.open = false;
-      var summary = mobileToc.querySelector('summary');
-      if (summary) summary.focus();
-    }
-  });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && mobileToc.open) {
+        mobileToc.open = false;
+        var summary = mobileToc.querySelector('summary');
+        if (summary) summary.focus();
+      }
+    });
+  }
 
-  var progressFill = mobileToc.querySelector('.sarde-mobile-toc-progress-fill');
+  // ── Circular progress indicator ───────────────────────────────────
+  var progressFill = mobileToc ? mobileToc.querySelector('.sarde-mobile-toc-progress-fill') : null;
+  var circumference = 2 * Math.PI * 6;
   if (progressFill) {
-    var circumference = 2 * Math.PI * 6;
     progressFill.style.strokeDasharray = circumference;
     progressFill.style.strokeDashoffset = circumference;
-    var scrollRaf = null;
-    window.addEventListener('scroll', function () {
-      if (scrollRaf) return;
-      scrollRaf = requestAnimationFrame(function () {
-        scrollRaf = null;
+  }
+
+  var scrollRaf = null;
+  window.addEventListener('scroll', function () {
+    if (scrollRaf) return;
+    scrollRaf = requestAnimationFrame(function () {
+      scrollRaf = null;
+      if (progressFill) {
         var scrollTop = window.scrollY;
         var docHeight = document.documentElement.scrollHeight - window.innerHeight;
         var progress = docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0;
         progressFill.style.strokeDashoffset = circumference * (1 - progress);
-      });
-    }, { passive: true });
+      }
+      var atBottom = (window.innerHeight + window.scrollY) >=
+        (document.documentElement.scrollHeight - 50);
+      if (atBottom) setActive(lastHeadingId);
+    });
+  }, { passive: true });
+
+  // ── Init (deferred to avoid blocking first paint) ─────────────────
+  function init() {
+    collectElements();
+    buildObserver();
+  }
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(init);
+  } else {
+    setTimeout(init, 16);
   }
 })();

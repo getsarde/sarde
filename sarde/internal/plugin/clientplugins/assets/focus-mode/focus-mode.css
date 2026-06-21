@@ -183,6 +183,10 @@ body.focus-mode .sarde-content-area {
     padding-inline-start: 0;
 }
 
+body.focus-mode .sarde-mobile-toc {
+    inset-inline-start: 0;
+}
+
 body.focus-mode div.sarde-content-panel {
     max-width: 55rem;
     margin: 0 auto;

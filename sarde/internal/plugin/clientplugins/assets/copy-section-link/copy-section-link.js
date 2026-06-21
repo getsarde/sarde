@@ -34,7 +34,7 @@ function showTooltip(anchor) {
 
 // Handle clicks on heading anchors via event delegation.
 function onClick(e) {
-    const anchor = e.target.closest('.heading-anchor');
+    const anchor = e.target.closest('.sarde-heading-anchor');
     if (!anchor) return;
 
     e.preventDefault();

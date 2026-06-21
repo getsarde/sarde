@@ -5,7 +5,7 @@
     var STORAGE_PREFIX = 'announcement-dismissed-';
     var ROTATE_INDEX_KEY = 'announcement-rotate-index';
 
-    var container = document.querySelector('.announcement-container');
+    var container = document.querySelector('.sarde-announcement-container');
     if (!container) return;
 
     var displayMode = container.dataset.displayMode || 'stack';
@@ -58,7 +58,7 @@
 
     function getAllBanners() {
         return Array.prototype.slice.call(
-            container.querySelectorAll('.announcement-banner[data-announcement-id]')
+            container.querySelectorAll('.sarde-announcement-banner[data-announcement-id]')
         );
     }
 
@@ -80,10 +80,10 @@
         });
 
         container.addEventListener('click', function (e) {
-            var btn = e.target.closest('.announcement-dismiss');
+            var btn = e.target.closest('.sarde-announcement-dismiss');
             if (!btn) return;
             var id = btn.dataset.announcementId;
-            var banner = btn.closest('.announcement-banner');
+            var banner = btn.closest('.sarde-announcement-banner');
             if (banner) banner.classList.add('dismissed');
             if (id) dismiss(id);
         });
@@ -102,7 +102,7 @@
         showFirst();
 
         container.addEventListener('click', function (e) {
-            var btn = e.target.closest('.announcement-dismiss');
+            var btn = e.target.closest('.sarde-announcement-dismiss');
             if (!btn) return;
             var id = btn.dataset.announcementId;
             if (id) dismiss(id);
@@ -174,7 +174,7 @@
 
         function updateDots() {
             if (!dotContainer) return;
-            var dots = dotContainer.querySelectorAll('.announcement-dot');
+            var dots = dotContainer.querySelectorAll('.sarde-announcement-dot');
             dots.forEach(function (dot, i) {
                 var isActive = i === rotateIndex;
                 dot.classList.toggle('is-active', isActive);
@@ -190,13 +190,13 @@
             if (!showIndicator || rotateVisible.length <= 1) return;
 
             dotContainer = document.createElement('div');
-            dotContainer.className = 'announcement-dots';
+            dotContainer.className = 'sarde-announcement-dots';
             dotContainer.setAttribute('role', 'tablist');
             dotContainer.setAttribute('aria-label', 'Announcements');
 
             rotateVisible.forEach(function (_, i) {
                 var dot = document.createElement('button');
-                dot.className = 'announcement-dot';
+                dot.className = 'sarde-announcement-dot';
                 dot.setAttribute('role', 'tab');
                 dot.setAttribute('aria-label', 'Announcement ' + (i + 1) + ' of ' + rotateVisible.length);
                 dot.setAttribute('aria-selected', 'false');
@@ -226,7 +226,7 @@
                 }
                 if (handled) {
                     e.preventDefault();
-                    var activeDot = dotContainer.querySelector('.announcement-dot.is-active');
+                    var activeDot = dotContainer.querySelector('.sarde-announcement-dot.is-active');
                     if (activeDot) activeDot.focus();
                 }
             });
@@ -254,7 +254,7 @@
         }
 
         container.addEventListener('click', function (e) {
-            var btn = e.target.closest('.announcement-dismiss');
+            var btn = e.target.closest('.sarde-announcement-dismiss');
             if (!btn) return;
             var id = btn.dataset.announcementId;
             if (id) handleDismiss(id);

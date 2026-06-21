@@ -30,7 +30,7 @@
 }
 
 /* Ensure the anchor can position the tooltip */
-.heading-anchor {
+.sarde-heading-anchor {
     position: relative;
 }
 

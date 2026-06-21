@@ -23,33 +23,29 @@ const HEADER_OFFSET = 100;
 function update() {
     if (!tocNav || allLinks.length === 0) return;
 
-    // Find first and last active link indices
-    var firstIdx = -1;
-    var lastIdx = -1;
+    // Find the single active link (first visible heading, or fallback to .active)
+    var activeIdx = -1;
 
     for (var i = 0; i < allLinks.length; i++) {
         var href = allLinks[i].getAttribute('href') || '';
         var id = href.charAt(0) === '#' ? href.slice(1) : '';
         if (id && visibleIds.has(id)) {
-            if (firstIdx === -1) firstIdx = i;
-            lastIdx = i;
+            activeIdx = i;
+            break;
         }
     }
 
-    // Fallback: Alpine's single active link
-    if (firstIdx === -1) {
+    if (activeIdx === -1) {
         for (var k = 0; k < allLinks.length; k++) {
             if (allLinks[k].classList.contains('active')) {
-                firstIdx = k;
-                lastIdx = k;
+                activeIdx = k;
                 break;
             }
         }
     }
 
-    // Apply classes to links in range
     for (var j = 0; j < allLinks.length; j++) {
-        if (firstIdx !== -1 && j >= firstIdx && j <= lastIdx) {
+        if (j === activeIdx) {
             allLinks[j].classList.add('sarde-toc-progress-visible');
         } else {
             allLinks[j].classList.remove('sarde-toc-progress-visible');
@@ -147,7 +143,7 @@ function cleanup() {
 
 function init() {
     cleanup();
-    tocNav = (document.querySelector('nav.sarde-toc-nav'));
+    tocNav = document.querySelector('nav.sarde-toc-nav');
     if (!tocNav) return;
 
     tocNav.classList.add('sarde-toc-progress-active');

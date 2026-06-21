@@ -151,7 +151,7 @@
 	  color: var(--sd-text-accent);
 	}
 
-	/* ── Docs Layout (Starlight-style) ── */
+	/* ── Docs Layout ── */
 	.sarde-layout-docs {
 	  min-height: 100vh;
 	}
@@ -162,7 +162,7 @@
 	  }
 	}
 
-	/* ── Mobile Sidebar Toggle (Starlight-style) ── */
+	/* ── Mobile Sidebar Toggle ── */
 	.sarde-menu-toggle {
 	  position: fixed;
 	  top: calc((var(--sd-nav-height) - 2rem) / 2);

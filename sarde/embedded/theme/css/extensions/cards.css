@@ -439,7 +439,7 @@
 	    box-shadow: 0 2px 8px oklch(0.62 0.20 var(--sd-hue-blue) / 0.25);
 	}
 
-	/* Secondary variant - Solid gray background (Starlight style) */
+	/* Secondary variant - Solid gray background */
 	.sarde-link-button-secondary {
 	    background: var(--sd-gray-2);
 	    color: var(--sd-gray-7);
