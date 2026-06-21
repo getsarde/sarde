@@ -1,8 +1,20 @@
 {{ if .Breadcrumbs }}
 <nav class="sarde-breadcrumbs" aria-label="{{ t "nav.breadcrumb" }}">
   <ol>
-  {{ range .Breadcrumbs }}
-    <li>{{ if or .Current (not .URL) }}<span{{ if .Current }} aria-current="page"{{ end }}>{{ .Label }}</span>{{ else }}<a href="{{ .URL }}">{{ .Label }}</a>{{ end }}</li>
+  {{ $last := sub (len .Breadcrumbs) 1 }}
+  {{ range $i, $item := .Breadcrumbs }}
+    <li>
+      {{- if $item.Current -}}
+        <span aria-current="page">{{ $item.Label }}</span>
+      {{- else if not $item.URL -}}
+        <span>{{ $item.Label }}</span>
+      {{- else if eq $i 0 -}}
+        <a href="{{ $item.URL }}"><svg class="sarde-breadcrumb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg><span class="sr-only">{{ $item.Label }}</span></a>
+      {{- else -}}
+        <a href="{{ $item.URL }}">{{ $item.Label }}</a>
+      {{- end -}}
+      {{- if ne $i $last }}{{ icon "chevron-right" "sarde-breadcrumb-sep" }}{{ end -}}
+    </li>
   {{ end }}
   </ol>
 </nav>

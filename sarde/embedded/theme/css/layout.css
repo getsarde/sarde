@@ -397,6 +397,7 @@
 	  top: calc(var(--sd-nav-height) + var(--sd-space-8));
 	  overflow-y: auto;
 	  max-height: calc(100vh - var(--sd-nav-height) - var(--sd-space-8));
+	  padding-inline-start: var(--sd-space-4);
 	}
 
 	/* ── Responsive ── */

@@ -144,17 +144,23 @@
 	.sarde-breadcrumbs {
 	  font-size: var(--sd-text-sm);
 	  color: var(--sd-text-muted);
-	  margin-bottom: var(--sd-space-4);
+	  margin-bottom: var(--sd-space-6);
 	}
 
 	.sarde-breadcrumbs ol {
 	  display: flex;
 	  align-items: center;
-	  gap: var(--sd-space-1);
+	  gap: var(--sd-space-2);
 	  flex-wrap: wrap;
 	  list-style: none;
 	  padding: 0;
 	  margin: 0;
+	}
+
+	.sarde-breadcrumbs li {
+	  display: flex;
+	  align-items: center;
+	  gap: var(--sd-space-2);
 	}
 
 	.sarde-breadcrumbs a {
@@ -164,18 +170,27 @@
 
 	.sarde-breadcrumbs a:hover {
 	  color: var(--sd-text-accent);
-	  text-decoration: underline;
+	}
+
+	.sarde-breadcrumb-icon {
+	  width: 16px;
+	  height: 16px;
+	}
+
+	.sarde-breadcrumb-sep {
+	  width: 16px;
+	  height: 16px;
+	  color: var(--sd-text-subtle);
+	  flex-shrink: 0;
 	}
 
 	.sarde-breadcrumbs [aria-current="page"] {
 	  color: var(--sd-text);
 	  font-weight: var(--sd-weight-medium);
-	}
-
-	.sarde-breadcrumbs li + li::before {
-	  content: "/";
-	  color: var(--sd-text-subtle);
-	  margin-inline-end: var(--sd-space-1);
+	  max-width: 200px;
+	  overflow: hidden;
+	  text-overflow: ellipsis;
+	  white-space: nowrap;
 	}
 
 	/* ── Pagination (Prev/Next) ── */
@@ -259,12 +274,12 @@
 	}
 
 	.sarde-toc-nav h2 {
-	  font-size: var(--sd-text-sm);
+	  font-size: var(--sd-text-xs);
 	  font-weight: var(--sd-weight-semibold);
 	  color: var(--sd-text);
 	  text-transform: uppercase;
 	  letter-spacing: 0.05em;
-	  margin-bottom: var(--sd-space-3);
+	  margin-bottom: var(--sd-space-4);
 	  border-bottom: none;
 	  padding-bottom: 0;
 	}
@@ -279,13 +294,13 @@
 	.sarde-toc-nav a {
 	  display: block;
 	  padding: var(--sd-space-1) var(--sd-space-3);
+	  line-height: 1.25rem;
 	  color: var(--sd-text-muted);
 	  text-decoration: none;
 	  border-inline-start: 2px solid transparent;
 	  margin-inline-start: -2px;
 	  transition: color var(--sd-transition-fast),
-	             border-color var(--sd-transition-fast),
-	             background-color var(--sd-transition-normal);
+	             border-color var(--sd-transition-fast);
 	}
 
 	.sarde-toc-nav a:hover {
@@ -296,16 +311,14 @@
 	  color: var(--sd-text-accent);
 	  border-inline-start-color: var(--sd-text-accent);
 	  font-weight: var(--sd-weight-medium);
-	  background: color-mix(in srgb, var(--sd-text-accent) 8%, transparent);
-	  border-radius: 0 var(--sd-radius-sm) var(--sd-radius-sm) 0;
-	}
-
-	[dir="rtl"] .sarde-toc-nav a.active {
-	  border-radius: var(--sd-radius-sm) 0 0 var(--sd-radius-sm);
 	}
 
 	.sarde-toc-nav .sarde-toc-level-3 a {
 	  padding-inline-start: var(--sd-space-6);
+	}
+
+	.sarde-toc-nav .sarde-toc-level-4 a {
+	  padding-inline-start: var(--sd-space-8);
 	}
 
 	.sarde-toc-top {
