@@ -156,6 +156,12 @@
 	  min-height: 100vh;
 	}
 
+	@media (max-width: 1023px) {
+	  .sarde-layout-docs .sarde-content-area {
+	    padding-top: calc(var(--sd-mobile-toc-height) + var(--sd-space-8));
+	  }
+	}
+
 	/* ── Mobile Sidebar Toggle (Starlight-style) ── */
 	.sarde-menu-toggle {
 	  position: fixed;

@@ -147,7 +147,7 @@ function cleanup() {
 
 function init() {
     cleanup();
-    tocNav = (document.querySelector('nav.toc'));
+    tocNav = (document.querySelector('nav.sarde-toc-nav'));
     if (!tocNav) return;
 
     tocNav.classList.add('sarde-toc-progress-active');

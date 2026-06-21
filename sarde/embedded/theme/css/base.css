@@ -27,6 +27,18 @@
 	  color-scheme: light;
 	}
 
+	@media (max-width: 1023px) {
+	  html {
+	    scroll-padding-top: calc(var(--sd-nav-height) + var(--sd-mobile-toc-height) + var(--sd-space-2));
+	  }
+	}
+
+	@media (min-width: 1024px) {
+	  html {
+	    scroll-padding-top: calc(var(--sd-nav-height) + var(--sd-space-2));
+	  }
+	}
+
 	html[data-theme="dark"] {
 	  color-scheme: dark;
 	}

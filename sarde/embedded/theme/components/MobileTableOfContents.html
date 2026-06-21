@@ -1,10 +1,20 @@
 {{ if .Page.Headings }}
-<details class="sarde-mobile-toc">
-  <summary>{{ t "nav.toc" }}</summary>
-  <ul>
-  {{ range .Page.Headings }}
-    <li><a href="#{{ .ID }}">{{ .Text }}</a></li>
-  {{ end }}
-  </ul>
+<details class="sarde-mobile-toc" id="sarde-mobile-toc">
+  <summary class="sarde-mobile-toc-bar" aria-label="{{ t "nav.toc" }}">
+    <span class="sarde-mobile-toc-toggle">
+      {{ icon "chevron-right" "sarde-mobile-toc-caret" "width" "16" "height" "16" }}
+      <span class="sarde-mobile-toc-toggle-label">{{ t "nav.toc" }}</span>
+    </span>
+    <span class="sarde-mobile-toc-current" aria-hidden="true"></span>
+  </summary>
+  <div class="sarde-mobile-toc-panel">
+    <ul>
+    {{ range .Page.Headings }}
+      <li class="sarde-mobile-toc-item sarde-mobile-toc-level-{{ .Level }}">
+        <a href="#{{ .ID }}" class="sarde-mobile-toc-link">{{ .Text }}</a>
+      </li>
+    {{ end }}
+    </ul>
+  </div>
 </details>
 {{ end }}

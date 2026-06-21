@@ -136,11 +136,13 @@
 	  --sd-sidebar-width: 280px;
   --sd-sidebar-collapsed-width: 40px;
 	  --sd-toc-width: 240px;
+	  --sd-mobile-toc-height: 3rem;
 	  --sd-content-width: 768px;
 
 	  /* ── Z-index ── */
 	  --sd-z-header: 20;
 	  --sd-z-sidebar: 30;
+	  --sd-z-toc: 25;
 	  --sd-z-overlay: 40;
 	  --sd-z-modal: 50;
 	  --sd-z-toast: 400;

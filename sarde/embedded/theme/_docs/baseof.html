@@ -7,6 +7,7 @@
 <body class="sarde-layout-{{ .Layout }}">
   <a href="#main-content" class="sarde-skip-link">{{ t "nav.skip_to_content" }}</a>
   {{ component "Header" . }}
+  {{ if .Page.Headings }}{{ component "MobileTableOfContents" . }}{{ end }}
   {{ if .HasSidebar }}
   <nav class="sarde-mobile-nav" aria-label="Mobile navigation">
     <button class="sarde-menu-toggle" id="sarde-menu-toggle"
@@ -41,7 +42,6 @@
           {{ component "FallbackNotice" . }}
           {{ component "VersionBanner" . }}
           {{ component "PageBanner" . }}
-          {{ component "MobileTableOfContents" . }}
           <article class="sarde-markdown-content"{{ if and .Page .Page.IsFallback }} dir="ltr"{{ end }}{{ if and .Page .Page.Updated (not .Page.Updated.IsZero) }} data-last-modified="{{ .Page.Updated.Unix }}"{{ end }}>
             {{ block "content" . }}{{ .Page.Content }}{{ end }}
           </article>

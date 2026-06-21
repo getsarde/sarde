@@ -7,12 +7,12 @@
  */
 
 /* Suppress Alpine's single-item active border — plugin handles range */
-.sarde-toc-progress-active .toc a.active {
+.sarde-toc-progress-active .sarde-toc-nav a.active {
     border-inline-start-color: transparent;
 }
 
 /* All links in the visible range get colored border + text */
-.toc a.sarde-toc-progress-visible {
+.sarde-toc-nav a.sarde-toc-progress-visible {
     border-inline-start-color: var(--sd-text-accent);
     color: var(--sd-text-accent);
 }
