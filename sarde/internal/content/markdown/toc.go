@@ -44,6 +44,17 @@ func extractHeadings(htmlContent *string) []engine.Heading {
 
 			setAttr(n, "id", id)
 
+			anchor := &nethtml.Node{
+				Type: nethtml.ElementNode,
+				Data: "a",
+				Attr: []nethtml.Attribute{
+					{Key: "class", Val: "sarde-heading-anchor"},
+					{Key: "href", Val: "#" + id},
+					{Key: "aria-label", Val: "Link to section: " + text},
+				},
+			}
+			n.AppendChild(anchor)
+
 			headings = append(headings, engine.Heading{
 				Level: level,
 				ID:    id,

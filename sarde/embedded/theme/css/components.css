@@ -199,9 +199,8 @@
 	  display: grid;
 	  grid-template-columns: 1fr 1fr;
 	  gap: var(--sd-space-4);
-	  margin-top: var(--sd-space-12);
-	  padding-top: var(--sd-space-6);
-	  border-top: 1px solid var(--sd-border);
+	  margin-top: var(--sd-space-4);
+	  margin-bottom: var(--sd-space-6);
 	}
 
 	.sarde-pagination a,
@@ -271,7 +270,7 @@
 
 	/* ── Table of Contents ── */
 	.sarde-toc-nav {
-	  font-size: var(--sd-text-sm);
+	  font-size: 0.8125rem;
 	}
 
 	.sarde-toc-nav h2 {
@@ -280,7 +279,7 @@
 	  color: var(--sd-text);
 	  text-transform: uppercase;
 	  letter-spacing: 0.05em;
-	  margin-bottom: var(--sd-space-4);
+	  margin-bottom: var(--sd-space-2);
 	  border-bottom: none;
 	  padding-bottom: 0;
 	}
@@ -295,7 +294,7 @@
 	.sarde-toc-nav a {
 	  display: block;
 	  padding: var(--sd-space-1) var(--sd-space-3);
-	  line-height: 1.25rem;
+	  line-height: 1.25;
 	  color: var(--sd-text-muted);
 	  text-decoration: none;
 	  border-inline-start: 1px solid transparent;
@@ -326,21 +325,6 @@
 	  padding-inline-start: var(--sd-space-8);
 	}
 
-	.sarde-toc-top {
-	  display: inline-flex;
-	  align-items: center;
-	  gap: var(--sd-space-1);
-	  margin-top: var(--sd-space-4);
-	  font-size: var(--sd-text-xs);
-	  color: var(--sd-text-subtle);
-	  text-decoration: none;
-	  transition: color var(--sd-transition-fast);
-	}
-
-	.sarde-toc-top:hover {
-	  color: var(--sd-text-accent);
-	  text-decoration: none;
-	}
 
 	/* ── Mobile Table of Contents (Fixed Bar) ── */
 	.sarde-mobile-toc {

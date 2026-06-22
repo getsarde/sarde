@@ -1,33 +1,99 @@
 site:
-  title: "My Site"
-  description: "A site built with Sarde"
-  url: "http://localhost:4727"
+  title: Sarde
+  description: "A zero-config static site generator that turns Markdown into websites"
+  url: https://sarde.dev
+  edit_url: https://github.com/frostybee/sarde/edit/main/docs/content
+  heading_links: true
+  language: en
 
 theme:
-  name: "default"
-  # preset: "ocean"        # Try: ocean, forest, rose, clean, minimal, docs, academic
-  # overrides:
-  #   primary: "#6366f1"
+  preset: docs
+  dark: true
 
-# collections:
-#   blog:
-#     sort: "date"
-#     feed: true
-#   docs:
-#     sort: "order"
+collections:
+  docs:
+    layout: docs
+    sort: weight asc
+    prev_next:
+      enabled: true
+    sidebar:
+      collapsible: true
+      collapsed_by_default: true
+      max_depth: 3
+    toc:
+      enabled: true
+      depth: 4
+      scroll_highlight: true
+
+header:
+  links:
+    - label: Docs
+      url: /docs/
+    - label: GitHub
+      url: https://github.com/frostybee/sarde
+      external: true
+  search: true
+  theme_toggle: true
 
 homepage:
+  template: landing
   hero:
-    title: "Welcome to My Site"
-    subtitle: "A modern site powered by Sarde. Edit sarde.yaml to make it yours."
+    title: Sarde
+    subtitle: "A zero-config static site generator. One binary. Markdown in, website out."
     background: gradient
-    cta:
-      label: "Get Started"
-      url: "/docs/getting-started"
-    secondary_cta:
-      label: "Read the Blog"
-      url: "/blog/hello-world"
-    image:
-      light: /images/hero-light.svg
-      dark: /images/hero-dark.svg
-      alt: "Hero illustration"
+
+markdown:
+  triple_colon_callouts: true
+  katex: true
+  mermaid: true
+  typographer: true
+  codeblocks:
+    engine: nuri
+    light_theme: github-light
+    dark_theme: github-dark
+
+search:
+  enabled: true
+  provider: orama
+
+images:
+  formats: [webp]
+  lazy_loading: true
+  quality: 85
+  widths: [400, 800, 1200]
+
+plugins:
+  enabled:
+    - sitemap
+    - robots
+    - rss
+    - atom
+    - search
+    - seo
+    - redirects
+    - link_validator
+    - content_lint
+    - llms_txt
+    - katex
+    - mermaid
+    - scroll-to-top
+    - copy-section-link
+    - external-links
+    - image-lightbox
+    - keyboard-nav
+    - reading-progress
+    - code-collapsible
+
+content_lint:
+  enabled: true
+  rules:
+    frontmatter_required: [title, description]
+    heading_increment: true
+    image_alt_required: true
+    no_empty_links: true
+
+link_validation:
+  enabled: true
+  on_broken: warn
+  on_broken_anchor: warn
+  check_anchors: true

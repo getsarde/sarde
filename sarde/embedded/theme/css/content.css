@@ -13,29 +13,7 @@
 	  position: relative;
 	}
 
-	.heading-anchor {
-	  display: inline-flex;
-	  align-items: center;
-	  margin-inline-start: var(--sd-space-2);
-	  color: var(--sd-text-subtle);
-	  opacity: 0;
-	  text-decoration: none;
-	  vertical-align: middle;
-	  transition: opacity var(--sd-transition-fast);
-	}
-
-	.heading-anchor:hover {
-	  color: var(--sd-text-accent);
-	}
-
-	h1:hover .heading-anchor,
-	h2:hover .heading-anchor,
-	h3:hover .heading-anchor,
-	h4:hover .heading-anchor {
-	  opacity: 1;
-	}
-
-	h1 { font-size: var(--sd-text-h1); letter-spacing: -0.025em; margin-top: 0; }
+h1 { font-size: var(--sd-text-h1); letter-spacing: -0.025em; margin-top: 0; }
 	h2 { font-size: var(--sd-text-h2); letter-spacing: -0.02em; padding-bottom: var(--sd-space-2); border-bottom: 1px solid var(--sd-border); }
 	h3 { font-size: var(--sd-text-h3); }
 	h4 { font-size: var(--sd-text-h4); }

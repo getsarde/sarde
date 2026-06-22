@@ -55,9 +55,9 @@
               {{ block "content" . }}{{ .Page.Content }}{{ end }}
             </article>
             {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
+            {{ component "Footer" . }}
           </div>
         </main>
-        {{ component "Footer" . }}
       </div>
     </div>
   </div>

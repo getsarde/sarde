@@ -12,10 +12,11 @@
       {{ component "Social" . }}
     </div>
     {{ end }}
-    {{ if .Site.Config.Footer.Text }}
-    <p class="sarde-footer-text">{{ .Site.Config.Footer.Text }}</p>
-    {{ end }}
     <div class="sarde-footer-bottom">
+      {{ if .Site.Config.Footer.Text }}
+      <span class="sarde-footer-text">{{ .Site.Config.Footer.Text }}</span>
+      <span class="sarde-footer-sep" aria-hidden="true"></span>
+      {{ end }}
       <span>&copy; {{ now.Year }} {{ .Site.Title }}</span>
       {{ if boolVal .Site.Config.Footer.Credits true }}
       <span class="sarde-footer-sep" aria-hidden="true"></span>

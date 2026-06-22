@@ -2,13 +2,10 @@
 <nav class="sarde-toc-nav" aria-label="{{ t "nav.toc_label" }}">
   <h2>{{ t "nav.toc" }}</h2>
   <ul>
+    <li class="sarde-toc-level-2"><a href="#_top">{{ t "nav.toc_overview" }}</a></li>
   {{ range .Page.Headings }}
     <li class="sarde-toc-level-{{ .Level }}"><a href="#{{ .ID }}">{{ .Text }}</a></li>
   {{ end }}
   </ul>
-  <a href="#" class="sarde-toc-top" aria-label="{{ t "nav.back_to_top" }}">
-    {{ icon "chevron-up" "" "width" "12" "height" "12" }}
-    {{ t "nav.back_to_top" }}
-  </a>
 </nav>
 {{ end }}

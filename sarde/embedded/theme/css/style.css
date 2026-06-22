@@ -673,8 +673,6 @@
 
 	.sarde-footer-bottom {
 	  text-align: center;
-	  padding-top: var(--sd-space-8);
-	  border-top: 1px solid var(--sd-border);
 	  color: var(--sd-text-muted);
 	}
 

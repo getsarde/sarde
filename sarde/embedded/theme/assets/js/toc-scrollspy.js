@@ -10,11 +10,11 @@
   var seen = {};
   [].forEach.call(desktopLinks, function (link) {
     var id = (link.getAttribute('href') || '').replace('#', '');
-    if (id && !seen[id]) { seen[id] = true; headingIds.push(id); }
+    if (id && id !== '_top' && !seen[id]) { seen[id] = true; headingIds.push(id); }
   });
   [].forEach.call(mobileLinks, function (link) {
     var id = (link.getAttribute('href') || '').replace('#', '');
-    if (id && !seen[id]) { seen[id] = true; headingIds.push(id); }
+    if (id && id !== '_top' && !seen[id]) { seen[id] = true; headingIds.push(id); }
   });
 
   if (headingIds.length === 0) return;
@@ -102,7 +102,7 @@
         if (heading && heading.id) {
           setActive(heading.id);
         } else {
-          setActive(firstHeadingId);
+          setActive('_top');
         }
         break;
       }
@@ -137,11 +137,17 @@
     link.addEventListener('click', function (e) {
       e.preventDefault();
       var id = this.getAttribute('href').replace('#', '');
-      var el = document.getElementById(id);
-      if (el) {
-        window.scrollTo({ top: el.offsetTop - getNavOffset(), behavior: 'smooth' });
+      if (id === '_top') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        history.replaceState(null, '', window.location.pathname);
+        setActive('_top');
+      } else {
+        var el = document.getElementById(id);
+        if (el) {
+          window.scrollTo({ top: el.offsetTop - getNavOffset(), behavior: 'smooth' });
+        }
+        history.replaceState(null, '', '#' + id);
       }
-      history.replaceState(null, '', '#' + id);
     });
   });
 
@@ -195,6 +201,7 @@
 
   // ── Init (deferred to avoid blocking first paint) ─────────────────
   function init() {
+    setActive('_top');
     collectElements();
     buildObserver();
   }

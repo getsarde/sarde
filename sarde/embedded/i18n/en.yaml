@@ -7,6 +7,7 @@ nav:
   older_posts: "Older posts"
   toc: "On this page"
   toc_label: "Table of contents"
+  toc_overview: "Overview"
   search: "Search"
   draft: "Draft"
   reading_time: "{{ .Minutes }} min read"

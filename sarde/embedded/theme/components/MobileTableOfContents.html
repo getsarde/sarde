@@ -13,6 +13,9 @@
   </summary>
   <div class="sarde-mobile-toc-panel">
     <ul>
+      <li class="sarde-mobile-toc-item sarde-mobile-toc-level-2">
+        <a href="#_top" class="sarde-mobile-toc-link">{{ t "nav.toc_overview" }}</a>
+      </li>
     {{ range .Page.Headings }}
       <li class="sarde-mobile-toc-item sarde-mobile-toc-level-{{ .Level }}">
         <a href="#{{ .ID }}" class="sarde-mobile-toc-link">{{ .Text }}</a>
