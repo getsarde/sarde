@@ -12,6 +12,7 @@ import (
 	"github.com/frostybee/sarde/internal/config"
 	"github.com/frostybee/sarde/internal/engine"
 	"github.com/frostybee/sarde/internal/theme"
+	"github.com/frostybee/sarde/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -93,7 +94,7 @@ func runBuild(cmd *cobra.Command, args []string) error {
 
 func printBuildSummary(result *engine.BuildResult, verbose bool, cfg *config.SiteConfig) {
 	fmt.Printf("\nStart building sites ...\n")
-	fmt.Printf("sarde v%s %s/%s\n", Version, runtime.GOOS, runtime.GOARCH)
+	fmt.Printf("sarde v%s %s/%s\n", version.Version, runtime.GOOS, runtime.GOARCH)
 
 	if verbose {
 		fmt.Println()

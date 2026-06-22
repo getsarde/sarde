@@ -3,6 +3,7 @@ package plugin
 import (
 	"encoding/json"
 	"strings"
+	"time"
 
 	"github.com/frostybee/sarde/internal/engine"
 )
@@ -89,12 +90,33 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 	seo["og_url"] = canonical
 	seo["og_type"] = ogType
 	seo["og_site_name"] = siteTitle
+	seo["og_locale"] = normalizeLocale(page.Lang)
 	seo["canonical"] = canonical
+
+	if ctx.RouteData != nil && len(ctx.RouteData.Translations) > 0 {
+		altLocales := make([]string, 0, len(ctx.RouteData.Translations))
+		for _, t := range ctx.RouteData.Translations {
+			altLocales = append(altLocales, normalizeLocale(t.Lang))
+		}
+		seo["og_locale_alternate"] = altLocales
+	}
+
+	if ogType == "article" {
+		if !page.Date.IsZero() {
+			seo["article_published_time"] = page.Date.Format(time.RFC3339)
+		}
+		if !page.Updated.IsZero() {
+			seo["article_modified_time"] = page.Updated.Format(time.RFC3339)
+		}
+	}
 
 	// Preserve an image already set by an earlier plugin (e.g. a generated
 	// social card); only fall back to the page/default image otherwise.
 	if existing, _ := seo["og_image"].(string); existing == "" {
 		seo["og_image"] = ogImage
+	}
+	if _, ok := seo["og_image_alt"]; !ok {
+		seo["og_image_alt"] = page.Title
 	}
 
 	// Twitter card.
@@ -104,6 +126,9 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 	seo["twitter_description"] = description
 	if existing, _ := seo["twitter_image"].(string); existing == "" {
 		seo["twitter_image"] = ogImage
+	}
+	if _, ok := seo["twitter_image_alt"]; !ok {
+		seo["twitter_image_alt"] = page.Title
 	}
 	if twitterHandle != "" {
 		seo["twitter_site"] = twitterHandle
@@ -222,6 +247,20 @@ func findLatestPeer(page *engine.Page, lastVersion string) *engine.Page {
 		}
 	}
 	return nil
+}
+
+// normalizeLocale converts a BCP 47 language tag (e.g. "en", "pt-BR") to
+// the OGP locale format (e.g. "en_US", "pt_BR"). For bare language codes
+// without a region, the language is repeated as region in uppercase.
+func normalizeLocale(lang string) string {
+	if lang == "" {
+		return "en_US"
+	}
+	parts := strings.SplitN(lang, "-", 2)
+	if len(parts) == 2 {
+		return parts[0] + "_" + strings.ToUpper(parts[1])
+	}
+	return parts[0] + "_" + strings.ToUpper(parts[0])
 }
 
 func courseNode(page *engine.Page, pageURL, description string) map[string]any {

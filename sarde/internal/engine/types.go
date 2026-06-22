@@ -171,7 +171,10 @@ type SiteContext struct {
 	BaseURL     string
 	BasePath    string // normalized: "/docs/" or "/"
 	Language    string
-	Config      any // *config.SiteConfig at runtime; any to avoid circular imports
+	Generator      string
+	Favicon        string
+	SitemapEnabled bool
+	Config         any // *config.SiteConfig at runtime; any to avoid circular imports
 	Collections map[string]*Collection
 	Taxonomies       map[string]*Taxonomy
 	TaxonomiesByLang map[string]map[string]*Taxonomy

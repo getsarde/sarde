@@ -21,15 +21,15 @@ exit /b 1
 
 :build
 if not exist %DIST% mkdir %DIST%
-go build -ldflags "-X %MODULE%/internal/cli.Version=%VERSION%" -o %DIST%\%BINARY%.exe .\cmd\sarde
+go build -ldflags "-X %MODULE%/internal/version.Version=%VERSION%" -o %DIST%\%BINARY%.exe .\cmd\sarde
 goto end
 
 :release
 if not exist %DIST% mkdir %DIST%
-set GOOS=linux&  set GOARCH=amd64& go build -ldflags "-X %MODULE%/internal/cli.Version=%VERSION%" -o %DIST%\%BINARY%-linux-amd64    .\cmd\sarde
-set GOOS=darwin& set GOARCH=amd64& go build -ldflags "-X %MODULE%/internal/cli.Version=%VERSION%" -o %DIST%\%BINARY%-darwin-amd64   .\cmd\sarde
-set GOOS=darwin& set GOARCH=arm64& go build -ldflags "-X %MODULE%/internal/cli.Version=%VERSION%" -o %DIST%\%BINARY%-darwin-arm64   .\cmd\sarde
-set GOOS=windows&set GOARCH=amd64& go build -ldflags "-X %MODULE%/internal/cli.Version=%VERSION%" -o %DIST%\%BINARY%-windows-amd64.exe .\cmd\sarde
+set GOOS=linux&  set GOARCH=amd64& go build -ldflags "-X %MODULE%/internal/version.Version=%VERSION%" -o %DIST%\%BINARY%-linux-amd64    .\cmd\sarde
+set GOOS=darwin& set GOARCH=amd64& go build -ldflags "-X %MODULE%/internal/version.Version=%VERSION%" -o %DIST%\%BINARY%-darwin-amd64   .\cmd\sarde
+set GOOS=darwin& set GOARCH=arm64& go build -ldflags "-X %MODULE%/internal/version.Version=%VERSION%" -o %DIST%\%BINARY%-darwin-arm64   .\cmd\sarde
+set GOOS=windows&set GOARCH=amd64& go build -ldflags "-X %MODULE%/internal/version.Version=%VERSION%" -o %DIST%\%BINARY%-windows-amd64.exe .\cmd\sarde
 goto end
 
 :test

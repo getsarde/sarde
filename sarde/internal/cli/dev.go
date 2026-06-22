@@ -13,6 +13,7 @@ import (
 	"github.com/frostybee/sarde/internal/consts"
 	"github.com/frostybee/sarde/internal/devlog"
 	"github.com/frostybee/sarde/internal/server"
+	"github.com/frostybee/sarde/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -169,7 +170,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 	devlog.Log("sarde", "%s", cfg.Site.Title)
 	devlog.Log("sarde", "Theme: %s | Content: %s", themeName, contentDir)
 	devlog.Log("sarde", "Live reload: %v", liveReload)
-	devlog.Log("sarde", "Environment: development | Version: v%s", Version)
+	devlog.Log("sarde", "Environment: development | Version: v%s", version.Version)
 
 	if watchStdin, _ := cmd.Flags().GetBool("watch-stdin"); watchStdin {
 		go func() {
@@ -186,7 +187,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 		Host:           host,
 		Port:           port,
 		LiveReload:     liveReload,
-		Version:        "v" + Version,
+		Version:        "v" + version.Version,
 		BasePath:       cfg.Build.BasePath,
 		BuilderFactory: builderFactory,
 		ThemeDevDirs:   themeDevWatchDirs,

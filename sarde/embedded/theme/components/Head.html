@@ -1,5 +1,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="{{ .Site.Generator }}">
+{{ if .Site.SitemapEnabled }}<link rel="sitemap" type="application/xml" href="{{ relURL "/sitemap.xml" }}">{{ end }}
+{{ if .Site.Favicon }}<link rel="icon" href="{{ .Site.Favicon }}">{{ end }}
 <script>window.__BASE_PATH__="{{ .Site.BasePath }}";window.__LANG__="{{ .Lang }}";window.__DEFAULT_LANG__="{{ .Site.DefaultLang }}";</script>
 <title>{{ if .Page }}{{ if .Page.Title }}{{ .Page.Title }} {{ .Site.Config.Site.TitleDelimiter }} {{ end }}{{ end }}{{ .Site.Title }}</title>
 {{ if .Page }}{{ if .Page.Description }}<meta name="description" content="{{ .Page.Description }}">{{ end }}{{ end }}

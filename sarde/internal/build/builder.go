@@ -28,6 +28,7 @@ import (
 	"github.com/frostybee/sarde/internal/links"
 	"github.com/frostybee/sarde/internal/plugin"
 	"github.com/frostybee/sarde/internal/plugin/announcements"
+	"github.com/frostybee/sarde/internal/version"
 	"github.com/frostybee/sarde/internal/plugin/clientplugins"
 	"github.com/frostybee/sarde/internal/shortcode"
 	"github.com/frostybee/sarde/internal/taxonomy"
@@ -315,6 +316,8 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		BaseURL:          b.config.Site.URL,
 		BasePath:         b.config.Build.BasePath,
 		Language:         b.config.Site.Language,
+		Generator:        "Sarde v" + version.Version,
+		SitemapEnabled:   b.config.Build.Sitemap == nil || *b.config.Build.Sitemap,
 		Config:           b.config,
 		Collections:      collections,
 		Taxonomies:       taxonomies,
@@ -749,6 +752,12 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		b.kazariJSURL = "/assets/js/" + b.kazariJSFilename
 		b.kazariJSContent = kazariJS
 		siteCtx.KazariScriptURL = urlResolver.URL(b.kazariJSURL, "", "")
+	}
+
+	if fav := b.config.Site.Favicon; fav != "" {
+		siteCtx.Favicon = urlResolver.URL(fav, "", "")
+	} else if detected := detectFavicon(b.projectDir); detected != "" {
+		siteCtx.Favicon = urlResolver.URL(detected, "", "")
 	}
 
 	// Externalize theme token CSS (design tokens) as a fingerprinted file.
@@ -1265,5 +1274,15 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		LogMessages:     buildLogger.Messages(),
 		PhaseTimings:    timings,
 	}, nil
+}
+
+func detectFavicon(projectDir string) string {
+	for _, name := range []string{"favicon.svg", "favicon.ico", "favicon.png"} {
+		p := filepath.Join(projectDir, "static", name)
+		if info, err := os.Stat(p); err == nil && !info.IsDir() {
+			return "/" + name
+		}
+	}
+	return ""
 }
 

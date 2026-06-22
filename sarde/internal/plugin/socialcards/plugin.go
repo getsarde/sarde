@@ -75,6 +75,15 @@ func beforeRender(ctx *plugin.BeforeRenderContext, cfg map[string]any, pending *
 	}
 	seo["og_image"] = cardURL
 	seo["twitter_image"] = cardURL
+	seo["og_image_width"] = "1200"
+	seo["og_image_height"] = "630"
+	seo["og_image_alt"] = page.Title
+	seo["twitter_image_alt"] = page.Title
+	if format == "jpeg" || format == "jpg" {
+		seo["og_image_type"] = "image/jpeg"
+	} else {
+		seo["og_image_type"] = "image/png"
+	}
 
 	pending.Store(relPath, page)
 	return nil
