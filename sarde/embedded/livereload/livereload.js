@@ -33,7 +33,7 @@
         location.reload();
         return;
       }
-      var delay = Math.min(1000 * Math.pow(2, retries), maxRetry);
+      var delay = Math.min(100 * Math.pow(2, retries), maxRetry);
       retries++;
       setTimeout(connect, delay);
     };

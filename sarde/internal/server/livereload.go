@@ -36,7 +36,8 @@ type Hub struct {
 	clients      map[*websocket.Conn]bool
 	mu           sync.Mutex
 	upgrader     websocket.Upgrader
-	pendingError *ReloadMessage
+	pendingError  *ReloadMessage
+	pendingReload *ReloadMessage
 }
 
 // NewHub creates a new WebSocket hub.
@@ -63,6 +64,21 @@ func (h *Hub) ClearPendingError() {
 	h.mu.Unlock()
 }
 
+// SetPendingReload stores a successful reload message to replay to newly
+// connecting clients that missed the original broadcast.
+func (h *Hub) SetPendingReload(msg *ReloadMessage) {
+	h.mu.Lock()
+	h.pendingReload = msg
+	h.mu.Unlock()
+}
+
+// ClearPendingReload removes the stored reload message.
+func (h *Hub) ClearPendingReload() {
+	h.mu.Lock()
+	h.pendingReload = nil
+	h.mu.Unlock()
+}
+
 // HandleWS upgrades an HTTP connection to WebSocket and registers the client.
 func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	conn, err := h.upgrader.Upgrade(w, r, nil)
@@ -80,6 +96,11 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 		if data, err := json.Marshal(h.pendingError); err == nil {
 			conn.WriteMessage(websocket.TextMessage, data)
 		}
+	} else if h.pendingReload != nil {
+		if data, err := json.Marshal(h.pendingReload); err == nil {
+			conn.WriteMessage(websocket.TextMessage, data)
+		}
+		h.pendingReload = nil
 	}
 	h.mu.Unlock()
 
@@ -97,22 +118,27 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 }
 
 // Broadcast sends a reload message to all connected WebSocket clients.
-func (h *Hub) Broadcast(msg ReloadMessage) {
+// Returns the number of clients that received the message.
+func (h *Hub) Broadcast(msg ReloadMessage) int {
 	data, err := json.Marshal(msg)
 	if err != nil {
 		devlog.Error("ws", "Failed to marshal reload message: %v", err)
-		return
+		return 0
 	}
 
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
+	sent := 0
 	for conn := range h.clients {
 		if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
 			conn.Close()
 			delete(h.clients, conn)
+		} else {
+			sent++
 		}
 	}
+	return sent
 }
 
 // ClientCount returns the number of connected WebSocket clients.

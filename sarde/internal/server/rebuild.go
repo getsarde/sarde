@@ -44,8 +44,8 @@ func NewRebuilder(factory func() *build.SiteBuilder, projectDir string) *Rebuild
 	return &Rebuilder{builderFactory: factory, projectDir: projectDir}
 }
 
-// SetOnResult registers a callback invoked after each completed rebuild
-// (including coalesced rebuilds that run inside the Rebuild loop).
+// SetOnResult registers a callback invoked after each completed rebuild.
+// For coalesced rebuilds, the callback is invoked once with the final result only.
 func (r *Rebuilder) SetOnResult(fn func(FileChange, *RebuildResult)) {
 	r.onResult = fn
 }
@@ -56,8 +56,8 @@ func (r *Rebuilder) SetOnResult(fn func(FileChange, *RebuildResult)) {
 //
 // If a rebuild is already in progress, the change is stored as pending and this
 // call returns nil (the caller should skip logging/broadcasting). When the active
-// rebuild finishes, it picks up the pending change automatically and invokes
-// onResult for each intermediate result.
+// rebuild finishes, it picks up the pending change automatically and runs it
+// before returning the final result.
 func (r *Rebuilder) Rebuild(change FileChange) *RebuildResult {
 	r.mu.Lock()
 	if r.running {
@@ -81,11 +81,6 @@ func (r *Rebuilder) Rebuild(change FileChange) *RebuildResult {
 		}
 		r.mu.Unlock()
 
-		if r.onResult != nil {
-			r.onResult(change, result)
-		}
-
-		devlog.Log("build", "Processing coalesced rebuild")
 		change = *next
 		result = r.executeBuild(change)
 	}

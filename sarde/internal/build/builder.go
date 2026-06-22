@@ -99,6 +99,7 @@ type SiteBuilder struct {
 
 // NewSiteBuilder creates a SiteBuilder with all dependencies initialized.
 func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
+	clientplugins.SetDevMode(opts.DevMode)
 	if opts.PluginAssetsDir != "" {
 		if err := clientplugins.RecomputeFromDir(opts.PluginAssetsDir); err != nil {
 			devlog.Warn("build", "Plugin live-reload failed: %v", err)
@@ -1088,20 +1089,12 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		}
 	}
 
-	writer := &Writer{
-		OutputDir:  outputDir,
-		ProjectDir: b.projectDir,
-		Clean:      clean,
-		DevMode:    b.devMode,
-		Tracker:    tracker,
-	}
-	staticFiles, err := writer.Write(rendered, aliases)
-	if err != nil {
-		return nil, fmt.Errorf("writing output: %w", err)
-	}
-	recordTiming("Writing output")
-
 	assetWriteOpts := asset.WriteOptions{Parallel: parallel, WorkerCount: workerCount}
+
+	// Write assets BEFORE HTML so the output directory never contains HTML
+	// pages that reference CSS/JS files not yet on disk. This prevents 404s
+	// if the browser loads a page mid-rebuild (e.g. during coalesced rebuilds
+	// or manual refresh).
 
 	// Write bundle assets (images, PDFs, etc. co-located with content).
 	if err := assetPipeline.WriteBundleAssetsWithOptions(allPages, outputDir, trackFn, assetWriteOpts); err != nil {
@@ -1170,7 +1163,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	// icons.attribution (after render, so used-set tracking is complete).
 	b.warnIconAttribution()
 
-	// Plugin hook: BuildDone (parallel, after all files written).
+	// Plugin hook: BuildDone (parallel, after all assets written).
 	buildLogger := engine.NewBuildLogger()
 	var pluginWarnings []engine.ValidationWarning
 	buildDoneCtx := &plugin.BuildDoneContext{
@@ -1192,6 +1185,20 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	}
 	recordTiming("Running plugins")
 
+	// Write HTML pages last — all referenced assets are already on disk.
+	writer := &Writer{
+		OutputDir:  outputDir,
+		ProjectDir: b.projectDir,
+		Clean:      clean,
+		DevMode:    b.devMode,
+		Tracker:    tracker,
+	}
+	staticFiles, err := writer.Write(rendered, aliases)
+	if err != nil {
+		return nil, fmt.Errorf("writing output: %w", err)
+	}
+	recordTiming("Writing output")
+
 	// Prune orphaned files from previous builds.
 	// In dev mode, skip pruning to avoid deleting fingerprinted assets that
 	// the browser may still be loading. Stale files accumulate but are harmless;
@@ -1202,6 +1209,7 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 		}
 	}
 	recordTiming("Pruning output")
+
 	warnings = append(warnings, pluginWarnings...)
 
 	// Snapshot last-build state for incremental rebuild.

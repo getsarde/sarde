@@ -288,10 +288,19 @@ func (ds *DevServer) handleRebuildResult(change FileChange, result *RebuildResul
 	msg := ToReloadMessage(change, result, ds.projectDir)
 	if result.Error != nil {
 		ds.hub.SetPendingError(&msg)
+		ds.hub.ClearPendingReload()
 	} else {
 		ds.hub.ClearPendingError()
+		ds.hub.ClearPendingReload()
 	}
-	ds.hub.Broadcast(msg)
+	sent := ds.hub.Broadcast(msg)
+	// Only store a pending reload if the broadcast didn't reach any client.
+	// This avoids a double-reload: the client that received the broadcast will
+	// reload and reconnect, at which point a stale pendingReload would trigger
+	// a redundant second reload.
+	if result.Success && msg.Type == ReloadFull && sent == 0 {
+		ds.hub.SetPendingReload(&msg)
+	}
 
 	if result.Success && len(result.Warnings) > 0 {
 		var parts []string
@@ -400,6 +409,7 @@ func (ds *DevServer) fileHandler() http.Handler {
 		}
 
 		// 404 fallback.
+		devlog.Warn("server", "[404] %s → tried %s", urlPath, filePath)
 		notFound := filepath.Join(ds.outputDir, consts.Template404)
 		if _, err := os.Stat(notFound); err == nil {
 			w.WriteHeader(http.StatusNotFound)
