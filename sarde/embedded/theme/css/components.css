@@ -270,7 +270,7 @@
 
 	/* ── Table of Contents ── */
 	.sarde-toc-nav {
-	  font-size: 0.8125rem;
+	  font-size: var(--sd-text-sm);
 	}
 
 	.sarde-toc-nav h2 {
@@ -279,7 +279,7 @@
 	  color: var(--sd-text);
 	  text-transform: uppercase;
 	  letter-spacing: 0.05em;
-	  margin-bottom: var(--sd-space-2);
+	  margin-bottom: var(--sd-space-4);
 	  border-bottom: none;
 	  padding-bottom: 0;
 	}

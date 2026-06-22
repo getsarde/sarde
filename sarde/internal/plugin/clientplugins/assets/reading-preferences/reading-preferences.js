@@ -35,7 +35,7 @@ const MAX_WIDTH = 1100;
 const WIDTH_STEP = 10;
 
 const FONT_STACKS = {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    // 'sans' intentionally omitted — defers to var(--sd-font-sans) via CSS fallback.
     serif: 'Georgia, "Times New Roman", Times, serif',
     mono: "ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace",
     dyslexic: '"OpenDyslexic", "Comic Sans MS", sans-serif',
@@ -86,7 +86,11 @@ function loadDyslexicFont() {
 function applyPrefs() {
     const root = document.documentElement;
     if (prefs.fontFamily === 'dyslexic') loadDyslexicFont();
-    root.style.setProperty('--rp-font-family', FONT_STACKS[prefs.fontFamily] || FONT_STACKS.sans);
+    if (prefs.fontFamily === 'sans') {
+        root.style.removeProperty('--rp-font-family');
+    } else {
+        root.style.setProperty('--rp-font-family', FONT_STACKS[prefs.fontFamily]);
+    }
     root.style.setProperty('--rp-font-size', prefs.fontSize + '%');
     root.style.setProperty('--rp-letter-spacing', prefs.letterSpacing + 'px');
     root.style.setProperty('--rp-line-height', String(prefs.lineHeight));
