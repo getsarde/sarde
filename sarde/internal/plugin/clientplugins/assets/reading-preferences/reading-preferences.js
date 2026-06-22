@@ -1,7 +1,7 @@
 // Reading Preferences Plugin
 // Floating control panel for adjusting typography, spacing, and layout.
 
-const cfg = (window.__pluginConfig && window.__pluginConfig["reading-preferences"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["reading-preferences"]) || {};
 
 const config = {
     minFontSize: cfg.min_font_size || 75,
@@ -31,7 +31,7 @@ const MIN_PARA_SPACING = 0.5;
 const MAX_PARA_SPACING = 3;
 const PARA_SPACING_STEP = 0.125;
 const MIN_WIDTH = 600;
-const MAX_WIDTH = 1100;
+const MAX_WIDTH = 1400;
 const WIDTH_STEP = 10;
 
 const FONT_STACKS = {
@@ -84,20 +84,39 @@ function loadDyslexicFont() {
 }
 
 function applyPrefs() {
-    const root = document.documentElement;
     if (prefs.fontFamily === 'dyslexic') loadDyslexicFont();
-    if (prefs.fontFamily === 'sans') {
-        root.style.removeProperty('--rp-font-family');
-    } else {
-        root.style.setProperty('--rp-font-family', FONT_STACKS[prefs.fontFamily]);
+    const vars = [];
+    if (prefs.fontFamily !== DEFAULTS.fontFamily) {
+        vars.push(`--rp-font-family:${FONT_STACKS[prefs.fontFamily]}`);
     }
-    root.style.setProperty('--rp-font-size', prefs.fontSize + '%');
-    root.style.setProperty('--rp-letter-spacing', prefs.letterSpacing + 'px');
-    root.style.setProperty('--rp-line-height', String(prefs.lineHeight));
-    root.style.setProperty('--rp-paragraph-spacing', prefs.paragraphSpacing + 'em');
-    root.style.setProperty('--rp-text-align', prefs.textAlign);
-    if (config.showWidthControl) {
-        root.style.setProperty('--rp-content-width', prefs.contentWidth + 'px');
+    if (prefs.fontSize !== DEFAULTS.fontSize) {
+        vars.push(`--rp-font-size:${prefs.fontSize}%`);
+    }
+    if (prefs.letterSpacing !== DEFAULTS.letterSpacing) {
+        vars.push(`--rp-letter-spacing:${prefs.letterSpacing}px`);
+    }
+    if (prefs.lineHeight !== DEFAULTS.lineHeight) {
+        vars.push(`--rp-line-height:${prefs.lineHeight}`);
+    }
+    if (prefs.paragraphSpacing !== DEFAULTS.paragraphSpacing) {
+        vars.push(`--rp-paragraph-spacing:${prefs.paragraphSpacing}em`);
+    }
+    if (prefs.textAlign !== DEFAULTS.textAlign) {
+        vars.push(`--rp-text-align:${prefs.textAlign}`);
+    }
+    if (config.showWidthControl && prefs.contentWidth !== DEFAULTS.contentWidth) {
+        vars.push(`--rp-content-width:${prefs.contentWidth}px`);
+    }
+    let styleEl = document.getElementById('sarde-rp-vars');
+    if (vars.length > 0) {
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'sarde-rp-vars';
+            document.head.appendChild(styleEl);
+        }
+        styleEl.textContent = `:root{${vars.join(';')}}`;
+    } else if (styleEl) {
+        styleEl.remove();
     }
 }
 

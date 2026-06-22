@@ -1,4 +1,4 @@
-const cfg = (window.__pluginConfig && window.__pluginConfig["toc-progress"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["toc-progress"]) || {};
 
 const config = {
     highlightAll: cfg.highlight_all_visible !== false,

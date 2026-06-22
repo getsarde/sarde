@@ -218,9 +218,9 @@ func RegisterAll(mgr *plugin.Manager, enabled []string, configs map[string]map[s
 	}
 
 	type pluginCfg struct {
-		slug         string
-		entry        ManifestEntry
-		configScript template.HTML
+		slug   string
+		entry  ManifestEntry
+		config map[string]any
 	}
 	var activePlugins []pluginCfg
 
@@ -229,15 +229,7 @@ func RegisterAll(mgr *plugin.Manager, enabled []string, configs map[string]map[s
 			continue
 		}
 		cfg := mergeConfig(pluginDefaults[slug], configs[slug])
-		var configScript template.HTML
-		if len(cfg) > 0 {
-			jsonBytes, _ := json.Marshal(cfg)
-			configScript = template.HTML(fmt.Sprintf(
-				`window.__pluginConfig=window.__pluginConfig||{};window.__pluginConfig[%q]=%s;`,
-				slug, string(jsonBytes),
-			))
-		}
-		activePlugins = append(activePlugins, pluginCfg{slug, entry, configScript})
+		activePlugins = append(activePlugins, pluginCfg{slug, entry, cfg})
 	}
 
 	if len(activePlugins) == 0 {
@@ -262,10 +254,17 @@ func RegisterAll(mgr *plugin.Manager, enabled []string, configs map[string]map[s
 					rd.ModuleScripts = cfgutil.AppendUnique(rd.ModuleScripts, jsURL)
 				}
 
+				merged := make(map[string]any)
 				for _, pc := range activePlugins {
-					if pc.configScript != "" && shouldInject(pc.entry.InjectWhen, ctx.Page, ctx.RouteData) {
-						rd.InlineScripts = append(rd.InlineScripts, pc.configScript)
+					if len(pc.config) > 0 && shouldInject(pc.entry.InjectWhen, ctx.Page, ctx.RouteData) {
+						merged[pc.slug] = pc.config
 					}
+				}
+				if len(merged) > 0 {
+					jsonBytes, _ := json.Marshal(merged)
+					rd.InlineScripts = append(rd.InlineScripts, template.JS(
+						`window.__SARDE__=window.__SARDE__||{};window.__SARDE__.pluginConfig=`+string(jsonBytes)+`;`,
+					))
 				}
 				return nil
 			},

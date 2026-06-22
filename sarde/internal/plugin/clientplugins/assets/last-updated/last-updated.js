@@ -1,7 +1,7 @@
 // Last Updated Badge Plugin
 // Reads data-last-modified from the article, formats as relative/absolute date, injects badge.
 
-const cfg = (window.__pluginConfig && window.__pluginConfig["last-updated"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["last-updated"]) || {};
 
 const config = {
     position: cfg.position || 'bottom',

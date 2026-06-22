@@ -3,7 +3,7 @@
 // Estimated reading time badge injected into lesson headers.
 // Content-aware: only activates on lesson pages (configurable).
 
-const cfg = (window.__pluginConfig && window.__pluginConfig["reading-progress"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["reading-progress"]) || {};
 
 const config = {
     barHeight: cfg.bar_height || 3,

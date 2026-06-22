@@ -1,4 +1,4 @@
-const cfg = (window.__pluginConfig && window.__pluginConfig["external-links"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["external-links"]) || {};
 
 const config = {
     showIcon: cfg.show_icon !== false,

@@ -756,8 +756,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 
 	if fav := b.config.Site.Favicon; fav != "" {
 		siteCtx.Favicon = urlResolver.URL(fav, "", "")
+		siteCtx.FaviconType = faviconMIME(fav)
 	} else if detected := detectFavicon(b.projectDir); detected != "" {
 		siteCtx.Favicon = urlResolver.URL(detected, "", "")
+		siteCtx.FaviconType = faviconMIME(detected)
 	}
 
 	// Externalize theme token CSS (design tokens) as a fingerprinted file.
@@ -1284,5 +1286,18 @@ func detectFavicon(projectDir string) string {
 		}
 	}
 	return ""
+}
+
+func faviconMIME(path string) string {
+	switch {
+	case strings.HasSuffix(path, ".svg"):
+		return "image/svg+xml"
+	case strings.HasSuffix(path, ".ico"):
+		return "image/x-icon"
+	case strings.HasSuffix(path, ".png"):
+		return "image/png"
+	default:
+		return ""
+	}
 }
 

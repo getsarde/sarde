@@ -173,6 +173,7 @@ type SiteContext struct {
 	Language    string
 	Generator      string
 	Favicon        string
+	FaviconType    string
 	SitemapEnabled bool
 	Config         any // *config.SiteConfig at runtime; any to avoid circular imports
 	Collections map[string]*Collection

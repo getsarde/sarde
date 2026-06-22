@@ -195,7 +195,7 @@ func TestBuild_ClientPlugins_ConfigInjection(t *testing.T) {
 	distDir := filepath.Join(projDir, "dist")
 	homeHTML := readFixture(t, distDir, "index.html")
 
-	if !strings.Contains(homeHTML, `__pluginConfig`) {
+	if !strings.Contains(homeHTML, `__SARDE__`) {
 		t.Error("expected plugin config injection in page HTML")
 	}
 	if !strings.Contains(homeHTML, `scroll-to-top`) {

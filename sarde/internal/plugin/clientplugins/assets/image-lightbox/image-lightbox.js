@@ -1,4 +1,4 @@
-const cfg = (window.__pluginConfig && window.__pluginConfig["image-lightbox"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["image-lightbox"]) || {};
 
 const config = {
     bgOpacity: cfg.background_opacity || 0.92,

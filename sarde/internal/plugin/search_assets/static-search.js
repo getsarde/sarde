@@ -10,7 +10,7 @@
   if (!modal || !input || !results) return;
 
   var dbPromise = null;
-  var _base = (window.__BASE_PATH__ || "/").replace(/\/$/, "");
+  var _base = ((window.__SARDE__ && window.__SARDE__.basePath) || "/").replace(/\/$/, "");
   var selectedIndex = -1;
   var currentHits = [];
   var currentTotal = 0;

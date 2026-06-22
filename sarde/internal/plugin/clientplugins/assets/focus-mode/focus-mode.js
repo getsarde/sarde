@@ -2,7 +2,7 @@
 // Hides sidebar and TOC for distraction-free reading.
 // Toggle via floating button or F hotkey. Preference persists via localStorage.
 
-const cfg = (window.__pluginConfig && window.__pluginConfig["focus-mode"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["focus-mode"]) || {};
 
 const config = {
     enableHotkey: cfg.enable_hotkey !== false,
@@ -17,8 +17,11 @@ const STORAGE_KEY = 'sarde_focus_mode';
 const HOTKEY_HINT = config.enableHotkey ? ' (⇧F)' : '';
 const HOTKEY_HINT_ARIA = config.enableHotkey ? ' (Shift+F)' : '';
 
-// Set the CSS custom property for animation speed
-document.documentElement.style.setProperty('--focus-mode-speed', config.animationSpeed + 'ms');
+if (config.animationSpeed !== 300) {
+    const _s = document.createElement('style');
+    _s.textContent = `:root{--focus-mode-speed:${config.animationSpeed}ms}`;
+    document.head.appendChild(_s);
+}
 
 // ── State ────────────────────────────────────────────────────
 

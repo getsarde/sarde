@@ -1,4 +1,4 @@
-const cfg = (window.__pluginConfig && window.__pluginConfig["copy-section-link"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["copy-section-link"]) || {};
 
 const config = {
     tooltipText: cfg.tooltip_text || 'Link copied!',

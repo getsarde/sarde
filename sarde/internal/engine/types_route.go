@@ -48,7 +48,7 @@ type RouteTabs struct {
 type RouteAssets struct {
 	Scripts       []string
 	Styles        []string
-	InlineScripts []template.HTML
+	InlineScripts []template.JS
 	ModuleScripts []string
 }
 

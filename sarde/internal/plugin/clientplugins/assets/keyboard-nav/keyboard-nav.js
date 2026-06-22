@@ -1,4 +1,4 @@
-const cfg = (window.__pluginConfig && window.__pluginConfig["keyboard-nav"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["keyboard-nav"]) || {};
 
 const config = {
     showHint: cfg.show_hint !== false,

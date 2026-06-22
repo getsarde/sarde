@@ -1,4 +1,4 @@
-const cfg = (window.__pluginConfig && window.__pluginConfig["code-collapsible"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["code-collapsible"]) || {};
 
 const config = {
   lineThreshold: cfg.line_threshold ?? 15,

@@ -1,4 +1,4 @@
-const cfg = (window.__pluginConfig && window.__pluginConfig["scroll-to-top"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["scroll-to-top"]) || {};
 
 const THRESHOLD = cfg.threshold || 30;
 const SHOW_TOOLTIP = cfg.showTooltip || false;
