@@ -140,7 +140,7 @@
 	  --sd-content-width: 800px;
 
 	  /* ── Z-index ── */
-	  --sd-z-header: 20;
+	  --sd-z-header: 35;
 	  --sd-z-sidebar: 30;
 	  --sd-z-toc: 25;
 	  --sd-z-overlay: 40;

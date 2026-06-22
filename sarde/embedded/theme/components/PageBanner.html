@@ -1,5 +1,14 @@
 {{ if .PageBanner }}
-<aside class="sarde-page-banner sarde-page-banner-{{ or .PageBanner.Variant "note" }}" aria-label="Page banner">
-  <p>{{ .PageBanner.Content }}</p>
+{{- $variant := or .PageBanner.Variant "note" -}}
+{{- $iconName := .PageBanner.Icon -}}
+{{- if not $iconName -}}
+  {{- if eq $variant "tip" }}{{ $iconName = "lightbulb" }}
+  {{- else if eq $variant "caution" }}{{ $iconName = "alert-triangle" }}
+  {{- else if eq $variant "danger" }}{{ $iconName = "alert-octagon" }}
+  {{- else }}{{ $iconName = "info" }}
+  {{- end -}}
+{{- end -}}
+<aside class="sarde-page-banner sarde-page-banner-{{ $variant }}" aria-label="Page banner">
+  <p>{{ icon $iconName "sarde-page-banner-icon" }}{{ .PageBanner.Content }}</p>
 </aside>
 {{ end }}

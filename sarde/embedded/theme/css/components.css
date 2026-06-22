@@ -872,7 +872,8 @@
 	    gap: var(--sd-space-1);
 	  }
 
-	  .sarde-header-actions > .sarde-theme-toggle {
+	  .sarde-header-actions > .sarde-theme-toggle,
+	  .sarde-header-actions > .sarde-social {
 	    display: none;
 	  }
 
@@ -938,13 +939,23 @@
 
 	/* Page Banner (per-page frontmatter) */
 	.sarde-page-banner {
-	  border-radius: var(--sd-radius);
+	  border-radius: 0 var(--sd-radius) var(--sd-radius) 0;
 	  padding: var(--sd-space-3) var(--sd-space-4);
 	  margin-block-end: var(--sd-space-4);
 	  font-size: var(--sd-text-sm);
 	  border-inline-start: 3px solid;
 	}
-	.sarde-page-banner p { margin: 0; }
+	.sarde-page-banner p {
+	  margin: 0;
+	  display: flex;
+	  align-items: center;
+	  gap: var(--sd-space-2);
+	}
+	.sarde-page-banner-icon {
+	  width: 1.25rem;
+	  height: 1.25rem;
+	  flex-shrink: 0;
+	}
 
 	.sarde-page-banner-note {
 	  background: var(--sd-blue-low, #dbeafe);
@@ -1068,6 +1079,14 @@
 	  width: 1.25rem;
 	  height: 1.25rem;
 	  flex-shrink: 0;
+	}
+
+	/* Social links in header: tighter gap + vertical divider */
+	.sarde-header-actions > .sarde-social {
+	  gap: var(--sd-space-2);
+	  padding-inline: var(--sd-space-2);
+	  border-inline: 1px solid var(--sd-hairline);
+	  margin-inline: var(--sd-space-1);
 	}
 
 }

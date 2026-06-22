@@ -549,7 +549,7 @@
 	  display: block;
 	}
 
-	@media (max-width: 1023px) {
+	@media (max-width: 1199px) {
 	  .sarde-nav-toggle {
 	    display: inline-flex;
 	  }

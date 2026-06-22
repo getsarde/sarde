@@ -5,6 +5,9 @@
     {{ component "Search" . }}
     {{ component "VersionSwitcher" . }}
     {{ component "LanguageSwitcher" . }}
+    {{ if boolVal .Site.Config.Header.Social true }}
+    {{ component "Social" . }}
+    {{ end }}
     {{ component "ThemeToggle" . }}
   </div>
 </header>

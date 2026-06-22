@@ -142,6 +142,9 @@ func mapToPageBanner(v any) *engine.PageBanner {
 	if s, ok := m["variant"].(string); ok {
 		b.Variant = s
 	}
+	if s, ok := m["icon"].(string); ok {
+		b.Icon = s
+	}
 	if b.Content == "" {
 		return nil
 	}
