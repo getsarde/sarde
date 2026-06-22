@@ -367,6 +367,8 @@ func (ds *DevServer) fileHandler() http.Handler {
 		// non-fingerprinted sarde.js bundle), so without this a fixed asset
 		// can be served stale from disk cache and mask freshly-built changes.
 		w.Header().Set("Cache-Control", "no-store")
+		r.Header.Del("If-Modified-Since")
+		r.Header.Del("If-None-Match")
 
 		urlPath := r.URL.Path
 

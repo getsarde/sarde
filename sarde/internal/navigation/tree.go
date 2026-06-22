@@ -39,9 +39,11 @@ func BuildNavTree(collection *engine.Collection) *engine.NavTree {
 	}
 
 	// Add sections as group nodes.
+	collectionRootPermalink := "/" + collection.Name + "/"
 	for _, sec := range collection.Sections {
-		if sec.Transparent {
-			// Hoist transparent section's children directly to root.
+		isCollectionRoot := sec.Permalink == collectionRootPermalink
+		if sec.Transparent || isCollectionRoot {
+			// Hoist transparent/root section's children directly to root.
 			addSectionChildren(root, sec, 1, maxDepth)
 		} else {
 			node := buildNodeFromSection(sec, 1, maxDepth)

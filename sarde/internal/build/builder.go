@@ -1193,7 +1193,10 @@ func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
 	recordTiming("Running plugins")
 
 	// Prune orphaned files from previous builds.
-	if tracker != nil {
+	// In dev mode, skip pruning to avoid deleting fingerprinted assets that
+	// the browser may still be loading. Stale files accumulate but are harmless;
+	// a production build cleans from scratch.
+	if tracker != nil && !b.devMode {
 		if err := tracker.Prune(outputDir); err != nil {
 			return nil, fmt.Errorf("pruning output: %w", err)
 		}
