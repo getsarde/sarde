@@ -32,12 +32,12 @@ var themeFS embed.FS
 //go:embed all:vendor
 var vendorFS embed.FS
 
-// ScaffoldHeroLight contains the light-mode hero SVG for sarde init.
+// ScaffoldHeroLight contains the light-mode hero SVG for sarde new site.
 //
 //go:embed scaffold/hero-light.svg
 var ScaffoldHeroLight []byte
 
-// ScaffoldHeroDark contains the dark-mode hero SVG for sarde init.
+// ScaffoldHeroDark contains the dark-mode hero SVG for sarde new site.
 //
 //go:embed scaffold/hero-dark.svg
 var ScaffoldHeroDark []byte

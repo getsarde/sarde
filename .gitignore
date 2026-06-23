@@ -6,6 +6,7 @@ docs/STYLE.md
 coderoo-go/content/
 /content/
 testsite/
+*-output.md
 
 *.png
 *.txt

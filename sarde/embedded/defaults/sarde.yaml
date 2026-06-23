@@ -96,14 +96,14 @@ search:
   provider: "orama"
 
 icons:
-  # Icon set used for bare (prefixless) names. Bundled sets: lucide, tabler,
-  # simple-icons (brand/tech logos; also referenceable via the "brands" alias).
+  # Icon set used for bare (prefixless) names. Bundled set: lucide.
+  # Additional sets (tabler, simple-icons, etc.) can be loaded via "sets" or "sets_dir".
   default_prefix: "lucide"
   # Extra Iconify JSON sets to load: - { prefix: "mdi", file: "icons/mdi.json" }
   sets: []
   # Directory of additional Iconify *.json sets, auto-discovered by prefix.
   sets_dir: ""
-  # Directory of local *.svg files, referenced by filename (icons/logo.svg -> ::icon[logo]).
+  # Directory of local *.svg files, referenced by filename (icons/logo.svg -> :icon[logo]).
   local_dir: "icons"
   # Attribution line shown/credited for sets whose license requires it.
   attribution: ""

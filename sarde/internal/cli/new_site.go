@@ -10,19 +10,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var initCmd = &cobra.Command{
-	Use:   "init [path]",
+var newSiteCmd = &cobra.Command{
+	Use:   "site [path]",
 	Short: "Create a new Sarde site",
 	Long:  "Scaffold a new Sarde site with starter files, example content, and a discoverable config.",
 	Args:  cobra.MaximumNArgs(1),
-	RunE:  runInit,
+	RunE:  runNewSite,
 }
 
-func init() {
-	rootCmd.AddCommand(initCmd)
-}
-
-func runInit(cmd *cobra.Command, args []string) error {
+func runNewSite(cmd *cobra.Command, args []string) error {
 	targetDir := "."
 	if len(args) > 0 {
 		targetDir = args[0]

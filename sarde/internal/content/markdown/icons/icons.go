@@ -1,14 +1,10 @@
 package icons
 
 import (
-	_ "embed"
 	"encoding/json"
 	"fmt"
 	"html"
-	"math"
 	"os"
-	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -18,22 +14,16 @@ import (
 	"github.com/frostybee/go-swarm-icons/lucide"
 )
 
-// manager is the central icon lookup engine backed by go-swarm-icons.
 var manager *swarmicons.IconManager
 
-// managerMu guards lazy initialization and dynamic provider registration.
 var managerMu sync.Mutex
 
-// defaultPrefix is the prefix used for bare (prefixless) icon names.
 var defaultPrefix = "lucide"
 
-// setAliases maps a friendly set name to the canonical collection prefix it
-// resolves to. "brands" is an alias for the Simple Icons logo set.
 var setAliases = map[string]string{
 	"brands": "simple-icons",
 }
 
-// aliasMap maps common shorthand names to their Lucide equivalents.
 var aliasMap = map[string]string{
 	"arrow":     "arrow-right",
 	"external":  "external-link",
@@ -59,32 +49,20 @@ var aliasMap = map[string]string{
 	"pencil":    "pencil-line",
 }
 
-// usedSets records the prefixes of collections actually resolved during a
-// build, for license-attribution reporting.
 var usedSets sync.Map
 
-// spriteMode is true when icons render as <use> references into a per-page
-// <symbol> sprite rather than full inline <svg>.
 var spriteMode atomic.Bool
 
-// spriteSymbols holds <symbol> definitions keyed by element id ("i-{source}-{name}").
-var spriteSymbols sync.Map
+var sprites *swarmicons.SpriteCollector
 
-type spriteSymbol struct {
-	ViewBox string
-	Body    string
-}
-
-// collections stores loaded Iconify JSON data for license reporting.
-// Access guarded by collectionsMu.
 var (
 	collectionsMu sync.RWMutex
 	collections   = make(map[string]*iconifyCollection)
 )
 
 type iconifyCollection struct {
-	Prefix string       `json:"prefix"`
-	Info   *iconInfo    `json:"info,omitempty"`
+	Prefix string    `json:"prefix"`
+	Info   *iconInfo `json:"info,omitempty"`
 }
 
 type iconInfo struct {
@@ -108,38 +86,33 @@ func ensureManager() {
 	if manager != nil {
 		return
 	}
-	manager = swarmicons.Default(lucide.Provider())
-	manager.SetIgnoreNotFound(true)
 
-	// Register embedded tabler and simple-icons sets.
-	registerEmbeddedSets()
-}
+	cfg := swarmicons.NewConfig().
+		AddProvider("lucide", lucide.Provider()).
+		DefaultPrefix("lucide").
+		DefaultAttributes(map[string]string{
+			"xmlns": "http://www.w3.org/2000/svg",
+		}).
+		IgnoreNotFound()
 
-//go:embed tabler.json
-var tablerJSON []byte
-
-//go:embed simple-icons.json
-var simpleiconsJSON []byte
-
-func registerEmbeddedSets() {
-	for _, set := range []struct {
-		prefix string
-		data   []byte
-	}{
-		{"lucide", lucideJSON},
-		{"tabler", tablerJSON},
-		{"simple-icons", simpleiconsJSON},
-	} {
-		if set.prefix != "lucide" {
-			provider := swarmicons.NewJsonCollectionFromBytes(set.data)
-			manager.Register(set.prefix, provider)
-		}
-		extractLicenseInfo(set.prefix, set.data)
+	var err error
+	manager, err = cfg.Build()
+	if err != nil {
+		panic("icons: " + err.Error())
 	}
-}
 
-//go:embed lucide.json
-var lucideJSON []byte
+	sprites = swarmicons.NewSpriteCollector()
+
+	collectionsMu.Lock()
+	collections["lucide"] = &iconifyCollection{
+		Prefix: "lucide",
+		Info: &iconInfo{
+			Name:    "Lucide",
+			License: &iconifyLicense{Title: "ISC License", SPDX: "ISC", URL: "https://github.com/lucide-icons/lucide/blob/main/LICENSE"},
+		},
+	}
+	collectionsMu.Unlock()
+}
 
 func extractLicenseInfo(prefix string, data []byte) {
 	var col iconifyCollection
@@ -149,11 +122,6 @@ func extractLicenseInfo(prefix string, data []byte) {
 		collections[prefix] = &col
 		collectionsMu.Unlock()
 	}
-}
-
-// Manager returns the underlying IconManager for use by the Goldmark extension.
-func Manager() *swarmicons.IconManager {
-	return manager
 }
 
 // SetDefaultPrefix sets the icon set used for bare (prefixless) names.
@@ -175,6 +143,15 @@ func SpriteMode() bool {
 	return spriteMode.Load()
 }
 
+// SpriteForHTML scans finished page HTML for sprite <use> references and returns
+// a hidden <svg> holding one <symbol> per unique referenced icon.
+func SpriteForHTML(pageHTML []byte) []byte {
+	if !spriteMode.Load() {
+		return nil
+	}
+	return sprites.SpriteSheet(pageHTML)
+}
+
 // Get returns an inline SVG for the given icon name.
 func Get(name string) string {
 	return GetWithClass(name, "")
@@ -182,126 +159,164 @@ func Get(name string) string {
 
 // GetWithClass returns an inline SVG with an optional CSS class attribute.
 // Used by block extensions (aside/card/linkcard/linkbutton). No fallback;
-// width/height hardcoded to 16.
+// defaults to 16x16. ARIA attributes (aria-hidden, focusable) are injected
+// by the manager's renderer.
 func GetWithClass(name, class string) string {
-	resolved, idBase, ok := lookupIcon(name)
+	icon, _, ok := lookupIcon(name)
 	if !ok {
 		return ""
 	}
-	_ = idBase
-	return renderSVG(class, "16", "16", resolved.viewBox, []svgAttr{{"aria-hidden", "true"}, {"focusable", "false"}}, resolved.body)
+	return icon.Class(class).Width("16").ToHTML()
 }
 
 // Render returns an inline SVG for the template func and inline Markdown extension.
 // Falls back to "circle-help" on miss, applies transforms, accessibility attributes.
 func Render(name, baseClass string, attrs map[string]string) string {
-	resolved, idBase, ok := lookupIcon(name)
+	ariaAttrs := buildARIAAttrs(attrs)
+
+	icon, spriteID, ok := lookupIcon(name, ariaAttrs)
 	if !ok {
-		resolved, idBase, ok = lookupIcon("circle-help")
+		icon, spriteID, ok = lookupIcon("circle-help", ariaAttrs)
 		if !ok {
 			return ""
 		}
 	}
 
 	class := baseClass
-	var callerW, callerH string
-	var rotate, flip, userStyle, titleText string
-	var extras []svgAttr
-	hasName := false
-	roleSet := false
+	var callerW, callerH, userStyle string
+	passThrough := map[string]string{}
 
 	for k, v := range attrs {
 		switch k {
 		case "class":
 			if v != "" {
-				if class != "" {
-					class += " " + v
-				} else {
-					class = v
-				}
+				class = strings.TrimSpace(class + " " + v)
 			}
 		case "width":
 			callerW = v
 		case "height":
 			callerH = v
-		case "rotate":
-			rotate = v
-		case "flip":
-			flip = v
 		case "style":
 			userStyle = v
-		case "title":
-			titleText = v
-		case "role":
-			roleSet = true
-			hasName = true
-			extras = append(extras, svgAttr{"role", html.EscapeString(v)})
-		case "aria-label", "aria-labelledby":
-			hasName = true
-			extras = append(extras, svgAttr{k, html.EscapeString(v)})
+		case "rotate", "flip", "title":
+			// handled separately
+		case "role", "aria-label", "aria-labelledby":
+			// already applied via manager.Get caller attrs
 		default:
-			if validAttrKey(k) {
-				extras = append(extras, svgAttr{k, html.EscapeString(v)})
-			}
+			passThrough[k] = v
 		}
 	}
 
-	body := resolved.body
-	viewBox := resolved.viewBox
-	boxW, boxH := boxDimsFromViewBox(viewBox)
-	width, height := calculateSize(callerW, callerH, boxW, boxH)
-
-	style := buildTransform(rotate, flip)
-	if userStyle != "" {
-		if style != "" {
-			style += "; " + userStyle
-		} else {
-			style = userStyle
-		}
+	if len(passThrough) > 0 {
+		icon = icon.Attr(passThrough)
 	}
-	if style != "" {
-		extras = append(extras, svgAttr{"style", html.EscapeString(style)})
+	if class != "" {
+		icon = icon.Class(class)
 	}
 
-	var titlePrefix string
+	rawBody := icon.Content()
+	viewBox := iconViewBox(icon)
+
+	titleText := attrs["title"]
 	if titleText != "" {
-		hasName = true
-		titlePrefix = "<title>" + html.EscapeString(titleText) + "</title>"
+		icon = icon.Title(titleText)
 	}
-	if hasName {
-		if !roleSet {
-			extras = append(extras, svgAttr{"role", "img"})
+
+	if r := attrs["rotate"]; r != "" {
+		if deg, err := strconv.ParseFloat(r, 64); err == nil {
+			icon = icon.Rotate(deg)
 		}
-	} else {
-		extras = append(extras, svgAttr{"aria-hidden", "true"}, svgAttr{"focusable", "false"})
+	}
+	if f := attrs["flip"]; f != "" {
+		switch strings.ToLower(strings.TrimSpace(f)) {
+		case "horizontal,vertical", "vertical,horizontal", "both":
+			icon = icon.Flip("h").Flip("v")
+		default:
+			icon = icon.Flip(f)
+		}
+	}
+
+	if userStyle != "" {
+		existing := icon.Attributes()["style"]
+		if existing != "" {
+			icon = icon.Attr(map[string]string{"style": existing + "; " + userStyle})
+		} else {
+			icon = icon.Attr(map[string]string{"style": userStyle})
+		}
+	}
+
+	switch {
+	case callerW != "" && callerH != "":
+		icon = icon.Width(callerW)
+		icon = icon.Attr(map[string]string{"height": callerH})
+	case callerW != "":
+		icon = icon.Width(callerW)
+	case callerH != "":
+		icon = icon.Height(callerH)
+	default:
+		icon = icon.Width("16")
 	}
 
 	if spriteMode.Load() {
-		registerSymbol(idBase, body, viewBox)
-		return renderSVG(class, width, height, viewBox, extras, titlePrefix+`<use href="#i-`+idBase+`"></use>`)
+		id := "i-" + spriteID
+		sprites.Register(id, rawBody, viewBox)
+
+		var titlePrefix string
+		if titleText != "" {
+			titlePrefix = "<title>" + html.EscapeString(titleText) + "</title>"
+		}
+		useBody := titlePrefix + `<use href="#` + id + `"></use>`
+		wrapper := swarmicons.New(useBody, icon.Attributes())
+		return wrapper.ToHTML()
 	}
 
-	return renderSVG(class, width, height, viewBox, extras, titlePrefix+body)
+	return icon.ToHTML()
 }
 
-// resolvedIconData holds the content and geometry extracted from an icon lookup.
-type resolvedIconData struct {
-	body    string
-	viewBox string
+func buildARIAAttrs(attrs map[string]string) map[string]string {
+	if len(attrs) == 0 {
+		return nil
+	}
+	aria := map[string]string{}
+	for k, v := range attrs {
+		switch k {
+		case "aria-label", "aria-labelledby":
+			aria[k] = v
+		case "role":
+			aria[k] = v
+		case "title":
+			if aria["role"] == "" {
+				aria["role"] = "img"
+			}
+		}
+	}
+	if len(aria) == 0 {
+		return nil
+	}
+	return aria
 }
 
-// lookupIcon resolves a "set:name"/bare name to icon content and viewBox.
-// For bare names the "local" provider is consulted FIRST (project overrides win),
-// then the default-prefix collection. "set:name" always routes to that set.
-func lookupIcon(name string) (resolvedIconData, string, bool) {
+func iconViewBox(icon *swarmicons.Icon) string {
+	attrs := icon.Attributes()
+	if vb := attrs["viewBox"]; vb != "" {
+		return vb
+	}
+	w, h := attrs["width"], attrs["height"]
+	if w != "" && h != "" {
+		return "0 0 " + w + " " + h
+	}
+	return "0 0 24 24"
+}
+
+// lookupIcon resolves a "set:name"/bare name to an Icon and sprite ID.
+func lookupIcon(name string, callerAttrs ...map[string]string) (*swarmicons.Icon, string, bool) {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return resolvedIconData{}, "", false
+		return nil, "", false
 	}
 
 	bare := !strings.Contains(name, ":")
 
-	// Resolve set aliases in the prefix position (e.g. "brands:github" → "simple-icons:github").
 	if !bare {
 		prefix := name[:strings.Index(name, ":")]
 		if canonical, ok := setAliases[prefix]; ok {
@@ -309,54 +324,36 @@ func lookupIcon(name string) (resolvedIconData, string, bool) {
 		}
 	}
 
-	// 1. Local directory (bare names only) — project overrides win.
+	var ca map[string]string
+	if len(callerAttrs) > 0 {
+		ca = callerAttrs[0]
+	}
+
 	if bare {
-		if icon, err := manager.Get("local:" + name); err == nil && icon != nil && !icon.IsEmpty() {
-			data := extractIconData(icon)
-			return data, "local-" + name, true
+		if icon, err := manager.Get("local:"+name, ca); err == nil && icon != nil && !icon.IsEmpty() {
+			return icon, "local-" + name, true
 		}
 	}
 
-	// 2. Try the name directly via the manager.
-	icon, err := manager.Get(name)
+	icon, err := manager.Get(name, ca)
 	if err == nil && icon != nil && !icon.IsEmpty() {
 		prefix, iconName := parseIconID(name)
 		recordUsed(prefix)
-		data := extractIconData(icon)
-		return data, prefix + "-" + iconName, true
+		return icon, prefix + "-" + iconName, true
 	}
 
-	// 3. Lucide shorthand aliases (bare names only, gated to lucide default).
 	if bare && defaultPrefix == "lucide" {
 		if alias, ok := aliasMap[name]; ok && alias != name {
-			if icon, err := manager.Get(alias); err == nil && icon != nil && !icon.IsEmpty() {
+			if icon, err := manager.Get(alias, ca); err == nil && icon != nil && !icon.IsEmpty() {
 				recordUsed("lucide")
-				data := extractIconData(icon)
-				return data, "lucide-" + alias, true
+				return icon, "lucide-" + alias, true
 			}
 		}
 	}
 
-	return resolvedIconData{}, "", false
+	return nil, "", false
 }
 
-func extractIconData(icon *swarmicons.Icon) resolvedIconData {
-	content := icon.Content()
-	attrs := icon.Attributes()
-	viewBox := attrs["viewBox"]
-	if viewBox == "" {
-		w := attrs["width"]
-		h := attrs["height"]
-		if w != "" && h != "" {
-			viewBox = "0 0 " + w + " " + h
-		} else {
-			viewBox = "0 0 24 24"
-		}
-	}
-	return resolvedIconData{body: content, viewBox: viewBox}
-}
-
-// parseIconID splits "set:name" into (set, name). Bare "name" uses the default prefix.
 func parseIconID(id string) (string, string) {
 	if idx := strings.Index(id, ":"); idx > 0 {
 		return id[:idx], id[idx+1:]
@@ -369,272 +366,6 @@ func recordUsed(prefix string) {
 }
 
 // ---------------------------------------------------------------------------
-// Sprite mode
-// ---------------------------------------------------------------------------
-
-var (
-	reID      = regexp.MustCompile(`(^|\s)id="([^"]+)"`)
-	reURLRef  = regexp.MustCompile(`url\(#([^)]+)\)`)
-	reHrefRef = regexp.MustCompile(`((?:xlink:)?href)="#([^"]+)"`)
-)
-
-func replaceIDs(body, suffix string) string {
-	if suffix == "" {
-		return body
-	}
-	body = reID.ReplaceAllString(body, `${1}id="${2}-`+suffix+`"`)
-	body = reURLRef.ReplaceAllString(body, `url(#${1}-`+suffix+`)`)
-	body = reHrefRef.ReplaceAllString(body, `${1}="#${2}-`+suffix+`"`)
-	return body
-}
-
-func registerSymbol(idBase, body, viewBox string) {
-	id := "i-" + idBase
-	if _, ok := spriteSymbols.Load(id); ok {
-		return
-	}
-	spriteSymbols.LoadOrStore(id, spriteSymbol{ViewBox: viewBox, Body: replaceIDs(body, idBase)})
-}
-
-var reSpriteUse = regexp.MustCompile(`(?:xlink:)?href="#(i-[a-zA-Z0-9_-]+)"`)
-
-// SpriteForHTML scans finished page HTML for sprite <use> references and returns
-// a hidden <svg> holding one <symbol> per unique referenced icon.
-func SpriteForHTML(pageHTML []byte) []byte {
-	if !spriteMode.Load() {
-		return nil
-	}
-	matches := reSpriteUse.FindAllSubmatch(pageHTML, -1)
-	if len(matches) == 0 {
-		return nil
-	}
-	seen := make(map[string]struct{}, len(matches))
-	var ids []string
-	for _, m := range matches {
-		id := string(m[1])
-		if _, dup := seen[id]; dup {
-			continue
-		}
-		if _, ok := spriteSymbols.Load(id); !ok {
-			continue
-		}
-		seen[id] = struct{}{}
-		ids = append(ids, id)
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	sort.Strings(ids)
-
-	var b strings.Builder
-	b.WriteString(`<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">`)
-	for _, id := range ids {
-		v, _ := spriteSymbols.Load(id)
-		sym := v.(spriteSymbol)
-		b.WriteString(`<symbol id="`)
-		b.WriteString(id)
-		b.WriteString(`" viewBox="`)
-		b.WriteString(sym.ViewBox)
-		b.WriteString(`">`)
-		b.WriteString(sym.Body)
-		b.WriteString(`</symbol>`)
-	}
-	b.WriteString(`</svg>`)
-	return []byte(b.String())
-}
-
-// ---------------------------------------------------------------------------
-// SVG rendering
-// ---------------------------------------------------------------------------
-
-type svgAttr struct{ key, val string }
-
-func renderSVG(class, width, height, viewBox string, extras []svgAttr, body string) string {
-	var b strings.Builder
-	b.WriteString("<svg")
-	if class != "" {
-		b.WriteString(` class="`)
-		b.WriteString(html.EscapeString(class))
-		b.WriteString(`"`)
-	}
-	b.WriteString(` xmlns="http://www.w3.org/2000/svg"`)
-	if width != "" {
-		b.WriteString(` width="`)
-		b.WriteString(html.EscapeString(width))
-		b.WriteString(`"`)
-	}
-	if height != "" {
-		b.WriteString(` height="`)
-		b.WriteString(html.EscapeString(height))
-		b.WriteString(`"`)
-	}
-	b.WriteString(` viewBox="`)
-	b.WriteString(viewBox)
-	b.WriteString(`"`)
-	if len(extras) > 0 {
-		sort.Slice(extras, func(i, j int) bool { return extras[i].key < extras[j].key })
-		for _, a := range extras {
-			b.WriteString(" ")
-			b.WriteString(a.key)
-			b.WriteString(`="`)
-			b.WriteString(a.val)
-			b.WriteString(`"`)
-		}
-	}
-	b.WriteString(">")
-	b.WriteString(body)
-	b.WriteString("</svg>")
-	return b.String()
-}
-
-// ---------------------------------------------------------------------------
-// Size calculation
-// ---------------------------------------------------------------------------
-
-func calculateSize(callerW, callerH string, boxW, boxH int) (string, string) {
-	wState, wVal := classifySize(callerW, boxW)
-	hState, hVal := classifySize(callerH, boxH)
-
-	switch {
-	case wState == sizeMissing && hState == sizeMissing:
-		return "16", "16"
-	case wState == sizeValue && hState == sizeMissing && boxW != 0:
-		return wVal, deriveSize(wVal, float64(boxH)/float64(boxW))
-	case hState == sizeValue && wState == sizeMissing && boxH != 0:
-		return deriveSize(hVal, float64(boxW)/float64(boxH)), hVal
-	default:
-		outW, outH := wVal, hVal
-		if wState != sizeValue {
-			outW = ""
-		}
-		if hState != sizeValue {
-			outH = ""
-		}
-		return outW, outH
-	}
-}
-
-type sizeState int
-
-const (
-	sizeMissing sizeState = iota
-	sizeOmit
-	sizeValue
-)
-
-func classifySize(s string, boxDim int) (sizeState, string) {
-	if s == "" {
-		return sizeMissing, ""
-	}
-	switch strings.ToLower(strings.TrimSpace(s)) {
-	case "unset", "none", "undefined":
-		return sizeOmit, ""
-	case "auto":
-		return sizeValue, strconv.Itoa(boxDim)
-	}
-	return sizeValue, s
-}
-
-func deriveSize(size string, ratio float64) string {
-	num, unit := splitNumUnit(size)
-	if num == "" {
-		return size
-	}
-	f, err := strconv.ParseFloat(num, 64)
-	if err != nil {
-		return size
-	}
-	return fmtNum(math.Ceil(f*ratio*100)/100) + unit
-}
-
-func splitNumUnit(s string) (num, unit string) {
-	i := 0
-	for i < len(s) && (s[i] == '-' || s[i] == '.' || (s[i] >= '0' && s[i] <= '9')) {
-		i++
-	}
-	return s[:i], s[i:]
-}
-
-func fmtNum(f float64) string {
-	return strconv.FormatFloat(f, 'f', -1, 64)
-}
-
-func parseViewBox(vb string) (minX, minY, w, h int) {
-	var fx, fy, fw, fh float64
-	if n, _ := fmt.Sscanf(strings.TrimSpace(vb), "%g %g %g %g", &fx, &fy, &fw, &fh); n == 4 {
-		return int(fx), int(fy), int(fw), int(fh)
-	}
-	return 0, 0, 0, 0
-}
-
-func boxDimsFromViewBox(vb string) (w, h int) {
-	_, _, w, h = parseViewBox(vb)
-	return w, h
-}
-
-// ---------------------------------------------------------------------------
-// CSS transforms
-// ---------------------------------------------------------------------------
-
-func buildTransform(rotate, flip string) string {
-	var parts []string
-	if r := strings.TrimSpace(rotate); r != "" {
-		if isNumericValue(r) {
-			parts = append(parts, "rotate("+r+"deg)")
-		} else {
-			parts = append(parts, "rotate("+r+")")
-		}
-	}
-	switch strings.ToLower(strings.TrimSpace(flip)) {
-	case "horizontal", "h":
-		parts = append(parts, "scaleX(-1)")
-	case "vertical", "v":
-		parts = append(parts, "scaleY(-1)")
-	case "horizontal,vertical", "vertical,horizontal", "both":
-		parts = append(parts, "scaleX(-1)", "scaleY(-1)")
-	}
-	if len(parts) == 0 {
-		return ""
-	}
-	return "transform: " + strings.Join(parts, " ")
-}
-
-func isNumericValue(s string) bool {
-	if s == "" {
-		return false
-	}
-	dot := false
-	for i, r := range s {
-		switch {
-		case r >= '0' && r <= '9':
-		case r == '-' && i == 0:
-		case r == '.' && !dot:
-			dot = true
-		default:
-			return false
-		}
-	}
-	return true
-}
-
-func validAttrKey(k string) bool {
-	if k == "" {
-		return false
-	}
-	for _, r := range k {
-		switch {
-		case r >= 'a' && r <= 'z':
-		case r >= 'A' && r <= 'Z':
-		case r >= '0' && r <= '9':
-		case r == ':' || r == '_' || r == '-':
-		default:
-			return false
-		}
-	}
-	return true
-}
-
-// ---------------------------------------------------------------------------
 // Dynamic provider registration (called from build init)
 // ---------------------------------------------------------------------------
 
@@ -642,8 +373,8 @@ func validAttrKey(k string) bool {
 // and registers it as a provider under its prefix.
 func LoadCollection(data []byte) error {
 	var meta struct {
-		Prefix string       `json:"prefix"`
-		Info   *iconInfo    `json:"info,omitempty"`
+		Prefix string    `json:"prefix"`
+		Info   *iconInfo `json:"info,omitempty"`
 	}
 	if err := json.Unmarshal(data, &meta); err != nil {
 		return err
@@ -673,17 +404,8 @@ func LoadIconDirectory(dirPath string) error {
 		return err
 	}
 
-	// Register as a chain: local dir checked first, then current lucide provider.
-	// We use "local" prefix internally but access via the default prefix.
-	// Actually, we register a chain provider under the default prefix that checks
-	// the directory first, then the existing provider.
 	managerMu.Lock()
 	defer managerMu.Unlock()
-
-	// Create a chain that checks local dir first, then falls back to the existing
-	// default prefix provider.
-	// Since the manager's Get already handles prefix routing, we register the
-	// directory under a "local" prefix and handle fallback in lookupIcon.
 	manager.Register("local", provider)
 	return nil
 }
@@ -714,8 +436,7 @@ func LoadedSetLicenses() []SetLicense {
 		}
 		out = append(out, sl)
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].Prefix < out[j].Prefix })
-	return out
+	return sortLicenses(out)
 }
 
 // UsedSetLicenses returns license metadata for the collections actually
@@ -737,6 +458,14 @@ func UsedSetLicenses() []SetLicense {
 		}
 		return true
 	})
-	sort.Slice(out, func(i, j int) bool { return out[i].Prefix < out[j].Prefix })
-	return out
+	return sortLicenses(out)
+}
+
+func sortLicenses(s []SetLicense) []SetLicense {
+	for i := 1; i < len(s); i++ {
+		for j := i; j > 0 && s[j].Prefix < s[j-1].Prefix; j-- {
+			s[j], s[j-1] = s[j-1], s[j]
+		}
+	}
+	return s
 }

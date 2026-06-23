@@ -8,60 +8,6 @@ import (
 )
 
 // ---------------------------------------------------------------------------
-// calculateSize — aspect-ratio / sentinels
-// ---------------------------------------------------------------------------
-
-func TestCalculateSize(t *testing.T) {
-	tests := []struct {
-		name         string
-		cw, ch       string
-		bw, bh       int
-		wantW, wantH string
-	}{
-		{"both-empty", "", "", 24, 24, "16", "16"},
-		{"width-only-square", "32", "", 24, 24, "32", "32"},
-		{"width-only-nonsquare", "32", "", 20, 30, "32", "48"},
-		{"height-only-nonsquare", "", "48", 20, 30, "32", "48"},
-		{"both-supplied", "100", "50", 24, 24, "100", "50"},
-		{"unset-both", "unset", "unset", 24, 24, "", ""},
-		{"auto-width", "auto", "", 20, 30, "20", "30"},
-		{"em-unit", "1em", "", 20, 30, "1em", "1.5em"},
-	}
-	for _, tt := range tests {
-		gotW, gotH := calculateSize(tt.cw, tt.ch, tt.bw, tt.bh)
-		if gotW != tt.wantW || gotH != tt.wantH {
-			t.Errorf("%s: calculateSize(%q,%q,%d,%d) = (%q,%q), want (%q,%q)",
-				tt.name, tt.cw, tt.ch, tt.bw, tt.bh, gotW, gotH, tt.wantW, tt.wantH)
-		}
-	}
-}
-
-// ---------------------------------------------------------------------------
-// replaceIDs
-// ---------------------------------------------------------------------------
-
-func TestReplaceIDs(t *testing.T) {
-	tests := []struct {
-		name   string
-		in     string
-		suffix string
-		want   string
-	}{
-		{"id+url", `<mask id="a"></mask><path fill="url(#a)"/>`, "x",
-			`<mask id="a-x"></mask><path fill="url(#a-x)"/>`},
-		{"href", `<use href="#a"/>`, "x", `<use href="#a-x"/>`},
-		{"xlink-href-single-suffix", `<use xlink:href="#a"/>`, "x", `<use xlink:href="#a-x"/>`},
-		{"no-ids", `<path d="M0 0"/>`, "x", `<path d="M0 0"/>`},
-		{"empty-suffix", `<mask id="a"/>`, "", `<mask id="a"/>`},
-	}
-	for _, tt := range tests {
-		if got := replaceIDs(tt.in, tt.suffix); got != tt.want {
-			t.Errorf("%s: replaceIDs = %q, want %q", tt.name, got, tt.want)
-		}
-	}
-}
-
-// ---------------------------------------------------------------------------
 // Multi-set resolution + SetDefaultPrefix + aliasMap gating
 // ---------------------------------------------------------------------------
 
@@ -87,24 +33,6 @@ func TestMultiSetResolution(t *testing.T) {
 	}
 }
 
-func TestTablerResolves(t *testing.T) {
-	svg := GetWithClass("tabler:brand-github", "c")
-	if svg == "" || !strings.Contains(svg, `viewBox="0 0 24 24"`) {
-		t.Errorf("tabler:brand-github did not resolve correctly: %q", svg)
-	}
-}
-
-func TestSimpleIconsResolves(t *testing.T) {
-	svg := GetWithClass("simple-icons:github", "c")
-	if svg == "" || !strings.Contains(svg, `viewBox="0 0 24 24"`) {
-		t.Errorf("simple-icons:github did not resolve correctly: %q", svg)
-	}
-	// The "brands" set alias routes to the same simple-icons collection.
-	if alias := GetWithClass("brands:github", "c"); alias != svg {
-		t.Errorf("brands:github should equal simple-icons:github (alias):\n brands = %q\n simple = %q", alias, svg)
-	}
-}
-
 func TestLoadedSetLicenses(t *testing.T) {
 	got := map[string]string{}
 	for _, s := range LoadedSetLicenses() {
@@ -112,12 +40,6 @@ func TestLoadedSetLicenses(t *testing.T) {
 	}
 	if got["lucide"] != "ISC" {
 		t.Errorf("lucide license = %q, want ISC", got["lucide"])
-	}
-	if got["tabler"] != "MIT" {
-		t.Errorf("tabler license = %q, want MIT", got["tabler"])
-	}
-	if got["simple-icons"] != "CC0-1.0" {
-		t.Errorf("simple-icons license = %q, want CC0-1.0", got["simple-icons"])
 	}
 }
 

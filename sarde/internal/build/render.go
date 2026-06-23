@@ -113,7 +113,7 @@ func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext)
 	}
 
 	// Sprite render mode: collect the <use> references this finished page emitted
-	// (from both Markdown ::icon[] and template {{ icon }}) and inject the hidden
+	// (from both Markdown :icon[] and template {{ icon }}) and inject the hidden
 	// <symbol> sprite before </body>. No-op (and zero overhead) in inline mode.
 	if icons.SpriteMode() {
 		if sprite := icons.SpriteForHTML(html); sprite != nil {

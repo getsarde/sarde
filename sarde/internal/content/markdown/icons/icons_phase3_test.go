@@ -81,8 +81,7 @@ func TestSpriteIDScheme(t *testing.T) {
 	cases := []struct{ name, wantID string }{
 		{"rocket", "i-lucide-rocket"},
 		{"lucide:rocket", "i-lucide-rocket"},
-		{"tabler:brand-github", "i-tabler-brand-github"},
-		{"warning", "i-lucide-alert-triangle"},          // Lucide shorthand canonicalizes
+		{"warning", "i-lucide-alert-triangle"},             // Lucide shorthand canonicalizes
 		{"definitely-not-an-icon", "i-lucide-circle-help"}, // miss -> fallback icon
 	}
 	for _, c := range cases {
@@ -100,9 +99,7 @@ func TestSpriteLocalIDScheme(t *testing.T) {
 	if err := LoadIconDirectory(dir); err != nil {
 		t.Fatalf("LoadIconDirectory: %v", err)
 	}
-	defer func() {
-		spriteSymbols.Delete("i-local-brandmark")
-	}()
+	defer sprites.Reset()
 
 	SetRenderMode("sprite")
 	defer SetRenderMode("inline")
@@ -172,9 +169,7 @@ func TestSpriteSymbolReplaceIDs(t *testing.T) {
 	if err := LoadCollection([]byte(data)); err != nil {
 		t.Fatalf("LoadCollection: %v", err)
 	}
-	defer func() {
-		spriteSymbols.Delete("i-zzsprite-grad")
-	}()
+	defer sprites.Reset()
 
 	SetRenderMode("sprite")
 	defer SetRenderMode("inline")

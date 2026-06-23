@@ -15,7 +15,7 @@ import (
 var newCmd = &cobra.Command{
 	Use:   "new <collection> <title>",
 	Short: "Create new content",
-	Long:  "Create a new content file with frontmatter in the specified collection.\n\nSubcommands `course` and `lesson` scaffold course directories and auto-numbered lessons.",
+	Long:  "Create a new content file with frontmatter in the specified collection.\n\nSubcommands: `site` scaffolds a new project, `course` and `lesson` scaffold course directories and auto-numbered lessons.",
 	Args:  cobra.ExactArgs(2),
 	RunE:  runNew,
 }
@@ -37,6 +37,7 @@ var newLessonCmd = &cobra.Command{
 }
 
 func init() {
+	newCmd.AddCommand(newSiteCmd)
 	newCmd.AddCommand(newCourseCmd)
 	newCmd.AddCommand(newLessonCmd)
 	rootCmd.AddCommand(newCmd)

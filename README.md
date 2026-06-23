@@ -6,7 +6,7 @@ A zero-config, Go-based static site generator that ships as a single binary. Dro
 
 ```bash
 cd sarde
-go run ./cmd/sarde init my-site
+go run ./cmd/sarde new site my-site
 cd my-site
 go run ../cmd/sarde serve
 ```
@@ -16,7 +16,7 @@ go run ../cmd/sarde serve
 ```bash
 sarde build                        # Production build (with minification)
 sarde serve                        # Dev server with live reload (port 4727)
-sarde init [path]                  # Scaffold a new project
+sarde new site [path]              # Scaffold a new project
 sarde new <collection> <title>     # Create new content file
 sarde new course <name>            # Scaffold a new course
 sarde new lesson <course> <name>   # Add an auto-numbered lesson to a course
