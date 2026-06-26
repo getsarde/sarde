@@ -2,20 +2,45 @@
 
 A zero-config, Go-based static site generator that ships as a single binary. Drop Markdown files into a `content/` folder and get a fully-themed, production-ready static site.
 
+## Installation
+
+**Homebrew (macOS/Linux):**
+
+```bash
+brew tap getsarde/sarde
+brew install sarde
+```
+
+**Shell script (macOS/Linux):**
+
+```bash
+curl -sSfL https://raw.githubusercontent.com/getsarde/sarde/main/install.sh | sh
+```
+
+**Binary download:**
+
+Grab the latest release from [GitHub Releases](https://github.com/getsarde/sarde/releases).
+
+**From source:**
+
+```bash
+go install github.com/getsarde/sarde/cmd/sarde@latest
+```
+
 ## Quick Start
 
 ```bash
 cd sarde
 go run ./cmd/sarde new site my-site
 cd my-site
-go run ../cmd/sarde serve
+go run ../cmd/sarde dev
 ```
 
 ## Commands
 
 ```bash
 sarde build                        # Production build (with minification)
-sarde serve                        # Dev server with live reload (port 4727)
+sarde dev                          # Dev server with live reload (port 4727)
 sarde new site [path]              # Scaffold a new project
 sarde new <collection> <title>     # Create new content file
 sarde new course <name>            # Scaffold a new course
@@ -39,7 +64,7 @@ cd sarde
 go build -o ../dist/sarde ./cmd/sarde
 
 # Build with a version tag
-go build -ldflags "-X github.com/frostybee/sarde/internal/cli.Version=1.0.0" -o ../dist/sarde ./cmd/sarde
+go build -ldflags "-X github.com/getsarde/sarde/internal/version.Version=1.0.0" -o ../dist/sarde ./cmd/sarde
 
 # Cross-compile examples
 GOOS=linux   GOARCH=amd64 go build -o ../dist/sarde-linux   ./cmd/sarde

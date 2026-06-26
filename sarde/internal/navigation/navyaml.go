@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 	"gopkg.in/yaml.v3"
 )
 

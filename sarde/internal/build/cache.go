@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 const DefaultPageCacheCapacity = 512

@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func TestRSS_GeneratesFeed(t *testing.T) {

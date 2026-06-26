@@ -1,7 +1,7 @@
 package template
 
 import (
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func isLastVersion(versionID string, vc *engine.VersionConfig) bool {

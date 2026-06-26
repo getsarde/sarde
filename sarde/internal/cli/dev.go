@@ -7,13 +7,14 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/frostybee/sarde/embedded"
-	"github.com/frostybee/sarde/internal/build"
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/devlog"
-	"github.com/frostybee/sarde/internal/server"
-	"github.com/frostybee/sarde/internal/version"
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/build"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/outputpath"
+	"github.com/getsarde/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/server"
+	"github.com/getsarde/sarde/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -81,7 +82,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 	}
 
 	// Determine output directory.
-	outputDir, err := build.ResolveOutputDir(projectDir, cfg.Build.Output)
+	outputDir, err := outputpath.ResolveOutputDir(projectDir, cfg.Build.Output)
 	if err != nil {
 		return err
 	}

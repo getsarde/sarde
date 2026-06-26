@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // dateFilenameRegex matches blog-style filenames like "2024-03-15-my-post"

@@ -1,7 +1,7 @@
 package navigation
 
 import (
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // BuildBreadcrumbs constructs a breadcrumb trail for a docs-layout page.

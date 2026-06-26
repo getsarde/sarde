@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/plugin"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/plugin"
 )
 
 func TestBeforeRender_SkipsWhenImageSet(t *testing.T) {

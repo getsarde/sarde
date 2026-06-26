@@ -1,7 +1,7 @@
 package links
 
 import (
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // PendingAnchorCheck records a deferred anchor validation. It carries the full

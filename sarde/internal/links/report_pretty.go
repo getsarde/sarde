@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/devlog"
 )
 
 func writePrettyReport(sb *strings.Builder, findings []Finding, cov CoverageSummary, summary string) {

@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func createTestSite(t *testing.T) (string, []content.ContentFile) {

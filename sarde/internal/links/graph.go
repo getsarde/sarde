@@ -3,7 +3,7 @@ package links
 import (
 	"sync"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // LinkStatus classifies the outcome of a link resolution attempt.

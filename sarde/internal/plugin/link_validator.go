@@ -5,9 +5,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 const (

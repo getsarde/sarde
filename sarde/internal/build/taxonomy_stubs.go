@@ -1,8 +1,8 @@
 package build
 
 import (
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func buildTaxonomyIndexStub(tax *engine.Taxonomy, termEntries []*engine.TermEntry, lang string) *engine.Page {
@@ -57,20 +57,7 @@ func buildTermPaginatedStub(tax *engine.Taxonomy, term *engine.TaxonomyTerm, per
 	}
 }
 
-func crossLinkTaxStubs(byLang map[string]map[string]*engine.Page, taxName, selfLang string) []*engine.Page {
-	var peers []*engine.Page
-	for lang, stubs := range byLang {
-		if lang == selfLang {
-			continue
-		}
-		if stub, ok := stubs[taxName]; ok {
-			peers = append(peers, stub)
-		}
-	}
-	return peers
-}
-
-func crossLinkTermStubs(byLang map[string]map[string]*engine.Page, key, selfLang string) []*engine.Page {
+func crossLinkStubs(byLang map[string]map[string]*engine.Page, key, selfLang string) []*engine.Page {
 	var peers []*engine.Page
 	for lang, stubs := range byLang {
 		if lang == selfLang {

@@ -3,8 +3,8 @@ package collection
 import (
 	"strings"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // MergeCollectionConfig overlays sarde.yaml collection values onto inferred defaults.

@@ -1,0 +1,58 @@
+version: 2
+
+project_name: sarde
+
+builds:
+  - main: ./cmd/sarde
+    binary: sarde
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X github.com/getsarde/sarde/internal/version.Version={{.Version}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+      - goos: linux
+        goarch: arm64
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - src: ../LICENSE*
+      - src: ../README.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^ci:"
+
+brews:
+  - repository:
+      owner: getsarde
+      name: homebrew-sarde
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    folder: Formula
+    homepage: https://github.com/getsarde/sarde
+    description: A zero-config, Go-based static site generator
+    license: MIT
+    install: |
+      bin.install "sarde"
+    test: |
+      system "#{bin}/sarde", "version"

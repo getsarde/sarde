@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/frostybee/go-swarm-icons/npm"
-	"github.com/frostybee/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/config"
 	"github.com/spf13/cobra"
 )
 

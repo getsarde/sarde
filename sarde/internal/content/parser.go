@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 	"github.com/pelletier/go-toml/v2"
 	"gopkg.in/yaml.v3"
 )

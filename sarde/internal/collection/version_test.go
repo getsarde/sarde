@@ -3,7 +3,7 @@ package collection
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func TestLangVersionKey(t *testing.T) {

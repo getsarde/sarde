@@ -19,8 +19,8 @@ import (
 	"io/fs"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/plugin"
-	"github.com/frostybee/sarde/internal/plugin/cfgutil"
+	"github.com/getsarde/sarde/internal/plugin"
+	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 )
 
 //go:embed all:assets

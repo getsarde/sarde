@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/content"
 	"gopkg.in/yaml.v3"
 )
 

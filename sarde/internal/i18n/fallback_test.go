@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 var defaultOpts = FallbackOptions{SiteFallback: "default"}

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/frostybee/sarde/internal/collection"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/collection"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // Validate runs phases 1-4 (Initialize, Discover, Parse, Assemble) without rendering or writing.

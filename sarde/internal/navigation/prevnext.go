@@ -1,7 +1,7 @@
 package navigation
 
 import (
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // WirePrevNextFromTree rewires Page.PrevPage/NextPage based on the nav tree's

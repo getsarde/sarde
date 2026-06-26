@@ -3,7 +3,7 @@ package i18n
 import (
 	"sort"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // LinkTranslations groups pages by LangRelPath and populates each page's

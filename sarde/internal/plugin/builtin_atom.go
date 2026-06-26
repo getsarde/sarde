@@ -2,11 +2,9 @@ package plugin
 
 import (
 	"encoding/xml"
-	"fmt"
-	"strings"
 	"time"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func newAtomPlugin(cfg map[string]any) *Plugin {
@@ -21,21 +19,7 @@ func newAtomPlugin(cfg map[string]any) *Plugin {
 }
 
 func atomBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
-	limit := cfgInt(cfg, "limit", 20)
-	baseURL := ""
-	if ctx.Site != nil {
-		baseURL = strings.TrimRight(ctx.Site.BaseURL, "/")
-	}
-
-	feedCollections := feedEnabledCollections(cfg, ctx.Collections)
-
-	feedCount := 0
-	for _, colName := range feedCollections {
-		col, ok := ctx.Collections[colName]
-		if !ok || col == nil {
-			continue
-		}
-
+	return writeFeedFiles(ctx, cfg, "atom.xml", "Atom", func(col *engine.Collection, baseURL string, limit int) ([]byte, error) {
 		entries := buildAtomEntries(col.Pages, baseURL, limit)
 
 		updated := time.Now().UTC().Format(time.RFC3339)
@@ -43,7 +27,7 @@ func atomBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 			updated = entries[0].Updated
 		}
 
-		colURL := ctx.AbsURL("/"+colName+"/", "", "")
+		colURL := ctx.AbsURL("/"+col.Name+"/", "", "")
 		feed := atomFeed{
 			XMLNS:   "http://www.w3.org/2005/Atom",
 			Title:   col.Title,
@@ -55,24 +39,8 @@ func atomBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 			},
 			Entries: entries,
 		}
-
-		data, err := xml.MarshalIndent(feed, "", "  ")
-		if err != nil {
-			return fmt.Errorf("marshaling Atom for %s: %w", colName, err)
-		}
-
-		output := []byte(xml.Header + string(data))
-		path := colName + "/atom.xml"
-		if err := ctx.WriteFile(path, output); err != nil {
-			return err
-		}
-		feedCount++
-	}
-
-	if feedCount > 0 {
-		ctx.Log(fmt.Sprintf("Generated %d Atom feed(s)", feedCount))
-	}
-	return nil
+		return xml.MarshalIndent(feed, "", "  ")
+	})
 }
 
 func buildAtomEntries(pages []*engine.Page, baseURL string, limit int) []atomEntry {

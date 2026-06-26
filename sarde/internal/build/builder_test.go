@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/frostybee/sarde/embedded"
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/content/markdown/icons"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/theme"
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/content/markdown/icons"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/theme"
 )
 
 // createFixtureSite creates a minimal site structure in a temp directory.

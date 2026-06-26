@@ -3,7 +3,7 @@ package linkrender
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // mockPageIndex implements PageLookup for testing.

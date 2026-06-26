@@ -3,7 +3,7 @@ package navigation
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func TestBuildGlobalNav_Basic(t *testing.T) {

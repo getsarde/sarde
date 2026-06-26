@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/outputpath"
-	"github.com/frostybee/sarde/internal/workers"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/outputpath"
+	"github.com/getsarde/sarde/internal/workers"
 	"golang.org/x/sync/errgroup"
 )
 

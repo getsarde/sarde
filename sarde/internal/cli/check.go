@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/frostybee/sarde/embedded"
-	"github.com/frostybee/sarde/internal/build"
-	"github.com/frostybee/sarde/internal/config"
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/build"
+	"github.com/getsarde/sarde/internal/config"
 	"github.com/spf13/cobra"
 )
 

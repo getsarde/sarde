@@ -1,7 +1,8 @@
 package cli
 
 import (
-	"github.com/frostybee/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -12,6 +13,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	rootCmd.Version = version.Version
 	rootCmd.PersistentFlags().StringP("config", "c", consts.FileSiteConfig, "Path to site config file")
 	rootCmd.PersistentFlags().String("baseURL", "", "Override site base URL")
 	rootCmd.PersistentFlags().BoolP("drafts", "D", false, "Include draft content")

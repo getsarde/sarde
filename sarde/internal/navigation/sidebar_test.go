@@ -1,9 +1,9 @@
-package sidebar
+package navigation
 
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func TestGetStrategy_Docs(t *testing.T) {

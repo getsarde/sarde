@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/alecthomas/chroma/v2/styles"
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/theme/syntax"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/theme/syntax"
 	"github.com/spf13/cobra"
 )
 

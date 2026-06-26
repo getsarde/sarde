@@ -3,8 +3,8 @@ package collection
 import (
 	"strings"
 
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // BuildSectionTree constructs a tree of Section nodes from pages.

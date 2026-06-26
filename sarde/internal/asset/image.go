@@ -15,9 +15,9 @@ import (
 	"sync"
 
 	"github.com/disintegration/imaging"
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/outputpath"
-	"github.com/frostybee/sarde/internal/workers"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/outputpath"
+	"github.com/getsarde/sarde/internal/workers"
 	"github.com/gen2brain/webp"
 	_ "golang.org/x/image/webp" // register WebP decoder for image.Decode
 	"golang.org/x/sync/errgroup"

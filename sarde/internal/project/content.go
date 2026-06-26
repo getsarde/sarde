@@ -5,13 +5,12 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/editor"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/editor"
 	"gopkg.in/yaml.v3"
 )
 
@@ -90,17 +89,8 @@ func validateContentPath(contentDir, relPath string) error {
 	return nil
 }
 
-var nonAlnumHyphen = regexp.MustCompile(`[^a-z0-9-]+`)
-var multiHyphen = regexp.MustCompile(`-{2,}`)
-
-// slugify generates a URL-safe slug from a title.
 func slugify(title string) string {
-	s := strings.ToLower(title)
-	s = strings.ReplaceAll(s, " ", "-")
-	s = nonAlnumHyphen.ReplaceAllString(s, "")
-	s = multiHyphen.ReplaceAllString(s, "-")
-	s = strings.Trim(s, "-")
-	return s
+	return content.Slugify(title)
 }
 
 // scaffoldFrontmatter creates frontmatter for a new content file by merging:

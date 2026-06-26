@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/frostybee/sarde/embedded"
+	"github.com/getsarde/sarde/embedded"
 )
 
 func createTestProject(t *testing.T) string {

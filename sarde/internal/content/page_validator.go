@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/valiant"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/frostybee/edict"
 )
 
 var knownFrontmatterKeys = map[string]bool{
@@ -112,13 +112,13 @@ func DetectUnknownFields(fmMap map[string]any, schema *engine.FrontmatterSchema,
 }
 
 func validateIdentity(fm *engine.Frontmatter) []engine.ValidationWarning {
-	v := valiant.FromStruct(fm)
+	v := edict.FromStruct(fm)
 	v.Field("Title").Required()
 	return collectWarnings(v)
 }
 
 func validateTOC(page *engine.Page) []engine.ValidationWarning {
-	v := valiant.FromStruct(page)
+	v := edict.FromStruct(page)
 	v.Warn("TOC.MinLevel").IntRange(1, 6)
 	v.Warn("TOC.MaxLevel").IntRange(1, 6)
 	v.Warn("TOC.MinLevel").LessOrEqual("TOC.MaxLevel")
@@ -126,11 +126,11 @@ func validateTOC(page *engine.Page) []engine.ValidationWarning {
 }
 
 func validateSidebar(page *engine.Page) []engine.ValidationWarning {
-	v := valiant.FromStruct(page)
+	v := edict.FromStruct(page)
 	v.Warn("Sidebar.Order").IntMin(0)
 	warnings := collectWarnings(v)
 
-	// Badge.Variant is a named string type (BadgeVariant), so Valiant's
+	// Badge.Variant is a named string type (BadgeVariant), so Edict's
 	// OneOf (which asserts string) cannot be used directly.
 	if variant := page.Sidebar.Badge.Variant; variant != "" {
 		valid := false
@@ -155,7 +155,7 @@ func validateLayout(fm *engine.Frontmatter) []engine.ValidationWarning {
 	if fm.Layout == "" {
 		return nil
 	}
-	v := valiant.FromStruct(fm)
+	v := edict.FromStruct(fm)
 	v.Warn("Layout").OneOf(validLayoutStrings...)
 	return collectWarnings(v)
 }
@@ -188,14 +188,14 @@ func validateHeadTags(fm *engine.Frontmatter) []engine.ValidationWarning {
 	return warnings
 }
 
-// collectWarnings runs the validator and converts Valiant results to ValidationWarnings.
+// collectWarnings runs the validator and converts Edict results to ValidationWarnings.
 // Handles both error+warning and warning-only cases: Validate() returns nil when
 // only warnings fire, so we must also call v.Warnings().
-func collectWarnings(v *valiant.Validator) []engine.ValidationWarning {
+func collectWarnings(v *edict.Validator) []engine.ValidationWarning {
 	err := v.Validate()
-	var issues []valiant.Error
+	var issues []edict.Error
 	if err != nil {
-		var res *valiant.Results
+		var res *edict.Results
 		if errors.As(err, &res) {
 			issues = res.AllIssues()
 		}
@@ -208,7 +208,7 @@ func collectWarnings(v *valiant.Validator) []engine.ValidationWarning {
 	warnings := make([]engine.ValidationWarning, 0, len(issues))
 	for _, w := range issues {
 		level := "warn"
-		if w.Severity == valiant.SeverityError {
+		if w.Severity == edict.SeverityError {
 			level = "error"
 		}
 		warnings = append(warnings, engine.ValidationWarning{

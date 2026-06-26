@@ -1,8 +1,8 @@
-// Package sidebar dispatches sidebar rendering strategies per collection layout.
-package sidebar
+// Sidebar strategy dispatch moved from internal/sidebar.
+package navigation
 
 import (
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // SidebarResult holds the output of a sidebar strategy build.

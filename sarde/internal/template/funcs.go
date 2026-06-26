@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"html"
 	htmltemplate "html/template"
-	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/frostybee/sarde/internal/asset"
-	"github.com/frostybee/sarde/internal/component"
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/component"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // buildFuncMap creates the template.FuncMap with all template functions.
@@ -89,36 +87,6 @@ func (e *Engine) buildFuncMap(
 		"in":      fnIn,
 		"seq":     fnSeq,
 
-		// ── URLs ──
-		"absURL": func(relPath string) string {
-			if r := *urlResolverPtr; r != nil {
-				return r.AbsURL(relPath, "", "")
-			}
-			s := *sitePtr
-			if s == nil || s.BaseURL == "" {
-				return relPath
-			}
-			base := strings.TrimRight(s.BaseURL, "/")
-			if strings.HasPrefix(relPath, "/") {
-				return base + relPath
-			}
-			return base + "/" + relPath
-		},
-		"relURL": func(relPath string) string {
-			if strings.Contains(relPath, "://") {
-				return relPath
-			}
-			if r := *urlResolverPtr; r != nil {
-				return r.URL(relPath, "", "")
-			}
-			return relPath
-		},
-		"editURL": func(base, relPath string) string {
-			if base == "" || relPath == "" {
-				return ""
-			}
-			return strings.TrimRight(base, "/") + "/" + strings.TrimLeft(filepath.ToSlash(relPath), "/")
-		},
 		"boolVal": func(p *bool, def bool) bool {
 			if p != nil {
 				return *p
@@ -258,102 +226,6 @@ func (e *Engine) buildFuncMap(
 			return htmltemplate.HTML(sb.String())
 		},
 
-		// ── Assets ──
-		"asset": func(path string) string {
-			assetResolver := currentAssetResolver(assetResolverPtr)
-			if assetResolver == nil {
-				return path
-			}
-			resolved, err := assetResolver.Resolve(path)
-			if err != nil {
-				return path
-			}
-			url := "/assets/" + path
-			_ = resolved
-			if r := *urlResolverPtr; r != nil {
-				url = r.URL(url, "", "")
-			}
-			return url
-		},
-		"fingerprint": func(path string) string {
-			assetManifest := currentAssetManifest(assetManifestPtr)
-			if assetManifest == nil {
-				return path
-			}
-			entry, ok := assetManifest.Lookup(path)
-			if !ok {
-				return path
-			}
-			url := entry.OutputURL
-			if r := *urlResolverPtr; r != nil {
-				url = r.URL(url, "", "")
-			}
-			return url
-		},
-		"inline": func(path string) htmltemplate.HTML {
-			assetResolver := currentAssetResolver(assetResolverPtr)
-			if assetResolver == nil {
-				return ""
-			}
-			data, err := assetResolver.ResolveContent(path)
-			if err != nil {
-				return ""
-			}
-			ext := strings.ToLower(filepath.Ext(path))
-			switch ext {
-			case ".css":
-				return htmltemplate.HTML("<style>" + string(data) + "</style>")
-			case ".js":
-				return htmltemplate.HTML("<script>" + string(data) + "</script>")
-			default:
-				return htmltemplate.HTML(string(data))
-			}
-		},
-
-		// ── Resource queries ──
-		"getResource": func(resources []engine.Resource, name string) *engine.Resource {
-			return asset.GetResource(resources, name)
-		},
-		"matchResources": func(resources []engine.Resource, pattern string) []engine.Resource {
-			return asset.MatchResources(resources, pattern)
-		},
-		"resourcesByType": func(resources []engine.Resource, mediaType string) []engine.Resource {
-			return asset.ResourcesByType(resources, mediaType)
-		},
-
-		// ── Image rendering ──
-		"image": func(res engine.Resource) htmltemplate.HTML {
-			return htmltemplate.HTML(asset.RenderPicture(
-				res.RelPermalink, res.Title,
-				res.Width, res.Height,
-				nil, "", true,
-			))
-		},
-		"resize_image": func(res engine.Resource, params string) htmltemplate.HTML {
-			imageProcessor := currentImageProcessor(imageProcessorPtr)
-			if imageProcessor == nil || res.SrcPath == "" {
-				return htmltemplate.HTML(asset.RenderPicture(
-					res.RelPermalink, res.Title,
-					res.Width, res.Height,
-					nil, "", true,
-				))
-			}
-			opts := asset.ParseImageOptionsFromQuery(params)
-			variants, lqip, err := imageProcessor.ProcessImage(res.SrcPath, opts)
-			if err != nil {
-				return htmltemplate.HTML(asset.RenderPicture(
-					res.RelPermalink, res.Title,
-					res.Width, res.Height,
-					nil, "", true,
-				))
-			}
-			return htmltemplate.HTML(asset.RenderPicture(
-				res.RelPermalink, res.Title,
-				res.Width, res.Height,
-				variants, lqip, true,
-			))
-		},
-
 		// ── Map construction ──
 		"dict": func(pairs ...any) (map[string]any, error) {
 			if len(pairs)%2 != 0 {
@@ -382,39 +254,6 @@ func (e *Engine) buildFuncMap(
 				return key
 			}
 			return i18nStrings.Resolve(currentLang(), key, data)
-		},
-
-		// ── Navigation helpers ──
-		"navFor": func(colName string) *engine.NavTree {
-			s := *sitePtr
-			if s == nil {
-				return nil
-			}
-			col, ok := s.Collections[colName]
-			if !ok || col == nil {
-				return nil
-			}
-			return col.NavTree
-		},
-		"breadcrumbs": func(data any) []engine.BreadcrumbItem {
-			rd, ok := data.(*engine.RouteData)
-			if !ok || rd == nil {
-				return nil
-			}
-			return rd.Breadcrumbs
-		},
-		"siblings": func(page *engine.Page) []*engine.Page {
-			if page == nil || page.Section == nil {
-				return nil
-			}
-			return page.Section.Pages
-		},
-		"translations": func(data any) []engine.TranslationLink {
-			rd, ok := data.(*engine.RouteData)
-			if !ok || rd == nil {
-				return nil
-			}
-			return rd.Translations
 		},
 
 		// ── Versioning ──
@@ -546,61 +385,22 @@ func (e *Engine) buildFuncMap(
 	// Plugins override these via ConfigSetup.AddTemplateFunc.
 	fm["announcementBanner"] = func() htmltemplate.HTML { return "" }
 
+	for k, v := range buildURLFuncs(urlResolverPtr, sitePtr) {
+		fm[k] = v
+	}
+	for k, v := range buildAssetFuncs(assetResolverPtr, assetManifestPtr, imageProcessorPtr, urlResolverPtr) {
+		fm[k] = v
+	}
+	for k, v := range buildNavFuncs(sitePtr) {
+		fm[k] = v
+	}
+
 	// Merge plugin-provided template functions.
 	for k, v := range pluginFuncs {
 		fm[k] = v
 	}
 
 	return fm
-}
-
-// ShortcodeFuncMapConfig holds the dependencies needed to build a FuncMap
-// for shortcode templates. Component registry, plugin funcs, and i18n are
-// intentionally excluded to avoid concurrency issues during parallel
-// markdown rendering.
-type ShortcodeFuncMapConfig struct {
-	Site           **engine.SiteContext
-	Resolver       *engine.ThemeResolver
-	AssetResolver  *asset.Resolver
-	AssetManifest  *asset.Manifest
-	ImageProcessor *asset.ImageProcessor
-	PageIndex      **content.PageIndex
-}
-
-// BuildShortcodeFuncMap constructs a FuncMap suitable for shortcode templates.
-// It creates a temporary Engine wired to the caller's pointers so closures
-// see mutations made through those pointers during the build.
-func BuildShortcodeFuncMap(cfg ShortcodeFuncMapConfig) htmltemplate.FuncMap {
-	e := &Engine{
-		resolver:       cfg.Resolver,
-		site:           *cfg.Site,
-		pageIndex:      *cfg.PageIndex,
-		assetResolver:  cfg.AssetResolver,
-		assetManifest:  cfg.AssetManifest,
-		imageProcessor: cfg.ImageProcessor,
-	}
-	return e.buildFuncMap(nil, nil)
-}
-
-func currentAssetResolver(ptr **asset.Resolver) *asset.Resolver {
-	if ptr == nil {
-		return nil
-	}
-	return *ptr
-}
-
-func currentAssetManifest(ptr **asset.Manifest) *asset.Manifest {
-	if ptr == nil {
-		return nil
-	}
-	return *ptr
-}
-
-func currentImageProcessor(ptr **asset.ImageProcessor) *asset.ImageProcessor {
-	if ptr == nil {
-		return nil
-	}
-	return *ptr
 }
 
 // ── Date function implementations ──

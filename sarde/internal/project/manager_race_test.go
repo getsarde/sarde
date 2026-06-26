@@ -5,8 +5,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/frostybee/sarde/embedded"
-	"github.com/frostybee/sarde/internal/build"
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/build"
 )
 
 // stubPreview satisfies PreviewServer; Start blocks like the real dev server.

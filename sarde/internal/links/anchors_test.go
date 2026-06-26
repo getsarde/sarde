@@ -3,7 +3,7 @@ package links
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // mockAnchorIndex implements AnchorLookup for testing.

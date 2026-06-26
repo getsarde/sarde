@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/frostybee/sarde/internal/asset"
+	"github.com/getsarde/sarde/internal/asset"
 	"github.com/yuin/goldmark/ast"
 )
 

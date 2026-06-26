@@ -4,9 +4,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/frostybee/sarde/internal/build"
-	"github.com/frostybee/sarde/internal/devlog"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/build"
+	"github.com/getsarde/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // RebuildResult holds the outcome of a rebuild attempt.

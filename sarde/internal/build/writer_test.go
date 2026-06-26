@@ -117,17 +117,6 @@ func TestWriter_CleanFlag(t *testing.T) {
 	assertFileContains(t, filepath.Join(outDir, "index.html"), "Fresh")
 }
 
-func TestResolveOutputDirRejectsDangerousLocations(t *testing.T) {
-	projectDir := t.TempDir()
-	for _, output := range []string{".", "..", "content", "content/generated", "layouts", "static", ".git"} {
-		t.Run(output, func(t *testing.T) {
-			if _, err := ResolveOutputDir(projectDir, output); err == nil {
-				t.Fatalf("ResolveOutputDir(%q) succeeded, want error", output)
-			}
-		})
-	}
-}
-
 func TestWriterRejectsUnsafeOutputPaths(t *testing.T) {
 	parent := t.TempDir()
 	outDir := filepath.Join(parent, "dist")

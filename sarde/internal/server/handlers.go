@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/frostybee/sarde/internal/build"
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/deploy"
-	"github.com/frostybee/sarde/internal/importer"
-	"github.com/frostybee/sarde/internal/project"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/deploy"
+	"github.com/getsarde/sarde/internal/importer"
+	"github.com/getsarde/sarde/internal/outputpath"
+	"github.com/getsarde/sarde/internal/project"
 )
 
 // ---------------------------------------------------------------------------
@@ -393,7 +393,7 @@ func (s *APIServer) handleDeploy(w http.ResponseWriter, r *http.Request) {
 
 	outputDir := cfg.Build.Output
 	projectDir := s.pm.ProjectDir()
-	outputDir, err = build.ResolveOutputDir(projectDir, outputDir)
+	outputDir, err = outputpath.ResolveOutputDir(projectDir, outputDir)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "OUTPUT_CONFIG_ERROR", err.Error())
 		return

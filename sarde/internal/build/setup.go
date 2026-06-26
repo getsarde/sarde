@@ -1,14 +1,25 @@
 package build
 
 import (
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/devlog"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/plugin"
-	"github.com/frostybee/sarde/internal/plugin/clientplugins"
-	"github.com/frostybee/sarde/internal/plugin/katex"
-	"github.com/frostybee/sarde/internal/plugin/mermaid"
-	"github.com/frostybee/sarde/internal/plugin/socialcards"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/collection"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/i18n"
+	"github.com/getsarde/sarde/internal/outputpath"
+	"github.com/getsarde/sarde/internal/plugin"
+	"github.com/getsarde/sarde/internal/plugin/announcements"
+	"github.com/getsarde/sarde/internal/plugin/clientplugins"
+	"github.com/getsarde/sarde/internal/plugin/katex"
+	"github.com/getsarde/sarde/internal/plugin/mermaid"
+	"github.com/getsarde/sarde/internal/plugin/socialcards"
+	"github.com/getsarde/sarde/internal/workers"
 )
 
 // registerSubpackagePlugins wires plugins whose assets live in their own
@@ -117,4 +128,105 @@ func KnownPluginNames() []string {
 	names = append(names, subpackagePluginNames...)
 	names = append(names, clientplugins.PluginSlugs()...)
 	return names
+}
+
+func (b *SiteBuilder) phaseInitialize(s *buildState) error {
+	s.contentDir = b.resolveContentDir()
+
+	outputDir, err := outputpath.ResolveOutputDir(b.projectDir, b.config.Build.Output)
+	if err != nil {
+		return err
+	}
+	s.outputDir = outputDir
+	s.parallel = config.BoolVal(b.config.Build.Parallel, true)
+	s.workerCount = workers.Count()
+
+	s.isMultiLang = b.config.I18n.IsMultiLang()
+	s.defaultLang = b.config.I18n.GetDefaultLanguage()
+	stringTable, err := i18n.LoadStrings(embedded.I18nFS(), b.projectDir, b.config.Theme.Name, s.defaultLang)
+	if err != nil {
+		return fmt.Errorf("loading i18n strings: %w", err)
+	}
+	if b.config.I18n.Strict {
+		stringTable.SetStrict(true)
+	}
+	s.stringTable = stringTable
+
+	if s.isMultiLang {
+		langCodes := make(map[string]bool)
+		for code := range b.config.I18n.Languages {
+			langCodes[code] = true
+		}
+		b.scanner.Languages = langCodes
+		b.scanner.DefaultLang = s.defaultLang
+	}
+	b.scanner.VersionIDs = buildScannerVersionIDs(b.config.Collections)
+
+	if !b.built {
+		for _, name := range b.config.Plugins.Enabled {
+			if name == "announcements" {
+				b.pluginMgr.Register(announcements.New(
+					b.config.Plugins.Config[name],
+					stringTable,
+					b.tmplEngine.CurrentLangPtr(),
+				))
+				break
+			}
+		}
+		if err := b.pluginMgr.RunConfigSetup(b.config); err != nil {
+			return err
+		}
+		b.loadIconSources()
+	}
+	return nil
+}
+
+func (b *SiteBuilder) phaseDiscover(s *buildState) error {
+	files, err := b.scanner.DiscoverFiles(s.contentDir)
+	if err != nil {
+		return fmt.Errorf("discovering content: %w", err)
+	}
+	s.files = files
+	s.recordTiming("Discovering content")
+	return nil
+}
+
+func (b *SiteBuilder) phaseParse(s *buildState) error {
+	parseOpts := collection.BuildOptions{Parallel: s.parallel, WorkerCount: s.workerCount}
+	collections, warnings, err := collection.BuildCollectionsWithOptions(s.files, b.config, s.contentDir, parseOpts)
+	if err != nil {
+		return fmt.Errorf("building collections: %w", err)
+	}
+	standalones, err := collection.BuildStandalonePagesWithOptions(s.files, s.contentDir, b.config.Content.SummaryLength, string(b.config.Build.LastUpdated), parseOpts)
+	if err != nil {
+		return fmt.Errorf("building standalone pages: %w", err)
+	}
+	s.collections = collections
+	s.standalones = standalones
+	s.warnings = warnings
+	s.recordTiming("Parsing content")
+	return nil
+}
+
+func detectFavicon(projectDir string) string {
+	for _, name := range []string{"favicon.svg", "favicon.ico", "favicon.png"} {
+		p := filepath.Join(projectDir, "static", name)
+		if info, err := os.Stat(p); err == nil && !info.IsDir() {
+			return "/" + name
+		}
+	}
+	return ""
+}
+
+func faviconMIME(path string) string {
+	switch {
+	case strings.HasSuffix(path, ".svg"):
+		return "image/svg+xml"
+	case strings.HasSuffix(path, ".ico"):
+		return "image/x-icon"
+	case strings.HasSuffix(path, ".png"):
+		return "image/png"
+	default:
+		return ""
+	}
 }

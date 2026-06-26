@@ -1,7 +1,7 @@
 package linkbutton
 
 import (
-	"github.com/frostybee/sarde/internal/content/markdown/extensions/linkrender"
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkrender"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer"

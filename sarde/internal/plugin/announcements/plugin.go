@@ -15,9 +15,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/frostybee/sarde/internal/i18n"
-	"github.com/frostybee/sarde/internal/plugin"
-	"github.com/frostybee/sarde/internal/plugin/cfgutil"
+	"github.com/getsarde/sarde/internal/i18n"
+	"github.com/getsarde/sarde/internal/plugin"
+	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 )
 
 //go:embed all:assets

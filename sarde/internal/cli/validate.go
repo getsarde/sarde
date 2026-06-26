@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/frostybee/sarde/embedded"
-	"github.com/frostybee/sarde/internal/build"
-	"github.com/frostybee/sarde/internal/plugin"
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/build"
+	"github.com/getsarde/sarde/internal/plugin"
 	"github.com/spf13/cobra"
 )
 

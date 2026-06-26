@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/frostybee/sarde/embedded"
-	"github.com/frostybee/sarde/internal/build"
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/build"
 )
 
 // failingPreview fails before binding: Start returns an error immediately

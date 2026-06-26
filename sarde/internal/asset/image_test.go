@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/frostybee/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/config"
 )
 
 func createTestImage(t *testing.T, dir, name string, width, height int) string {

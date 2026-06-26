@@ -3,8 +3,8 @@ package navigation
 import (
 	"sort"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // BuildGlobalNav builds the top-level site navigation from collections and

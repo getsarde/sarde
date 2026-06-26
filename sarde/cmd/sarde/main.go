@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/frostybee/sarde/internal/cli"
+	"github.com/getsarde/sarde/internal/cli"
 )
 
 func main() {

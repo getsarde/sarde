@@ -3,7 +3,7 @@ package taxonomy
 import (
 	"sort"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // ComputeTermEntries builds a sorted slice of TermEntry with popularity tiers.

@@ -1,7 +1,7 @@
 package navigation
 
 import (
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // MarkActive deep-clones the NavTree and marks the active node and its

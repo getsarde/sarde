@@ -6,8 +6,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/frostybee/sarde/internal/content/markdown"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/content/markdown"
+	"github.com/getsarde/sarde/internal/engine"
 	"github.com/spf13/cobra"
 )
 

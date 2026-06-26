@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/frostybee/sarde/embedded"
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/theme"
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/theme"
 	"github.com/spf13/cobra"
 )
 

@@ -3,7 +3,7 @@ package i18n
 import (
 	"sort"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // FallbackOptions controls fallback generation behaviour.

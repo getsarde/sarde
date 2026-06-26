@@ -3,7 +3,7 @@ package build
 import (
 	"strings"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // resolvePermalinks resolves Page.Permalink through the URL resolver.

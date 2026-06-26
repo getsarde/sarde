@@ -54,10 +54,10 @@ func KnownTokens() map[string]bool {
 		"radius": true, "radius-sm": true, "radius-md": true, "radius-lg": true, "radius-xl": true, "radius-full": true,
 
 		// Layout
-		"nav-height": true, "sidebar-width": true, "sidebar-collapsed-width": true, "toc-width": true, "content-width": true,
+		"nav-height": true, "sidebar-width": true, "sidebar-collapsed-width": true, "toc-width": true, "mobile-toc-height": true, "content-width": true,
 
 		// Z-index
-		"z-header": true, "z-sidebar": true, "z-overlay": true, "z-modal": true, "z-toast": true, "z-sticky": true,
+		"z-header": true, "z-sidebar": true, "z-toc": true, "z-overlay": true, "z-modal": true, "z-toast": true, "z-sticky": true,
 
 		// Transitions
 		"transition-fast": true, "transition-normal": true, "transition-slow": true,

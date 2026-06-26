@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/frostybee/sarde/internal/asset"
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/asset"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func nilFuncMap() htmltemplate.FuncMap {

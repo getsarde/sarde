@@ -3,7 +3,7 @@ package i18n
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func TestLinkTranslations_BasicPairing(t *testing.T) {

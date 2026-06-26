@@ -3,8 +3,8 @@ package plugin
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func boolPtr(b bool) *bool { return &b }

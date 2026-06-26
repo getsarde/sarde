@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/frostybee/sarde/embedded"
+	"github.com/getsarde/sarde/embedded"
 	"gopkg.in/yaml.v3"
 )
 

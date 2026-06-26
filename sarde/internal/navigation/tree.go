@@ -4,8 +4,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // BuildNavTree constructs a NavTree from a collection's section tree.

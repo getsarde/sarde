@@ -3,7 +3,7 @@ setlocal
 
 set BINARY=sarde
 set DIST=dist
-set MODULE=github.com/frostybee/sarde
+set MODULE=github.com/getsarde/sarde
 
 for /f "delims=" %%i in ('git describe --tags --always --dirty 2^>nul') do set VERSION=%%i
 if "%VERSION%"=="" set VERSION=dev

@@ -12,13 +12,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/frostybee/sarde/internal/asset"
-	"github.com/frostybee/sarde/internal/component"
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/i18n"
-	sardeplugin "github.com/frostybee/sarde/internal/plugin"
+	"github.com/getsarde/sarde/internal/asset"
+	"github.com/getsarde/sarde/internal/component"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/i18n"
+	sardeplugin "github.com/getsarde/sarde/internal/plugin"
 )
 
 // Engine loads templates from the resolved lookup chain and renders pages to HTML.

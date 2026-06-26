@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/frostybee/sarde/embedded"
-	"github.com/frostybee/sarde/internal/config"
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/config"
 )
 
 // Check applies per-call overrides (strict policies, report format, enabled)

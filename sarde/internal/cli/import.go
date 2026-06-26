@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/importer"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/importer"
 	"github.com/spf13/cobra"
 )
 

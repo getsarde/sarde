@@ -2,11 +2,9 @@ package plugin
 
 import (
 	"encoding/xml"
-	"fmt"
-	"strings"
 	"time"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func newRSSPlugin(cfg map[string]any) *Plugin {
@@ -21,54 +19,19 @@ func newRSSPlugin(cfg map[string]any) *Plugin {
 }
 
 func rssBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
-	limit := cfgInt(cfg, "limit", 20)
-	baseURL := ""
-	if ctx.Site != nil {
-		baseURL = strings.TrimRight(ctx.Site.BaseURL, "/")
-	}
-
-	feedCollections := feedEnabledCollections(cfg, ctx.Collections)
-
-	feedCount := 0
-	for _, colName := range feedCollections {
-		col, ok := ctx.Collections[colName]
-		if !ok || col == nil {
-			continue
-		}
-
+	return writeFeedFiles(ctx, cfg, "feed.xml", "RSS", func(col *engine.Collection, baseURL string, limit int) ([]byte, error) {
 		items := buildRSSItems(col.Pages, baseURL, limit)
 		feed := rssChannel{
 			Title:       col.Title,
-			Link:        ctx.AbsURL("/"+colName+"/", "", ""),
-			Description: fmt.Sprintf("Latest from %s", col.Title),
+			Link:        ctx.AbsURL("/"+col.Name+"/", "", ""),
+			Description: "Latest from " + col.Title,
 			Items:       items,
 		}
 		if len(items) > 0 {
 			feed.LastBuildDate = items[0].PubDate
 		}
-
-		rss := rssFeed{
-			Version: "2.0",
-			Channel: feed,
-		}
-
-		data, err := xml.MarshalIndent(rss, "", "  ")
-		if err != nil {
-			return fmt.Errorf("marshaling RSS for %s: %w", colName, err)
-		}
-
-		output := []byte(xml.Header + string(data))
-		path := colName + "/feed.xml"
-		if err := ctx.WriteFile(path, output); err != nil {
-			return err
-		}
-		feedCount++
-	}
-
-	if feedCount > 0 {
-		ctx.Log(fmt.Sprintf("Generated %d RSS feed(s)", feedCount))
-	}
-	return nil
+		return xml.MarshalIndent(rssFeed{Version: "2.0", Channel: feed}, "", "  ")
+	})
 }
 
 func buildRSSItems(pages []*engine.Page, baseURL string, limit int) []rssItem {

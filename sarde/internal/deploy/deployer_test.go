@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/frostybee/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/config"
 )
 
 func TestNewDeployer_ValidProviders(t *testing.T) {

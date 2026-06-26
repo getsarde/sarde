@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/navigation"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/navigation"
 )
 
 // BuildOptions controls content parsing work inside collection builders.

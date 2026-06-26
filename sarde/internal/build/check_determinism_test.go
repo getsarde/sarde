@@ -5,9 +5,9 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/frostybee/sarde/embedded"
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/links"
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/links"
 )
 
 // createVersionedFixture builds a multi-language, versioned-docs site where

@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/frostybee/sarde/internal/validate"
+	"github.com/getsarde/sarde/internal/validate"
 )
 
 func TestValidate_DefaultsClean(t *testing.T) {

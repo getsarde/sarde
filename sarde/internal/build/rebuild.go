@@ -8,16 +8,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/frostybee/sarde/internal/collection"
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/devlog"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/i18n"
-	"github.com/frostybee/sarde/internal/taxonomy"
-	sardetemplate "github.com/frostybee/sarde/internal/template"
-	"github.com/frostybee/sarde/internal/workers"
+	"github.com/getsarde/sarde/internal/collection"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/i18n"
+	"github.com/getsarde/sarde/internal/plugin"
+	"github.com/getsarde/sarde/internal/taxonomy"
+	sardetemplate "github.com/getsarde/sarde/internal/template"
+	"github.com/getsarde/sarde/internal/workers"
 )
 
 // ContentRebuild performs an incremental rebuild for content-only changes.
@@ -512,6 +513,26 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	b.lastTaxByLang = newTaxByLang
 	b.lastPageIndex = newPageIndex
 	b.lastValidationData = mergedValidation
+
+	buildLogger := engine.NewBuildLogger()
+	var pluginWarnings []engine.ValidationWarning
+	buildDoneCtx := &plugin.BuildDoneContext{
+		Config:         b.config,
+		OutputDir:      b.lastOutputDir,
+		Pages:          patchedAllPages,
+		Collections:    b.lastCollections,
+		Site:           b.lastSiteCtx,
+		Resolver:       b.urlResolver,
+		PageIndex:      newPageIndex,
+		ValidationData: mergedValidation,
+		DevMode:        b.devMode,
+	}
+	buildDoneCtx.SetWarnings(&pluginWarnings)
+	buildDoneCtx.SetLogger(buildLogger)
+	if err := b.pluginMgr.RunBuildDone(buildDoneCtx); err != nil {
+		return b.Build()
+	}
+	warnings = append(warnings, pluginWarnings...)
 
 	return &engine.BuildResult{
 		PageCount:   len(dirtyRendered),

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/frostybee/sarde/internal/content/markdown/icons"
+	"github.com/getsarde/sarde/internal/content/markdown/icons"
 )
 
 // TestInjectBeforeBodyClose verifies the sprite splice lands before the final

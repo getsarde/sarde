@@ -3,7 +3,7 @@ package collection
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // A top-level directory without an _index.md in an explicitly-tabbed collection

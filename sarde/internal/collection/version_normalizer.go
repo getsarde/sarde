@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // normalizeRootVersionPages assigns Version=lastVersion to pages at the

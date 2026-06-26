@@ -3,9 +3,9 @@ package linkrender
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/links"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/links"
 )
 
 // buildSiteAbsoluteRenderer wires a Renderer with a real page index and a

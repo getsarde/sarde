@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/frostybee/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/gorilla/websocket"
 )
 

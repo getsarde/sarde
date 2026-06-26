@@ -1,4 +1,4 @@
-module github.com/frostybee/sarde
+module github.com/getsarde/sarde
 
 go 1.25.0
 
@@ -6,11 +6,11 @@ require (
 	github.com/alecthomas/chroma/v2 v2.26.1
 	github.com/disintegration/imaging v1.6.2
 	github.com/evanw/esbuild v0.28.0
-	github.com/frostybee/go-swarm-icons v0.0.0
-	github.com/frostybee/go-swarm-icons/lucide v0.0.0-00010101000000-000000000000
-	github.com/frostybee/kazari v0.0.0-00010101000000-000000000000
-	github.com/frostybee/nuri v0.0.0-00010101000000-000000000000
-	github.com/frostybee/valiant v0.0.0-00010101000000-000000000000
+	github.com/frostybee/edict v0.1.0
+	github.com/frostybee/go-swarm-icons v0.1.0
+	github.com/frostybee/go-swarm-icons/lucide v0.1.0
+	github.com/frostybee/kazari v1.0.1
+	github.com/frostybee/nuri v1.0.0
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gen2brain/avif v0.4.4
 	github.com/gen2brain/webp v0.5.5
@@ -24,14 +24,6 @@ require (
 	golang.org/x/sync v0.20.0
 	golang.org/x/term v0.44.0
 	gopkg.in/yaml.v3 v3.0.1
-)
-
-replace (
-	github.com/frostybee/go-swarm-icons => D:/Dev/my-repos/swarm-icons-go
-	github.com/frostybee/go-swarm-icons/lucide => D:/Dev/my-repos/swarm-icons-go/lucide
-	github.com/frostybee/kazari => D:/dev/my-repos/kazari
-	github.com/frostybee/nuri => D:/Dev/my-repos/irosashi
-	github.com/frostybee/valiant => D:/Dev/my-repos/valiant
 )
 
 require (

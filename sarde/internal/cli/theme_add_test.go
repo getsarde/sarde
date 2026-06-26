@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/frostybee/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/consts"
 )
 
 func TestRunThemeAdd_LocalDir(t *testing.T) {

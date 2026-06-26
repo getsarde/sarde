@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func TestSEO_PopulatesParams(t *testing.T) {

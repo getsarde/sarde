@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func TestSortPages_DateDesc(t *testing.T) {

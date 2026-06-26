@@ -3,9 +3,9 @@ package build
 import (
 	"time"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/links"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/links"
 )
 
 // CheckOptions controls the behavior of the Check method.

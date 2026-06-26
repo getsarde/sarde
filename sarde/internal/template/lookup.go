@@ -7,9 +7,9 @@ import (
 	"path"
 	"path/filepath"
 
-	collectionpkg "github.com/frostybee/sarde/internal/collection"
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/engine"
+	collectionpkg "github.com/getsarde/sarde/internal/collection"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // resolveTemplate finds a template file through the multi-layer lookup chain.

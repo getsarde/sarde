@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/frostybee/sarde/embedded"
-	"github.com/frostybee/sarde/internal/config"
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/config"
 )
 
 // createRichFixtureSite creates a fixture with content that triggers all inject_when rules:

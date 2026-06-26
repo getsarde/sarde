@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/frostybee/sarde/internal/version"
+	"github.com/getsarde/sarde/internal/version"
 	"github.com/spf13/cobra"
 )
 

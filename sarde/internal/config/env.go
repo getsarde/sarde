@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/devlog"
 )
 
 // applyEnvOverrides reads SARDE_-prefixed environment variables and applies

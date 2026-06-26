@@ -1,7 +1,7 @@
 package linkcollector
 
 import (
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"

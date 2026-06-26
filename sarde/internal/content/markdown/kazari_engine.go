@@ -9,7 +9,7 @@ import (
 	kazarinuri "github.com/frostybee/kazari/nuri"
 	"github.com/frostybee/nuri"
 	"github.com/frostybee/nuri/bundle/core"
-	"github.com/frostybee/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/config"
 )
 
 // nuriToChroma maps Nuri/TextMate theme names to their closest Chroma

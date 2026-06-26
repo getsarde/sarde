@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/content/markdown/icons"
-	"github.com/frostybee/sarde/internal/devlog"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/content/markdown/icons"
+	"github.com/getsarde/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // loadIconSources configures the icon engine from b.config.Icons: the default

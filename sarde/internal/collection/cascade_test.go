@@ -3,8 +3,8 @@ package collection
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func TestApplyCascade_Basic(t *testing.T) {

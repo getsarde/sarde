@@ -5,7 +5,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/frostybee/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/devlog"
 )
 
 // corsMiddleware allows all origins (localhost-only sidecar).

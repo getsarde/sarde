@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/consts"
 )
 
 // SafeJoin resolves relPath under outputDir and rejects absolute paths,

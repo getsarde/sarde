@@ -11,12 +11,13 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/frostybee/sarde/internal/build"
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/content/markdown"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/build"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/outputpath"
+	"github.com/getsarde/sarde/internal/content/markdown"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // PreviewServer is the interface for the dev server to avoid circular imports.
@@ -333,7 +334,7 @@ func (pm *ProjectManager) installPreview(port int) (PreviewServer, error) {
 		port = consts.DefaultPort
 	}
 
-	outputDir, err := build.ResolveOutputDir(pm.projectDir, pm.config.Build.Output)
+	outputDir, err := outputpath.ResolveOutputDir(pm.projectDir, pm.config.Build.Output)
 	if err != nil {
 		return nil, err
 	}

@@ -3,8 +3,8 @@ package collection
 import (
 	"strings"
 
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/navigation"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/navigation"
 )
 
 // RebuildNavTreesWithFallbacks rebuilds per-language nav trees after fallback

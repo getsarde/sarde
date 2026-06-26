@@ -19,9 +19,9 @@ import (
 	"github.com/evanw/esbuild/pkg/api"
 	"gopkg.in/yaml.v3"
 
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/plugin"
-	"github.com/frostybee/sarde/internal/plugin/cfgutil"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/plugin"
+	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 )
 
 //go:embed manifest.yaml

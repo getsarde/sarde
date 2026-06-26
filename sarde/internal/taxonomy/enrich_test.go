@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func setupEnrichTest(t *testing.T, tagsYAML string) (string, map[string]*engine.Taxonomy) {

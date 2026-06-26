@@ -2,15 +2,14 @@ package markdown
 
 import (
 	"bytes"
-	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/engine"
 	nethtml "golang.org/x/net/html"
 )
 
-var slugifyRegex = regexp.MustCompile(`[^a-z0-9]+`)
 
 // extractHeadings parses rendered HTML, finds h2-h4 headings, injects slugified
 // IDs and anchor links, and returns the headings as engine.Heading slices.
@@ -104,13 +103,11 @@ func setAttr(n *nethtml.Node, key, val string) {
 }
 
 func slugifyHeading(text string) string {
-	text = strings.ToLower(text)
-	text = slugifyRegex.ReplaceAllString(text, "-")
-	text = strings.Trim(text, "-")
-	if text == "" {
+	s := content.Slugify(text)
+	if s == "" {
 		return "section"
 	}
-	return text
+	return s
 }
 
 func extractBodyContent(htmlStr string) string {

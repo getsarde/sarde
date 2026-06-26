@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/content"
 )
 
 // ImportResult holds statistics from an import operation.

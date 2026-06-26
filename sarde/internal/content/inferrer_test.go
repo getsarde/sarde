@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func TestInfer_TitleFromH1(t *testing.T) {

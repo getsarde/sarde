@@ -4,17 +4,23 @@ import (
 	"bytes"
 	"fmt"
 	htmltemplate "html/template"
+	"os"
+	"path/filepath"
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/frostybee/sarde/internal/asset"
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/content/markdown"
-	"github.com/frostybee/sarde/internal/content/markdown/icons"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/shortcode"
-	sardetemplate "github.com/frostybee/sarde/internal/template"
-	"github.com/frostybee/sarde/internal/workers"
+	"github.com/getsarde/sarde/internal/asset"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/content/markdown"
+	"github.com/getsarde/sarde/internal/content/markdown/icons"
+	"github.com/getsarde/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/shortcode"
+	sardetemplate "github.com/getsarde/sarde/internal/template"
+	"github.com/getsarde/sarde/internal/taxonomy"
+	"github.com/getsarde/sarde/internal/workers"
 )
 
 func enhancePageResources(pages []*engine.Page, pipeline *asset.Pipeline, parallel bool, workerCount int) error {
@@ -28,7 +34,7 @@ func enhancePageResources(pages []*engine.Page, pipeline *asset.Pipeline, parall
 	}
 
 	g := new(errgroup.Group)
-	g.SetLimit(minWorkerLimit(workerCount, len(pages)))
+	g.SetLimit(workers.Limit(len(pages)))
 	for _, page := range pages {
 		page := page
 		g.Go(func() error {
@@ -64,7 +70,7 @@ func (b *SiteBuilder) renderPages(pages []*engine.Page, siteCtx *engine.SiteCont
 
 	rendered := make([]RenderedPage, len(pages))
 	g := new(errgroup.Group)
-	g.SetLimit(minWorkerLimit(workerCount, len(pages)))
+	g.SetLimit(workers.Limit(len(pages)))
 	for i, page := range pages {
 		i, page := i, page
 		g.Go(func() error {
@@ -213,7 +219,7 @@ func minifyRendered(rendered []RenderedPage, parallel bool, workerCount int) err
 	}
 
 	g := new(errgroup.Group)
-	g.SetLimit(minWorkerLimit(workerCount, len(rendered)))
+	g.SetLimit(workers.Limit(len(rendered)))
 	for i := range rendered {
 		i := i
 		g.Go(func() error {
@@ -282,5 +288,294 @@ func (b *SiteBuilder) renderDirtyCollectionPagination(collections map[string]*en
 			})
 		}
 	}
+	return nil
+}
+
+func tabbedCollectionRedirect(page *engine.Page) string {
+	col := page.Collection
+	if col == nil || !col.IsTabbed || col.IndexPage != page || len(col.Tabs) == 0 {
+		return ""
+	}
+	return col.Tabs[0].Permalink
+}
+
+func buildRedirectHTML(target string) string {
+	return fmt.Sprintf(`<!DOCTYPE html><html><head>`+
+		`<meta http-equiv="refresh" content="0;url=%s">`+
+		`<link rel="canonical" href="%s">`+
+		`</head><body><p><a href="%s">Continue</a></p></body></html>`,
+		target, target, target)
+}
+
+func (b *SiteBuilder) phaseRender(s *buildState) error {
+	var renderablePages []*engine.Page
+	for _, page := range s.allPages {
+		if page.Params != nil {
+			if r, ok := page.Params["render"].(bool); ok && !r {
+				continue
+			}
+		}
+		renderablePages = append(renderablePages, page)
+	}
+
+	rendered, aliases, err := b.renderPages(renderablePages, s.siteCtx, s.parallel, s.workerCount)
+	if err != nil {
+		return err
+	}
+	s.recordTiming("Rendering templates")
+
+	var syntheticPages []*engine.Page
+	paginatorPages := 0
+
+	// Synthesize numbered pagination pages (e.g. /blog/page/2/).
+	for _, col := range s.collections {
+		if col.Config == nil || col.Config.Paginate <= 0 {
+			continue
+		}
+		var contentPages []*engine.Page
+		for _, p := range col.Pages {
+			if p.Kind != engine.KindSection {
+				contentPages = append(contentPages, p)
+			}
+		}
+		perPage := col.Config.Paginate
+		total := (len(contentPages) + perPage - 1) / perPage
+		if total <= 1 || col.IndexPage == nil {
+			continue
+		}
+		idx := col.IndexPage
+		base := idx.RelPermalink
+		if base == "" {
+			base = "/" + col.Name + "/"
+		}
+		for n := 2; n <= total; n++ {
+			permalink := sardetemplate.PaginationURL(base, n)
+			stub := &engine.Page{
+				PageIdentity: engine.PageIdentity{
+					Title:        idx.Title,
+					Kind:         engine.KindSection,
+					Permalink:    permalink,
+					RelPermalink: permalink,
+				},
+				PageRelationships: engine.PageRelationships{
+					Collection: col,
+					Section:    idx.Section,
+				},
+				PageI18n: engine.PageI18n{Lang: idx.Lang},
+				Params: map[string]any{
+					consts.PaginationCurrentKey: n,
+				},
+			}
+			syntheticPages = append(syntheticPages, stub)
+			paginatorPages++
+		}
+	}
+
+	// Synthesize taxonomy index and term pages.
+	var taxonomyPages []*engine.Page
+
+	allTaxByLang := s.taxByLang
+	if allTaxByLang == nil {
+		allTaxByLang = map[string]map[string]*engine.Taxonomy{"": s.taxonomies}
+	}
+
+	var taxLangs []string
+	if s.isMultiLang {
+		taxLangs = b.config.I18n.LanguageCodes()
+	} else {
+		taxLangs = []string{""}
+	}
+
+	// Pass 1: build all index + term (page 1) stubs, keyed for cross-linking.
+	stubsByLang := make(map[string]map[string]*engine.Page, len(taxLangs))
+	for _, lang := range taxLangs {
+		langTax := allTaxByLang[lang]
+		if langTax == nil {
+			continue
+		}
+		stubs := make(map[string]*engine.Page)
+		for _, taxName := range sortedKeys(langTax) {
+			tax := langTax[taxName]
+			cfg := b.config.Taxonomies[taxName]
+			if !cfg.ShouldRender() {
+				continue
+			}
+			termEntries := taxonomy.ComputeTermEntries(tax)
+			taxStub := buildTaxonomyIndexStub(tax, termEntries, lang)
+			stubs[taxName] = taxStub
+
+			for _, term := range tax.Terms {
+				termStub := buildTermStub(tax, term, lang)
+				stubs[taxName+"/"+term.Slug] = termStub
+			}
+		}
+		stubsByLang[lang] = stubs
+	}
+
+	// Pass 2: cross-link, then collect into syntheticPages + taxonomyPages.
+	for _, lang := range taxLangs {
+		langTax := allTaxByLang[lang]
+		if langTax == nil {
+			continue
+		}
+		stubs := stubsByLang[lang]
+		for _, taxName := range sortedKeys(langTax) {
+			tax := langTax[taxName]
+			cfg := b.config.Taxonomies[taxName]
+			if !cfg.ShouldRender() {
+				continue
+			}
+
+			taxStub := stubs[taxName]
+			if s.isMultiLang {
+				taxStub.Translations = crossLinkStubs(stubsByLang, taxName, lang)
+				taxStub.AllTranslations = taxStub.Translations
+			}
+			syntheticPages = append(syntheticPages, taxStub)
+			taxonomyPages = append(taxonomyPages, taxStub)
+
+			paginateBy := cfg.PaginateBy
+			if paginateBy <= 0 {
+				paginateBy = consts.DefaultPaginateBy
+			}
+			for _, term := range tax.Terms {
+				key := taxName + "/" + term.Slug
+				termStub := stubs[key]
+				if s.isMultiLang {
+					termStub.Translations = crossLinkStubs(stubsByLang, key, lang)
+					termStub.AllTranslations = termStub.Translations
+				}
+				syntheticPages = append(syntheticPages, termStub)
+				taxonomyPages = append(taxonomyPages, termStub)
+
+				totalTermPages := (len(term.Pages) + paginateBy - 1) / paginateBy
+				if totalTermPages < 1 {
+					totalTermPages = 1
+				}
+				for n := 2; n <= totalTermPages; n++ {
+					permalink := sardetemplate.PaginationURL(term.Permalink, n)
+					paginatedStub := buildTermPaginatedStub(tax, term, permalink, n, lang)
+					syntheticPages = append(syntheticPages, paginatedStub)
+					taxonomyPages = append(taxonomyPages, paginatedStub)
+					paginatorPages++
+				}
+			}
+		}
+	}
+
+	// Resolve Permalinks on synthetic pages (pagination + taxonomy stubs).
+	resolvePermalinks(b.urlResolver, syntheticPages)
+
+	syntheticRendered, syntheticAliases, err := b.renderPages(syntheticPages, s.siteCtx, s.parallel, s.workerCount)
+	if err != nil {
+		return err
+	}
+	rendered = append(rendered, syntheticRendered...)
+	for alias, target := range syntheticAliases {
+		aliases[alias] = target
+	}
+	s.recordTiming("Rendering synthetic pages")
+
+	// Include taxonomy pages in allPages for sitemap and search index.
+	s.allPages = append(s.allPages, taxonomyPages...)
+	s.siteCtx.Pages = s.allPages
+
+	// Render 404 page(s).
+	render404 := func(lang, dir, outPath string) {
+		page404 := &engine.Page{
+			PageIdentity: engine.PageIdentity{Title: "Page Not Found", Kind: engine.KindPage},
+			PageI18n:     engine.PageI18n{Lang: lang},
+		}
+		templateName := consts.DirDefault + "/404"
+
+		candidates := []string{
+			filepath.Join(s.contentDir, "404."+lang+".md"),
+			filepath.Join(s.contentDir, "404.md"),
+		}
+		for _, path := range candidates {
+			raw, err := os.ReadFile(path)
+			if err != nil {
+				continue
+			}
+			fm, body, _ := content.ParseFrontmatter(raw)
+			if fm != nil && fm.Title != "" {
+				page404.Title = fm.Title
+			}
+			if fm != nil && fm.Description != "" {
+				page404.Description = fm.Description
+			}
+			if fm != nil && fm.Template != "" {
+				templateName = consts.DirDefault + "/" + fm.Template
+			}
+			if body != "" {
+				renderResult, renderErr := b.mdRenderer.Render(body)
+				if renderErr == nil {
+					page404.Content = htmltemplate.HTML(renderResult.HTML)
+					page404.Headings = renderResult.Headings
+				}
+			}
+			break
+		}
+
+		rd404 := &engine.RouteData{
+			Template: templateName,
+			Layout:   engine.LayoutDefault,
+			Site:     s.siteCtx,
+			Theme:    b.themeConfig,
+			Page:     page404,
+			RouteI18n: engine.RouteI18n{
+				Lang: lang,
+				Dir:  dir,
+			},
+		}
+		resolveRouteAssets(b.urlResolver, rd404)
+		html404, err := b.tmplEngine.Render(rd404.Template, rd404)
+		if err != nil {
+			devlog.Warn("404", "failed to render 404 page (template %q): %v", rd404.Template, err)
+			return
+		}
+		rendered = append(rendered, RenderedPage{
+			Page:    page404,
+			HTML:    html404,
+			OutPath: outPath,
+		})
+	}
+
+	if s.isMultiLang {
+		for _, code := range b.config.I18n.LanguageCodes() {
+			lc := b.config.I18n.Languages[code]
+			dir := lc.Dir
+			if dir == "" {
+				dir = "ltr"
+			}
+			if code == s.defaultLang {
+				render404(code, dir, consts.Template404)
+			} else {
+				render404(code, dir, code+"/"+consts.Template404)
+			}
+		}
+	} else {
+		lang := s.siteCtx.Language
+		if lang == "" {
+			lang = "en"
+		}
+		render404(lang, "ltr", consts.Template404)
+	}
+	s.recordTiming("Rendering 404 pages")
+
+	rendered = appendVersionedLatestPages(rendered, s.collections, b.urlResolver)
+
+	if !b.devMode && config.BoolVal(b.config.Build.Minify, true) {
+		if err := minifyRendered(rendered, s.parallel, s.workerCount); err != nil {
+			return err
+		}
+	}
+	s.recordTiming("Minifying HTML")
+
+	s.rendered = rendered
+	s.aliases = aliases
+	s.paginatorPages = paginatorPages
+	s.syntheticPages = syntheticPages
+	s.taxonomyPages = taxonomyPages
 	return nil
 }

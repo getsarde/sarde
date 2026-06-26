@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func newSEOPlugin(cfg map[string]any) *Plugin {

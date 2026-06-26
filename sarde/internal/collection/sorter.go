@@ -4,7 +4,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // SortPages sorts pages in-place by the given key and order.

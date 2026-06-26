@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/asset"
+	"github.com/getsarde/sarde/internal/asset"
 	"github.com/yuin/goldmark/ast"
 	gmrenderer "github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/renderer/html"

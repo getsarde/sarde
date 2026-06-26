@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/validate"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/validate"
 )
 
 // Validate checks the merged SiteConfig for invalid values.

@@ -8,8 +8,8 @@ import (
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
-	"github.com/frostybee/sarde/internal/content/markdown/htmlutil"
-	"github.com/frostybee/sarde/internal/content/markdown/icons"
+	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
+	"github.com/getsarde/sarde/internal/content/markdown/icons"
 )
 
 var galleryCounter atomic.Int64

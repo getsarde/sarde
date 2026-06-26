@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/editor"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/editor"
 )
 
 // ListContent returns a list of content files in the given collection.

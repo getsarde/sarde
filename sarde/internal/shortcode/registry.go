@@ -11,7 +11,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/consts"
 )
 
 // Registry manages shortcode templates with three-layer override support.

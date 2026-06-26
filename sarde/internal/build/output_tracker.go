@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/frostybee/sarde/internal/outputpath"
-	"github.com/frostybee/sarde/internal/workers"
+	"github.com/getsarde/sarde/internal/outputpath"
+	"github.com/getsarde/sarde/internal/workers"
 	"golang.org/x/sync/errgroup"
 )
 

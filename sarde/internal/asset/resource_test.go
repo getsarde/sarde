@@ -3,7 +3,7 @@ package asset
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func TestGetResource(t *testing.T) {

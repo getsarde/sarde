@@ -5,9 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/frostybee/sarde/internal/build"
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/deploy"
+	"github.com/getsarde/sarde/internal/build"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/outputpath"
+	"github.com/getsarde/sarde/internal/deploy"
 	"github.com/spf13/cobra"
 )
 
@@ -54,7 +55,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 	if output, _ := cmd.Flags().GetString("output"); output != "" {
 		outputDir = output
 	}
-	outputDir, err = build.ResolveOutputDir(projectDir, outputDir)
+	outputDir, err = outputpath.ResolveOutputDir(projectDir, outputDir)
 	if err != nil {
 		return err
 	}

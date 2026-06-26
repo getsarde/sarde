@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // buildPaginator computes the Paginator for a list page of a paginated collection.

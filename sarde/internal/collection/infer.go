@@ -1,8 +1,8 @@
 package collection
 
 import (
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 var blogNames = map[string]bool{

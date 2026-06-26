@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/frostybee/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/config"
 )
 
 // Deployer is the interface for deploying a built site.

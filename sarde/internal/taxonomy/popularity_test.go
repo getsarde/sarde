@@ -3,7 +3,7 @@ package taxonomy
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func makeTerm(name string, pageCount int, priority int, hidden bool) *engine.TaxonomyTerm {

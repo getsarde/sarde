@@ -8,7 +8,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/frostybee/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/consts"
 )
 
 // TermMetadata holds optional per-term configuration from data/<taxonomy>.yml.

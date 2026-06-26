@@ -3,8 +3,8 @@ package taxonomy
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func TestBuildTaxonomies_Tags(t *testing.T) {

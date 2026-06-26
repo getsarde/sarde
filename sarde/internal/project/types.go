@@ -3,7 +3,7 @@ package project
 import (
 	"time"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // ProjectState represents the current state of the project manager.

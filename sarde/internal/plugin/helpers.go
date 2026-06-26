@@ -4,7 +4,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // cfgString reads a string from plugin config with a fallback default.

@@ -9,7 +9,8 @@ import (
 	"strings"
 
 	"github.com/evanw/esbuild/pkg/api"
-	"github.com/frostybee/sarde/internal/asset"
+	"github.com/getsarde/sarde/internal/asset"
+	"github.com/getsarde/sarde/internal/outputpath"
 )
 
 // WriteEmbeddedCSS writes the embedded CSS bundle to outputDir/assets/css/<filename>.
@@ -17,7 +18,7 @@ func WriteEmbeddedCSS(outputDir string, css string, filename string, tracker *Ou
 	if css == "" {
 		return nil
 	}
-	destPath, err := safeOutputPath(outputDir, "assets/css/"+filename)
+	destPath, err := outputpath.SafeJoin(outputDir, "assets/css/"+filename)
 	if err != nil {
 		return err
 	}
@@ -55,7 +56,7 @@ func WriteEmbeddedAssets(embeddedFS fs.FS, outputDir string, tracker *OutputTrac
 		if err != nil {
 			return fmt.Errorf("reading embedded asset %s: %w", path, err)
 		}
-		destPath, err := safeOutputPath(outputDir, path)
+		destPath, err := outputpath.SafeJoin(outputDir, path)
 		if err != nil {
 			return err
 		}

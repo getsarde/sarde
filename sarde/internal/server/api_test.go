@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/frostybee/sarde/embedded"
-	"github.com/frostybee/sarde/internal/build"
-	"github.com/frostybee/sarde/internal/project"
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/build"
+	"github.com/getsarde/sarde/internal/project"
 )
 
 func setupAPITest(t *testing.T) (*APIServer, string) {

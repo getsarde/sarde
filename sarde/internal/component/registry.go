@@ -9,7 +9,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/consts"
 )
 
 // Registry manages component templates with override support.

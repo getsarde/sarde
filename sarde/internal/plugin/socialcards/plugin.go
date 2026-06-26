@@ -8,10 +8,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/plugin"
-	"github.com/frostybee/sarde/internal/plugin/cfgutil"
-	"github.com/frostybee/sarde/internal/workers"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/plugin"
+	"github.com/getsarde/sarde/internal/plugin/cfgutil"
+	"github.com/getsarde/sarde/internal/workers"
 
 	"golang.org/x/image/font/opentype"
 )

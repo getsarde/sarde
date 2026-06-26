@@ -1,11 +1,11 @@
 package build
 
 import (
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/engine"
-	sardetemplate "github.com/frostybee/sarde/internal/template"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/engine"
+	sardetemplate "github.com/getsarde/sarde/internal/template"
 )
 
 func collectionName(p *engine.Page) string {

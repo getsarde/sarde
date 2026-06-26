@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/frostybee/sarde/embedded"
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/theme"
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/theme"
 )
 
 // createLargeSite creates a test site with the given number of pages

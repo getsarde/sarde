@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/devlog"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // ContentFile holds metadata about a discovered content file.

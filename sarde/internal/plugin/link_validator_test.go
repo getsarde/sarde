@@ -3,9 +3,9 @@ package plugin
 import (
 	"testing"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func buildTestContext(pages []*engine.Page, validationData map[string]engine.ValidationEntry, siteURL string) (*BuildDoneContext, *[]engine.ValidationWarning) {

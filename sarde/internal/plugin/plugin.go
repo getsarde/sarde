@@ -7,10 +7,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/content"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/outputpath"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/outputpath"
 )
 
 // LangAwareAnnouncementFunc is an internal template func factory key used by the

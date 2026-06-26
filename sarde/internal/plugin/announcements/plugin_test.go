@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/i18n"
-	"github.com/frostybee/sarde/internal/plugin"
-	"github.com/frostybee/sarde/internal/plugin/announcements"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/i18n"
+	"github.com/getsarde/sarde/internal/plugin"
+	"github.com/getsarde/sarde/internal/plugin/announcements"
 )
 
 func testStringTable(t *testing.T) *i18n.StringTable {

@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/project"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/project"
 )
 
 // APIServer serves the IPC JSON API for the desktop app.

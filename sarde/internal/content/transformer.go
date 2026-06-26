@@ -5,7 +5,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 const defaultWordsPerMinute = 200

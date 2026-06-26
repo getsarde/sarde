@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/frostybee/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func TestRender_BasicMarkdown(t *testing.T) {

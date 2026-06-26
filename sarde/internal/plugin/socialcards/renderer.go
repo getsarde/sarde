@@ -15,8 +15,8 @@ import (
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/plugin/cfgutil"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 )
 
 const (

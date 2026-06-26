@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/download"
-	"github.com/frostybee/sarde/internal/theme"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/download"
+	"github.com/getsarde/sarde/internal/theme"
 	"github.com/spf13/cobra"
 )
 

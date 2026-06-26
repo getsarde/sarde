@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/frostybee/sarde/embedded"
-	"github.com/frostybee/sarde/internal/config"
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/config"
 )
 
 func newIncrementalBuilder(projectDir string, cfg *config.SiteConfig) *SiteBuilder {

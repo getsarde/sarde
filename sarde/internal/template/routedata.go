@@ -3,11 +3,11 @@ package template
 import (
 	htmltemplate "html/template"
 
-	"github.com/frostybee/sarde/internal/collection"
-	"github.com/frostybee/sarde/internal/config"
-	"github.com/frostybee/sarde/internal/consts"
-	"github.com/frostybee/sarde/internal/engine"
-	"github.com/frostybee/sarde/internal/navigation"
+	"github.com/getsarde/sarde/internal/collection"
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/navigation"
 )
 
 
@@ -24,52 +24,11 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 		},
 	}
 
-	// Build translation links from page.Translations (real translations only — used by seo.html)
 	if len(page.Translations) > 0 {
-		langMap := buildLangMap(site)
-		rd.Translations = make([]engine.TranslationLink, 0, len(page.Translations)+1)
-		rd.Translations = append(rd.Translations, engine.TranslationLink{
-			Lang:       page.Lang,
-			Name:       langName(langMap, page.Lang),
-			Dir:        langDir(langMap, page.Lang),
-			URL:        page.RelPermalink,
-			Title:      page.Title,
-			IsFallback: page.IsFallback,
-		})
-		for _, tr := range page.Translations {
-			rd.Translations = append(rd.Translations, engine.TranslationLink{
-				Lang:       tr.Lang,
-				Name:       langName(langMap, tr.Lang),
-				Dir:        langDir(langMap, tr.Lang),
-				URL:        tr.RelPermalink,
-				Title:      tr.Title,
-				IsFallback: tr.IsFallback,
-			})
-		}
+		rd.Translations = buildTranslationLinks(page, buildLangMap(site), page.Translations)
 	}
-
-	// Build AllTranslations (real + fallback — used by LanguageSwitcher)
 	if len(page.AllTranslations) > 0 {
-		langMap := buildLangMap(site)
-		rd.AllTranslations = make([]engine.TranslationLink, 0, len(page.AllTranslations)+1)
-		rd.AllTranslations = append(rd.AllTranslations, engine.TranslationLink{
-			Lang:       page.Lang,
-			Name:       langName(langMap, page.Lang),
-			Dir:        langDir(langMap, page.Lang),
-			URL:        page.RelPermalink,
-			Title:      page.Title,
-			IsFallback: page.IsFallback,
-		})
-		for _, tr := range page.AllTranslations {
-			rd.AllTranslations = append(rd.AllTranslations, engine.TranslationLink{
-				Lang:       tr.Lang,
-				Name:       langName(langMap, tr.Lang),
-				Dir:        langDir(langMap, tr.Lang),
-				URL:        tr.RelPermalink,
-				Title:      tr.Title,
-				IsFallback: tr.IsFallback,
-			})
-		}
+		rd.AllTranslations = buildTranslationLinks(page, buildLangMap(site), page.AllTranslations)
 	}
 
 	col := page.Collection
@@ -131,74 +90,7 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 			}
 		}
 
-		// Sidebar and navigation for layouts with sidebar
-		if engine.LayoutHasSidebar(rd.Layout) {
-			rd.SidebarType = "nav"
-			rd.HasSidebar = true
-			if col.Config != nil && col.Config.Sidebar != nil {
-				rd.SidebarCollapsedByDefault = col.Config.Sidebar.CollapsedByDefault
-			}
-
-			if col.IsTabbed && col.CompositeTabSets != nil {
-				key := collection.LangVersionKey(page.Lang, page.Version)
-				tabs := col.CompositeTabSets[key]
-				if len(tabs) > 0 {
-					rd.IsTabbed = true
-					rd.DocsTabs = tabs
-					rd.ActiveTab = collection.FindTabForPage(tabs, page)
-					if rd.ActiveTab == nil && len(tabs) > 0 {
-						rd.ActiveTab = tabs[0]
-					}
-					if rd.ActiveTab != nil {
-						if rd.ActiveTab.NavTree != nil {
-							rd.Sidebar = navigation.MarkActive(rd.ActiveTab.NavTree, page)
-						}
-						rd.Breadcrumbs = navigation.BuildBreadcrumbsTabbed(page, col, rd.ActiveTab)
-					}
-				} else {
-					rd.Breadcrumbs = navigation.BuildBreadcrumbsVersioned(page, col)
-				}
-			} else if col.IsTabbed && len(col.Tabs) > 0 {
-				rd.IsTabbed = true
-				rd.DocsTabs = col.Tabs
-				rd.ActiveTab = collection.FindTabForPage(col.Tabs, page)
-				if rd.ActiveTab == nil && len(col.Tabs) > 0 {
-					rd.ActiveTab = col.Tabs[0]
-				}
-
-				if rd.ActiveTab != nil {
-					navTree := rd.ActiveTab.NavTree
-					if rd.ActiveTab.NavTrees != nil && page.Lang != "" {
-						if langTree, ok := rd.ActiveTab.NavTrees[page.Lang]; ok {
-							navTree = langTree
-						}
-					}
-					if navTree != nil {
-						rd.Sidebar = navigation.MarkActive(navTree, page)
-					}
-					rd.Breadcrumbs = navigation.BuildBreadcrumbsTabbed(page, col, rd.ActiveTab)
-				}
-			} else if col.CompositeNavTrees != nil {
-				key := collection.LangVersionKey(page.Lang, page.Version)
-				if navTree, ok := col.CompositeNavTrees[key]; ok && navTree != nil {
-					rd.Sidebar = navigation.MarkActive(navTree, page)
-				}
-				rd.Breadcrumbs = navigation.BuildBreadcrumbsVersioned(page, col)
-			} else {
-				navTree := col.NavTree
-				if col.NavTrees != nil && page.Lang != "" {
-					if langTree, ok := col.NavTrees[page.Lang]; ok {
-						navTree = langTree
-					}
-				}
-				if navTree != nil {
-					rd.Sidebar = navigation.MarkActive(navTree, page)
-				}
-				rd.Breadcrumbs = navigation.BuildBreadcrumbs(page, col)
-			}
-		} else {
-			rd.SidebarType = "none"
-		}
+		resolveSidebar(rd, col, page)
 	} else {
 		// No collection — standalone, home, or taxonomy page
 		switch page.Kind {
@@ -276,6 +168,98 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 	rd.GlobalNav = navigation.BuildGlobalNav(site, col, headerLinks)
 
 	return rd
+}
+
+func buildTranslationLinks(page *engine.Page, langMap map[string]engine.Language, sources []*engine.Page) []engine.TranslationLink {
+	links := make([]engine.TranslationLink, 0, len(sources)+1)
+	links = append(links, engine.TranslationLink{
+		Lang:       page.Lang,
+		Name:       langName(langMap, page.Lang),
+		Dir:        langDir(langMap, page.Lang),
+		URL:        page.RelPermalink,
+		Title:      page.Title,
+		IsFallback: page.IsFallback,
+	})
+	for _, tr := range sources {
+		links = append(links, engine.TranslationLink{
+			Lang:       tr.Lang,
+			Name:       langName(langMap, tr.Lang),
+			Dir:        langDir(langMap, tr.Lang),
+			URL:        tr.RelPermalink,
+			Title:      tr.Title,
+			IsFallback: tr.IsFallback,
+		})
+	}
+	return links
+}
+
+func resolveSidebar(rd *engine.RouteData, col *engine.Collection, page *engine.Page) {
+	if !engine.LayoutHasSidebar(rd.Layout) {
+		rd.SidebarType = "none"
+		return
+	}
+	rd.SidebarType = "nav"
+	rd.HasSidebar = true
+	if col.Config != nil && col.Config.Sidebar != nil {
+		rd.SidebarCollapsedByDefault = col.Config.Sidebar.CollapsedByDefault
+	}
+
+	if col.IsTabbed && col.CompositeTabSets != nil {
+		key := collection.LangVersionKey(page.Lang, page.Version)
+		tabs := col.CompositeTabSets[key]
+		if len(tabs) > 0 {
+			rd.IsTabbed = true
+			rd.DocsTabs = tabs
+			rd.ActiveTab = collection.FindTabForPage(tabs, page)
+			if rd.ActiveTab == nil && len(tabs) > 0 {
+				rd.ActiveTab = tabs[0]
+			}
+			if rd.ActiveTab != nil {
+				if rd.ActiveTab.NavTree != nil {
+					rd.Sidebar = navigation.MarkActive(rd.ActiveTab.NavTree, page)
+				}
+				rd.Breadcrumbs = navigation.BuildBreadcrumbsTabbed(page, col, rd.ActiveTab)
+			}
+		} else {
+			rd.Breadcrumbs = navigation.BuildBreadcrumbsVersioned(page, col)
+		}
+	} else if col.IsTabbed && len(col.Tabs) > 0 {
+		rd.IsTabbed = true
+		rd.DocsTabs = col.Tabs
+		rd.ActiveTab = collection.FindTabForPage(col.Tabs, page)
+		if rd.ActiveTab == nil && len(col.Tabs) > 0 {
+			rd.ActiveTab = col.Tabs[0]
+		}
+		if rd.ActiveTab != nil {
+			navTree := rd.ActiveTab.NavTree
+			if rd.ActiveTab.NavTrees != nil && page.Lang != "" {
+				if langTree, ok := rd.ActiveTab.NavTrees[page.Lang]; ok {
+					navTree = langTree
+				}
+			}
+			if navTree != nil {
+				rd.Sidebar = navigation.MarkActive(navTree, page)
+			}
+			rd.Breadcrumbs = navigation.BuildBreadcrumbsTabbed(page, col, rd.ActiveTab)
+		}
+	} else if col.CompositeNavTrees != nil {
+		key := collection.LangVersionKey(page.Lang, page.Version)
+		if navTree, ok := col.CompositeNavTrees[key]; ok && navTree != nil {
+			rd.Sidebar = navigation.MarkActive(navTree, page)
+		}
+		rd.Breadcrumbs = navigation.BuildBreadcrumbsVersioned(page, col)
+	} else {
+		navTree := col.NavTree
+		if col.NavTrees != nil && page.Lang != "" {
+			if langTree, ok := col.NavTrees[page.Lang]; ok {
+				navTree = langTree
+			}
+		}
+		if navTree != nil {
+			rd.Sidebar = navigation.MarkActive(navTree, page)
+		}
+		rd.Breadcrumbs = navigation.BuildBreadcrumbs(page, col)
+	}
 }
 
 func applyNavOverride(params map[string]any, key string, pagination **engine.PaginationLinks, isPrev bool) {
