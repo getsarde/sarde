@@ -23,11 +23,13 @@ builds:
         goarch: arm64
 
 archives:
-  - format: tar.gz
+  - formats:
+      - tar.gz
     name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
-        format: zip
+        formats:
+          - zip
     files:
       - src: LICENSE*
       - src: README.md
@@ -43,16 +45,14 @@ changelog:
       - "^chore:"
       - "^ci:"
 
-brews:
-  - repository:
+homebrew_casks:
+  - name: sarde
+    binaries:
+      - sarde
+    repository:
       owner: getsarde
       name: homebrew-sarde
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    directory: Formula
+    directory: Casks
     homepage: https://github.com/getsarde/sarde
     description: A zero-config, Go-based static site generator
-    license: MIT
-    install: |
-      bin.install "sarde"
-    test: |
-      system "#{bin}/sarde", "version"
