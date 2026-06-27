@@ -48,7 +48,7 @@ brews:
       owner: getsarde
       name: homebrew-sarde
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    folder: Formula
+    directory: Formula
     homepage: https://github.com/getsarde/sarde
     description: A zero-config, Go-based static site generator
     license: MIT
