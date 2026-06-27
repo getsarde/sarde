@@ -10,6 +10,7 @@ testsite/
 
 *.png
 *.svg
+!embedded/scaffold/*.svg
 *.txt
 
 # Go binaries

@@ -40,8 +40,8 @@ When you do need control, everything is overridable through a single `sarde.yaml
 - i18n with per-language directories, RTL support, and translation fallback
 
 **Markdown**
-- 24+ Goldmark extensions: code blocks with syntax highlighting (Chroma and Shiki), KaTeX math, Mermaid diagrams, GitHub-style alerts, callouts, cards, tabs, file trees, image comparison, keyboard shortcuts, spoilers, and more
-- Two syntax highlighting engines: Chroma (Go-native, fast) and Shiki (400+ grammars, vendored)
+- 24+ Goldmark extensions: code blocks with syntax highlighting (Kazari + Nuri), KaTeX math, Mermaid diagrams, GitHub-style alerts, callouts, cards, tabs, file trees, image comparison, keyboard shortcuts, spoilers, and more
+- Syntax highlighting via [Kazari](https://github.com/frostybee/kazari) (Expressive Code-style frames, diff markers, line numbers) powered by [Nuri](https://github.com/frostybee/nuri) (TextMate grammars, 400+ languages)
 
 **Asset pipeline**
 - CSS/JS bundling via esbuild (Go API, no Node.js)
