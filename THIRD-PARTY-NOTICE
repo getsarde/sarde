@@ -1,0 +1,212 @@
+THIRD-PARTY SOFTWARE NOTICES
+
+This file lists the third-party components used by Sarde, including
+Go module dependencies and embedded assets.
+
+================================================================================
+EMBEDDED ASSETS: LUCIDE ICONS
+================================================================================
+Source:    https://github.com/lucide-icons/lucide
+License:   ISC
+Copyright: Copyright (c) Lucide Contributors
+
+Bundled via github.com/frostybee/go-swarm-icons/lucide for sidebar,
+header, and content icons.
+
+================================================================================
+FIRST-PARTY GO MODULES (MIT)
+================================================================================
+
+The following modules are authored by the Sarde maintainer:
+
+Module:    github.com/frostybee/kazari v1.0.1
+Source:    https://github.com/frostybee/kazari
+
+Module:    github.com/frostybee/nuri v1.0.0
+Source:    https://github.com/frostybee/nuri
+
+Module:    github.com/frostybee/edict v0.1.0
+Source:    https://github.com/frostybee/edict
+
+Module:    github.com/frostybee/go-swarm-icons v0.1.0
+Source:    https://github.com/frostybee/go-swarm-icons
+
+Module:    github.com/frostybee/go-swarm-icons/lucide v0.1.0
+Source:    https://github.com/frostybee/go-swarm-icons
+
+================================================================================
+MIT-LICENSED GO MODULES
+================================================================================
+
+The following Go modules are used under the MIT License:
+
+Module:    github.com/yuin/goldmark v1.8.2
+Source:    https://github.com/yuin/goldmark
+Copyright: Copyright (c) 2019 Yusuke Inuzuka
+
+Module:    github.com/alecthomas/chroma/v2 v2.26.1
+Source:    https://github.com/alecthomas/chroma
+Copyright: Copyright (C) 2017 Alec Thomas
+
+Module:    github.com/evanw/esbuild v0.28.0
+Source:    https://github.com/evanw/esbuild
+Copyright: Copyright (c) 2020 Evan Wallace
+
+Module:    github.com/tdewolff/minify/v2 v2.24.13
+Source:    https://github.com/tdewolff/minify
+Copyright: Copyright (c) 2025 Taco de Wolff
+
+Module:    github.com/tdewolff/parse/v2 v2.8.12 (indirect)
+Source:    https://github.com/tdewolff/parse
+Copyright: Copyright (c) 2015 Taco de Wolff
+
+Module:    github.com/disintegration/imaging v1.6.2
+Source:    https://github.com/disintegration/imaging
+Copyright: Copyright (c) 2012 Grigory Dryapak
+
+Module:    github.com/gen2brain/avif v0.4.4
+Source:    https://github.com/gen2brain/avif
+Copyright: Copyright (c) 2024 Milan Nikolic
+
+Module:    github.com/gen2brain/webp v0.5.5
+Source:    https://github.com/gen2brain/webp
+Copyright: Copyright (c) 2024 Milan Nikolic
+
+Module:    github.com/pelletier/go-toml/v2 v2.3.0
+Source:    https://github.com/pelletier/go-toml
+Copyright: Copyright (c) 2013-2023 Thomas Pelletier
+
+Module:    github.com/gorilla/websocket v1.5.3
+Source:    https://github.com/gorilla/websocket
+Copyright: Copyright (c) 2013 The Gorilla WebSocket Authors
+
+Module:    github.com/dlclark/regexp2/v2 v2.1.1 (indirect)
+Source:    https://github.com/dlclark/regexp2
+Copyright: Copyright (c) Doug Clark
+
+Module:    github.com/ebitengine/purego v0.8.3 (indirect)
+Source:    https://github.com/ebitengine/purego
+Copyright: Copyright (c) 2022 The Ebitengine Authors
+
+Module:    github.com/inconshreveable/mousetrap v1.1.0 (indirect)
+Source:    https://github.com/inconshreveable/mousetrap
+Copyright: Copyright (c) 2014 Alan Shreve
+
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+APACHE-2.0-LICENSED GO MODULES
+================================================================================
+
+Module:    github.com/spf13/cobra v1.10.2
+Source:    https://github.com/spf13/cobra
+Copyright: Copyright (c) 2013 Steve Francia
+
+Module:    github.com/spf13/pflag v1.0.9 (indirect)
+Source:    https://github.com/spf13/pflag
+Copyright: Copyright (c) 2012 Alex Ogier, Copyright (c) 2012 The Go Authors
+
+Module:    github.com/tetratelabs/wazero v1.12.0 (indirect)
+Source:    https://github.com/tetratelabs/wazero
+Copyright: Copyright 2020-2023 wazero authors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+================================================================================
+BSD-3-CLAUSE-LICENSED GO MODULES
+================================================================================
+
+Module:    github.com/fsnotify/fsnotify v1.9.0
+Source:    https://github.com/fsnotify/fsnotify
+Copyright: Copyright (c) The fsnotify Authors
+
+Module:    golang.org/x/image v0.40.0
+Source:    https://go.googlesource.com/image
+Copyright: Copyright 2009 The Go Authors
+
+Module:    golang.org/x/net v0.52.0
+Source:    https://go.googlesource.com/net
+Copyright: Copyright 2009 The Go Authors
+
+Module:    golang.org/x/sync v0.20.0
+Source:    https://go.googlesource.com/sync
+Copyright: Copyright 2009 The Go Authors
+
+Module:    golang.org/x/sys v0.46.0 (indirect)
+Source:    https://go.googlesource.com/sys
+Copyright: Copyright 2009 The Go Authors
+
+Module:    golang.org/x/term v0.44.0
+Source:    https://go.googlesource.com/term
+Copyright: Copyright 2009 The Go Authors
+
+Module:    golang.org/x/text v0.37.0 (indirect)
+Source:    https://go.googlesource.com/text
+Copyright: Copyright 2009 The Go Authors
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+   * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+   * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+   * Neither the name of Google LLC nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+================================================================================
+GOPKG.IN/YAML.V3
+================================================================================
+Module:    gopkg.in/yaml.v3 v3.0.1
+Source:    https://github.com/go-yaml/yaml
+License:   MIT (C files) + Apache-2.0 (Go files)
+Copyright: Copyright (c) 2006-2011 Kirill Simonov (libyaml C portions)
+           Copyright (c) 2011-2019 Canonical Ltd (Go implementation)
+
+The libyaml-derived C files are licensed under the MIT License (see above).
+The remaining Go source files are licensed under the Apache License 2.0
+(same terms as the Apache-2.0 section above).
