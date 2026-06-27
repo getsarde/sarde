@@ -1,4 +1,8 @@
 (function () {
+  if (/Mac/.test(navigator.platform) || /Mac/.test(navigator.userAgent)) {
+    document.documentElement.classList.add("is-mac");
+  }
+
   var modal = document.getElementById("sarde-search-modal");
   var input = document.getElementById("sarde-search-input");
   var results = document.getElementById("sarde-search-results");

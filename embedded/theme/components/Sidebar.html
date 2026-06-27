@@ -1,17 +1,18 @@
 {{ component "DocsTabSwitcher" . }}
 {{ if .Sidebar }}
-<nav class="sarde-sidebar-nav" aria-label="{{ t "nav.section_nav" }}">
+<script>(function(){try{var s=sessionStorage.getItem('sd-sb');if(s){window.__sdsbr=JSON.parse(s)}}catch(e){}})()</script>
+<nav class="sarde-sidebar-nav" aria-label="{{ t "nav.section_nav" }}" data-sd-hash="{{ .Sidebar.Hash }}">
   <ul class="sarde-sidebar-tree">
   {{ range .Sidebar.Root.Children }}
     {{ if .Children }}
     <li>
-      <details{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}{{ if .HasActive }} class="has-active"{{ end }}>
+      <details data-sd-idx="{{ .GroupIndex }}"{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}{{ if .HasActive }} class="has-active"{{ end }}>
         <summary>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span>{{ .Label }}</span></summary>
         <ul>
         {{ range .Children }}
           {{ if .Children }}
           <li>
-            <details{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}{{ if .HasActive }} class="has-active"{{ end }}>
+            <details data-sd-idx="{{ .GroupIndex }}"{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}{{ if .HasActive }} class="has-active"{{ end }}>
               <summary>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span>{{ .Label }}</span></summary>
               <ul>
               {{ range .Children }}
@@ -33,4 +34,5 @@
   {{ end }}
   </ul>
 </nav>
+<script>(function(){var nav=document.querySelector('.sarde-sidebar-nav');if(!nav)return;var st=window.__sdsbr;var h=nav.getAttribute('data-sd-hash');if(st&&h&&st.hash===h&&Array.isArray(st.open)){var gs=nav.querySelectorAll('details[data-sd-idx]');for(var i=0;i<gs.length;i++){if(gs[i].classList.contains('has-active'))continue;var idx=parseInt(gs[i].getAttribute('data-sd-idx'),10);if(idx>=0&&idx<st.open.length&&typeof st.open[idx]==='boolean'){gs[i].open=st.open[idx]}}if(typeof st.scroll==='number'){nav.scrollTop=st.scroll}}delete window.__sdsbr})()</script>
 {{ end }}

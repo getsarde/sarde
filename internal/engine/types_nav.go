@@ -10,6 +10,7 @@ type NavTree struct {
 	Flat       []*NavNode
 	TotalPages int
 	MaxDepth   int
+	Hash       string
 }
 
 // NavNode is a single entry in the sidebar navigation tree.
@@ -26,6 +27,7 @@ type NavNode struct {
 	IsOpen      bool
 	HasActive   bool
 	DefaultOpen bool
+	GroupIndex  int
 	Page        *Page
 	Attrs       map[string]string
 	Icon        string

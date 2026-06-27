@@ -1,6 +1,7 @@
 package navigation
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -66,11 +67,15 @@ func BuildNavTree(collection *engine.Collection) *engine.NavTree {
 	// Compute max depth.
 	md := computeMaxDepth(root)
 
+	assignGroupIndices(root)
+	hash := computeSidebarHash(root)
+
 	return &engine.NavTree{
 		Root:       root,
 		Flat:       flat,
 		TotalPages: len(flat),
 		MaxDepth:   md,
+		Hash:       hash,
 	}
 }
 
@@ -256,4 +261,41 @@ func cloneStringMap(m map[string]string) map[string]string {
 		result[k] = v
 	}
 	return result
+}
+
+// assignGroupIndices assigns sequential DFS indexes to group nodes (nodes
+// with children). The order matches DOM rendering order in Sidebar.html.
+func assignGroupIndices(root *engine.NavNode) {
+	counter := 0
+	var walk func(*engine.NavNode)
+	walk = func(node *engine.NavNode) {
+		for _, child := range node.Children {
+			if len(child.Children) > 0 {
+				child.GroupIndex = counter
+				counter++
+				walk(child)
+			}
+		}
+	}
+	walk(root)
+}
+
+// computeSidebarHash produces a DJB2 hash of the sidebar's group structure
+// (labels and child counts). Used by client JS to invalidate stale state.
+func computeSidebarHash(root *engine.NavNode) string {
+	h := uint32(5381)
+	var walk func(*engine.NavNode)
+	walk = func(node *engine.NavNode) {
+		for _, child := range node.Children {
+			if len(child.Children) > 0 {
+				for _, b := range []byte(child.Label) {
+					h = h*33 ^ uint32(b)
+				}
+				h = h*33 ^ uint32(len(child.Children))
+				walk(child)
+			}
+		}
+	}
+	walk(root)
+	return fmt.Sprintf("%08x", h)
 }

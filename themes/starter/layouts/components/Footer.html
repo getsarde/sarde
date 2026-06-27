@@ -1,7 +1,7 @@
 <footer class="starter-footer">
   <div class="starter-footer-inner">
     <div class="starter-footer-brand">
-      <a href="/" class="starter-footer-brand-name">{{ .Site.Title }}</a>
+      <a href="{{ relURL "/" }}" class="starter-footer-brand-name">{{ .Site.Title }}</a>
       {{ if .Site.Config.Site.Description }}
       <p class="starter-footer-tagline">{{ .Site.Config.Site.Description }}</p>
       {{ end }}
@@ -9,7 +9,7 @@
     {{ if .Site.Config.Footer.Links }}
     <nav class="starter-footer-links" aria-label="Footer navigation">
       {{ range .Site.Config.Footer.Links }}
-      <a href="{{ .URL }}"{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}</a>
+      <a href="{{ if .External }}{{ .URL }}{{ else }}{{ relURL .URL }}{{ end }}"{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}</a>
       {{ end }}
     </nav>
     {{ end }}

@@ -24,10 +24,10 @@
       {{ if or .Homepage.Hero.CTA .Homepage.Hero.SecondaryCTA }}
       <div class="starter-hero-actions">
         {{ with .Homepage.Hero.CTA }}
-        <a href="{{ .URL }}" class="starter-hero-cta">{{ .Label }}</a>
+        <a href="{{ relURL .URL }}" class="starter-hero-cta">{{ .Label }}</a>
         {{ end }}
         {{ with .Homepage.Hero.SecondaryCTA }}
-        <a href="{{ .URL }}" class="starter-hero-cta-secondary">{{ .Label }}</a>
+        <a href="{{ relURL .URL }}" class="starter-hero-cta-secondary">{{ .Label }}</a>
         {{ end }}
       </div>
       {{ end }}

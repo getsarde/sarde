@@ -62,6 +62,7 @@ func cloneNavTree(tree *engine.NavTree) *engine.NavTree {
 		Flat:       flat,
 		TotalPages: tree.TotalPages,
 		MaxDepth:   tree.MaxDepth,
+		Hash:       tree.Hash,
 	}
 }
 
@@ -82,6 +83,7 @@ func cloneNode(node *engine.NavNode, parent *engine.NavNode) *engine.NavNode {
 		Parent:      parent,
 		Icon:        node.Icon,
 		DefaultOpen: node.DefaultOpen,
+		GroupIndex:  node.GroupIndex,
 	}
 
 	if node.Attrs != nil {
