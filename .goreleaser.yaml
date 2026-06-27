@@ -29,8 +29,8 @@ archives:
       - goos: windows
         format: zip
     files:
-      - src: ../LICENSE*
-      - src: ../README.md
+      - src: LICENSE*
+      - src: README.md
 
 checksum:
   name_template: checksums.txt

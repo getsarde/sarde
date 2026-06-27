@@ -9,6 +9,7 @@ testsite/
 *-output.md
 
 *.png
+*.svg
 *.txt
 
 # Go binaries
@@ -32,15 +33,9 @@ dist/
 # Hugo benchmark (local only)
 testsite/hugo-benchmark/
 
-# Node
+# Node (themes may use package.json)
 node_modules/
 package-lock.json
-
-# Rust / Tauri
-desktop/src-tauri/target/
-desktop/src-tauri/binaries/
-desktop/src-tauri/gen/
-desktop/dist/
 
 
 # Env

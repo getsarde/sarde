@@ -246,6 +246,21 @@
 	  overflow-y: auto;
 	  overscroll-behavior: contain;
 	  padding: var(--sd-space-4);
+	  scrollbar-width: thin;
+	  scrollbar-color: var(--sd-border) transparent;
+	}
+
+	.sarde-sidebar-content::-webkit-scrollbar {
+	  width: 4px;
+	}
+
+	.sarde-sidebar-content::-webkit-scrollbar-track {
+	  background: transparent;
+	}
+
+	.sarde-sidebar-content::-webkit-scrollbar-thumb {
+	  background-color: var(--sd-border);
+	  border-radius: 4px;
 	}
 
 	.sarde-sidebar-footer {
