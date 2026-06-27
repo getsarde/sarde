@@ -24,7 +24,7 @@
   var availableSections = [];
   var filtersRendered = false;
   var PAGE_SIZE = 30;
-  var RECENT_KEY = "sarde-recent-searches";
+  var RECENT_KEY = "sarde-recent-searches:" + ((window.__SARDE__ && window.__SARDE__.siteId) || "default");
   var MAX_RECENTS = 5;
   var isFullMode = false;
   var panel = modal ? modal.querySelector(".sarde-search-modal-panel") : null;

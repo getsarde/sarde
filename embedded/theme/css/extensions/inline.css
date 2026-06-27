@@ -319,12 +319,13 @@
 	    font-family: var(--sd-font-mono);
 	    font-size: var(--sd-text-xs);
 	    font-weight: var(--sd-weight-medium);
-	    line-height: 1;
-	    color: var(--sd-text);
+	    line-height: 1.33;
+	    color: var(--sd-gray-7);
 	    background: var(--sd-bg-surface);
 	    border: 1px solid var(--sd-border);
+	    border-bottom-width: 2px;
 	    border-radius: var(--sd-radius-sm);
-	    box-shadow: 0 1px 0 var(--sd-border), inset 0 -1px 0 var(--sd-gray-2);
+	    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 	    white-space: nowrap;
 	    vertical-align: baseline;
 	}
@@ -333,12 +334,13 @@
 	.sarde-kbd-group {
 	    display: inline-flex;
 	    align-items: center;
-	    gap: var(--sd-space-1);
+	    gap: 0.125rem;
 	}
 
 	.sarde-kbd-separator {
 	    color: var(--sd-text-subtle);
 	    font-size: var(--sd-text-xs);
+	    margin-inline: 1px;
 	}
 
 	/* Size variants */
@@ -365,19 +367,6 @@
 	/* Key icons (for special keys like arrows) */
 	.sarde-kbd-icon {
 	    font-size: 1.1em;
-	}
-
-	/* Keyboard combination display */
-	.sarde-keyboard-shortcut {
-	    display: inline-flex;
-	    align-items: center;
-	    gap: var(--sd-space-1);
-	}
-
-	.sarde-keyboard-shortcut .plus {
-	    color: var(--sd-text-subtle);
-	    font-size: var(--sd-text-sm);
-	    font-weight: var(--sd-weight-normal);
 	}
 
 	/* Pressed state */

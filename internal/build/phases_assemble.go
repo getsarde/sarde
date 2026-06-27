@@ -99,6 +99,7 @@ func (b *SiteBuilder) phaseAssemble(s *buildState) error {
 		Title:            b.config.Site.Title,
 		BaseURL:          b.config.Site.URL,
 		BasePath:         b.config.Build.BasePath,
+		SiteID:           computeSiteID(b.config.Site.Title, b.config.Build.BasePath),
 		Language:         b.config.Site.Language,
 		Generator:        "Sarde v" + version.Version,
 		SitemapEnabled:   b.config.Build.Sitemap == nil || *b.config.Build.Sitemap,
@@ -170,4 +171,12 @@ func (b *SiteBuilder) phaseAssemble(s *buildState) error {
 	s.siteCtx = siteCtx
 	s.recordTiming("Assembling site")
 	return nil
+}
+
+func computeSiteID(title, basePath string) string {
+	h := uint32(5381)
+	for _, b := range []byte(title + basePath) {
+		h = h*33 ^ uint32(b)
+	}
+	return fmt.Sprintf("%08x", h)
 }

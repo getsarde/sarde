@@ -170,6 +170,7 @@ type SiteContext struct {
 	Title       string
 	BaseURL     string
 	BasePath    string // normalized: "/docs/" or "/"
+	SiteID      string
 	Language    string
 	Generator      string
 	Favicon        string

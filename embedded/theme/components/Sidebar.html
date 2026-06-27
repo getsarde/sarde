@@ -7,13 +7,13 @@
     {{ if .Children }}
     <li>
       <details data-sd-idx="{{ .GroupIndex }}"{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}{{ if .HasActive }} class="has-active"{{ end }}>
-        <summary>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span>{{ .Label }}</span></summary>
+        <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ else }}{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span>{{ .Label }}</span>{{ end }}<span class="sarde-sidebar-chevron"></span></summary>
         <ul>
         {{ range .Children }}
           {{ if .Children }}
           <li>
             <details data-sd-idx="{{ .GroupIndex }}"{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}{{ if .HasActive }} class="has-active"{{ end }}>
-              <summary>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span>{{ .Label }}</span></summary>
+              <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ else }}{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span>{{ .Label }}</span>{{ end }}<span class="sarde-sidebar-chevron"></span></summary>
               <ul>
               {{ range .Children }}
                 <li>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ else }}<span>{{ .Label }}</span>{{ end }}{{ if .Page }}{{ if not (.Page.Sidebar.Badge.IsEmpty) }} <span class="sarde-badge {{ .Page.Sidebar.Badge.CSSClass }}">{{ .Page.Sidebar.Badge.Text }}</span>{{ end }}{{ end }}</li>
@@ -34,5 +34,5 @@
   {{ end }}
   </ul>
 </nav>
-<script>(function(){var nav=document.querySelector('.sarde-sidebar-nav');if(!nav)return;var st=window.__sdsbr;var h=nav.getAttribute('data-sd-hash');if(st&&h&&st.hash===h&&Array.isArray(st.open)){var gs=nav.querySelectorAll('details[data-sd-idx]');for(var i=0;i<gs.length;i++){if(gs[i].classList.contains('has-active'))continue;var idx=parseInt(gs[i].getAttribute('data-sd-idx'),10);if(idx>=0&&idx<st.open.length&&typeof st.open[idx]==='boolean'){gs[i].open=st.open[idx]}}if(typeof st.scroll==='number'){nav.scrollTop=st.scroll}}delete window.__sdsbr})()</script>
+<script>(function(){var nav=document.querySelector('.sarde-sidebar-nav');if(!nav)return;nav.querySelectorAll('summary a').forEach(function(a){a.addEventListener('click',function(e){e.stopPropagation()})});var st=window.__sdsbr;var h=nav.getAttribute('data-sd-hash');if(st&&h&&st.hash===h&&Array.isArray(st.open)){var gs=nav.querySelectorAll('details[data-sd-idx]');for(var i=0;i<gs.length;i++){if(gs[i].classList.contains('has-active'))continue;var idx=parseInt(gs[i].getAttribute('data-sd-idx'),10);if(idx>=0&&idx<st.open.length&&typeof st.open[idx]==='boolean'){gs[i].open=st.open[idx]}}if(typeof st.scroll==='number'){nav.scrollTop=st.scroll}}delete window.__sdsbr})()</script>
 {{ end }}

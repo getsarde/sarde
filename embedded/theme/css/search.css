@@ -227,9 +227,9 @@
 	  font-family: inherit;
 	}
 	.sarde-search-trigger-text { color: var(--sd-text-subtle); }
-	.sarde-search-kbd .sarde-kbd-meta { display: none; }
-	:root.is-mac .sarde-search-kbd .sarde-kbd-ctrl { display: none; }
-	:root.is-mac .sarde-search-kbd .sarde-kbd-meta { display: inline; }
+	.sarde-kbd-meta { display: none; }
+	:root.is-mac .sarde-kbd-ctrl { display: none; }
+	:root.is-mac .sarde-kbd-meta { display: inline; }
 
 	@media (max-width: 767px) {
 	  .sarde-search-trigger {
