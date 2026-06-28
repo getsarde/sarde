@@ -49,7 +49,8 @@ func getInlineMD() goldmark.Markdown {
 	return inlineMD
 }
 
-func fnMarkdownify(s string) htmltemplate.HTML {
+func fnMarkdownify(v any) htmltemplate.HTML {
+	s := fmt.Sprint(v)
 	var buf bytes.Buffer
 	if err := getInlineMD().Convert([]byte(s), &buf); err != nil {
 		return htmltemplate.HTML(htmltemplate.HTMLEscapeString(s))

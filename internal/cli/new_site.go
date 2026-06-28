@@ -47,7 +47,8 @@ func runNewSite(cmd *cobra.Command, args []string) error {
 	}
 
 	files := map[string]string{
-		consts.FileSiteConfig: siteYAMLContent,
+		consts.FileSiteConfig:  siteYAMLContent,
+		"kazari.config.yaml":   kazariConfigContent,
 		filepath.Join(consts.DirContent, "_index.md"):                    indexMDContent,
 		filepath.Join(consts.DirContent, "blog", "_index.md"):           blogIndexContent,
 		filepath.Join(consts.DirContent, "blog", "hello-world.md"):      blogPostContent,
@@ -147,4 +148,89 @@ Welcome to the documentation. Add more pages to ` + "`content/docs/`" + ` and th
 - Edit ` + "`sarde.yaml`" + ` to customize your site
 - Run ` + "`sarde dev`" + ` to start the dev server
 - Run ` + "`sarde build`" + ` to generate the static site
+`
+
+const kazariConfigContent = `# Kazari code block configuration.
+# Docs: https://frostybee.github.io/kazari
+
+# --- Themes ---
+themes:
+  light: github-light
+  dark: github-dark
+
+darkMode:
+  kind: selector
+  selector: ".dark"
+
+# --- Toolbar ---
+copyButton: true
+fullscreenButton: true
+wrapButton: true
+themeToggleButton: false
+languageBadge: true
+languageIconMode: none
+fileIcons: true
+
+# --- Block Defaults ---
+lineNumbers: false
+
+defaults:
+  wrap: false
+  preserveIndent: true
+  hangingIndent: 0
+  lineNumbers: false
+  frame: auto
+
+# --- Frame Detection ---
+frameDetection: true
+fileNameExtraction: true
+terminalDotStyle: colored
+terminalCommentStripping: true
+
+# --- Collapsible ---
+# collapsible:
+#   lineThreshold: 15
+#   previewLines: 5
+#   defaultCollapsed: true
+#   preserveIndent: true
+#   style: github
+
+# --- Language Defaults ---
+languageDefaults:
+  "bash, sh, zsh":
+    frame: terminal
+
+# --- Language Aliases ---
+languageAliases:
+  js: javascript
+  ts: typescript
+  py: python
+
+# --- Styling ---
+themedScrollbars: true
+themedSelection: false
+styleReset: true
+cascadeLayer: kazari
+themeCSSRoot: ":root"
+# styleOverrides:
+#   radius: "0.5rem"
+#   font-family: "'JetBrains Mono Variable', monospace"
+#   font-size: "0.875rem"
+#   line-height: "1.6"
+#   shadow: "0 2px 8px rgba(0,0,0,0.15)"
+#   border: "1px solid transparent"
+#   code-padding-block: "1rem"
+#   code-padding-inline: "1.35rem"
+
+# --- Other ---
+tabWidth: 2
+minContrast: 5.5
+minify: true
+dataLineCount: true
+contentExclusion: false
+mermaidPassThrough: true
+links: false
+locale: en-US
+# uiStrings:
+#   copy.label: "Copy"
 `

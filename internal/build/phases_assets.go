@@ -93,7 +93,7 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 
 	// Initialize Kazari and the markdown renderer on first build only.
 	if b.kazariEngine == nil {
-		ke, err := markdown.BuildKazariEngine(context.Background(), &b.config.Markdown.Codeblocks)
+		ke, err := markdown.BuildKazariEngine(context.Background(), &b.config.Markdown.Codeblocks, b.projectDir)
 		if err != nil {
 			return fmt.Errorf("initializing code block engine: %w", err)
 		}

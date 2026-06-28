@@ -36,7 +36,7 @@ var nuriToChroma = map[string]string{
 // backend is selected by cfg.Engine: "chroma" for fast Go-native
 // highlighting (ideal for dev/live-reload), "nuri" (default) for accurate
 // TextMate-based highlighting matching VS Code output.
-func BuildKazariEngine(ctx context.Context, cfg *config.CodeblocksSettings) (*kazari.Engine, error) {
+func BuildKazariEngine(ctx context.Context, cfg *config.CodeblocksSettings, projectDir string) (*kazari.Engine, error) {
 	var hl kazari.Highlighter
 
 	switch cfg.Engine {
@@ -60,6 +60,7 @@ func BuildKazariEngine(ctx context.Context, cfg *config.CodeblocksSettings) (*ka
 		kazari.WithThemes(cfg.LightTheme, cfg.DarkTheme),
 		kazari.WithDarkMode(kazari.SelectorMode(darkModeSelector)),
 		kazari.WithMermaidPassThrough(true),
+		kazari.WithConfigDir(projectDir),
 	)
 	return engine, nil
 }
