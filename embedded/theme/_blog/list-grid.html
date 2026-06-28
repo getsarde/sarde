@@ -1,8 +1,8 @@
 {{ define "content" }}
 <div class="sarde-blog-with-sidebar">
 <div class="sarde-blog-container sarde-blog-container-wide">
-  {{ if .Page.Title }}<h1 class="sarde-blog-page-title">{{ .Page.Title }}</h1>{{ end }}
-  {{ if .Page.Description }}<p class="sarde-blog-page-description">{{ .Page.Description }}</p>{{ end }}
+  {{ if .Page.Title }}<h1 class="sarde-blog-page-title">{{ .Page.Title | markdownify }}</h1>{{ end }}
+  {{ if .Page.Description }}<p class="sarde-blog-page-description">{{ .Page.Description | markdownify }}</p>{{ end }}
 
   {{ if .Page.Content }}
   <div class="sarde-markdown-content">{{ .Page.Content }}</div>
@@ -17,12 +17,12 @@
       <a href="{{ .Permalink }}">
         {{ if .Image }}<img class="sarde-post-card-image" src="{{ .Image }}" alt="" loading="lazy">{{ end }}
         <div class="sarde-post-card-body">
-          <h3 class="sarde-post-card-title">{{ .Title }}</h3>
+          <h3 class="sarde-post-card-title">{{ .Title | markdownify }}</h3>
           <div class="sarde-post-card-meta">
             {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
             {{ if .ReadingTime }}<span class="sarde-meta-sep">&middot;</span><span>{{ tWithData "nav.reading_time" (dict "Minutes" .ReadingTime) }}</span>{{ end }}
           </div>
-          {{ if .Summary }}<p class="sarde-post-card-excerpt">{{ .Summary }}</p>{{ end }}
+          {{ if .Summary }}<p class="sarde-post-card-excerpt">{{ .Summary | markdownify }}</p>{{ end }}
         </div>
       </a>
       {{ if .Tags }}

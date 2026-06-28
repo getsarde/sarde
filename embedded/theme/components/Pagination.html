@@ -6,7 +6,7 @@
       {{ icon "chevron-left" }}
       {{ t "nav.previous" }}
     </span>
-    <span class="sarde-pagination-title">{{ .Pagination.Prev.Title }}</span>
+    <span class="sarde-pagination-title">{{ .Pagination.Prev.Title | markdownify }}</span>
   </a>
   {{ else }}
   <span></span>
@@ -17,7 +17,7 @@
       {{ t "nav.next" }}
       {{ icon "chevron-right" }}
     </span>
-    <span class="sarde-pagination-title">{{ .Title }}</span>
+    <span class="sarde-pagination-title">{{ .Title | markdownify }}</span>
   </a>
   {{ end }}
 </nav>

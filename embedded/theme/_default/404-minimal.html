@@ -1,6 +1,6 @@
 {{ define "content" }}
 <div class="sarde-error-page error-page--minimal">
-  <h1>{{ if .Page.Content }}{{ .Page.Title }}{{ else }}{{ t "error.not_found" }}{{ end }}</h1>
+  <h1>{{ if .Page.Content }}{{ .Page.Title | markdownify }}{{ else }}{{ t "error.not_found" }}{{ end }}</h1>
   {{ if .Page.Content }}
     <div class="sarde-error-page__content">{{ .Page.Content }}</div>
   {{ else }}

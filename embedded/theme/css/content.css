@@ -20,6 +20,13 @@ h1 { font-size: var(--sd-text-h1); letter-spacing: -0.025em; margin-top: 0; }
 	h5 { font-size: var(--sd-text-h5); }
 	h6 { font-size: var(--sd-text-h6); }
 
+	.sarde-markdown-content :not(h1, h2, h3, h4, h5, h6) + :is(h1, h2, h3, h4, h5, h6) {
+	  margin-top: 1.5em;
+	}
+
+	:is(h1, h2, h3, h4, h5, h6) code {
+	  font-size: inherit;
+	}
 
 	/* ── Prose ── */
 	article p,
@@ -36,12 +43,21 @@ h1 { font-size: var(--sd-text-h1); letter-spacing: -0.025em; margin-top: 0; }
 	article li,
 	.content li {
 	  margin-bottom: var(--sd-space-1);
+	  overflow-wrap: anywhere;
 	}
 
 	article li > ul, article li > ol,
 	.content li > ul, .content li > ol {
 	  margin-top: var(--sd-space-1);
 	  margin-bottom: 0;
+	}
+
+	article dt, .content dt {
+	  font-weight: var(--sd-weight-bold);
+	}
+
+	article dd, .content dd {
+	  padding-inline-start: var(--sd-space-4);
 	}
 
 	article blockquote,
@@ -92,6 +108,8 @@ h1 { font-size: var(--sd-text-h1); letter-spacing: -0.025em; margin-top: 0; }
 	/* ── Tables ── */
 	article table,
 	.content table {
+	  display: block;
+	  overflow: auto;
 	  width: 100%;
 	  border-collapse: collapse;
 	  margin: var(--sd-space-6) 0;
@@ -112,7 +130,14 @@ h1 { font-size: var(--sd-text-h1); letter-spacing: -0.025em; margin-top: 0; }
 	  border-bottom: 1px solid var(--sd-border);
 	}
 
-	/* ── Images ── */
+	/* ── Media ── */
+	article :is(img, picture, video, canvas, svg, iframe),
+	.content :is(img, picture, video, canvas, svg, iframe) {
+	  display: block;
+	  max-width: 100%;
+	  height: auto;
+	}
+
 	article img,
 	.content img {
 	  border-radius: var(--sd-radius-md);

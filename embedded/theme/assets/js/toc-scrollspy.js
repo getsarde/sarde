@@ -176,7 +176,7 @@
 
   // ── Circular progress indicator ───────────────────────────────────
   var progressFill = mobileToc ? mobileToc.querySelector('.sarde-mobile-toc-progress-fill') : null;
-  var circumference = 2 * Math.PI * 6;
+  var circumference = 2 * Math.PI * 8;
   if (progressFill) {
     progressFill.style.strokeDasharray = circumference;
     progressFill.style.strokeDashoffset = circumference;

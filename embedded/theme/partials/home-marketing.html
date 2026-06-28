@@ -1,7 +1,7 @@
 <section class="sarde-marketing-hero hero-bg-{{ if .Homepage }}{{ .Homepage.Hero.Background }}{{ else }}gradient{{ end }}">
   <div class="sarde-marketing-hero-inner">
     <h1 class="sarde-marketing-title">
-      {{- if and .Homepage .Homepage.Hero.Title }}{{ .Homepage.Hero.Title }}{{ else }}{{ .Site.Title }}{{ end -}}
+      {{- if and .Homepage .Homepage.Hero.Title }}{{ .Homepage.Hero.Title | markdownify }}{{ else }}{{ .Site.Title | markdownify }}{{ end -}}
     </h1>
     {{ if and .Homepage .Homepage.Hero.Subtitle }}
     <p class="sarde-marketing-subtitle">{{ .Homepage.Hero.Subtitle }}</p>
@@ -17,7 +17,7 @@
     {{ range $name, $col := . }}
     <div class="sarde-marketing-stat">
       <span class="sarde-marketing-stat-number">{{ len $col.Pages }}</span>
-      <span class="sarde-marketing-stat-label">{{ $col.Title }}</span>
+      <span class="sarde-marketing-stat-label">{{ $col.Title | markdownify }}</span>
     </div>
     {{ end }}
   </div>
@@ -30,7 +30,7 @@
     <div class="sarde-catalog-grid">
       {{ range $name, $col := . }}
       <a class="sarde-marketing-collection-card" href="{{ relURL (printf "/%s/" $name) }}">
-        <h3>{{ $col.Title }}</h3>
+        <h3>{{ $col.Title | markdownify }}</h3>
         <span class="sarde-marketing-collection-count">{{ len $col.Pages }} entries</span>
       </a>
       {{ end }}
@@ -51,13 +51,13 @@
 <section class="sarde-marketing-recent">
   <div class="sarde-marketing-recent-inner">
     <div class="sarde-section-header-row">
-      <h2 class="sarde-section-label">{{ $col.Title }}</h2>
+      <h2 class="sarde-section-label">{{ $col.Title | markdownify }}</h2>
       <a class="sarde-section-link" href="{{ relURL (printf "/%s/" $name) }}">{{ t "home.all_posts" }} &rarr;</a>
     </div>
     <div class="sarde-recent-grid">
       {{ range $recent }}
       <a class="sarde-recent-card" href="{{ .Permalink }}">
-        <span class="sarde-recent-card-title">{{ .Title }}</span>
+        <span class="sarde-recent-card-title">{{ .Title | markdownify }}</span>
         {{ if not .Date.IsZero }}<time class="sarde-recent-card-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
       </a>
       {{ end }}

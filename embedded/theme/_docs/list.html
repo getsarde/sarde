@@ -1,5 +1,4 @@
 {{ define "content" }}
-<h1>{{ if .Page.Sidebar.Icon }}<span class="sarde-section-icon">{{ icon .Page.Sidebar.Icon }}</span>{{ end }}{{ .Page.Title | markdownify }}</h1>
 {{ if .Page.Content }}{{ .Page.Content }}{{ end }}
 {{ if or .Section.Sections .Section.Pages }}
 <div class="sarde-card-grid">

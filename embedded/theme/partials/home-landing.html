@@ -1,7 +1,7 @@
 <section class="sarde-landing-hero hero-bg-{{ if .Homepage }}{{ .Homepage.Hero.Background }}{{ else }}gradient{{ end }}">
   <div class="sarde-landing-hero-inner">
     <h1 class="sarde-landing-title">
-      {{- if and .Homepage .Homepage.Hero.Title }}{{ .Homepage.Hero.Title }}{{ else }}{{ .Site.Title }}{{ end -}}
+      {{- if and .Homepage .Homepage.Hero.Title }}{{ .Homepage.Hero.Title | markdownify }}{{ else }}{{ .Site.Title | markdownify }}{{ end -}}
     </h1>
     {{ if and .Homepage .Homepage.Hero.Subtitle }}
     <p class="sarde-landing-subtitle">{{ .Homepage.Hero.Subtitle }}</p>

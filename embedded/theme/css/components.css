@@ -71,8 +71,8 @@
 	  align-items: center;
 	  gap: var(--sd-space-2);
 	  padding: 2px var(--sd-space-3);
-	  font-weight: var(--sd-weight-medium);
-	  font-size: var(--sd-text-sm);
+	  font-weight: var(--sd-weight-semibold);
+	  font-size: var(--sd-text-base);
 	  color: var(--sd-text);
 	  cursor: pointer;
 	  user-select: none;
@@ -88,7 +88,8 @@
 	  background: var(--sd-hover);
 	}
 
-	.sarde-sidebar-nav details > summary > a {
+	.sarde-sidebar-nav details > summary > a,
+	.sarde-sidebar-nav details > summary > a:hover {
 	  display: flex;
 	  align-items: center;
 	  gap: var(--sd-space-2);
@@ -96,6 +97,7 @@
 	  text-decoration: none;
 	  flex: 1;
 	  min-width: 0;
+	  background: none;
 	  padding: 0;
 	}
 
@@ -473,16 +475,16 @@
 	  .sarde-mobile-toc-progress-track {
 	    fill: none;
 	    stroke: var(--sd-border);
-	    stroke-width: 1.5;
+	    stroke-width: 2.5;
 	  }
 
 	  .sarde-mobile-toc-progress-fill {
 	    fill: none;
 	    stroke: var(--sd-text-accent);
-	    stroke-width: 1.5;
+	    stroke-width: 2.5;
 	    stroke-linecap: round;
-	    stroke-dasharray: 37.7;
-	    stroke-dashoffset: 37.7;
+	    stroke-dasharray: 50.27;
+	    stroke-dashoffset: 50.27;
 	    transition: stroke-dashoffset 100ms ease;
 	  }
 
@@ -658,12 +660,28 @@
 	}
 
 	/* ── Page Title ── */
+	.sarde-content-panel--header {
+	  padding-bottom: var(--sd-space-4);
+	  border-bottom: 1px solid var(--sd-border);
+	  margin-bottom: var(--sd-space-6);
+	}
+
+	.sarde-content-panel--header:has(+ .sarde-content-panel .sarde-card-grid) {
+	  border-bottom: none;
+	}
+
 	.sarde-page-title {
-	  font-size: var(--sd-text-3xl);
+	  font-size: var(--sd-text-h1);
 	  font-weight: var(--sd-weight-bold);
 	  letter-spacing: -0.025em;
 	  line-height: var(--sd-line-height-headings);
-	  margin-bottom: var(--sd-space-6);
+	  margin-bottom: 0;
+	}
+
+	.sarde-page-description {
+	  font-size: var(--sd-text-base);
+	  color: var(--sd-muted);
+	  margin-top: var(--sd-space-2);
 	}
 
 	/* ── Docs Tab Switcher ── */

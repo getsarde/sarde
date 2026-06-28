@@ -54,7 +54,10 @@ func fnMarkdownify(s string) htmltemplate.HTML {
 	if err := getInlineMD().Convert([]byte(s), &buf); err != nil {
 		return htmltemplate.HTML(htmltemplate.HTMLEscapeString(s))
 	}
-	return htmltemplate.HTML(buf.String())
+	result := strings.TrimSpace(buf.String())
+	result = strings.TrimPrefix(result, "<p>")
+	result = strings.TrimSuffix(result, "</p>")
+	return htmltemplate.HTML(result)
 }
 
 func fnPlainify(s string) string {

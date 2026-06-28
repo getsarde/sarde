@@ -234,6 +234,7 @@
 	  visibility: hidden;
 	  transition: transform 300ms var(--sd-ease-out), visibility 300ms;
 	  overflow-y: auto;
+	  scrollbar-gutter: stable;
 	}
 
 	.sarde-sidebar.is-open {

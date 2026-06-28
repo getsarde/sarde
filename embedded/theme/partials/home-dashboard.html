@@ -1,6 +1,6 @@
 <section class="home-dashboard">
   <header class="dashboard-header">
-    <h1>{{ if .Homepage.Hero.Title }}{{ .Homepage.Hero.Title }}{{ else }}{{ .Site.Title }}{{ end }}</h1>
+    <h1>{{ if .Homepage.Hero.Title }}{{ .Homepage.Hero.Title | markdownify }}{{ else }}{{ .Site.Title | markdownify }}{{ end }}</h1>
     {{ if .Homepage.Hero.Subtitle }}<p class="dashboard-subtitle">{{ .Homepage.Hero.Subtitle }}</p>{{ end }}
   </header>
 
@@ -13,12 +13,12 @@
   <div class="dashboard-grid">
     {{ range $name, $col := .Site.Collections }}
     <article class="dashboard-card">
-      <h2><a href="{{ relURL (printf "/%s/" $name) }}">{{ if $col.Title }}{{ $col.Title }}{{ else }}{{ $name }}{{ end }}</a></h2>
+      <h2><a href="{{ relURL (printf "/%s/" $name) }}">{{ if $col.Title }}{{ $col.Title | markdownify }}{{ else }}{{ $name }}{{ end }}</a></h2>
       <p class="dashboard-card-meta">{{ len $col.Pages }} page{{ if ne (len $col.Pages) 1 }}s{{ end }}</p>
       {{ if $col.Pages }}
       <ul class="dashboard-card-list">
         {{ range first 5 $col.Pages }}
-        <li><a href="{{ .Permalink }}">{{ .Title }}</a></li>
+        <li><a href="{{ .Permalink }}">{{ .Title | markdownify }}</a></li>
         {{ end }}
       </ul>
       {{ end }}

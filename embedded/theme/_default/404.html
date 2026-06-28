@@ -2,7 +2,7 @@
 <div class="sarde-error-page error-page--default">
   {{ if .Page.Content }}
     <div class="sarde-error-page__code">404</div>
-    <h1>{{ .Page.Title }}</h1>
+    <h1>{{ .Page.Title | markdownify }}</h1>
     <div class="sarde-error-page__content">{{ .Page.Content }}</div>
   {{ else }}
     <div class="sarde-error-page__code">404</div>

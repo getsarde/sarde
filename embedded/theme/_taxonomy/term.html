@@ -5,7 +5,7 @@
       {{ if .TaxonomyTerm.Icon }}<span class="sarde-term-icon">{{ .TaxonomyTerm.Icon }}</span> {{ end }}{{ .TaxonomyTerm.Label }}
     </h1>
     {{ if .TaxonomyTerm.Description }}
-    <p class="sarde-taxonomy-term-description">{{ .TaxonomyTerm.Description }}</p>
+    <p class="sarde-taxonomy-term-description">{{ .TaxonomyTerm.Description | markdownify }}</p>
     {{ end }}
     {{ if .Page.Content }}
     <div class="sarde-markdown-content">{{ .Page.Content }}</div>
@@ -22,11 +22,11 @@
     {{ range $pages }}
     <div class="sarde-post-card">
       <a href="{{ .Permalink }}">
-        <h3 class="sarde-post-card-title">{{ .Title }}</h3>
+        <h3 class="sarde-post-card-title">{{ .Title | markdownify }}</h3>
         <div class="sarde-post-card-meta">
           {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
         </div>
-        {{ if .Summary }}<p class="sarde-post-card-excerpt">{{ .Summary }}</p>{{ end }}
+        {{ if .Summary }}<p class="sarde-post-card-excerpt">{{ .Summary | markdownify }}</p>{{ end }}
       </a>
     </div>
     {{ end }}

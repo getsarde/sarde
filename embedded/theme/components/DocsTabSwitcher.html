@@ -4,7 +4,7 @@
     {{ if .ActiveTab }}
     <span class="sarde-tab-active-label">
       {{ if .ActiveTab.Icon }}{{ icon .ActiveTab.Icon "sarde-tab-icon" }}{{ end }}
-      <span>{{ .ActiveTab.Title }}</span>
+      <span>{{ .ActiveTab.Title | markdownify }}</span>
     </span>
     {{ else }}
     <span>Select section</span>
@@ -17,8 +17,8 @@
       <a href="{{ relURL .Permalink }}" role="menuitem" class="sarde-tab-option{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} is-active{{ end }}"{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} aria-current="page"{{ end }}>
         {{ if .Icon }}{{ icon .Icon "sarde-tab-icon" }}{{ end }}
         <span class="sarde-tab-option-text">
-          <span class="sarde-tab-option-title">{{ .Title }}</span>
-          {{ if .Description }}<span class="sarde-tab-option-desc">{{ .Description }}</span>{{ end }}
+          <span class="sarde-tab-option-title">{{ .Title | markdownify }}</span>
+          {{ if .Description }}<span class="sarde-tab-option-desc">{{ .Description | markdownify }}</span>{{ end }}
         </span>
         {{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }}
         {{ icon "check" "sarde-tab-check" }}

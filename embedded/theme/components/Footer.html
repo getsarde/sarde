@@ -17,7 +17,7 @@
       <span class="sarde-footer-text">{{ .Site.Config.Footer.Text }}</span>
       <span class="sarde-footer-sep" aria-hidden="true"></span>
       {{ end }}
-      <span>&copy; {{ now.Year }} {{ .Site.Title }}</span>
+      <span>&copy; {{ now.Year }} {{ .Site.Title | markdownify }}</span>
       {{ if boolVal .Site.Config.Footer.Credits true }}
       <span class="sarde-footer-sep" aria-hidden="true"></span>
       <span class="sarde-credits">Made with <a href="https://sarde.dev" rel="noopener">Sarde</a></span>

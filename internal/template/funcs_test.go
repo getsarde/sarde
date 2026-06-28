@@ -118,8 +118,9 @@ func TestFnSafeHTML(t *testing.T) {
 
 func TestFnMarkdownify_Bold(t *testing.T) {
 	got := string(fnMarkdownify("**bold**"))
-	if !strings.Contains(got, "<strong>bold</strong>") {
-		t.Errorf("markdownify(**bold**) = %q, want <strong>bold</strong>", got)
+	want := "<strong>bold</strong>"
+	if got != want {
+		t.Errorf("markdownify(**bold**) = %q, want %q", got, want)
 	}
 }
 
@@ -132,8 +133,20 @@ func TestFnMarkdownify_XSS(t *testing.T) {
 
 func TestFnMarkdownify_InlineCode(t *testing.T) {
 	got := string(fnMarkdownify("use `fmt.Println`"))
-	if !strings.Contains(got, "<code>fmt.Println</code>") {
-		t.Errorf("markdownify(inline code) = %q, want <code>fmt.Println</code>", got)
+	want := "use <code>fmt.Println</code>"
+	if got != want {
+		t.Errorf("markdownify(inline code) = %q, want %q", got, want)
+	}
+}
+
+func TestFnMarkdownify_NoParagraphWrapper(t *testing.T) {
+	got := string(fnMarkdownify("`IconManager` handles icons"))
+	if strings.HasPrefix(got, "<p>") || strings.HasSuffix(got, "</p>") {
+		t.Errorf("markdownify should not wrap in <p> tags, got: %q", got)
+	}
+	want := "<code>IconManager</code> handles icons"
+	if got != want {
+		t.Errorf("markdownify = %q, want %q", got, want)
 	}
 }
 

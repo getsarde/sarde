@@ -7,7 +7,7 @@
 <div class="sarde-blog-post-container">
   <article class="sarde-markdown-content">
     <header class="sarde-post-header">
-      <h1 class="sarde-post-title">{{ .Page.Title }}</h1>
+      <h1 class="sarde-post-title">{{ .Page.Title | markdownify }}</h1>
       <div class="sarde-post-meta">
         {{ if not .Page.Date.IsZero }}
         <time datetime="{{ .Page.Date.Format "2006-01-02" }}">{{ .Page.Date.Format "January 2, 2006" }}</time>
@@ -39,13 +39,13 @@
       {{ if .Pagination.Prev }}
       <a class="sarde-nav-link sarde-nav-prev" href="{{ .Pagination.Prev.URL }}">
         <span class="sarde-nav-direction">{{ t "nav.newer" }}</span>
-        <span class="sarde-nav-title">{{ .Pagination.Prev.Title }}</span>
+        <span class="sarde-nav-title">{{ .Pagination.Prev.Title | markdownify }}</span>
       </a>
       {{ else }}<div></div>{{ end }}
       {{ if .Pagination.Next }}
       <a class="sarde-nav-link sarde-nav-next" href="{{ .Pagination.Next.URL }}">
         <span class="sarde-nav-direction">{{ t "nav.older" }}</span>
-        <span class="sarde-nav-title">{{ .Pagination.Next.Title }}</span>
+        <span class="sarde-nav-title">{{ .Pagination.Next.Title | markdownify }}</span>
       </a>
       {{ else }}<div></div>{{ end }}
     </div>

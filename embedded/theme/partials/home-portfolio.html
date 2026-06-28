@@ -1,7 +1,7 @@
 <section class="sarde-home-portfolio">
   <div class="sarde-portfolio-hero">
     <h1 class="sarde-portfolio-title">
-      {{- if and .Homepage .Homepage.Hero.Title }}{{ .Homepage.Hero.Title }}{{ else }}{{ .Site.Title }}{{ end -}}
+      {{- if and .Homepage .Homepage.Hero.Title }}{{ .Homepage.Hero.Title | markdownify }}{{ else }}{{ .Site.Title | markdownify }}{{ end -}}
     </h1>
     {{ if and .Homepage .Homepage.Hero.Subtitle }}
     <p class="sarde-portfolio-subtitle">{{ .Homepage.Hero.Subtitle }}</p>
@@ -26,15 +26,15 @@
 <section class="sarde-portfolio-recent">
   <div class="sarde-portfolio-recent-inner">
     <div class="sarde-section-header-row">
-      <h2 class="sarde-section-label">{{ $col.Title }}</h2>
+      <h2 class="sarde-section-label">{{ $col.Title | markdownify }}</h2>
       <a class="sarde-section-link" href="{{ relURL (printf "/%s/" $name) }}">{{ t "home.all_posts" }} &rarr;</a>
     </div>
     <div class="sarde-recent-grid">
       {{ range $recent }}
       <a class="sarde-recent-card" href="{{ .Permalink }}">
-        <span class="sarde-recent-card-title">{{ .Title }}</span>
+        <span class="sarde-recent-card-title">{{ .Title | markdownify }}</span>
         {{ if not .Date.IsZero }}<time class="sarde-recent-card-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
-        {{ if .Summary }}<span class="sarde-recent-card-excerpt">{{ .Summary }}</span>{{ end }}
+        {{ if .Summary }}<span class="sarde-recent-card-excerpt">{{ .Summary | markdownify }}</span>{{ end }}
       </a>
       {{ end }}
     </div>

@@ -16,7 +16,7 @@
       {{ if and .Homepage .Homepage.Hero.Eyebrow }}
       <p class="sarde-hero-eyebrow">{{ .Homepage.Hero.Eyebrow }}</p>
       {{ end }}
-      <h1 class="sarde-hero-title">{{ $title }}</h1>
+      <h1 class="sarde-hero-title">{{ $title | markdownify }}</h1>
       {{ if $subtitle }}
       <p class="sarde-hero-subtitle">{{ $subtitle }}</p>
       {{ end }}
@@ -50,7 +50,7 @@
       {{ with .Homepage.Hero.Code }}
       <div class="sarde-hero-code-card">
         <div class="sarde-hero-code-header">
-          <span>{{ if .Title }}{{ .Title }}{{ else }}Quick start{{ end }}</span>
+          <span>{{ if .Title }}{{ .Title | markdownify }}{{ else }}Quick start{{ end }}</span>
           {{ if .Language }}<span>{{ .Language }}</span>{{ end }}
         </div>
         <pre class="sarde-hero-code"><code class="language-{{ .Language }}">{{ .Body }}</code></pre>

@@ -1,6 +1,6 @@
 <section class="blog-hero">
   <h1 class="blog-author-name">
-    {{- if and .Homepage .Homepage.Hero.Title }}{{ .Homepage.Hero.Title }}{{ else }}{{ .Site.Title }}{{ end -}}
+    {{- if and .Homepage .Homepage.Hero.Title }}{{ .Homepage.Hero.Title | markdownify }}{{ else }}{{ .Site.Title | markdownify }}{{ end -}}
   </h1>
   {{ if and .Homepage .Homepage.Hero.Subtitle }}
   <p class="blog-author-bio">{{ .Homepage.Hero.Subtitle }}</p>
@@ -19,13 +19,13 @@
 <section class="blog-recent">
   <div class="blog-recent-inner">
     <div class="sarde-section-header-row">
-      <h2 class="sarde-section-label">{{ $col.Title }}</h2>
+      <h2 class="sarde-section-label">{{ $col.Title | markdownify }}</h2>
       <a class="sarde-section-link" href="{{ relURL (printf "/%s/" $name) }}">{{ t "home.all_posts" }} &rarr;</a>
     </div>
     <ul class="blog-recent-list">
       {{ range $recent }}
       <li>
-        <a href="{{ .Permalink }}">{{ .Title }}</a>
+        <a href="{{ .Permalink }}">{{ .Title | markdownify }}</a>
         {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
       </li>
       {{ end }}

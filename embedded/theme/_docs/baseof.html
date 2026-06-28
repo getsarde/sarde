@@ -46,11 +46,14 @@
       <div class="sarde-main-pane">
         <main class="sarde-doc-body" id="main-content">
           {{ announcementBanner }}
-          <div class="sarde-content-panel">
+          <div class="sarde-content-panel sarde-content-panel--header">
             {{ if .Breadcrumbs }}{{ component "Breadcrumbs" . }}{{ end }}
             {{ component "FallbackNotice" . }}
             {{ component "VersionBanner" . }}
             {{ component "PageBanner" . }}
+            {{ component "PageTitle" . }}
+          </div>
+          <div class="sarde-content-panel">
             <article class="sarde-markdown-content"{{ if and .Page .Page.IsFallback }} dir="ltr"{{ end }}{{ if and .Page .Page.Updated (not .Page.Updated.IsZero) }} data-last-modified="{{ .Page.Updated.Unix }}"{{ end }}>
               {{ block "content" . }}{{ .Page.Content }}{{ end }}
             </article>

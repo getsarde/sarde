@@ -1,7 +1,7 @@
 {{ define "content" }}
 <div class="sarde-blog-container sarde-blog-container-narrow">
-  {{ if .Page.Title }}<h1 class="sarde-blog-page-title">{{ .Page.Title }}</h1>{{ end }}
-  {{ if .Page.Description }}<p class="sarde-blog-page-description">{{ .Page.Description }}</p>{{ end }}
+  {{ if .Page.Title }}<h1 class="sarde-blog-page-title">{{ .Page.Title | markdownify }}</h1>{{ end }}
+  {{ if .Page.Description }}<p class="sarde-blog-page-description">{{ .Page.Description | markdownify }}</p>{{ end }}
 
   {{ if .Page.Content }}
   <div class="sarde-markdown-content">{{ .Page.Content }}</div>
@@ -13,7 +13,7 @@
   <ul class="sarde-post-list-minimal">
     {{ range $pages }}
     <li>
-      <a href="{{ .Permalink }}">{{ .Title }}</a>
+      <a href="{{ .Permalink }}">{{ .Title | markdownify }}</a>
       {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
     </li>
     {{ end }}

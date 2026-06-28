@@ -7,7 +7,7 @@
     <line x1="100" y1="60" x2="100" y2="30" stroke="currentColor" stroke-width="2" opacity="0.3"/>
     <line x1="100" y1="60" x2="120" y2="50" stroke="currentColor" stroke-width="2" opacity="0.3"/>
   </svg>
-  <h1>{{ if .Page.Content }}{{ .Page.Title }}{{ else }}{{ t "error.not_found_illustrated" }}{{ end }}</h1>
+  <h1>{{ if .Page.Content }}{{ .Page.Title | markdownify }}{{ else }}{{ t "error.not_found_illustrated" }}{{ end }}</h1>
   {{ if .Page.Content }}
     <div class="sarde-error-page__content">{{ .Page.Content }}</div>
   {{ else }}

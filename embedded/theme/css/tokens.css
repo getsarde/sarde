@@ -98,12 +98,13 @@
 	  --sd-text-2xl: 1.5rem;
 	  --sd-text-3xl: 1.875rem;
 	  --sd-text-4xl: 2.25rem;
+	  --sd-text-5xl: 2.625rem;
 
-	  --sd-text-h1: var(--sd-text-3xl);
-	  --sd-text-h2: var(--sd-text-2xl);
-	  --sd-text-h3: var(--sd-text-xl);
-	  --sd-text-h4: var(--sd-text-lg);
-	  --sd-text-h5: var(--sd-text-base);
+	  --sd-text-h1: var(--sd-text-4xl);
+	  --sd-text-h2: var(--sd-text-3xl);
+	  --sd-text-h3: var(--sd-text-2xl);
+	  --sd-text-h4: var(--sd-text-xl);
+	  --sd-text-h5: var(--sd-text-lg);
 	  --sd-text-h6: var(--sd-text-base);
 
 	  --sd-line-height: 1.75;
@@ -216,6 +217,15 @@
 	  --sd-aside-caution-bg: var(--sd-amber-low);
 	  --sd-aside-danger: var(--sd-red);
 	  --sd-aside-danger-bg: var(--sd-red-low);
+	}
+
+	@media (min-width: 50em) {
+	  :root {
+	    --sd-text-h1: var(--sd-text-5xl);
+	    --sd-text-h2: var(--sd-text-4xl);
+	    --sd-text-h3: var(--sd-text-3xl);
+	    --sd-text-h4: var(--sd-text-2xl);
+	  }
 	}
 
 }
