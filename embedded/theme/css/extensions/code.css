@@ -26,7 +26,7 @@
 	    background: transparent;
 	    border: none;
 	    border-bottom: 2px solid transparent;
-	    margin: 0 0 -2px;
+	    margin-bottom: -2px;
 	    cursor: pointer;
 	    font-size: var(--sd-text-sm);
 	    font-weight: var(--sd-weight-medium);

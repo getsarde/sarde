@@ -16,6 +16,7 @@ import (
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/annotation"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/aside"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/badge"
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/badgegroup"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/card"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/cardgrid"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/details"
@@ -222,6 +223,7 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) (goldmark.Markdown, string)
 		&mermaid.Extension{},
 		// Inline extensions
 		&badge.Extension{},
+		&badgegroup.Extension{},
 		&kbd.Extension{},
 		&icon.Extension{},
 		&highlight.Extension{},

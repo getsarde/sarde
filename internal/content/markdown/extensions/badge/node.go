@@ -9,6 +9,9 @@ type Badge struct {
 	BadgeType string
 	Content   string
 	Icon      string
+	Style     string
+	Size      string
+	NoIcon    bool
 }
 
 func (n *Badge) Kind() gast.NodeKind { return KindBadge }

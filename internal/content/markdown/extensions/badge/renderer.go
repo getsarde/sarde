@@ -17,6 +17,7 @@ var defaultIcons = map[string]string{
 	"secondary": "circle-minus",
 	"success":   "circle-check",
 	"warning":   "triangle-alert",
+	"caution":   "triangle-alert",
 	"danger":    "circle-x",
 	"info":      "info",
 	"note":      "pencil",
@@ -35,17 +36,31 @@ func (r *badgeRenderer) render(w util.BufWriter, source []byte, node ast.Node, e
 	if entering {
 		b := node.(*Badge)
 
-		iconName := b.Icon
-		if iconName == "" {
-			iconName = defaultIcons[b.BadgeType]
+		cls := "sarde-badge sarde-badge-" + htmlutil.EscapeHTML(b.BadgeType)
+		if b.Style == "outline" {
+			cls += " sarde-badge-outline"
 		}
-		if iconName == "" {
-			iconName = "info"
+		if b.Size != "" {
+			cls += " sarde-badge-" + b.Size
 		}
-		iconSVG := icons.GetWithClass(iconName, "sarde-badge-icon")
+		if b.NoIcon {
+			cls += " sarde-badge-no-icon"
+		}
 
-		_, _ = fmt.Fprintf(w, `<span class="sarde-badge sarde-badge-%s" role="status" aria-label="%s">%s%s</span>`,
-			htmlutil.EscapeHTML(b.BadgeType), htmlutil.EscapeHTML(b.Content), iconSVG, htmlutil.EscapeHTML(b.Content))
+		iconSVG := ""
+		if !b.NoIcon {
+			iconName := b.Icon
+			if iconName == "" {
+				iconName = defaultIcons[b.BadgeType]
+			}
+			if iconName == "" {
+				iconName = "info"
+			}
+			iconSVG = icons.GetWithClass(iconName, "sarde-badge-icon")
+		}
+
+		_, _ = fmt.Fprintf(w, `<span class="%s" role="status" aria-label="%s">%s%s</span>`,
+			cls, htmlutil.EscapeHTML(b.Content), iconSVG, htmlutil.EscapeHTML(b.Content))
 	}
 	return ast.WalkSkipChildren, nil
 }

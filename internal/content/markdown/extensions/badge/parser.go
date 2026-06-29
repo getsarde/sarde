@@ -27,12 +27,24 @@ func (p *badgeParser) Open(parent ast.Node, reader text.Reader, pc parser.Contex
 
 	badgeType := "default"
 	icon := ""
+	style := ""
+	size := ""
+	noIcon := false
 	if matches[1] != "" {
 		badgeType = parseAttr(matches[1], "type", "default")
 		icon = parseAttr(matches[1], "icon", "")
+		if s := parseAttr(matches[1], "style", ""); s == "outline" {
+			style = s
+		}
+		if s := parseAttr(matches[1], "size", ""); s == "sm" || s == "lg" {
+			size = s
+		}
+		if parseAttr(matches[1], "no-icon", "") == "true" {
+			noIcon = true
+		}
 	}
 
-	return &Badge{BadgeType: badgeType, Icon: icon}, parser.NoChildren
+	return &Badge{BadgeType: badgeType, Icon: icon, Style: style, Size: size, NoIcon: noIcon}, parser.NoChildren
 }
 
 func (p *badgeParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {

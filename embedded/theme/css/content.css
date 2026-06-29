@@ -1,9 +1,15 @@
 @layer sarde.content {
 
-	/* ── Universal sibling gap ── */
+	/* ── Block element sibling spacing ── */
 	.sarde-markdown-content
-		:not(a, strong, em, del, span, input, code, br)
-		+ :not(a, strong, em, del, span, input, code, br, :where(pre *, .kazari-block *, .kz-group *)) {
+		:is(p, ul, ol, pre, blockquote, hr, table, figure, img, video, div)
+		+ :is(p, ul, ol, pre, blockquote, hr, table, figure, img, video, h1, h2, h3, h4, h5, h6) {
+		margin-top: 1rem;
+	}
+
+	.sarde-markdown-content
+		:is(h1, h2, h3, h4, h5, h6)
+		+ :is(h1, h2, h3, h4, h5, h6) {
 		margin-top: 1rem;
 	}
 
