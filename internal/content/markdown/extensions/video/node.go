@@ -1,6 +1,10 @@
 package video
 
-import gast "github.com/yuin/goldmark/ast"
+import (
+	"fmt"
+
+	gast "github.com/yuin/goldmark/ast"
+)
 
 var KindVideoBlock = gast.NewNodeKind("VideoBlock")
 
@@ -9,6 +13,11 @@ type VideoBlock struct {
 	URL      string
 	Platform string
 	VideoID  string
+	Title    string
+	Ratio    string
+	Autoplay bool
+	Muted    bool
+	Loop     bool
 }
 
 func (n *VideoBlock) Kind() gast.NodeKind { return KindVideoBlock }
@@ -18,5 +27,10 @@ func (n *VideoBlock) Dump(source []byte, level int) {
 		"URL":      n.URL,
 		"Platform": n.Platform,
 		"VideoID":  n.VideoID,
+		"Title":    n.Title,
+		"Ratio":    n.Ratio,
+		"Autoplay": fmt.Sprintf("%v", n.Autoplay),
+		"Muted":    fmt.Sprintf("%v", n.Muted),
+		"Loop":     fmt.Sprintf("%v", n.Loop),
 	}, nil)
 }

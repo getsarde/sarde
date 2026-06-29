@@ -373,6 +373,17 @@
 	  height: 100%;
 	  border: none;
 	}
+	/* Aspect ratio variants */
+	.sarde-video-wrapper.sarde-video-4x3  { padding-bottom: 75%; }
+	.sarde-video-wrapper.sarde-video-1x1  { padding-bottom: 100%; }
+	.sarde-video-wrapper.sarde-video-9x16 { padding-bottom: 177.78%; }
+	/* Video caption */
+	.sarde-video-caption {
+	  padding: 0.5rem 0.75rem;
+	  font-size: var(--sd-text-sm, 0.875rem);
+	  color: var(--sd-text-muted);
+	  text-align: center;
+	}
 
 	/* Figure Extension */
 	.sarde-figure {

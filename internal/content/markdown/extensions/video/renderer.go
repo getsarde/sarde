@@ -2,12 +2,12 @@ package video
 
 import (
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
+
 	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 )
 
@@ -24,51 +24,109 @@ func (r *videoRenderer) render(w util.BufWriter, source []byte, node ast.Node, e
 		return ast.WalkContinue, nil
 	}
 	v := node.(*VideoBlock)
-	raw := v.URL
 
+	wrapperClass := "sarde-video-wrapper" + ratioClass(v.Ratio)
 	iframeAttrs := ` frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"`
-	if id, ok := extractYouTubeID(raw); ok {
-		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"sarde-video-wrapper\"><iframe src=\"https://www.youtube.com/embed/%s\" title=\"YouTube video\"%s></iframe></div></div>\n", htmlutil.EscapeHTML(id), iframeAttrs)
-	} else if id, ok := extractVimeoID(raw); ok {
-		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"sarde-video-wrapper\"><iframe src=\"https://player.vimeo.com/video/%s\" title=\"Vimeo video\"%s></iframe></div></div>\n", htmlutil.EscapeHTML(id), iframeAttrs)
-	} else {
-		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"sarde-video-wrapper\"><video src=\"%s\" controls></video></div></div>\n", htmlutil.EscapeHTML(raw))
+
+	switch v.Platform {
+	case "youtube":
+		embedURL := buildYouTubeURL(v.VideoID, v)
+		title := resolveTitle(v.Title, "YouTube video")
+		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"%s\"><iframe src=\"%s\" title=\"%s\"%s></iframe></div>",
+			wrapperClass, embedURL, title, iframeAttrs)
+		writeCaption(w, v.Title)
+		_, _ = w.WriteString("</div>\n")
+
+	case "vimeo":
+		embedURL := buildVimeoURL(v.VideoID, v)
+		title := resolveTitle(v.Title, "Vimeo video")
+		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"%s\"><iframe src=\"%s\" title=\"%s\"%s></iframe></div>",
+			wrapperClass, embedURL, title, iframeAttrs)
+		writeCaption(w, v.Title)
+		_, _ = w.WriteString("</div>\n")
+
+	default:
+		var videoAttrs strings.Builder
+		videoAttrs.WriteString(" controls")
+		if v.Autoplay {
+			videoAttrs.WriteString(" autoplay")
+		}
+		if v.Muted {
+			videoAttrs.WriteString(" muted")
+		}
+		if v.Loop {
+			videoAttrs.WriteString(" loop")
+		}
+		if v.Title != "" {
+			videoAttrs.WriteString(` title="` + htmlutil.EscapeHTML(v.Title) + `"`)
+		}
+		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"%s\"><video src=\"%s\"%s></video></div>",
+			wrapperClass, htmlutil.EscapeHTML(v.URL), videoAttrs.String())
+		writeCaption(w, v.Title)
+		_, _ = w.WriteString("</div>\n")
 	}
+
 	return ast.WalkContinue, nil
 }
 
-func extractYouTubeID(raw string) (string, bool) {
-	u, err := url.Parse(raw)
-	if err != nil {
-		return "", false
+func buildYouTubeURL(id string, v *VideoBlock) string {
+	base := "https://www.youtube-nocookie.com/embed/" + htmlutil.EscapeHTML(id)
+	var params []string
+	if v.Autoplay {
+		params = append(params, "autoplay=1")
 	}
-	host := strings.ToLower(u.Host)
-	if host == "youtu.be" || host == "www.youtu.be" {
-		id := strings.TrimPrefix(u.Path, "/")
-		if id != "" {
-			return id, true
-		}
+	if v.Muted {
+		params = append(params, "mute=1")
 	}
-	if host == "youtube.com" || host == "www.youtube.com" || host == "m.youtube.com" {
-		if v := u.Query().Get("v"); v != "" {
-			return v, true
-		}
+	if v.Loop {
+		params = append(params, "loop=1", "playlist="+htmlutil.EscapeHTML(id))
 	}
-	return "", false
+	if len(params) > 0 {
+		return base + "?" + strings.Join(params, "&amp;")
+	}
+	return base
 }
 
-func extractVimeoID(raw string) (string, bool) {
-	u, err := url.Parse(raw)
-	if err != nil {
-		return "", false
+func buildVimeoURL(id string, v *VideoBlock) string {
+	base := "https://player.vimeo.com/video/" + htmlutil.EscapeHTML(id)
+	var params []string
+	if v.Autoplay {
+		params = append(params, "autoplay=1")
 	}
-	host := strings.ToLower(u.Host)
-	if host == "vimeo.com" || host == "www.vimeo.com" {
-		id := strings.TrimPrefix(u.Path, "/")
-		if id != "" && !strings.Contains(id, "/") {
-			return id, true
-		}
+	if v.Muted {
+		params = append(params, "muted=1")
 	}
-	return "", false
+	if v.Loop {
+		params = append(params, "loop=1")
+	}
+	if len(params) > 0 {
+		return base + "?" + strings.Join(params, "&amp;")
+	}
+	return base
 }
 
+func ratioClass(ratio string) string {
+	switch ratio {
+	case "4:3":
+		return " sarde-video-4x3"
+	case "1:1":
+		return " sarde-video-1x1"
+	case "9:16":
+		return " sarde-video-9x16"
+	default:
+		return ""
+	}
+}
+
+func resolveTitle(userTitle, fallback string) string {
+	if userTitle != "" {
+		return htmlutil.EscapeHTML(userTitle)
+	}
+	return fallback
+}
+
+func writeCaption(w util.BufWriter, title string) {
+	if title != "" {
+		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-caption\">%s</div>", htmlutil.EscapeHTML(title))
+	}
+}

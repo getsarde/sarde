@@ -13,12 +13,14 @@ import (
 	"github.com/frostybee/kazari"
 	kazarimd "github.com/frostybee/kazari/goldmark"
 	"github.com/getsarde/sarde/internal/asset"
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/accordion"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/annotation"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/aside"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/badge"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/badgegroup"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/card"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/cardgrid"
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/copytext"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/details"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/figure"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/filetree"
@@ -205,6 +207,7 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) (goldmark.Markdown, string)
 		&aside.Extension{},
 		&steps.Extension{},
 		&tabs.Extension{},
+		&accordion.Extension{},
 		&details.Extension{},
 		&extmath.Extension{},
 		&spoiler.Extension{},
@@ -228,6 +231,7 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) (goldmark.Markdown, string)
 		&icon.Extension{},
 		&highlight.Extension{},
 		&annotation.Extension{},
+		&copytext.Extension{},
 		// Image renderer (always present; lookup swapped at runtime via r.imgRend.Lookup)
 		&imagerender.Extension{Renderer: r.imgRend},
 		// Link collector (AST transformer; collects destinations for post-build validation)

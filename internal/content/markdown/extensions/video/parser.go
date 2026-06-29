@@ -9,14 +9,19 @@ import (
 	"github.com/yuin/goldmark/text"
 )
 
-var videoRegex = regexp.MustCompile(`^:::video\{src=["']([^"']+)["']\}\s*$`)
+var openRegex = regexp.MustCompile(`^:{3,}\s*video(?:\{([^}]+)\})?\s*$`)
+var closingRegex = regexp.MustCompile(`^:{3,}(?:/video)?\s*$`)
 
 var (
-	youtubeRegex = regexp.MustCompile(`(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([a-zA-Z0-9_-]+)`)
+	youtubeRegex = regexp.MustCompile(`(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/|youtube\.com/shorts/)([a-zA-Z0-9_-]+)`)
 	vimeoRegex   = regexp.MustCompile(`(?:vimeo\.com/)(\d+)`)
 )
 
-var closingRegex = regexp.MustCompile(`^:{3,}(?:/video)?\s*$`)
+var (
+	reAutoplay = regexp.MustCompile(`\bautoplay\b`)
+	reMuted    = regexp.MustCompile(`\bmuted\b`)
+	reLoop     = regexp.MustCompile(`\bloop\b`)
+)
 
 type videoParser struct{}
 
@@ -26,18 +31,34 @@ func (p *videoParser) Trigger() []byte { return []byte{':'} }
 func (p *videoParser) Open(parent ast.Node, reader text.Reader, pc parser.Context) (ast.Node, parser.State) {
 	line, _ := reader.PeekLine()
 	lineStr := strings.TrimSpace(string(line))
-	matches := videoRegex.FindStringSubmatch(lineStr)
+	matches := openRegex.FindStringSubmatch(lineStr)
 	if matches == nil {
 		return nil, parser.NoChildren
 	}
 
-	url := matches[1]
-	platform, videoID := extractVideoInfo(url)
+	attrs := matches[1]
+	src := parseAttr(attrs, "src", "")
+	if src == "" {
+		return nil, parser.NoChildren
+	}
+
+	title := parseAttr(attrs, "title", "")
+	ratio := parseAttr(attrs, "ratio", "")
+	if ratio != "4:3" && ratio != "1:1" && ratio != "9:16" {
+		ratio = ""
+	}
+
+	platform, videoID := extractVideoInfo(src)
 
 	return &VideoBlock{
-		URL:      url,
+		URL:      src,
 		Platform: platform,
 		VideoID:  videoID,
+		Title:    title,
+		Ratio:    ratio,
+		Autoplay: reAutoplay.MatchString(attrs),
+		Muted:    reMuted.MatchString(attrs),
+		Loop:     reLoop.MatchString(attrs),
 	}, parser.NoChildren
 }
 
@@ -66,4 +87,16 @@ func extractVideoInfo(url string) (platform, videoID string) {
 		return "vimeo", m[1]
 	}
 	return "", ""
+}
+
+func parseAttr(attrs, key, fallback string) string {
+	re := regexp.MustCompile(key + `\s*=\s*"([^"]*)"`)
+	if m := re.FindStringSubmatch(attrs); m != nil {
+		return m[1]
+	}
+	re2 := regexp.MustCompile(key + `\s*=\s*'([^']*)'`)
+	if m := re2.FindStringSubmatch(attrs); m != nil {
+		return m[1]
+	}
+	return fallback
 }
