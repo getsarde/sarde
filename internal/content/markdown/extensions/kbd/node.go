@@ -1,17 +1,26 @@
 package kbd
 
-import gast "github.com/yuin/goldmark/ast"
+import (
+	"fmt"
+
+	gast "github.com/yuin/goldmark/ast"
+)
 
 var KindKbd = gast.NewNodeKind("Kbd")
 
-// Kbd is an inline node for [[Ctrl+S]] keyboard shortcuts.
 type Kbd struct {
 	gast.BaseInline
-	Keys string // raw key string e.g. "Ctrl+S"
+	Keys string
+	Size string // "sm" | "lg" | ""
+	Wide bool
 }
 
 func (n *Kbd) Kind() gast.NodeKind { return KindKbd }
 
 func (n *Kbd) Dump(source []byte, level int) {
-	gast.DumpHelper(n, source, level, map[string]string{"Keys": n.Keys}, nil)
+	gast.DumpHelper(n, source, level, map[string]string{
+		"Keys": n.Keys,
+		"Size": n.Size,
+		"Wide": fmt.Sprintf("%v", n.Wide),
+	}, nil)
 }

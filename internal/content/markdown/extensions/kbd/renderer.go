@@ -18,12 +18,27 @@ func (r *kbdRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 	reg.Register(KindKbd, r.render)
 }
 
+func kbdClass(k *Kbd) string {
+	cls := "sarde-kbd"
+	if k.Size == "sm" {
+		cls += " sarde-kbd-sm"
+	}
+	if k.Size == "lg" {
+		cls += " sarde-kbd-lg"
+	}
+	if k.Wide {
+		cls += " sarde-kbd-wide"
+	}
+	return cls
+}
+
 func (r *kbdRenderer) render(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		k := node.(*Kbd)
+		cls := kbdClass(k)
 		parts := splitKeys(k.Keys)
 		if len(parts) == 1 {
-			_, _ = w.WriteString(`<kbd class="sarde-kbd">`)
+			_, _ = w.WriteString(`<kbd class="` + cls + `">`)
 			_, _ = w.WriteString(htmlutil.EscapeHTML(parts[0]))
 			_, _ = w.WriteString(`</kbd>`)
 		} else {
@@ -32,7 +47,7 @@ func (r *kbdRenderer) render(w util.BufWriter, source []byte, node ast.Node, ent
 				if i > 0 {
 					_, _ = w.WriteString(`<span class="sarde-kbd-separator">+</span>`)
 				}
-				_, _ = w.WriteString(`<kbd class="sarde-kbd">`)
+				_, _ = w.WriteString(`<kbd class="` + cls + `">`)
 				_, _ = w.WriteString(htmlutil.EscapeHTML(p))
 				_, _ = w.WriteString(`</kbd>`)
 			}
@@ -42,9 +57,6 @@ func (r *kbdRenderer) render(w util.BufWriter, source []byte, node ast.Node, ent
 	return ast.WalkSkipChildren, nil
 }
 
-// splitKeys splits a key string on "+" into individual key names.
-// If the result would be empty (e.g. the input is "+" or "++"),
-// the original string is returned as a single-element slice.
 func splitKeys(raw string) []string {
 	var parts []string
 	for _, s := range strings.Split(raw, "+") {
@@ -58,4 +70,3 @@ func splitKeys(raw string) []string {
 	}
 	return parts
 }
-

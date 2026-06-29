@@ -24,8 +24,15 @@ func (r *annotationRenderer) render(w util.BufWriter, source []byte, node ast.No
 	if entering {
 		a := node.(*Annotation)
 		id := annCounter.Add(1)
-		_, _ = fmt.Fprintf(w, `<abbr class="sarde-annotation" title="%s" aria-describedby="ann-%d" tabindex="0">%s<span class="sarde-annotation-tooltip" role="tooltip" id="ann-%d">%s</span></abbr>`,
-			htmlutil.EscapeHTML(a.Explanation), id, htmlutil.EscapeHTML(a.Label), id, htmlutil.EscapeHTML(a.Explanation))
+		cls := "sarde-annotation"
+		switch a.Style {
+		case "highlight":
+			cls += " sarde-annotation-highlight"
+		case "plain":
+			cls += " sarde-annotation-plain"
+		}
+		_, _ = fmt.Fprintf(w, `<abbr class="%s" aria-describedby="ann-%d" tabindex="0">%s<span class="sarde-annotation-tooltip" role="tooltip" id="ann-%d">%s</span></abbr>`,
+			cls, id, htmlutil.EscapeHTML(a.Label), id, htmlutil.EscapeHTML(a.Explanation))
 	}
 	return ast.WalkSkipChildren, nil
 }

@@ -1,12 +1,15 @@
 package annotation
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 )
+
+var styleRegex = regexp.MustCompile(`^style="([^"]*)"(\s*)`)
 
 type annotationParser struct{}
 
@@ -42,7 +45,15 @@ func (p *annotationParser) Parse(parent ast.Node, block text.Reader, pc parser.C
 		}
 	}
 
-	node := &Annotation{Label: text_, Explanation: explanation}
+	var style string
+	if m := styleRegex.FindStringSubmatch(explanation); m != nil {
+		if m[1] == "highlight" || m[1] == "plain" || m[1] == "underline" {
+			style = m[1]
+		}
+		explanation = explanation[len(m[0]):]
+	}
+
+	node := &Annotation{Label: text_, Explanation: explanation, Style: style}
 	block.Advance(seg.Start + consumed - seg.Start)
 	return node
 }

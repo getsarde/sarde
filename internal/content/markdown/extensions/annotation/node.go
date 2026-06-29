@@ -8,6 +8,7 @@ type Annotation struct {
 	gast.BaseInline
 	Label       string
 	Explanation string
+	Style       string
 }
 
 func (n *Annotation) Kind() gast.NodeKind { return KindAnnotation }
