@@ -73,47 +73,44 @@ func renderListItems(w util.BufWriter, listNode ast.Node, source []byte) {
 			continue
 		}
 
-		// Get text content of this list item
-		name := extractDirectText(item, source)
-		name = strings.TrimSpace(name)
+		info := parseItemInfo(item, source)
 
-		isFolder := strings.HasSuffix(name, "/")
-		if isFolder {
-			name = strings.TrimSuffix(name, "/")
-		}
-
-		// Check if this item has a nested list (subfolder)
-		var nestedList ast.Node
-		for c := item.FirstChild(); c != nil; c = c.NextSibling() {
-			if c.Kind() == ast.KindList {
-				nestedList = c
-				isFolder = true
-				break
-			}
+		if info.IsPlaceholder {
+			_, _ = w.WriteString("<li class=\"sarde-file-tree-item sarde-file-tree-placeholder\">\n")
+			_, _ = w.WriteString("<span class=\"sarde-file-tree-entry\">")
+			_, _ = w.WriteString("<span class=\"sarde-file-tree-name\">" + htmlutil.EscapeHTML(info.Name) + "</span>")
+			_, _ = w.WriteString("</span>\n</li>\n")
+			continue
 		}
 
 		itemClass := "sarde-file-tree-item"
-		if isFolder {
+		if info.IsFolder {
 			itemClass += " sarde-file-tree-folder"
 		} else {
 			itemClass += " sarde-file-tree-file"
 		}
+		if info.IsHighlighted {
+			itemClass += " highlighted"
+		}
 
-		icon := getIcon(isFolder, name)
+		icon := getIcon(info.IsFolder, info.Name)
 		nameClass := "sarde-file-tree-name"
-		if isFolder {
+		if info.IsFolder {
 			nameClass += " folder-name"
 		}
 
 		_, _ = w.WriteString("<li class=\"" + itemClass + "\">\n")
 		_, _ = w.WriteString("<span class=\"sarde-file-tree-entry\">")
 		_, _ = w.WriteString(icon)
-		_, _ = w.WriteString("<span class=\"" + nameClass + "\">" + htmlutil.EscapeHTML(name) + "</span>")
+		_, _ = w.WriteString("<span class=\"" + nameClass + "\">" + htmlutil.EscapeHTML(info.Name) + "</span>")
+		if info.Comment != "" {
+			_, _ = w.WriteString("<span class=\"sarde-file-tree-comment\">" + htmlutil.EscapeHTML(info.Comment) + "</span>")
+		}
 		_, _ = w.WriteString("</span>\n")
 
-		if nestedList != nil {
+		if info.NestedList != nil {
 			_, _ = w.WriteString("<ul class=\"sarde-file-tree-list\">\n")
-			renderListItems(w, nestedList, source)
+			renderListItems(w, info.NestedList, source)
 			_, _ = w.WriteString("</ul>\n")
 		}
 
@@ -121,7 +118,84 @@ func renderListItems(w util.BufWriter, listNode ast.Node, source []byte) {
 	}
 }
 
+type itemInfo struct {
+	Name          string
+	Comment       string
+	IsFolder      bool
+	IsHighlighted bool
+	IsPlaceholder bool
+	NestedList    ast.Node
+}
+
+func parseItemInfo(item ast.Node, source []byte) itemInfo {
+	name := extractDirectText(item, source)
+	name = strings.TrimSpace(name)
+
+	if name == "..." {
+		return itemInfo{Name: name, IsPlaceholder: true}
+	}
+
+	isHighlighted := hasEmphasis(item)
+
+	var comment string
+	if idx := strings.Index(name, " #"); idx >= 0 {
+		comment = strings.TrimSpace(name[idx+2:])
+		name = strings.TrimSpace(name[:idx])
+	}
+
+	isFolder := strings.HasSuffix(name, "/")
+	if isFolder {
+		name = strings.TrimSuffix(name, "/")
+	}
+
+	var nestedList ast.Node
+	for c := item.FirstChild(); c != nil; c = c.NextSibling() {
+		if c.Kind() == ast.KindList {
+			nestedList = c
+			isFolder = true
+			break
+		}
+	}
+
+	return itemInfo{
+		Name:          name,
+		Comment:       comment,
+		IsFolder:      isFolder,
+		IsHighlighted: isHighlighted,
+		IsPlaceholder: false,
+		NestedList:    nestedList,
+	}
+}
+
+func hasEmphasis(item ast.Node) bool {
+	for c := item.FirstChild(); c != nil; c = c.NextSibling() {
+		if c.Kind() == ast.KindList {
+			continue
+		}
+		for inline := c.FirstChild(); inline != nil; inline = inline.NextSibling() {
+			if em, ok := inline.(*ast.Emphasis); ok && em.Level == 2 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func renderItem(w util.BufWriter, name string, isFolder bool) {
+	if name == "..." {
+		_, _ = w.WriteString("<li class=\"sarde-file-tree-item sarde-file-tree-placeholder\">\n")
+		_, _ = w.WriteString("<span class=\"sarde-file-tree-entry\">")
+		_, _ = w.WriteString("<span class=\"sarde-file-tree-name\">" + htmlutil.EscapeHTML(name) + "</span>")
+		_, _ = w.WriteString("</span>\n</li>\n")
+		return
+	}
+
+	var comment string
+	if idx := strings.Index(name, " #"); idx >= 0 {
+		comment = strings.TrimSpace(name[idx+2:])
+		name = strings.TrimSpace(name[:idx])
+	}
+
 	itemClass := "sarde-file-tree-item"
 	if isFolder {
 		itemClass += " sarde-file-tree-folder"
@@ -137,6 +211,9 @@ func renderItem(w util.BufWriter, name string, isFolder bool) {
 	_, _ = w.WriteString("<span class=\"sarde-file-tree-entry\">")
 	_, _ = w.WriteString(icon)
 	_, _ = w.WriteString("<span class=\"" + nameClass + "\">" + htmlutil.EscapeHTML(name) + "</span>")
+	if comment != "" {
+		_, _ = w.WriteString("<span class=\"sarde-file-tree-comment\">" + htmlutil.EscapeHTML(comment) + "</span>")
+	}
 	_, _ = w.WriteString("</span>\n")
 	_, _ = w.WriteString("</li>\n")
 }

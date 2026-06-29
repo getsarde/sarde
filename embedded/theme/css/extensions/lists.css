@@ -516,6 +516,12 @@
 	    margin-inline-start: var(--sd-space-2);
 	}
 
+	/* Placeholder for omitted files */
+	.sarde-file-tree-placeholder .sarde-file-tree-name {
+	    color: var(--sd-text-subtle);
+	    letter-spacing: 0.15em;
+	}
+
 	/* Responsive */
 	@media (max-width: 768px) {
 	    .sarde-file-tree {

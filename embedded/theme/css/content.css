@@ -1,5 +1,18 @@
 @layer sarde.content {
-	/* Sarde Default Theme — Prose/Content Typography */
+
+	/* ── Universal sibling gap ── */
+	.sarde-markdown-content
+		:not(a, strong, em, del, span, input, code, br)
+		+ :not(a, strong, em, del, span, input, code, br, :where(pre *, .kazari-block *, .kz-group *)) {
+		margin-top: 1rem;
+	}
+
+	/* Headings after non-headings have more spacing. */
+	.sarde-markdown-content
+		:not(h1, h2, h3, h4, h5, h6)
+		+ :is(h1, h2, h3, h4, h5, h6) {
+		margin-top: 1.5em;
+	}
 
 	/* ── Headings ── */
 	h1, h2, h3, h4, h5, h6 {
@@ -7,43 +20,43 @@
 	  font-weight: var(--sd-weight-semibold);
 	  line-height: var(--sd-line-height-headings);
 	  color: var(--sd-text);
-	  margin-top: var(--sd-space-10);
-	  margin-bottom: var(--sd-space-4);
 	  scroll-margin-top: calc(var(--sd-nav-height) + var(--sd-space-4));
 	  position: relative;
 	}
 
-h1 { font-size: var(--sd-text-h1); letter-spacing: -0.025em; margin-top: 0; }
+	h1 { font-size: var(--sd-text-h1); font-weight: var(--sd-weight-bold); letter-spacing: -0.025em; margin-top: 0; }
 	h2 { font-size: var(--sd-text-h2); letter-spacing: -0.02em; padding-bottom: var(--sd-space-2); border-bottom: 1px solid var(--sd-border); }
 	h3 { font-size: var(--sd-text-h3); }
 	h4 { font-size: var(--sd-text-h4); }
 	h5 { font-size: var(--sd-text-h5); }
 	h6 { font-size: var(--sd-text-h6); }
 
-	.sarde-markdown-content :not(h1, h2, h3, h4, h5, h6) + :is(h1, h2, h3, h4, h5, h6) {
-	  margin-top: 1.5em;
-	}
-
 	:is(h1, h2, h3, h4, h5, h6) code {
 	  font-size: inherit;
 	}
 
-	/* ── Prose ── */
-	article p,
-	.content p {
-	  margin-bottom: var(--sd-space-5);
+	/* ── Lists ── */
+	.sarde-markdown-content li {
+	  overflow-wrap: anywhere;
+	}
+
+	.sarde-markdown-content li + li,
+	.sarde-markdown-content dt + dt,
+	.sarde-markdown-content dt + dd,
+	.sarde-markdown-content dd + dd {
+	  margin-top: 0.25rem;
+	}
+
+	.sarde-markdown-content
+		:is(ol, ul):has(> li > :not(a, strong, em, del, span, input, code, br, script, ol, ul))
+		> li
+		> :last-child:not(a, strong, em, del, span, input, code, br, script) {
+		margin-bottom: 1.25rem;
 	}
 
 	article ul, article ol,
 	.content ul, .content ol {
 	  padding-inline-start: var(--sd-space-6);
-	  margin-bottom: var(--sd-space-5);
-	}
-
-	article li,
-	.content li {
-	  margin-bottom: var(--sd-space-1);
-	  overflow-wrap: anywhere;
 	}
 
 	article li > ul, article li > ol,
@@ -52,33 +65,34 @@ h1 { font-size: var(--sd-text-h1); letter-spacing: -0.025em; margin-top: 0; }
 	  margin-bottom: 0;
 	}
 
+	/* ── Definition lists ── */
 	article dt, .content dt {
 	  font-weight: var(--sd-weight-bold);
 	}
 
 	article dd, .content dd {
-	  padding-inline-start: var(--sd-space-4);
+	  padding-inline-start: 1rem;
 	}
 
+	/* ── Blockquotes ── */
 	article blockquote,
 	.content blockquote {
-	  border-inline-start: 4px solid var(--sd-border);
-	  padding: var(--sd-space-1) var(--sd-space-4);
-	  color: var(--sd-text-muted);
-	  margin: var(--sd-space-8) 0;
+	  border-inline-start: 1px solid var(--sd-border);
+	  padding-inline-start: 1rem;
 	}
 
+	/* ── Horizontal rules ── */
 	article hr,
 	.content hr {
-	  border: none;
-	  border-top: 1px solid var(--sd-border);
-	  margin: var(--sd-space-8) 0;
+	  border: 0;
+	  border-bottom: 1px solid var(--sd-border);
 	}
 
 	/* ── Inline Code ── */
 	:not(pre) > code {
 	  font-family: var(--sd-font-mono);
 	  font-size: 0.875em;
+	  margin-block: -0.125rem;
 	  padding: 0.125rem 0.375rem;
 	  background: var(--sd-bg-inline-code);
 	  border-radius: var(--sd-radius-sm);
@@ -87,12 +101,12 @@ h1 { font-size: var(--sd-text-h1); letter-spacing: -0.025em; margin-top: 0; }
 
 	/* ── Code Blocks ── */
 	pre {
-	  margin: var(--sd-space-6) 0;
 	  padding: var(--sd-space-4);
 	  overflow-x: auto;
 	  font-family: var(--sd-font-mono);
 	  font-size: var(--sd-text-sm);
 	  line-height: 1.7;
+	  tab-size: 2;
 	  background: var(--sd-code-bg);
 	  border: 1px solid var(--sd-code-border);
 	  border-radius: var(--sd-radius-lg);
@@ -111,28 +125,34 @@ h1 { font-size: var(--sd-text-h1); letter-spacing: -0.025em; margin-top: 0; }
 	  display: block;
 	  overflow: auto;
 	  width: 100%;
-	  border-collapse: collapse;
-	  margin: var(--sd-space-6) 0;
+	  border-spacing: 0;
 	  font-size: var(--sd-text-sm);
+	}
+
+	article :is(th, td),
+	.content :is(th, td) {
+	  padding: var(--sd-space-2) var(--sd-space-3);
+	  border-bottom: 1px solid var(--sd-border);
+	  vertical-align: baseline;
 	}
 
 	article th,
 	.content th {
 	  text-align: start;
 	  font-weight: var(--sd-weight-semibold);
-	  padding: var(--sd-space-2) var(--sd-space-3);
-	  border-bottom: 2px solid var(--sd-border);
 	}
 
-	article td,
-	.content td {
-	  padding: var(--sd-space-2) var(--sd-space-3);
-	  border-bottom: 1px solid var(--sd-border);
+	.sarde-markdown-content :is(th:first-child, td:first-child) {
+	  padding-inline-start: 0;
+	}
+
+	.sarde-markdown-content :is(th:last-child, td:last-child) {
+	  padding-inline-end: 0;
 	}
 
 	/* ── Media ── */
-	article :is(img, picture, video, canvas, svg, iframe),
-	.content :is(img, picture, video, canvas, svg, iframe) {
+	article :is(img, picture, video, canvas, svg, iframe):not(.kazari-block *),
+	.content :is(img, picture, video, canvas, svg, iframe):not(.kazari-block *) {
 	  display: block;
 	  max-width: 100%;
 	  height: auto;

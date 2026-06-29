@@ -39,12 +39,32 @@ func (r *linkButtonRenderer) render(w util.BufWriter, source []byte, node ast.No
 		}
 
 		classes := []string{"sarde-link-button", "sarde-link-button-" + lb.Variant}
+		if lb.Size != "" {
+			classes = append(classes, "sarde-link-button-"+lb.Size)
+		}
+		if lb.Content == "" && lb.Icon != "" {
+			classes = append(classes, "sarde-link-button-icon-only")
+		}
+		if lb.Block {
+			classes = append(classes, "sarde-link-button-block")
+		}
+		if lb.Disabled {
+			classes = append(classes, "is-disabled")
+		}
+
 		isExternal := strings.HasPrefix(href, "http://") || strings.HasPrefix(href, "https://")
 
-		attrs := fmt.Sprintf("href=\"%s\" class=\"%s\"", htmlutil.EscapeHTML(href), htmlutil.EscapeHTML(strings.Join(classes, " ")))
+		attrs := fmt.Sprintf("href=\"%s\" class=\"%s\"", htmlutil.EscapeHTML(href), strings.Join(classes, " "))
 
-		if isExternal {
+		openNewTab := isExternal
+		if lb.NewTab != nil {
+			openNewTab = *lb.NewTab
+		}
+		if openNewTab {
 			attrs += ` target="_blank" rel="noopener noreferrer"`
+		}
+		if lb.Disabled {
+			attrs += ` aria-disabled="true"`
 		}
 
 		var content strings.Builder
@@ -59,7 +79,13 @@ func (r *linkButtonRenderer) render(w util.BufWriter, source []byte, node ast.No
 			content.WriteString(icons.GetWithClass(lb.Icon, "sarde-link-button-icon"))
 		}
 
+		if lb.Center {
+			_, _ = w.WriteString("<div class=\"sarde-link-button-center\">\n")
+		}
 		_, _ = fmt.Fprintf(w, "<a %s>%s</a>\n", attrs, content.String())
+		if lb.Center {
+			_, _ = w.WriteString("</div>\n")
+		}
 	}
 	return ast.WalkSkipChildren, nil
 }

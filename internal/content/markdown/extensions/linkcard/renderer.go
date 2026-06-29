@@ -44,13 +44,26 @@ func (r *linkCardRenderer) render(w util.BufWriter, source []byte, node ast.Node
 		if title == "" {
 			title = domainFromURL(lc.Href)
 		}
-		attrs := fmt.Sprintf("href=\"%s\" class=\"sarde-link-card\"", htmlutil.EscapeHTML(href))
+		cls := "sarde-link-card"
 		if isExternal {
-			// Only external links open in a new tab; resolved internal URLs stay same-tab.
+			cls += " sarde-link-card-external"
+		}
+		attrs := fmt.Sprintf("href=\"%s\" class=\"%s\"", htmlutil.EscapeHTML(href), cls)
+		openNewTab := isExternal
+		if lc.NewTab != nil {
+			openNewTab = *lc.NewTab
+		}
+		if openNewTab {
 			attrs += ` target="_blank" rel="noopener noreferrer"`
 		}
 		_, _ = fmt.Fprintf(w, "<a %s>\n", attrs)
-		if lc.Icon != "" {
+		if lc.Image != "" {
+			imgSrc := lc.Image
+			if r.linkRenderer != nil {
+				imgSrc = r.linkRenderer.ResolveHref(imgSrc)
+			}
+			_, _ = fmt.Fprintf(w, "<div class=\"sarde-link-card-image\"><img src=\"%s\" alt=\"\"></div>\n", htmlutil.EscapeHTML(imgSrc))
+		} else if lc.Icon != "" {
 			if svg := icons.GetWithClass(lc.Icon, "sarde-link-card-icon"); svg != "" {
 				_, _ = w.WriteString(svg)
 				_, _ = w.WriteString("\n")
@@ -60,6 +73,9 @@ func (r *linkCardRenderer) render(w util.BufWriter, source []byte, node ast.Node
 			htmlutil.EscapeHTML(title))
 		if lc.Description != "" {
 			_, _ = fmt.Fprintf(w, "<p class=\"sarde-link-card-description\">%s</p>\n", htmlutil.EscapeHTML(lc.Description))
+		}
+		if isExternal {
+			_, _ = fmt.Fprintf(w, "<span class=\"sarde-link-card-domain\">%s</span>\n", htmlutil.EscapeHTML(domainFromURL(lc.Href)))
 		}
 		_, _ = w.WriteString("</div>\n" + icons.GetWithClass("arrow-right", "sarde-link-card-arrow") + "\n</a>\n")
 	}

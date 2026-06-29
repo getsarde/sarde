@@ -9,7 +9,9 @@ type LinkCardBlock struct {
 	Title       string
 	Href        string
 	Description string
-	Icon        string // Lucide icon name (optional)
+	Icon        string
+	Image       string
+	NewTab      *bool
 }
 
 func (n *LinkCardBlock) Kind() gast.NodeKind { return KindLinkCardBlock }
@@ -20,5 +22,6 @@ func (n *LinkCardBlock) Dump(source []byte, level int) {
 		"Href":        n.Href,
 		"Description": n.Description,
 		"Icon":        n.Icon,
+		"Image":       n.Image,
 	}, nil)
 }

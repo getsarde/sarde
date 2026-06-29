@@ -1,4 +1,4 @@
-package card
+package linkbuttongroup
 
 import (
 	"regexp"
@@ -9,35 +9,26 @@ import (
 	"github.com/yuin/goldmark/text"
 )
 
-var openingRegex = regexp.MustCompile(`^:{3,}\s*card(?:\[([^\]]*)\])?(?:\{([^}]*)\})?\s*$`)
+var openingRegex = regexp.MustCompile(`^:{3,}\s*link-button-group\s*$`)
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
 var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
-var attrRegex = regexp.MustCompile(`(\w+)="([^"]*)"`)
 
-type cardParser struct{}
+type linkButtonGroupParser struct{}
 
-func NewParser() parser.BlockParser { return &cardParser{} }
-func (p *cardParser) Trigger() []byte { return []byte{':'} }
+func NewParser() parser.BlockParser { return &linkButtonGroupParser{} }
+func (p *linkButtonGroupParser) Trigger() []byte { return []byte{':'} }
 
-func (p *cardParser) Open(parent ast.Node, reader text.Reader, pc parser.Context) (ast.Node, parser.State) {
+func (p *linkButtonGroupParser) Open(parent ast.Node, reader text.Reader, pc parser.Context) (ast.Node, parser.State) {
 	line, _ := reader.PeekLine()
 	lineStr := strings.TrimSpace(string(line))
-	matches := openingRegex.FindStringSubmatch(lineStr)
-	if matches == nil {
+	if !openingRegex.MatchString(lineStr) {
 		return nil, parser.NoChildren
 	}
 	reader.Advance(len(line))
-
-	title := matches[1]
-	attrs := parseAttrs(matches[2])
-	if title == "" {
-		title = attrs["title"]
-	}
-
-	return &CardBlock{Title: title, Icon: attrs["icon"], Variant: attrs["variant"]}, parser.HasChildren
+	return &LinkButtonGroupBlock{}, parser.HasChildren
 }
 
-func (p *cardParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
+func (p *linkButtonGroupParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
 	line, _ := reader.PeekLine()
 	trimmed := strings.TrimSpace(string(line))
 	depth := getDepth(pc, node)
@@ -51,7 +42,7 @@ func (p *cardParser) Continue(node ast.Node, reader text.Reader, pc parser.Conte
 				setDepth(pc, node, depth-1)
 				return parser.Continue | parser.HasChildren
 			}
-			if m[1] == "card" {
+			if m[1] == "link-button-group" {
 				reader.AdvanceToEOL()
 				return parser.Close
 			}
@@ -64,17 +55,11 @@ func (p *cardParser) Continue(node ast.Node, reader text.Reader, pc parser.Conte
 	return parser.Continue | parser.HasChildren
 }
 
-func (p *cardParser) Close(node ast.Node, reader text.Reader, pc parser.Context) { deleteDepth(pc, node) }
-func (p *cardParser) CanInterruptParagraph() bool                                 { return false }
-func (p *cardParser) CanAcceptIndentedLine() bool                                 { return false }
-
-func parseAttrs(s string) map[string]string {
-	result := make(map[string]string)
-	for _, m := range attrRegex.FindAllStringSubmatch(s, -1) {
-		result[m[1]] = m[2]
-	}
-	return result
+func (p *linkButtonGroupParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
+	deleteDepth(pc, node)
 }
+func (p *linkButtonGroupParser) CanInterruptParagraph() bool { return false }
+func (p *linkButtonGroupParser) CanAcceptIndentedLine() bool { return false }
 
 var contextKeyDepth = parser.NewContextKey()
 

@@ -27,6 +27,7 @@ import (
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/imagecompare"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/kbd"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkbutton"
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkbuttongroup"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkcard"
 	extmath "github.com/getsarde/sarde/internal/content/markdown/extensions/math"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/mermaid"
@@ -212,6 +213,7 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) (goldmark.Markdown, string)
 		&cardgrid.Extension{},
 		&linkcard.Extension{BlockedSchemes: cfg.BlockedHrefSchemes, LinkRenderer: r.linkRend},
 		&linkbutton.Extension{BlockedSchemes: cfg.BlockedHrefSchemes, LinkRenderer: r.linkRend},
+		&linkbuttongroup.Extension{},
 		&figure.Extension{},
 		&gallery.Extension{},
 		&imagecompare.Extension{},

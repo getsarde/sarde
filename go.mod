@@ -10,7 +10,7 @@ require (
 	github.com/frostybee/go-swarm-icons v0.1.0
 	github.com/frostybee/go-swarm-icons/lucide v0.1.0
 	github.com/frostybee/kazari v1.0.1
-	github.com/frostybee/nuri v1.0.0
+	github.com/frostybee/nuri v1.0.1
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gen2brain/avif v0.4.4
 	github.com/gen2brain/webp v0.5.5
@@ -22,6 +22,7 @@ require (
 	golang.org/x/image v0.40.0
 	golang.org/x/net v0.52.0
 	golang.org/x/sync v0.20.0
+	golang.org/x/sys v0.46.0
 	golang.org/x/term v0.44.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -33,6 +34,7 @@ require (
 	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/tdewolff/parse/v2 v2.8.12 // indirect
 	github.com/tetratelabs/wazero v1.12.0 // indirect
-	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 )
+
+replace github.com/frostybee/kazari v1.0.1 => D:\dev\my-repos\kazari

@@ -10,8 +10,13 @@ type LinkButtonBlock struct {
 	Variant       string
 	Icon          string
 	IconPlacement string
+	Size          string
 	Content       string
 	ColonCount    int
+	Block         bool
+	Disabled      bool
+	Center        bool
+	NewTab        *bool
 	// HasLabel records whether the opening tag carried an explicit label, so
 	// Continue knows to ignore body lines. It lives on the node because the
 	// parser instance is shared across blocks (and across pages rendered

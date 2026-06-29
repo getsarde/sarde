@@ -13,6 +13,22 @@ var openingRegex = regexp.MustCompile(`^:{3,}\s*tabs\s*$`)
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
 var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 var tabBoundaryRegex = regexp.MustCompile(`^==\s+(.+)`)
+var tabAttrBlockRegex = regexp.MustCompile(`\{([^}]*)\}\s*$`)
+var attrRegex = regexp.MustCompile(`(\w+)="([^"]*)"`)
+
+func parseTabLabel(raw string) (label, icon string) {
+	if m := tabAttrBlockRegex.FindStringSubmatchIndex(raw); m != nil {
+		attrStr := raw[m[2]:m[3]]
+		label = strings.TrimSpace(raw[:m[0]])
+		for _, attr := range attrRegex.FindAllStringSubmatch(attrStr, -1) {
+			if attr[1] == "icon" {
+				icon = attr[2]
+			}
+		}
+		return
+	}
+	return raw, ""
+}
 
 type tabsParser struct{}
 
@@ -90,8 +106,10 @@ func (p *tabsParser) Close(node ast.Node, reader text.Reader, pc parser.Context)
 		if para, ok := child.(*ast.Paragraph); ok {
 			text := strings.TrimSpace(string(para.Text(source)))
 			if matches := tabBoundaryRegex.FindStringSubmatch(text); matches != nil {
+				label, icon := parseTabLabel(strings.TrimSpace(matches[1]))
 				currentItem = &TabItem{
-					Label: strings.TrimSpace(matches[1]),
+					Label: label,
+					Icon:  icon,
 					Index: tabIndex,
 				}
 				items = append(items, currentItem)

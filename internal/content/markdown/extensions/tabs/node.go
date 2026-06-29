@@ -28,6 +28,7 @@ func (n *TabsBlock) Dump(source []byte, level int) {
 type TabItem struct {
 	gast.BaseBlock
 	Label string
+	Icon  string
 	Index int // 0-based tab index
 }
 

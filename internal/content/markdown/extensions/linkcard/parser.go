@@ -11,7 +11,7 @@ import (
 
 var openingRegex = regexp.MustCompile(`^:{3,}\s*link-card(?:\[([^\]]*)\])?(?:\{([^}]*)\})?\s*$`)
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/link-card)?\s*$`)
-var attrRegex = regexp.MustCompile(`(\w+)="([^"]*)"`)
+var attrRegex = regexp.MustCompile(`([\w-]+)="([^"]*)"`)
 
 type linkCardParser struct{}
 
@@ -33,11 +33,19 @@ func (p *linkCardParser) Open(parent ast.Node, reader text.Reader, pc parser.Con
 		title = t
 	}
 
+	var newTab *bool
+	if v, ok := attrs["new-tab"]; ok {
+		b := v == "true"
+		newTab = &b
+	}
+
 	return &LinkCardBlock{
 		Title:       title,
 		Href:        attrs["href"],
 		Description: attrs["description"],
 		Icon:        attrs["icon"],
+		Image:       attrs["image"],
+		NewTab:      newTab,
 	}, parser.NoChildren
 }
 

@@ -550,6 +550,13 @@
 	    pointer-events: none;
 	}
 
+	/* Center wrapper */
+	.sarde-link-button-center {
+	    display: flex;
+	    justify-content: center;
+	    margin: var(--sd-space-4) 0;
+	}
+
 	/* Button group */
 	.sarde-link-button-group {
 	    display: inline-flex;

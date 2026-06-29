@@ -22,7 +22,14 @@ func (r *cardRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 func (r *cardRenderer) render(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		c := node.(*CardBlock)
-		_, _ = w.WriteString("<div class=\"sarde-card\">\n")
+		cls := "sarde-card"
+		switch c.Variant {
+		case "highlighted":
+			cls += " sarde-card-highlighted"
+		case "subtle":
+			cls += " sarde-card-subtle"
+		}
+		_, _ = fmt.Fprintf(w, "<div class=\"%s\">\n", cls)
 		if c.Title != "" || c.Icon != "" {
 			_, _ = w.WriteString("<div class=\"sarde-card-header\">\n")
 			if c.Icon != "" {

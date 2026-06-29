@@ -8,6 +8,7 @@ import (
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
 	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
+	"github.com/getsarde/sarde/internal/content/markdown/icons"
 )
 
 var tabsCounter atomic.Int64
@@ -40,8 +41,14 @@ func (r *tabsRenderer) renderTabsBlock(w util.BufWriter, source []byte, node ast
 					activeClass = " is-active"
 					ariaSelected = "true"
 				}
-				_, _ = fmt.Fprintf(w, "<button class=\"sarde-tab-button%s\" role=\"tab\" aria-selected=\"%s\" data-tab=\"%d\" data-tab-label=\"%s\" id=\"tab-%d-tab-%d\" aria-controls=\"tab-%d-panel-%d\">%s</button>\n",
-					activeClass, ariaSelected, tab.Index, htmlutil.EscapeHTML(tab.Label), tb.ID, tab.Index, tb.ID, tab.Index, htmlutil.EscapeHTML(tab.Label))
+				iconHTML := ""
+				if tab.Icon != "" {
+					if svg := icons.GetWithClass(tab.Icon, "sarde-tab-icon"); svg != "" {
+						iconHTML = svg
+					}
+				}
+				_, _ = fmt.Fprintf(w, "<button class=\"sarde-tab-button%s\" role=\"tab\" aria-selected=\"%s\" data-tab=\"%d\" data-tab-label=\"%s\" id=\"tab-%d-tab-%d\" aria-controls=\"tab-%d-panel-%d\">%s%s</button>\n",
+					activeClass, ariaSelected, tab.Index, htmlutil.EscapeHTML(tab.Label), tb.ID, tab.Index, tb.ID, tab.Index, iconHTML, htmlutil.EscapeHTML(tab.Label))
 			}
 		}
 

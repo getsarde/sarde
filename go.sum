@@ -19,10 +19,8 @@ github.com/frostybee/go-swarm-icons v0.1.0 h1:DPqlGRyA7LL2QTiNWYJ6c846vE4LJS+g0i
 github.com/frostybee/go-swarm-icons v0.1.0/go.mod h1:XfN4UgMOdR5XYBhMErkARe51vnGZNvZCY9QSNnVGjDk=
 github.com/frostybee/go-swarm-icons/lucide v0.1.0 h1:KtxGJAij6qKOlOKnDJTZuOCa3Nv1p8GshGVw8BWEnnM=
 github.com/frostybee/go-swarm-icons/lucide v0.1.0/go.mod h1:xzITKwQda6bXAi5+NiejXloA9I+V203zR7DYdvCztco=
-github.com/frostybee/kazari v1.0.1 h1:IgVTbb9QBbifftYLPUoeobb5m9rwp45iDiwJBVgae+I=
-github.com/frostybee/kazari v1.0.1/go.mod h1:5WNg52nk3J/zAfGOpQYmWQvxgWuyIQ7xwLsU7WofDeY=
-github.com/frostybee/nuri v1.0.0 h1:MZn0cpawVPIyBRslUomyA1owDXbvN193HYsGQRr2J+Y=
-github.com/frostybee/nuri v1.0.0/go.mod h1:Za24ALqdA0qDb3R2zd7eBCD2ctk9j+tlQsrBeV+bs7o=
+github.com/frostybee/nuri v1.0.1 h1:CqvuonKdnN+IZsRbSR4+dBevKLIh/doqv97dqV+fBB4=
+github.com/frostybee/nuri v1.0.1/go.mod h1:Za24ALqdA0qDb3R2zd7eBCD2ctk9j+tlQsrBeV+bs7o=
 github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S9k=
 github.com/fsnotify/fsnotify v1.9.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
 github.com/gen2brain/avif v0.4.4 h1:Ga/ss7qcWWQm2bxFpnjYjhJsNfZrWs5RsyklgFjKRSE=

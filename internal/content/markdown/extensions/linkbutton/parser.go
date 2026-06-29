@@ -11,7 +11,7 @@ import (
 
 // matches[1] = colon sequence, matches[2] = label, matches[3] = attrs
 var openingRegex = regexp.MustCompile(`^(:{3,})\s*link-button(?:\[([^\]]*)\])?(?:\{([^}]*)\})?\s*$`)
-var attrRegex = regexp.MustCompile(`(\w+)="([^"]*)"`)
+var attrRegex = regexp.MustCompile(`([\w-]+)="([^"]*)"`)
 
 // linkButtonParser is stateless; per-block parse state lives on LinkButtonBlock.
 type linkButtonParser struct{}
@@ -50,13 +50,29 @@ func (p *linkButtonParser) Open(parent ast.Node, reader text.Reader, pc parser.C
 		content = attrs["label"]
 	}
 
+	size := attrs["size"]
+	if size != "" && !isValidSize(size) {
+		size = ""
+	}
+
+	var newTab *bool
+	if v, ok := attrs["new-tab"]; ok {
+		b := v == "true"
+		newTab = &b
+	}
+
 	return &LinkButtonBlock{
 		Href:          attrs["href"],
 		Variant:       variant,
 		Icon:          attrs["icon"],
 		IconPlacement: iconPlacement,
+		Size:          size,
 		Content:       content,
 		ColonCount:    colonCount,
+		Block:         attrs["block"] == "true",
+		Disabled:      attrs["disabled"] == "true",
+		Center:        attrs["center"] == "true",
+		NewTab:        newTab,
 		HasLabel:      content != "",
 	}, parser.NoChildren
 }
@@ -114,9 +130,13 @@ func parseAttrs(s string) map[string]string {
 }
 
 func isValidVariant(v string) bool {
-	return v == "primary" || v == "secondary" || v == "minimal"
+	return v == "primary" || v == "secondary" || v == "minimal" || v == "ghost" || v == "outline"
 }
 
 func isValidIconPlacement(p string) bool {
 	return p == "start" || p == "end"
+}
+
+func isValidSize(s string) bool {
+	return s == "sm" || s == "lg"
 }

@@ -2,6 +2,7 @@ package cardgrid
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/yuin/goldmark/ast"
@@ -9,7 +10,16 @@ import (
 	"github.com/yuin/goldmark/text"
 )
 
-var openingRegex = regexp.MustCompile(`^:{3,}\s*card-grid\s*$`)
+var openingRegex = regexp.MustCompile(`^:{3,}\s*card-grid(?:\{([^}]*)\})?\s*$`)
+var attrRegex = regexp.MustCompile(`(\w+)="([^"]*)"`)
+
+func parseAttrs(s string) map[string]string {
+	result := make(map[string]string)
+	for _, m := range attrRegex.FindAllStringSubmatch(s, -1) {
+		result[m[1]] = m[2]
+	}
+	return result
+}
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
 var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 
@@ -21,11 +31,21 @@ func (p *cardGridParser) Trigger() []byte { return []byte{':'} }
 func (p *cardGridParser) Open(parent ast.Node, reader text.Reader, pc parser.Context) (ast.Node, parser.State) {
 	line, _ := reader.PeekLine()
 	lineStr := strings.TrimSpace(string(line))
-	if !openingRegex.MatchString(lineStr) {
+	matches := openingRegex.FindStringSubmatch(lineStr)
+	if matches == nil {
 		return nil, parser.NoChildren
 	}
 	reader.Advance(len(line))
-	return &CardGridBlock{}, parser.HasChildren
+
+	var cols int
+	if matches[1] != "" {
+		attrs := parseAttrs(matches[1])
+		if v, err := strconv.Atoi(attrs["cols"]); err == nil && v >= 2 && v <= 4 {
+			cols = v
+		}
+	}
+
+	return &CardGridBlock{Cols: cols}, parser.HasChildren
 }
 
 func (p *cardGridParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
