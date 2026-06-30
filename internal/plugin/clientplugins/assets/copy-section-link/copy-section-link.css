@@ -1,3 +1,4 @@
+@layer sarde.plugins {
 /* Copy Section Link Plugin — Tooltip */
 
 .sarde-copy-section-tooltip {
@@ -39,4 +40,5 @@
     .sarde-copy-section-tooltip {
         transition: none;
     }
+}
 }

@@ -1,3 +1,4 @@
+@layer sarde.plugins {
 /* ── Focus Mode Toggle Button ─────────────────────────────────── */
 
 .sarde-focus-mode-btn {
@@ -243,4 +244,5 @@ div.sarde-content-panel {
     .sarde-focus-mode-btn {
         display: none !important;
     }
+}
 }

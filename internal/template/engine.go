@@ -534,7 +534,7 @@ var cssOrder = []string{
 	"css/dark.css",
 }
 
-const cssLayerPrefix = "@layer sarde.base, sarde.reset, sarde.core, sarde.content, sarde.components, sarde.variants, sarde.utils, sarde.user;\n"
+const cssLayerPrefix = "@layer sarde.base, sarde.reset, sarde.core, sarde.content, sarde.components, sarde.variants, sarde.utils, sarde.plugins, sarde.user;\n"
 
 // loadThemeCSS reads and concatenates CSS files from an external theme's css/ directory.
 // Returns "" if the theme has no css/ directory, allowing fallback to embedded CSS.

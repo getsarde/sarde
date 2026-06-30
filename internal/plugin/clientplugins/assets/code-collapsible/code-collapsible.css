@@ -1,3 +1,4 @@
+@layer sarde.plugins {
 /* Code Block Collapsible Styles
  * Collapse classes applied directly to .code-block — no wrapper element needed.
  * JS reads data-lines / data-collapse attributes set by the Go renderer.
@@ -161,4 +162,5 @@
   .sarde-cc-icon {
     transition: none;
   }
+}
 }

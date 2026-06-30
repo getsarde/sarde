@@ -1,3 +1,4 @@
+@layer sarde.plugins {
 /* ── Highlight Marks ──────────────────────────────────────── */
 
 .sarde-search-hl {
@@ -122,4 +123,5 @@
     .sarde-search-hl {
         transition: none;
     }
+}
 }

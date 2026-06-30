@@ -1,3 +1,4 @@
+@layer sarde.plugins {
 /* External Links Plugin */
 
 /* Icon placed after external link text */
@@ -22,4 +23,5 @@ a:has(> img) .sarde-external-link-icon,
 .nav-link .sarde-external-link-icon,
 .brand-link .sarde-external-link-icon {
     display: none;
+}
 }

@@ -1,3 +1,4 @@
+@layer sarde.plugins {
 /* Reading Progress Plugin
  * Scroll progress bar + reading time badge
  */
@@ -47,4 +48,5 @@
     .sarde-reading-progress-bar {
         transition: none;
     }
+}
 }

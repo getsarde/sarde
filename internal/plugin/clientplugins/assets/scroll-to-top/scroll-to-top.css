@@ -1,3 +1,4 @@
+@layer sarde.plugins {
 .sarde-scroll-to-top {
     position: fixed;
     bottom: 40px;
@@ -146,4 +147,5 @@
     .sarde-scroll-to-top {
         display: none !important;
     }
+}
 }

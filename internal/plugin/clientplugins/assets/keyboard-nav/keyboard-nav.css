@@ -1,3 +1,4 @@
+@layer sarde.plugins {
 /* Keyboard Navigation Plugin — Hint Toast */
 
 .sarde-kbd-nav-hint {
@@ -75,4 +76,5 @@
     .sarde-kbd-nav-hint {
         transition: none;
     }
+}
 }

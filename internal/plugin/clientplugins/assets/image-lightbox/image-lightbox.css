@@ -1,3 +1,4 @@
+@layer sarde.plugins {
 /* Image Lightbox Plugin */
 
 /* ========================================
@@ -158,4 +159,5 @@ article.sarde-markdown-content img:not(.sarde-gallery-item img):not(.no-lightbox
     .sarde-image-lightbox-img {
         transition: none;
     }
+}
 }

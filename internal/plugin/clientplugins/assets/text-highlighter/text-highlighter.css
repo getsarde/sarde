@@ -1,3 +1,4 @@
+@layer sarde.plugins {
 /* ── Highlight Marks ──────────────────────────────────────── */
 
 .sarde-text-hl {
@@ -190,4 +191,5 @@
     .sarde-text-hl {
         transition: none;
     }
+}
 }

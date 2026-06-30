@@ -1,3 +1,4 @@
+@layer sarde.plugins {
 /* Reading Preferences Plugin */
 
 /* Toggle Button */
@@ -267,7 +268,7 @@ article.sarde-markdown-content {
     text-align: var(--rp-text-align, start);
 }
 
-article.sarde-markdown-content p {
+article.sarde-markdown-content p:not(:where(.not-content *)) {
     margin-bottom: var(--rp-paragraph-spacing, 1.25em);
 }
 
@@ -304,4 +305,5 @@ body.focus-mode div.sarde-content-panel {
     .sarde-reading-prefs-panel {
         display: none !important;
     }
+}
 }
