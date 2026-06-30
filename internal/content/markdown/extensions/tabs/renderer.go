@@ -30,7 +30,7 @@ func (r *tabsRenderer) renderTabsBlock(w util.BufWriter, source []byte, node ast
 		tb := node.(*TabsBlock)
 		tb.ID = tabsCounter.Add(1)
 
-		_, _ = w.WriteString("<div class=\"sarde-tabs\">\n<div class=\"sarde-tabs-header\" role=\"tablist\">\n")
+		_, _ = w.WriteString("<div class=\"sarde-tabs not-content\">\n<div class=\"sarde-tabs-header\" role=\"tablist\">\n")
 
 		// Render tab buttons
 		for c := node.FirstChild(); c != nil; c = c.NextSibling() {

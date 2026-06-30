@@ -361,10 +361,20 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 	}
 	b.globalCSSURLs = assetPipeline.GlobalCSSURLs()
 
-	// Bundle embedded theme JS.
-	jsContent, jsFilename, err := BundleEmbeddedJS(b.embeddedFS, b.devMode)
-	if err != nil {
-		return fmt.Errorf("bundling embedded theme JS: %w", err)
+	// Bundle theme JS: prefer external theme over embedded.
+	var jsContent []byte
+	var jsFilename string
+	if b.config.Theme.Name != "" {
+		jsContent, jsFilename, err = BundleThemeJS(b.projectDir, b.config.Theme.Name, b.devMode)
+		if err != nil {
+			return fmt.Errorf("bundling theme JS: %w", err)
+		}
+	}
+	if jsFilename == "" {
+		jsContent, jsFilename, err = BundleEmbeddedJS(b.embeddedFS, b.devMode)
+		if err != nil {
+			return fmt.Errorf("bundling embedded theme JS: %w", err)
+		}
 	}
 	if jsFilename != "" {
 		b.themeJSURL = "/assets/js/" + jsFilename

@@ -61,7 +61,7 @@ func (r *imageCompareRenderer) render(w util.BufWriter, source []byte, node ast.
 	id := compareCounter.Add(1)
 	containerID := fmt.Sprintf("img-compare-%d", id)
 
-	_, _ = w.WriteString("<div class=\"sarde-image-compare-wrapper\">\n")
+	_, _ = w.WriteString("<div class=\"sarde-image-compare-wrapper not-content\">\n")
 	if ic.Label != "" {
 		_, _ = fmt.Fprintf(w, "<div class=\"sarde-image-compare-label\">%s</div>\n", htmlutil.EscapeHTML(ic.Label))
 	}

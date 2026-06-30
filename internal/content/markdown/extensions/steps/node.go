@@ -26,8 +26,9 @@ func (n *StepsBlock) Dump(source []byte, level int) {
 // StepItem is an AST node representing a single step within a StepsBlock.
 type StepItem struct {
 	gast.BaseBlock
-	Title string
-	Index int // 1-based step number
+	Title        string
+	Index        int // 1-based step number
+	HeadingLevel int // 2 or 3, matching the source heading
 }
 
 // Kind implements ast.Node.Kind.

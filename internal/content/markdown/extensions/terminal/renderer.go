@@ -39,7 +39,7 @@ func (r *terminalRenderer) render(w util.BufWriter, source []byte, node ast.Node
 	content = strings.TrimRight(content, "\n")
 	lines := strings.Split(content, "\n")
 
-	_, _ = w.WriteString("<div class=\"sarde-terminal\">\n")
+	_, _ = w.WriteString("<div class=\"sarde-terminal not-content\">\n")
 	_, _ = w.WriteString("<div class=\"sarde-terminal-header\">\n")
 	_, _ = w.WriteString("<div class=\"sarde-terminal-buttons\">\n")
 	_, _ = w.WriteString("<span class=\"sarde-terminal-button close\"></span>\n")

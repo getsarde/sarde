@@ -19,7 +19,7 @@ func (r *cardGridRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer
 func (r *cardGridRenderer) render(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		g := node.(*CardGridBlock)
-		cls := "sarde-card-grid"
+		cls := "sarde-card-grid not-content"
 		if g.Cols >= 2 && g.Cols <= 4 {
 			cls += fmt.Sprintf(" sarde-card-grid-%d", g.Cols)
 		}

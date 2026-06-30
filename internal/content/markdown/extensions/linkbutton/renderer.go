@@ -80,7 +80,7 @@ func (r *linkButtonRenderer) render(w util.BufWriter, source []byte, node ast.No
 		}
 
 		if lb.Center {
-			_, _ = w.WriteString("<div class=\"sarde-link-button-center\">\n")
+			_, _ = w.WriteString("<div class=\"sarde-link-button-center not-content\">\n")
 		}
 		_, _ = fmt.Fprintf(w, "<a %s>%s</a>\n", attrs, content.String())
 		if lb.Center {

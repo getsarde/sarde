@@ -32,7 +32,7 @@ func (r *videoRenderer) render(w util.BufWriter, source []byte, node ast.Node, e
 	case "youtube":
 		embedURL := buildYouTubeURL(v.VideoID, v)
 		title := resolveTitle(v.Title, "YouTube video")
-		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"%s\"><iframe src=\"%s\" title=\"%s\"%s></iframe></div>",
+		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed not-content\"><div class=\"%s\"><iframe src=\"%s\" title=\"%s\"%s></iframe></div>",
 			wrapperClass, embedURL, title, iframeAttrs)
 		writeCaption(w, v.Title)
 		_, _ = w.WriteString("</div>\n")
@@ -40,7 +40,7 @@ func (r *videoRenderer) render(w util.BufWriter, source []byte, node ast.Node, e
 	case "vimeo":
 		embedURL := buildVimeoURL(v.VideoID, v)
 		title := resolveTitle(v.Title, "Vimeo video")
-		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"%s\"><iframe src=\"%s\" title=\"%s\"%s></iframe></div>",
+		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed not-content\"><div class=\"%s\"><iframe src=\"%s\" title=\"%s\"%s></iframe></div>",
 			wrapperClass, embedURL, title, iframeAttrs)
 		writeCaption(w, v.Title)
 		_, _ = w.WriteString("</div>\n")
@@ -60,7 +60,7 @@ func (r *videoRenderer) render(w util.BufWriter, source []byte, node ast.Node, e
 		if v.Title != "" {
 			videoAttrs.WriteString(` title="` + htmlutil.EscapeHTML(v.Title) + `"`)
 		}
-		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed\"><div class=\"%s\"><video src=\"%s\"%s></video></div>",
+		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed not-content\"><div class=\"%s\"><video src=\"%s\"%s></video></div>",
 			wrapperClass, htmlutil.EscapeHTML(v.URL), videoAttrs.String())
 		writeCaption(w, v.Title)
 		_, _ = w.WriteString("</div>\n")

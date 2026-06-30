@@ -16,7 +16,7 @@ func (r *badgeGroupRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegister
 
 func (r *badgeGroupRenderer) render(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
-		_, _ = w.WriteString("<div class=\"sarde-badge-group\">\n")
+		_, _ = w.WriteString("<div class=\"sarde-badge-group not-content\">\n")
 	} else {
 		_, _ = w.WriteString("</div>\n")
 	}

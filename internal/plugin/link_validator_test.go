@@ -16,7 +16,7 @@ func buildTestContext(pages []*engine.Page, validationData map[string]engine.Val
 			for i, h := range p.Headings {
 				ids[i] = h.ID
 			}
-			idx.SetHeadings(p.RelPermalink, ids)
+			idx.SetHeadings(p.Permalink, ids)
 		}
 	}
 
@@ -26,6 +26,7 @@ func buildTestContext(pages []*engine.Page, validationData map[string]engine.Val
 			LinkValidation: config.LinkValidationSettings{},
 		},
 		Site:           &engine.SiteContext{BaseURL: siteURL},
+		Resolver:       &engine.URLResolver{BasePath: "/"},
 		PageIndex:      idx,
 		ValidationData: validationData,
 	}
@@ -348,6 +349,61 @@ func TestLinkValidatorImagesDisabled(t *testing.T) {
 	}
 	if !contains((*warnings)[0].Message, "/broken-link/") {
 		t.Errorf("expected broken-link warning, got %q", (*warnings)[0].Message)
+	}
+}
+
+func TestLinkValidatorWithBasePath(t *testing.T) {
+	pages := []*engine.Page{
+		{PageIdentity: engine.PageIdentity{Slug: "auth", RelPermalink: "/docs/guide/auth/", Permalink: "/swarm/docs/guide/auth/"}},
+		{
+			PageIdentity: engine.PageIdentity{Slug: "intro", RelPermalink: "/docs/guide/intro/", Permalink: "/swarm/docs/guide/intro/"},
+			PageContent:  engine.PageContent{Headings: []engine.Heading{{ID: "overview", Text: "Overview", Level: 2}}},
+		},
+	}
+	data := map[string]engine.ValidationEntry{
+		"/swarm/docs/guide/auth/": {
+			FilePath: "content/docs/guide/auth.md",
+			Links: []engine.CollectedLink{
+				{Href: "/docs/guide/intro"},
+				{Href: "/docs/guide/intro#overview"},
+				{Href: "/docs/guide/nonexistent"},
+			},
+		},
+	}
+
+	idx := content.BuildPageIndex(pages)
+	for _, p := range pages {
+		if len(p.Headings) > 0 {
+			ids := make([]string, len(p.Headings))
+			for i, h := range p.Headings {
+				ids[i] = h.ID
+			}
+			idx.SetHeadings(p.Permalink, ids)
+		}
+	}
+
+	var warnings []engine.ValidationWarning
+	ctx := &BuildDoneContext{
+		Config: &config.SiteConfig{
+			LinkValidation: config.LinkValidationSettings{},
+		},
+		Site:           &engine.SiteContext{},
+		Resolver:       &engine.URLResolver{BasePath: "/swarm/"},
+		PageIndex:      idx,
+		ValidationData: data,
+	}
+	ctx.SetWarnings(&warnings)
+
+	err := linkValidatorBuildDone(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(warnings) != 1 {
+		t.Fatalf("got %d warnings, want 1 (only nonexistent); warnings: %v", len(warnings), warnings)
+	}
+	if !contains(warnings[0].Message, "/docs/guide/nonexistent") {
+		t.Errorf("expected warning about nonexistent, got %q", warnings[0].Message)
 	}
 }
 

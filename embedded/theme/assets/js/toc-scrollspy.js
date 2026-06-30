@@ -88,7 +88,15 @@
     }
     var deepHeadings = content.querySelectorAll('h2[id], h3[id], h4[id], h5[id], h6[id]');
     [].forEach.call(deepHeadings, function (h) {
-      if (h.parentElement !== content) elementsToObserve.push(h);
+      if (h.parentElement !== content) {
+        elementsToObserve.push(h);
+        var sibling = h.nextElementSibling;
+        while (sibling) {
+          if (/^H[2-6]$/.test(sibling.nodeName)) break;
+          elementsToObserve.push(sibling);
+          sibling = sibling.nextElementSibling;
+        }
+      }
     });
   }
 
@@ -144,7 +152,8 @@
       } else {
         var el = document.getElementById(id);
         if (el) {
-          window.scrollTo({ top: el.offsetTop - getNavOffset(), behavior: 'smooth' });
+          var rect = el.getBoundingClientRect();
+          window.scrollTo({ top: rect.top + window.scrollY - getNavOffset(), behavior: 'smooth' });
         }
         history.replaceState(null, '', '#' + id);
       }

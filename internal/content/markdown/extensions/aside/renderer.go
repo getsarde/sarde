@@ -57,9 +57,9 @@ func (r *asideRenderer) renderAside(w util.BufWriter, source []byte, node ast.No
 	}
 
 	// GitHub-style variants need extra CSS classes to match asides-github.css
-	asideClass := "sarde-aside sarde-aside-" + aside.AsideType
+	asideClass := "sarde-aside sarde-aside-" + aside.AsideType + " not-content"
 	if strings.HasPrefix(aside.AsideType, "gh-") {
-		asideClass = "sarde-aside sarde-aside-github sarde-aside-" + aside.AsideType
+		asideClass = "sarde-aside sarde-aside-github sarde-aside-" + aside.AsideType + " not-content"
 	}
 
 	if entering {

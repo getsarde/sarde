@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -127,6 +128,108 @@ func BundleEmbeddedJS(embeddedFS fs.FS, devMode bool) ([]byte, string, error) {
 	}
 
 	return content, filename, nil
+}
+
+// BundleThemeJS concatenates all JS files under themes/{themeName}/assets/js/
+// into a single bundle, wrapping each in an IIFE. Returns ("", "", nil) if the
+// theme has no assets/js/ directory, allowing fallback to BundleEmbeddedJS.
+func BundleThemeJS(projectDir, themeName string, devMode bool) ([]byte, string, error) {
+	jsDir := filepath.Join(projectDir, "themes", themeName, "assets", "js")
+	info, err := os.Stat(jsDir)
+	if err != nil || !info.IsDir() {
+		return nil, "", nil
+	}
+
+	var files []string
+	err = filepath.WalkDir(jsDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && filepath.Ext(path) == ".js" {
+			if devMode && filepath.Base(path) == "prefetch.js" {
+				return nil
+			}
+			files = append(files, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, "", fmt.Errorf("walking theme JS %s: %w", jsDir, err)
+	}
+	if len(files) == 0 {
+		return nil, "", nil
+	}
+	sort.Strings(files)
+
+	var buf bytes.Buffer
+	for _, f := range files {
+		data, err := os.ReadFile(f)
+		if err != nil {
+			return nil, "", fmt.Errorf("reading %s: %w", f, err)
+		}
+		name := filepath.Base(f)
+		buf.WriteString("/* " + name + " */\n;(function(){\n")
+		buf.Write(data)
+		buf.WriteString("\n})();\n")
+	}
+
+	content := buf.Bytes()
+	if !devMode {
+		content = minifyJS(content)
+	}
+
+	hash := asset.Fingerprint(content)
+	var filename string
+	if devMode {
+		filename = "sarde.js"
+	} else {
+		filename = asset.FingerprintedName("sarde.js", hash)
+	}
+
+	return content, filename, nil
+}
+
+// WriteThemeAssets walks the assets/ subtree inside an external theme directory
+// and copies every file to outputDir/assets/. Files under any of the
+// skipPrefixes are skipped (used to exclude bundled JS).
+func WriteThemeAssets(projectDir, themeName, outputDir string, tracker *OutputTracker, skipPrefixes []string) error {
+	assetsDir := filepath.Join(projectDir, "themes", themeName, "assets")
+	info, err := os.Stat(assetsDir)
+	if err != nil || !info.IsDir() {
+		return nil
+	}
+
+	return filepath.WalkDir(assetsDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+		rel, err := filepath.Rel(assetsDir, path)
+		if err != nil {
+			return err
+		}
+		relSlash := filepath.ToSlash(rel)
+		for _, prefix := range skipPrefixes {
+			trimmed := strings.TrimPrefix(prefix, "assets/")
+			if strings.HasPrefix(relSlash, trimmed) {
+				return nil
+			}
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("reading theme asset %s: %w", path, err)
+		}
+		destPath, err := outputpath.SafeJoin(outputDir, "assets/"+relSlash)
+		if err != nil {
+			return err
+		}
+		if tracker != nil {
+			tracker.Track(destPath)
+		}
+		return writeFile(destPath, data)
+	})
 }
 
 func minifyJS(data []byte) []byte {

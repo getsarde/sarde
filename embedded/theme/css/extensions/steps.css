@@ -68,8 +68,8 @@
 	    align-items: center;
 	    justify-content: center;
 	    background: var(--sd-bg-surface);
-	    color: var(--sd-text-muted);
-	    border: var(--step-connector) solid var(--sd-border);
+	    color: var(--sd-text);
+	    border: var(--step-connector) solid var(--sd-text-muted);
 	    border-radius: var(--sd-radius-full);
 	    font-size: var(--sd-text-sm);
 	    font-weight: var(--sd-weight-semibold);
@@ -105,8 +105,8 @@
 	    align-items: center;
 	    justify-content: center;
 	    background: var(--sd-bg-surface);
-	    color: var(--sd-text-muted);
-	    border: 2px solid var(--sd-border);
+	    color: var(--sd-text);
+	    border: 2px solid var(--sd-text-muted);
 	    border-radius: var(--sd-radius-full);
 	    font-size: var(--sd-text-sm);
 	    font-weight: var(--sd-weight-semibold);

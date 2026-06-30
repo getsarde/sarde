@@ -16,7 +16,7 @@ func (r *linkButtonGroupRenderer) RegisterFuncs(reg renderer.NodeRendererFuncReg
 
 func (r *linkButtonGroupRenderer) render(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
-		_, _ = w.WriteString("<div class=\"sarde-link-button-group\">\n")
+		_, _ = w.WriteString("<div class=\"sarde-link-button-group not-content\">\n")
 	} else {
 		_, _ = w.WriteString("</div>\n")
 	}

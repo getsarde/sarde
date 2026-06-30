@@ -23,7 +23,7 @@ func (r *stepsRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 
 func (r *stepsRenderer) renderStepsBlock(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
-		_, _ = w.WriteString("<div class=\"sarde-steps\">\n")
+		_, _ = w.WriteString("<div class=\"sarde-steps not-content\">\n")
 	} else {
 		_, _ = w.WriteString("</div>\n")
 	}
@@ -38,7 +38,7 @@ func (r *stepsRenderer) renderStepItem(w util.BufWriter, source []byte, node ast
 		_, _ = fmt.Fprintf(w, "<span class=\"sr-only\">Step %d.</span>\n", step.Index)
 		_, _ = w.WriteString("<div class=\"sarde-step-content\">\n")
 		if step.Title != "" {
-			_, _ = fmt.Fprintf(w, "<h3 class=\"sarde-step-title\">%s</h3>\n", htmlutil.EscapeHTML(step.Title))
+			_, _ = fmt.Fprintf(w, "<h%d class=\"sarde-step-title\">%s</h%d>\n", step.HeadingLevel, htmlutil.EscapeHTML(step.Title), step.HeadingLevel)
 		}
 	} else {
 		_, _ = w.WriteString("</div>\n</div>\n")

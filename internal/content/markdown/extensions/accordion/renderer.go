@@ -18,9 +18,9 @@ func (r *accordionRenderer) render(w util.BufWriter, source []byte, node ast.Nod
 	if entering {
 		a := node.(*AccordionBlock)
 		if a.Independent {
-			_, _ = w.WriteString("<div class=\"sarde-details-group\" data-independent>\n")
+			_, _ = w.WriteString("<div class=\"sarde-details-group not-content\" data-independent>\n")
 		} else {
-			_, _ = w.WriteString("<div class=\"sarde-details-group\">\n")
+			_, _ = w.WriteString("<div class=\"sarde-details-group not-content\">\n")
 		}
 	} else {
 		_, _ = w.WriteString("</div>\n")

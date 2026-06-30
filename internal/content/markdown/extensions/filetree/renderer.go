@@ -24,7 +24,7 @@ func (r *filetreeRenderer) render(w util.BufWriter, source []byte, node ast.Node
 		return ast.WalkContinue, nil
 	}
 
-	_, _ = w.WriteString("<div class=\"sarde-file-tree\">\n")
+	_, _ = w.WriteString("<div class=\"sarde-file-tree not-content\">\n")
 
 	// Extract entries from child AST list nodes
 	renderList(w, node, source)

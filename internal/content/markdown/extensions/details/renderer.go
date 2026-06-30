@@ -28,7 +28,7 @@ func (r *detailsRenderer) renderDetails(w util.BufWriter, source []byte, node as
 		if details.Open {
 			openAttr = " open"
 		}
-		_, _ = fmt.Fprintf(w, "<details class=\"sarde-details\"%s>\n", openAttr)
+		_, _ = fmt.Fprintf(w, "<details class=\"sarde-details not-content\"%s>\n", openAttr)
 		_, _ = fmt.Fprintf(w, "<summary class=\"sarde-details-summary\">%s</summary>\n", htmlutil.EscapeHTML(details.Summary))
 		_, _ = w.WriteString("<div class=\"sarde-details-content\">\n")
 	} else {

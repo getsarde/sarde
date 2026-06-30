@@ -44,7 +44,7 @@ func (r *linkCardRenderer) render(w util.BufWriter, source []byte, node ast.Node
 		if title == "" {
 			title = domainFromURL(lc.Href)
 		}
-		cls := "sarde-link-card"
+		cls := "sarde-link-card not-content"
 		if isExternal {
 			cls += " sarde-link-card-external"
 		}

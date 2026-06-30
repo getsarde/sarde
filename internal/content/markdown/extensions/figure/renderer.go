@@ -19,7 +19,7 @@ func (r *figureRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) 
 
 func (r *figureRenderer) render(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
-		_, _ = w.WriteString("<figure class=\"sarde-figure\">\n")
+		_, _ = w.WriteString("<figure class=\"sarde-figure not-content\">\n")
 	} else {
 		f := node.(*FigureBlock)
 		if f.Caption != "" {

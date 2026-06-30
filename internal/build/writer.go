@@ -306,8 +306,19 @@ func (b *SiteBuilder) phaseWrite(s *buildState) (*engine.BuildResult, error) {
 		}
 	}
 
-	if err := WriteEmbeddedAssets(b.embeddedFS, s.outputDir, tracker, []string{"assets/js/"}); err != nil {
-		return nil, fmt.Errorf("writing embedded theme assets: %w", err)
+	// Write theme assets: prefer external theme over embedded.
+	themeAssetsDir := ""
+	if b.config.Theme.Name != "" {
+		themeAssetsDir = filepath.Join(b.projectDir, "themes", b.config.Theme.Name, "assets")
+	}
+	if themeAssetsDir != "" && dirExists(themeAssetsDir) {
+		if err := WriteThemeAssets(b.projectDir, b.config.Theme.Name, s.outputDir, tracker, []string{"assets/js/"}); err != nil {
+			return nil, fmt.Errorf("writing theme assets: %w", err)
+		}
+	} else {
+		if err := WriteEmbeddedAssets(b.embeddedFS, s.outputDir, tracker, []string{"assets/js/"}); err != nil {
+			return nil, fmt.Errorf("writing embedded theme assets: %w", err)
+		}
 	}
 
 	cssFilename := filepath.Base(b.tmplEngine.CSSURL())
@@ -411,6 +422,11 @@ func (b *SiteBuilder) phaseWrite(s *buildState) (*engine.BuildResult, error) {
 		SitemapCount:    sitemapCount,
 		LogMessages:     buildLogger.Messages(),
 	}, nil
+}
+
+func dirExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && info.IsDir()
 }
 
 // copyFile copies a single file from src to dst.

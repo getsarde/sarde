@@ -233,6 +233,27 @@ func TestRender_Steps(t *testing.T) {
 	if !strings.Contains(result.HTML, "sarde-steps") {
 		t.Errorf("expected steps, got: %s", result.HTML)
 	}
+	if !strings.Contains(result.HTML, `<h3 class="sarde-step-title"`) {
+		t.Errorf("expected h3 step title, got: %s", result.HTML)
+	}
+}
+
+func TestRender_Steps_H2(t *testing.T) {
+	r := NewRenderer()
+	md := ":::steps\n## Step 1\nDo this.\n## Step 2\nDo that.\n:::\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "sarde-steps") {
+		t.Errorf("expected steps container, got: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, `<h2 class="sarde-step-title"`) {
+		t.Errorf("expected h2 step title, got: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, `data-step="2"`) {
+		t.Errorf("expected two steps, got: %s", result.HTML)
+	}
 }
 
 func TestRender_Details(t *testing.T) {

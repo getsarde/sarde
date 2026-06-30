@@ -61,6 +61,10 @@
 	    color: var(--sd-text-muted);
 	}
 
+	.sarde-card-body p {
+	    margin: var(--sd-space-2) 0;
+	}
+
 	/* Remove extra margins from card body content */
 	.sarde-card-body > *:first-child {
 	    margin-top: 0;
@@ -68,10 +72,6 @@
 
 	.sarde-card-body > *:last-child {
 	    margin-bottom: 0;
-	}
-
-	.sarde-card-body p {
-	    margin: var(--sd-space-2) 0;
 	}
 
 	.sarde-card-body ul,

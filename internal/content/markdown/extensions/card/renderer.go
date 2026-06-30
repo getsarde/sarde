@@ -22,7 +22,7 @@ func (r *cardRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 func (r *cardRenderer) render(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		c := node.(*CardBlock)
-		cls := "sarde-card"
+		cls := "sarde-card not-content"
 		switch c.Variant {
 		case "highlighted":
 			cls += " sarde-card-highlighted"

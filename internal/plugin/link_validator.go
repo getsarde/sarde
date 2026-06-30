@@ -63,7 +63,7 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 			if link.IsImage && !checkImages {
 				continue
 			}
-			if validateLink(ctx, ctx.PageIndex, permalink, entry.FilePath, link.Href,
+			if validateLink(ctx, ctx.PageIndex, ctx.Resolver, permalink, entry.FilePath, link.Href,
 				checkAnchors, warnRelative, warnLocal, sameSitePolicy,
 				siteURL, excludePatterns) {
 				errorCount++
@@ -88,10 +88,8 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 	return nil
 }
 
-// validateLink checks a single link and adds a warning if invalid.
-// Returns true if a warning was emitted.
 func validateLink(ctx *BuildDoneContext, idx *content.PageIndex,
-	pagePermalink, filePath, href string,
+	resolver *engine.URLResolver, pagePermalink, filePath, href string,
 	checkAnchors, warnRelative, warnLocal bool,
 	sameSitePolicy, siteURL string, excludePatterns []string) bool {
 
@@ -144,9 +142,14 @@ func validateLink(ctx *BuildDoneContext, idx *content.PageIndex,
 
 	normalizedPath := content.NormalizePermalink(path)
 
-	if idx.HasPage(normalizedPath) {
+	lookupPath := normalizedPath
+	if resolver != nil {
+		lookupPath = resolver.URL(normalizedPath, "", "")
+	}
+
+	if idx.HasPage(lookupPath) {
 		if anchor != "" && checkAnchors {
-			if !idx.HasHeading(normalizedPath, anchor) {
+			if !idx.HasHeading(lookupPath, anchor) {
 				addLinkWarning(ctx, filePath, href, errInvalidHash)
 				return true
 			}

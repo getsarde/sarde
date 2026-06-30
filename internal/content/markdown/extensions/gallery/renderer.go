@@ -60,7 +60,7 @@ func (r *galleryRenderer) render(w util.BufWriter, source []byte, node ast.Node,
 	lightboxID := fmt.Sprintf("lightbox-%d", id)
 
 	// Gallery container
-	_, _ = fmt.Fprintf(w, "<div class=\"sarde-gallery\" id=\"%s\">\n", galleryID)
+	_, _ = fmt.Fprintf(w, "<div class=\"sarde-gallery not-content\" id=\"%s\">\n", galleryID)
 
 	if g.Label != "" {
 		_, _ = fmt.Fprintf(w, "<h3 class=\"sarde-gallery-title\">%s</h3>\n", htmlutil.EscapeHTML(g.Label))

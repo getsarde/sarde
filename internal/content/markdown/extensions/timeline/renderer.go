@@ -20,7 +20,7 @@ func (r *timelineRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer
 
 func (r *timelineRenderer) renderBlock(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
-		_, _ = w.WriteString("<div class=\"sarde-timeline\">\n")
+		_, _ = w.WriteString("<div class=\"sarde-timeline not-content\">\n")
 	} else {
 		_, _ = w.WriteString("</div>\n")
 	}

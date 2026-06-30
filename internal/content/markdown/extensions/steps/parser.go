@@ -12,7 +12,6 @@ import (
 var openingRegex = regexp.MustCompile(`^:{3,}\s*steps\s*$`)
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
 var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
-var stepHeadingRegex = regexp.MustCompile(`^###\s+(.+)`)
 
 type stepsParser struct{}
 
@@ -73,42 +72,40 @@ func (p *stepsParser) Continue(node ast.Node, reader text.Reader, pc parser.Cont
 func (p *stepsParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
 	deleteDepth(pc, node)
 
-	// Post-process: split children at ### headings into StepItem nodes.
-	// If no ### headings are found, leave children as-is so the <ol>
-	// sits directly under .steps and the .steps > ol > li CSS applies.
 	stepsBlock := node.(*StepsBlock)
 
-	// First pass: check if any ### headings exist
-	hasHeadings := false
+	// First pass: find the first H2 or H3 heading to determine the step delimiter level.
+	var stepLevel int
 	for c := stepsBlock.FirstChild(); c != nil; c = c.NextSibling() {
-		if heading, ok := c.(*ast.Heading); ok && heading.Level == 3 {
-			hasHeadings = true
+		if heading, ok := c.(*ast.Heading); ok && (heading.Level == 2 || heading.Level == 3) {
+			stepLevel = heading.Level
 			break
 		}
 	}
 
-	if !hasHeadings {
+	if stepLevel == 0 {
 		return // ordered-list mode: CSS handles numbering via .steps > ol > li
 	}
 
-	// Heading mode: split at ### headings into StepItem nodes
+	// Heading mode: split at the detected heading level into StepItem nodes.
 	var items []*StepItem
 	var currentItem *StepItem
 	stepIndex := 0
 
-	// Collect all children first
 	var children []ast.Node
 	for c := stepsBlock.FirstChild(); c != nil; c = c.NextSibling() {
 		children = append(children, c)
 	}
 
+	source := reader.Source()
+
 	for _, child := range children {
-		// Check if this child is a heading (h3)
-		if heading, ok := child.(*ast.Heading); ok && heading.Level == 3 {
+		if heading, ok := child.(*ast.Heading); ok && heading.Level == stepLevel {
 			stepIndex++
 			currentItem = &StepItem{
-				Title: string(heading.Text(reader.Source())),
-				Index: stepIndex,
+				Title:        headingTitle(heading, source),
+				Index:        stepIndex,
+				HeadingLevel: stepLevel,
 			}
 			items = append(items, currentItem)
 			continue
@@ -191,6 +188,19 @@ func hasInnerOpenBlocks(pc parser.Context, node ast.Node) bool {
 		}
 	}
 	return false
+}
+
+func headingTitle(heading *ast.Heading, source []byte) string {
+	lines := heading.Lines()
+	if lines.Len() == 0 {
+		return ""
+	}
+	var buf []byte
+	for i := 0; i < lines.Len(); i++ {
+		seg := lines.At(i)
+		buf = append(buf, seg.Value(source)...)
+	}
+	return strings.TrimSpace(string(buf))
 }
 
 func deleteDepth(pc parser.Context, node ast.Node) {
