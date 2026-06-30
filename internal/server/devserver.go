@@ -302,15 +302,26 @@ func (ds *DevServer) handleRebuildResult(change FileChange, result *RebuildResul
 		ds.hub.SetPendingReload(&msg)
 	}
 
-	if result.Success && len(result.Warnings) > 0 {
-		var parts []string
+	if result.Success && msg.Type == ReloadFull {
+		var items []WarningItem
 		for _, w := range result.Warnings {
-			parts = append(parts, fmt.Sprintf("%s (%s)", w.File, w.Field))
+			if w.Field != "syntax" {
+				continue
+			}
+			items = append(items, WarningItem{
+				File:    w.File,
+				Line:    0,
+				Message: w.Message,
+			})
 		}
-		ds.hub.Broadcast(ReloadMessage{
-			Type:  ReloadWarning,
-			Error: fmt.Sprintf("%d warnings: %s", len(result.Warnings), strings.Join(parts, ", ")),
-		})
+		if len(items) > 0 {
+			ds.hub.Broadcast(ReloadMessage{
+				Type:     ReloadWarning,
+				Warnings: items,
+			})
+		} else {
+			ds.hub.Broadcast(ReloadMessage{Type: ReloadWarning})
+		}
 	}
 }
 

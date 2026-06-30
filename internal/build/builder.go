@@ -27,6 +27,7 @@ type BuildOptions struct {
 	ThemeConfig     *engine.ThemeConfig
 	EmbeddedFS      fs.FS
 	DevMode         bool   // Skip heavy optimizations during serve (image processing, minification, etc.)
+	CheckSyntax     bool   // When true, run fenced-block syntax checking during markdown rendering
 	PluginAssetsDir string // If set, recompute plugin client bundles from disk (theme-dev mode)
 }
 
@@ -53,6 +54,7 @@ type SiteBuilder struct {
 
 	checkOnly         bool                // when true, Build() returns after link validation
 	checkReportResult *links.ReportResult // stored for Check() to read after Build() returns
+	checkSyntax       bool                // when true, run fenced-block syntax checks during markdown rendering
 
 	// Last-build state for incremental rebuild.
 	lastCollections    map[string]*engine.Collection
@@ -99,6 +101,7 @@ func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
 		themeConfig: opts.ThemeConfig,
 		embeddedFS:  opts.EmbeddedFS,
 		devMode:     opts.DevMode,
+		checkSyntax: opts.CheckSyntax,
 		scanner:     &content.Scanner{},
 		tmplEngine:  sardetemplate.NewEngine(),
 		pluginMgr:   mgr,

@@ -17,9 +17,11 @@ import (
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/content/markdown"
 	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/links"
 	"github.com/getsarde/sarde/internal/shortcode"
+	"github.com/getsarde/sarde/internal/syntax"
 	sardetemplate "github.com/getsarde/sarde/internal/template"
 	"github.com/getsarde/sarde/internal/content/markdown/icons"
 	"github.com/getsarde/sarde/internal/theme"
@@ -27,6 +29,26 @@ import (
 )
 
 func (b *SiteBuilder) phaseAssets(s *buildState) error {
+	if b.checkSyntax {
+		checked := make(map[string]bool)
+		for _, p := range s.allPages {
+			if p.RawContent == "" || checked[p.FilePath] {
+				continue
+			}
+			checked[p.FilePath] = true
+			diags := syntax.Check(p.FilePath, []byte(p.RawContent), p.FrontmatterLines)
+			for _, d := range diags {
+				msg := fmt.Sprintf("line %d: %s", d.Line, d.Message)
+				devlog.Warn("syntax", "%s:%d %s", d.File, d.Line, d.Message)
+				s.warnings = append(s.warnings, engine.ValidationWarning{
+					File:    d.File,
+					Field:   "syntax",
+					Message: msg,
+					Level:   d.Level,
+				})
+			}
+		}
+	}
 	// Asset pipeline: image processing, resource enhancement, CSS/JS bundling.
 	assetPipeline := asset.NewPipeline(asset.PipelineOptions{
 		ProjectDir: b.projectDir,

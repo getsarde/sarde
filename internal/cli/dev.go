@@ -33,6 +33,7 @@ func init() {
 	devCmd.Flags().String("content", "", "Override content directory path")
 	devCmd.Flags().Bool("watch-stdin", false, "Exit when stdin closes (sidecar/child-process mode)")
 	devCmd.Flags().String("theme-dev", "", "Path to embedded/theme/ source dir for live-reload (framework dev only)")
+	devCmd.Flags().Bool("check-syntax", false, "Enable syntax checking for unclosed fenced blocks during rebuilds")
 	rootCmd.AddCommand(devCmd)
 }
 
@@ -148,12 +149,14 @@ func runServe(cmd *cobra.Command, args []string) error {
 			latestCfg.Content.Dir = contentDir
 		}
 
+		checkSyntax, _ := cmd.Flags().GetBool("check-syntax")
 		return build.NewSiteBuilder(build.BuildOptions{
 			ProjectDir:      projectDir,
 			Config:          latestCfg,
 			ThemeConfig:     latestThemeCfg,
 			EmbeddedFS:      themeFS,
 			DevMode:         true,
+			CheckSyntax:     checkSyntax,
 			PluginAssetsDir: pluginAssetsDir,
 		})
 	}

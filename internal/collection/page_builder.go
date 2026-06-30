@@ -121,7 +121,7 @@ func buildPage(
 	}
 
 	// Parse frontmatter: single pass produces both untyped map and typed struct.
-	fmMap, fm, body, err := content.ParseAll(raw)
+	fmMap, fm, body, fmLines, err := content.ParseAll(raw)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -164,6 +164,7 @@ func buildPage(
 			RawContent:        body,
 			ContentDigest:     contentDigest,
 			FrontmatterDigest: frontmatterDigest,
+			FrontmatterLines:  fmLines,
 		},
 		PageMeta: engine.PageMeta{
 			Draft:       fm.Draft,

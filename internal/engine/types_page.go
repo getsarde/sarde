@@ -49,6 +49,7 @@ type PageContent struct {
 	Headings          []Heading
 	HasCodeBlocks     bool
 	HasImages         bool
+	FrontmatterLines  int
 }
 
 // PageMeta holds editorial metadata.

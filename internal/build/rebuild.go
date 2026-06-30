@@ -16,6 +16,7 @@ import (
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/i18n"
 	"github.com/getsarde/sarde/internal/plugin"
+	"github.com/getsarde/sarde/internal/syntax"
 	"github.com/getsarde/sarde/internal/taxonomy"
 	sardetemplate "github.com/getsarde/sarde/internal/template"
 	"github.com/getsarde/sarde/internal/workers"
@@ -387,6 +388,19 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		if e.newPage.RawContent == "" {
 			delete(mergedValidation, e.newPage.Permalink)
 			continue
+		}
+		if b.checkSyntax {
+			diags := syntax.Check(e.newPage.FilePath, []byte(e.newPage.RawContent), e.newPage.FrontmatterLines)
+			for _, d := range diags {
+				msg := fmt.Sprintf("line %d: %s", d.Line, d.Message)
+				devlog.Warn("syntax", "%s:%d %s", d.File, d.Line, d.Message)
+				warnings = append(warnings, engine.ValidationWarning{
+					File:    d.File,
+					Field:   "syntax",
+					Message: msg,
+					Level:   d.Level,
+				})
+			}
 		}
 		links, _, err := b.renderMarkdownPageSerial(e.newPage, deps, b.lastSiteCtx)
 		if err != nil {

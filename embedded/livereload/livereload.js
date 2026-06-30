@@ -1,12 +1,21 @@
 (function () {
   var ws, retries = 0, maxRetry = 8000, startTime = Date.now();
-  var overlay = null, banner = null;
+  var overlay = null, banner = null, warningPanel = null;
 
   function connect() {
     var proto = location.protocol === "https:" ? "wss:" : "ws:";
     ws = new WebSocket(proto + "//" + location.host + "/ws");
 
-    ws.onopen = function () { retries = 0; startTime = Date.now(); };
+    ws.onopen = function () {
+      retries = 0; startTime = Date.now();
+      var pending = sessionStorage.getItem("__lr_warning");
+      if (pending) {
+        try {
+          var warnings = JSON.parse(pending);
+          if (warnings && warnings.length) showWarningPanel(warnings);
+        } catch (_) {}
+      }
+    };
 
     ws.onmessage = function (e) {
       var msg;
@@ -24,7 +33,12 @@
       } else if (msg.type === "error") {
         showOverlay(msg);
       } else if (msg.type === "warning") {
-        console.warn("[sarde]", msg.error || "Warning");
+        if (msg.warnings && msg.warnings.length) {
+          sessionStorage.setItem("__lr_warning", JSON.stringify(msg.warnings));
+        } else {
+          sessionStorage.removeItem("__lr_warning");
+          removeWarningPanel();
+        }
       }
     };
 
@@ -153,6 +167,84 @@
   function removeOverlay() {
     if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
     overlay = null;
+  }
+
+  function showWarningPanel(warnings) {
+    removeWarningPanel();
+    warningPanel = document.createElement("div");
+    warningPanel.id = "__lr_warnings";
+    warningPanel.style.cssText =
+      "position:fixed;top:0;left:0;right:0;z-index:99998;" +
+      "font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;font-size:13px;";
+
+    var header = document.createElement("div");
+    header.style.cssText =
+      "background:#f9e2af;color:#1e1e2e;padding:8px 16px;cursor:pointer;" +
+      "display:flex;align-items:center;justify-content:space-between;user-select:none;";
+
+    var label = document.createElement("span");
+    label.textContent = "⚠ " + warnings.length + " syntax warning" + (warnings.length > 1 ? "s" : "");
+
+    var actions = document.createElement("span");
+    actions.style.cssText = "display:flex;align-items:center;gap:8px;";
+
+    var chevron = document.createElement("span");
+    chevron.textContent = "▼";
+    chevron.style.cssText = "font-size:10px;transition:transform 0.2s;";
+
+    var closeBtn = document.createElement("span");
+    closeBtn.textContent = "✕";
+    closeBtn.style.cssText = "cursor:pointer;font-size:14px;padding:0 4px;";
+    closeBtn.onclick = function (e) {
+      e.stopPropagation();
+      sessionStorage.removeItem("__lr_warning");
+      removeWarningPanel();
+    };
+
+    actions.appendChild(chevron);
+    actions.appendChild(closeBtn);
+    header.appendChild(label);
+    header.appendChild(actions);
+
+    var list = document.createElement("div");
+    list.style.cssText =
+      "background:#2d2a1e;color:#e8d8a0;max-height:0;overflow:hidden;transition:max-height 0.25s ease;";
+
+    var inner = document.createElement("div");
+    inner.style.cssText = "padding:0;";
+
+    for (var i = 0; i < warnings.length; i++) {
+      var item = document.createElement("div");
+      item.style.cssText =
+        "padding:6px 16px;border-bottom:1px solid rgba(255,255,255,0.08);" +
+        "display:flex;gap:12px;font-size:12px;";
+      var loc = document.createElement("span");
+      loc.style.cssText = "color:#56b6c2;white-space:nowrap;";
+      loc.textContent = warnings[i].file + (warnings[i].line ? ":" + warnings[i].line : "");
+      var msg = document.createElement("span");
+      msg.style.cssText = "color:#e8d8a0;";
+      msg.textContent = warnings[i].message;
+      item.appendChild(loc);
+      item.appendChild(msg);
+      inner.appendChild(item);
+    }
+    list.appendChild(inner);
+
+    var expanded = false;
+    header.onclick = function () {
+      expanded = !expanded;
+      list.style.maxHeight = expanded ? Math.min(warnings.length * 32 + 16, 300) + "px" : "0";
+      chevron.style.transform = expanded ? "rotate(180deg)" : "";
+    };
+
+    warningPanel.appendChild(header);
+    warningPanel.appendChild(list);
+    document.body.appendChild(warningPanel);
+  }
+
+  function removeWarningPanel() {
+    if (warningPanel && warningPanel.parentNode) warningPanel.parentNode.removeChild(warningPanel);
+    warningPanel = null;
   }
 
   function showBanner(text) {
