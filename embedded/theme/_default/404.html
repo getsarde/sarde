@@ -9,6 +9,8 @@
     <h1>{{ t "error.not_found" }}</h1>
     <p>{{ t "error.not_found_desc" }}</p>
   {{ end }}
+  {{ if not .Page.Content }}
   <a href="{{ relURL "/" }}" class="sarde-error-page__home">{{ t "error.return_home" }}</a>
+  {{ end }}
 </div>
 {{ end }}

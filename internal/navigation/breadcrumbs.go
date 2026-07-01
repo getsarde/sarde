@@ -77,13 +77,13 @@ func BuildBreadcrumbsTabbed(page *engine.Page, col *engine.Collection, tab *engi
 	// Section chain — skip the tab's root section (already represented by the tab crumb)
 	var sections []*engine.Section
 	sec := page.Section
-	for sec != nil && sec != tab.Section {
+	for sec != nil && sec.Permalink != tab.Permalink {
 		sections = append(sections, sec)
 		sec = sec.Parent
 	}
 	for i := len(sections) - 1; i >= 0; i-- {
 		s := sections[i]
-		if s.Transparent {
+		if s.Parent == nil || s.Transparent {
 			continue
 		}
 		url := s.Permalink

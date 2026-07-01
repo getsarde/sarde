@@ -293,6 +293,21 @@ func (e *Engine) funcMapForLang(lang string) htmltemplate.FuncMap {
 		}
 		return e.i18nStrings.Resolve(lang, key, data)
 	}
+	fm["relURL"] = func(relPath string) string {
+		if strings.Contains(relPath, "://") {
+			return relPath
+		}
+		if e.urlResolver != nil {
+			return e.urlResolver.URL(relPath, lang, "")
+		}
+		return relPath
+	}
+	fm["absURL"] = func(relPath string) string {
+		if e.urlResolver != nil {
+			return e.urlResolver.AbsURL(relPath, lang, "")
+		}
+		return relPath
+	}
 	fm["termURL"] = func(taxonomyName, termName string) string {
 		slug := content.Slugify(termName)
 		url := "/" + taxonomyName + "/" + slug + "/"

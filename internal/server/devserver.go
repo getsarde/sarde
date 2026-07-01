@@ -419,10 +419,25 @@ func (ds *DevServer) fileHandler() http.Handler {
 			return
 		}
 
-		// 404 fallback.
+		// 404 fallback: try language-specific 404 first (e.g. fr/404.html),
+		// then fall back to the root 404.html.
 		devlog.Warn("server", "[404] %s → tried %s", urlPath, filePath)
-		notFound := filepath.Join(ds.outputDir, consts.Template404)
-		if _, err := os.Stat(notFound); err == nil {
+		notFound := ""
+		trimmed := strings.TrimPrefix(urlPath, strings.TrimRight(ds.basePath, "/"))
+		trimmed = strings.TrimPrefix(trimmed, "/")
+		if seg, _, ok := strings.Cut(trimmed, "/"); ok && seg != "" {
+			langCandidate := filepath.Join(ds.outputDir, seg, consts.Template404)
+			if _, err := os.Stat(langCandidate); err == nil {
+				notFound = langCandidate
+			}
+		}
+		if notFound == "" {
+			root404 := filepath.Join(ds.outputDir, consts.Template404)
+			if _, err := os.Stat(root404); err == nil {
+				notFound = root404
+			}
+		}
+		if notFound != "" {
 			w.WriteHeader(http.StatusNotFound)
 			data, _ := os.ReadFile(notFound)
 			w.Write(data)

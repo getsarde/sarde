@@ -39,12 +39,14 @@ func TestClassifyDest(t *testing.T) {
 		{"relative index", "./_index.md", LinkRelative, "_index", "", ""},
 		{"relative dir trailing slash", "./guides/", LinkRelative, "guides", "", ""},
 
-		// Content-root-relative (requires .md/.mdx extension to be treated as source-file ref).
+		// Content-root-relative (with or without .md extension).
 		{"content root with ext", "/guides/auth.md", LinkContentRoot, "/guides/auth", "", ""},
-		{"content root no ext passthrough", "/guides/auth", LinkExternal, "", "", ""},
+		{"content root no ext", "/guides/auth", LinkContentRoot, "/guides/auth", "", ""},
 		{"content root with fragment", "/guides/auth.md#api", LinkContentRoot, "/guides/auth", "api", ""},
 		{"content root deep", "/a/b/c/page.md", LinkContentRoot, "/a/b/c/page", "", ""},
-		{"content root url passthrough", "/about/", LinkExternal, "", "", ""},
+		{"content root trailing slash", "/about/", LinkContentRoot, "/about", "", ""},
+		{"content root static asset", "/assets/logo.png", LinkExternal, "", "", ""},
+		{"content root favicon", "/favicon.svg", LinkExternal, "", "", ""},
 
 		// Bare name with .md — ambiguous (Hugo #4727 lesson).
 		{"bare name with ext", "auth.md", LinkAmbiguous, "auth", "", ""},

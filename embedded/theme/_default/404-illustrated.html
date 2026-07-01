@@ -13,6 +13,8 @@
   {{ else }}
     <p>{{ t "error.not_found_illustrated_desc" }}</p>
   {{ end }}
+  {{ if not .Page.Content }}
   <a href="{{ relURL "/" }}" class="sarde-error-page__home">{{ t "error.return_home" }}</a>
+  {{ end }}
 </div>
 {{ end }}

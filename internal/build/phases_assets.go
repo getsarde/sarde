@@ -169,7 +169,7 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 					validationMu.Unlock()
 				}
 
-				hash := ContentHash(processed + shortcodesHash + b.resolutionKey + iconRenderKey + b.rendererKey)
+				hash := ContentHash(processed + shortcodesHash + b.resolutionKey + iconRenderKey + b.rendererKey + "\x00lang=" + page.Lang)
 				if pageCache != nil {
 					if entry := pageCache.Get(hash); entry != nil {
 						page.Content = htmltemplate.HTML(entry.HTML)
@@ -178,7 +178,7 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 						page.HasImages = entry.HasImages
 						if len(entry.Links) > 0 {
 							validationMu.Lock()
-							validationData[page.Permalink] = engine.ValidationEntry{Links: entry.Links, FilePath: page.FilePath}
+							validationData[page.Permalink] = engine.ValidationEntry{Links: entry.Links, FilePath: page.FilePath, Lang: page.Lang}
 							validationMu.Unlock()
 						}
 						b.rendererPool <- renderer
@@ -203,7 +203,7 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 				if len(result.Links) > 0 || len(pagePendingAnchors) > 0 {
 					validationMu.Lock()
 					if len(result.Links) > 0 {
-						validationData[page.Permalink] = engine.ValidationEntry{Links: result.Links, FilePath: page.FilePath}
+						validationData[page.Permalink] = engine.ValidationEntry{Links: result.Links, FilePath: page.FilePath, Lang: page.Lang}
 					}
 					pendingAnchors = append(pendingAnchors, pagePendingAnchors...)
 					validationMu.Unlock()
@@ -249,7 +249,7 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 			}
 			s.warnings = append(s.warnings, scWarns...)
 			if len(collectedLinks) > 0 {
-				validationData[page.Permalink] = engine.ValidationEntry{Links: collectedLinks, FilePath: page.FilePath}
+				validationData[page.Permalink] = engine.ValidationEntry{Links: collectedLinks, FilePath: page.FilePath, Lang: page.Lang}
 			}
 			pendingAnchors = append(pendingAnchors, lr.DrainPendingAnchors()...)
 		}

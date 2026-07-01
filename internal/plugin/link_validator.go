@@ -63,7 +63,7 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 			if link.IsImage && !checkImages {
 				continue
 			}
-			if validateLink(ctx, ctx.PageIndex, ctx.Resolver, permalink, entry.FilePath, link.Href,
+			if validateLink(ctx, ctx.PageIndex, ctx.Resolver, permalink, entry.FilePath, entry.Lang, link.Href,
 				checkAnchors, warnRelative, warnLocal, sameSitePolicy,
 				siteURL, excludePatterns) {
 				errorCount++
@@ -89,7 +89,7 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 }
 
 func validateLink(ctx *BuildDoneContext, idx *content.PageIndex,
-	resolver *engine.URLResolver, pagePermalink, filePath, href string,
+	resolver *engine.URLResolver, pagePermalink, filePath, lang, href string,
 	checkAnchors, warnRelative, warnLocal bool,
 	sameSitePolicy, siteURL string, excludePatterns []string) bool {
 
@@ -144,7 +144,7 @@ func validateLink(ctx *BuildDoneContext, idx *content.PageIndex,
 
 	lookupPath := normalizedPath
 	if resolver != nil {
-		lookupPath = resolver.URL(normalizedPath, "", "")
+		lookupPath = resolver.URL(normalizedPath, lang, "")
 	}
 
 	if idx.HasPage(lookupPath) {

@@ -27,9 +27,9 @@ type ParsedDest struct {
 }
 
 // ClassifyDest parses a raw Markdown link destination into its parts and
-// classifies it. Only links with .md/.mdx extensions are treated as source-file
-// references that need resolution. Links without these extensions (already-resolved
-// URL paths like /about/) pass through as external.
+// classifies it. Leading-/ paths are treated as content-root references unless
+// they have a non-markdown file extension (e.g. .png, .css), in which case they
+// pass through as external static assets.
 func ClassifyDest(href string) ParsedDest {
 	raw := href
 
@@ -86,10 +86,10 @@ func ClassifyDest(href string) ParsedDest {
 		}
 	}
 
-	// Content-root-relative: starts with / AND has .md/.mdx extension.
-	// Without the extension, it's an already-resolved URL path — pass through.
+	// Content-root-relative: starts with /. Static assets (non-markdown file
+	// extension like .png, .css) pass through; everything else is resolved.
 	if strings.HasPrefix(href, "/") {
-		if !hasMarkdownExt {
+		if !hasMarkdownExt && path.Ext(path.Base(href)) != "" {
 			return ParsedDest{Kind: LinkExternal, Raw: raw}
 		}
 		return ParsedDest{

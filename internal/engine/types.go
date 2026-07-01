@@ -105,6 +105,7 @@ type CollectedLink struct {
 type ValidationEntry struct {
 	Links    []CollectedLink
 	FilePath string
+	Lang     string
 }
 
 // RenderResult holds the output of a markdown-to-HTML conversion.

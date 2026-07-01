@@ -33,7 +33,7 @@ func updateValidationEntry(data map[string]engine.ValidationEntry, page *engine.
 		delete(data, page.Permalink)
 		return
 	}
-	data[page.Permalink] = engine.ValidationEntry{Links: links, FilePath: page.FilePath}
+	data[page.Permalink] = engine.ValidationEntry{Links: links, FilePath: page.FilePath, Lang: page.Lang}
 }
 
 func countMarkdownPages(pages []*engine.Page) int {

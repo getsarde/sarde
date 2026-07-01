@@ -680,4 +680,57 @@
 	  transform: scaleX(-1);
 	}
 
+	/* ── 404 Error Page ── */
+	.sarde-error-page {
+	  display: flex;
+	  flex-direction: column;
+	  align-items: center;
+	  justify-content: center;
+	  text-align: center;
+	  min-height: 60vh;
+	  padding: var(--sd-space-12) var(--sd-space-4);
+	}
+
+	.sarde-error-page__code {
+	  font-size: clamp(4rem, 10vw, 8rem);
+	  font-weight: 800;
+	  line-height: 1;
+	  color: var(--sd-text-subtle);
+	  opacity: 0.3;
+	}
+
+	.sarde-error-page h1 {
+	  margin-top: var(--sd-space-4);
+	  font-size: var(--sd-text-2xl);
+	}
+
+	.sarde-error-page__content {
+	  margin-top: var(--sd-space-4);
+	  max-width: 32rem;
+	  color: var(--sd-text-muted);
+	}
+
+	.sarde-error-page__content > p {
+	  margin-bottom: var(--sd-space-4);
+	}
+
+	.sarde-error-page__content .sarde-link-button {
+	  margin-inline: var(--sd-space-1);
+	}
+
+	.sarde-error-page__home {
+	  margin-top: var(--sd-space-6);
+	  color: var(--sd-text-accent);
+	  font-size: var(--sd-text-sm);
+	}
+
+	.sarde-error-page__home:hover {
+	  text-decoration: underline;
+	}
+
+	.sarde-error-page__illustration {
+	  margin-bottom: var(--sd-space-4);
+	  color: var(--sd-text-subtle);
+	}
+
 }

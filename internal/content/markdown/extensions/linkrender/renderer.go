@@ -149,6 +149,9 @@ func (r *Renderer) resolveSiteAbsolute(raw string) string {
 	dest := ParsedDest{Kind: LinkContentRoot, Raw: raw, Fragment: fragment, Query: query}
 
 	target := r.PageIndex.LookupInLane(relP, r.CurrentPage.Lang, r.CurrentPage.Version)
+	if target == nil && r.URLResolver != nil && r.CurrentPage.Lang != r.URLResolver.DefaultLang {
+		target = r.PageIndex.LookupInLane(relP, r.URLResolver.DefaultLang, r.CurrentPage.Version)
+	}
 	if target != nil {
 		version := engine.ResolvePageVersion(r.CurrentPage)
 		url := withSuffix(r.URLResolver.URL(target.RelPermalink, r.CurrentPage.Lang, version), fragment, query)

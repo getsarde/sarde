@@ -64,7 +64,7 @@ func beforeRender(ctx *plugin.BeforeRenderContext, cfg map[string]any, pending *
 	format := cfgutil.String(cfg,"format", "png")
 	relPath := computeCardPath(page, format)
 
-	cardURL := ctx.AbsURL("/"+relPath, "", "")
+	cardURL := ctx.AbsURL("/"+relPath, page.Lang, "")
 
 	if page.Params == nil {
 		page.Params = make(map[string]any)
@@ -228,6 +228,9 @@ func computeCardPath(page *engine.Page, format string) string {
 	p := strings.Trim(page.RelPermalink, "/")
 	if p == "" {
 		p = "_index"
+	}
+	if page.Lang != "" {
+		return "og/" + page.Lang + "/" + p + ext
 	}
 	return "og/" + p + ext
 }

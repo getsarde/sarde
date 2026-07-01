@@ -169,7 +169,7 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 	}
 
 	processed, scWarns := deps.scProcessor.Process(page.RawContent, page, siteCtx, b.mdRenderer)
-	hash := ContentHash(processed + deps.shortcodesHash + deps.resolutionKey + deps.iconRenderKey + deps.rendererKey)
+	hash := ContentHash(processed + deps.shortcodesHash + deps.resolutionKey + deps.iconRenderKey + deps.rendererKey + "\x00lang=" + page.Lang)
 
 	if deps.pageCache != nil {
 		if entry := deps.pageCache.Get(hash); entry != nil {
@@ -487,6 +487,7 @@ func (b *SiteBuilder) phaseRender(s *buildState) error {
 			PageI18n:     engine.PageI18n{Lang: lang},
 		}
 		templateName := consts.DirDefault + "/404"
+		layout := engine.LayoutDefault
 
 		candidates := []string{
 			filepath.Join(s.contentDir, "404."+lang+".md"),
@@ -507,7 +508,11 @@ func (b *SiteBuilder) phaseRender(s *buildState) error {
 			if fm != nil && fm.Template != "" {
 				templateName = consts.DirDefault + "/" + fm.Template
 			}
+			if fm != nil && fm.Layout != "" {
+				layout = engine.ResolveLayout(fm.Layout)
+			}
 			if body != "" {
+				b.mdRenderer.SetLinkContext(page404)
 				renderResult, renderErr := b.mdRenderer.Render(body)
 				if renderErr == nil {
 					page404.Content = htmltemplate.HTML(renderResult.HTML)
@@ -519,7 +524,7 @@ func (b *SiteBuilder) phaseRender(s *buildState) error {
 
 		rd404 := &engine.RouteData{
 			Template: templateName,
-			Layout:   engine.LayoutDefault,
+			Layout:   layout,
 			Site:     s.siteCtx,
 			Theme:    b.themeConfig,
 			Page:     page404,
