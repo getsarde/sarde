@@ -158,7 +158,7 @@ Content
 
 func TestCheck_AttributesIgnored(t *testing.T) {
 	content := []byte(`
-:::details{open}[Summary text]
+:::details(open)[Summary text]
 Content
 :::
 `)

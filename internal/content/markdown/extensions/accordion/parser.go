@@ -4,12 +4,13 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/attrutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 )
 
-var openingRegex = regexp.MustCompile(`^:{3,}\s*accordion(?:\{([^}]*)\})?\s*$`)
+var openingRegex = regexp.MustCompile(`^:{3,}\s*accordion(?:\((.+)\))?\s*$`)
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
 var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 
@@ -29,7 +30,7 @@ func (p *accordionParser) Open(parent ast.Node, reader text.Reader, pc parser.Co
 
 	independent := false
 	if matches[1] != "" {
-		independent = strings.Contains(matches[1], "independent")
+		independent = attrutil.Has(attrutil.Parse(matches[1]), "independent")
 	}
 
 	return &AccordionBlock{Independent: independent}, parser.HasChildren

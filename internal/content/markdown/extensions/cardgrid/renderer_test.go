@@ -9,7 +9,7 @@ import (
 
 func TestCardGridStaggerBareFlag(t *testing.T) {
 	r := markdown.NewRenderer()
-	md := ":::card-grid{stagger}\n:::card[A]\nBody.\n:::\n:::"
+	md := ":::card-grid(stagger)\n:::card[A]\nBody.\n:::\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)
@@ -24,7 +24,7 @@ func TestCardGridStaggerBareFlag(t *testing.T) {
 
 func TestCardGridStaggerOverridesCols(t *testing.T) {
 	r := markdown.NewRenderer()
-	md := ":::card-grid{cols=\"3\" stagger}\n:::card[A]\nBody.\n:::\n:::"
+	md := ":::card-grid(cols=\"3\" stagger)\n:::card[A]\nBody.\n:::\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)
@@ -42,7 +42,7 @@ func TestCardGridStaggerOverridesCols(t *testing.T) {
 
 func TestCardGridColsWithoutStagger(t *testing.T) {
 	r := markdown.NewRenderer()
-	md := ":::card-grid{cols=\"3\"}\n:::card[A]\nBody.\n:::\n:::"
+	md := ":::card-grid(cols=\"3\")\n:::card[A]\nBody.\n:::\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)

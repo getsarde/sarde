@@ -40,17 +40,17 @@ func (p *kbdParser) Parse(parent ast.Node, block text.Reader, pc parser.Context)
 	var wide bool
 
 	rest := s[consumed:]
-	if strings.HasPrefix(rest, "{") {
-		endBrace := strings.Index(rest, "}")
-		if endBrace >= 1 {
-			attrBlock := rest[1:endBrace]
+	if strings.HasPrefix(rest, "(") {
+		endParen := strings.Index(rest, ")")
+		if endParen >= 1 {
+			attrBlock := rest[1:endParen]
 			if m := sizeAttrRe.FindStringSubmatch(attrBlock); m != nil {
 				if m[1] == "sm" || m[1] == "lg" {
 					size = m[1]
 				}
 			}
 			wide = wideFlagRe.MatchString(attrBlock)
-			consumed += endBrace + 1
+			consumed += endParen + 1
 		}
 	}
 

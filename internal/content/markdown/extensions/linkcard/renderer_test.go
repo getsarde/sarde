@@ -43,7 +43,7 @@ func setupTestEnv() (*markdown.Renderer, *engine.Page, *links.LinkGraph) {
 func TestLinkCardResolvesRelativeHref(t *testing.T) {
 	r, _, graph := setupTestEnv()
 
-	md := ":::link-card[Auth Guide]{href=\"./auth.md\"}\n:::"
+	md := ":::link-card[Auth Guide](href=\"./auth.md\")\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)
@@ -68,7 +68,7 @@ func TestLinkCardResolvesRelativeHref(t *testing.T) {
 func TestLinkCardBrokenTarget(t *testing.T) {
 	r, _, graph := setupTestEnv()
 
-	md := ":::link-card[Missing]{href=\"./nonexistent.md\"}\n:::"
+	md := ":::link-card[Missing](href=\"./nonexistent.md\")\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)
@@ -90,7 +90,7 @@ func TestLinkCardBrokenTarget(t *testing.T) {
 func TestLinkCardExternalHrefPassesThrough(t *testing.T) {
 	r, _, graph := setupTestEnv()
 
-	md := ":::link-card[GitHub]{href=\"https://github.com\"}\n:::"
+	md := ":::link-card[GitHub](href=\"https://github.com\")\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)
@@ -113,7 +113,7 @@ func TestLinkCardSiteAbsoluteResolvesNoNewTab(t *testing.T) {
 	r, _, graph := setupTestEnv()
 
 	// Extension-less site-absolute href to an existing page.
-	md := ":::link-card[Auth]{href=\"/docs/guide/auth\"}\n:::"
+	md := ":::link-card[Auth](href=\"/docs/guide/auth\")\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)
@@ -136,7 +136,7 @@ func TestLinkCardInternalNoNewTab(t *testing.T) {
 	r, _, _ := setupTestEnv()
 
 	// A resolved relative link is internal — it must stay in the same tab.
-	md := ":::link-card[Auth Guide]{href=\"./auth.md\"}\n:::"
+	md := ":::link-card[Auth Guide](href=\"./auth.md\")\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)
@@ -150,7 +150,7 @@ func TestLinkCardInternalNoNewTab(t *testing.T) {
 func TestLinkCardExternalKeepsNewTab(t *testing.T) {
 	r, _, _ := setupTestEnv()
 
-	md := ":::link-card[GitHub]{href=\"https://github.com\"}\n:::"
+	md := ":::link-card[GitHub](href=\"https://github.com\")\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)
@@ -167,7 +167,7 @@ func TestLinkCardExternalKeepsNewTab(t *testing.T) {
 func TestLinkCardContentRootHref(t *testing.T) {
 	r, _, graph := setupTestEnv()
 
-	md := ":::link-card[Auth]{href=\"/guide/auth.md\"}\n:::"
+	md := ":::link-card[Auth](href=\"/guide/auth.md\")\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)

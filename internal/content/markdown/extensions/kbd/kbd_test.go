@@ -39,28 +39,28 @@ func TestKbdCombo(t *testing.T) {
 }
 
 func TestKbdSizeSm(t *testing.T) {
-	out := render(t, `::kbd[Ctrl]{size="sm"}`)
+	out := render(t, `::kbd[Ctrl](size="sm")`)
 	if !strings.Contains(out, `class="sarde-kbd sarde-kbd-sm"`) {
 		t.Errorf("size sm = %q", out)
 	}
 }
 
 func TestKbdSizeLg(t *testing.T) {
-	out := render(t, `::kbd[Ctrl]{size="lg"}`)
+	out := render(t, `::kbd[Ctrl](size="lg")`)
 	if !strings.Contains(out, `class="sarde-kbd sarde-kbd-lg"`) {
 		t.Errorf("size lg = %q", out)
 	}
 }
 
 func TestKbdWide(t *testing.T) {
-	out := render(t, "::kbd[Space]{wide}")
+	out := render(t, "::kbd[Space](wide)")
 	if !strings.Contains(out, `sarde-kbd sarde-kbd-wide`) {
 		t.Errorf("wide = %q", out)
 	}
 }
 
 func TestKbdSizeLgWide(t *testing.T) {
-	out := render(t, `::kbd[Enter]{size="lg" wide}`)
+	out := render(t, `::kbd[Enter](size="lg" wide)`)
 	if !strings.Contains(out, `sarde-kbd-lg`) {
 		t.Errorf("expected lg: %q", out)
 	}
@@ -70,7 +70,7 @@ func TestKbdSizeLgWide(t *testing.T) {
 }
 
 func TestKbdComboWithSize(t *testing.T) {
-	out := render(t, `::kbd[Ctrl+S]{size="sm"}`)
+	out := render(t, `::kbd[Ctrl+S](size="sm")`)
 	count := strings.Count(out, `sarde-kbd sarde-kbd-sm`)
 	if count != 2 {
 		t.Errorf("expected 2 kbd-sm elements, got %d: %q", count, out)
@@ -78,7 +78,7 @@ func TestKbdComboWithSize(t *testing.T) {
 }
 
 func TestKbdInvalidSize(t *testing.T) {
-	out := render(t, `::kbd[X]{size="xl"}`)
+	out := render(t, `::kbd[X](size="xl")`)
 	if !strings.Contains(out, `class="sarde-kbd"`) {
 		t.Errorf("expected plain sarde-kbd: %q", out)
 	}

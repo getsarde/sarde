@@ -9,8 +9,8 @@ import (
 	"github.com/yuin/goldmark/text"
 )
 
-// :::details[Summary text]  or  :::details[Summary text]{open}  or  :::details{open}[Summary text]  or  :::details
-var openingRegex = regexp.MustCompile(`^:{3,}\s*details(?:\{open\})?(?:\[([^\]]*)\])?(?:\{open\})?\s*(open)?\s*$`)
+// :::details[Summary text]  or  :::details[Summary text](open)  or  :::details(open)[Summary text]  or  :::details
+var openingRegex = regexp.MustCompile(`^:{3,}\s*details(?:\(open\))?(?:\[([^\]]*)\])?(?:\(open\))?\s*(open)?\s*$`)
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
 var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 
@@ -42,7 +42,7 @@ func (p *detailsParser) Open(parent ast.Node, reader text.Reader, pc parser.Cont
 	}
 	node := &DetailsBlock{
 		Summary: summary,
-		Open:    strings.Contains(lineStr, "{open}") || matches[2] == "open",
+		Open:    strings.Contains(lineStr, "(open)") || matches[2] == "open",
 	}
 
 	return node, parser.HasChildren

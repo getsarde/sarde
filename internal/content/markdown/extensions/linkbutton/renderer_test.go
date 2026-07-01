@@ -48,7 +48,7 @@ func TestLinkButtonSiteAbsoluteResolvesNoNewTab(t *testing.T) {
 	r, _, graph := setupTestEnv()
 
 	// Extension-less site-absolute href resolves through the shared link renderer.
-	md := ":::link-button[Auth]{href=\"/docs/guide/auth\"}\n:::"
+	md := ":::link-button[Auth](href=\"/docs/guide/auth\")\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)
@@ -70,7 +70,7 @@ func TestLinkButtonSiteAbsoluteResolvesNoNewTab(t *testing.T) {
 func TestLinkButtonResolvesRelativeHref(t *testing.T) {
 	r, _, graph := setupTestEnv()
 
-	md := ":::link-button[Read Auth Guide]{href=\"./auth.md\"}\n:::"
+	md := ":::link-button[Read Auth Guide](href=\"./auth.md\")\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)
@@ -95,7 +95,7 @@ func TestLinkButtonResolvesRelativeHref(t *testing.T) {
 func TestLinkButtonBrokenTarget(t *testing.T) {
 	r, _, graph := setupTestEnv()
 
-	md := ":::link-button[Missing]{href=\"./nonexistent.md\"}\n:::"
+	md := ":::link-button[Missing](href=\"./nonexistent.md\")\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)
@@ -117,7 +117,7 @@ func TestLinkButtonBrokenTarget(t *testing.T) {
 func TestLinkButtonExternalHrefPassesThrough(t *testing.T) {
 	r, _, graph := setupTestEnv()
 
-	md := ":::link-button[GitHub]{href=\"https://github.com\"}\n:::"
+	md := ":::link-button[GitHub](href=\"https://github.com\")\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)
@@ -139,7 +139,7 @@ func TestLinkButtonExternalHrefPassesThrough(t *testing.T) {
 func TestLinkButtonContentRootHref(t *testing.T) {
 	r, _, graph := setupTestEnv()
 
-	md := ":::link-button[Auth]{href=\"/guide/auth.md\"}\n:::"
+	md := ":::link-button[Auth](href=\"/guide/auth.md\")\n:::"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatalf("Render error: %v", err)
@@ -163,10 +163,10 @@ func TestLinkButtonContentRootHref(t *testing.T) {
 func TestLinkButtonConsecutiveBlocks_BodyCaptureIndependent(t *testing.T) {
 	md := goldmark.New(goldmark.WithExtensions(&linkbutton.Extension{}))
 
-	src := ":::link-button[Labeled]{href=\"https://example.com/a\"}\n" +
+	src := ":::link-button[Labeled](href=\"https://example.com/a\")\n" +
 		"body must be ignored\n" +
 		":::\n\n" +
-		":::link-button{href=\"https://example.com/b\"}\n" +
+		":::link-button(href=\"https://example.com/b\")\n" +
 		"Body Becomes Label\n" +
 		":::\n"
 
@@ -193,8 +193,8 @@ func TestLinkButtonConsecutiveBlocks_BodyCaptureIndependent(t *testing.T) {
 func TestLinkButtonSharedParserConcurrent(t *testing.T) {
 	md := goldmark.New(goldmark.WithExtensions(&linkbutton.Extension{}))
 
-	labeled := ":::link-button[Fixed]{href=\"https://example.com/a\"}\nignored\n:::\n"
-	unlabeled := ":::link-button{href=\"https://example.com/b\"}\nFromBody\n:::\n"
+	labeled := ":::link-button[Fixed](href=\"https://example.com/a\")\nignored\n:::\n"
+	unlabeled := ":::link-button(href=\"https://example.com/b\")\nFromBody\n:::\n"
 
 	var wg sync.WaitGroup
 	errs := make(chan string, 64)

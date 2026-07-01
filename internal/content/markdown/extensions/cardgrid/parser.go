@@ -5,21 +5,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/attrutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 )
 
-var openingRegex = regexp.MustCompile(`^:{3,}\s*card-grid(?:\{([^}]*)\})?\s*$`)
-var attrRegex = regexp.MustCompile(`(\w+)(?:="([^"]*)")?`)
-
-func parseAttrs(s string) map[string]string {
-	result := make(map[string]string)
-	for _, m := range attrRegex.FindAllStringSubmatch(s, -1) {
-		result[m[1]] = m[2]
-	}
-	return result
-}
+var openingRegex = regexp.MustCompile(`^:{3,}\s*card-grid(?:\((.+)\))?\s*$`)
 
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
 var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
@@ -41,11 +33,11 @@ func (p *cardGridParser) Open(parent ast.Node, reader text.Reader, pc parser.Con
 	var cols int
 	var stagger bool
 	if matches[1] != "" {
-		attrs := parseAttrs(matches[1])
+		attrs := attrutil.Parse(matches[1])
 		if v, err := strconv.Atoi(attrs["cols"]); err == nil && v >= 2 && v <= 4 {
 			cols = v
 		}
-		_, stagger = attrs["stagger"]
+		stagger = attrutil.Has(attrs, "stagger")
 	}
 
 	return &CardGridBlock{Cols: cols, Stagger: stagger}, parser.HasChildren

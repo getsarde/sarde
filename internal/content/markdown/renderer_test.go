@@ -174,7 +174,7 @@ func TestRender_CodeBlockSyntaxHighlighting(t *testing.T) {
 
 func TestRender_Badge(t *testing.T) {
 	r := NewRenderer()
-	md := ":::badge{type=\"success\"}\nNew\n:::\n"
+	md := ":::badge(type=\"success\")\nNew\n:::\n"
 	result, err := r.Render(md)
 	if err != nil {
 		t.Fatal(err)

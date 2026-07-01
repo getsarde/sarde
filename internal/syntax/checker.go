@@ -89,7 +89,7 @@ func Check(filename string, content []byte, lineOffset int) []Diagnostic {
 			continue
 		}
 
-		// Opener: :::tagname[...]{...}
+		// Opener: :::tagname[...](...)
 		tag := extractTag(rest)
 		if tag != "" {
 			stack = append(stack, stackEntry{tag: tag, line: lineNum})

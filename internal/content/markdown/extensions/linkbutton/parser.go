@@ -4,14 +4,14 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/attrutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 )
 
 // matches[1] = colon sequence, matches[2] = label, matches[3] = attrs
-var openingRegex = regexp.MustCompile(`^(:{3,})\s*link-button(?:\[([^\]]*)\])?(?:\{([^}]*)\})?\s*$`)
-var attrRegex = regexp.MustCompile(`([\w-]+)="([^"]*)"`)
+var openingRegex = regexp.MustCompile(`^(:{3,})\s*link-button(?:\[([^\]]*)\])?(?:\((.+)\))?\s*$`)
 
 // linkButtonParser is stateless; per-block parse state lives on LinkButtonBlock.
 type linkButtonParser struct{}
@@ -29,7 +29,7 @@ func (p *linkButtonParser) Open(parent ast.Node, reader text.Reader, pc parser.C
 
 	colonCount := len(matches[1])
 	label := matches[2]
-	attrs := parseAttrs(matches[3])
+	attrs := attrutil.Parse(matches[3])
 
 	if attrs["href"] == "" {
 		return nil, parser.NoChildren
@@ -116,17 +116,6 @@ func isClosingFence(line string, minColons int) bool {
 	}
 	rest := strings.TrimSpace(line[count:])
 	return rest == "" || rest == "/link-button"
-}
-
-func parseAttrs(s string) map[string]string {
-	result := make(map[string]string)
-	if s == "" {
-		return result
-	}
-	for _, m := range attrRegex.FindAllStringSubmatch(s, -1) {
-		result[m[1]] = m[2]
-	}
-	return result
 }
 
 func isValidVariant(v string) bool {

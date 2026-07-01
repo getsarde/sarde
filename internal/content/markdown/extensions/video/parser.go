@@ -4,23 +4,18 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/attrutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 )
 
-var openRegex = regexp.MustCompile(`^:{3,}\s*video(?:\{([^}]+)\})?\s*$`)
+var openRegex = regexp.MustCompile(`^:{3,}\s*video(?:\(([^)]+)\))?\s*$`)
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/video)?\s*$`)
 
 var (
 	youtubeRegex = regexp.MustCompile(`(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/|youtube\.com/shorts/)([a-zA-Z0-9_-]+)`)
 	vimeoRegex   = regexp.MustCompile(`(?:vimeo\.com/)(\d+)`)
-)
-
-var (
-	reAutoplay = regexp.MustCompile(`\bautoplay\b`)
-	reMuted    = regexp.MustCompile(`\bmuted\b`)
-	reLoop     = regexp.MustCompile(`\bloop\b`)
 )
 
 type videoParser struct{}
@@ -36,14 +31,13 @@ func (p *videoParser) Open(parent ast.Node, reader text.Reader, pc parser.Contex
 		return nil, parser.NoChildren
 	}
 
-	attrs := matches[1]
-	src := parseAttr(attrs, "src", "")
+	attrs := attrutil.Parse(matches[1])
+	src := attrs["src"]
 	if src == "" {
 		return nil, parser.NoChildren
 	}
 
-	title := parseAttr(attrs, "title", "")
-	ratio := parseAttr(attrs, "ratio", "")
+	ratio := attrs["ratio"]
 	if ratio != "4:3" && ratio != "1:1" && ratio != "9:16" {
 		ratio = ""
 	}
@@ -54,11 +48,11 @@ func (p *videoParser) Open(parent ast.Node, reader text.Reader, pc parser.Contex
 		URL:      src,
 		Platform: platform,
 		VideoID:  videoID,
-		Title:    title,
+		Title:    attrs["title"],
 		Ratio:    ratio,
-		Autoplay: reAutoplay.MatchString(attrs),
-		Muted:    reMuted.MatchString(attrs),
-		Loop:     reLoop.MatchString(attrs),
+		Autoplay: attrutil.Has(attrs, "autoplay"),
+		Muted:    attrutil.Has(attrs, "muted"),
+		Loop:     attrutil.Has(attrs, "loop"),
 	}, parser.NoChildren
 }
 
@@ -89,14 +83,3 @@ func extractVideoInfo(url string) (platform, videoID string) {
 	return "", ""
 }
 
-func parseAttr(attrs, key, fallback string) string {
-	re := regexp.MustCompile(key + `\s*=\s*"([^"]*)"`)
-	if m := re.FindStringSubmatch(attrs); m != nil {
-		return m[1]
-	}
-	re2 := regexp.MustCompile(key + `\s*=\s*'([^']*)'`)
-	if m := re2.FindStringSubmatch(attrs); m != nil {
-		return m[1]
-	}
-	return fallback
-}

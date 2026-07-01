@@ -4,15 +4,15 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/attrutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 )
 
-var openingRegex = regexp.MustCompile(`^:{3,}\s*card(?:\[([^\]]*)\])?(?:\{([^}]*)\})?\s*$`)
+var openingRegex = regexp.MustCompile(`^:{3,}\s*card(?:\[([^\]]*)\])?(?:\((.+)\))?\s*$`)
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
 var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
-var attrRegex = regexp.MustCompile(`(\w+)="([^"]*)"`)
 
 type cardParser struct{}
 
@@ -29,7 +29,7 @@ func (p *cardParser) Open(parent ast.Node, reader text.Reader, pc parser.Context
 	reader.Advance(len(line))
 
 	title := matches[1]
-	attrs := parseAttrs(matches[2])
+	attrs := attrutil.Parse(matches[2])
 	if title == "" {
 		title = attrs["title"]
 	}
@@ -67,14 +67,6 @@ func (p *cardParser) Continue(node ast.Node, reader text.Reader, pc parser.Conte
 func (p *cardParser) Close(node ast.Node, reader text.Reader, pc parser.Context) { deleteDepth(pc, node) }
 func (p *cardParser) CanInterruptParagraph() bool                                 { return false }
 func (p *cardParser) CanAcceptIndentedLine() bool                                 { return false }
-
-func parseAttrs(s string) map[string]string {
-	result := make(map[string]string)
-	for _, m := range attrRegex.FindAllStringSubmatch(s, -1) {
-		result[m[1]] = m[2]
-	}
-	return result
-}
 
 var contextKeyDepth = parser.NewContextKey()
 

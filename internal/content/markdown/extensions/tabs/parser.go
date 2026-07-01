@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/attrutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
@@ -13,18 +14,13 @@ var openingRegex = regexp.MustCompile(`^:{3,}\s*tabs\s*$`)
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
 var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 var tabBoundaryRegex = regexp.MustCompile(`^==\s+(.+)`)
-var tabAttrBlockRegex = regexp.MustCompile(`\{([^}]*)\}\s*$`)
-var attrRegex = regexp.MustCompile(`(\w+)="([^"]*)"`)
+var tabAttrBlockRegex = regexp.MustCompile(`\(([^)]*)\)\s*$`)
 
 func parseTabLabel(raw string) (label, icon string) {
 	if m := tabAttrBlockRegex.FindStringSubmatchIndex(raw); m != nil {
-		attrStr := raw[m[2]:m[3]]
+		attrs := attrutil.Parse(raw[m[2]:m[3]])
 		label = strings.TrimSpace(raw[:m[0]])
-		for _, attr := range attrRegex.FindAllStringSubmatch(attrStr, -1) {
-			if attr[1] == "icon" {
-				icon = attr[2]
-			}
-		}
+		icon = attrs["icon"]
 		return
 	}
 	return raw, ""

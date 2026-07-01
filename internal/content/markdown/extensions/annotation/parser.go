@@ -34,14 +34,14 @@ func (p *annotationParser) Parse(parent ast.Node, block text.Reader, pc parser.C
 	text_ := s[13 : 13+closeIdx]
 	rest := s[13+closeIdx+1:]
 
-	// Find {explanation}
+	// Find (explanation)
 	explanation := ""
 	consumed := 13 + closeIdx + 1
-	if strings.HasPrefix(rest, "{") {
-		endBrace := strings.Index(rest, "}")
-		if endBrace > 1 {
-			explanation = rest[1:endBrace]
-			consumed += endBrace + 1
+	if strings.HasPrefix(rest, "(") {
+		endParen := strings.Index(rest, ")")
+		if endParen > 1 {
+			explanation = rest[1:endParen]
+			consumed += endParen + 1
 		}
 	}
 
