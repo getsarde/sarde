@@ -64,9 +64,8 @@ func (r *linkCardRenderer) render(w util.BufWriter, source []byte, node ast.Node
 			}
 			_, _ = fmt.Fprintf(w, "<div class=\"sarde-link-card-image\"><img src=\"%s\" alt=\"\"></div>\n", htmlutil.EscapeHTML(imgSrc))
 		} else if lc.Icon != "" {
-			if svg := icons.GetWithClass(lc.Icon, "sarde-link-card-icon"); svg != "" {
-				_, _ = w.WriteString(svg)
-				_, _ = w.WriteString("\n")
+			if svg := icons.GetWithClass(lc.Icon, "sarde-link-card-icon-svg"); svg != "" {
+				_, _ = fmt.Fprintf(w, "<span class=\"sarde-link-card-icon\">%s</span>\n", svg)
 			}
 		}
 		_, _ = fmt.Fprintf(w, "<div class=\"sarde-link-card-content\">\n<span class=\"sarde-link-card-title\">%s</span>\n",

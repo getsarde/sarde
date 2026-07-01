@@ -62,6 +62,10 @@
 	    margin-bottom: 0;
 	}
 
+	.sarde-aside hr {
+	    border-color: color-mix(in oklch, var(--sd-border) 50%, transparent);
+	}
+
 	/* Note - Blue */
 	.sarde-aside-note {
 	    border-color: var(--sd-aside-note);

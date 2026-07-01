@@ -59,6 +59,8 @@
 	body {
 	  font-family: var(--sd-font-sans);
 	  font-size: var(--sd-text-base);
+	  font-optical-sizing: auto;
+	  font-feature-settings: 'liga' 1, 'calt' 1;
 	  line-height: var(--sd-line-height);
 	  color: var(--sd-text);
 	  background: var(--sd-bg);
