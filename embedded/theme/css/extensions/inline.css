@@ -14,10 +14,10 @@
 	    align-items: center;
 	    gap: 0.25em;
 	    margin: 0.15rem 0.3rem 0.15rem 0;
-	    padding: 0.2rem 0.55rem;
-	    font-size: var(--sd-text-xs);
+	    padding: 0.25rem 0.65rem;
+	    font-size: 0.8rem;
 	    font-weight: var(--sd-weight-semibold);
-	    line-height: 1.4;
+	    line-height: 1;
 	    letter-spacing: 0.025em;
 	    text-transform: uppercase;
 	    border-radius: var(--sd-radius-full);
@@ -28,6 +28,7 @@
 
 	/* Badge icon (inline Lucide SVG) */
 	.sarde-badge-icon {
+	    display: block;
 	    flex-shrink: 0;
 	    width: 1.3em;
 	    height: 1.3em;
@@ -218,61 +219,82 @@
 
 	:root[data-theme="dark"] {
 	    .sarde-badge-default {
-	        background: var(--sd-gray-2);
-	        color: var(--sd-gray-6);
-	        border-color: var(--sd-gray-3);
+	        background: var(--sd-gray-8);
+	        color: var(--sd-gray-3);
+	        border-color: var(--sd-gray-7);
 	    }
 	    .sarde-badge-primary {
-	        background: var(--sd-indigo-low);
-	        color: var(--sd-indigo-high);
-	        border-color: color-mix(in oklch, var(--sd-indigo) 40%, transparent);
+	        background: color-mix(in oklch, var(--sd-indigo) 15%, transparent);
+	        color: oklch(0.78 0.16 var(--sd-hue-indigo));
+	        border-color: color-mix(in oklch, var(--sd-indigo) 30%, transparent);
 	    }
 	    .sarde-badge-secondary {
-	        background: var(--sd-gray-2);
-	        color: var(--sd-gray-5);
-	        border-color: var(--sd-gray-3);
+	        background: var(--sd-gray-8);
+	        color: var(--sd-gray-4);
+	        border-color: var(--sd-gray-7);
 	    }
 	    .sarde-badge-success {
-	        background: var(--sd-green-low);
-	        color: var(--sd-green-high);
-	        border-color: color-mix(in oklch, var(--sd-green) 40%, transparent);
+	        background: color-mix(in oklch, var(--sd-green) 15%, transparent);
+	        color: oklch(0.78 0.14 var(--sd-hue-green));
+	        border-color: color-mix(in oklch, var(--sd-green) 30%, transparent);
 	    }
 	    .sarde-badge-warning,
 	    .sarde-badge-caution {
-	        background: var(--sd-amber-low);
-	        color: var(--sd-amber-high);
-	        border-color: color-mix(in oklch, var(--sd-amber) 40%, transparent);
+	        background: color-mix(in oklch, var(--sd-amber) 15%, transparent);
+	        color: oklch(0.82 0.13 var(--sd-hue-amber));
+	        border-color: color-mix(in oklch, var(--sd-amber) 30%, transparent);
 	    }
 	    .sarde-badge-danger {
-	        background: var(--sd-red-low);
-	        color: var(--sd-red-high);
-	        border-color: color-mix(in oklch, var(--sd-red) 40%, transparent);
+	        background: color-mix(in oklch, var(--sd-red) 15%, transparent);
+	        color: oklch(0.78 0.16 var(--sd-hue-red));
+	        border-color: color-mix(in oklch, var(--sd-red) 30%, transparent);
 	    }
 	    .sarde-badge-info {
-	        background: var(--sd-blue-low);
-	        color: var(--sd-blue-high);
-	        border-color: color-mix(in oklch, var(--sd-blue) 40%, transparent);
+	        background: color-mix(in oklch, var(--sd-blue) 15%, transparent);
+	        color: oklch(0.78 0.15 231);
+	        border-color: color-mix(in oklch, var(--sd-blue) 30%, transparent);
 	    }
 	    .sarde-badge-note {
-	        background: var(--sd-cyan-low);
-	        color: var(--sd-cyan-high);
-	        border-color: color-mix(in oklch, var(--sd-cyan) 40%, transparent);
+	        background: color-mix(in oklch, var(--sd-cyan) 15%, transparent);
+	        color: oklch(0.78 0.12 var(--sd-hue-cyan));
+	        border-color: color-mix(in oklch, var(--sd-cyan) 30%, transparent);
 	    }
 	    .sarde-badge-tip {
-	        background: var(--sd-purple-low);
-	        color: var(--sd-purple-high);
-	        border-color: color-mix(in oklch, var(--sd-purple) 40%, transparent);
+	        background: color-mix(in oklch, var(--sd-purple) 15%, transparent);
+	        color: oklch(0.78 0.17 293);
+	        border-color: color-mix(in oklch, var(--sd-purple) 30%, transparent);
 	    }
 
 	    /* Outline variants */
-	    .sarde-badge-outline.sarde-badge-primary { color: var(--sd-indigo-high); border-color: var(--sd-indigo-high); }
-	    .sarde-badge-outline.sarde-badge-success { color: var(--sd-green-high); border-color: var(--sd-green-high); }
+	    .sarde-badge-outline.sarde-badge-primary {
+	        color: oklch(0.78 0.16 var(--sd-hue-indigo));
+	        border-color: color-mix(in oklch, var(--sd-indigo) 40%, transparent);
+	    }
+	    .sarde-badge-outline.sarde-badge-success {
+	        color: oklch(0.78 0.14 var(--sd-hue-green));
+	        border-color: color-mix(in oklch, var(--sd-green) 40%, transparent);
+	    }
 	    .sarde-badge-outline.sarde-badge-warning,
-	    .sarde-badge-outline.sarde-badge-caution { color: var(--sd-amber-high); border-color: var(--sd-amber-high); }
-	    .sarde-badge-outline.sarde-badge-danger { color: var(--sd-red-high); border-color: var(--sd-red-high); }
-	    .sarde-badge-outline.sarde-badge-info { color: var(--sd-blue-high); border-color: var(--sd-blue-high); }
-	    .sarde-badge-outline.sarde-badge-note { color: var(--sd-cyan-high); border-color: var(--sd-cyan-high); }
-	    .sarde-badge-outline.sarde-badge-tip { color: var(--sd-purple-high); border-color: var(--sd-purple-high); }
+	    .sarde-badge-outline.sarde-badge-caution {
+	        color: oklch(0.82 0.13 var(--sd-hue-amber));
+	        border-color: color-mix(in oklch, var(--sd-amber) 40%, transparent);
+	    }
+	    .sarde-badge-outline.sarde-badge-danger {
+	        color: oklch(0.78 0.16 var(--sd-hue-red));
+	        border-color: color-mix(in oklch, var(--sd-red) 40%, transparent);
+	    }
+	    .sarde-badge-outline.sarde-badge-info {
+	        color: oklch(0.78 0.15 231);
+	        border-color: color-mix(in oklch, var(--sd-blue) 40%, transparent);
+	    }
+	    .sarde-badge-outline.sarde-badge-note {
+	        color: oklch(0.78 0.12 var(--sd-hue-cyan));
+	        border-color: color-mix(in oklch, var(--sd-cyan) 40%, transparent);
+	    }
+	    .sarde-badge-outline.sarde-badge-tip {
+	        color: oklch(0.78 0.17 293);
+	        border-color: color-mix(in oklch, var(--sd-purple) 40%, transparent);
+	    }
 	}
 
 	/* =============================================================================

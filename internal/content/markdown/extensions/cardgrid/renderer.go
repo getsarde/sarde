@@ -20,8 +20,15 @@ func (r *cardGridRenderer) render(w util.BufWriter, source []byte, node ast.Node
 	if entering {
 		g := node.(*CardGridBlock)
 		cls := "sarde-card-grid not-content"
-		if g.Cols >= 2 && g.Cols <= 4 {
-			cls += fmt.Sprintf(" sarde-card-grid-%d", g.Cols)
+		cols := g.Cols
+		if g.Stagger {
+			cols = 2
+		}
+		if cols >= 2 && cols <= 4 {
+			cls += fmt.Sprintf(" sarde-card-grid-%d", cols)
+		}
+		if g.Stagger {
+			cls += " sarde-card-grid-stagger"
 		}
 		_, _ = fmt.Fprintf(w, "<div class=\"%s\">\n", cls)
 	} else {

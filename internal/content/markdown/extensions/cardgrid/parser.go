@@ -11,7 +11,7 @@ import (
 )
 
 var openingRegex = regexp.MustCompile(`^:{3,}\s*card-grid(?:\{([^}]*)\})?\s*$`)
-var attrRegex = regexp.MustCompile(`(\w+)="([^"]*)"`)
+var attrRegex = regexp.MustCompile(`(\w+)(?:="([^"]*)")?`)
 
 func parseAttrs(s string) map[string]string {
 	result := make(map[string]string)
@@ -20,12 +20,13 @@ func parseAttrs(s string) map[string]string {
 	}
 	return result
 }
+
 var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
 var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 
 type cardGridParser struct{}
 
-func NewParser() parser.BlockParser { return &cardGridParser{} }
+func NewParser() parser.BlockParser       { return &cardGridParser{} }
 func (p *cardGridParser) Trigger() []byte { return []byte{':'} }
 
 func (p *cardGridParser) Open(parent ast.Node, reader text.Reader, pc parser.Context) (ast.Node, parser.State) {
@@ -38,14 +39,16 @@ func (p *cardGridParser) Open(parent ast.Node, reader text.Reader, pc parser.Con
 	reader.Advance(len(line))
 
 	var cols int
+	var stagger bool
 	if matches[1] != "" {
 		attrs := parseAttrs(matches[1])
 		if v, err := strconv.Atoi(attrs["cols"]); err == nil && v >= 2 && v <= 4 {
 			cols = v
 		}
+		_, stagger = attrs["stagger"]
 	}
 
-	return &CardGridBlock{Cols: cols}, parser.HasChildren
+	return &CardGridBlock{Cols: cols, Stagger: stagger}, parser.HasChildren
 }
 
 func (p *cardGridParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {

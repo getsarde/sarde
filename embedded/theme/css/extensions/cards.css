@@ -138,6 +138,39 @@
 	    }
 	}
 
+	/* Staggered card grid: offsets every 2nd (right-column) card vertically */
+	.sarde-card-grid.sarde-card-grid-stagger {
+	    padding-bottom: var(--sd-space-12);
+	}
+
+	.sarde-card-grid.sarde-card-grid-stagger > .sarde-card:nth-child(2n) {
+	    transform: translateY(var(--sd-space-12));
+	}
+
+	.sarde-card-grid.sarde-card-grid-stagger > .sarde-card:nth-child(2n):hover {
+	    transform: translateY(calc(var(--sd-space-12) - 2px));
+	}
+
+	@media (max-width: 768px) {
+	    .sarde-card-grid.sarde-card-grid-stagger {
+	        padding-bottom: 0;
+	    }
+
+	    .sarde-card-grid.sarde-card-grid-stagger > .sarde-card:nth-child(2n) {
+	        transform: none;
+	    }
+	}
+
+	@media print {
+	    .sarde-card-grid.sarde-card-grid-stagger {
+	        padding-bottom: 0;
+	    }
+
+	    .sarde-card-grid.sarde-card-grid-stagger > .sarde-card:nth-child(2n) {
+	        transform: none;
+	    }
+	}
+
 	/* Card grid with 3 columns variant */
 	.sarde-card-grid.sarde-card-grid-3 {
 	    grid-template-columns: repeat(3, 1fr);
