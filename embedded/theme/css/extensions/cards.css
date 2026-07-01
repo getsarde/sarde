@@ -11,12 +11,10 @@
 	    flex-direction: column;
 	    gap: var(--sd-space-3);
 	    padding: var(--sd-space-6);
-	    background: var(--sd-bg-surface);
 	    border: 1px solid var(--sd-border);
 	    border-radius: var(--sd-radius-lg);
 	    transition: all var(--sd-transition-normal);
 	    height: 100%;
-	    box-shadow: var(--sd-shadow-sm);
 	}
 
 	/* Standalone cards (outside a grid) get vertical spacing */
@@ -226,28 +224,27 @@
 	}
 
 	/* -- link-card -- */
-	/**
-	 * Link Card Component Styles
-	 * Uses simplified semantic tokens
-	 */
 
 	.sarde-link-card {
 	    display: flex;
 	    align-items: center;
 	    gap: 1rem;
 	    padding: 1rem;
-	    background: var(--sd-bg);
 	    border: 1px solid var(--sd-border);
 	    border-radius: var(--sd-radius-lg);
 	    text-decoration: none;
 	    color: inherit;
 	    transition: border-color var(--sd-transition-normal), box-shadow var(--sd-transition-normal);
-	    margin: 1rem 0;
+	    margin-block: 1rem;
 	}
 
 	.sarde-link-card:hover {
 	    border-color: var(--sd-border-accent);
 	    box-shadow: var(--sd-shadow-sm);
+	}
+
+	.prose a.sarde-link-card:hover {
+	    text-decoration: none;
 	}
 
 	.sarde-link-card:focus {
@@ -259,13 +256,11 @@
 	    display: flex;
 	    align-items: center;
 	    justify-content: center;
-	    width: 2.25rem;
-	    height: 2.25rem;
-	    padding: 0.5rem;
 	    flex-shrink: 0;
+	    padding: 0.5rem;
 	    border-radius: var(--sd-radius-lg);
 	    background: var(--sd-bg-surface);
-	    color: oklch(0.13 0 0);
+	    color: var(--sd-text-muted);
 	    transition: color var(--sd-transition-fast), background var(--sd-transition-fast);
 	}
 
@@ -281,18 +276,16 @@
 	}
 
 	.sarde-link-card-content {
+	    display: flex;
 	    flex: 1;
+	    flex-direction: column;
 	    min-width: 0;
 	}
 
 	.sarde-link-card-title {
-	    font-size: var(--sd-text-base);
+	    font-size: var(--sd-text-sm);
 	    font-weight: var(--sd-weight-semibold);
 	    color: var(--sd-text);
-	    margin-bottom: var(--sd-space-1);
-	    overflow: hidden;
-	    text-overflow: ellipsis;
-	    white-space: nowrap;
 	}
 
 	.sarde-link-card:hover .sarde-link-card-title {
@@ -300,20 +293,16 @@
 	}
 
 	.sarde-link-card-description {
+	    margin-top: 0.125rem;
 	    font-size: var(--sd-text-sm);
 	    color: var(--sd-text-muted);
 	    line-height: var(--sd-line-height);
-	    overflow: hidden;
-	    text-overflow: ellipsis;
-	    display: -webkit-box;
-	    -webkit-line-clamp: 2;
-	    -webkit-box-orient: vertical;
 	}
 
 	.sarde-link-card-arrow {
 	    flex-shrink: 0;
-	    width: var(--sd-space-5);
-	    height: var(--sd-space-5);
+	    width: 1rem;
+	    height: 1rem;
 	    color: var(--sd-text-subtle);
 	    transition: all var(--sd-transition-fast);
 	}
@@ -341,16 +330,6 @@
 	    width: 100%;
 	    height: 100%;
 	    object-fit: cover;
-	}
-
-	/* Link card with thumbnail (legacy) */
-	.sarde-link-card-thumbnail {
-	    flex-shrink: 0;
-	    width: 80px;
-	    height: 60px;
-	    border-radius: var(--sd-radius-md);
-	    object-fit: cover;
-	    background: var(--sd-bg-surface);
 	}
 
 	/* Domain indicator */
@@ -385,7 +364,6 @@
 
 	.sarde-link-card-compact .sarde-link-card-title {
 	    font-size: var(--sd-text-sm);
-	    margin-bottom: 0;
 	}
 
 	.sarde-link-card-compact .sarde-link-card-description {
@@ -405,11 +383,6 @@
 	    .sarde-link-card-image {
 	        width: 80px;
 	        height: 60px;
-	    }
-
-	    .sarde-link-card-thumbnail {
-	        width: 60px;
-	        height: 45px;
 	    }
 	}
 

@@ -10,7 +10,6 @@
 	    margin: var(--sd-space-4) 0;
 	    border: 1px solid var(--sd-border);
 	    border-radius: var(--sd-radius-lg);
-	    background: var(--sd-bg-surface);
 	    overflow: hidden;
 	    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 	}
@@ -31,7 +30,6 @@
 	    user-select: none;
 	    font-weight: var(--sd-weight-semibold);
 	    color: var(--sd-text);
-	    background: var(--sd-bg-surface);
 	    transition: background-color 0.15s ease, color 0.15s ease;
 	    list-style: none;
 	}

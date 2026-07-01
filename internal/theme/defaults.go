@@ -32,8 +32,9 @@ func DefaultDarkTokens() map[string]string {
 		"text-warning":    "var(--sd-amber-high)",
 		"text-danger":     "var(--sd-red-high)",
 		// Semantic backgrounds
-		"bg":              "var(--sd-black)",
-		"bg-sidebar":      "var(--sd-gray-9)",
+		"bg":              "#1a1a1c",
+		"bg-nav":          "#19191b",
+		"bg-sidebar":      "#18181b",
 		"bg-surface":      "var(--sd-gray-9)",
 		"bg-inline-code":  "var(--sd-gray-8)",
 		"bg-accent-subtle": "var(--sd-accent-low, oklch(0.60 0.22 264 / 0.15))",

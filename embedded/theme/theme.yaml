@@ -17,9 +17,11 @@ tokens:
   radius: "0.5rem"
 
 dark_tokens:
-  bg: "oklch(0.145 0.019 252)"
-  bg-surface: "oklch(0.228 0.023 255)"
-  bg-code: "oklch(0.145 0.019 252)"
+  bg: "#1a1a1c"
+  bg-nav: "#19191b"
+  bg-sidebar: "#18181b"
+  bg-surface: "oklch(0.19 0.008 255)"
+  bg-code: "oklch(0.12 0.008 252)"
   text: "oklch(0.916 0.009 253)"
   text-muted: "oklch(0.674 0.016 253)"
   border: "oklch(0.399 0.025 254)"
@@ -121,8 +123,7 @@ presets:
       font-mono: "'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace"
       radius: "0.375rem"
     dark_tokens:
-      bg: "oklch(0.157 0.016 256)"
-      bg-surface: "oklch(0.197 0.014 256)"
+      bg-surface: "oklch(0.19 0.008 256)"
       text: "oklch(0.937 0.008 253)"
       text-muted: "oklch(0.640 0.012 253)"
       border: "oklch(0.318 0.012 256)"
