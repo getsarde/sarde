@@ -9,6 +9,7 @@ import (
 
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/build"
+	"github.com/getsarde/sarde/internal/buildlock"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/devlog"
@@ -77,6 +78,17 @@ func runServe(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	// Hold the single-instance output lock for the whole dev session so a
+	// second sarde (dev or build) targeting the same dist/ fails fast
+	// instead of silently corrupting fingerprinted assets. Acquired before
+	// the port bind: without this, a second dev server would just take the
+	// next free port and coexist unnoticed.
+	lock, err := buildlock.Acquire(outputDir, "dev")
+	if err != nil {
+		return err
+	}
+	defer lock.Release()
 
 	// Theme dev mode: read theme assets from disk instead of go:embed.
 	themeDevDir, _ := cmd.Flags().GetString("theme-dev")

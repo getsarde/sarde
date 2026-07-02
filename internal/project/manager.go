@@ -10,11 +10,13 @@ import (
 	"sync/atomic"
 
 	"github.com/getsarde/sarde/internal/build"
+	"github.com/getsarde/sarde/internal/buildlock"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/content/markdown"
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/outputpath"
 )
 
 // builderDeps is an immutable snapshot of the inputs for constructing a
@@ -41,6 +43,7 @@ type ProjectManager struct {
 	embeddedFS     fs.FS
 	eventHub       *EventHub
 	devServer      PreviewServer
+	previewLock    *buildlock.Lock
 	previewFactory PreviewFactory
 	mdRenderer     *markdown.Renderer
 }
@@ -208,8 +211,7 @@ func (pm *ProjectManager) Build() (*engine.BuildResult, error) {
 
 	pm.eventHub.Broadcast(Event{Type: "build:started"})
 
-	builder := pm.newBuilder(d)
-	result, err := builder.Build()
+	result, err := pm.runLockedBuild(d)
 
 	// Only transition out of StateBuilding if we're still building. A
 	// concurrent CloseProject() during the build sets StateClosed; don't
@@ -300,6 +302,25 @@ func (pm *ProjectManager) setProjectConfig(dir string, cfg *config.SiteConfig, t
 	pm.config = cfg
 	pm.themeCfg = themeCfg
 	pm.deps.Store(&builderDeps{projectDir: dir, config: cfg, themeCfg: themeCfg})
+}
+
+// runLockedBuild resolves the output dir, holds the single-instance output
+// lock for the duration of the build, and runs it. Acquire is re-entrant
+// within the process, which makes this safe to call while a preview holds
+// the lock on the same directory. Failures flow to the caller's build:error
+// path exactly like build failures.
+func (pm *ProjectManager) runLockedBuild(d *builderDeps) (*engine.BuildResult, error) {
+	outputDir, err := outputpath.ResolveOutputDir(d.projectDir, d.config.Build.Output)
+	if err != nil {
+		return nil, err
+	}
+	lock, err := buildlock.Acquire(outputDir, "sidecar-build")
+	if err != nil {
+		return nil, err
+	}
+	defer lock.Release()
+
+	return pm.newBuilder(d).Build()
 }
 
 // newBuilder constructs a SiteBuilder from a deps snapshot. Lock-free; safe

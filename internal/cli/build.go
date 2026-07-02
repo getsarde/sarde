@@ -9,8 +9,10 @@ import (
 
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/build"
+	"github.com/getsarde/sarde/internal/buildlock"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/outputpath"
 	"github.com/getsarde/sarde/internal/theme"
 	"github.com/getsarde/sarde/internal/version"
 	"github.com/spf13/cobra"
@@ -52,6 +54,19 @@ func runBuild(cmd *cobra.Command, args []string) error {
 	if strictI18n, _ := cmd.Flags().GetBool("strict-i18n"); strictI18n {
 		cfg.I18n.Strict = true
 	}
+
+	// Guard the output dir against a concurrent sarde process (dev or build)
+	// writing into the same dist/. Resolved from the same cfg the builder
+	// resolves later, so the locked dir always equals the written dir.
+	outputDir, err := outputpath.ResolveOutputDir(projectDir, cfg.Build.Output)
+	if err != nil {
+		return err
+	}
+	lock, err := buildlock.Acquire(outputDir, "build")
+	if err != nil {
+		return err
+	}
+	defer lock.Release()
 
 	// Build.
 	builder := newSiteBuilder(projectDir, cfg, themeCfg)

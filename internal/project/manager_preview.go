@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/getsarde/sarde/internal/build"
+	"github.com/getsarde/sarde/internal/buildlock"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/outputpath"
@@ -38,8 +39,12 @@ func (pm *ProjectManager) StartPreview(port int) (int, error) {
 			pm.mu.Lock()
 			// Only tear down if this server is still the active one; a
 			// Stop + restart may have installed a new devServer since.
+			// This teardown path bypasses stopPreviewLocked, so the output
+			// lock must be released here too or its reference leaks for the
+			// process lifetime.
 			if pm.devServer == ds {
 				pm.devServer = nil
+				pm.releasePreviewLockLocked()
 				pm.state = StateOpen
 			}
 			pm.eventHub.Broadcast(Event{Type: "preview:error", Data: map[string]any{"error": err.Error()}})
@@ -92,14 +97,25 @@ func (pm *ProjectManager) installPreview(port int) (PreviewServer, error) {
 		port = consts.DefaultPort
 	}
 
+	// Checked before acquiring the output lock: everything after Acquire
+	// must be infallible or the lock reference would leak.
+	if pm.previewFactory == nil {
+		return nil, fmt.Errorf("preview not available (no preview factory configured)")
+	}
+
 	outputDir, err := outputpath.ResolveOutputDir(pm.projectDir, pm.config.Build.Output)
 	if err != nil {
 		return nil, err
 	}
 
-	if pm.previewFactory == nil {
-		return nil, fmt.Errorf("preview not available (no preview factory configured)")
+	// Hold the single-instance output lock for the preview's lifetime so a
+	// concurrent sarde process targeting the same dist/ fails fast instead
+	// of silently corrupting fingerprinted assets.
+	lock, err := buildlock.Acquire(outputDir, "sidecar-preview")
+	if err != nil {
+		return nil, err
 	}
+	pm.previewLock = lock
 
 	ds := pm.previewFactory(pm.projectDir, outputDir, port, config.BoolVal(pm.config.Server.LiveReload, true), func() *build.SiteBuilder {
 		// Freshness barrier: UpdateSettings writes sarde.yaml and publishes
@@ -135,7 +151,17 @@ func (pm *ProjectManager) StopPreview() error {
 func (pm *ProjectManager) stopPreviewLocked() error {
 	err := pm.devServer.Stop()
 	pm.devServer = nil
+	pm.releasePreviewLockLocked()
 	pm.state = StateOpen
 	pm.eventHub.Broadcast(Event{Type: "preview:stopped"})
 	return err
+}
+
+// releasePreviewLockLocked releases the preview's output lock reference if
+// one is held. Caller must hold pm.mu. Idempotent: safe when no lock is set.
+func (pm *ProjectManager) releasePreviewLockLocked() {
+	if pm.previewLock != nil {
+		pm.previewLock.Release()
+		pm.previewLock = nil
+	}
 }

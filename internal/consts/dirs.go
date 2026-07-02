@@ -46,4 +46,7 @@ const (
 	// Server defaults.
 	DefaultHost = "127.0.0.1"
 	DefaultPort = 4727
+
+	// Output lock file (see internal/buildlock).
+	FileOutputLock = ".sarde.lock"
 )

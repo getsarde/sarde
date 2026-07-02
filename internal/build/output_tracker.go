@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/outputpath"
 	"github.com/getsarde/sarde/internal/workers"
 	"golang.org/x/sync/errgroup"
@@ -74,6 +75,10 @@ func (t *OutputTracker) Prune(outputDir string) error {
 
 	// Walk to collect orphans and directories. The walk itself is
 	// inherently serial, but we defer deletions for parallel execution.
+	// The single-instance lock file at the output root is never tracked as
+	// written, so it must be exempted here or every clean build would delete
+	// the lock the running process holds (see internal/buildlock).
+	lockPath := filepath.Join(outputRoot, consts.FileOutputLock)
 	var emptyDirs []string
 	var toDelete []string
 	err = filepath.WalkDir(outputRoot, func(path string, d fs.DirEntry, err error) error {
@@ -89,6 +94,9 @@ func (t *OutputTracker) Prune(outputDir string) error {
 		}
 		if d.IsDir() {
 			emptyDirs = append(emptyDirs, path)
+			return nil
+		}
+		if filepath.Clean(absPath) == lockPath {
 			return nil
 		}
 		if _, ok := written[filepath.Clean(absPath)]; !ok {
