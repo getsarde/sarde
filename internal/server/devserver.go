@@ -89,7 +89,6 @@ func New(opts Options) *DevServer {
 		rebuilder:  NewRebuilder(opts.BuilderFactory, opts.ProjectDir),
 	}
 
-	ds.rebuilder.SetOnResult(ds.handleRebuildResult)
 	ds.watcher = NewWatcher(opts.ProjectDir, opts.OutputDir, 150*time.Millisecond, ds.onFileChange)
 	for _, dir := range opts.ThemeDevDirs {
 		ds.watcher.AddExternalDir(dir, ChangeTemplate)
@@ -186,15 +185,17 @@ func (ds *DevServer) Start() error {
 	ds.signalReady(actualPort)
 
 	// Initial build (treated as a config change to force full init).
-	result := ds.rebuilder.Rebuild(FileChange{Kind: ChangeConfig})
+	initial := FileChange{Kind: ChangeConfig}
+	_, result := ds.rebuilder.Rebuild(initial)
 	if result.Error != nil {
 		devlog.Error("build", "Initial build failed: %v", result.Error)
 		devlog.Warn("build", "Serving stale output (if any). Waiting for file changes...")
 		if ds.liveReload {
-			msg := ToReloadMessage(FileChange{Kind: ChangeConfig}, result, ds.projectDir)
+			msg := ToReloadMessage(initial, result, ds.projectDir)
 			ds.hub.SetPendingError(&msg)
 		}
 	} else {
+		ds.hub.BumpBuildID()
 		devlog.Log("build", "Built %d pages in %s", result.PageCount, result.Duration)
 	}
 
@@ -255,8 +256,8 @@ func (ds *DevServer) onFileChange(changes []FileChange) {
 		devlog.Log("watch", "Changed [%s]: %s", c.Kind, rel)
 	}
 
-	// Classify the batch to decide how to handle it.
-	representative := classifyBatch(changes)
+	// Merge the batch into a single change to decide how to handle it.
+	representative := mergeChanges(changes)
 
 	// All CSS → hot-swap each without rebuilding.
 	if representative.Kind == ChangeCSS {
@@ -267,12 +268,14 @@ func (ds *DevServer) onFileChange(changes []FileChange) {
 		return
 	}
 
-	// Any non-CSS change triggers a rebuild.
-	result := ds.rebuilder.Rebuild(representative)
+	// Any non-CSS change triggers a rebuild. A nil result means the change was
+	// merged into an in-flight rebuild, whose caller broadcasts the final
+	// result; the returned change is the one the result actually belongs to.
+	executed, result := ds.rebuilder.Rebuild(representative)
 	if result == nil {
 		return
 	}
-	ds.handleRebuildResult(representative, result)
+	ds.handleRebuildResult(executed, result)
 }
 
 func (ds *DevServer) handleRebuildResult(change FileChange, result *RebuildResult) {
@@ -285,19 +288,16 @@ func (ds *DevServer) handleRebuildResult(change FileChange, result *RebuildResul
 	msg := ToReloadMessage(change, result, ds.projectDir)
 	if result.Error != nil {
 		ds.hub.SetPendingError(&msg)
-		ds.hub.ClearPendingReload()
 	} else {
 		ds.hub.ClearPendingError()
-		ds.hub.ClearPendingReload()
 	}
-	sent := ds.hub.Broadcast(msg)
-	// Only store a pending reload if the broadcast didn't reach any client.
-	// This avoids a double-reload: the client that received the broadcast will
-	// reload and reconnect, at which point a stale pendingReload would trigger
-	// a redundant second reload.
-	if result.Success && msg.Type == ReloadFull && sent == 0 {
-		ds.hub.SetPendingReload(&msg)
+	// Stamp successful reloads with a fresh build ID before broadcasting.
+	// Clients that miss this broadcast (disconnected, dead connection) catch
+	// up via the ReloadSync announcement when they reconnect.
+	if result.Success && msg.Type == ReloadFull {
+		msg.BuildID = ds.hub.BumpBuildID()
 	}
+	ds.hub.Broadcast(msg)
 
 	if result.Success && msg.Type == ReloadFull {
 		var items []WarningItem
@@ -322,35 +322,77 @@ func (ds *DevServer) handleRebuildResult(change FileChange, result *RebuildResul
 	}
 }
 
-// classifyBatch picks the most significant change from a batch to drive rebuild routing.
-// Priority: config > template > content > static > css.
-// For content changes, all content paths are collected into Paths.
-func classifyBatch(changes []FileChange) FileChange {
-	priority := map[ChangeKind]int{
-		ChangeConfig:   5,
-		ChangeTemplate: 4,
-		ChangeContent:  3,
-		ChangeStatic:   2,
-		ChangeCSS:      1,
-	}
+// changePriority ranks change kinds for batch classification and pending-merge
+// decisions: config > template > content > static > css.
+var changePriority = map[ChangeKind]int{
+	ChangeConfig:   5,
+	ChangeTemplate: 4,
+	ChangeContent:  3,
+	ChangeStatic:   2,
+	ChangeCSS:      1,
+}
+
+// mergeChanges reduces a batch of changes to a single change that drives
+// rebuild routing without losing work:
+//   - config or template present: that kind wins (a fresh builder plus a full
+//     build covers everything else in the batch)
+//   - content mixed with static/css: escalated to ChangeStatic (full build on
+//     the reused builder; the incremental content path would silently drop the
+//     static/css files, which only a full build copies to the output dir)
+//   - content only: incremental rebuild with the union of all content paths
+//   - static/css only: highest-priority kind
+//
+// Paths carries the deduped union of all content paths in the batch, and
+// DetectedAt the earliest detection timestamp for end-to-end timing.
+func mergeChanges(changes []FileChange) FileChange {
 	best := changes[0]
 	for _, c := range changes[1:] {
-		if priority[c.Kind] > priority[best.Kind] {
+		if changePriority[c.Kind] > changePriority[best.Kind] {
 			best = c
 		}
-		// Keep the earliest detection timestamp for end-to-end timing.
+	}
+
+	seen := make(map[string]struct{})
+	var contentPaths []string
+	addPath := func(p string) {
+		if p == "" {
+			return
+		}
+		if _, ok := seen[p]; ok {
+			return
+		}
+		seen[p] = struct{}{}
+		contentPaths = append(contentPaths, p)
+	}
+	hasNonContent := false
+	for _, c := range changes {
+		if c.Kind == ChangeContent {
+			if len(c.Paths) > 0 {
+				for _, p := range c.Paths {
+					addPath(p)
+				}
+			} else {
+				addPath(c.Path)
+			}
+		} else {
+			hasNonContent = true
+		}
+	}
+
+	if best.Kind == ChangeContent && hasNonContent {
+		best.Kind = ChangeStatic
+	}
+
+	best.Paths = contentPaths
+	if len(best.Paths) == 0 {
+		best.Paths = []string{best.Path}
+	}
+
+	best.DetectedAt = time.Time{}
+	for _, c := range changes {
 		if !c.DetectedAt.IsZero() && (best.DetectedAt.IsZero() || c.DetectedAt.Before(best.DetectedAt)) {
 			best.DetectedAt = c.DetectedAt
 		}
-	}
-	// Collect all content paths so ContentRebuild knows which files changed.
-	for _, c := range changes {
-		if c.Kind == ChangeContent {
-			best.Paths = append(best.Paths, c.Path)
-		}
-	}
-	if len(best.Paths) == 0 {
-		best.Paths = []string{best.Path}
 	}
 	return best
 }

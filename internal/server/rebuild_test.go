@@ -5,6 +5,56 @@ import (
 	"testing"
 )
 
+// While a rebuild runs, incoming changes must merge into the pending slot
+// (kinds escalate, content paths union) instead of overwriting latest-wins;
+// otherwise a template change could be dropped by a later content save.
+func TestRebuilder_PendingMergeKeepsHigherPriorityKind(t *testing.T) {
+	r := NewRebuilder(nil, "")
+	r.mu.Lock()
+	r.running = true
+	r.mu.Unlock()
+
+	if _, res := r.Rebuild(FileChange{Kind: ChangeTemplate, Path: "layouts/base.html"}); res != nil {
+		t.Fatal("expected nil result while a rebuild is running")
+	}
+	if _, res := r.Rebuild(FileChange{Kind: ChangeContent, Path: "content/a.md", Paths: []string{"content/a.md"}}); res != nil {
+		t.Fatal("expected nil result while a rebuild is running")
+	}
+
+	r.mu.Lock()
+	pending := r.pending
+	r.mu.Unlock()
+	if pending == nil {
+		t.Fatal("pending = nil, want merged change")
+	}
+	if pending.Kind != ChangeTemplate {
+		t.Errorf("pending.Kind = %q, want %q (template must survive the merge)", pending.Kind, ChangeTemplate)
+	}
+	if len(pending.Paths) != 1 || pending.Paths[0] != "content/a.md" {
+		t.Errorf("pending.Paths = %#v, want the content path union", pending.Paths)
+	}
+}
+
+func TestRebuilder_PendingMergeEscalatesContentPlusStatic(t *testing.T) {
+	r := NewRebuilder(nil, "")
+	r.mu.Lock()
+	r.running = true
+	r.mu.Unlock()
+
+	r.Rebuild(FileChange{Kind: ChangeStatic, Path: "static/logo.png"})
+	r.Rebuild(FileChange{Kind: ChangeContent, Path: "content/a.md", Paths: []string{"content/a.md"}})
+
+	r.mu.Lock()
+	pending := r.pending
+	r.mu.Unlock()
+	if pending == nil {
+		t.Fatal("pending = nil, want merged change")
+	}
+	if pending.Kind != ChangeStatic {
+		t.Errorf("pending.Kind = %q, want %q (content+static must escalate to a full build)", pending.Kind, ChangeStatic)
+	}
+}
+
 func TestToReloadMessage_Error(t *testing.T) {
 	change := FileChange{Path: "content/blog/hello.md", Kind: ChangeContent}
 	result := &RebuildResult{

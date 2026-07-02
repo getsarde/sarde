@@ -100,6 +100,9 @@ func (r *Renderer) ResolveHref(href string) (resolvedURL string) {
 	})
 
 	if !result.Found {
+		if dest.Kind == LinkContentRoot && !hasMarkdownExtension(dest.Raw) {
+			return r.resolveSiteAbsolute(dest.Raw)
+		}
 		r.recordLinkRef(dest, nil, "", links.StatusBrokenTarget)
 		return "#"
 	}

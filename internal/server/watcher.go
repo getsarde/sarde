@@ -3,6 +3,7 @@ package server
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -53,6 +54,7 @@ type Watcher struct {
 	pending []FileChange
 	done    chan struct{}
 	started bool
+	stopped bool
 }
 
 // NewWatcher creates a file watcher for the given project directory.
@@ -102,14 +104,13 @@ func (w *Watcher) Start() error {
 		}
 	}
 
-	// Watch individual config files.
-	configFiles := []string{consts.FileSiteConfig, consts.FileThemeConfig, consts.FileNavConfig}
-	for _, f := range configFiles {
-		abs := filepath.Join(w.projectDir, f)
-		if _, err := os.Stat(abs); err == nil {
-			fsw.Add(abs)
-		}
-	}
+	// Watch the project root (non-recursively) for config file changes.
+	// Watching config files individually breaks on Linux/macOS: inotify and
+	// kqueue track the inode, so an atomic (rename-over) save kills the watch
+	// after the first event. Root-level events for anything other than the
+	// known config files are filtered out in loop(). This also picks up
+	// config files created after startup.
+	fsw.Add(w.projectDir)
 
 	// Watch external directories (e.g. theme-dev source tree).
 	for _, ext := range w.externalDirs {
@@ -127,14 +128,23 @@ func (w *Watcher) Start() error {
 
 // Stop stops the file watcher.
 func (w *Watcher) Stop() {
+	// Mark stopped and disarm the debounce timer first so a pending
+	// firePending cannot deliver a batch (and trigger a rebuild) after
+	// Stop returns.
+	w.mu.Lock()
+	w.stopped = true
+	if w.timer != nil {
+		w.timer.Stop()
+	}
+	w.pending = nil
+	started := w.started
+	w.mu.Unlock()
+
 	if w.watcher != nil {
 		w.watcher.Close()
 	}
 	// Only wait for loop() to exit if it was actually started; otherwise
 	// done is never closed and this would deadlock (e.g. after a failed Start).
-	w.mu.Lock()
-	started := w.started
-	w.mu.Unlock()
 	if started {
 		<-w.done
 	}
@@ -163,6 +173,14 @@ func (w *Watcher) loop() {
 				}
 			}
 
+			// The project root is watched for config files only; skip every
+			// other root-level entry (stray files, the watched dirs
+			// themselves). Content inside subdirectories arrives via their
+			// own recursive watches.
+			if w.isRootLevelNonConfig(event.Name) {
+				continue
+			}
+
 			change := FileChange{
 				Path:       event.Name,
 				Kind:       w.classifyChange(event.Name),
@@ -179,9 +197,23 @@ func (w *Watcher) loop() {
 	}
 }
 
+// isRootLevelNonConfig reports whether path sits directly in the project root
+// and is not one of the watched config files.
+func (w *Watcher) isRootLevelNonConfig(path string) bool {
+	if filepath.Dir(filepath.Clean(path)) != filepath.Clean(w.projectDir) {
+		return false
+	}
+	base := filepath.Base(path)
+	return base != consts.FileSiteConfig && base != consts.FileThemeConfig && base != consts.FileNavConfig
+}
+
 func (w *Watcher) debounceChange(change FileChange) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+
+	if w.stopped {
+		return
+	}
 
 	// Dedup by path: if this path is already pending, replace with the latest event.
 	found := false
@@ -205,6 +237,10 @@ func (w *Watcher) debounceChange(change FileChange) {
 // firePending drains the pending batch under the lock and calls onChange.
 func (w *Watcher) firePending() {
 	w.mu.Lock()
+	if w.stopped {
+		w.mu.Unlock()
+		return
+	}
 	batch := w.pending
 	w.pending = nil
 	w.mu.Unlock()
@@ -220,7 +256,7 @@ func (w *Watcher) addRecursive(root string) {
 			return nil
 		}
 		if info.IsDir() {
-			if w.shouldIgnoreDir(info.Name()) {
+			if w.shouldIgnoreDir(path) {
 				return filepath.SkipDir
 			}
 			w.watcher.Add(path)
@@ -264,11 +300,20 @@ func (w *Watcher) shouldIgnore(path string) bool {
 	return false
 }
 
-func (w *Watcher) shouldIgnoreDir(name string) bool {
-	// Skip the configured output dir if it happens to nest under a watched root.
-	if w.outputDir != "" && name == filepath.Base(w.outputDir) {
-		return true
+func (w *Watcher) shouldIgnoreDir(path string) bool {
+	// Skip the configured output dir if it happens to nest under a watched
+	// root, matched by path relative to the project dir. Matching by bare
+	// name would also unwatch unrelated same-named dirs (e.g. build.output
+	// "site" must not unwatch content/site/).
+	if w.outputDir != "" && w.outputDir != "." {
+		if rel, err := filepath.Rel(w.projectDir, path); err == nil {
+			rel = filepath.ToSlash(rel)
+			if rel == w.outputDir || strings.HasPrefix(rel, w.outputDir+"/") {
+				return true
+			}
+		}
 	}
+	name := filepath.Base(path)
 	switch name {
 	case ".git", ".cache", "dist", "public", "node_modules", ".svn", ".hg":
 		return true
@@ -320,7 +365,13 @@ func (w *Watcher) classifyChange(path string) ChangeKind {
 func isUnderDir(path, dir string) bool {
 	path = filepath.Clean(path)
 	dir = filepath.Clean(dir)
-	return strings.HasPrefix(strings.ToLower(path), strings.ToLower(dir)+string(filepath.Separator)) || strings.EqualFold(path, dir)
+	// Case-insensitive comparison only on case-insensitive filesystems;
+	// on Linux /foo and /Foo are distinct directories.
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+		return strings.EqualFold(path, dir) ||
+			strings.HasPrefix(strings.ToLower(path), strings.ToLower(dir)+string(filepath.Separator))
+	}
+	return path == dir || strings.HasPrefix(path, dir+string(filepath.Separator))
 }
 
 func isRelevantOp(op fsnotify.Op) bool {

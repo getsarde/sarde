@@ -40,7 +40,7 @@ func KnownTokens() map[string]bool {
 		// Typography
 		"font-sans": true, "font-mono": true,
 		"text-xs": true, "text-sm": true, "text-base": true, "text-lg": true,
-		"text-xl": true, "text-2xl": true, "text-3xl": true, "text-4xl": true,
+		"text-xl": true, "text-2xl": true, "text-3xl": true, "text-4xl": true, "text-5xl": true,
 		"text-h1": true, "text-h2": true, "text-h3": true, "text-h4": true, "text-h5": true, "text-h6": true,
 		"line-height": true, "line-height-headings": true, "line-height-relaxed": true,
 		"weight-normal": true, "weight-medium": true, "weight-semibold": true, "weight-bold": true,

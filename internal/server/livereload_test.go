@@ -24,6 +24,21 @@ func TestHub_ClientCount(t *testing.T) {
 	}
 }
 
+// readMessage reads and unmarshals the next message from conn.
+func readMessage(t *testing.T, conn *websocket.Conn) ReloadMessage {
+	t.Helper()
+	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+	_, data, err := conn.ReadMessage()
+	if err != nil {
+		t.Fatalf("ReadMessage failed: %v", err)
+	}
+	var msg ReloadMessage
+	if err := json.Unmarshal(data, &msg); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+	return msg
+}
+
 func TestHub_ConnectAndBroadcast(t *testing.T) {
 	hub := NewHub()
 
@@ -39,8 +54,15 @@ func TestHub_ConnectAndBroadcast(t *testing.T) {
 	}
 	defer conn.Close()
 
-	// Wait for client registration.
-	time.Sleep(50 * time.Millisecond)
+	// Every connect (without a pending error) is greeted with a sync
+	// announcement carrying the latest build ID.
+	sync := readMessage(t, conn)
+	if sync.Type != ReloadSync {
+		t.Fatalf("first message Type = %q, want %q", sync.Type, ReloadSync)
+	}
+	if sync.BuildID != hub.BuildID() {
+		t.Errorf("sync BuildID = %d, want %d", sync.BuildID, hub.BuildID())
+	}
 
 	if got := hub.ClientCount(); got != 1 {
 		t.Fatalf("ClientCount() = %d, want 1", got)
@@ -50,23 +72,24 @@ func TestHub_ConnectAndBroadcast(t *testing.T) {
 	sent := ReloadMessage{Type: ReloadFull, Path: "/docs/intro/"}
 	hub.Broadcast(sent)
 
-	// Read the message on the client.
-	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
-	_, data, err := conn.ReadMessage()
-	if err != nil {
-		t.Fatalf("ReadMessage failed: %v", err)
-	}
-
-	var received ReloadMessage
-	if err := json.Unmarshal(data, &received); err != nil {
-		t.Fatalf("Unmarshal failed: %v", err)
-	}
-
+	received := readMessage(t, conn)
 	if received.Type != ReloadFull {
 		t.Errorf("Type = %q, want %q", received.Type, ReloadFull)
 	}
 	if received.Path != "/docs/intro/" {
 		t.Errorf("Path = %q, want %q", received.Path, "/docs/intro/")
+	}
+}
+
+func TestHub_BumpBuildID_Monotonic(t *testing.T) {
+	hub := NewHub()
+	first := hub.BumpBuildID()
+	second := hub.BumpBuildID()
+	if second <= first {
+		t.Errorf("BumpBuildID not monotonic: %d then %d", first, second)
+	}
+	if hub.BuildID() != second {
+		t.Errorf("BuildID() = %d, want %d", hub.BuildID(), second)
 	}
 }
 
@@ -85,15 +108,8 @@ func TestHub_PendingErrorReplay(t *testing.T) {
 	}
 	defer conn.Close()
 
-	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
-	_, data, err := conn.ReadMessage()
-	if err != nil {
-		t.Fatalf("ReadMessage failed: %v", err)
-	}
-	var received ReloadMessage
-	if err := json.Unmarshal(data, &received); err != nil {
-		t.Fatalf("Unmarshal failed: %v", err)
-	}
+	// With a pending error, the error replay replaces the sync greeting.
+	received := readMessage(t, conn)
 	if received.Type != ReloadError || received.Error != "boom" {
 		t.Errorf("received %+v, want pending error replay", received)
 	}
@@ -151,7 +167,10 @@ func TestHub_BroadcastError(t *testing.T) {
 	}
 	defer conn.Close()
 
-	time.Sleep(50 * time.Millisecond)
+	// Drain the sync greeting sent on connect.
+	if msg := readMessage(t, conn); msg.Type != ReloadSync {
+		t.Fatalf("first message Type = %q, want %q", msg.Type, ReloadSync)
+	}
 
 	// Broadcast an error message.
 	sent := ReloadMessage{
@@ -163,17 +182,7 @@ func TestHub_BroadcastError(t *testing.T) {
 	}
 	hub.Broadcast(sent)
 
-	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
-	_, data, err := conn.ReadMessage()
-	if err != nil {
-		t.Fatalf("ReadMessage failed: %v", err)
-	}
-
-	var received ReloadMessage
-	if err := json.Unmarshal(data, &received); err != nil {
-		t.Fatalf("Unmarshal failed: %v", err)
-	}
-
+	received := readMessage(t, conn)
 	if received.Type != ReloadError {
 		t.Errorf("Type = %q, want %q", received.Type, ReloadError)
 	}

@@ -1,13 +1,17 @@
 (function () {
-  var ws, retries = 0, maxRetry = 8000, startTime = Date.now();
+  var ws, retries = 0, maxRetry = 8000;
   var overlay = null, banner = null, warningPanel = null;
+  // Build ID of the build this page was served under, injected by the dev
+  // server. Lets us ignore reload/sync messages for builds the page already
+  // reflects, so reconnecting tabs catch up exactly once and never loop.
+  var pageBuild = window.__SARDE_LR_BUILD__ || 0;
 
   function connect() {
     var proto = location.protocol === "https:" ? "wss:" : "ws:";
     ws = new WebSocket(proto + "//" + location.host + "/ws");
 
     ws.onopen = function () {
-      retries = 0; startTime = Date.now();
+      retries = 0;
       var pending = sessionStorage.getItem("__lr_warning");
       if (pending) {
         try {
@@ -22,8 +26,13 @@
       try { msg = JSON.parse(e.data); } catch (_) { return; }
 
       if (msg.type === "reload") {
+        if (msg.buildId && pageBuild && msg.buildId <= pageBuild) return;
         if (msg.changedAt) sessionStorage.setItem("__lr_changed_at", msg.changedAt);
         location.reload();
+      } else if (msg.type === "sync") {
+        // Sent on (re)connect: reload only if the page predates the server's
+        // latest successful build (missed broadcast, server restart).
+        if (msg.buildId && pageBuild && msg.buildId > pageBuild) location.reload();
       } else if (msg.type === "css") {
         var links = document.querySelectorAll('link[rel="stylesheet"]');
         links.forEach(function (l) {
@@ -43,10 +52,11 @@
     };
 
     ws.onclose = function () {
-      if (Date.now() - startTime > 30000 && retries > 3) {
-        location.reload();
-        return;
-      }
+      // Keep retrying with capped backoff. A forced reload here would land on
+      // the browser's error page if the server is down, losing this script
+      // and any chance of auto-recovery. When the server comes back, the
+      // "sync" message sent on reconnect reloads the page only if a newer
+      // build exists.
       var delay = Math.min(100 * Math.pow(2, retries), maxRetry);
       retries++;
       setTimeout(connect, delay);

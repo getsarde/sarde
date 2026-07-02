@@ -647,6 +647,7 @@ func (b *SiteBuilder) finishIncrementalRebuild(s *incrementalRebuildState) (*eng
 	buildDoneCtx.SetWarnings(&pluginWarnings)
 	buildDoneCtx.SetLogger(buildLogger)
 	if err := b.pluginMgr.RunBuildDone(buildDoneCtx); err != nil {
+		devlog.Warn("build", "BuildDone plugin error during incremental rebuild: %v, falling back to full build", err)
 		return b.Build()
 	}
 	warnings := append(s.warnings, pluginWarnings...)

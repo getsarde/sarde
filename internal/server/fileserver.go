@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -140,11 +141,18 @@ func (ds *DevServer) injectScript(next http.Handler) http.Handler {
 
 		body := buf.body.Bytes()
 
-		// Inject script before </body> if present.
+		// Inject script before </body> if present. The page's build ID lets
+		// the client compare against ReloadSync announcements and reload only
+		// when the page actually predates the latest build.
 		if idx := bytes.LastIndex(body, []byte("</body>")); idx != -1 {
+			buildID := int64(0)
+			if ds.hub != nil { // zero-value DevServer in tests has no hub
+				buildID = ds.hub.BuildID()
+			}
 			w.Header().Del("Content-Length")
 			w.WriteHeader(buf.statusCode)
 			w.Write(body[:idx])
+			fmt.Fprintf(w, "\n<script>window.__SARDE_LR_BUILD__=%d;</script>", buildID)
 			w.Write(script)
 			w.Write(body[idx:])
 		} else {

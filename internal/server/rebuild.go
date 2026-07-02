@@ -22,15 +22,15 @@ type RebuildResult struct {
 // It persists the builder across content/static changes and only creates
 // a new one when config or templates change.
 //
-// Coalescing: if a rebuild is already running, incoming requests are stored
-// as a single pending change (latest wins). When the active rebuild finishes,
-// the pending change triggers exactly one follow-up rebuild. This prevents
-// cascading queued rebuilds when editors emit rapid successive save events.
+// Coalescing: if a rebuild is already running, incoming requests are merged
+// into a single pending change via mergeChanges (kinds escalate, content
+// paths union), so no change is lost while at most one follow-up rebuild
+// runs. This prevents cascading queued rebuilds when editors emit rapid
+// successive save events.
 type Rebuilder struct {
 	builderFactory func() *build.SiteBuilder
 	projectDir     string
 	builder        *build.SiteBuilder
-	onResult       func(FileChange, *RebuildResult)
 
 	mu      sync.Mutex
 	running bool
@@ -44,26 +44,26 @@ func NewRebuilder(factory func() *build.SiteBuilder, projectDir string) *Rebuild
 	return &Rebuilder{builderFactory: factory, projectDir: projectDir}
 }
 
-// SetOnResult registers a callback invoked after each completed rebuild.
-// For coalesced rebuilds, the callback is invoked once with the final result only.
-func (r *Rebuilder) SetOnResult(fn func(FileChange, *RebuildResult)) {
-	r.onResult = fn
-}
-
-// Rebuild runs a site build and returns the result.
+// Rebuild runs a site build and returns the executed change with its result.
 // Config or template changes create a fresh builder (full re-init).
 // Content or static changes reuse the existing builder (template engine skips Load).
 //
-// If a rebuild is already in progress, the change is stored as pending and this
-// call returns nil (the caller should skip logging/broadcasting). When the active
-// rebuild finishes, it picks up the pending change automatically and runs it
-// before returning the final result.
-func (r *Rebuilder) Rebuild(change FileChange) *RebuildResult {
+// If a rebuild is already in progress, the change is merged into the pending
+// slot and this call returns a nil result (the caller should skip
+// logging/broadcasting). When the active rebuild finishes, it picks up the
+// pending change automatically and runs it before returning; the returned
+// change is the one the final result actually belongs to.
+func (r *Rebuilder) Rebuild(change FileChange) (FileChange, *RebuildResult) {
 	r.mu.Lock()
 	if r.running {
-		r.pending = &change
+		if r.pending != nil {
+			merged := mergeChanges([]FileChange{*r.pending, change})
+			r.pending = &merged
+		} else {
+			r.pending = &change
+		}
 		r.mu.Unlock()
-		return nil
+		return change, nil
 	}
 	r.running = true
 	r.mu.Unlock()
@@ -77,7 +77,7 @@ func (r *Rebuilder) Rebuild(change FileChange) *RebuildResult {
 		if next == nil {
 			r.running = false
 			r.mu.Unlock()
-			return result
+			return change, result
 		}
 		r.mu.Unlock()
 

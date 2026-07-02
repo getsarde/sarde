@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/gorilla/websocket"
@@ -17,7 +18,17 @@ const (
 	ReloadCSS     ReloadType = "css"
 	ReloadError   ReloadType = "error"
 	ReloadWarning ReloadType = "warning"
+	// ReloadSync announces the server's latest successful build ID to a client
+	// that just connected. The client compares it against the build ID embedded
+	// in its page and reloads only if the page predates the build, so stale
+	// tabs (reconnects, server restarts, missed broadcasts) catch up exactly
+	// once and fresh tabs never reload spuriously.
+	ReloadSync ReloadType = "sync"
 )
+
+// writeTimeout bounds each WebSocket write so one stalled client cannot hold
+// h.mu (and with it all broadcasts and new connections) indefinitely.
+const writeTimeout = 5 * time.Second
 
 // WarningItem is a single structured warning for the browser overlay.
 type WarningItem struct {
@@ -36,6 +47,7 @@ type ReloadMessage struct {
 	Col       int           `json:"col,omitempty"`
 	Frame     string        `json:"frame,omitempty"`
 	ChangedAt int64         `json:"changedAt,omitempty"` // Unix millis when the file change was first detected
+	BuildID   int64         `json:"buildId,omitempty"`   // monotonic ID of the successful build this message refers to
 	Warnings  []WarningItem `json:"warnings,omitempty"`
 }
 
@@ -44,8 +56,8 @@ type Hub struct {
 	clients      map[*websocket.Conn]bool
 	mu           sync.Mutex
 	upgrader     websocket.Upgrader
-	pendingError  *ReloadMessage
-	pendingReload *ReloadMessage
+	pendingError *ReloadMessage
+	buildID      int64 // latest successful build ID; seeded with the server start time so it survives restarts
 }
 
 // NewHub creates a new WebSocket hub.
@@ -55,7 +67,32 @@ func NewHub() *Hub {
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool { return true },
 		},
+		// Seeding with wall-clock time (rather than 0) makes IDs comparable
+		// across server restarts: a page served by a previous server instance
+		// always predates this instance's first build.
+		buildID: time.Now().UnixMilli(),
 	}
+}
+
+// BumpBuildID records a new successful build and returns its ID. IDs are
+// millisecond timestamps forced monotonic, so two builds completing within
+// the same millisecond (or a clock step backwards) cannot collide.
+func (h *Hub) BumpBuildID() int64 {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	id := time.Now().UnixMilli()
+	if id <= h.buildID {
+		id = h.buildID + 1
+	}
+	h.buildID = id
+	return id
+}
+
+// BuildID returns the ID of the latest successful build.
+func (h *Hub) BuildID() int64 {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return h.buildID
 }
 
 // SetPendingError stores a build error to replay to newly connecting clients.
@@ -72,19 +109,12 @@ func (h *Hub) ClearPendingError() {
 	h.mu.Unlock()
 }
 
-// SetPendingReload stores a successful reload message to replay to newly
-// connecting clients that missed the original broadcast.
-func (h *Hub) SetPendingReload(msg *ReloadMessage) {
-	h.mu.Lock()
-	h.pendingReload = msg
-	h.mu.Unlock()
-}
-
-// ClearPendingReload removes the stored reload message.
-func (h *Hub) ClearPendingReload() {
-	h.mu.Lock()
-	h.pendingReload = nil
-	h.mu.Unlock()
+// writeLocked writes a message to conn with a bounded deadline. Callers must
+// hold h.mu: all writes to a conn happen under it, since gorilla/websocket
+// connections do not support concurrent writers.
+func (h *Hub) writeLocked(conn *websocket.Conn, data []byte) error {
+	conn.SetWriteDeadline(time.Now().Add(writeTimeout))
+	return conn.WriteMessage(websocket.TextMessage, data)
 }
 
 // HandleWS upgrades an HTTP connection to WebSocket and registers the client.
@@ -95,20 +125,16 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Replay any pending build error inside the locked section: all writes to
-	// a conn must happen under h.mu (Broadcast writes under it too), since
-	// gorilla/websocket connections do not support concurrent writers.
+	// Replay a pending build error, or announce the latest build ID so a
+	// client whose page predates it can catch up (see ReloadSync).
 	h.mu.Lock()
 	h.clients[conn] = true
 	if h.pendingError != nil {
 		if data, err := json.Marshal(h.pendingError); err == nil {
-			conn.WriteMessage(websocket.TextMessage, data)
+			h.writeLocked(conn, data)
 		}
-	} else if h.pendingReload != nil {
-		if data, err := json.Marshal(h.pendingReload); err == nil {
-			conn.WriteMessage(websocket.TextMessage, data)
-		}
-		h.pendingReload = nil
+	} else if data, err := json.Marshal(ReloadMessage{Type: ReloadSync, BuildID: h.buildID}); err == nil {
+		h.writeLocked(conn, data)
 	}
 	h.mu.Unlock()
 
@@ -139,7 +165,7 @@ func (h *Hub) Broadcast(msg ReloadMessage) int {
 
 	sent := 0
 	for conn := range h.clients {
-		if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
+		if err := h.writeLocked(conn, data); err != nil {
 			conn.Close()
 			delete(h.clients, conn)
 		} else {
