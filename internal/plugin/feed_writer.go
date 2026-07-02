@@ -3,19 +3,16 @@ package plugin
 import (
 	"encoding/xml"
 	"fmt"
-	"strings"
 
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 )
 
 type feedBuilder func(col *engine.Collection, baseURL string, limit int) ([]byte, error)
 
 func writeFeedFiles(ctx *BuildDoneContext, cfg map[string]any, filename, label string, build feedBuilder) error {
-	limit := cfgInt(cfg, "limit", 20)
-	baseURL := ""
-	if ctx.Site != nil {
-		baseURL = strings.TrimRight(ctx.Site.BaseURL, "/")
-	}
+	limit := cfgutil.Int(cfg, "limit", 20)
+	baseURL := ctx.BaseURL()
 
 	feedCollections := feedEnabledCollections(cfg, ctx.Collections)
 

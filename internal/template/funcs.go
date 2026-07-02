@@ -2,9 +2,7 @@ package template
 
 import (
 	"fmt"
-	"html"
 	htmltemplate "html/template"
-	"sort"
 	"strings"
 	"time"
 
@@ -112,74 +110,9 @@ func (e *Engine) buildFuncMap(
 			}
 			return ""
 		},
-		"renderHeadTags": func(v any) htmltemplate.HTML {
-			tags, ok := v.([]engine.HeadTag)
-			if !ok || len(tags) == 0 {
-				return ""
-			}
-			var sb strings.Builder
-			for _, h := range tags {
-				if !engine.AllowedHeadTags[h.Tag] {
-					continue
-				}
-				sb.WriteString("<")
-				sb.WriteString(h.Tag)
-				keys := make([]string, 0, len(h.Attrs))
-				for k := range h.Attrs {
-					keys = append(keys, k)
-				}
-				sort.Strings(keys)
-				for _, k := range keys {
-					sb.WriteString(" ")
-					sb.WriteString(html.EscapeString(k))
-					sb.WriteString(`="`)
-					sb.WriteString(html.EscapeString(h.Attrs[k]))
-					sb.WriteString(`"`)
-				}
-				if h.Content != "" {
-					sb.WriteString(">")
-					sb.WriteString(html.EscapeString(h.Content))
-					sb.WriteString("</")
-					sb.WriteString(h.Tag)
-					sb.WriteString(">\n")
-				} else {
-					sb.WriteString(">\n")
-				}
-			}
-			return htmltemplate.HTML(sb.String())
-		},
-		"renderAttrs": func(attrs map[string]string) htmltemplate.HTML {
-			if len(attrs) == 0 {
-				return ""
-			}
-			keys := make([]string, 0, len(attrs))
-			for k := range attrs {
-				keys = append(keys, k)
-			}
-			sort.Strings(keys)
-			var sb strings.Builder
-			for _, k := range keys {
-				sb.WriteString(" ")
-				sb.WriteString(html.EscapeString(k))
-				sb.WriteString(`="`)
-				sb.WriteString(html.EscapeString(attrs[k]))
-				sb.WriteString(`"`)
-			}
-			return htmltemplate.HTML(sb.String())
-		},
-		"urlize": content.Slugify,
-		"ref": func(slug string) string {
-			if p := lookupPage(*pageIndexPtr, *sitePtr, slug); p != nil {
-				return p.Permalink
-			}
-			return slug
-		},
-		"relref": func(slug string) string {
-			if p := lookupPage(*pageIndexPtr, *sitePtr, slug); p != nil {
-				return p.RelPermalink
-			}
-			return slug
-		},
+		"renderHeadTags": fnRenderHeadTags,
+		"renderAttrs":    fnRenderAttrs,
+		"urlize":         content.Slugify,
 
 		// ── Debug ──
 		"printf":  fmt.Sprintf,
@@ -242,32 +175,8 @@ func (e *Engine) buildFuncMap(
 			return m, nil
 		},
 
-		// ── i18n ──
-		"t": func(key string) string {
-			if i18nStrings == nil || currentLang == nil {
-				return key
-			}
-			return i18nStrings.Resolve(currentLang(), key)
-		},
-		"tWithData": func(key string, data any) string {
-			if i18nStrings == nil || currentLang == nil {
-				return key
-			}
-			return i18nStrings.Resolve(currentLang(), key, data)
-		},
-
 		// ── Versioning ──
-		"versionOf": func(page *engine.Page, versionID string) *engine.Page {
-			if page == nil {
-				return nil
-			}
-			for _, peer := range page.VersionPeers {
-				if peer.Version == versionID {
-					return peer
-				}
-			}
-			return nil
-		},
+		"versionOf": fnVersionOf,
 
 		// ── Type conversion ──
 		"toString": func(v any) string { return fmt.Sprint(v) },
@@ -286,76 +195,6 @@ func (e *Engine) buildFuncMap(
 				return ""
 			}
 			return rd.Lang
-		},
-
-		// ── Cross-collection ──
-		"recentEntries": func(colName string, n int) []*engine.Page {
-			s := *sitePtr
-			if s == nil {
-				return nil
-			}
-			col, ok := s.Collections[colName]
-			if !ok || col == nil {
-				return nil
-			}
-			pages := col.Pages
-			if n > len(pages) {
-				n = len(pages)
-			}
-			return pages[:n]
-		},
-		"findEntry": func(colName, slug string) *engine.Page {
-			s := *sitePtr
-			if s == nil {
-				return nil
-			}
-			col, ok := s.Collections[colName]
-			if !ok || col == nil {
-				return nil
-			}
-			for _, p := range col.Pages {
-				if p.Slug == slug {
-					return p
-				}
-			}
-			return nil
-		},
-		"allCollections": func() map[string]*engine.Collection {
-			s := *sitePtr
-			if s == nil {
-				return nil
-			}
-			return s.Collections
-		},
-
-		// ── Taxonomy helpers ──
-		// termURL is overridden in funcMapForLang to inject the rendering page's language.
-
-		"topTerms": func(taxonomyName string, n int) []*engine.TaxonomyTerm {
-			s := *sitePtr
-			if s == nil {
-				return nil
-			}
-			tax, ok := s.Taxonomies[taxonomyName]
-			if !ok || tax == nil {
-				return nil
-			}
-			terms := make([]*engine.TaxonomyTerm, 0, len(tax.Terms))
-			for _, t := range tax.Terms {
-				if !t.Hidden {
-					terms = append(terms, t)
-				}
-			}
-			sort.Slice(terms, func(i, j int) bool {
-				if len(terms[i].Pages) != len(terms[j].Pages) {
-					return len(terms[i].Pages) > len(terms[j].Pages)
-				}
-				return terms[i].Slug < terms[j].Slug
-			})
-			if n > 0 && n < len(terms) {
-				terms = terms[:n]
-			}
-			return terms
 		},
 
 		// ── Special: partial & component ──
@@ -392,6 +231,12 @@ func (e *Engine) buildFuncMap(
 		fm[k] = v
 	}
 	for k, v := range buildNavFuncs(sitePtr) {
+		fm[k] = v
+	}
+	for k, v := range buildI18nFuncs(i18nStrings, currentLang) {
+		fm[k] = v
+	}
+	for k, v := range buildContentFuncs(pageIndexPtr, sitePtr) {
 		fm[k] = v
 	}
 

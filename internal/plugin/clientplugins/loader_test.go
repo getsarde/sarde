@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getsarde/sarde/internal/asset"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/plugin"
 	"github.com/getsarde/sarde/internal/plugin/cfgutil"
@@ -185,13 +186,13 @@ func TestBundleData(t *testing.T) {
 }
 
 func TestBundleHashDeterministic(t *testing.T) {
-	hash := contentHash(bundleCSS)
+	hash := asset.Fingerprint(bundleCSS)
 	expected := "/assets/plugins/plugins." + hash + ".css"
 	if bundleCSSURL != expected {
 		t.Errorf("bundleCSSURL = %q, want %q", bundleCSSURL, expected)
 	}
 
-	hash = contentHash(bundleJS)
+	hash = asset.Fingerprint(bundleJS)
 	expected = "/assets/plugins/plugins." + hash + ".js"
 	if bundleJSURL != expected {
 		t.Errorf("bundleJSURL = %q, want %q", bundleJSURL, expected)

@@ -52,10 +52,7 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 		excludePatterns = settings.Ignore
 	}
 
-	var siteURL string
-	if ctx.Site != nil {
-		siteURL = strings.TrimRight(ctx.Site.BaseURL, "/")
-	}
+	siteURL := ctx.BaseURL()
 
 	var errorCount int
 	for permalink, entry := range ctx.ValidationData {

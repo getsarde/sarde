@@ -3,11 +3,8 @@ package cli
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
-	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/build"
-	"github.com/getsarde/sarde/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -36,22 +33,9 @@ func runCheck(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if basePath, _ := cmd.Flags().GetString("base-path"); basePath != "" {
-		cfg.Build.BasePath = config.NormalizeBasePath(basePath)
-	}
-	if contentDir, _ := cmd.Flags().GetString("content"); contentDir != "" {
-		if !filepath.IsAbs(contentDir) {
-			contentDir, _ = filepath.Abs(contentDir)
-		}
-		cfg.Content.Dir = contentDir
-	}
+	applyCommonOverrides(cmd, cfg)
 
-	builder := build.NewSiteBuilder(build.BuildOptions{
-		ProjectDir:  projectDir,
-		Config:      cfg,
-		ThemeConfig: themeCfg,
-		EmbeddedFS:  embedded.ThemeFS(),
-	})
+	builder := newSiteBuilder(projectDir, cfg, themeCfg)
 
 	strict, _ := cmd.Flags().GetBool("strict")
 	external, _ := cmd.Flags().GetBool("external")

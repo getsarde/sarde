@@ -1,7 +1,6 @@
 package plugin
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -77,6 +76,34 @@ func (c *ContentLoadedContext) InjectPage(page *engine.Page) {
 	*c.Pages = append(*c.Pages, page)
 }
 
+// resolveURL applies resolver URL resolution, falling back to relPath.
+func resolveURL(resolver *engine.URLResolver, relPath, lang, version string) string {
+	if resolver != nil {
+		return resolver.URL(relPath, lang, version)
+	}
+	return relPath
+}
+
+// absURL builds a fully-qualified URL via the resolver, falling back to the
+// site origin, then to relPath itself.
+func absURL(resolver *engine.URLResolver, site *engine.SiteContext, relPath, lang, version string) string {
+	if resolver != nil {
+		return resolver.AbsURL(relPath, lang, version)
+	}
+	if site != nil {
+		return strings.TrimRight(site.BaseURL, "/") + relPath
+	}
+	return relPath
+}
+
+// siteBaseURL returns the site base URL without its trailing slash, or "".
+func siteBaseURL(site *engine.SiteContext) string {
+	if site == nil {
+		return ""
+	}
+	return strings.TrimRight(site.BaseURL, "/")
+}
+
 // BeforeRenderContext is available per-page before template rendering.
 type BeforeRenderContext struct {
 	Page         *engine.Page
@@ -89,22 +116,16 @@ type BeforeRenderContext struct {
 
 // ResolveURL returns a root-relative URL with basePath, lang, and version applied.
 func (c *BeforeRenderContext) ResolveURL(relPath, lang, version string) string {
-	if c.Resolver != nil {
-		return c.Resolver.URL(relPath, lang, version)
-	}
-	return relPath
+	return resolveURL(c.Resolver, relPath, lang, version)
 }
 
 // AbsURL returns a fully-qualified URL (origin + resolved path).
 func (c *BeforeRenderContext) AbsURL(relPath, lang, version string) string {
-	if c.Resolver != nil {
-		return c.Resolver.AbsURL(relPath, lang, version)
-	}
-	if c.Site != nil {
-		return strings.TrimRight(c.Site.BaseURL, "/") + relPath
-	}
-	return relPath
+	return absURL(c.Resolver, c.Site, relPath, lang, version)
 }
+
+// BaseURL returns the site base URL without its trailing slash, or "".
+func (c *BeforeRenderContext) BaseURL() string { return siteBaseURL(c.Site) }
 
 // Set stores a value in the shared cross-hook store.
 func (c *BeforeRenderContext) Set(key string, value any) { c.store.Set(key, value) }
@@ -133,22 +154,16 @@ type BuildDoneContext struct {
 
 // ResolveURL returns a root-relative URL with basePath, lang, and version applied.
 func (c *BuildDoneContext) ResolveURL(relPath, lang, version string) string {
-	if c.Resolver != nil {
-		return c.Resolver.URL(relPath, lang, version)
-	}
-	return relPath
+	return resolveURL(c.Resolver, relPath, lang, version)
 }
 
 // AbsURL returns a fully-qualified URL (origin + resolved path).
 func (c *BuildDoneContext) AbsURL(relPath, lang, version string) string {
-	if c.Resolver != nil {
-		return c.Resolver.AbsURL(relPath, lang, version)
-	}
-	if c.Site != nil {
-		return strings.TrimRight(c.Site.BaseURL, "/") + relPath
-	}
-	return relPath
+	return absURL(c.Resolver, c.Site, relPath, lang, version)
 }
+
+// BaseURL returns the site base URL without its trailing slash, or "".
+func (c *BuildDoneContext) BaseURL() string { return siteBaseURL(c.Site) }
 
 func (c *BuildDoneContext) initMu() {
 	if c.mu == nil {
@@ -200,166 +215,4 @@ func (c *BuildDoneContext) AddWarning(w engine.ValidationWarning) {
 		return
 	}
 	*c.warnings = append(*c.warnings, w)
-}
-
-// ---------------------------------------------------------------------------
-// Manager
-// ---------------------------------------------------------------------------
-
-// Manager orchestrates plugin registration and lifecycle hook execution.
-type Manager struct {
-	plugins       []*Plugin
-	store         *SharedStore
-	templateFuncs map[string]any
-}
-
-// NewManager creates an empty plugin manager.
-func NewManager() *Manager {
-	return &Manager{
-		store:         NewStore(),
-		templateFuncs: make(map[string]any),
-	}
-}
-
-// Register adds a plugin to the manager.
-func (m *Manager) Register(p *Plugin) {
-	m.plugins = append(m.plugins, p)
-}
-
-// RegisterBuiltins registers all enabled built-in plugins.
-func (m *Manager) RegisterBuiltins(enabled []string, configs map[string]map[string]any) {
-	for _, name := range enabled {
-		constructor, ok := builtinRegistry[name]
-		if !ok {
-			continue
-		}
-		cfg := configs[name]
-		m.Register(constructor(cfg))
-	}
-}
-
-// TemplateFuncs returns template functions collected from ConfigSetup hooks.
-func (m *Manager) TemplateFuncs() map[string]any {
-	return m.templateFuncs
-}
-
-// RunConfigSetup executes ConfigSetup hooks serially for all plugins.
-func (m *Manager) RunConfigSetup(cfg *config.SiteConfig) error {
-	for _, p := range m.plugins {
-		if p.Hooks.ConfigSetup == nil {
-			continue
-		}
-		ctx := &ConfigSetupContext{
-			Config:       cfg,
-			PluginConfig: m.pluginConfig(p.Name, cfg),
-			store:        m.store,
-		}
-		if err := p.Hooks.ConfigSetup(ctx); err != nil {
-			return fmt.Errorf("plugin %q ConfigSetup: %w", p.Name, err)
-		}
-		// Merge any template funcs registered by this plugin.
-		for k, v := range ctx.TemplateFuncs {
-			m.templateFuncs[k] = v
-		}
-	}
-	return nil
-}
-
-// RunContentLoaded executes ContentLoaded hooks serially for all plugins.
-func (m *Manager) RunContentLoaded(cfg *config.SiteConfig, collections map[string]*engine.Collection, pages *[]*engine.Page) error {
-	for _, p := range m.plugins {
-		if p.Hooks.ContentLoaded == nil {
-			continue
-		}
-		ctx := &ContentLoadedContext{
-			Config:       cfg,
-			PluginConfig: m.pluginConfig(p.Name, cfg),
-			Collections:  collections,
-			Pages:        pages,
-			store:        m.store,
-		}
-		if err := p.Hooks.ContentLoaded(ctx); err != nil {
-			return fmt.Errorf("plugin %q ContentLoaded: %w", p.Name, err)
-		}
-	}
-	return nil
-}
-
-// RunBeforeRender executes BeforeRender hooks serially for a single page.
-func (m *Manager) RunBeforeRender(cfg *config.SiteConfig, page *engine.Page, rd *engine.RouteData, site *engine.SiteContext, resolver *engine.URLResolver) error {
-	for _, p := range m.plugins {
-		if p.Hooks.BeforeRender == nil {
-			continue
-		}
-		ctx := &BeforeRenderContext{
-			Page:         page,
-			RouteData:    rd,
-			Site:         site,
-			Resolver:     resolver,
-			PluginConfig: m.pluginConfig(p.Name, cfg),
-			store:        m.store,
-		}
-		if err := p.Hooks.BeforeRender(ctx); err != nil {
-			return fmt.Errorf("plugin %q BeforeRender: %w", p.Name, err)
-		}
-	}
-	return nil
-}
-
-// RunBuildDone executes BuildDone hooks in parallel for all plugins.
-func (m *Manager) RunBuildDone(ctx *BuildDoneContext) error {
-	var wg sync.WaitGroup
-	errCh := make(chan error, len(m.plugins))
-	sharedMu := &sync.Mutex{}
-
-	for _, p := range m.plugins {
-		if p.Hooks.BuildDone == nil {
-			continue
-		}
-		wg.Add(1)
-		go func(plug *Plugin) {
-			defer wg.Done()
-			pCtx := &BuildDoneContext{
-				Config:         ctx.Config,
-				PluginConfig:   m.pluginConfig(plug.Name, ctx.Config),
-				OutputDir:      ctx.OutputDir,
-				Pages:          ctx.Pages,
-				Collections:    ctx.Collections,
-				Site:           ctx.Site,
-				Resolver:       ctx.Resolver,
-				PageIndex:      ctx.PageIndex,
-				ValidationData: ctx.ValidationData,
-				DevMode:        ctx.DevMode,
-				TrackFn:        ctx.TrackFn,
-				mu:             sharedMu,
-				warnings:       ctx.warnings,
-				logger:         ctx.logger,
-				pluginName:     plug.Name,
-			}
-			if err := plug.Hooks.BuildDone(pCtx); err != nil {
-				errCh <- fmt.Errorf("plugin %q BuildDone: %w", plug.Name, err)
-			}
-		}(p)
-	}
-
-	wg.Wait()
-	close(errCh)
-
-	// Return first error if any.
-	for err := range errCh {
-		return err
-	}
-	return nil
-}
-
-// Warnings returns all warnings collected during BuildDone.
-func (m *Manager) Warnings() []engine.ValidationWarning {
-	return nil // warnings are stored on BuildDoneContext, accessed by caller
-}
-
-func (m *Manager) pluginConfig(name string, cfg *config.SiteConfig) map[string]any {
-	if cfg.Plugins.Config == nil {
-		return nil
-	}
-	return cfg.Plugins.Config[name]
 }

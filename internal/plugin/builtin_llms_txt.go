@@ -32,14 +32,11 @@ func llmsTxtBuildDone(ctx *BuildDoneContext) error {
 
 	includeBlog := config.BoolVal(settings.IncludeBlog, true)
 
-	baseURL := ""
+	baseURL := ctx.BaseURL()
 	title := "Site"
 	description := ""
-	if ctx.Site != nil {
-		baseURL = strings.TrimRight(ctx.Site.BaseURL, "/")
-		if ctx.Site.Title != "" {
-			title = ctx.Site.Title
-		}
+	if ctx.Site != nil && ctx.Site.Title != "" {
+		title = ctx.Site.Title
 	}
 	if ctx.Config.Site.Description != "" {
 		description = ctx.Config.Site.Description

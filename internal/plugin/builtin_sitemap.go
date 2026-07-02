@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 )
 
 func newSitemapPlugin(cfg map[string]any) *Plugin {
@@ -32,14 +34,11 @@ type sitemapURL struct {
 }
 
 func sitemapBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
-	changefreq := cfgString(cfg, "changefreq", "weekly")
-	priority := cfgString(cfg, "priority", "0.5")
-	excludePatterns := cfgStringSlice(cfg, "exclude")
+	changefreq := cfgutil.String(cfg, "changefreq", "weekly")
+	priority := cfgutil.String(cfg, "priority", "0.5")
+	excludePatterns := cfgutil.StringSlice(cfg, "exclude")
 
-	baseURL := ""
-	if ctx.Site != nil {
-		baseURL = strings.TrimRight(ctx.Site.BaseURL, "/")
-	}
+	baseURL := ctx.BaseURL()
 
 	var urls []sitemapURL
 	for _, page := range ctx.Pages {

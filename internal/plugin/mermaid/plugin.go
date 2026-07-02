@@ -10,7 +10,6 @@ package mermaid
 
 import (
 	"embed"
-	"io/fs"
 	"strings"
 
 	"github.com/getsarde/sarde/internal/plugin"
@@ -55,23 +54,9 @@ func beforeRender(ctx *plugin.BeforeRenderContext, cfg map[string]any) error {
 }
 
 func buildDone(ctx *plugin.BuildDoneContext) error {
-	return fs.WalkDir(assetsFS, "assets", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			return nil
-		}
-		data, err := fs.ReadFile(assetsFS, path)
-		if err != nil {
-			return err
-		}
-		rel := strings.TrimPrefix(path, "assets/")
-		return ctx.WriteFile(vendorPrefix+rel, data)
-	})
+	return plugin.WriteFSTree(ctx, assetsFS, "assets", vendorPrefix)
 }
 
 func needsMermaid(content string) bool {
 	return strings.Contains(content, `class="sarde-mermaid`)
 }
-

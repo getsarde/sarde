@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/getsarde/sarde/embedded"
-	"github.com/getsarde/sarde/internal/build"
 	"github.com/getsarde/sarde/internal/plugin"
 	"github.com/spf13/cobra"
 )
@@ -31,12 +29,7 @@ func runValidate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	builder := build.NewSiteBuilder(build.BuildOptions{
-		ProjectDir:  projectDir,
-		Config:      cfg,
-		ThemeConfig: themeCfg,
-		EmbeddedFS:  embedded.ThemeFS(),
-	})
+	builder := newSiteBuilder(projectDir, cfg, themeCfg)
 
 	result, err := builder.Validate()
 	if err != nil {

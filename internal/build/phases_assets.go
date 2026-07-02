@@ -14,43 +14,71 @@ import (
 
 	"github.com/getsarde/sarde/internal/asset"
 	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/content/markdown"
-	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/content/markdown/icons"
 	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/links"
 	"github.com/getsarde/sarde/internal/shortcode"
 	"github.com/getsarde/sarde/internal/syntax"
 	sardetemplate "github.com/getsarde/sarde/internal/template"
-	"github.com/getsarde/sarde/internal/content/markdown/icons"
 	"github.com/getsarde/sarde/internal/theme"
 	"github.com/getsarde/sarde/internal/workers"
 )
 
 func (b *SiteBuilder) phaseAssets(s *buildState) error {
-	if b.checkSyntax {
-		checked := make(map[string]bool)
-		for _, p := range s.allPages {
-			if p.RawContent == "" || checked[p.FilePath] {
-				continue
-			}
-			checked[p.FilePath] = true
-			diags := syntax.Check(p.FilePath, []byte(p.RawContent), p.FrontmatterLines)
-			for _, d := range diags {
-				msg := fmt.Sprintf("line %d: %s", d.Line, d.Message)
-				devlog.Warn("syntax", "%s:%d %s", d.File, d.Line, d.Message)
-				s.warnings = append(s.warnings, engine.ValidationWarning{
-					File:    d.File,
-					Field:   "syntax",
-					Message: msg,
-					Level:   d.Level,
-				})
-			}
+	b.checkPageSyntax(s)
+	if err := b.setupAssetPipelineAndShortcodes(s); err != nil {
+		return err
+	}
+	if err := b.renderAllMarkdown(s); err != nil {
+		return err
+	}
+	if done, err := b.validateLinks(s); done || err != nil {
+		return err
+	}
+	if err := b.bundleGlobalAssets(s); err != nil {
+		return err
+	}
+	return b.wireTemplateEngine(s)
+}
+
+// checkPageSyntax lints fenced code blocks in all raw page sources when the
+// builder was constructed with CheckSyntax enabled.
+func (b *SiteBuilder) checkPageSyntax(s *buildState) {
+	if !b.checkSyntax {
+		return
+	}
+	checked := make(map[string]bool)
+	for _, p := range s.allPages {
+		if p.RawContent == "" || checked[p.FilePath] {
+			continue
+		}
+		checked[p.FilePath] = true
+		diags := syntax.Check(p.FilePath, []byte(p.RawContent), p.FrontmatterLines)
+		for _, d := range diags {
+			msg := fmt.Sprintf("line %d: %s", d.Line, d.Message)
+			devlog.Warn("syntax", "%s:%d %s", d.File, d.Line, d.Message)
+			s.warnings = append(s.warnings, engine.ValidationWarning{
+				File:    d.File,
+				Field:   "syntax",
+				Message: msg,
+				Level:   d.Level,
+			})
 		}
 	}
+}
+
+// setupAssetPipelineAndShortcodes constructs the asset pipeline, enhances
+// page resources, builds the page index, and loads the shortcode registry
+// (three-layer overlay: embedded, theme, user). Results land in s
+// (assetPipeline, pageIndex, scProcessor, shortcodesHash, iconRenderKey,
+// pageCache).
+func (b *SiteBuilder) setupAssetPipelineAndShortcodes(s *buildState) error {
 	// Asset pipeline: image processing, resource enhancement, CSS/JS bundling.
-	assetPipeline := asset.NewPipeline(asset.PipelineOptions{
+	s.assetPipeline = asset.NewPipeline(asset.PipelineOptions{
 		ProjectDir: b.projectDir,
 		OutputDir:  s.outputDir,
 		Config:     b.config,
@@ -58,14 +86,14 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 		EmbeddedFS: b.embeddedFS,
 		DevMode:    b.devMode,
 	})
-	if err := enhancePageResources(s.allPages, assetPipeline, s.parallel, s.workerCount); err != nil {
+	if err := enhancePageResources(s.allPages, s.assetPipeline, s.parallel, s.workerCount); err != nil {
 		return err
 	}
 	s.recordTiming("Asset preparation")
 
 	// Build page index for link validation and O(1) ref/relref lookups.
-	pageIndex := content.BuildPageIndex(s.allPages)
-	pageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
+	s.pageIndex = content.BuildPageIndex(s.allPages)
+	s.pageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
 
 	// Build shortcode registry (three-layer overlay: embedded → theme → user).
 	scFuncMap := sardetemplate.BuildShortcodeFuncMap(sardetemplate.ShortcodeFuncMapConfig{
@@ -75,10 +103,10 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 			ThemeName:  b.config.Theme.Name,
 			EmbeddedFS: b.embeddedFS,
 		},
-		AssetResolver:  assetPipeline.Resolver(),
-		AssetManifest:  assetPipeline.Manifest(),
-		ImageProcessor: assetPipeline.ImageProcessor(),
-		PageIndex:      &pageIndex,
+		AssetResolver:  s.assetPipeline.Resolver(),
+		AssetManifest:  s.assetPipeline.Manifest(),
+		ImageProcessor: s.assetPipeline.ImageProcessor(),
+		PageIndex:      &s.pageIndex,
 	})
 	scRegistry, err := shortcode.NewRegistry(b.embeddedFS, scFuncMap)
 	if err != nil {
@@ -94,18 +122,30 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 	if err := scRegistry.LoadOverridesFromDir(userScDir); err != nil {
 		return fmt.Errorf("loading user shortcode overrides: %w", err)
 	}
-	scProcessor := shortcode.NewProcessor(scRegistry)
-	shortcodesHash := scRegistry.TemplateHash()
+	s.scProcessor = shortcode.NewProcessor(scRegistry)
+	s.shortcodesHash = scRegistry.TemplateHash()
 
-	iconRenderKey := "icon-inline"
+	s.iconRenderKey = "icon-inline"
 	if icons.SpriteMode() {
-		iconRenderKey = "icon-sprite"
+		s.iconRenderKey = "icon-sprite"
 	}
 
-	var pageCache *PageCache
 	if config.BoolVal(b.config.Build.Cache, true) && !b.checkOnly {
-		pageCache = NewPageCache(b.projectDir)
+		s.pageCache = NewPageCache(b.projectDir)
 	}
+	return nil
+}
+
+// renderAllMarkdown renders every page's markdown to HTML, in parallel when
+// the page count warrants it, collecting link-validation data and pending
+// anchor checks into s.
+func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
+	assetPipeline := s.assetPipeline
+	pageIndex := s.pageIndex
+	scProcessor := s.scProcessor
+	shortcodesHash := s.shortcodesHash
+	iconRenderKey := s.iconRenderKey
+	pageCache := s.pageCache
 
 	b.linkGraph = links.NewLinkGraph()
 
@@ -132,7 +172,7 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 		b.rendererKey = b.mdRenderer.Fingerprint()
 	}
 
-	// Render markdown — parallel when page count warrants it.
+	// Render markdown, parallel when page count warrants it.
 	markdownPages := countMarkdownPages(s.allPages)
 	if workers.ShouldParallelize(s.parallel, markdownPages, s.workerCount) {
 		poolSize := s.workerCount
@@ -256,10 +296,19 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 	}
 	s.recordTiming("Rendering markdown")
 
-	populatePageIndexHeadings(pageIndex, s.allPages)
-	emitCollisionWarnings(pageIndex.Collisions())
+	s.pendingAnchors = pendingAnchors
+	s.validationData = validationData
+	return nil
+}
 
-	links.ValidateAnchors(b.linkGraph, pendingAnchors, pageIndex)
+// validateLinks validates collected anchors, computes link coverage, runs the
+// optional external link check, and generates the structured link report. It
+// returns true when the build should stop early (check-only mode).
+func (b *SiteBuilder) validateLinks(s *buildState) (bool, error) {
+	populatePageIndexHeadings(s.pageIndex, s.allPages)
+	emitCollisionWarnings(s.pageIndex.Collisions())
+
+	links.ValidateAnchors(b.linkGraph, s.pendingAnchors, s.pageIndex)
 
 	var langCodes []string
 	if s.isMultiLang {
@@ -341,7 +390,7 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 			}
 		}
 		if reportResult.HasErrors {
-			return fmt.Errorf("build failed: link validation errors found")
+			return false, fmt.Errorf("build failed: link validation errors found")
 		}
 	}
 
@@ -352,18 +401,23 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 			PageCount: len(s.allPages),
 			Warnings:  s.warnings,
 		}
-		return nil
+		return true, nil
 	}
+	return false, nil
+}
 
-	// Bundle global CSS/JS assets.
-	if err := assetPipeline.BundleGlobalAssets(); err != nil {
+// bundleGlobalAssets bundles global CSS/JS, theme JS, Kazari JS, the favicon,
+// and the externalized theme token CSS.
+func (b *SiteBuilder) bundleGlobalAssets(s *buildState) error {
+	if err := s.assetPipeline.BundleGlobalAssets(); err != nil {
 		return fmt.Errorf("bundling global assets: %w", err)
 	}
-	b.globalCSSURLs = assetPipeline.GlobalCSSURLs()
+	b.globalCSSURLs = s.assetPipeline.GlobalCSSURLs()
 
 	// Bundle theme JS: prefer external theme over embedded.
 	var jsContent []byte
 	var jsFilename string
+	var err error
 	if b.config.Theme.Name != "" {
 		jsContent, jsFilename, err = BundleThemeJS(b.projectDir, b.config.Theme.Name, b.devMode)
 		if err != nil {
@@ -425,15 +479,19 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 			b.tokenCSSURL = "/assets/css/" + b.tokenCSSFilename
 		}
 	}
+	return nil
+}
 
-	// Load template engine with current build context.
+// wireTemplateEngine hands the assembled build context to the template
+// engine and loads all templates.
+func (b *SiteBuilder) wireTemplateEngine(s *buildState) error {
 	b.tmplEngine.SetTokenCSSURL(b.tokenCSSURL)
 	b.tmplEngine.SetSiteContext(s.siteCtx)
 	b.tmplEngine.SetURLResolver(b.urlResolver)
-	b.tmplEngine.SetAssetPipeline(assetPipeline.Resolver(), assetPipeline.Manifest())
-	b.tmplEngine.SetImageProcessor(assetPipeline.ImageProcessor())
+	b.tmplEngine.SetAssetPipeline(s.assetPipeline.Resolver(), s.assetPipeline.Manifest())
+	b.tmplEngine.SetImageProcessor(s.assetPipeline.ImageProcessor())
 	b.tmplEngine.SetPluginFuncs(b.pluginMgr.TemplateFuncs())
-	b.tmplEngine.SetPageIndex(pageIndex)
+	b.tmplEngine.SetPageIndex(s.pageIndex)
 	if s.stringTable != nil {
 		b.tmplEngine.SetI18nStrings(s.stringTable)
 	}
@@ -448,14 +506,5 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 		return fmt.Errorf("loading templates: %w", err)
 	}
 	s.recordTiming("Template setup")
-
-	s.assetPipeline = assetPipeline
-	s.pageIndex = pageIndex
-	s.scProcessor = scProcessor
-	s.shortcodesHash = shortcodesHash
-	s.iconRenderKey = iconRenderKey
-	s.pageCache = pageCache
-	s.pendingAnchors = pendingAnchors
-	s.validationData = validationData
 	return nil
 }

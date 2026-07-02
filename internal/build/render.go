@@ -7,8 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"golang.org/x/sync/errgroup"
-
 	"github.com/getsarde/sarde/internal/asset"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/consts"
@@ -18,33 +16,18 @@ import (
 	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/shortcode"
-	sardetemplate "github.com/getsarde/sarde/internal/template"
 	"github.com/getsarde/sarde/internal/taxonomy"
+	sardetemplate "github.com/getsarde/sarde/internal/template"
 	"github.com/getsarde/sarde/internal/workers"
 )
 
 func enhancePageResources(pages []*engine.Page, pipeline *asset.Pipeline, parallel bool, workerCount int) error {
-	if !workers.ShouldParallelize(parallel, len(pages), workerCount) {
-		for _, page := range pages {
-			if err := pipeline.EnhanceResources(page); err != nil {
-				return fmt.Errorf("enhancing resources for %s: %w", page.FilePath, err)
-			}
+	return workers.ParallelFor(pages, parallel, workerCount, func(_ int, page *engine.Page) error {
+		if err := pipeline.EnhanceResources(page); err != nil {
+			return fmt.Errorf("enhancing resources for %s: %w", page.FilePath, err)
 		}
 		return nil
-	}
-
-	g := new(errgroup.Group)
-	g.SetLimit(workers.Limit(len(pages)))
-	for _, page := range pages {
-		page := page
-		g.Go(func() error {
-			if err := pipeline.EnhanceResources(page); err != nil {
-				return fmt.Errorf("enhancing resources for %s: %w", page.FilePath, err)
-			}
-			return nil
-		})
-	}
-	return g.Wait()
+	})
 }
 
 func (b *SiteBuilder) renderPages(pages []*engine.Page, siteCtx *engine.SiteContext, parallel bool, workerCount int) ([]RenderedPage, map[string]string, error) {
@@ -53,36 +36,16 @@ func (b *SiteBuilder) renderPages(pages []*engine.Page, siteCtx *engine.SiteCont
 		return nil, aliases, nil
 	}
 
-	if !workers.ShouldParallelize(parallel, len(pages), workerCount) {
-		rendered := make([]RenderedPage, 0, len(pages))
-		for _, page := range pages {
-			rp, err := b.renderPage(page, siteCtx)
-			if err != nil {
-				return nil, nil, err
-			}
-			rendered = append(rendered, rp)
-			for _, alias := range page.Aliases {
-				aliases[alias] = page.Permalink
-			}
-		}
-		return rendered, aliases, nil
-	}
-
 	rendered := make([]RenderedPage, len(pages))
-	g := new(errgroup.Group)
-	g.SetLimit(workers.Limit(len(pages)))
-	for i, page := range pages {
-		i, page := i, page
-		g.Go(func() error {
-			rp, err := b.renderPage(page, siteCtx)
-			if err != nil {
-				return err
-			}
-			rendered[i] = rp
-			return nil
-		})
-	}
-	if err := g.Wait(); err != nil {
+	err := workers.ParallelFor(pages, parallel, workerCount, func(i int, page *engine.Page) error {
+		rp, err := b.renderPage(page, siteCtx)
+		if err != nil {
+			return err
+		}
+		rendered[i] = rp
+		return nil
+	})
+	if err != nil {
 		return nil, nil, err
 	}
 	for _, page := range pages {
@@ -210,25 +173,11 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 }
 
 func minifyRendered(rendered []RenderedPage, parallel bool, workerCount int) error {
-	if !workers.ShouldParallelize(parallel, len(rendered), workerCount) {
+	return workers.ParallelFor(rendered, parallel, workerCount, func(i int, _ RenderedPage) error {
 		mn := NewMinifier()
-		for i := range rendered {
-			rendered[i].HTML = mn.MinifyHTML(rendered[i].HTML)
-		}
+		rendered[i].HTML = mn.MinifyHTML(rendered[i].HTML)
 		return nil
-	}
-
-	g := new(errgroup.Group)
-	g.SetLimit(workers.Limit(len(rendered)))
-	for i := range rendered {
-		i := i
-		g.Go(func() error {
-			mn := NewMinifier()
-			rendered[i].HTML = mn.MinifyHTML(rendered[i].HTML)
-			return nil
-		})
-	}
-	return g.Wait()
+	})
 }
 
 func (b *SiteBuilder) renderDirtyCollectionPagination(collections map[string]*engine.Collection, dirty map[string]struct{}, site *engine.SiteContext, rendered *[]RenderedPage) error {
@@ -307,27 +256,13 @@ func buildRedirectHTML(target string) string {
 		target, target, target)
 }
 
-func (b *SiteBuilder) phaseRender(s *buildState) error {
-	var renderablePages []*engine.Page
-	for _, page := range s.allPages {
-		if page.Params != nil {
-			if r, ok := page.Params["render"].(bool); ok && !r {
-				continue
-			}
-		}
-		renderablePages = append(renderablePages, page)
-	}
-
-	rendered, aliases, err := b.renderPages(renderablePages, s.siteCtx, s.parallel, s.workerCount)
-	if err != nil {
-		return err
-	}
-	s.recordTiming("Rendering templates")
-
+// synthesizePaginationPages builds numbered pagination stubs (e.g.
+// /blog/page/2/) for every paginated collection. It returns the stubs and
+// the number of paginator pages created.
+func (b *SiteBuilder) synthesizePaginationPages(s *buildState) ([]*engine.Page, int) {
 	var syntheticPages []*engine.Page
 	paginatorPages := 0
 
-	// Synthesize numbered pagination pages (e.g. /blog/page/2/).
 	for _, col := range s.collections {
 		if col.Config == nil || col.Config.Paginate <= 0 {
 			continue
@@ -370,9 +305,16 @@ func (b *SiteBuilder) phaseRender(s *buildState) error {
 			paginatorPages++
 		}
 	}
+	return syntheticPages, paginatorPages
+}
 
-	// Synthesize taxonomy index and term pages.
+// synthesizeTaxonomyPages builds taxonomy index, term, and paginated-term
+// stubs for every renderable taxonomy in every language, cross-linking
+// translations in multilingual builds. It returns the stubs (all of which are
+// also taxonomy pages) and the number of paginator pages created.
+func (b *SiteBuilder) synthesizeTaxonomyPages(s *buildState) ([]*engine.Page, int) {
 	var taxonomyPages []*engine.Page
+	paginatorPages := 0
 
 	allTaxByLang := s.taxByLang
 	if allTaxByLang == nil {
@@ -412,7 +354,7 @@ func (b *SiteBuilder) phaseRender(s *buildState) error {
 		stubsByLang[lang] = stubs
 	}
 
-	// Pass 2: cross-link, then collect into syntheticPages + taxonomyPages.
+	// Pass 2: cross-link, then collect into taxonomyPages.
 	for _, lang := range taxLangs {
 		langTax := allTaxByLang[lang]
 		if langTax == nil {
@@ -431,7 +373,6 @@ func (b *SiteBuilder) phaseRender(s *buildState) error {
 				taxStub.Translations = crossLinkStubs(stubsByLang, taxName, lang)
 				taxStub.AllTranslations = taxStub.Translations
 			}
-			syntheticPages = append(syntheticPages, taxStub)
 			taxonomyPages = append(taxonomyPages, taxStub)
 
 			paginateBy := cfg.PaginateBy
@@ -445,7 +386,6 @@ func (b *SiteBuilder) phaseRender(s *buildState) error {
 					termStub.Translations = crossLinkStubs(stubsByLang, key, lang)
 					termStub.AllTranslations = termStub.Translations
 				}
-				syntheticPages = append(syntheticPages, termStub)
 				taxonomyPages = append(taxonomyPages, termStub)
 
 				totalTermPages := (len(term.Pages) + paginateBy - 1) / paginateBy
@@ -455,13 +395,37 @@ func (b *SiteBuilder) phaseRender(s *buildState) error {
 				for n := 2; n <= totalTermPages; n++ {
 					permalink := sardetemplate.PaginationURL(term.Permalink, n)
 					paginatedStub := buildTermPaginatedStub(tax, term, permalink, n, lang)
-					syntheticPages = append(syntheticPages, paginatedStub)
 					taxonomyPages = append(taxonomyPages, paginatedStub)
 					paginatorPages++
 				}
 			}
 		}
 	}
+	return taxonomyPages, paginatorPages
+}
+
+func (b *SiteBuilder) phaseRender(s *buildState) error {
+	var renderablePages []*engine.Page
+	for _, page := range s.allPages {
+		if page.Params != nil {
+			if r, ok := page.Params["render"].(bool); ok && !r {
+				continue
+			}
+		}
+		renderablePages = append(renderablePages, page)
+	}
+
+	rendered, aliases, err := b.renderPages(renderablePages, s.siteCtx, s.parallel, s.workerCount)
+	if err != nil {
+		return err
+	}
+	s.recordTiming("Rendering templates")
+
+	// Synthesize numbered pagination pages, then taxonomy index/term pages.
+	syntheticPages, paginatorPages := b.synthesizePaginationPages(s)
+	taxonomyPages, taxPaginatorPages := b.synthesizeTaxonomyPages(s)
+	syntheticPages = append(syntheticPages, taxonomyPages...)
+	paginatorPages += taxPaginatorPages
 
 	// Resolve Permalinks on synthetic pages (pagination + taxonomy stubs).
 	resolvePermalinks(b.urlResolver, syntheticPages)

@@ -1,22 +1,14 @@
 package icons
 
 import (
-	"encoding/json"
-	"fmt"
 	"html"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 
 	swarmicons "github.com/frostybee/go-swarm-icons"
-	"github.com/frostybee/go-swarm-icons/lucide"
 )
-
-var manager *swarmicons.IconManager
-
-var managerMu sync.Mutex
 
 var defaultPrefix = "lucide"
 
@@ -54,75 +46,6 @@ var usedSets sync.Map
 var spriteMode atomic.Bool
 
 var sprites *swarmicons.SpriteCollector
-
-var (
-	collectionsMu sync.RWMutex
-	collections   = make(map[string]*iconifyCollection)
-)
-
-type iconifyCollection struct {
-	Prefix string    `json:"prefix"`
-	Info   *iconInfo `json:"info,omitempty"`
-}
-
-type iconInfo struct {
-	Name    string          `json:"name"`
-	License *iconifyLicense `json:"license,omitempty"`
-}
-
-type iconifyLicense struct {
-	Title string `json:"title"`
-	SPDX  string `json:"spdx"`
-	URL   string `json:"url"`
-}
-
-func init() {
-	ensureManager()
-}
-
-func ensureManager() {
-	managerMu.Lock()
-	defer managerMu.Unlock()
-	if manager != nil {
-		return
-	}
-
-	cfg := swarmicons.NewConfig().
-		AddProvider("lucide", lucide.Provider()).
-		DefaultPrefix("lucide").
-		DefaultAttributes(map[string]string{
-			"xmlns": "http://www.w3.org/2000/svg",
-		}).
-		IgnoreNotFound()
-
-	var err error
-	manager, err = cfg.Build()
-	if err != nil {
-		panic("icons: " + err.Error())
-	}
-
-	sprites = swarmicons.NewSpriteCollector()
-
-	collectionsMu.Lock()
-	collections["lucide"] = &iconifyCollection{
-		Prefix: "lucide",
-		Info: &iconInfo{
-			Name:    "Lucide",
-			License: &iconifyLicense{Title: "ISC License", SPDX: "ISC", URL: "https://github.com/lucide-icons/lucide/blob/main/LICENSE"},
-		},
-	}
-	collectionsMu.Unlock()
-}
-
-func extractLicenseInfo(prefix string, data []byte) {
-	var col iconifyCollection
-	if err := json.Unmarshal(data, &col); err == nil {
-		col.Prefix = prefix
-		collectionsMu.Lock()
-		collections[prefix] = &col
-		collectionsMu.Unlock()
-	}
-}
 
 // SetDefaultPrefix sets the icon set used for bare (prefixless) names.
 func SetDefaultPrefix(p string) {
@@ -222,6 +145,28 @@ func Render(name, baseClass string, attrs map[string]string) string {
 		icon = icon.Title(titleText)
 	}
 
+	icon = applyIconAttrs(icon, attrs, callerW, callerH, userStyle)
+
+	if spriteMode.Load() {
+		id := "i-" + spriteID
+		sprites.Register(id, rawBody, viewBox)
+
+		var titlePrefix string
+		if titleText != "" {
+			titlePrefix = "<title>" + html.EscapeString(titleText) + "</title>"
+		}
+		useBody := titlePrefix + `<use href="#` + id + `"></use>`
+		wrapper := swarmicons.New(useBody, icon.Attributes())
+		return wrapper.ToHTML()
+	}
+
+	return icon.ToHTML()
+}
+
+// applyIconAttrs applies the rotate, flip, style, and width/height overrides
+// to icon and returns the updated icon. Extracted from Render to keep the
+// transform/sizing logic isolated from attribute classification.
+func applyIconAttrs(icon *swarmicons.Icon, attrs map[string]string, callerW, callerH, userStyle string) *swarmicons.Icon {
 	if r := attrs["rotate"]; r != "" {
 		if deg, err := strconv.ParseFloat(r, 64); err == nil {
 			icon = icon.Rotate(deg)
@@ -257,20 +202,7 @@ func Render(name, baseClass string, attrs map[string]string) string {
 		icon = icon.Width("16")
 	}
 
-	if spriteMode.Load() {
-		id := "i-" + spriteID
-		sprites.Register(id, rawBody, viewBox)
-
-		var titlePrefix string
-		if titleText != "" {
-			titlePrefix = "<title>" + html.EscapeString(titleText) + "</title>"
-		}
-		useBody := titlePrefix + `<use href="#` + id + `"></use>`
-		wrapper := swarmicons.New(useBody, icon.Attributes())
-		return wrapper.ToHTML()
-	}
-
-	return icon.ToHTML()
+	return icon
 }
 
 func buildARIAAttrs(attrs map[string]string) map[string]string {
@@ -363,109 +295,4 @@ func parseIconID(id string) (string, string) {
 
 func recordUsed(prefix string) {
 	usedSets.Store(prefix, struct{}{})
-}
-
-// ---------------------------------------------------------------------------
-// Dynamic provider registration (called from build init)
-// ---------------------------------------------------------------------------
-
-// LoadCollection loads an additional Iconify JSON collection from raw bytes
-// and registers it as a provider under its prefix.
-func LoadCollection(data []byte) error {
-	var meta struct {
-		Prefix string    `json:"prefix"`
-		Info   *iconInfo `json:"info,omitempty"`
-	}
-	if err := json.Unmarshal(data, &meta); err != nil {
-		return err
-	}
-	if meta.Prefix == "" {
-		return fmt.Errorf("icon collection missing prefix")
-	}
-
-	provider := swarmicons.NewJsonCollectionFromBytes(data)
-	manager.Register(meta.Prefix, provider)
-
-	collectionsMu.Lock()
-	collections[meta.Prefix] = &iconifyCollection{Prefix: meta.Prefix, Info: meta.Info}
-	collectionsMu.Unlock()
-	return nil
-}
-
-// LoadIconDirectory registers a DirectoryProvider that loads SVG files from
-// dirPath. Bare icon names resolve from this directory FIRST (project overrides win).
-// A missing directory is not an error.
-func LoadIconDirectory(dirPath string) error {
-	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		return nil
-	}
-	provider, err := swarmicons.NewDirectoryProvider(dirPath, swarmicons.WithRecursive(false))
-	if err != nil {
-		return err
-	}
-
-	managerMu.Lock()
-	defer managerMu.Unlock()
-	manager.Register("local", provider)
-	return nil
-}
-
-// ---------------------------------------------------------------------------
-// License reporting
-// ---------------------------------------------------------------------------
-
-// SetLicense is a loaded icon set's license metadata, for attribution.
-type SetLicense struct {
-	Prefix string
-	Title  string
-	SPDX   string
-	URL    string
-}
-
-// LoadedSetLicenses returns license metadata for every loaded collection.
-func LoadedSetLicenses() []SetLicense {
-	collectionsMu.RLock()
-	defer collectionsMu.RUnlock()
-	out := make([]SetLicense, 0, len(collections))
-	for prefix, col := range collections {
-		sl := SetLicense{Prefix: prefix}
-		if col.Info != nil && col.Info.License != nil {
-			sl.Title = col.Info.License.Title
-			sl.SPDX = col.Info.License.SPDX
-			sl.URL = col.Info.License.URL
-		}
-		out = append(out, sl)
-	}
-	return sortLicenses(out)
-}
-
-// UsedSetLicenses returns license metadata for the collections actually
-// referenced during the build.
-func UsedSetLicenses() []SetLicense {
-	collectionsMu.RLock()
-	defer collectionsMu.RUnlock()
-	var out []SetLicense
-	usedSets.Range(func(k, _ any) bool {
-		prefix, _ := k.(string)
-		if col, ok := collections[prefix]; ok {
-			sl := SetLicense{Prefix: prefix}
-			if col.Info != nil && col.Info.License != nil {
-				sl.Title = col.Info.License.Title
-				sl.SPDX = col.Info.License.SPDX
-				sl.URL = col.Info.License.URL
-			}
-			out = append(out, sl)
-		}
-		return true
-	})
-	return sortLicenses(out)
-}
-
-func sortLicenses(s []SetLicense) []SetLicense {
-	for i := 1; i < len(s); i++ {
-		for j := i; j > 0 && s[j].Prefix < s[j-1].Prefix; j-- {
-			s[j], s[j-1] = s[j-1], s[j]
-		}
-	}
-	return s
 }

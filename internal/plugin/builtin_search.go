@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 )
 
 //go:embed all:search_assets
@@ -51,8 +52,8 @@ type searchDocument struct {
 }
 
 func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
-	maxLen := cfgInt(cfg, "max_content_length", 5000)
-	excludePatterns := cfgStringSlice(cfg, "exclude")
+	maxLen := cfgutil.Int(cfg, "max_content_length", 5000)
+	excludePatterns := cfgutil.StringSlice(cfg, "exclude")
 
 	var docs []searchDocument
 	seen := make(map[string]bool)

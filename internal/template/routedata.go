@@ -10,7 +10,6 @@ import (
 	"github.com/getsarde/sarde/internal/navigation"
 )
 
-
 // BuildRouteData constructs the unified RouteData context for a page render.
 func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.ThemeConfig) *engine.RouteData {
 	rd := &engine.RouteData{
@@ -33,122 +32,9 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 
 	col := page.Collection
 	if col != nil {
-		rd.Collection = col
-
-		// Layout from collection config
-		if col.Config != nil {
-			rd.Layout = col.Config.Layout
-		}
-
-		// Resolve template name
-		rd.Template = resolveTemplateName(page, col)
-
-		// Pagination from prev/next
-		if page.PrevPage != nil || page.NextPage != nil {
-			rd.Pagination = &engine.PaginationLinks{}
-			if page.PrevPage != nil {
-				rd.Pagination.Prev = &engine.PaginationLink{
-					URL:   page.PrevPage.RelPermalink,
-					Title: page.PrevPage.Title,
-				}
-			}
-			if page.NextPage != nil {
-				rd.Pagination.Next = &engine.PaginationLink{
-					URL:   page.NextPage.RelPermalink,
-					Title: page.NextPage.Title,
-				}
-			}
-		}
-
-		// Apply NavOverride link/label/disabled overrides from frontmatter.
-		applyNavOverride(page.Params, "prev", &rd.Pagination, true)
-		applyNavOverride(page.Params, "next", &rd.Pagination, false)
-
-		// Section detection for _index.md pages
-		if page.Kind == engine.KindSection {
-			rd.IsSection = true
-			rd.Section = page.Section
-		}
-
-		// Numbered pagination for list pages (section index with Paginate > 0).
-		if rd.IsSection && col.Config != nil && col.Config.Paginate > 0 {
-			current := 1
-			if page.Params != nil {
-				if n, ok := page.Params[consts.PaginationCurrentKey].(int); ok && n > 0 {
-					current = n
-				}
-			}
-			rd.Paginator = buildPaginator(col, current)
-		}
-
-		if col.Config != nil {
-			if vc := col.Config.Versioning; vc != nil && vc.Enabled {
-				rd.Version = page.Version
-				rd.IsLatest = isLastVersion(page.Version, vc)
-				rd.VersionLabel, rd.VersionBanner = versionLabelAndBanner(page.Version, vc)
-				rd.Versions = buildVersionLinks(page, vc, col.Name)
-			}
-		}
-
-		resolveSidebar(rd, col, page)
+		buildCollectionRouteData(rd, page, col)
 	} else {
-		// No collection — standalone, home, or taxonomy page
-		switch page.Kind {
-		case engine.KindHome:
-			rd.Template = "home"
-			rd.Layout = engine.LayoutDefault
-			if site != nil && site.Config != nil {
-				if cfg, ok := site.Config.(*config.SiteConfig); ok {
-					rd.Homepage = mapHomepageSettings(&cfg.Homepage)
-				}
-			}
-		case engine.KindSection:
-			// Language-root _index.md (e.g. content/fr/_index.md) is KindSection
-			// because its dir != "", but it should render identically to KindHome.
-			if page.LangRelPath == "_index.md" {
-				rd.Template = "home"
-				rd.Layout = engine.LayoutDefault
-				if site != nil && site.Config != nil {
-					if cfg, ok := site.Config.(*config.SiteConfig); ok {
-						rd.Homepage = mapHomepageSettings(&cfg.Homepage)
-					}
-				}
-			} else {
-				rd.Template = consts.DirDefault + "/single"
-			}
-		case engine.KindTaxonomy:
-			rd.Template = consts.DirTaxonomy + "/list"
-			rd.Layout = engine.LayoutDefault
-			if tax, ok := page.Params[consts.TaxonomyKey].(*engine.Taxonomy); ok {
-				rd.Taxonomy = tax
-			}
-			if entries, ok := page.Params[consts.TermEntriesKey].([]*engine.TermEntry); ok {
-				rd.TermEntries = entries
-			}
-		case engine.KindTerm:
-			rd.Template = consts.DirTaxonomy + "/term"
-			rd.Layout = engine.LayoutDefault
-			if tax, ok := page.Params[consts.TaxonomyKey].(*engine.Taxonomy); ok {
-				rd.Taxonomy = tax
-			}
-			if term, ok := page.Params[consts.TaxonomyTermKey].(*engine.TaxonomyTerm); ok {
-				rd.TaxonomyTerm = term
-			}
-			if rd.TaxonomyTerm != nil && rd.Taxonomy != nil {
-				current := 1
-				if n, ok := page.Params[consts.PaginationCurrentKey].(int); ok && n > 0 {
-					current = n
-				}
-				paginateBy := rd.Taxonomy.PaginateBy
-				if paginateBy <= 0 {
-					paginateBy = consts.DefaultPaginateBy
-				}
-				rd.Paginator = buildTermPaginator(rd.TaxonomyTerm, paginateBy, current)
-			}
-		default:
-			rd.Template = consts.DirDefault + "/single"
-		}
-		rd.SidebarType = "none"
+		buildStandaloneRouteData(rd, page, site)
 	}
 
 	// Per-page banner from frontmatter.
@@ -168,6 +54,132 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 	rd.GlobalNav = navigation.BuildGlobalNav(site, col, headerLinks)
 
 	return rd
+}
+
+// buildCollectionRouteData populates rd for a page that belongs to a
+// collection: layout, template name, pagination, section detection,
+// versioning, and sidebar/nav resolution.
+func buildCollectionRouteData(rd *engine.RouteData, page *engine.Page, col *engine.Collection) {
+	rd.Collection = col
+
+	// Layout from collection config
+	if col.Config != nil {
+		rd.Layout = col.Config.Layout
+	}
+
+	// Resolve template name
+	rd.Template = resolveTemplateName(page, col)
+
+	// Pagination from prev/next
+	if page.PrevPage != nil || page.NextPage != nil {
+		rd.Pagination = &engine.PaginationLinks{}
+		if page.PrevPage != nil {
+			rd.Pagination.Prev = &engine.PaginationLink{
+				URL:   page.PrevPage.RelPermalink,
+				Title: page.PrevPage.Title,
+			}
+		}
+		if page.NextPage != nil {
+			rd.Pagination.Next = &engine.PaginationLink{
+				URL:   page.NextPage.RelPermalink,
+				Title: page.NextPage.Title,
+			}
+		}
+	}
+
+	// Apply NavOverride link/label/disabled overrides from frontmatter.
+	applyNavOverride(page.Params, "prev", &rd.Pagination, true)
+	applyNavOverride(page.Params, "next", &rd.Pagination, false)
+
+	// Section detection for _index.md pages
+	if page.Kind == engine.KindSection {
+		rd.IsSection = true
+		rd.Section = page.Section
+	}
+
+	// Numbered pagination for list pages (section index with Paginate > 0).
+	if rd.IsSection && col.Config != nil && col.Config.Paginate > 0 {
+		current := 1
+		if page.Params != nil {
+			if n, ok := page.Params[consts.PaginationCurrentKey].(int); ok && n > 0 {
+				current = n
+			}
+		}
+		rd.Paginator = buildPaginator(col, current)
+	}
+
+	if col.Config != nil {
+		if vc := col.Config.Versioning; vc != nil && vc.Enabled {
+			rd.Version = page.Version
+			rd.IsLatest = isLastVersion(page.Version, vc)
+			rd.VersionLabel, rd.VersionBanner = versionLabelAndBanner(page.Version, vc)
+			rd.Versions = buildVersionLinks(page, vc, col.Name)
+		}
+	}
+
+	resolveSidebar(rd, col, page)
+}
+
+// buildStandaloneRouteData populates rd for a page with no collection:
+// home, language-root section, taxonomy, term, or a generic standalone page.
+func buildStandaloneRouteData(rd *engine.RouteData, page *engine.Page, site *engine.SiteContext) {
+	// No collection — standalone, home, or taxonomy page
+	switch page.Kind {
+	case engine.KindHome:
+		rd.Template = "home"
+		rd.Layout = engine.LayoutDefault
+		if site != nil && site.Config != nil {
+			if cfg, ok := site.Config.(*config.SiteConfig); ok {
+				rd.Homepage = mapHomepageSettings(&cfg.Homepage)
+			}
+		}
+	case engine.KindSection:
+		// Language-root _index.md (e.g. content/fr/_index.md) is KindSection
+		// because its dir != "", but it should render identically to KindHome.
+		if page.LangRelPath == "_index.md" {
+			rd.Template = "home"
+			rd.Layout = engine.LayoutDefault
+			if site != nil && site.Config != nil {
+				if cfg, ok := site.Config.(*config.SiteConfig); ok {
+					rd.Homepage = mapHomepageSettings(&cfg.Homepage)
+				}
+			}
+		} else {
+			rd.Template = consts.DirDefault + "/single"
+		}
+	case engine.KindTaxonomy:
+		rd.Template = consts.DirTaxonomy + "/list"
+		rd.Layout = engine.LayoutDefault
+		if tax, ok := page.Params[consts.TaxonomyKey].(*engine.Taxonomy); ok {
+			rd.Taxonomy = tax
+		}
+		if entries, ok := page.Params[consts.TermEntriesKey].([]*engine.TermEntry); ok {
+			rd.TermEntries = entries
+		}
+	case engine.KindTerm:
+		rd.Template = consts.DirTaxonomy + "/term"
+		rd.Layout = engine.LayoutDefault
+		if tax, ok := page.Params[consts.TaxonomyKey].(*engine.Taxonomy); ok {
+			rd.Taxonomy = tax
+		}
+		if term, ok := page.Params[consts.TaxonomyTermKey].(*engine.TaxonomyTerm); ok {
+			rd.TaxonomyTerm = term
+		}
+		if rd.TaxonomyTerm != nil && rd.Taxonomy != nil {
+			current := 1
+			if n, ok := page.Params[consts.PaginationCurrentKey].(int); ok && n > 0 {
+				current = n
+			}
+			paginateBy := rd.Taxonomy.PaginateBy
+			if paginateBy <= 0 {
+				paginateBy = consts.DefaultPaginateBy
+			}
+			rd.Paginator = buildTermPaginator(rd.TaxonomyTerm, paginateBy, current)
+		}
+	default:
+		rd.Template = consts.DirDefault + "/single"
+	}
+	rd.SidebarType = "none"
 }
 
 func buildTranslationLinks(page *engine.Page, langMap map[string]engine.Language, sources []*engine.Page) []engine.TranslationLink {

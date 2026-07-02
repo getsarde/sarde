@@ -5,7 +5,6 @@
 package announcements
 
 import (
-	"crypto/sha256"
 	"embed"
 	"fmt"
 	"html"
@@ -15,6 +14,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/getsarde/sarde/internal/asset"
 	"github.com/getsarde/sarde/internal/i18n"
 	"github.com/getsarde/sarde/internal/plugin"
 	"github.com/getsarde/sarde/internal/plugin/cfgutil"
@@ -39,12 +39,10 @@ func ensureAssets() {
 		cssData, _ = fs.ReadFile(assetsFS, "assets/announcements.css")
 
 		if len(jsData) > 0 {
-			h := sha256.Sum256(jsData)
-			jsURL = fmt.Sprintf("/assets/plugins/announcements/announcements.%x.js", h[:4])
+			jsURL = "/" + pluginPrefix + asset.FingerprintedName("announcements.js", asset.Fingerprint(jsData))
 		}
 		if len(cssData) > 0 {
-			h := sha256.Sum256(cssData)
-			cssURL = fmt.Sprintf("/assets/plugins/announcements/announcements.%x.css", h[:4])
+			cssURL = "/" + pluginPrefix + asset.FingerprintedName("announcements.css", asset.Fingerprint(cssData))
 		}
 	})
 }
@@ -179,12 +177,14 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 			},
 			BuildDone: func(ctx *plugin.BuildDoneContext) error {
 				if jsData != nil {
-					if err := ctx.WriteFile(pluginPrefix+"announcements."+hashHex(jsData)+".js", jsData); err != nil {
+					name := asset.FingerprintedName("announcements.js", asset.Fingerprint(jsData))
+					if err := ctx.WriteFile(pluginPrefix+name, jsData); err != nil {
 						return err
 					}
 				}
 				if cssData != nil {
-					if err := ctx.WriteFile(pluginPrefix+"announcements."+hashHex(cssData)+".css", cssData); err != nil {
+					name := asset.FingerprintedName("announcements.css", asset.Fingerprint(cssData))
+					if err := ctx.WriteFile(pluginPrefix+name, cssData); err != nil {
 						return err
 					}
 				}
@@ -281,9 +281,3 @@ func cfgItems(cfg map[string]any) []announcementItem {
 	}
 	return items
 }
-
-func hashHex(data []byte) string {
-	h := sha256.Sum256(data)
-	return fmt.Sprintf("%x", h[:4])
-}
-

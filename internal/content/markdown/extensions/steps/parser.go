@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/blockutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
@@ -42,24 +43,24 @@ func (p *stepsParser) Continue(node ast.Node, reader text.Reader, pc parser.Cont
 	line, _ := reader.PeekLine()
 	trimmed := strings.TrimSpace(string(line))
 
-	depth := getDepth(pc, node)
+	depth := blockutil.GetDepth(pc, node)
 
 	if strings.HasPrefix(trimmed, ":::") {
 		if nestedOpenRegex.MatchString(trimmed) && !closingRegex.MatchString(trimmed) {
-			setDepth(pc, node, depth+1)
+			blockutil.SetDepth(pc, node, depth+1)
 			return parser.Continue | parser.HasChildren
 		}
 
 		if m := closingRegex.FindStringSubmatch(trimmed); m != nil {
 			if depth > 0 {
-				setDepth(pc, node, depth-1)
+				blockutil.SetDepth(pc, node, depth-1)
 				return parser.Continue | parser.HasChildren
 			}
 			if m[1] == "steps" {
 				reader.AdvanceToEOL()
 				return parser.Close
 			}
-			if m[1] == "" && !hasInnerOpenBlocks(pc, node) {
+			if m[1] == "" && !blockutil.HasInnerOpenBlocks(pc, node) {
 				reader.AdvanceToEOL()
 				return parser.Close
 			}
@@ -70,7 +71,7 @@ func (p *stepsParser) Continue(node ast.Node, reader text.Reader, pc parser.Cont
 }
 
 func (p *stepsParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
-	deleteDepth(pc, node)
+	blockutil.DeleteDepth(pc, node)
 
 	stepsBlock := node.(*StepsBlock)
 
@@ -148,47 +149,6 @@ func (p *stepsParser) CanAcceptIndentedLine() bool {
 }
 
 // Context key for nested depth tracking
-var contextKeyDepth = parser.NewContextKey()
-
-func getDepth(pc parser.Context, node ast.Node) int {
-	v := pc.Get(contextKeyDepth)
-	if v == nil {
-		return 0
-	}
-	if m, ok := v.(map[ast.Node]int); ok {
-		return m[node]
-	}
-	return 0
-}
-
-func setDepth(pc parser.Context, node ast.Node, depth int) {
-	v := pc.Get(contextKeyDepth)
-	var m map[ast.Node]int
-	if v == nil {
-		m = make(map[ast.Node]int)
-	} else {
-		m = v.(map[ast.Node]int)
-	}
-	m[node] = depth
-	pc.Set(contextKeyDepth, m)
-}
-
-func hasInnerOpenBlocks(pc parser.Context, node ast.Node) bool {
-	blocks := pc.OpenedBlocks()
-	for i, b := range blocks {
-		if b.Node == node {
-			for j := i + 1; j < len(blocks); j++ {
-				for _, t := range blocks[j].Parser.Trigger() {
-					if t == ':' {
-						return true
-					}
-				}
-			}
-			return false
-		}
-	}
-	return false
-}
 
 func headingTitle(heading *ast.Heading, source []byte) string {
 	lines := heading.Lines()
@@ -201,13 +161,4 @@ func headingTitle(heading *ast.Heading, source []byte) string {
 		buf = append(buf, seg.Value(source)...)
 	}
 	return strings.TrimSpace(string(buf))
-}
-
-func deleteDepth(pc parser.Context, node ast.Node) {
-	v := pc.Get(contextKeyDepth)
-	if v != nil {
-		if m, ok := v.(map[ast.Node]int); ok {
-			delete(m, node)
-		}
-	}
 }

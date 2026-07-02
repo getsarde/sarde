@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 )
 
 func newSEOPlugin(cfg map[string]any) *Plugin {
@@ -30,15 +31,14 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 		page.Params = make(map[string]any)
 	}
 
-	twitterHandle := cfgString(cfg, "twitter_handle", "")
-	defaultImage := cfgString(cfg, "default_image", "")
-	enableJSONLD := cfgBool(cfg, "json_ld", true)
-	autoDesc := cfgBool(cfg, "auto_description", true)
+	twitterHandle := cfgutil.String(cfg, "twitter_handle", "")
+	defaultImage := cfgutil.String(cfg, "default_image", "")
+	enableJSONLD := cfgutil.Bool(cfg, "json_ld", true)
+	autoDesc := cfgutil.Bool(cfg, "auto_description", true)
 
-	baseURL := ""
+	baseURL := ctx.BaseURL()
 	siteTitle := ""
 	if ctx.Site != nil {
-		baseURL = strings.TrimRight(ctx.Site.BaseURL, "/")
 		siteTitle = ctx.Site.Title
 	}
 
@@ -120,7 +120,7 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 	}
 
 	// Twitter card.
-	twitterCard := cfgString(cfg, "twitter_card", "summary_large_image")
+	twitterCard := cfgutil.String(cfg, "twitter_card", "summary_large_image")
 	seo["twitter_card"] = twitterCard
 	seo["twitter_title"] = page.Title
 	seo["twitter_description"] = description
@@ -282,4 +282,3 @@ func courseNode(page *engine.Page, pageURL, description string) map[string]any {
 	}
 	return node
 }
-

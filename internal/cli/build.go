@@ -45,18 +45,8 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		cfg.Build.Output = output
 	}
 
-	// Override base path from CLI flag.
-	if basePath, _ := cmd.Flags().GetString("base-path"); basePath != "" {
-		cfg.Build.BasePath = config.NormalizeBasePath(basePath)
-	}
-
-	// Override content directory from CLI flag.
-	if contentDir, _ := cmd.Flags().GetString("content"); contentDir != "" {
-		if !filepath.IsAbs(contentDir) {
-			contentDir, _ = filepath.Abs(contentDir)
-		}
-		cfg.Content.Dir = contentDir
-	}
+	// Override base path and content directory from CLI flags.
+	applyCommonOverrides(cmd, cfg)
 
 	// Override strict i18n from CLI flag.
 	if strictI18n, _ := cmd.Flags().GetBool("strict-i18n"); strictI18n {
@@ -64,12 +54,7 @@ func runBuild(cmd *cobra.Command, args []string) error {
 	}
 
 	// Build.
-	builder := build.NewSiteBuilder(build.BuildOptions{
-		ProjectDir:  projectDir,
-		Config:      cfg,
-		ThemeConfig: themeCfg,
-		EmbeddedFS:  embedded.ThemeFS(),
-	})
+	builder := newSiteBuilder(projectDir, cfg, themeCfg)
 
 	result, err := builder.Build()
 	if err != nil {

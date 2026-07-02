@@ -6,7 +6,6 @@ package clientplugins
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"embed"
 	"encoding/json"
 	"fmt"
@@ -19,6 +18,7 @@ import (
 	"github.com/evanw/esbuild/pkg/api"
 	"gopkg.in/yaml.v3"
 
+	"github.com/getsarde/sarde/internal/asset"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/plugin"
 	"github.com/getsarde/sarde/internal/plugin/cfgutil"
@@ -133,15 +133,13 @@ func computeBundles(fsys fs.FS, pathPrefix string) {
 
 	if rawCSS := cssBuilder.Bytes(); len(rawCSS) > 0 {
 		bundleCSS = minifyCSS(rawCSS)
-		hash := contentHash(bundleCSS)
-		bundleCSSPath = "assets/plugins/plugins." + hash + ".css"
+		bundleCSSPath = "assets/plugins/" + asset.FingerprintedName("plugins.css", asset.Fingerprint(bundleCSS))
 		bundleCSSURL = "/" + bundleCSSPath
 	}
 
 	if rawJS := jsBuilder.Bytes(); len(rawJS) > 0 {
 		bundleJS = minifyJS(rawJS)
-		hash := contentHash(bundleJS)
-		bundleJSPath = "assets/plugins/plugins." + hash + ".js"
+		bundleJSPath = "assets/plugins/" + asset.FingerprintedName("plugins.js", asset.Fingerprint(bundleJS))
 		bundleJSURL = "/" + bundleJSPath
 	}
 }
@@ -202,11 +200,6 @@ func precomputeDefaults() {
 		}
 		pluginDefaults[slug] = defaults
 	}
-}
-
-func contentHash(data []byte) string {
-	h := sha256.Sum256(data)
-	return fmt.Sprintf("%x", h[:4])
 }
 
 // RegisterAll registers a single "clientplugins" meta-plugin that injects the

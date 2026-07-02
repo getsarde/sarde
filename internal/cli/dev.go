@@ -11,8 +11,8 @@ import (
 	"github.com/getsarde/sarde/internal/build"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/consts"
-	"github.com/getsarde/sarde/internal/outputpath"
 	"github.com/getsarde/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/outputpath"
 	"github.com/getsarde/sarde/internal/server"
 	"github.com/getsarde/sarde/internal/version"
 	"github.com/spf13/cobra"
@@ -54,18 +54,8 @@ func runServe(cmd *cobra.Command, args []string) error {
 	}
 	cfg.Build.Expired = config.BoolPtr(true)
 
-	// Override base path from CLI flag.
-	if basePath, _ := cmd.Flags().GetString("base-path"); basePath != "" {
-		cfg.Build.BasePath = config.NormalizeBasePath(basePath)
-	}
-
-	// Override content directory from CLI flag.
-	if contentDir, _ := cmd.Flags().GetString("content"); contentDir != "" {
-		if !filepath.IsAbs(contentDir) {
-			contentDir, _ = filepath.Abs(contentDir)
-		}
-		cfg.Content.Dir = contentDir
-	}
+	// Override base path and content directory from CLI flags.
+	applyCommonOverrides(cmd, cfg)
 
 	// Determine host: CLI flag > config > 127.0.0.1.
 	host, _ := cmd.Flags().GetString("host")
@@ -139,15 +129,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 		latestCfg.Build.Expired = config.BoolPtr(true)
 
 		// Preserve CLI flag overrides across reloads.
-		if basePath, _ := cmd.Flags().GetString("base-path"); basePath != "" {
-			latestCfg.Build.BasePath = config.NormalizeBasePath(basePath)
-		}
-		if contentDir, _ := cmd.Flags().GetString("content"); contentDir != "" {
-			if !filepath.IsAbs(contentDir) {
-				contentDir, _ = filepath.Abs(contentDir)
-			}
-			latestCfg.Content.Dir = contentDir
-		}
+		applyCommonOverrides(cmd, latestCfg)
 
 		checkSyntax, _ := cmd.Flags().GetBool("check-syntax")
 		return build.NewSiteBuilder(build.BuildOptions{

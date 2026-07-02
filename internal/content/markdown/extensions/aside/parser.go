@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/blockutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
@@ -70,20 +71,20 @@ func (p *asideParser) Continue(node ast.Node, reader text.Reader, pc parser.Cont
 	trimmed := strings.TrimSpace(lineStr)
 
 	// Get or initialize nested depth from context
-	depth := getNestedDepth(pc, aside)
+	depth := blockutil.GetDepth(pc, aside)
 
 	// Check for ::: fences
 	if strings.HasPrefix(trimmed, ":::") {
 		// Check if it's an opening fence (:::word)
 		if nestedOpenRegex.MatchString(trimmed) && !closingFenceRegex.MatchString(trimmed) {
-			setNestedDepth(pc, aside, depth+1)
+			blockutil.SetDepth(pc, aside, depth+1)
 			return parser.Continue | parser.HasChildren
 		}
 
 		// Check if it's a closing fence
 		if closingFenceRegex.MatchString(trimmed) {
 			if depth > 0 {
-				setNestedDepth(pc, aside, depth-1)
+				blockutil.SetDepth(pc, aside, depth-1)
 				return parser.Continue | parser.HasChildren
 			}
 
@@ -99,7 +100,7 @@ func (p *asideParser) Continue(node ast.Node, reader text.Reader, pc parser.Cont
 				return parser.Continue | parser.HasChildren
 			}
 
-			if closingName == "" && hasInnerOpenBlocks(pc, node) {
+			if closingName == "" && blockutil.HasInnerOpenBlocks(pc, node) {
 				return parser.Continue | parser.HasChildren
 			}
 
@@ -116,7 +117,7 @@ func (p *asideParser) Continue(node ast.Node, reader text.Reader, pc parser.Cont
 func (p *asideParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
 	// Clean up context
 	aside := node.(*AsideBlock)
-	deleteNestedDepth(pc, aside)
+	blockutil.DeleteDepth(pc, aside)
 }
 
 // CanInterruptParagraph returns false.
@@ -130,53 +131,3 @@ func (p *asideParser) CanAcceptIndentedLine() bool {
 }
 
 // Context key for nested depth tracking
-var contextKeyNestedDepth = parser.NewContextKey()
-
-func hasInnerOpenBlocks(pc parser.Context, node ast.Node) bool {
-	blocks := pc.OpenedBlocks()
-	for i, b := range blocks {
-		if b.Node == node {
-			for j := i + 1; j < len(blocks); j++ {
-				for _, t := range blocks[j].Parser.Trigger() {
-					if t == ':' {
-						return true
-					}
-				}
-			}
-			return false
-		}
-	}
-	return false
-}
-
-func getNestedDepth(pc parser.Context, node *AsideBlock) int {
-	v := pc.Get(contextKeyNestedDepth)
-	if v == nil {
-		return 0
-	}
-	if m, ok := v.(map[*AsideBlock]int); ok {
-		return m[node]
-	}
-	return 0
-}
-
-func setNestedDepth(pc parser.Context, node *AsideBlock, depth int) {
-	v := pc.Get(contextKeyNestedDepth)
-	var m map[*AsideBlock]int
-	if v == nil {
-		m = make(map[*AsideBlock]int)
-	} else {
-		m = v.(map[*AsideBlock]int)
-	}
-	m[node] = depth
-	pc.Set(contextKeyNestedDepth, m)
-}
-
-func deleteNestedDepth(pc parser.Context, node *AsideBlock) {
-	v := pc.Get(contextKeyNestedDepth)
-	if v != nil {
-		if m, ok := v.(map[*AsideBlock]int); ok {
-			delete(m, node)
-		}
-	}
-}

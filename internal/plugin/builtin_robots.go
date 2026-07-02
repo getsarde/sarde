@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"fmt"
+	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 	"strings"
 )
 
@@ -17,7 +18,7 @@ func newRobotsPlugin(cfg map[string]any) *Plugin {
 }
 
 func robotsBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
-	includeSitemap := cfgBool(cfg, "sitemap", true)
+	includeSitemap := cfgutil.Bool(cfg, "sitemap", true)
 
 	var sb strings.Builder
 	sb.WriteString("User-agent: *\n")

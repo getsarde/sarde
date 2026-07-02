@@ -12,7 +12,6 @@ import (
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/workers"
-	"golang.org/x/sync/errgroup"
 )
 
 func groupByCollection(files []content.ContentFile) map[string][]content.ContentFile {
@@ -45,43 +44,20 @@ func buildPagesWithOptions(
 	opts BuildOptions,
 	taxCfg map[string]config.TaxonomyConfig,
 ) ([]*engine.Page, []engine.ValidationWarning, error) {
-	if !workers.ShouldParallelize(opts.Parallel, len(files), opts.WorkerCount) {
-		var pages []*engine.Page
-		var warnings []engine.ValidationWarning
-		for _, cf := range files {
-			page, pageWarnings, err := buildPage(cf, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, taxCfg)
-			if err != nil {
-				return nil, nil, err
-			}
-			pages = append(pages, page)
-			warnings = append(warnings, pageWarnings...)
-		}
-		return pages, warnings, nil
-	}
-
 	type result struct {
 		page     *engine.Page
 		warnings []engine.ValidationWarning
 	}
 	results := make([]result, len(files))
-	limit := opts.WorkerCount
-	if limit <= 0 {
-		limit = workers.Limit(len(files))
-	}
-	g := new(errgroup.Group)
-	g.SetLimit(limit)
-	for i, cf := range files {
-		i, cf := i, cf
-		g.Go(func() error {
-			page, pageWarnings, err := buildPage(cf, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, taxCfg)
-			if err != nil {
-				return err
-			}
-			results[i] = result{page: page, warnings: pageWarnings}
-			return nil
-		})
-	}
-	if err := g.Wait(); err != nil {
+	err := workers.ParallelFor(files, opts.Parallel, opts.WorkerCount, func(i int, cf content.ContentFile) error {
+		page, pageWarnings, err := buildPage(cf, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, taxCfg)
+		if err != nil {
+			return err
+		}
+		results[i] = result{page: page, warnings: pageWarnings}
+		return nil
+	})
+	if err != nil {
 		return nil, nil, err
 	}
 
