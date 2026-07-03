@@ -104,11 +104,15 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 }
 
 // rebuildFallback runs a full Build() when the incremental path signals
-// errFallBackToFull; any other error aborts the rebuild.
+// errFallBackToFull; any other error aborts the rebuild. An aborted rebuild
+// may have already patched collections, the site context, or the template
+// engine in place, so clear b.built to force the next change onto the
+// full-build path instead of incrementally patching inconsistent state.
 func (b *SiteBuilder) rebuildFallback(err error) (*engine.BuildResult, error) {
 	if errors.Is(err, errFallBackToFull) {
 		return b.Build()
 	}
+	b.built = false
 	return nil, err
 }
 
@@ -324,11 +328,20 @@ func (b *SiteBuilder) patchPages(s *incrementalRebuildState) error {
 		devlog.Log("build", "ContentRebuild: rebuilt navigation for collection %q (%d pages)", colName, len(col.Pages))
 	}
 
-	// Dirty-mark old taxonomy terms for pages whose tags/categories changed,
-	// so removed-tag term pages are re-rendered.
-	if b.lastSiteCtx != nil && b.lastSiteCtx.Taxonomies != nil {
+	// Dirty-mark old taxonomy terms for pages whose terms changed, so
+	// removed-term pages are re-rendered without the page. Use the taxonomy
+	// set of the page's own language; the default set only covers the
+	// default language on multi-language sites.
+	if b.lastSiteCtx != nil {
 		for _, e := range s.parsed {
-			addRemovedTermsDirty(e.old, e.newPage, b.lastSiteCtx.Taxonomies, b.config.Taxonomies, s.dirtyPermalinks)
+			oldTax := b.lastSiteCtx.Taxonomies
+			if langTax, ok := b.lastSiteCtx.TaxonomiesByLang[e.old.Lang]; ok {
+				oldTax = langTax
+			}
+			if oldTax == nil {
+				continue
+			}
+			addRemovedTermsDirty(e.old, e.newPage, oldTax, b.config.Taxonomies, s.dirtyPermalinks)
 		}
 	}
 
@@ -392,6 +405,15 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 		}
 
 		i18n.LinkAllTranslations(s.patchedAllPages, weights)
+	}
+
+	// Home layouts render recentEntries (title, date, summary) from the site
+	// context, so any patched page can change the home output. Re-render every
+	// home page (one per language, including regenerated fallbacks).
+	for _, p := range s.patchedAllPages {
+		if p.Kind == engine.KindHome {
+			s.dirtyPermalinks[p.RelPermalink] = struct{}{}
+		}
 	}
 
 	if s.isMultiLang {

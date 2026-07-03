@@ -352,7 +352,7 @@ func (b *SiteBuilder) validateLinks(s *buildState) (bool, error) {
 				Ignore:      extCfg.Ignore,
 				Method:      extCfg.Method,
 			}); err != nil {
-				fmt.Fprintf(os.Stderr, "warning: external link check failed: %v\n", err)
+				devlog.Warn("links", "external link check failed: %v", err)
 			}
 		}
 

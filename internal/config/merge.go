@@ -2,10 +2,10 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"path/filepath"
 
 	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/validate"
 )
 
@@ -83,7 +83,7 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 	// Validate the merged config.
 	errs, warns := Validate(cfg, opts.KnownPlugins)
 	for _, w := range warns {
-		log.Printf("config warning: %s", w.Error())
+		devlog.Warn("config", "%s", w.Error())
 	}
 	if len(errs) > 0 {
 		return nil, fmt.Errorf("config validation failed:\n%s", validate.FormatErrors(errs))

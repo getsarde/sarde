@@ -7,17 +7,13 @@ import (
 	"github.com/getsarde/sarde/internal/devlog"
 )
 
-func writePrettyReport(sb *strings.Builder, findings []Finding, cov CoverageSummary, summary string) {
+func writePrettyReport(sb *strings.Builder, findings []Finding, cov CoverageSummary, _ string) {
+	sb.WriteString(devlog.FormatLog("links", prettySummary(cov, findings)))
+	sb.WriteByte('\n')
 	if len(findings) == 0 {
-		sb.WriteString(devlog.Green("link check: "))
-		sb.WriteString(summary)
-		sb.WriteByte('\n')
 		return
 	}
-
-	sb.WriteString(devlog.Bold("link check: "))
-	sb.WriteString(summary)
-	sb.WriteString("\n\n")
+	sb.WriteByte('\n')
 
 	groups := groupByFile(findings)
 	for _, g := range groups {
@@ -78,6 +74,27 @@ func formatDim(dim DimKey) string {
 type dedupedFinding struct {
 	finding Finding
 	count   int
+}
+
+func prettySummary(cov CoverageSummary, findings []Finding) string {
+	var brokenTargets, brokenAnchors, externalBroken, warnCount int
+	for _, f := range findings {
+		switch f.Type {
+		case FindingBrokenTarget:
+			brokenTargets++
+		case FindingBrokenAnchor:
+			brokenAnchors++
+		case FindingExternalBroken:
+			externalBroken++
+		default:
+			warnCount++
+		}
+	}
+	return fmt.Sprintf("%s %s %s %s %s %d broken targets, %d broken anchors, %d broken external, %d warnings",
+		devlog.Green("checked"), devlog.Bold(fmt.Sprint(cov.TotalLinks)),
+		devlog.Green("links across"), devlog.Bold(fmt.Sprint(cov.TotalLanes)),
+		devlog.Green("lanes:"),
+		brokenTargets, brokenAnchors, externalBroken, warnCount)
 }
 
 func deduplicateFindings(findings []Finding) []dedupedFinding {

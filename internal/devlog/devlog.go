@@ -11,10 +11,14 @@ func timestamp() string {
 	return time.Now().Format("15:04:05")
 }
 
+// FormatLog returns a formatted log line without printing it.
+func FormatLog(tag, msg string) string {
+	return fmt.Sprintf("%s %s %s", Dim(timestamp()), Blue("["+tag+"]"), msg)
+}
+
 // Log prints a tagged info log line: "15:04:05 [tag] message"
 func Log(tag, format string, args ...any) {
-	msg := fmt.Sprintf(format, args...)
-	fmt.Fprintf(os.Stderr, "%s %s %s\n", Dim(timestamp()), Blue("["+tag+"]"), msg)
+	fmt.Fprintln(os.Stderr, FormatLog(tag, fmt.Sprintf(format, args...)))
 }
 
 // Warn prints a warning log line: "15:04:05 [WARN] [tag] message"

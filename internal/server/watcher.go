@@ -166,10 +166,13 @@ func (w *Watcher) loop() {
 				continue
 			}
 
-			// If a new directory is created, watch it recursively.
+			// If a new directory is created, watch it recursively and queue
+			// the files already inside it: files that landed before the watch
+			// attached (e.g. a pasted folder) emit no events of their own.
 			if event.Op&fsnotify.Create != 0 {
 				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
 					w.addRecursive(event.Name)
+					w.enqueueDirFiles(event.Name)
 				}
 			}
 
@@ -261,6 +264,32 @@ func (w *Watcher) addRecursive(root string) {
 			}
 			w.watcher.Add(path)
 		}
+		return nil
+	})
+}
+
+// enqueueDirFiles queues every file already inside a newly created directory
+// as a change, applying the same ignore rules as the event path. Duplicates
+// with real events are deduped by path in debounceChange.
+func (w *Watcher) enqueueDirFiles(root string) {
+	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		if info.IsDir() {
+			if w.shouldIgnoreDir(path) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if w.shouldIgnore(path) {
+			return nil
+		}
+		w.debounceChange(FileChange{
+			Path:       path,
+			Kind:       w.classifyChange(path),
+			DetectedAt: time.Now(),
+		})
 		return nil
 	})
 }

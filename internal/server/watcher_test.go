@@ -1,6 +1,7 @@
 package server
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -242,6 +243,77 @@ func TestMergeChanges_KeepsEarliestDetectedAt(t *testing.T) {
 	}
 	if !got.DetectedAt.Equal(early) {
 		t.Fatalf("DetectedAt = %v, want earliest %v", got.DetectedAt, early)
+	}
+}
+
+func TestEnqueueDirFiles_QueuesFilesInsideNewDirectory(t *testing.T) {
+	// Files inside a freshly created directory (e.g. a pasted folder) may
+	// land before the recursive watch attaches and then emit no events, so
+	// the watcher must sweep the directory and queue them itself.
+	projectDir := t.TempDir()
+	newDir := filepath.Join(projectDir, "content", "imported")
+	os.MkdirAll(filepath.Join(newDir, "nested"), 0o755)
+	os.WriteFile(filepath.Join(newDir, "a.md"), []byte("# A"), 0o644)
+	os.WriteFile(filepath.Join(newDir, "nested", "b.md"), []byte("# B"), 0o644)
+	os.WriteFile(filepath.Join(newDir, "save.md.tmp"), []byte("x"), 0o644)
+
+	got := make(chan []FileChange, 1)
+	w := NewWatcher(projectDir, "", 10*time.Millisecond, func(batch []FileChange) { got <- batch })
+	w.enqueueDirFiles(newDir)
+
+	select {
+	case batch := <-got:
+		kinds := make(map[string]ChangeKind, len(batch))
+		for _, c := range batch {
+			kinds[filepath.Base(c.Path)] = c.Kind
+		}
+		if len(batch) != 2 {
+			t.Fatalf("batch = %d changes (%v), want 2 (temp file ignored)", len(batch), kinds)
+		}
+		if kinds["a.md"] != ChangeContent || kinds["b.md"] != ChangeContent {
+			t.Fatalf("kinds = %v, want a.md and b.md as %q", kinds, ChangeContent)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("debounced batch never fired")
+	}
+}
+
+func TestWatcher_FolderMovedIntoContentTriggersChanges(t *testing.T) {
+	// Moving a prepared folder into content/ emits a single Create event for
+	// the directory; the files inside never get events of their own. The
+	// started watcher must still surface them as content changes.
+	projectDir := t.TempDir()
+	os.MkdirAll(filepath.Join(projectDir, "content"), 0o755)
+
+	staging := t.TempDir()
+	imported := filepath.Join(staging, "imported")
+	os.MkdirAll(imported, 0o755)
+	os.WriteFile(filepath.Join(imported, "a.md"), []byte("# A"), 0o644)
+
+	got := make(chan []FileChange, 4)
+	w := NewWatcher(projectDir, "", 50*time.Millisecond, func(batch []FileChange) { got <- batch })
+	if err := w.Start(); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+	defer w.Stop()
+
+	dest := filepath.Join(projectDir, "content", "imported")
+	if err := os.Rename(imported, dest); err != nil {
+		t.Fatalf("Rename: %v", err)
+	}
+
+	deadline := time.After(5 * time.Second)
+	for {
+		select {
+		case batch := <-got:
+			for _, c := range batch {
+				if filepath.Base(c.Path) == "a.md" && c.Kind == ChangeContent {
+					return
+				}
+			}
+		case <-deadline:
+			t.Fatal("no content change surfaced for a file inside the moved folder")
+		}
 	}
 }
 

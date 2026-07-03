@@ -17,6 +17,7 @@ import (
 	"github.com/getsarde/sarde/internal/build"
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/outputpath"
 )
 
 func init() {
@@ -259,9 +260,15 @@ func (ds *DevServer) onFileChange(changes []FileChange) {
 	// Merge the batch into a single change to decide how to handle it.
 	representative := mergeChanges(changes)
 
-	// All CSS → hot-swap each without rebuilding.
+	// All CSS → hot-swap each without rebuilding. The hot-swap path skips the
+	// rebuild that copies static/ into the output dir, and fileHandler serves
+	// only from the output dir, so sync each changed file there first or the
+	// browser's re-fetch would read the stale copy.
 	if representative.Kind == ChangeCSS {
 		for _, c := range changes {
+			if err := ds.syncStaticFile(c.Path); err != nil {
+				devlog.Warn("watch", "CSS hot-swap: could not sync %s to output dir: %v", c.Path, err)
+			}
 			rel, _ := filepath.Rel(ds.projectDir, c.Path)
 			ds.hub.Broadcast(ReloadMessage{Type: ReloadCSS, Path: filepath.ToSlash(rel)})
 		}
@@ -276,6 +283,29 @@ func (ds *DevServer) onFileChange(changes []FileChange) {
 		return
 	}
 	ds.handleRebuildResult(executed, result)
+}
+
+// syncStaticFile copies a changed static/ file to its mirrored path in the
+// output dir, matching the mapping Writer.copyStatic uses during full builds
+// (static/<rel> → <outputDir>/<rel>).
+func (ds *DevServer) syncStaticFile(path string) error {
+	staticDir := filepath.Join(ds.projectDir, consts.DirStatic)
+	rel, err := filepath.Rel(staticDir, path)
+	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("file is not under %s", consts.DirStatic)
+	}
+	dst, err := outputpath.SafeJoin(ds.outputDir, rel)
+	if err != nil {
+		return err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(dst, data, 0o644)
 }
 
 func (ds *DevServer) handleRebuildResult(change FileChange, result *RebuildResult) {

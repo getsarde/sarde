@@ -1,6 +1,7 @@
 package build
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -164,35 +165,45 @@ func TestContentRebuild_StructuralChangesFallBackToFullBuild(t *testing.T) {
 }
 
 func TestContentRebuild_NonStructuralChangesStayIncremental(t *testing.T) {
+	// maxPages is the highest page count that still indicates an incremental
+	// rebuild: the changed page, the blog index, and the home page (always
+	// re-rendered for recentEntries), plus taxonomy stubs where terms change.
+	// A full rebuild renders at least the 5 content pages.
 	tests := []struct {
-		name  string
-		path  string
-		write string
+		name     string
+		path     string
+		write    string
+		maxPages int
 	}{
 		{
-			name:  "alias change",
-			path:  "content/blog/one.md",
-			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\naliases: [/old-one/]\n---\n# One\nBody.\n",
+			name:     "alias change",
+			path:     "content/blog/one.md",
+			write:    "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\naliases: [/old-one/]\n---\n# One\nBody.\n",
+			maxPages: 4,
 		},
 		{
-			name:  "taxonomy change",
-			path:  "content/blog/one.md",
-			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\ntags: [go]\n---\n# One\nBody.\n",
+			name:     "taxonomy change",
+			path:     "content/blog/one.md",
+			write:    "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\ntags: [go]\n---\n# One\nBody.\n",
+			maxPages: 5,
 		},
 		{
-			name:  "featured change",
-			path:  "content/blog/one.md",
-			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nfeatured: true\n---\n# One\nBody.\n",
+			name:     "featured change",
+			path:     "content/blog/one.md",
+			write:    "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nfeatured: true\n---\n# One\nBody.\n",
+			maxPages: 4,
 		},
 		{
-			name:  "order change (non-sort field for blog)",
-			path:  "content/blog/one.md",
-			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nsidebar:\n  order: 10\n---\n# One\nBody.\n",
+			name:     "order change (non-sort field for blog)",
+			path:     "content/blog/one.md",
+			write:    "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nsidebar:\n  order: 10\n---\n# One\nBody.\n",
+			maxPages: 4,
 		},
 		{
-			name:  "render flag",
-			path:  "content/blog/one.md",
-			write: "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nrender: false\n---\n# One\nBody.\n",
+			name:     "render flag",
+			path:     "content/blog/one.md",
+			write:    "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nrender: false\n---\n# One\nBody.\n",
+			maxPages: 4,
 		},
 	}
 
@@ -212,11 +223,38 @@ func TestContentRebuild_NonStructuralChangesStayIncremental(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ContentRebuild failed: %v", err)
 			}
-			if result.PageCount >= 5 {
-				t.Fatalf("expected incremental rebuild, got likely full rebuild page count %d", result.PageCount)
+			if result.PageCount > tt.maxPages {
+				t.Fatalf("expected incremental rebuild (<= %d pages), got likely full rebuild page count %d", tt.maxPages, result.PageCount)
 			}
 		})
 	}
+}
+
+func TestContentRebuild_BodyEditReRendersHomePage(t *testing.T) {
+	// Home layouts render recentEntries (title, date, summary) from the site
+	// context, so every incremental rebuild must re-render the home page.
+	dir := createIncrementalSite(t)
+	builder := newIncrementalBuilder(dir, config.Defaults())
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(dir, "dist")
+	if err := os.Remove(filepath.Join(distDir, "index.html")); err != nil {
+		t.Fatalf("removing home output: %v", err)
+	}
+
+	postPath := filepath.Join(dir, "content", "blog", "one.md")
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\n---\n# One\nRefreshed body.\n")
+
+	result, err := builder.ContentRebuild([]string{postPath})
+	if err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+	if result.PageCount >= 5 {
+		t.Fatalf("expected incremental rebuild, got likely full rebuild page count %d", result.PageCount)
+	}
+	assertFixtureFileExists(t, distDir, "index.html")
 }
 
 func TestContentRebuild_TitleChangeRebuildsCollection(t *testing.T) {
@@ -282,6 +320,57 @@ func TestContentRebuild_AliasChangeCreatesNewAlias(t *testing.T) {
 		t.Fatalf("expected incremental rebuild for alias change, got likely full rebuild page count %d", result.PageCount)
 	}
 	assertFixtureFileExists(t, distDir, "new-one/index.html")
+}
+
+func TestContentRebuild_RemovedCustomTaxonomyTermUpdatesTermPage(t *testing.T) {
+	// Removed-term dirty marking must cover custom taxonomies (authors,
+	// series, ...), not just the built-in tags/categories fields.
+	dir := createIncrementalSite(t)
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nauthors: [jane, bob]\n---\n# One\nBody.\n")
+	writeFixture(t, dir, "content/blog/two.md", "---\ntitle: Two\ndate: 2025-01-01T00:00:00Z\nauthors: [bob]\n---\n# Two\nSecond body.\n")
+
+	cfg := config.Defaults()
+	cfg.Taxonomies = map[string]config.TaxonomyConfig{
+		"authors": {Singular: "author"},
+	}
+	builder := newIncrementalBuilder(dir, cfg)
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(dir, "dist")
+	assertFixtureFileContains(t, distDir, "authors/bob/index.html", "/blog/one/")
+
+	// Drop bob from post one; bob still has post two, so his term page must
+	// be re-rendered without post one.
+	postPath := filepath.Join(dir, "content", "blog", "one.md")
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\nauthors: [jane]\n---\n# One\nBody.\n")
+
+	result, err := builder.ContentRebuild([]string{postPath})
+	if err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+	if result.PageCount >= 7 {
+		t.Fatalf("expected incremental rebuild, got likely full rebuild page count %d", result.PageCount)
+	}
+	assertFixtureFileNotContains(t, distDir, "authors/bob/index.html", "/blog/one/")
+	assertFixtureFileContains(t, distDir, "authors/bob/index.html", "/blog/two/")
+	assertFixtureFileContains(t, distDir, "authors/jane/index.html", "/blog/one/")
+}
+
+func TestRebuildFallback_HardErrorResetsBuilt(t *testing.T) {
+	// A hard (non-fallback) error aborts mid-rebuild after in-place mutations
+	// (patched collections, site context, template engine); the builder must
+	// not offer that state to the next incremental rebuild.
+	builder := newIncrementalBuilder(t.TempDir(), config.Defaults())
+	builder.built = true
+
+	if _, err := builder.rebuildFallback(errors.New("disk full")); err == nil {
+		t.Fatal("expected the hard error to be returned")
+	}
+	if builder.built {
+		t.Error("built must be cleared on hard incremental errors")
+	}
 }
 
 // rebuildCollectionNav cannot correctly rebuild tabbed, versioned, or

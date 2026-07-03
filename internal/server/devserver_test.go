@@ -275,3 +275,39 @@ func TestDevServer_Ready_ReportsActualPortOnConflict(t *testing.T) {
 		t.Errorf("Start returned %v, want nil or ErrServerClosed", err)
 	}
 }
+
+func TestOnFileChange_CSSHotSwapSyncsOutputCopy(t *testing.T) {
+	// CSS hot-swap skips the rebuild that copies static/ to the output dir,
+	// and the file handler serves only from the output dir, so onFileChange
+	// must sync the changed file there before broadcasting.
+	projectDir := t.TempDir()
+	outputDir := filepath.Join(projectDir, "dist")
+
+	src := filepath.Join(projectDir, "static", "css", "style.css")
+	os.MkdirAll(filepath.Dir(src), 0o755)
+	os.WriteFile(src, []byte("body{color:red}"), 0o644)
+
+	outCopy := filepath.Join(outputDir, "css", "style.css")
+	os.MkdirAll(filepath.Dir(outCopy), 0o755)
+	os.WriteFile(outCopy, []byte("body{color:blue}"), 0o644)
+
+	ds := &DevServer{projectDir: projectDir, outputDir: outputDir, hub: NewHub()}
+	ds.onFileChange([]FileChange{{Path: src, Kind: ChangeCSS}})
+
+	got, err := os.ReadFile(outCopy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != "body{color:red}" {
+		t.Errorf("output copy = %q, want the freshly saved CSS", got)
+	}
+}
+
+func TestSyncStaticFile_RejectsPathsOutsideStatic(t *testing.T) {
+	projectDir := t.TempDir()
+	ds := &DevServer{projectDir: projectDir, outputDir: filepath.Join(projectDir, "dist")}
+
+	if err := ds.syncStaticFile(filepath.Join(projectDir, "content", "style.css")); err == nil {
+		t.Error("expected error for a file outside static/")
+	}
+}

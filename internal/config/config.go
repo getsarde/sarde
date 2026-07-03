@@ -2,9 +2,9 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"sort"
 
+	"github.com/getsarde/sarde/internal/devlog"
 	"gopkg.in/yaml.v3"
 )
 
@@ -239,7 +239,7 @@ func (l *LastUpdatedStrategy) UnmarshalYAML(value *yaml.Node) error {
 		default:
 			return fmt.Errorf("build.last_updated: invalid bool %q", value.Value)
 		}
-		log.Printf("config: build.last_updated as bool is deprecated; use \"git\", \"mtime\", or \"false\"")
+		devlog.Warn("config", "build.last_updated as bool is deprecated; use \"git\", \"mtime\", or \"false\"")
 		return nil
 	}
 	var s string

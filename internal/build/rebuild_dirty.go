@@ -2,7 +2,6 @@ package build
 
 import (
 	"reflect"
-	"strings"
 
 	"github.com/getsarde/sarde/internal/collection"
 	"github.com/getsarde/sarde/internal/config"
@@ -123,37 +122,46 @@ func rebuildCollectionNav(col *engine.Collection) {
 	}
 }
 
+// pageTerms returns the page's terms for the named taxonomy, matching the
+// extraction taxonomy.BuildTaxonomies uses (built-in tags/categories fields,
+// Extra for custom taxonomies such as authors or series).
+func pageTerms(p *engine.Page, taxName string) []string {
+	switch taxName {
+	case "tags":
+		return p.Tags
+	case "categories":
+		return p.Categories
+	default:
+		return p.Extra[taxName]
+	}
+}
+
+// addRemovedTermsDirty marks the term pages (and their taxonomy index) of
+// every term the change removed from the page, so those pages stop listing
+// it. oldTaxonomies must be the last build's taxonomy set for the page's own
+// language; terms are matched by slug, the key BuildTaxonomies stores under.
 func addRemovedTermsDirty(old, next *engine.Page, oldTaxonomies map[string]*engine.Taxonomy, cfg map[string]config.TaxonomyConfig, dirty map[string]struct{}) {
-	oldTerms := make(map[string]bool)
-	newTerms := make(map[string]bool)
-	for _, t := range old.Tags {
-		oldTerms["tags:"+strings.ToLower(t)] = true
-	}
-	for _, c := range old.Categories {
-		oldTerms["categories:"+strings.ToLower(c)] = true
-	}
-	for _, t := range next.Tags {
-		newTerms["tags:"+strings.ToLower(t)] = true
-	}
-	for _, c := range next.Categories {
-		newTerms["categories:"+strings.ToLower(c)] = true
-	}
-	for key := range oldTerms {
-		if newTerms[key] {
+	for taxName, tax := range oldTaxonomies {
+		if !cfg[taxName].ShouldRender() {
 			continue
 		}
-		parts := strings.SplitN(key, ":", 2)
-		taxName, termSlug := parts[0], parts[1]
-		tax, ok := oldTaxonomies[taxName]
-		if !ok || !cfg[taxName].ShouldRender() {
-			continue
+		kept := make(map[string]bool)
+		for _, t := range pageTerms(next, taxName) {
+			kept[content.Slugify(t)] = true
 		}
-		dirty[tax.Permalink] = struct{}{}
-		for _, term := range tax.Terms {
-			if strings.ToLower(term.Name) == termSlug || strings.ToLower(term.Slug) == termSlug {
-				dirty[term.Permalink] = struct{}{}
-				break
+		removedAny := false
+		for _, t := range pageTerms(old, taxName) {
+			slug := content.Slugify(t)
+			if kept[slug] {
+				continue
 			}
+			if term, ok := tax.Terms[slug]; ok {
+				dirty[term.Permalink] = struct{}{}
+				removedAny = true
+			}
+		}
+		if removedAny {
+			dirty[tax.Permalink] = struct{}{}
 		}
 	}
 }

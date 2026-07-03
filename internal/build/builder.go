@@ -124,6 +124,17 @@ func (b *SiteBuilder) resolveContentDir() string {
 
 // Build executes the full six-phase pipeline and writes output to disk.
 func (b *SiteBuilder) Build() (*engine.BuildResult, error) {
+	result, err := b.runBuild()
+	if err != nil {
+		// A failed build can leave the template engine or resolver partially
+		// reinitialized while the last* snapshots still hold the previous
+		// build's state; force the next change onto the full-build path.
+		b.built = false
+	}
+	return result, err
+}
+
+func (b *SiteBuilder) runBuild() (*engine.BuildResult, error) {
 	start := time.Now()
 	var timings []engine.PhaseTiming
 	phaseStart := time.Now()

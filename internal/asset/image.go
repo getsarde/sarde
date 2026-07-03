@@ -8,7 +8,6 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/outputpath"
 	"github.com/getsarde/sarde/internal/workers"
 	"github.com/gen2brain/webp"
@@ -197,7 +197,7 @@ func (p *ImageProcessor) ProcessImage(srcPath string, opts ImageOptions) ([]Imag
 		Variants:   variants,
 		LQIP:       lqip,
 	}); err != nil {
-		log.Printf("[WARN] failed to cache image metadata for %s: %v", srcPath, err)
+		devlog.Warn("images", "failed to cache image metadata for %s: %v", srcPath, err)
 	}
 
 	return variants, lqip, nil
@@ -415,7 +415,7 @@ var avifWarnOnce sync.Once
 
 func logAVIFWarning() {
 	avifWarnOnce.Do(func() {
-		log.Println("[WARN] AVIF format configured but encoder not available. Rebuild with: go build -tags avif. Skipping AVIF variants.")
+		devlog.Warn("images", "AVIF format configured but encoder not available. Rebuild with: go build -tags avif. Skipping AVIF variants.")
 	})
 }
 
