@@ -20,6 +20,5 @@ func (d *VercelDeployer) Deploy(distDir string) error {
 
 	fmt.Printf("Vercel deploy: project=%s, token=%s, dist=%s\n",
 		d.ProjectID, maskToken(token), distDir)
-	fmt.Println("Vercel API deployment not yet implemented — use vercel-cli or custom deploy command instead.")
-	return nil
+	return fmt.Errorf("vercel API deployment is not yet implemented; use vercel-cli or a custom deploy command instead")
 }

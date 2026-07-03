@@ -282,7 +282,9 @@ func mergeBuild(base, over *BuildSettings) {
 	mergeBoolP(&base.Feed, over.Feed)
 	mergeBoolP(&base.Drafts, over.Drafts)
 	mergeBoolP(&base.Future, over.Future)
+	mergeBoolP(&base.Expired, over.Expired)
 	mergeBoolP(&base.Parallel, over.Parallel)
+	mergeBoolP(&base.Cache, over.Cache)
 }
 
 func mergeMarkdown(base, over *MarkdownSettings) {
@@ -483,6 +485,12 @@ func mergeI18n(base, over *I18nSettings) {
 	mergeStr(&base.DefaultLanguage, over.DefaultLanguage)
 	mergeStr(&base.Strategy, over.Strategy)
 	mergeStr(&base.Fallback, over.Fallback)
+	// Strict is a plain bool: an overriding layer can enable it but not
+	// disable one set by a lower layer. Converting to *bool would allow
+	// explicit disabling but is a wider change than needed here.
+	if over.Strict {
+		base.Strict = true
+	}
 	if len(over.Languages) > 0 {
 		base.Languages = over.Languages
 	}

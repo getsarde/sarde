@@ -8,6 +8,7 @@ import (
 
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func newIncrementalBuilder(projectDir string, cfg *config.SiteConfig) *SiteBuilder {
@@ -281,4 +282,39 @@ func TestContentRebuild_AliasChangeCreatesNewAlias(t *testing.T) {
 		t.Fatalf("expected incremental rebuild for alias change, got likely full rebuild page count %d", result.PageCount)
 	}
 	assertFixtureFileExists(t, distDir, "new-one/index.html")
+}
+
+// rebuildCollectionNav cannot correctly rebuild tabbed, versioned, or
+// multi-language sidebars, so a collection-scoped change in those cases must
+// escalate to a full rebuild.
+func TestCollectionNeedsFullNavRebuild(t *testing.T) {
+	base := func() *SiteBuilder {
+		return newIncrementalBuilder(t.TempDir(), config.Defaults())
+	}
+
+	// Plain single-language, non-tabbed, non-versioned: incremental is fine.
+	if b := base(); b.collectionNeedsFullNavRebuild(&engine.Collection{Name: "blog"}) {
+		t.Error("plain collection should not need a full nav rebuild")
+	}
+
+	// Tabbed collection.
+	if b := base(); !b.collectionNeedsFullNavRebuild(&engine.Collection{Name: "docs", IsTabbed: true}) {
+		t.Error("tabbed collection must escalate to a full rebuild")
+	}
+
+	// Versioned collection.
+	if b := base(); !b.collectionNeedsFullNavRebuild(&engine.Collection{
+		Name:       "docs",
+		Versioning: &engine.VersionConfig{Enabled: true},
+	}) {
+		t.Error("versioned collection must escalate to a full rebuild")
+	}
+
+	// Multi-language site.
+	cfg := config.Defaults()
+	cfg.I18n.Languages = map[string]config.LanguageConfig{"en": {}, "fr": {}}
+	b := newIncrementalBuilder(t.TempDir(), cfg)
+	if !b.collectionNeedsFullNavRebuild(&engine.Collection{Name: "blog"}) {
+		t.Error("multi-language site must escalate any collection-scoped nav change")
+	}
 }

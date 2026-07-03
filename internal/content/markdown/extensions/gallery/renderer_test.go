@@ -55,3 +55,27 @@ func TestRenderGallery_NoAltNoTitle(t *testing.T) {
 		t.Errorf("alt should be empty:\n%s", out)
 	}
 }
+
+// A literal "</script>" in an image destination must not terminate the inline
+// lightbox <script> block (script-context breakout).
+func TestRenderGallery_ScriptBreakoutEscaped(t *testing.T) {
+	// A mid-destination "<" stays in the parsed image destination (a leading
+	// "<" would trigger goldmark's angle-bracket destination form instead).
+	md := ":::gallery\n![x](cat.jpg</script><script>alert(1))\n:::\n"
+	out := renderGalleryMarkdown(t, md)
+
+	// The inline lightbox script data must not contain a raw script tag that
+	// the HTML parser would act on.
+	idx := strings.Index(out, "var images =")
+	if idx == -1 {
+		t.Fatalf("no images array in output:\n%s", out)
+	}
+	arrayEnd := strings.Index(out[idx:], ";")
+	if arrayEnd == -1 {
+		t.Fatalf("unterminated images array:\n%s", out)
+	}
+	arrayLiteral := out[idx : idx+arrayEnd]
+	if strings.Contains(arrayLiteral, "</script") || strings.Contains(arrayLiteral, "<script") {
+		t.Errorf("raw script tag inside inline script data:\n%s", arrayLiteral)
+	}
+}

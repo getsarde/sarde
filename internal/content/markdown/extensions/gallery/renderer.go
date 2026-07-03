@@ -152,6 +152,15 @@ func escapeJSString(s string) string {
 	s = strings.ReplaceAll(s, "\\", "\\\\")
 	s = strings.ReplaceAll(s, "\"", "\\\"")
 	s = strings.ReplaceAll(s, "\n", "\\n")
+	s = strings.ReplaceAll(s, "\r", "\\r")
+	// The strings are embedded in an inline <script> block: a literal
+	// "</script>" inside a JS string still terminates the script element at
+	// HTML parse time. Escape <, >, & as \uXXXX (same substitutions as
+	// encoding/json's HTML-safe mode); they decode back to the original
+	// characters when the JS string literal is evaluated.
+	s = strings.ReplaceAll(s, "<", "\\u003c")
+	s = strings.ReplaceAll(s, ">", "\\u003e")
+	s = strings.ReplaceAll(s, "&", "\\u0026")
 	return s
 }
 

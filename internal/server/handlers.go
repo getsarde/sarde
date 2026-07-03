@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -270,7 +271,16 @@ func (s *APIServer) handlePreviewStart(w http.ResponseWriter, r *http.Request) {
 
 	port, err := s.pm.StartPreview(req.Port)
 	if err != nil {
-		writeError(w, http.StatusBadRequest, "PREVIEW_RUNNING", err.Error())
+		code := "PREVIEW_START_FAILED"
+		switch {
+		case errors.Is(err, project.ErrPreviewRunning):
+			code = "PREVIEW_RUNNING"
+		case errors.Is(err, project.ErrNoProjectOpen):
+			code = "PROJECT_NOT_OPEN"
+		case errors.Is(err, project.ErrPreviewUnavailable):
+			code = "PREVIEW_UNAVAILABLE"
+		}
+		writeError(w, http.StatusBadRequest, code, err.Error())
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
@@ -281,7 +291,11 @@ func (s *APIServer) handlePreviewStart(w http.ResponseWriter, r *http.Request) {
 
 func (s *APIServer) handlePreviewStop(w http.ResponseWriter, r *http.Request) {
 	if err := s.pm.StopPreview(); err != nil {
-		writeError(w, http.StatusBadRequest, "PREVIEW_NOT_RUNNING", err.Error())
+		code := "PREVIEW_STOP_FAILED"
+		if errors.Is(err, project.ErrPreviewNotRunning) {
+			code = "PREVIEW_NOT_RUNNING"
+		}
+		writeError(w, http.StatusBadRequest, code, err.Error())
 		return
 	}
 	writeJSON(w, http.StatusOK, nil)

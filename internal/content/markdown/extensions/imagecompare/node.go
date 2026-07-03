@@ -11,7 +11,6 @@ type ImageCompareBlock struct {
 	BeforeAlt string
 	AfterSrc  string
 	AfterAlt  string
-	RawLines  []string
 }
 
 func (n *ImageCompareBlock) Kind() gast.NodeKind { return KindImageCompareBlock }

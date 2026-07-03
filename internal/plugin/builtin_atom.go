@@ -19,15 +19,15 @@ func newAtomPlugin(cfg map[string]any) *Plugin {
 }
 
 func atomBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
-	return writeFeedFiles(ctx, cfg, "atom.xml", "Atom", func(col *engine.Collection, baseURL string, limit int) ([]byte, error) {
-		entries := buildAtomEntries(col.Pages, baseURL, limit)
+	return writeFeedFiles(ctx, cfg, "atom.xml", "Atom", func(col *engine.Collection, pages []*engine.Page, lang, baseURL string, limit int) ([]byte, error) {
+		entries := buildAtomEntries(pages, baseURL, limit)
 
 		updated := time.Now().UTC().Format(time.RFC3339)
 		if len(entries) > 0 {
 			updated = entries[0].Updated
 		}
 
-		colURL := ctx.AbsURL("/"+col.Name+"/", "", "")
+		colURL := ctx.AbsURL("/"+col.Name+"/", lang, "")
 		feed := atomFeed{
 			XMLNS:   "http://www.w3.org/2005/Atom",
 			Title:   col.Title,

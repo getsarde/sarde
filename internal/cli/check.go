@@ -54,7 +54,7 @@ func runCheck(cmd *cobra.Command, args []string) error {
 	// Print a summary if no findings were reported.
 	quiet, _ := cmd.Flags().GetBool("quiet")
 	if !quiet && result.Output == "" {
-		fmt.Fprintf(os.Stderr, "checked %d pages, %d links across %d lanes — no issues found\n",
+		fmt.Fprintf(os.Stderr, "checked %d pages, %d links across %d lanes: no issues found\n",
 			result.PageCount, result.LinkCount, result.Lanes)
 	}
 

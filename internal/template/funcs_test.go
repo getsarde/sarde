@@ -93,6 +93,9 @@ func TestFnTruncate(t *testing.T) {
 		{"Hi", 5, "Hi"},
 		{"Hi", 2, "Hi"},
 		{"Hello", 3, "Hel"},
+		{"Hello", 0, ""},
+		{"Hello", -5, ""}, // negative counts must clamp, not panic
+		{"", -1, ""},
 	}
 	for _, tt := range tests {
 		got := fnTruncate(tt.s, tt.n)
@@ -365,6 +368,11 @@ func TestRecentEntries(t *testing.T) {
 	}
 	if pages[0].Title != "Post A" {
 		t.Errorf("got %q", pages[0].Title)
+	}
+
+	// Negative counts (e.g. from template arithmetic) must clamp, not panic.
+	if got := fn("blog", -3); len(got) != 0 {
+		t.Errorf("negative n: got %d pages, want 0", len(got))
 	}
 }
 

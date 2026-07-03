@@ -19,11 +19,11 @@ func newRSSPlugin(cfg map[string]any) *Plugin {
 }
 
 func rssBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
-	return writeFeedFiles(ctx, cfg, "feed.xml", "RSS", func(col *engine.Collection, baseURL string, limit int) ([]byte, error) {
-		items := buildRSSItems(col.Pages, baseURL, limit)
+	return writeFeedFiles(ctx, cfg, "feed.xml", "RSS", func(col *engine.Collection, pages []*engine.Page, lang, baseURL string, limit int) ([]byte, error) {
+		items := buildRSSItems(pages, baseURL, limit)
 		feed := rssChannel{
 			Title:       col.Title,
-			Link:        ctx.AbsURL("/"+col.Name+"/", "", ""),
+			Link:        ctx.AbsURL("/"+col.Name+"/", lang, ""),
 			Description: "Latest from " + col.Title,
 			Items:       items,
 		}

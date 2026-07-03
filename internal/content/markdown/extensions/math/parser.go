@@ -39,9 +39,15 @@ func (p *inlineMathParser) Parse(parent ast.Node, block text.Reader, pc parser.C
 		return nil
 	}
 
-	// Don't match if closing $ is followed by digit (e.g. $5 or $10)
 	expr := content[:closeIdx]
 	if len(strings.TrimSpace(expr)) == 0 {
+		return nil
+	}
+
+	// Don't match if the closing $ is immediately followed by a digit: this is
+	// almost certainly a second currency amount, not a math span. Without this,
+	// prose like "costs $9 and $29" gets "9 and " parsed as an expression.
+	if closeIdx+1 < len(content) && content[closeIdx+1] >= '0' && content[closeIdx+1] <= '9' {
 		return nil
 	}
 

@@ -25,6 +25,11 @@ func fnTitle(s string) string {
 }
 
 func fnTruncate(s string, n int) string {
+	// Clamp negative counts: runes[:n] with n < 0 would panic with a runtime
+	// error that escapes template recovery and kills the whole build.
+	if n < 0 {
+		n = 0
+	}
 	runes := []rune(s)
 	if len(runes) <= n {
 		return s

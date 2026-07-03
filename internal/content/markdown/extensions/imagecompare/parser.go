@@ -65,39 +65,10 @@ func (p *imageCompareParser) Continue(node ast.Node, reader text.Reader, pc pars
 }
 
 func (p *imageCompareParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
-	ic := node.(*ImageCompareBlock)
+	// Image extraction happens in the renderer, not here: Close runs during
+	// block parsing, before the inline pass creates the ast.Image nodes, so a
+	// walk for images at this point would always find nothing.
 	blockutil.DeleteDepth(pc, node)
-
-	// Walk children to find first two image nodes
-	var walk func(n ast.Node)
-	walk = func(n ast.Node) {
-		if n.Kind() == ast.KindImage {
-			img := n.(*ast.Image)
-			alt := extractText(n, reader.Source())
-			if ic.BeforeSrc == "" {
-				ic.BeforeSrc = string(img.Destination)
-				ic.BeforeAlt = alt
-			} else if ic.AfterSrc == "" {
-				ic.AfterSrc = string(img.Destination)
-				ic.AfterAlt = alt
-			}
-		}
-		for c := n.FirstChild(); c != nil; c = c.NextSibling() {
-			walk(c)
-		}
-	}
-	walk(node)
-}
-
-func extractText(n ast.Node, source []byte) string {
-	var sb strings.Builder
-	for c := n.FirstChild(); c != nil; c = c.NextSibling() {
-		if c.Kind() == ast.KindText {
-			t := c.(*ast.Text)
-			sb.Write(t.Segment.Value(source))
-		}
-	}
-	return sb.String()
 }
 
 func (p *imageCompareParser) CanInterruptParagraph() bool { return false }

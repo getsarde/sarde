@@ -11,9 +11,8 @@ type GalleryImage struct {
 
 type GalleryBlock struct {
 	gast.BaseBlock
-	Label    string
-	Images   []GalleryImage
-	RawLines []string
+	Label  string
+	Images []GalleryImage
 }
 
 func (n *GalleryBlock) Kind() gast.NodeKind { return KindGalleryBlock }

@@ -38,9 +38,6 @@ func (r *timelineRenderer) renderItem(w util.BufWriter, source []byte, node ast.
 		}
 		_, _ = w.WriteString("</div>\n")
 		_, _ = w.WriteString("<div class=\"sarde-timeline-content\">\n")
-		if item.BodyText != "" {
-			_, _ = fmt.Fprintf(w, "<p>%s</p>\n", htmlutil.EscapeHTML(item.BodyText))
-		}
 	} else {
 		_, _ = w.WriteString("</div>\n</div>\n")
 	}

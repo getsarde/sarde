@@ -67,6 +67,33 @@ func BuildSectionTree(pages []*engine.Page, collectionName string) []*engine.Sec
 		}
 	}
 
+	// Ancestor pass for real sections: create phantom sections for any missing
+	// ancestor directories of an _index.md section. Without this, a nested
+	// section whose subtree contains only _index.md files (no ordinary page)
+	// has no ancestor in sectionMap, so parent-wiring below leaves it orphaned
+	// and it renders as a stray top-level group with truncated breadcrumbs.
+	for _, page := range pages {
+		if page.Kind != engine.KindSection {
+			continue
+		}
+		dirPath := sectionDir(page.RelPermalink, collectionName)
+		for p := parentDir(dirPath); p != ""; p = parentDir(p) {
+			if _, exists := sectionMap[p]; exists {
+				continue
+			}
+			slug := p
+			if idx := strings.LastIndex(p, "/"); idx >= 0 {
+				slug = p[idx+1:]
+			}
+			sectionMap[p] = &engine.Section{
+				Title:     content.FilenameToTitle(slug + ".md"),
+				Slug:      slug,
+				Permalink: "/" + collectionName + "/" + p + "/",
+				Render:    false,
+			}
+		}
+	}
+
 	// Ensure the collection root section exists. The phantom loop above skips
 	// path "" so the root is never auto-created. Without it, collection index
 	// pages have nowhere to attach and top-level pages have no section.

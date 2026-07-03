@@ -182,3 +182,36 @@ func TestDiscover_GroupsByCollection(t *testing.T) {
 		t.Errorf("courses files = %d, want 3", len(result["courses"]))
 	}
 }
+
+// Regression: version classification must work on single-language (non-i18n)
+// sites. It reads LangRelPath, which used to be populated only when i18n
+// languages were configured, so versioned collections silently never got a
+// Version on a default zero-config site.
+func TestDiscoverFiles_VersioningWithoutI18n(t *testing.T) {
+	dir := t.TempDir()
+	content := filepath.Join(dir, "content")
+	writeFile(t, content, filepath.Join("docs", "v1", "guides", "auth.md"), "---\ntitle: Auth v1\n---\n")
+	writeFile(t, content, filepath.Join("docs", "v2", "guides", "auth.md"), "---\ntitle: Auth v2\n---\n")
+
+	// VersionIDs configured, but NO Languages (single-language site).
+	scanner := &Scanner{
+		VersionIDs: map[string]map[string]bool{
+			"docs": {"v1": true, "v2": true},
+		},
+	}
+	files, err := scanner.DiscoverFiles(content)
+	if err != nil {
+		t.Fatalf("DiscoverFiles error: %v", err)
+	}
+
+	got := map[string]string{} // relPath -> version
+	for _, f := range files {
+		got[f.RelPath] = f.Version
+	}
+	if v := got["docs/v1/guides/auth.md"]; v != "v1" {
+		t.Errorf("v1 page Version = %q, want %q", v, "v1")
+	}
+	if v := got["docs/v2/guides/auth.md"]; v != "v2" {
+		t.Errorf("v2 page Version = %q, want %q", v, "v2")
+	}
+}

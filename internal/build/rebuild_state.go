@@ -15,20 +15,6 @@ func collectionName(p *engine.Page) string {
 	return ""
 }
 
-func paramValue(params map[string]any, key string) any {
-	if params == nil {
-		return nil
-	}
-	return params[key]
-}
-
-func boolParam(params map[string]any, key string) bool {
-	if v, ok := paramValue(params, key).(bool); ok {
-		return v
-	}
-	return false
-}
-
 func preserveStablePageState(next, old *engine.Page) {
 	next.Collection = old.Collection
 	next.Section = old.Section

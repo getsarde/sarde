@@ -168,3 +168,24 @@ func TestCopyDir(t *testing.T) {
 		t.Errorf("sub/b.txt = %q", data)
 	}
 }
+
+// The unimplemented API deployers must report an error (not nil), so a CI
+// pipeline running `sarde deploy` fails loudly instead of exiting 0 without
+// having deployed anything.
+func TestUnimplementedDeployers_ReturnError(t *testing.T) {
+	t.Setenv("NETLIFY_AUTH_TOKEN", "test-token")
+	t.Setenv("VERCEL_TOKEN", "test-token")
+	t.Setenv("CLOUDFLARE_API_TOKEN", "test-token")
+	t.Setenv("CLOUDFLARE_ACCOUNT_ID", "test-account")
+
+	deployers := []Deployer{
+		&NetlifyDeployer{SiteID: "site"},
+		&VercelDeployer{ProjectID: "proj"},
+		&CloudflareDeployer{ProjectName: "proj"},
+	}
+	for _, d := range deployers {
+		if err := d.Deploy("/tmp/dist"); err == nil {
+			t.Errorf("%s.Deploy returned nil; unimplemented deployers must error", d.Name())
+		}
+	}
+}

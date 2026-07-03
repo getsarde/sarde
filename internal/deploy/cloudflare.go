@@ -24,6 +24,5 @@ func (d *CloudflareDeployer) Deploy(distDir string) error {
 
 	fmt.Printf("Cloudflare Pages deploy: account=%s, project=%s, token=%s, dist=%s\n",
 		accountID, d.ProjectName, maskToken(token), distDir)
-	fmt.Println("Cloudflare Pages API deployment not yet implemented — use wrangler or custom deploy command instead.")
-	return nil
+	return fmt.Errorf("cloudflare Pages API deployment is not yet implemented; use wrangler or a custom deploy command instead")
 }

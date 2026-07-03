@@ -112,5 +112,39 @@ func clonePage(p *engine.Page) *engine.Page {
 	cp.PrevPage = nil
 	cp.NextPage = nil
 	cp.NavNode = nil
+	// Deep-copy Params: BeforeRender plugins (seo, socialcards) write into
+	// page.Params (including nested maps like Params["seo"]) during the
+	// parallel render phase. A shared map between the source page and its
+	// fallback clones is a concurrent-map-write crash.
+	cp.Params = deepCopyParams(p.Params)
 	return &cp
+}
+
+// deepCopyParams clones a frontmatter params tree (maps, slices, scalars).
+// Values come from YAML/TOML/JSON decoding, so map[string]any and []any are
+// the only container types that need recursive copying.
+func deepCopyParams(m map[string]any) map[string]any {
+	if m == nil {
+		return nil
+	}
+	out := make(map[string]any, len(m))
+	for k, v := range m {
+		out[k] = deepCopyValue(v)
+	}
+	return out
+}
+
+func deepCopyValue(v any) any {
+	switch val := v.(type) {
+	case map[string]any:
+		return deepCopyParams(val)
+	case []any:
+		out := make([]any, len(val))
+		for i, e := range val {
+			out[i] = deepCopyValue(e)
+		}
+		return out
+	default:
+		return v
+	}
 }

@@ -71,6 +71,30 @@ func classifyChange(old, next *engine.Page, cf content.ContentFile) changeClass 
 	return changeIncremental
 }
 
+// collectionNeedsFullNavRebuild reports whether a collection-scoped nav change
+// cannot be handled by the incremental rebuildCollectionNav and must fall back
+// to a full build. rebuildCollectionNav only rewrites NavTree/NavTrees; it does
+// not rebuild the tab or composite (versioned) nav structures the template
+// renders from, and its per-language path mixes languages into each tree.
+func (b *SiteBuilder) collectionNeedsFullNavRebuild(col *engine.Collection) bool {
+	if b.config.I18n.IsMultiLang() {
+		return true
+	}
+	if col == nil {
+		return false
+	}
+	if col.IsTabbed || col.CompositeNavTrees != nil || col.CompositeTabSets != nil {
+		return true
+	}
+	if col.Versioning != nil && col.Versioning.Enabled {
+		return true
+	}
+	if col.Config != nil && col.Config.Versioning != nil && col.Config.Versioning.Enabled {
+		return true
+	}
+	return false
+}
+
 func rebuildCollectionNav(col *engine.Collection) {
 	if col == nil || col.Config == nil {
 		return

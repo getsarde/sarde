@@ -43,12 +43,12 @@ func emitCollisionWarnings(collisions []content.Collision) {
 	if len(order) <= collisionWarnThreshold {
 		for _, k := range order {
 			a := byKey[k]
-			devlog.Warn("pages", "URL collision: %q resolved by %d pages — keeping %q, ignoring %s",
+			devlog.Warn("pages", "URL collision: %q resolved by %d pages; keeping %q, ignoring %s",
 				k, len(a.dropped)+1, a.kept, strings.Join(a.dropped, ", "))
 		}
 		return
 	}
-	devlog.Warn("pages", "%d duplicate-URL collisions (multiple pages resolve to one URL; keeping first match) — %s",
+	devlog.Warn("pages", "%d duplicate-URL collisions (multiple pages resolve to one URL; keeping first match): %s",
 		len(order), strings.Join(order, ", "))
 }
 
@@ -96,7 +96,7 @@ func emitTaxonomyWarnings(warnings []string) {
 				devlog.Warn("taxonomy", "%q: term %q is not defined in data/%s.yml", name, t, name)
 			}
 		} else {
-			devlog.Warn("taxonomy", "%q: %d undefined terms (define in data/%s.yml) — %s", name, len(g.terms), name, strings.Join(g.terms, ", "))
+			devlog.Warn("taxonomy", "%q: %d undefined terms (define in data/%s.yml): %s", name, len(g.terms), name, strings.Join(g.terms, ", "))
 		}
 	}
 }

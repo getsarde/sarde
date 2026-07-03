@@ -17,8 +17,7 @@ func (n *TimelineBlock) Dump(source []byte, level int) {
 
 type TimelineItem struct {
 	gast.BaseBlock
-	Title    string
-	BodyText string
+	Title string
 }
 
 func (n *TimelineItem) Kind() gast.NodeKind { return KindTimelineItem }

@@ -171,3 +171,32 @@ func TestSectionDir(t *testing.T) {
 		}
 	}
 }
+
+// A nested section whose subtree contains only _index.md files (no ordinary
+// content page anywhere under an intermediate directory) must still be wired
+// under an inferred ancestor section, not left as a stray top-level root.
+func TestBuildSectionTree_SectionOnlySubtreeGetsAncestor(t *testing.T) {
+	pages := []*engine.Page{
+		{PageIdentity: engine.PageIdentity{Title: "Docs", Slug: "docs", Kind: engine.KindSection, RelPermalink: "/docs/"}},
+		// No _index.md and no ordinary page directly under docs/guides/.
+		{PageIdentity: engine.PageIdentity{Title: "Tutorial", Slug: "tutorial", Kind: engine.KindSection, RelPermalink: "/docs/guides/tutorial/"}},
+	}
+	roots := BuildSectionTree(pages, "docs")
+	if len(roots) != 1 {
+		t.Fatalf("roots = %d, want 1 (tutorial must not be a second root)", len(roots))
+	}
+	root := roots[0]
+	if len(root.Sections) != 1 {
+		t.Fatalf("root.Sections = %d, want 1 (inferred guides group)", len(root.Sections))
+	}
+	guides := root.Sections[0]
+	if guides.Slug != "guides" {
+		t.Errorf("inferred ancestor Slug = %q, want %q", guides.Slug, "guides")
+	}
+	if len(guides.Sections) != 1 || guides.Sections[0].Slug != "tutorial" {
+		t.Fatalf("guides.Sections = %v, want [tutorial]", guides.Sections)
+	}
+	if guides.Sections[0].Parent != guides {
+		t.Error("tutorial.Parent should be the inferred guides section")
+	}
+}

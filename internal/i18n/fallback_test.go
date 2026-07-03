@@ -255,3 +255,34 @@ func TestGenerateFallbacks_DeterministicOrder(t *testing.T) {
 		}
 	}
 }
+
+// Fallback clones must own an independent Params tree: BeforeRender plugins
+// (seo, socialcards) write into Params (including nested maps) during the
+// parallel render phase, so a shared map is a concurrent-map-write crash.
+func TestGenerateFallbacks_ParamsDeepCopied(t *testing.T) {
+	src := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "API Reference", RelPermalink: "/docs/api/", Permalink: "/docs/api/"},
+		PageI18n:     engine.PageI18n{Lang: "en", LangRelPath: "docs/api.md"},
+		Params: map[string]any{
+			"seo":  map[string]any{"og_title": "orig"},
+			"tags": []any{"a", "b"},
+		},
+	}
+
+	fallbacks := GenerateFallbacks([]*engine.Page{src}, []string{"en", "fr"}, "en", defaultOpts)
+	if len(fallbacks) != 1 {
+		t.Fatalf("expected 1 fallback, got %d", len(fallbacks))
+	}
+	fb := fallbacks[0]
+
+	// Mutating the clone's top-level and nested maps must not touch the source.
+	fb.Params["new"] = true
+	fb.Params["seo"].(map[string]any)["og_title"] = "mutated"
+
+	if _, ok := src.Params["new"]; ok {
+		t.Error("top-level Params map is shared between source and fallback")
+	}
+	if got := src.Params["seo"].(map[string]any)["og_title"]; got != "orig" {
+		t.Errorf("nested seo map is shared: source og_title = %q, want %q", got, "orig")
+	}
+}

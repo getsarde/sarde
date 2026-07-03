@@ -73,16 +73,6 @@ func ensureManager() {
 	collectionsMu.Unlock()
 }
 
-func extractLicenseInfo(prefix string, data []byte) {
-	var col iconifyCollection
-	if err := json.Unmarshal(data, &col); err == nil {
-		col.Prefix = prefix
-		collectionsMu.Lock()
-		collections[prefix] = &col
-		collectionsMu.Unlock()
-	}
-}
-
 // ---------------------------------------------------------------------------
 // Dynamic provider registration (called from build init)
 // ---------------------------------------------------------------------------

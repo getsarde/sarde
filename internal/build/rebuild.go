@@ -220,6 +220,15 @@ func (b *SiteBuilder) classifyAndParseChanges(changedPaths []string, s *incremen
 				devlog.Warn("build", "ContentRebuild: site-structural change detected, falling back to full rebuild")
 				return errFallBackToFull
 			case changeCollectionScoped:
+				// rebuildCollectionNav only rewrites the plain NavTree/NavTrees.
+				// Tabbed, versioned, and multi-language collections render their
+				// sidebar from composite/tab nav structures it doesn't touch (and
+				// its per-language rebuild mixes languages), so a scoped rebuild
+				// would leave those sidebars stale. Fall back to a full build.
+				if b.collectionNeedsFullNavRebuild(old.Collection) {
+					devlog.Warn("build", "ContentRebuild: sort/nav change in a tabbed/versioned/multi-lang collection, falling back to full rebuild")
+					return errFallBackToFull
+				}
 				if old.Collection != nil {
 					devlog.Log("build", "ContentRebuild: sort/nav change in %s, will rebuild collection", old.Collection.Name)
 					s.dirtyCollections[old.Collection.Name] = old.Collection

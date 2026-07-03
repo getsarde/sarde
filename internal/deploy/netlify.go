@@ -19,6 +19,5 @@ func (d *NetlifyDeployer) Deploy(distDir string) error {
 	}
 
 	fmt.Printf("Netlify deploy: site_id=%s, token=%s, dist=%s\n", d.SiteID, maskToken(token), distDir)
-	fmt.Println("Netlify API deployment not yet implemented — use netlify-cli or custom deploy command instead.")
-	return nil
+	return fmt.Errorf("netlify API deployment is not yet implemented; use netlify-cli or a custom deploy command instead")
 }

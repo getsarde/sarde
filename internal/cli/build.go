@@ -164,10 +164,17 @@ func resolveAll(cmd *cobra.Command, projectDir string) (*config.SiteConfig, *eng
 		return nil, nil, fmt.Errorf("resolving config: %w", err)
 	}
 
-	// Load theme.
+	// Load theme. A configured custom theme that fails to load is an error:
+	// silently falling back to the embedded default would build the site with
+	// none of the user's theme customizations and no indication why.
 	var thm *theme.Theme
 	if cfg.Theme.Name != "" && cfg.Theme.Name != "default" {
-		thm, _ = theme.LoadFromDir(filepath.Join(projectDir, "themes", cfg.Theme.Name))
+		themeDir := filepath.Join(projectDir, "themes", cfg.Theme.Name)
+		loaded, loadErr := theme.LoadFromDir(themeDir)
+		if loadErr != nil {
+			return nil, nil, fmt.Errorf("loading theme %q from %s: %w", cfg.Theme.Name, themeDir, loadErr)
+		}
+		thm = loaded
 	}
 	if thm == nil {
 		thm, _ = theme.LoadFromFS(embedded.ThemeFS(), ".")

@@ -93,7 +93,7 @@ func (r *Rebuilder) executeBuild(change FileChange) *RebuildResult {
 
 	switch change.Kind {
 	case ChangeConfig, ChangeTemplate:
-		devlog.Log("build", "Full rebuild (%s change) — new builder", change.Kind)
+		devlog.Log("build", "Full rebuild (%s change): new builder", change.Kind)
 		r.builder = r.builderFactory()
 
 	case ChangeContent:
@@ -102,7 +102,7 @@ func (r *Rebuilder) executeBuild(change FileChange) *RebuildResult {
 			if len(paths) == 0 {
 				paths = []string{change.Path}
 			}
-			devlog.Log("build", "Incremental content rebuild — %d file(s)", len(paths))
+			devlog.Log("build", "Incremental content rebuild: %d file(s)", len(paths))
 			result, err := r.builder.ContentRebuild(paths)
 			if err != nil {
 				return &RebuildResult{
@@ -124,7 +124,7 @@ func (r *Rebuilder) executeBuild(change FileChange) *RebuildResult {
 		if r.builder == nil {
 			r.builder = r.builderFactory()
 		} else {
-			devlog.Log("build", "Incremental rebuild (%s change) — reusing builder", change.Kind)
+			devlog.Log("build", "Incremental rebuild (%s change): reusing builder", change.Kind)
 		}
 	}
 

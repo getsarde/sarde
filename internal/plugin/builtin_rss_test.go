@@ -124,3 +124,71 @@ func TestRSS_NoFeedCollections(t *testing.T) {
 		t.Fatalf("rssBuildDone failed: %v", err)
 	}
 }
+
+// On a multi-language site, each language must get its own feed file with only
+// that language's posts, at the localized path. Previously all languages were
+// mixed into a single blog/feed.xml.
+func TestRSS_PerLanguageFeeds(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+
+	cfg := config.Defaults()
+	cfg.I18n.DefaultLanguage = "en"
+	cfg.I18n.Languages = map[string]config.LanguageConfig{"en": {}, "fr": {}}
+
+	resolver := &engine.URLResolver{
+		BasePath:    "/",
+		BaseURL:     "https://example.com",
+		I18nEnabled: true,
+		DefaultLang: "en",
+		Strategy:    "prefix-except-default",
+		Languages:   map[string]bool{"en": true, "fr": true},
+	}
+
+	ctx := &BuildDoneContext{
+		Config:    cfg,
+		OutputDir: outDir,
+		Resolver:  resolver,
+		Site:      &engine.SiteContext{BaseURL: "https://example.com"},
+		Collections: map[string]*engine.Collection{
+			"blog": {
+				Name:   "blog",
+				Title:  "Blog",
+				Config: &engine.CollectionConfig{Feed: true},
+				Pages: []*engine.Page{
+					{PageIdentity: engine.PageIdentity{Title: "English Post", RelPermalink: "/blog/en-post/", Permalink: "/blog/en-post/", Date: time.Date(2025, 3, 1, 0, 0, 0, 0, time.UTC)}, PageI18n: engine.PageI18n{Lang: "en"}},
+					{PageIdentity: engine.PageIdentity{Title: "Article Francais", RelPermalink: "/blog/fr-post/", Permalink: "/fr/blog/fr-post/", Date: time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC)}, PageI18n: engine.PageI18n{Lang: "fr"}},
+				},
+			},
+		},
+	}
+	ctx.SetWarnings(&warnings)
+
+	if err := rssBuildDone(ctx, nil); err != nil {
+		t.Fatalf("rssBuildDone failed: %v", err)
+	}
+
+	// Default language keeps the plain path with only English content.
+	en, err := readTestFile(outDir, "blog/feed.xml")
+	if err != nil {
+		t.Fatalf("reading en feed: %v", err)
+	}
+	if !strings.Contains(string(en), "English Post") {
+		t.Error("en feed missing English post")
+	}
+	if strings.Contains(string(en), "Article Francais") {
+		t.Error("en feed must not contain French post")
+	}
+
+	// French language gets a localized feed with only French content.
+	fr, err := readTestFile(outDir, "fr/blog/feed.xml")
+	if err != nil {
+		t.Fatalf("reading fr feed at fr/blog/feed.xml: %v", err)
+	}
+	if !strings.Contains(string(fr), "Article Francais") {
+		t.Error("fr feed missing French post")
+	}
+	if strings.Contains(string(fr), "English Post") {
+		t.Error("fr feed must not contain English post")
+	}
+}

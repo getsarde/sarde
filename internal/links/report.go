@@ -250,7 +250,7 @@ func buildSummaryLine(cov CoverageSummary, findings []Finding) string {
 			warnCount++
 		}
 	}
-	return fmt.Sprintf("checked %d links across %d lanes — %d broken targets, %d broken anchors, %d broken external, %d warnings",
+	return fmt.Sprintf("checked %d links across %d lanes: %d broken targets, %d broken anchors, %d broken external, %d warnings",
 		cov.TotalLinks, cov.TotalLanes, brokenTargets, brokenAnchors, externalBroken, warnCount)
 }
 

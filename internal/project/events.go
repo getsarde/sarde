@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -14,6 +15,12 @@ type Event struct {
 	Type string `json:"event"`
 	Data any    `json:"data,omitempty"`
 }
+
+// eventWriteTimeout bounds each WebSocket write so one stalled client cannot
+// hold h.mu indefinitely. This matters doubly here: most ProjectManager
+// mutators broadcast while holding pm.mu, so an unbounded write would freeze
+// every API request, not just event delivery.
+const eventWriteTimeout = 5 * time.Second
 
 // EventHub manages WebSocket client connections and broadcasts events.
 type EventHub struct {
@@ -69,6 +76,7 @@ func (h *EventHub) Broadcast(event Event) {
 	defer h.mu.Unlock()
 
 	for conn := range h.clients {
+		conn.SetWriteDeadline(time.Now().Add(eventWriteTimeout))
 		if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
 			conn.Close()
 			delete(h.clients, conn)

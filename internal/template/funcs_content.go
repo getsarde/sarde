@@ -34,6 +34,12 @@ func buildContentFuncs(pageIndexPtr **content.PageIndex, sitePtr **engine.SiteCo
 				return nil
 			}
 			pages := col.Pages
+			// Clamp both ends: a negative n from template arithmetic would
+			// panic with a runtime error that escapes template recovery and
+			// kills the whole build.
+			if n < 0 {
+				n = 0
+			}
 			if n > len(pages) {
 				n = len(pages)
 			}

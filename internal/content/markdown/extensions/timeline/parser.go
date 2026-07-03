@@ -87,22 +87,29 @@ func (p *timelineParser) Close(node ast.Node, reader text.Reader, pc parser.Cont
 					Title: strings.TrimSpace(matches[1]),
 				}
 				items = append(items, currentItem)
-				// If paragraph has content after the == line, keep it as body text
-				idx := strings.Index(text, "\n")
-				if idx >= 0 {
-					remaining := strings.TrimSpace(text[idx+1:])
-					if remaining != "" {
-						currentItem.BodyText = remaining
+				// If the paragraph has more lines after the "== Title" line,
+				// re-attach them as a child paragraph so they go through
+				// goldmark's inline pass (bold/links/code render as HTML).
+				// Close() runs before inline parsing, so pre-extracting the
+				// text and escaping it in the renderer would strip markup.
+				lines := para.Lines()
+				if lines.Len() > 1 {
+					body := ast.NewParagraph()
+					for i := 1; i < lines.Len(); i++ {
+						body.Lines().Append(lines.At(i))
 					}
+					currentItem.AppendChild(currentItem, body)
 				}
 				continue
 			}
 		}
 
-		// Also support ### heading syntax
+		// Also support ### heading syntax. Read the raw heading line from
+		// Lines(): at block-parse time the heading has no inline children yet,
+		// so heading.Text(source) would return "".
 		if heading, ok := child.(*ast.Heading); ok && heading.Level == 3 {
 			currentItem = &TimelineItem{
-				Title: string(heading.Text(source)),
+				Title: strings.TrimSpace(string(heading.Lines().Value(source))),
 			}
 			items = append(items, currentItem)
 			continue

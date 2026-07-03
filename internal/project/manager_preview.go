@@ -12,6 +12,15 @@ import (
 	"github.com/getsarde/sarde/internal/outputpath"
 )
 
+// Sentinel errors for preview lifecycle, so API handlers can map failures to
+// distinct error codes instead of guessing from free-text messages.
+var (
+	ErrNoProjectOpen      = errors.New("no project open")
+	ErrPreviewRunning     = errors.New("preview already running")
+	ErrPreviewNotRunning  = errors.New("preview not running")
+	ErrPreviewUnavailable = errors.New("preview not available (no preview factory configured)")
+)
+
 // PreviewServer is the interface for the dev server to avoid circular imports.
 type PreviewServer interface {
 	Start() error
@@ -84,10 +93,10 @@ func (pm *ProjectManager) installPreview(port int) (PreviewServer, error) {
 	defer pm.mu.Unlock()
 
 	if pm.state == StateClosed {
-		return nil, fmt.Errorf("no project open")
+		return nil, ErrNoProjectOpen
 	}
 	if pm.devServer != nil {
-		return nil, fmt.Errorf("preview already running")
+		return nil, ErrPreviewRunning
 	}
 
 	if port == 0 {
@@ -100,7 +109,7 @@ func (pm *ProjectManager) installPreview(port int) (PreviewServer, error) {
 	// Checked before acquiring the output lock: everything after Acquire
 	// must be infallible or the lock reference would leak.
 	if pm.previewFactory == nil {
-		return nil, fmt.Errorf("preview not available (no preview factory configured)")
+		return nil, ErrPreviewUnavailable
 	}
 
 	outputDir, err := outputpath.ResolveOutputDir(pm.projectDir, pm.config.Build.Output)
@@ -142,7 +151,7 @@ func (pm *ProjectManager) StopPreview() error {
 	defer pm.mu.Unlock()
 
 	if pm.devServer == nil {
-		return fmt.Errorf("preview not running")
+		return ErrPreviewNotRunning
 	}
 
 	return pm.stopPreviewLocked()
