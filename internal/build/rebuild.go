@@ -138,9 +138,13 @@ func (b *SiteBuilder) classifyAndParseChanges(changedPaths []string, s *incremen
 			return errFallBackToFull
 		}
 
-		if _, err := os.Stat(path); os.IsNotExist(err) {
+		info, err := os.Stat(path)
+		if os.IsNotExist(err) {
 			devlog.Warn("build", "ContentRebuild: file deleted, falling back to full rebuild")
 			return errFallBackToFull
+		}
+		if err == nil && info.IsDir() {
+			continue
 		}
 
 		cf, err := b.scanner.ClassifyFile(s.contentDir, path)

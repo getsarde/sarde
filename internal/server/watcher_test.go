@@ -54,6 +54,7 @@ func TestShouldIgnore(t *testing.T) {
 		{"swap file", "/project/content/hello.md.swp", true},
 		{"tilde file", "/project/content/hello.md~", true},
 		{"tmp file", "/project/content/hello.tmp", true},
+		{"atomic save tmp", "/project/content/docs/file.md.tmp.24892.abc123", true},
 		{"normal content", "/project/content/blog/hello.md", false},
 		{"layout file", "/project/layouts/base.html", false},
 		{"config file", "/project/sarde.yaml", false},

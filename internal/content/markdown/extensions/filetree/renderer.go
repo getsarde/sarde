@@ -93,7 +93,7 @@ func renderListItems(w util.BufWriter, listNode ast.Node, source []byte) {
 			itemClass += " highlighted"
 		}
 
-		icon := getIcon(info.IsFolder, info.Name)
+		icon := getIcon(info.IsFolder, info.Name, info.Icon)
 		nameClass := "sarde-file-tree-name"
 		if info.IsFolder {
 			nameClass += " folder-name"
@@ -120,6 +120,7 @@ func renderListItems(w util.BufWriter, listNode ast.Node, source []byte) {
 
 type itemInfo struct {
 	Name          string
+	Icon          string
 	Comment       string
 	IsFolder      bool
 	IsHighlighted bool
@@ -136,6 +137,14 @@ func parseItemInfo(item ast.Node, source []byte) itemInfo {
 	}
 
 	isHighlighted := hasEmphasis(item)
+
+	var iconName string
+	if strings.HasPrefix(name, "icon:") {
+		if spIdx := strings.Index(name[5:], " "); spIdx >= 0 && spIdx > 0 {
+			iconName = name[5 : 5+spIdx]
+			name = strings.TrimSpace(name[5+spIdx+1:])
+		}
+	}
 
 	var comment string
 	if idx := strings.Index(name, " #"); idx >= 0 {
@@ -159,6 +168,7 @@ func parseItemInfo(item ast.Node, source []byte) itemInfo {
 
 	return itemInfo{
 		Name:          name,
+		Icon:          iconName,
 		Comment:       comment,
 		IsFolder:      isFolder,
 		IsHighlighted: isHighlighted,
@@ -190,6 +200,14 @@ func renderItem(w util.BufWriter, name string, isFolder bool) {
 		return
 	}
 
+	var customIcon string
+	if strings.HasPrefix(name, "icon:") {
+		if spIdx := strings.Index(name[5:], " "); spIdx >= 0 && spIdx > 0 {
+			customIcon = name[5 : 5+spIdx]
+			name = strings.TrimSpace(name[5+spIdx+1:])
+		}
+	}
+
 	var comment string
 	if idx := strings.Index(name, " #"); idx >= 0 {
 		comment = strings.TrimSpace(name[idx+2:])
@@ -202,7 +220,7 @@ func renderItem(w util.BufWriter, name string, isFolder bool) {
 	} else {
 		itemClass += " sarde-file-tree-file"
 	}
-	icon := getIcon(isFolder, name)
+	icon := getIcon(isFolder, name, customIcon)
 	nameClass := "sarde-file-tree-name"
 	if isFolder {
 		nameClass += " folder-name"
@@ -246,15 +264,24 @@ func extractAllText(n ast.Node, source []byte) string {
 	return sb.String()
 }
 
-func getIcon(isFolder bool, name string) string {
+func getIcon(isFolder bool, name string, customIcon string) string {
 	if isFolder {
-		return icons.GetWithClass("folder", "sarde-file-tree-icon folder")
+		cls := "sarde-file-tree-icon folder"
+		iconName := "folder"
+		if customIcon != "" {
+			iconName = customIcon
+		}
+		return icons.GetWithClass(iconName, cls)
 	}
 	cls := "sarde-file-tree-icon file"
 	if ext := fileExtClass(name); ext != "" {
 		cls += " " + ext
 	}
-	return icons.GetWithClass("file", cls)
+	iconName := "file"
+	if customIcon != "" {
+		iconName = customIcon
+	}
+	return icons.GetWithClass(iconName, cls)
 }
 
 func fileExtClass(name string) string {

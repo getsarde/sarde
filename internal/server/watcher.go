@@ -291,9 +291,10 @@ func (w *Watcher) shouldIgnore(path string) bool {
 	if strings.HasPrefix(base, ".") {
 		return true
 	}
-	// Ignore temp files.
+	// Ignore temp files (including atomic-save patterns like file.md.tmp.PID.HASH).
 	if strings.HasSuffix(base, "~") || strings.HasSuffix(base, ".swp") ||
-		strings.HasSuffix(base, ".tmp") || strings.HasPrefix(base, "~") {
+		strings.HasSuffix(base, ".tmp") || strings.HasPrefix(base, "~") ||
+		strings.Contains(base, ".tmp.") {
 		return true
 	}
 
