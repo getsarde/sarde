@@ -46,10 +46,17 @@
 
     if (backdrop) {
       backdrop.classList.remove('is-visible');
+      var hidden = false;
+      function hide() {
+        if (hidden || isOpen) return;
+        hidden = true;
+        backdrop.style.display = 'none';
+      }
       backdrop.addEventListener('transitionend', function handler() {
-        if (!isOpen) backdrop.style.display = 'none';
+        hide();
         backdrop.removeEventListener('transitionend', handler);
       });
+      setTimeout(hide, 350);
     }
 
     toggle.focus();

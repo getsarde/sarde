@@ -301,11 +301,13 @@
 	  z-index: calc(var(--sd-z-sidebar) - 1);
 	  background: rgba(0, 0, 0, 0.5);
 	  opacity: 0;
+	  pointer-events: none;
 	  transition: opacity 300ms var(--sd-ease-out);
 	}
 
 	.sarde-sidebar-backdrop.is-visible {
 	  opacity: 1;
+	  pointer-events: auto;
 	}
 
 	@media (min-width: 1024px) {
