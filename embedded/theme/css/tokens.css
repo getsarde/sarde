@@ -214,10 +214,14 @@
 	  --sd-aside-note-bg: var(--sd-blue-low);
 	  --sd-aside-tip: var(--sd-green);
 	  --sd-aside-tip-bg: var(--sd-green-low);
+	  --sd-aside-info: var(--sd-cyan);
+	  --sd-aside-info-bg: var(--sd-cyan-low);
 	  --sd-aside-caution: var(--sd-amber);
 	  --sd-aside-caution-bg: var(--sd-amber-low);
 	  --sd-aside-danger: var(--sd-red);
 	  --sd-aside-danger-bg: var(--sd-red-low);
+	  --sd-aside-success: var(--sd-green);
+	  --sd-aside-success-bg: var(--sd-green-low);
 	}
 
 	@media (min-width: 50em) {

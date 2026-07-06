@@ -56,9 +56,11 @@ func DefaultDarkTokens() map[string]string {
 		"glass-bg":        "oklch(0 0 0 / 0.6)",
 		"glass-border":    "oklch(1 0 0 / 0.08)",
 		// Aside variants
-		"aside-note-bg":   "oklch(0.62 0.20 231 / 0.1)",
-		"aside-tip-bg":    "oklch(0.62 0.17 155 / 0.1)",
+		"aside-note-bg":    "oklch(0.62 0.20 231 / 0.1)",
+		"aside-tip-bg":     "oklch(0.62 0.17 155 / 0.1)",
+		"aside-info-bg":    "oklch(0.52 0.14 196 / 0.1)",
 		"aside-caution-bg": "oklch(0.75 0.16 75 / 0.1)",
-		"aside-danger-bg": "oklch(0.55 0.20 25 / 0.1)",
+		"aside-danger-bg":  "oklch(0.55 0.20 25 / 0.1)",
+		"aside-success-bg": "oklch(0.62 0.17 155 / 0.1)",
 	}
 }

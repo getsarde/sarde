@@ -71,66 +71,48 @@
 	    border-color: var(--sd-aside-note);
 	    background-color: var(--sd-aside-note-bg);
 	}
-
 	.sarde-aside-note .sarde-aside-title,
-	.sarde-aside-note .sarde-aside-icon {
-	    color: var(--sd-aside-note);
-	}
+	.sarde-aside-note .sarde-aside-icon { color: var(--sd-aside-note); }
 
-	/* Tip - Purple */
+	/* Tip - Green */
 	.sarde-aside-tip {
 	    border-color: var(--sd-aside-tip);
 	    background-color: var(--sd-aside-tip-bg);
 	}
-
 	.sarde-aside-tip .sarde-aside-title,
-	.sarde-aside-tip .sarde-aside-icon {
-	    color: var(--sd-aside-tip);
-	}
+	.sarde-aside-tip .sarde-aside-icon { color: var(--sd-aside-tip); }
 
-	/* Info - Cyan/Teal */
+	/* Info - Cyan */
 	.sarde-aside-info {
-	    border-color: var(--sd-cyan, #06b6d4);
-	    background-color: var(--sd-cyan-low, rgba(6, 182, 212, 0.1));
+	    border-color: var(--sd-aside-info);
+	    background-color: var(--sd-aside-info-bg);
 	}
-
 	.sarde-aside-info .sarde-aside-title,
-	.sarde-aside-info .sarde-aside-icon {
-	    color: var(--sd-cyan, #06b6d4);
-	}
+	.sarde-aside-info .sarde-aside-icon { color: var(--sd-aside-info); }
 
 	/* Warning - Amber */
 	.sarde-aside-warning {
 	    border-color: var(--sd-aside-caution);
 	    background-color: var(--sd-aside-caution-bg);
 	}
-
 	.sarde-aside-warning .sarde-aside-title,
-	.sarde-aside-warning .sarde-aside-icon {
-	    color: var(--sd-aside-caution);
-	}
+	.sarde-aside-warning .sarde-aside-icon { color: var(--sd-aside-caution); }
 
 	/* Danger - Red */
 	.sarde-aside-danger {
 	    border-color: var(--sd-aside-danger);
 	    background-color: var(--sd-aside-danger-bg);
 	}
-
 	.sarde-aside-danger .sarde-aside-title,
-	.sarde-aside-danger .sarde-aside-icon {
-	    color: var(--sd-aside-danger);
-	}
+	.sarde-aside-danger .sarde-aside-icon { color: var(--sd-aside-danger); }
 
 	/* Success - Green */
 	.sarde-aside-success {
-	    border-color: var(--sd-green);
-	    background-color: var(--sd-green-low);
+	    border-color: var(--sd-aside-success);
+	    background-color: var(--sd-aside-success-bg);
 	}
-
 	.sarde-aside-success .sarde-aside-title,
-	.sarde-aside-success .sarde-aside-icon {
-	    color: var(--sd-green);
-	}
+	.sarde-aside-success .sarde-aside-icon { color: var(--sd-aside-success); }
 
 	/* Responsive adjustments */
 	@media (max-width: 768px) {
@@ -194,27 +176,27 @@
 	.sarde-aside-github .sarde-aside-content > *:last-child  { margin-bottom: 0; }
 
 	/* GitHub Note - Blue */
-	.sarde-aside-github.sarde-aside-gh-note { border-inline-start-color: #54aeff; }
+	.sarde-aside-github.sarde-aside-gh-note { border-inline-start-color: #0969da; }
 	.sarde-aside-github.sarde-aside-gh-note .sarde-aside-title,
 	.sarde-aside-github.sarde-aside-gh-note .sarde-aside-icon { color: #0969da; }
 
 	/* GitHub Tip - Green */
-	.sarde-aside-github.sarde-aside-gh-tip { border-inline-start-color: #4ac26b; }
+	.sarde-aside-github.sarde-aside-gh-tip { border-inline-start-color: #1a7f37; }
 	.sarde-aside-github.sarde-aside-gh-tip .sarde-aside-title,
-	.sarde-aside-github.sarde-aside-gh-tip .sarde-aside-icon { color: #116329; }
+	.sarde-aside-github.sarde-aside-gh-tip .sarde-aside-icon { color: #1a7f37; }
 
 	/* GitHub Important - Purple */
-	.sarde-aside-github.sarde-aside-gh-important { border-inline-start-color: #bf3989; }
+	.sarde-aside-github.sarde-aside-gh-important { border-inline-start-color: #8250df; }
 	.sarde-aside-github.sarde-aside-gh-important .sarde-aside-title,
-	.sarde-aside-github.sarde-aside-gh-important .sarde-aside-icon { color: #6e1a52; }
+	.sarde-aside-github.sarde-aside-gh-important .sarde-aside-icon { color: #8250df; }
 
-	/* GitHub Warning - Orange/Yellow */
-	.sarde-aside-github.sarde-aside-gh-warning { border-inline-start-color: #d4a72c; }
+	/* GitHub Warning - Amber */
+	.sarde-aside-github.sarde-aside-gh-warning { border-inline-start-color: #9a6700; }
 	.sarde-aside-github.sarde-aside-gh-warning .sarde-aside-title,
-	.sarde-aside-github.sarde-aside-gh-warning .sarde-aside-icon { color: #7d4e00; }
+	.sarde-aside-github.sarde-aside-gh-warning .sarde-aside-icon { color: #9a6700; }
 
 	/* GitHub Caution - Red */
-	.sarde-aside-github.sarde-aside-gh-caution { border-inline-start-color: #ff818e; }
+	.sarde-aside-github.sarde-aside-gh-caution { border-inline-start-color: #cf222e; }
 	.sarde-aside-github.sarde-aside-gh-caution .sarde-aside-title,
 	.sarde-aside-github.sarde-aside-gh-caution .sarde-aside-icon { color: #d1242f; }
 
@@ -230,19 +212,19 @@
 	:root[data-theme="dark"] {
 	    .sarde-aside-github.sarde-aside-gh-note { border-inline-start-color: #1f6feb; }
 	    .sarde-aside-github.sarde-aside-gh-note .sarde-aside-title,
-	    .sarde-aside-github.sarde-aside-gh-note .sarde-aside-icon { color: #58a6ff; }
-	    .sarde-aside-github.sarde-aside-gh-tip { border-inline-start-color: #2ea043; }
+	    .sarde-aside-github.sarde-aside-gh-note .sarde-aside-icon { color: #4493f8; }
+	    .sarde-aside-github.sarde-aside-gh-tip { border-inline-start-color: #238636; }
 	    .sarde-aside-github.sarde-aside-gh-tip .sarde-aside-title,
 	    .sarde-aside-github.sarde-aside-gh-tip .sarde-aside-icon { color: #3fb950; }
-	    .sarde-aside-github.sarde-aside-gh-important { border-inline-start-color: #bf3989; }
+	    .sarde-aside-github.sarde-aside-gh-important { border-inline-start-color: #8957e5; }
 	    .sarde-aside-github.sarde-aside-gh-important .sarde-aside-title,
-	    .sarde-aside-github.sarde-aside-gh-important .sarde-aside-icon { color: #d29be5; }
-	    .sarde-aside-github.sarde-aside-gh-warning { border-inline-start-color: #bb8009; }
+	    .sarde-aside-github.sarde-aside-gh-important .sarde-aside-icon { color: #ab7df8; }
+	    .sarde-aside-github.sarde-aside-gh-warning { border-inline-start-color: #9e6a03; }
 	    .sarde-aside-github.sarde-aside-gh-warning .sarde-aside-title,
 	    .sarde-aside-github.sarde-aside-gh-warning .sarde-aside-icon { color: #d29922; }
-	    .sarde-aside-github.sarde-aside-gh-caution { border-inline-start-color: #f85149; }
+	    .sarde-aside-github.sarde-aside-gh-caution { border-inline-start-color: #da3633; }
 	    .sarde-aside-github.sarde-aside-gh-caution .sarde-aside-title,
-	    .sarde-aside-github.sarde-aside-gh-caution .sarde-aside-icon { color: #ff7b72; }
+	    .sarde-aside-github.sarde-aside-gh-caution .sarde-aside-icon { color: #f85149; }
 	    .sarde-aside-github .sarde-aside-content code:not(pre code) {
 	        background: rgba(110, 118, 129, 0.4);
 	    }
@@ -256,10 +238,10 @@
 	@media print {
 	    .sarde-aside-github                  { border-inline-start: 3px solid; page-break-inside: avoid; }
 	    .sarde-aside-github.sarde-aside-gh-note    { border-inline-start-color: #0969da; }
-	    .sarde-aside-github.sarde-aside-gh-tip     { border-inline-start-color: #116329; }
-	    .sarde-aside-github.sarde-aside-gh-important { border-inline-start-color: #6e1a52; }
-	    .sarde-aside-github.sarde-aside-gh-warning { border-inline-start-color: #7d4e00; }
-	    .sarde-aside-github.sarde-aside-gh-caution { border-inline-start-color: #d1242f; }
+	    .sarde-aside-github.sarde-aside-gh-tip     { border-inline-start-color: #1a7f37; }
+	    .sarde-aside-github.sarde-aside-gh-important { border-inline-start-color: #8250df; }
+	    .sarde-aside-github.sarde-aside-gh-warning { border-inline-start-color: #9a6700; }
+	    .sarde-aside-github.sarde-aside-gh-caution { border-inline-start-color: #cf222e; }
 	}
 
 	/* Responsive */
