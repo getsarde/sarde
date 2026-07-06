@@ -485,6 +485,18 @@
 	  }
 	}
 
+	/* ── Centered Docs Toggle ── */
+	@media (min-width: 1280px) {
+	  .sd-docs-centered .sarde-sidebar {
+	    inset-inline-start: max(0px, calc(50% - var(--sd-docs-centered-width) / 2));
+	  }
+
+	  .sd-docs-centered .sarde-main-frame {
+	    max-width: var(--sd-docs-centered-width);
+	    margin-inline: auto;
+	  }
+	}
+
 	/* ── Wide Layout ── */
 	.sarde-layout-wide .sarde-content-panel {
 	  max-width: var(--sd-wide-content-width, 56rem);

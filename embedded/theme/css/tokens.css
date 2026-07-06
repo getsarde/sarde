@@ -139,6 +139,7 @@
 	  --sd-toc-width: 240px;
 	  --sd-mobile-toc-height: 3rem;
 	  --sd-content-width: 800px;
+  --sd-docs-centered-width: 87.5rem;
 
 	  /* ── Z-index ── */
 	  --sd-z-header: 35;

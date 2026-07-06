@@ -8,6 +8,7 @@
     {{ if boolVal .Site.Config.Header.Social true }}
     {{ component "Social" . }}
     {{ end }}
+    {{ component "CenterToggle" . }}
     {{ component "ThemeToggle" . }}
   </div>
 </header>

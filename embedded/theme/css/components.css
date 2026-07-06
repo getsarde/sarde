@@ -802,6 +802,50 @@
 	  min-width: 0;
 	}
 
+	/* Center Toggle */
+	.sarde-center-toggle {
+	  display: none;
+	  align-items: center;
+	  justify-content: center;
+	  width: 2rem;
+	  height: 2rem;
+	  padding: 0;
+	  border: none;
+	  border-radius: var(--sd-radius-sm);
+	  background: transparent;
+	  color: var(--sd-text-muted);
+	  cursor: pointer;
+	  transition: color 0.15s, background 0.15s;
+	}
+
+	.sarde-center-toggle:hover {
+	  color: var(--sd-text);
+	  background: var(--sd-bg-hover);
+	}
+
+	.sarde-center-toggle svg {
+	  width: 16px;
+	  height: 16px;
+	}
+
+	.sarde-center-icon-wide {
+	  display: none;
+	}
+
+	.sd-docs-centered .sarde-center-icon-center {
+	  display: none;
+	}
+
+	.sd-docs-centered .sarde-center-icon-wide {
+	  display: inline;
+	}
+
+	@media (min-width: 1280px) {
+	  .sarde-layout-docs .sarde-center-toggle {
+	    display: flex;
+	  }
+	}
+
 	/* Language Switcher */
 	.sarde-lang-switcher {
 	  position: relative;
