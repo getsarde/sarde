@@ -128,6 +128,8 @@ type Page struct {
 	PageI18n
 	PageVersioning
 
+	ShowTags *bool
+
 	NavNode   *NavNode
 	Resources []Resource
 	Params    map[string]any
@@ -219,6 +221,7 @@ type Frontmatter struct {
 
 	Tags        []string       `yaml:"tags"`
 	Categories  []string       `yaml:"categories"`
+	ShowTags    *bool          `yaml:"show_tags"`
 	Transparent bool           `yaml:"transparent"`
 	Hero        *HeroConfig    `yaml:"hero"`
 	Icon        string         `yaml:"icon"`

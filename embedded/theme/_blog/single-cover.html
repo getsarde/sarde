@@ -21,11 +21,7 @@
         <span class="sarde-post-authors">{{ range $i, $a := . }}{{ if $i }}, {{ end }}<a href="{{ termURL "authors" $a }}" class="sarde-post-author">{{ $a }}</a>{{ end }}</span>
         {{ end }}
       </div>
-      {{ if .Page.Tags }}
-      <div class="sarde-post-tags">
-        {{ range .Page.Tags }}<a href="{{ termURL "tags" . }}" class="sarde-post-tag">{{ . }}</a>{{ end }}
-      </div>
-      {{ end }}
+      {{ component "PageTags" . }}
     </header>
 
     {{ .Page.Content }}

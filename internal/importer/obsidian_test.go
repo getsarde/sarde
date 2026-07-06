@@ -41,13 +41,56 @@ func TestConvertNote(t *testing.T) {
 		{
 			"callout note",
 			"> [!note] Important info",
-			":::note",
+			":::note[Important info]\n:::",
 			0,
 		},
 		{
 			"callout warning",
 			"> [!warning] Be careful",
-			":::warning",
+			":::warning[Be careful]\n:::",
+			0,
+		},
+		{
+			// Regression: multi-line callouts must strip the "> " prefix and
+			// emit a closing fence, or the aside block swallows everything
+			// after it in the document.
+			"multi-line callout closes and unquotes",
+			"> [!note] Important\n> This is important info.\n> Second body line.\n\n## Next section\nmore content",
+			":::note[Important]\nThis is important info.\nSecond body line.\n:::\n\n## Next section\nmore content",
+			0,
+		},
+		{
+			"callout without title",
+			"> [!tip]\n> Just a body.",
+			":::tip\nJust a body.\n:::",
+			0,
+		},
+		{
+			"back-to-back callouts",
+			"> [!note] One\n> [!tip] Two",
+			":::note[One]\n:::\n\n:::tip[Two]\n:::",
+			0,
+		},
+		{
+			// Regression: resized embeds used to miss the image regex and get
+			// mangled by the wikilink-alias regex into ![300](/docs/image-png).
+			"resized image embed",
+			"![[image.png|300]]",
+			"![image](assets/image.png)",
+			0,
+		},
+		{
+			// Regression: copyImages flattens into assets/, so subfolder
+			// embeds must reference the basename.
+			"subfolder image embed",
+			"![[attachments/diagram.png]]",
+			"![diagram](assets/diagram.png)",
+			0,
+		},
+		{
+			"uppercase extension embed",
+			"![[Photo.PNG]]",
+			"![Photo](assets/Photo.PNG)",
 			0,
 		},
 		{
@@ -71,7 +114,7 @@ func TestConvertNote(t *testing.T) {
 		{
 			"combined transformations",
 			"# Title\n%%draft%%\nSee [[Getting Started]] and ![[photo.jpg]]\n> [!tip] Good idea",
-			"# Title\n\nSee [Getting Started](/docs/getting-started) and ![photo](assets/photo.jpg)\n:::tip",
+			"# Title\n\nSee [Getting Started](/docs/getting-started) and ![photo](assets/photo.jpg)\n:::tip[Good idea]\n:::",
 			1,
 		},
 	}

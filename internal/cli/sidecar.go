@@ -54,10 +54,13 @@ func runSidecar(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("starting API server: %w", err)
 	}
 
-	// Print startup JSON for Tauri to read.
+	// Print startup JSON for Tauri to read. The token is the API's auth
+	// credential: only the process that spawned the sidecar can read it here,
+	// and every /api/* request (except /api/health) must present it.
 	startup := map[string]any{
 		"ready": true,
 		"port":  actualPort,
+		"token": apiServer.Token(),
 	}
 	json.NewEncoder(os.Stdout).Encode(startup)
 

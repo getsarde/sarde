@@ -161,6 +161,7 @@ func buildPage(
 			Badge:  fm.Sidebar.Badge,
 			Icon:   fm.Sidebar.Icon,
 		},
+		ShowTags: fm.ShowTags,
 		TOC: engine.PageTOC{
 			Enabled:  fm.TOC.Enabled,
 			MinLevel: fm.TOC.MinLevel,

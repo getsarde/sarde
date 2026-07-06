@@ -4,6 +4,7 @@ import (
 	htmltemplate "html/template"
 	"sort"
 
+	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/engine"
 )
@@ -69,7 +70,51 @@ func buildContentFuncs(pageIndexPtr **content.PageIndex, sitePtr **engine.SiteCo
 			return s.Collections
 		},
 
-		// termURL is overridden in funcMapForLang to inject the rendering page's language.
+		// termURL, lookupTerm, and topTerms are overridden in funcMapForLang
+		// to inject the rendering page's language.
+		"termURL": func(taxonomyName, termName string) string {
+			s := *sitePtr
+			slug := content.Slugify(termName)
+			url := "/" + taxonomyName + "/" + slug + "/"
+			if s != nil {
+				if tax, ok := s.Taxonomies[taxonomyName]; ok && tax != nil {
+					if term, ok := tax.Terms[slug]; ok {
+						url = term.Permalink
+					}
+				}
+			}
+			return url
+		},
+		"lookupTerm": func(taxonomyName, termName string) *engine.TaxonomyTerm {
+			s := *sitePtr
+			if s == nil {
+				return nil
+			}
+			slug := content.Slugify(termName)
+			if tax, ok := s.Taxonomies[taxonomyName]; ok && tax != nil {
+				if term, ok := tax.Terms[slug]; ok {
+					return term
+				}
+			}
+			return nil
+		},
+		"showPageTags": func(page *engine.Page) bool {
+			if page == nil {
+				return false
+			}
+			if page.ShowTags != nil {
+				return *page.ShowTags
+			}
+			s := *sitePtr
+			if s != nil {
+				if cfg, ok := s.Config.(*config.SiteConfig); ok && cfg != nil {
+					if tc, ok := cfg.Taxonomies["tags"]; ok && tc.ShowTags != nil {
+						return *tc.ShowTags
+					}
+				}
+			}
+			return true
+		},
 		"topTerms": func(taxonomyName string, n int) []*engine.TaxonomyTerm {
 			s := *sitePtr
 			if s == nil {

@@ -100,7 +100,7 @@ func TestWriter_CleanFlag(t *testing.T) {
 	os.WriteFile(filepath.Join(outDir, "old-file.html"), []byte("stale"), 0o644)
 
 	tracker := NewOutputTracker(8)
-	w := &Writer{OutputDir: outDir, ProjectDir: t.TempDir(), Clean: true, Tracker: tracker}
+	w := &Writer{OutputDir: outDir, ProjectDir: t.TempDir(), Tracker: tracker}
 	pages := []RenderedPage{
 		{OutPath: "index.html", HTML: []byte("<html>Fresh</html>")},
 	}

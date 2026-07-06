@@ -4,11 +4,25 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/spf13/cobra"
 )
+
+// validThemeName rejects any name that is not a single path element, so the
+// themes/<name> join below can never resolve outside themes/ (e.g. "..",
+// "../..", "a/b", or an absolute path would otherwise reach os.RemoveAll).
+func validThemeName(name string) bool {
+	if name == "" || name == "." || name == ".." {
+		return false
+	}
+	if strings.ContainsAny(name, `/\`) || filepath.IsAbs(name) {
+		return false
+	}
+	return name == filepath.Base(name)
+}
 
 var themeRemoveCmd = &cobra.Command{
 	Use:   "remove <name>",
@@ -26,6 +40,9 @@ func runThemeRemove(cmd *cobra.Command, args []string) error {
 
 	if name == "default" {
 		return fmt.Errorf("the 'default' theme is embedded and cannot be removed")
+	}
+	if !validThemeName(name) {
+		return fmt.Errorf("invalid theme name %q", name)
 	}
 
 	projectDir, err := os.Getwd()

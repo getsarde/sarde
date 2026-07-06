@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -34,9 +35,35 @@ func NewEventHub() *EventHub {
 	return &EventHub{
 		clients: make(map[*websocket.Conn]bool),
 		upgrader: websocket.Upgrader{
-			CheckOrigin: func(r *http.Request) bool { return true },
+			CheckOrigin: func(r *http.Request) bool {
+				return allowedEventOrigin(r.Header.Get("Origin"))
+			},
 		},
 	}
+}
+
+// allowedEventOrigin permits the Tauri webview origins, loopback-hosted
+// frontends, and non-browser clients (empty Origin). Arbitrary web pages are
+// rejected so a browser tab cannot subscribe to project events cross-origin.
+// The API server's bearer-token middleware has already vetted the request
+// before the upgrade reaches this check.
+func allowedEventOrigin(origin string) bool {
+	if origin == "" {
+		return true
+	}
+	switch origin {
+	case "tauri://localhost", "https://tauri.localhost", "http://tauri.localhost":
+		return true
+	}
+	u, err := url.Parse(origin)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
+		return false
+	}
+	switch u.Hostname() {
+	case "localhost", "127.0.0.1", "::1":
+		return true
+	}
+	return false
 }
 
 // HandleWS upgrades an HTTP connection to WebSocket and registers the client.

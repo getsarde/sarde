@@ -42,9 +42,23 @@ func (p *Processor) Process(
 	}
 
 	sanitized, blocks := stripCodeBlocks(markdown)
+	result, allWarnings := p.expand(sanitized, page, site, mdRenderer)
+	result = restoreCodeBlocks(result, blocks)
+	return result, allWarnings
+}
 
+// expand runs shortcode substitution to a fixed point. Code-block protection
+// is the caller's job (Process strips/restores fences around this); expand is
+// also invoked on paired-shortcode inner bodies, which inherit the outer
+// call's protection.
+func (p *Processor) expand(
+	src string,
+	page *engine.Page,
+	site *engine.SiteContext,
+	mdRenderer engine.MarkdownRenderer,
+) (string, []engine.ValidationWarning) {
 	var allWarnings []engine.ValidationWarning
-	result := sanitized
+	result := src
 
 	for depth := 0; depth < maxRecursionDepth; depth++ {
 		next, changed, warnings := p.processOnce(result, page, site, mdRenderer)
@@ -63,7 +77,6 @@ func (p *Processor) Process(
 		}
 	}
 
-	result = restoreCodeBlocks(result, blocks)
 	return result, allWarnings
 }
 
@@ -150,14 +163,19 @@ func (p *Processor) replacePaired(
 
 		inner := src[openEnd:closeStart]
 
-		// Render inner markdown to HTML.
+		// Expand nested shortcodes BEFORE rendering the body as markdown.
+		// Goldmark HTML-escapes "{{<" in ordinary text, so rendering first
+		// would bake any not-yet-expanded nested shortcode into inert
+		// escaped text that no later pass can match again.
 		var innerHTML htmltemplate.HTML
 		if strings.TrimSpace(inner) != "" && mdRenderer != nil {
-			result, err := mdRenderer.Render(inner)
+			expandedInner, innerWarns := p.expand(inner, page, site, mdRenderer)
+			*warnings = append(*warnings, innerWarns...)
+			result, err := mdRenderer.Render(expandedInner)
 			if err == nil {
 				innerHTML = htmltemplate.HTML(result.HTML)
 			} else {
-				innerHTML = htmltemplate.HTML(inner)
+				innerHTML = htmltemplate.HTML(expandedInner)
 			}
 		}
 

@@ -29,6 +29,10 @@ func buildTestContext(pages []*engine.Page, validationData map[string]engine.Val
 		Resolver:       &engine.URLResolver{BasePath: "/"},
 		PageIndex:      idx,
 		ValidationData: validationData,
+		// The plugin is the incremental-rebuild checker; full builds use the
+		// internal/links report instead. These unit tests exercise the
+		// validation logic, so run them in incremental mode.
+		Incremental: true,
 	}
 	ctx.SetWarnings(&warnings)
 	return ctx, &warnings
@@ -391,6 +395,7 @@ func TestLinkValidatorWithBasePath(t *testing.T) {
 		Resolver:       &engine.URLResolver{BasePath: "/swarm/"},
 		PageIndex:      idx,
 		ValidationData: data,
+		Incremental:    true,
 	}
 	ctx.SetWarnings(&warnings)
 
@@ -418,4 +423,49 @@ func containsStr(s, substr string) bool {
 		}
 	}
 	return false
+}
+
+// Regression test: on a full build the plugin must no-op, because
+// SiteBuilder.validateLinks already ran the authoritative internal/links
+// report. Running both produced duplicate warnings for every link.
+func TestLinkValidatorSkipsFullBuild(t *testing.T) {
+	data := map[string]engine.ValidationEntry{
+		"/docs/guide/": {
+			FilePath: "content/docs/guide.md",
+			Links:    []engine.CollectedLink{{Href: "./sibling.md"}},
+		},
+	}
+	ctx, warnings := buildTestContext(nil, data, "")
+	ctx.Config.LinkValidation.OnRelativeLinks = "warn"
+	ctx.Incremental = false // full build
+
+	if err := linkValidatorBuildDone(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if len(*warnings) != 0 {
+		t.Errorf("plugin must not emit warnings on a full build, got %d: %v", len(*warnings), *warnings)
+	}
+}
+
+// Regression test: same_site_policy "error" used to fall through silently
+// (only "warn" was handled). On an incremental rebuild — where this plugin is
+// the sole checker — it must surface the finding and, with fail_build, fail.
+func TestLinkValidatorSameSiteError(t *testing.T) {
+	data := map[string]engine.ValidationEntry{
+		"/page/": {
+			FilePath: "content/page.md",
+			Links:    []engine.CollectedLink{{Href: "https://example.com/docs/guide/"}},
+		},
+	}
+	ctx, warnings := buildTestContext(nil, data, "https://example.com")
+	ctx.Config.LinkValidation.SameSitePolicy = "error"
+	ctx.Config.LinkValidation.FailBuild = boolPtr(true)
+
+	err := linkValidatorBuildDone(ctx)
+	if len(*warnings) != 1 || !contains((*warnings)[0].Message, "same site") {
+		t.Fatalf("expected one same-site finding, got %v", *warnings)
+	}
+	if err == nil {
+		t.Error("same_site_policy error with fail_build must fail the build")
+	}
 }

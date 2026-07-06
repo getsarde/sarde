@@ -421,7 +421,7 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 		langCodes := b.config.I18n.LanguageCodes()
 		s.newTaxByLang = make(map[string]map[string]*engine.Taxonomy, len(langCodes))
 		for _, code := range langCodes {
-			langTax := taxonomy.BuildTaxonomies(s.patchedAllPages, b.config.Taxonomies, code)
+			langTax, _ := taxonomy.BuildTaxonomies(s.patchedAllPages, b.config.Taxonomies, code)
 			if _, err := taxonomy.EnrichTaxonomies(langTax, b.config.Taxonomies, b.projectDir, code); err != nil {
 				return errFallBackToFull
 			}
@@ -437,7 +437,7 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 		}
 		s.newTaxonomies = s.newTaxByLang[defaultLang]
 	} else {
-		s.newTaxonomies = taxonomy.BuildTaxonomies(s.patchedAllPages, b.config.Taxonomies, "")
+		s.newTaxonomies, _ = taxonomy.BuildTaxonomies(s.patchedAllPages, b.config.Taxonomies, "")
 		if _, err := taxonomy.EnrichTaxonomies(s.newTaxonomies, b.config.Taxonomies, b.projectDir, ""); err != nil {
 			return errFallBackToFull
 		}
@@ -678,6 +678,7 @@ func (b *SiteBuilder) finishIncrementalRebuild(s *incrementalRebuildState) (*eng
 		PageIndex:      s.newPageIndex,
 		ValidationData: s.mergedValidation,
 		DevMode:        b.devMode,
+		Incremental:    true,
 	}
 	buildDoneCtx.SetWarnings(&pluginWarnings)
 	buildDoneCtx.SetLogger(buildLogger)

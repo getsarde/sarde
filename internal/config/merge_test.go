@@ -40,6 +40,8 @@ func TestMergeStringMap_EmptyOverNoOp(t *testing.T) {
 
 func boolPtr(b bool) *bool { return &b }
 
+func intPtr(i int) *int { return &i }
+
 // Regression: mergeBuild used to omit Expired and Cache, silently dropping
 // build.expired / build.cache set in sarde.yaml or theme.yaml.
 func TestMergeBuild_ExpiredAndCache(t *testing.T) {
@@ -67,5 +69,29 @@ func TestMergeI18n_Strict(t *testing.T) {
 	mergeI18n(base2, &I18nSettings{})
 	if !base2.Strict {
 		t.Error("Strict cleared by a layer that did not set it")
+	}
+}
+
+// Regression: mergeInt treated 0 as "unset", so an explicit
+// prefetch.delay: 0 in user config silently fell back to the embedded
+// default (300) instead of being honored. Prefetch.Delay is now a *int
+// merged via mergeIntP so an explicit zero is distinguishable from "unset".
+func TestMergePrefetch_ExplicitZeroDelayWins(t *testing.T) {
+	base := &PrefetchSettings{Delay: intPtr(300)}
+	over := &PrefetchSettings{Delay: intPtr(0)}
+	mergePrefetch(base, over)
+
+	if base.Delay == nil || *base.Delay != 0 {
+		t.Errorf("Delay = %v, want 0 (explicit zero override must not fall back to base)", base.Delay)
+	}
+}
+
+func TestMergePrefetch_NilDelayKeepsBase(t *testing.T) {
+	base := &PrefetchSettings{Delay: intPtr(300)}
+	over := &PrefetchSettings{Delay: nil}
+	mergePrefetch(base, over)
+
+	if base.Delay == nil || *base.Delay != 300 {
+		t.Errorf("Delay = %v, want 300 (omitted override must keep base value)", base.Delay)
 	}
 }

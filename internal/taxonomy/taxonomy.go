@@ -2,6 +2,9 @@
 package taxonomy
 
 import (
+	"crypto/sha256"
+	"fmt"
+
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/engine"
@@ -18,7 +21,10 @@ import (
 // the same term page — taxonomy pages render once, at the default-language
 // URLs. Pass "" to include every page (single-language sites, where Lang is
 // empty).
-func BuildTaxonomies(pages []*engine.Page, taxCfg map[string]config.TaxonomyConfig, lang string) map[string]*engine.Taxonomy {
+//
+// The second return value is a list of warnings collected while adding terms
+// (e.g. two differently-named terms colliding on the same slug).
+func BuildTaxonomies(pages []*engine.Page, taxCfg map[string]config.TaxonomyConfig, lang string) (map[string]*engine.Taxonomy, []string) {
 	if len(taxCfg) == 0 {
 		taxCfg = map[string]config.TaxonomyConfig{
 			"tags":       {Singular: "tag"},
@@ -41,6 +47,7 @@ func BuildTaxonomies(pages []*engine.Page, taxCfg map[string]config.TaxonomyConf
 		}
 	}
 
+	var warnings []string
 	for _, page := range pages {
 		// Skip other-language translations so a post isn't listed once per
 		// language on a term page. Pages with no detected language are always
@@ -59,7 +66,9 @@ func BuildTaxonomies(pages []*engine.Page, taxCfg map[string]config.TaxonomyConf
 				terms = page.Extra[name]
 			}
 			for _, term := range terms {
-				addTerm(tax, term, page)
+				if w := addTerm(tax, term, page); w != "" {
+					warnings = append(warnings, w)
+				}
 			}
 		}
 	}
@@ -71,12 +80,26 @@ func BuildTaxonomies(pages []*engine.Page, taxCfg map[string]config.TaxonomyConf
 		}
 	}
 
-	return taxonomies
+	return taxonomies, warnings
 }
 
 // addTerm adds a page to a taxonomy term, creating the term if needed.
-func addTerm(tax *engine.Taxonomy, termName string, page *engine.Page) {
+// Returns a non-empty warning when termName slugifies to the same slug as an
+// already-registered term with a different display name (e.g. "C++" and "C#"
+// both slugify to "c") — in that case the existing term silently absorbs the
+// page instead of the collision being reported, unless we surface it here.
+func addTerm(tax *engine.Taxonomy, termName string, page *engine.Page) string {
 	slug := content.Slugify(termName)
+	if slug == "" {
+		// termName has no ASCII alphanumeric characters (all punctuation, CJK,
+		// Cyrillic, etc.), so Slugify collapses it to "". Left as-is, this
+		// would key the term under "" and its permalink (tax.Permalink + "/")
+		// would collide with the taxonomy index page. Fall back to a short
+		// hash of the original name instead.
+		slug = fmt.Sprintf("%x", sha256.Sum256([]byte(termName)))[:8]
+	}
+
+	var warning string
 	term, ok := tax.Terms[slug]
 	if !ok {
 		term = &engine.TaxonomyTerm{
@@ -85,6 +108,9 @@ func addTerm(tax *engine.Taxonomy, termName string, page *engine.Page) {
 			Permalink: tax.Permalink + slug + "/",
 		}
 		tax.Terms[slug] = term
+	} else if term.Name != termName {
+		warning = fmt.Sprintf("taxonomy %q: terms %q and %q collide on slug %q", tax.Name, term.Name, termName, slug)
 	}
 	term.Pages = append(term.Pages, page)
+	return warning
 }

@@ -84,7 +84,6 @@ type SiteBuilder struct {
 
 // NewSiteBuilder creates a SiteBuilder with all dependencies initialized.
 func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
-	clientplugins.SetDevMode(opts.DevMode)
 	if opts.PluginAssetsDir != "" {
 		if err := clientplugins.RecomputeFromDir(opts.PluginAssetsDir); err != nil {
 			devlog.Warn("build", "Plugin live-reload failed: %v", err)

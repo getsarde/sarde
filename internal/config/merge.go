@@ -308,7 +308,7 @@ func mergeMarkdown(base, over *MarkdownSettings) {
 func mergePrefetch(base, over *PrefetchSettings) {
 	mergeBoolP(&base.Enabled, over.Enabled)
 	mergeStr(&base.Strategy, over.Strategy)
-	mergeInt(&base.Delay, over.Delay)
+	mergeIntP(&base.Delay, over.Delay)
 }
 
 func mergeImages(base, over *ImageSettings) {
@@ -534,6 +534,12 @@ func mergeBoolP(base **bool, over *bool) {
 	}
 }
 
+func mergeIntP(base **int, over *int) {
+	if over != nil {
+		*base = over
+	}
+}
+
 // mergeStringMap merges over into base per-key (later layer wins per key),
 // rather than replacing the whole map. This preserves earlier-layer entries
 // (e.g. theme-provided redirects/permalinks) when a later layer adds its own.
@@ -570,6 +576,9 @@ func mergeTaxonomies(base *map[string]TaxonomyConfig, over map[string]TaxonomyCo
 		}
 		if v.Render != nil {
 			existing.Render = v.Render
+		}
+		if v.ShowTags != nil {
+			existing.ShowTags = v.ShowTags
 		}
 		if v.UndefinedTags != "" {
 			existing.UndefinedTags = v.UndefinedTags

@@ -324,6 +324,19 @@ func (e *Engine) funcMapForLang(lang string) htmltemplate.FuncMap {
 		}
 		return url
 	}
+	fm["lookupTerm"] = func(taxonomyName, termName string) *engine.TaxonomyTerm {
+		if e.site == nil {
+			return nil
+		}
+		slug := content.Slugify(termName)
+		taxMap := e.lookupTaxonomies(lang)
+		if tax, ok := taxMap[taxonomyName]; ok && tax != nil {
+			if term, ok := tax.Terms[slug]; ok {
+				return term
+			}
+		}
+		return nil
+	}
 	fm["topTerms"] = func(taxonomyName string, n int) []*engine.TaxonomyTerm {
 		if e.site == nil {
 			return nil

@@ -2,6 +2,7 @@ package content
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -71,6 +72,50 @@ func TestComputePermalink(t *testing.T) {
 				t.Errorf("ComputePermalink(%q) = %q, want %q", tt.filePath, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestComputePermalink_NonLatinFilename(t *testing.T) {
+	content := filepath.Join("project", "content")
+	filePath := filepath.Join(content, "docs", "关于.md")
+
+	got := ComputePermalink(content, filePath)
+
+	if got == "" {
+		t.Fatalf("ComputePermalink(%q) returned empty string", filePath)
+	}
+	if strings.Contains(got, "//") {
+		t.Errorf("ComputePermalink(%q) = %q, contains malformed \"//\"", filePath, got)
+	}
+	if !strings.HasPrefix(got, "/docs/") || !strings.HasSuffix(got, "/") {
+		t.Errorf("ComputePermalink(%q) = %q, want form \"/docs/<slug>/\"", filePath, got)
+	}
+}
+
+func TestComputePermalinkFromRelPath_AllPunctuation(t *testing.T) {
+	relPath := "!!!.md"
+
+	got := ComputePermalinkFromRelPath(relPath)
+
+	if got == "" {
+		t.Fatalf("ComputePermalinkFromRelPath(%q) returned empty string", relPath)
+	}
+	if strings.Contains(got, "//") {
+		t.Errorf("ComputePermalinkFromRelPath(%q) = %q, contains malformed \"//\"", relPath, got)
+	}
+	if !strings.HasPrefix(got, "/") || !strings.HasSuffix(got, "/") || len(got) < 3 {
+		t.Errorf("ComputePermalinkFromRelPath(%q) = %q, not a well-formed permalink", relPath, got)
+	}
+}
+
+func TestComputePermalink_NonLatinFilenamesNoCollision(t *testing.T) {
+	content := filepath.Join("project", "content")
+
+	got1 := ComputePermalink(content, filepath.Join(content, "关于.md"))
+	got2 := ComputePermalink(content, filepath.Join(content, "мама.md"))
+
+	if got1 == got2 {
+		t.Errorf("expected distinct permalinks for distinct non-Latin filenames, both got %q", got1)
 	}
 }
 

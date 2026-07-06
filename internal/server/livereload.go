@@ -2,13 +2,51 @@ package server
 
 import (
 	"encoding/json"
+	"net"
 	"net/http"
+	"net/url"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/gorilla/websocket"
 )
+
+// sameOriginWS accepts the upgrade only when the page opening the socket was
+// served by this dev server (the injected live-reload client always connects
+// same-origin via location.host). Empty Origin means a non-browser client and
+// is allowed; a foreign web page's Origin will not match the Host it dialed.
+func sameOriginWS(r *http.Request) bool {
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		return true
+	}
+	u, err := url.Parse(origin)
+	if err != nil {
+		return false
+	}
+	if strings.EqualFold(u.Host, r.Host) {
+		return true
+	}
+	// localhost and 127.0.0.1 are the same listener spelled two ways.
+	return loopbackHostPort(u.Host) != "" && loopbackHostPort(u.Host) == loopbackHostPort(r.Host)
+}
+
+// loopbackHostPort canonicalizes "localhost:p" / "127.0.0.1:p" / "[::1]:p" to
+// "loopback:p"; returns "" for non-loopback hosts.
+func loopbackHostPort(hostport string) string {
+	host, port, err := net.SplitHostPort(hostport)
+	if err != nil {
+		// No port (e.g. bare "localhost" on default-port URLs).
+		host, port = hostport, ""
+	}
+	switch strings.ToLower(host) {
+	case "localhost", "127.0.0.1", "::1":
+		return "loopback:" + port
+	}
+	return ""
+}
 
 // ReloadType classifies what kind of reload to perform.
 type ReloadType string
@@ -65,7 +103,7 @@ func NewHub() *Hub {
 	return &Hub{
 		clients: make(map[*websocket.Conn]bool),
 		upgrader: websocket.Upgrader{
-			CheckOrigin: func(r *http.Request) bool { return true },
+			CheckOrigin: sameOriginWS,
 		},
 		// Seeding with wall-clock time (rather than 0) makes IDs comparable
 		// across server restarts: a page served by a previous server instance

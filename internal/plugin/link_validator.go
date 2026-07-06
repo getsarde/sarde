@@ -30,6 +30,15 @@ func newLinkValidatorPlugin(cfg map[string]any) *Plugin {
 }
 
 func linkValidatorBuildDone(ctx *BuildDoneContext) error {
+	// Full builds already run the authoritative internal/links report
+	// (SiteBuilder.validateLinks); running here too re-validated the same
+	// collected links against the same config and printed every warning
+	// twice. This plugin is the lightweight checker for incremental rebuilds
+	// only, where the LinkGraph path deliberately does not run.
+	if !ctx.Incremental {
+		return nil
+	}
+
 	settings := ctx.Config.LinkValidation
 	if !config.BoolVal(settings.Enabled, true) {
 		return nil
@@ -108,7 +117,10 @@ func validateLink(ctx *BuildDoneContext, idx *content.PageIndex,
 	}
 
 	if sameSitePolicy != "ignore" && siteURL != "" && isSameSite(href, siteURL) {
-		if sameSitePolicy == "warn" {
+		// "warn" and "error" both surface the finding; "error" additionally
+		// counts toward the fail_build threshold via the caller's errorCount
+		// (mirroring internal/links/report.go's handling on full builds).
+		if sameSitePolicy == "warn" || sameSitePolicy == "error" {
 			addLinkWarning(ctx, filePath, href, errSameSite)
 			return true
 		}

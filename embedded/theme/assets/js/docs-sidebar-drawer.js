@@ -6,11 +6,25 @@
   var toggle = document.getElementById('sarde-menu-toggle');
   var sidebar = document.getElementById('sarde-sidebar');
   var backdrop = document.getElementById('sarde-sidebar-backdrop');
+  var mainFrame = document.querySelector('.sarde-main-frame');
+  var header = document.querySelector('.sarde-header');
+  var mobileToc = document.getElementById('sarde-mobile-toc');
+  var skipLink = document.querySelector('.sarde-skip-link');
 
   if (!toggle || !sidebar) return;
 
   var isOpen = false;
   var mq = window.matchMedia('(min-width: ' + BREAKPOINT + 'px)');
+
+  function setInert(flag) {
+    var els = [mainFrame, header, mobileToc, skipLink];
+    for (var i = 0; i < els.length; i++) {
+      if (els[i]) {
+        if (flag) els[i].setAttribute('inert', '');
+        else els[i].removeAttribute('inert');
+      }
+    }
+  }
 
   function open() {
     if (isOpen) return;
@@ -27,6 +41,8 @@
       backdrop.classList.add('is-visible');
     }
 
+    setInert(true);
+
     var firstLink = sidebar.querySelector('a[href]');
     if (firstLink) {
       setTimeout(function () { firstLink.focus(); }, 50);
@@ -36,6 +52,7 @@
   function close() {
     if (!isOpen) return;
     isOpen = false;
+    setInert(false);
 
     toggle.setAttribute('aria-expanded', 'false');
     sidebar.classList.remove('is-open');
@@ -64,6 +81,7 @@
 
   function reset() {
     isOpen = false;
+    setInert(false);
     toggle.setAttribute('aria-expanded', 'false');
     sidebar.classList.remove('is-open');
     sidebar.removeAttribute('aria-hidden');

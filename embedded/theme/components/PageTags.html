@@ -1,0 +1,17 @@
+{{- if and .Page.Tags (showPageTags .Page) -}}
+<div class="sarde-page-tags" role="list" aria-label="{{ t "taxonomy.tags" }}">
+  {{- range .Page.Tags }}
+  {{- $tag := . -}}
+  {{- $term := lookupTerm "tags" $tag -}}
+  {{- $label := $tag -}}
+  {{- $iconName := "" -}}
+  {{- $color := "" -}}
+  {{- if $term -}}
+    {{- if $term.Label }}{{ $label = $term.Label }}{{ end -}}
+    {{- $iconName = $term.Icon -}}
+    {{- $color = $term.Color -}}
+  {{- end -}}
+  <a class="sarde-page-tag" role="listitem" href="{{ termURL "tags" $tag }}"{{ if $color }} style="--term-color: {{ $color }}"{{ end }}>{{ if $iconName }}{{ icon $iconName "sarde-page-tag-icon" }}{{ end }}<span class="sarde-page-tag-label">{{ $label }}</span></a>
+  {{- end }}
+</div>
+{{- end -}}

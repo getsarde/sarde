@@ -75,7 +75,8 @@ func (b *SiteBuilder) phaseAssemble(s *buildState) error {
 		taxByLang = make(map[string]map[string]*engine.Taxonomy, len(langCodes))
 		var allTaxWarnings []string
 		for _, code := range langCodes {
-			langTax := taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies, code)
+			langTax, buildWarns := taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies, code)
+			allTaxWarnings = append(allTaxWarnings, buildWarns...)
 			w, err := taxonomy.EnrichTaxonomies(langTax, b.config.Taxonomies, b.projectDir, code)
 			if err != nil {
 				return fmt.Errorf("enriching taxonomies for %s: %w", code, err)
@@ -86,12 +87,13 @@ func (b *SiteBuilder) phaseAssemble(s *buildState) error {
 		emitTaxonomyWarnings(dedupStrings(allTaxWarnings))
 		taxonomies = taxByLang[s.defaultLang]
 	} else {
-		taxonomies = taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies, "")
+		var buildWarns []string
+		taxonomies, buildWarns = taxonomy.BuildTaxonomies(allPages, b.config.Taxonomies, "")
 		w, err := taxonomy.EnrichTaxonomies(taxonomies, b.config.Taxonomies, b.projectDir, "")
 		if err != nil {
 			return fmt.Errorf("enriching taxonomies: %w", err)
 		}
-		emitTaxonomyWarnings(w)
+		emitTaxonomyWarnings(append(buildWarns, w...))
 	}
 
 	// Build SiteContext.

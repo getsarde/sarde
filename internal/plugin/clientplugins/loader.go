@@ -60,7 +60,6 @@ var (
 	bundleJSURL   string
 	bundleCSSPath string
 	bundleJSPath  string
-	pkgDevMode    bool
 )
 
 var initOnce sync.Once
@@ -78,12 +77,6 @@ func Initialize() error {
 		precomputeDefaults()
 	})
 	return initErr
-}
-
-// SetDevMode controls whether bundle filenames use content hashes.
-// Must be called before Initialize or RecomputeFromDir.
-func SetDevMode(dev bool) {
-	pkgDevMode = dev
 }
 
 // RecomputeFromDir reloads and rebundles all plugin client assets from the

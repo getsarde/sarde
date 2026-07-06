@@ -2,10 +2,14 @@ package server
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/subtle"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/getsarde/sarde/internal/consts"
@@ -18,6 +22,7 @@ type APIServer struct {
 	hub    *project.EventHub
 	server *http.Server
 	port   int
+	token  string
 }
 
 // NewAPIServer creates a new API server.
@@ -28,11 +33,18 @@ func NewAPIServer(pm *project.ProjectManager, hub *project.EventHub) *APIServer 
 // Start begins listening on the given port. If port is 0, an ephemeral port is assigned.
 // Returns the actual port being served on.
 func (s *APIServer) Start(port int) (int, error) {
+	tokenBytes := make([]byte, 32)
+	if _, err := rand.Read(tokenBytes); err != nil {
+		return 0, fmt.Errorf("generating API token: %w", err)
+	}
+	s.token = hex.EncodeToString(tokenBytes)
+
 	mux := http.NewServeMux()
 	s.setupRoutes(mux)
 
-	// Apply middleware: logger → recoverer → cors → mux.
+	// Apply middleware: logger → recoverer → cors → auth → mux.
 	var handler http.Handler = mux
+	handler = s.authMiddleware(handler)
 	handler = corsMiddleware(handler)
 	handler = recovererMiddleware(handler)
 	handler = loggerMiddleware(handler)
@@ -62,6 +74,45 @@ func (s *APIServer) Stop() error {
 // Port returns the port the server is listening on.
 func (s *APIServer) Port() int {
 	return s.port
+}
+
+// Token returns the per-launch API token. The spawner reads it from the
+// startup handshake and must present it on every request.
+func (s *APIServer) Token() string {
+	return s.token
+}
+
+// authMiddleware rejects requests that do not present the per-launch token.
+// The health probe stays tokenless so a spawner can poll liveness; OPTIONS
+// preflight is unauthenticated by spec (corsMiddleware short-circuits it
+// before this runs, the check here is defense in depth).
+func (s *APIServer) authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions || r.URL.Path == "/api/health" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		if !s.authorized(r) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"success":false,"error":{"code":"UNAUTHORIZED","message":"missing or invalid API token"}}`))
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (s *APIServer) authorized(r *http.Request) bool {
+	presented, ok := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+	if !ok {
+		// WebSocket clients cannot set request headers; accept the token as a
+		// query parameter for the /api/events upgrade.
+		presented = r.URL.Query().Get("token")
+	}
+	if presented == "" || s.token == "" {
+		return false
+	}
+	return subtle.ConstantTimeCompare([]byte(presented), []byte(s.token)) == 1
 }
 
 func (s *APIServer) setupRoutes(mux *http.ServeMux) {

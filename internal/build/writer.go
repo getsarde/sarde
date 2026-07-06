@@ -26,8 +26,6 @@ type RenderedPage struct {
 type Writer struct {
 	OutputDir  string
 	ProjectDir string
-	Clean      bool
-	DevMode    bool
 	Tracker    *OutputTracker
 }
 

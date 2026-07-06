@@ -311,7 +311,11 @@ func (p *ImageProcessor) paramsString(opts ImageOptions) string {
 	if op == "" {
 		op = ResizeOpScale
 	}
-	return fmt.Sprintf("w=%v,q=%d,f=%v,op=%s,h=%d", widths, quality, formats, op, opts.Height)
+	// MaxWidth and Placeholder change the processing output, so they must be
+	// part of the cache key — otherwise editing either setting between builds
+	// serves stale variants/LQIPs from the on-disk cache.
+	return fmt.Sprintf("w=%v,q=%d,f=%v,op=%s,h=%d,mw=%d,ph=%s",
+		widths, quality, formats, op, opts.Height, p.Config.MaxWidth, p.Config.Placeholder)
 }
 
 // ParseImageOptionsFromQuery parses a query string like "width=800&op=fill&format=webp"
@@ -435,14 +439,32 @@ func formatToExt(format string) string {
 	}
 }
 
+// savePathLocks serializes saveImage per destination path. Concurrent
+// ProcessImage calls for byte-identical sources compute the same output path
+// (the name embeds a content hash); without serialization the writers race —
+// on Windows a rename onto a target being renamed-over fails with access
+// denied, and a shared temp name would interleave writes into one file.
+var savePathLocks sync.Map // map[string]*sync.Mutex
+
 // saveImage writes an image to disk in the specified format using an atomic
-// tmp+rename so a crash or encode failure never leaves a corrupt file at path.
+// tmp+rename so a crash or encode failure never leaves a corrupt file at
+// path. Destination names are content-derived, so an already-existing path
+// holds identical bytes and the write is skipped.
 func saveImage(img image.Image, path, ext string, quality int) error {
-	tmpPath := path + ".tmp"
-	f, err := os.Create(tmpPath)
+	muAny, _ := savePathLocks.LoadOrStore(path, &sync.Mutex{})
+	mu := muAny.(*sync.Mutex)
+	mu.Lock()
+	defer mu.Unlock()
+
+	if _, err := os.Stat(path); err == nil {
+		return nil
+	}
+
+	f, err := os.CreateTemp(filepath.Dir(path), filepath.Base(path)+".*.tmp")
 	if err != nil {
 		return err
 	}
+	tmpPath := f.Name()
 
 	var encErr error
 	switch ext {
@@ -463,6 +485,11 @@ func saveImage(img image.Image, path, ext string, quality int) error {
 	if encErr != nil {
 		os.Remove(tmpPath)
 		return encErr
+	}
+	// CreateTemp uses 0600; restore the usual artifact permissions.
+	if err := os.Chmod(tmpPath, 0o644); err != nil {
+		os.Remove(tmpPath)
+		return err
 	}
 	if err := os.Rename(tmpPath, path); err != nil {
 		os.Remove(tmpPath)

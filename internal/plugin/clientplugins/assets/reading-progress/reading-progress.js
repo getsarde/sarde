@@ -136,8 +136,8 @@ function injectReadingTime() {
     badge.className = 'sarde-reading-time';
     badge.innerHTML = clockSvg + '<span>' + timeText + '</span>';
 
-    // Insert after .page-description or .page-title
-    const anchor = document.querySelector('.sarde-page-description') || document.querySelector('.sarde-page-title');
+    // Insert after page-tags, page-description, or page-title (whichever is last)
+    const anchor = document.querySelector('.sarde-page-tags') || document.querySelector('.sarde-page-description') || document.querySelector('.sarde-page-title');
     if (anchor && anchor.parentNode) {
         anchor.parentNode.insertBefore(badge, anchor.nextSibling);
     }

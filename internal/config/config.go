@@ -23,6 +23,17 @@ func BoolVal(p *bool, fallback bool) bool {
 	return fallback
 }
 
+// IntPtr returns a pointer to the given int value.
+func IntPtr(v int) *int { return &v }
+
+// IntVal dereferences a *int, returning fallback if nil.
+func IntVal(p *int, fallback int) int {
+	if p != nil {
+		return *p
+	}
+	return fallback
+}
+
 // ---------------------------------------------------------------------------
 // SiteConfig — top-level configuration matching sarde.yaml
 // ---------------------------------------------------------------------------
@@ -287,7 +298,7 @@ type CodeblocksSettings struct {
 type PrefetchSettings struct {
 	Enabled  *bool  `yaml:"enabled"`
 	Strategy string `yaml:"strategy"`
-	Delay    int    `yaml:"delay"`
+	Delay    *int   `yaml:"delay"`
 }
 
 // ---------------------------------------------------------------------------
@@ -573,6 +584,7 @@ type TaxonomyConfig struct {
 	PaginateBy    int    `yaml:"paginate_by"`
 	UndefinedTags string `yaml:"undefined_tags"`
 	Render        *bool  `yaml:"render"`
+	ShowTags      *bool  `yaml:"show_tags"`
 }
 
 // ShouldRender returns true if this taxonomy should generate pages.

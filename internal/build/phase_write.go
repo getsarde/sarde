@@ -118,8 +118,6 @@ func (b *SiteBuilder) phaseWrite(s *buildState) (*engine.BuildResult, error) {
 	writer := &Writer{
 		OutputDir:  s.outputDir,
 		ProjectDir: b.projectDir,
-		Clean:      clean,
-		DevMode:    b.devMode,
 		Tracker:    tracker,
 	}
 	staticFiles, err := writer.Write(s.rendered, s.aliases)

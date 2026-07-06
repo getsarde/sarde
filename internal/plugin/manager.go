@@ -136,6 +136,7 @@ func (m *Manager) RunBuildDone(ctx *BuildDoneContext) error {
 				PageIndex:      ctx.PageIndex,
 				ValidationData: ctx.ValidationData,
 				DevMode:        ctx.DevMode,
+				Incremental:    ctx.Incremental,
 				TrackFn:        ctx.TrackFn,
 				mu:             sharedMu,
 				warnings:       ctx.warnings,
@@ -156,11 +157,6 @@ func (m *Manager) RunBuildDone(ctx *BuildDoneContext) error {
 		return err
 	}
 	return nil
-}
-
-// Warnings returns all warnings collected during BuildDone.
-func (m *Manager) Warnings() []engine.ValidationWarning {
-	return nil // warnings are stored on BuildDoneContext, accessed by caller
 }
 
 func (m *Manager) pluginConfig(name string, cfg *config.SiteConfig) map[string]any {

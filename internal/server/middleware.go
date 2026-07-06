@@ -2,18 +2,42 @@ package server
 
 import (
 	"net/http"
+	"net/url"
 	"runtime/debug"
 	"time"
 
 	"github.com/getsarde/sarde/internal/devlog"
 )
 
-// corsMiddleware allows all origins (localhost-only sidecar).
+// apiAllowedOrigin reports whether a browser Origin may talk to the sidecar
+// API: the Tauri webview origins and loopback-hosted frontends. Arbitrary web
+// pages are rejected. The bearer token is the primary gate — this restores
+// the browser's same-origin protections that a wildcard would disable.
+func apiAllowedOrigin(origin string) bool {
+	switch origin {
+	case "tauri://localhost", "https://tauri.localhost", "http://tauri.localhost":
+		return true
+	}
+	u, err := url.Parse(origin)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
+		return false
+	}
+	switch u.Hostname() {
+	case "localhost", "127.0.0.1", "::1":
+		return true
+	}
+	return false
+}
+
+// corsMiddleware echoes CORS headers only for allowlisted origins.
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		if origin := r.Header.Get("Origin"); origin != "" && apiAllowedOrigin(origin) {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Vary", "Origin")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		}
 
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusNoContent)

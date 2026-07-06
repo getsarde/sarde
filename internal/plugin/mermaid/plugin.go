@@ -1,6 +1,6 @@
 // Package mermaid provides a built-in plugin that ships Mermaid runtime
 // assets and wires them into pages whose rendered HTML contains a mermaid
-// diagram (class="mermaid"). Config key `plugins.config.mermaid.always: true`
+// diagram (class="sarde-mermaid"). Config key `plugins.config.mermaid.always: true`
 // forces load on every page.
 //
 // The `assets/` directory is expected to contain the Mermaid distribution

@@ -5,6 +5,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"sync"
 
 	"github.com/getsarde/sarde/internal/consts"
@@ -12,6 +14,19 @@ import (
 	"github.com/getsarde/sarde/internal/workers"
 	"golang.org/x/sync/errgroup"
 )
+
+// foldPath canonicalizes a path key for orphan detection. Windows and macOS
+// filesystems are case-insensitive: after a slug or directory rename that only
+// changes case, the walk in Prune reports the on-disk (old) casing while the
+// tracked path carries the new casing. A case-sensitive comparison would then
+// classify the just-written file as an orphan and delete it. Mirrors
+// buildlock.canonicalKey and outputpath's samePath.
+func foldPath(path string) string {
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+		return strings.ToLower(path)
+	}
+	return path
+}
 
 // OutputTracker records every file written during a build so orphaned
 // files from previous builds can be pruned without a full RemoveAll.
@@ -68,7 +83,7 @@ func (t *OutputTracker) Prune(outputDir string) error {
 			continue
 		}
 		if outputpath.IsWithin(outputRoot, absPath) {
-			written[filepath.Clean(absPath)] = struct{}{}
+			written[foldPath(filepath.Clean(absPath))] = struct{}{}
 		}
 	}
 	t.mu.Unlock()
@@ -78,7 +93,7 @@ func (t *OutputTracker) Prune(outputDir string) error {
 	// The single-instance lock file at the output root is never tracked as
 	// written, so it must be exempted here or every clean build would delete
 	// the lock the running process holds (see internal/buildlock).
-	lockPath := filepath.Join(outputRoot, consts.FileOutputLock)
+	lockKey := foldPath(filepath.Join(outputRoot, consts.FileOutputLock))
 	var emptyDirs []string
 	var toDelete []string
 	err = filepath.WalkDir(outputRoot, func(path string, d fs.DirEntry, err error) error {
@@ -96,10 +111,11 @@ func (t *OutputTracker) Prune(outputDir string) error {
 			emptyDirs = append(emptyDirs, path)
 			return nil
 		}
-		if filepath.Clean(absPath) == lockPath {
+		key := foldPath(filepath.Clean(absPath))
+		if key == lockKey {
 			return nil
 		}
-		if _, ok := written[filepath.Clean(absPath)]; !ok {
+		if _, ok := written[key]; !ok {
 			toDelete = append(toDelete, path)
 		}
 		return nil

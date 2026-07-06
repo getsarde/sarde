@@ -77,7 +77,7 @@ func validateRanges(c *validate.Checker, cfg *SiteConfig) {
 	c.IntMin("images.max_width", cfg.Images.MaxWidth, 1)
 	c.IntMin("link_validation.external.concurrency", cfg.LinkValidation.External.Concurrency, 1)
 	c.IntMin("content.summary_length", cfg.Content.SummaryLength, 1)
-	c.IntMin("prefetch.delay", cfg.Prefetch.Delay, 0)
+	c.IntMin("prefetch.delay", IntVal(cfg.Prefetch.Delay, 0), 0)
 	c.IntMin("content_lint.rules.heading_max_length", cfg.ContentLint.Rules.HeadingMaxLength, 1)
 }
 

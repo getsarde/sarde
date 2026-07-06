@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/outputpath"
 )
 
 // devRequestLogger wraps an HTTP handler to log requests with colored status codes.
@@ -83,9 +85,14 @@ func (ds *DevServer) fileHandler() http.Handler {
 		trimmed := strings.TrimPrefix(urlPath, strings.TrimRight(ds.basePath, "/"))
 		trimmed = strings.TrimPrefix(trimmed, "/")
 		if seg, _, ok := strings.Cut(trimmed, "/"); ok && seg != "" {
-			langCandidate := filepath.Join(ds.outputDir, seg, consts.Template404)
-			if _, err := os.Stat(langCandidate); err == nil {
-				notFound = langCandidate
+			// SafeJoin, not a bare filepath.Join: seg is split on "/" only, so
+			// an encoded-backslash segment like "..\..\.." would otherwise
+			// survive into the join and escape outputDir on Windows (this read
+			// bypasses http.ServeFile's dot-dot guard).
+			if langCandidate, err := outputpath.SafeJoin(ds.outputDir, path.Join(seg, consts.Template404)); err == nil {
+				if _, err := os.Stat(langCandidate); err == nil {
+					notFound = langCandidate
+				}
 			}
 		}
 		if notFound == "" {

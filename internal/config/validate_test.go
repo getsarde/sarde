@@ -74,7 +74,7 @@ func TestValidate_InvalidRanges(t *testing.T) {
 		{"min_level too high", func(c *SiteConfig) { c.TOC.MinLevel = 9 }, "toc.min_level"},
 		{"max_width negative", func(c *SiteConfig) { c.Images.MaxWidth = -5 }, "images.max_width"},
 		{"summary_length negative", func(c *SiteConfig) { c.Content.SummaryLength = -1 }, "content.summary_length"},
-		{"prefetch.delay negative", func(c *SiteConfig) { c.Prefetch.Delay = -1 }, "prefetch.delay"},
+		{"prefetch.delay negative", func(c *SiteConfig) { c.Prefetch.Delay = IntPtr(-1) }, "prefetch.delay"},
 		{"heading_max_length zero", func(c *SiteConfig) { c.ContentLint.Rules.HeadingMaxLength = -1 }, "content_lint.rules.heading_max_length"},
 	}
 	for _, tt := range tests {

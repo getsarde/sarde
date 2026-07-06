@@ -91,6 +91,28 @@ func TestGitHubArchiveURL(t *testing.T) {
 	}
 }
 
+// TestDownloadFile_InsecureHTTP_StillAttemptsDownload verifies that
+// DownloadFile does not block or panic on plain http:// URLs — it only
+// warns (via devlog.Warn, which writes to stderr and isn't captured here).
+// Using a URL that can't be reached confirms the warning path executes and
+// then falls through to the normal request/error handling unchanged.
+func TestDownloadFile_InsecureHTTP_StillAttemptsDownload(t *testing.T) {
+	_, err := DownloadFile("http://127.0.0.1:0/nonexistent-theme.zip")
+	if err == nil {
+		t.Fatal("expected an error connecting to an unreachable http:// URL")
+	}
+}
+
+// TestDownloadFile_HTTPS_NoWarningPath verifies the https:// case takes the
+// non-warning branch without panicking, by exercising an unreachable https
+// URL and confirming it still returns a (connection) error as normal.
+func TestDownloadFile_HTTPS_NoWarningPath(t *testing.T) {
+	_, err := DownloadFile("https://127.0.0.1:0/nonexistent-theme.zip")
+	if err == nil {
+		t.Fatal("expected an error connecting to an unreachable https:// URL")
+	}
+}
+
 func TestExtractZip(t *testing.T) {
 	dir := t.TempDir()
 	zipPath := filepath.Join(dir, "test.zip")

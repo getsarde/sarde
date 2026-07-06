@@ -145,6 +145,7 @@ type BuildDoneContext struct {
 	PageIndex      *content.PageIndex                // page index for link validation
 	ValidationData map[string]engine.ValidationEntry // permalink -> collected links per page
 	DevMode        bool
+	Incremental    bool // true after an incremental rebuild rather than a full Build()
 	TrackFn        func(string)
 	mu             *sync.Mutex
 	warnings       *[]engine.ValidationWarning

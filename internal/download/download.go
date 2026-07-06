@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/getsarde/sarde/internal/devlog"
 )
 
 type SourceKind int
@@ -98,6 +100,10 @@ func (r *GitHubRef) ArchiveURL() string {
 }
 
 func DownloadFile(srcURL string) (string, error) {
+	if strings.HasPrefix(strings.ToLower(srcURL), "http://") {
+		devlog.Warn("download", "downloading over insecure HTTP: %s — consider using HTTPS", srcURL)
+	}
+
 	client := &http.Client{Timeout: 60 * time.Second}
 
 	resp, err := client.Get(srcURL)

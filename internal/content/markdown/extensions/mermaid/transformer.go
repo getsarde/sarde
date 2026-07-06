@@ -25,7 +25,11 @@ func (t *transformer) Transform(node *ast.Document, reader text.Reader, pc parse
 			return ast.WalkContinue, nil
 		}
 		lang := strings.TrimSpace(string(fcb.Info.Text(source)))
-		if lang == "sarde-mermaid" {
+		// Accept the standard "mermaid" fence language alongside the legacy
+		// "sarde-mermaid" spelling. Claiming the node here (before Kazari's
+		// code-block renderer runs) is what routes it through Sarde's own
+		// MermaidBlock renderer and script-injection plugin.
+		if lang == "mermaid" || lang == "sarde-mermaid" {
 			toReplace = append(toReplace, fcb)
 		}
 		return ast.WalkContinue, nil

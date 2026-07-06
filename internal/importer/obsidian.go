@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -29,12 +30,14 @@ var imageExts = map[string]bool{
 
 // Regex patterns for Obsidian syntax conversion.
 var (
-	reComment          = regexp.MustCompile(`%%[^%]*%%`)
-	reDataview         = regexp.MustCompile("(?s)```dataview.*?```")
-	reImageEmbed       = regexp.MustCompile(`!\[\[([^\]]+\.(?:png|jpg|jpeg|gif|svg|webp))\]\]`)
-	reWikilinkAliased  = regexp.MustCompile(`\[\[([^\]|]+)\|([^\]]+)\]\]`)
-	reWikilink         = regexp.MustCompile(`\[\[([^\]|]+)\]\]`)
-	reCallout          = regexp.MustCompile(`(?m)^> \[!(note|tip|warning|danger|info|caution|important)\].*$`)
+	reComment         = regexp.MustCompile(`%%[^%]*%%`)
+	reDataview        = regexp.MustCompile("(?s)```dataview.*?```")
+	reImageEmbed      = regexp.MustCompile(`!\[\[([^\]|]+\.(?i:png|jpg|jpeg|gif|svg|webp))(?:\|[^\]]*)?\]\]`)
+	reWikilinkAliased = regexp.MustCompile(`\[\[([^\]|]+)\|([^\]]+)\]\]`)
+	reWikilink        = regexp.MustCompile(`\[\[([^\]|]+)\]\]`)
+	// reCalloutHeader matches an Obsidian callout header line and captures the
+	// type and optional title. The optional +/- is Obsidian's foldable marker.
+	reCalloutHeader = regexp.MustCompile(`^>\s*\[!((?i:note|tip|warning|danger|info|caution|important))\][+-]?\s*(.*)$`)
 )
 
 // ImportObsidian converts an Obsidian vault into a collection of markdown files.
@@ -138,10 +141,12 @@ func convertNote(text, collection string, wikilinkMap map[string]string) (string
 	// 2. Strip dataview blocks.
 	text = reDataview.ReplaceAllString(text, "")
 
-	// 3. Convert image embeds.
+	// 3. Convert image embeds. copyImages flattens the vault's folder layout
+	// into assets/, so subfolder embeds like ![[attachments/x.png]] must be
+	// referenced by basename. A |size suffix (![[x.png|300]]) is dropped.
 	text = reImageEmbed.ReplaceAllStringFunc(text, func(match string) string {
 		m := reImageEmbed.FindStringSubmatch(match)
-		filename := m[1]
+		filename := path.Base(filepath.ToSlash(m[1]))
 		alt := strings.TrimSuffix(filename, filepath.Ext(filename))
 		return fmt.Sprintf("![%s](assets/%s)", alt, filename)
 	})
@@ -166,12 +171,51 @@ func convertNote(text, collection string, wikilinkMap map[string]string) (string
 	})
 
 	// 6. Convert callouts.
-	text = reCallout.ReplaceAllStringFunc(text, func(match string) string {
-		m := reCallout.FindStringSubmatch(match)
-		return ":::" + m[1]
-	})
+	text = convertCallouts(text)
 
 	return text, links
+}
+
+// convertCallouts rewrites Obsidian blockquote callouts as aside blocks.
+// Sarde's aside parser requires an explicit closing ":::" fence and does not
+// understand blockquote continuation prefixes, so this must be a line pass:
+// the header opens a fence, following "> " lines are unquoted into the body,
+// and the first non-blockquote line closes the fence. Without the closing
+// fence the aside block would swallow the rest of the document.
+func convertCallouts(text string) string {
+	lines := strings.Split(text, "\n")
+	out := make([]string, 0, len(lines))
+	inCallout := false
+
+	for _, line := range lines {
+		if m := reCalloutHeader.FindStringSubmatch(line); m != nil {
+			if inCallout {
+				out = append(out, ":::", "")
+			}
+			fence := ":::" + strings.ToLower(m[1])
+			if title := strings.TrimSpace(m[2]); title != "" {
+				fence += "[" + title + "]"
+			}
+			out = append(out, fence)
+			inCallout = true
+			continue
+		}
+		if inCallout {
+			if strings.HasPrefix(line, ">") {
+				body := strings.TrimPrefix(line, ">")
+				body = strings.TrimPrefix(body, " ")
+				out = append(out, body)
+				continue
+			}
+			out = append(out, ":::")
+			inCallout = false
+		}
+		out = append(out, line)
+	}
+	if inCallout {
+		out = append(out, ":::")
+	}
+	return strings.Join(out, "\n")
 }
 
 // resolveWikilink looks up a page name in the wikilink map, falling back to slugification.
