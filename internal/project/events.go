@@ -18,9 +18,7 @@ type Event struct {
 }
 
 // eventWriteTimeout bounds each WebSocket write so one stalled client cannot
-// hold h.mu indefinitely. This matters doubly here: most ProjectManager
-// mutators broadcast while holding pm.mu, so an unbounded write would freeze
-// every API request, not just event delivery.
+// hold h.mu indefinitely.
 const eventWriteTimeout = 5 * time.Second
 
 // EventHub manages WebSocket client connections and broadcasts events.

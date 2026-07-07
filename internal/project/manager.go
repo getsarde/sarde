@@ -66,29 +66,30 @@ func NewProjectManager(hub *EventHub, efs fs.FS, pf PreviewFactory) *ProjectMana
 // OpenProject loads an existing project from the given directory.
 func (pm *ProjectManager) OpenProject(dir string) (*ProjectInfo, error) {
 	pm.mu.Lock()
-	defer pm.mu.Unlock()
 
 	absDir, err := filepath.Abs(dir)
 	if err != nil {
+		pm.mu.Unlock()
 		return nil, fmt.Errorf("resolving path: %w", err)
 	}
 
-	// Validate that content/ directory exists.
 	contentDir := filepath.Join(absDir, consts.DirContent)
 	if _, err := os.Stat(contentDir); os.IsNotExist(err) {
+		pm.mu.Unlock()
 		return nil, fmt.Errorf("not a valid project: content/ directory not found in %s", absDir)
 	}
 
-	// Resolve config.
 	cfg, themeCfg, err := pm.resolveConfig(absDir)
 	if err != nil {
+		pm.mu.Unlock()
 		return nil, err
 	}
 
 	pm.setProjectConfig(absDir, cfg, themeCfg)
 	pm.state = StateOpen
-
 	info := pm.buildProjectInfo()
+	pm.mu.Unlock()
+
 	pm.eventHub.Broadcast(Event{Type: "project:opened", Data: info})
 	return info, nil
 }
@@ -96,10 +97,10 @@ func (pm *ProjectManager) OpenProject(dir string) (*ProjectInfo, error) {
 // CloseProject closes the current project and stops any running preview.
 func (pm *ProjectManager) CloseProject() error {
 	pm.mu.Lock()
-	defer pm.mu.Unlock()
-
+	var previewWasStopped bool
 	if pm.state == StatePreviewing {
 		pm.stopPreviewLocked()
+		previewWasStopped = true
 	}
 
 	// pm.deps is intentionally NOT cleared: a watcher timer rebuild can fire
@@ -110,7 +111,11 @@ func (pm *ProjectManager) CloseProject() error {
 	pm.config = nil
 	pm.themeCfg = nil
 	pm.state = StateClosed
+	pm.mu.Unlock()
 
+	if previewWasStopped {
+		pm.eventHub.Broadcast(Event{Type: "preview:stopped"})
+	}
 	pm.eventHub.Broadcast(Event{Type: "project:closed"})
 	return nil
 }

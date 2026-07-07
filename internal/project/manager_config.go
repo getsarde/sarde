@@ -27,14 +27,14 @@ func (pm *ProjectManager) GetConfig() *config.SiteConfig {
 // UpdateSettings applies partial config updates and re-resolves.
 func (pm *ProjectManager) UpdateSettings(input SettingsInput) error {
 	pm.mu.Lock()
-	defer pm.mu.Unlock()
-
 	if pm.state == StateClosed {
+		pm.mu.Unlock()
 		return fmt.Errorf("no project open")
 	}
+	projectDir := pm.projectDir
+	pm.mu.Unlock()
 
-	// Read current sarde.yaml.
-	siteYAMLPath := filepath.Join(pm.projectDir, consts.FileSiteConfig)
+	siteYAMLPath := filepath.Join(projectDir, consts.FileSiteConfig)
 	data, err := os.ReadFile(siteYAMLPath)
 	if err != nil {
 		return fmt.Errorf("reading sarde.yaml: %w", err)
@@ -45,14 +45,12 @@ func (pm *ProjectManager) UpdateSettings(input SettingsInput) error {
 		raw = make(map[string]any)
 	}
 
-	// Ensure site section exists.
 	siteSection, _ := raw["site"].(map[string]any)
 	if siteSection == nil {
 		siteSection = make(map[string]any)
 		raw["site"] = siteSection
 	}
 
-	// Apply non-nil fields.
 	if input.Title != nil {
 		siteSection["title"] = *input.Title
 	}
@@ -66,7 +64,6 @@ func (pm *ProjectManager) UpdateSettings(input SettingsInput) error {
 		siteSection["description"] = *input.Description
 	}
 
-	// Write back.
 	out, err := yaml.Marshal(raw)
 	if err != nil {
 		return fmt.Errorf("marshaling sarde.yaml: %w", err)
@@ -75,12 +72,14 @@ func (pm *ProjectManager) UpdateSettings(input SettingsInput) error {
 		return err
 	}
 
-	// Re-resolve config.
-	cfg, themeCfg, err := pm.resolveConfig(pm.projectDir)
+	cfg, themeCfg, err := pm.resolveConfig(projectDir)
 	if err != nil {
 		return err
 	}
-	pm.setProjectConfig(pm.projectDir, cfg, themeCfg)
+
+	pm.mu.Lock()
+	pm.setProjectConfig(projectDir, cfg, themeCfg)
+	pm.mu.Unlock()
 
 	pm.eventHub.Broadcast(Event{Type: "config:changed"})
 	return nil

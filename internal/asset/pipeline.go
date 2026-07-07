@@ -3,10 +3,10 @@ package asset
 import (
 	"fmt"
 	"io/fs"
-	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/getsarde/sarde/internal/atomicwrite"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/outputpath"
@@ -225,15 +225,8 @@ func (p *Pipeline) WriteBundleAssetsWithOptions(pages []*engine.Page, outputDir 
 	}
 
 	writeOne := func(c assetCopy) error {
-		if err := os.MkdirAll(filepath.Dir(c.dst), 0o755); err != nil {
-			return err
-		}
-		data, err := os.ReadFile(c.src)
-		if err != nil {
-			return fmt.Errorf("reading bundle asset %s: %w", c.src, err)
-		}
-		if err := os.WriteFile(c.dst, data, 0o644); err != nil {
-			return err
+		if err := atomicwrite.CopyFile(c.src, c.dst, 0o644); err != nil {
+			return fmt.Errorf("copying bundle asset %s: %w", c.src, err)
 		}
 		if trackFn != nil {
 			trackFn(c.dst)
@@ -270,10 +263,7 @@ func writeBundledFile(outputDir string, f BundledFile, trackFn func(string)) err
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(outPath), 0o755); err != nil {
-		return err
-	}
-	if err := os.WriteFile(outPath, f.Content, 0o644); err != nil {
+	if err := atomicwrite.WriteFile(outPath, f.Content, 0o644); err != nil {
 		return err
 	}
 	if trackFn != nil {

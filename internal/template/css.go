@@ -23,6 +23,7 @@ var cssOrder = []string{
 	"css/extensions/steps.css",
 	"css/extensions/lists.css",
 	"css/extensions/cards.css",
+	"css/extensions/columns.css",
 	"css/extensions/inline.css",
 	"css/extensions/media.css",
 	"css/style.css",

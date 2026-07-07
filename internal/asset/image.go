@@ -13,6 +13,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/getsarde/sarde/internal/atomicwrite"
+
 	"github.com/disintegration/imaging"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/devlog"
@@ -243,15 +245,8 @@ func (p *ImageProcessor) WriteProcessedImagesWithOptions(outputDir string, track
 	}
 
 	writeOne := func(c imageCopy) error {
-		data, err := os.ReadFile(c.src)
-		if err != nil {
-			return fmt.Errorf("reading processed image %s: %w", c.src, err)
-		}
-		if err := os.MkdirAll(filepath.Dir(c.dst), 0o755); err != nil {
-			return err
-		}
-		if err := os.WriteFile(c.dst, data, 0o644); err != nil {
-			return err
+		if err := atomicwrite.CopyFile(c.src, c.dst, 0o644); err != nil {
+			return fmt.Errorf("copying processed image %s: %w", c.src, err)
 		}
 		if trackFn != nil {
 			trackFn(c.dst)

@@ -20,6 +20,7 @@ import (
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/badgegroup"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/card"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/cardgrid"
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/columns"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/copytext"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/details"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/figure"
@@ -215,6 +216,7 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) (goldmark.Markdown, string)
 		&timeline.Extension{},
 		&card.Extension{},
 		&cardgrid.Extension{},
+		&columns.Extension{},
 		&linkcard.Extension{BlockedSchemes: cfg.BlockedHrefSchemes, LinkRenderer: r.linkRend},
 		&linkbutton.Extension{BlockedSchemes: cfg.BlockedHrefSchemes, LinkRenderer: r.linkRend},
 		&linkbuttongroup.Extension{},

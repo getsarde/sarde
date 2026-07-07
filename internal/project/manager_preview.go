@@ -56,8 +56,8 @@ func (pm *ProjectManager) StartPreview(port int) (int, error) {
 				pm.releasePreviewLockLocked()
 				pm.state = StateOpen
 			}
-			pm.eventHub.Broadcast(Event{Type: "preview:error", Data: map[string]any{"error": err.Error()}})
 			pm.mu.Unlock()
+			pm.eventHub.Broadcast(Event{Type: "preview:error", Data: map[string]any{"error": err.Error()}})
 		}
 		startErr <- err // sent after teardown so the waiter observes cleaned-up state
 	}()
@@ -75,12 +75,12 @@ func (pm *ProjectManager) StartPreview(port int) (int, error) {
 	}
 
 	pm.mu.Lock()
-	defer pm.mu.Unlock()
 	if pm.devServer != ds {
-		// StopPreview/CloseProject won the race after binding; its
-		// preview:stopped event already fired — don't announce a dead server.
+		pm.mu.Unlock()
 		return 0, fmt.Errorf("preview was stopped while starting")
 	}
+	pm.mu.Unlock()
+
 	pm.eventHub.Broadcast(Event{Type: "preview:started", Data: map[string]any{"port": actualPort}})
 	return actualPort, nil
 }
@@ -148,21 +148,24 @@ func (pm *ProjectManager) installPreview(port int) (PreviewServer, error) {
 // StopPreview stops the dev server.
 func (pm *ProjectManager) StopPreview() error {
 	pm.mu.Lock()
-	defer pm.mu.Unlock()
-
 	if pm.devServer == nil {
+		pm.mu.Unlock()
 		return ErrPreviewNotRunning
 	}
+	err := pm.stopPreviewLocked()
+	pm.mu.Unlock()
 
-	return pm.stopPreviewLocked()
+	pm.eventHub.Broadcast(Event{Type: "preview:stopped"})
+	return err
 }
 
+// stopPreviewLocked stops the dev server and clears preview state. Caller must
+// hold pm.mu and is responsible for broadcasting "preview:stopped" after unlocking.
 func (pm *ProjectManager) stopPreviewLocked() error {
 	err := pm.devServer.Stop()
 	pm.devServer = nil
 	pm.releasePreviewLockLocked()
 	pm.state = StateOpen
-	pm.eventHub.Broadcast(Event{Type: "preview:stopped"})
 	return err
 }
 

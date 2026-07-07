@@ -1,11 +1,10 @@
 package plugin
 
 import (
-	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 
+	"github.com/getsarde/sarde/internal/atomicwrite"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/engine"
@@ -208,13 +207,10 @@ func (c *BuildDoneContext) WriteFile(relPath string, data []byte) error {
 	c.initMu()
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if err := os.MkdirAll(filepath.Dir(absPath), 0o755); err != nil {
-		return err
-	}
 	if c.TrackFn != nil {
 		c.TrackFn(absPath)
 	}
-	return os.WriteFile(absPath, data, 0o644)
+	return atomicwrite.WriteFile(absPath, data, 0o644)
 }
 
 // SetWarnings sets the warnings slice pointer. Must be called before RunBuildDone.

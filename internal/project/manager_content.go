@@ -94,11 +94,13 @@ func (pm *ProjectManager) ReadContent(relPath string) (*ContentFile, error) {
 // CreateContent creates a new content file in the given collection.
 func (pm *ProjectManager) CreateContent(collection, title string) (*ContentFile, error) {
 	pm.mu.Lock()
-	defer pm.mu.Unlock()
-
 	if pm.state == StateClosed {
+		pm.mu.Unlock()
 		return nil, fmt.Errorf("no project open")
 	}
+	contentDir := pm.contentDir()
+	projectDir := pm.projectDir
+	pm.mu.Unlock()
 
 	slug := slugify(title)
 	if slug == "" {
@@ -106,7 +108,6 @@ func (pm *ProjectManager) CreateContent(collection, title string) (*ContentFile,
 	}
 
 	relPath := filepath.Join(collection, slug+".md")
-	contentDir := pm.contentDir()
 
 	if err := validateContentPath(contentDir, relPath); err != nil {
 		return nil, err
@@ -117,14 +118,13 @@ func (pm *ProjectManager) CreateContent(collection, title string) (*ContentFile,
 		return nil, fmt.Errorf("file already exists: %s", relPath)
 	}
 
-	fm := scaffoldFrontmatter(pm.projectDir, collection, title)
+	fm := scaffoldFrontmatter(projectDir, collection, title)
 	if err := writeContentFile(contentDir, relPath, fm, "\n"); err != nil {
 		return nil, err
 	}
 
 	pm.eventHub.Broadcast(Event{Type: "file:created", Data: map[string]any{"path": filepath.ToSlash(relPath)}})
 
-	// Return the created file.
 	return &ContentFile{
 		Path:        filepath.ToSlash(relPath),
 		Title:       title,
@@ -139,13 +139,13 @@ func (pm *ProjectManager) CreateContent(collection, title string) (*ContentFile,
 // SaveContent writes frontmatter and body to an existing content file.
 func (pm *ProjectManager) SaveContent(relPath string, fm map[string]any, body string) error {
 	pm.mu.Lock()
-	defer pm.mu.Unlock()
-
 	if pm.state == StateClosed {
+		pm.mu.Unlock()
 		return fmt.Errorf("no project open")
 	}
-
 	contentDir := pm.contentDir()
+	pm.mu.Unlock()
+
 	if err := validateContentPath(contentDir, relPath); err != nil {
 		return err
 	}
@@ -188,16 +188,16 @@ func (pm *ProjectManager) ListRevisions(relPath string) ([]RevisionSummary, erro
 // The current version is snapshotted first so the restore is itself reversible.
 func (pm *ProjectManager) RestoreRevision(relPath, revisionID string) error {
 	pm.mu.Lock()
-	defer pm.mu.Unlock()
-
 	if pm.state == StateClosed {
+		pm.mu.Unlock()
 		return fmt.Errorf("no project open")
 	}
 	contentDir := pm.contentDir()
+	pm.mu.Unlock()
+
 	if err := validateContentPath(contentDir, relPath); err != nil {
 		return err
 	}
-	// Revision ID must be a plain filename — reject any path segment.
 	if strings.ContainsAny(revisionID, "/\\") || strings.Contains(revisionID, "..") {
 		return fmt.Errorf("invalid revision id")
 	}
@@ -216,13 +216,13 @@ func (pm *ProjectManager) RestoreRevision(relPath, revisionID string) error {
 // DeleteContent removes a content file.
 func (pm *ProjectManager) DeleteContent(relPath string) error {
 	pm.mu.Lock()
-	defer pm.mu.Unlock()
-
 	if pm.state == StateClosed {
+		pm.mu.Unlock()
 		return fmt.Errorf("no project open")
 	}
-
 	contentDir := pm.contentDir()
+	pm.mu.Unlock()
+
 	if err := validateContentPath(contentDir, relPath); err != nil {
 		return err
 	}
@@ -239,13 +239,13 @@ func (pm *ProjectManager) DeleteContent(relPath string) error {
 // RenameContent moves a content file to a new path.
 func (pm *ProjectManager) RenameContent(oldPath, newPath string) error {
 	pm.mu.Lock()
-	defer pm.mu.Unlock()
-
 	if pm.state == StateClosed {
+		pm.mu.Unlock()
 		return fmt.Errorf("no project open")
 	}
-
 	contentDir := pm.contentDir()
+	pm.mu.Unlock()
+
 	if err := validateContentPath(contentDir, oldPath); err != nil {
 		return err
 	}

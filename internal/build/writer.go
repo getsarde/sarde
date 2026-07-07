@@ -3,13 +3,13 @@ package build
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"golang.org/x/sync/errgroup"
 
+	"github.com/getsarde/sarde/internal/atomicwrite"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/outputpath"
 	"github.com/getsarde/sarde/internal/workers"
@@ -104,7 +104,7 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 		i, rp := i, rp
 		g.Go(func() error {
 			tracked[i] = rp.outPath
-			return os.WriteFile(rp.outPath, rp.html, 0o644)
+			return atomicwrite.WriteFile(rp.outPath, rp.html, 0o644)
 		})
 	}
 	if err := g.Wait(); err != nil {
@@ -119,7 +119,7 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 		i, ra := i, ra
 		ag.Go(func() error {
 			tracked[base+i] = ra.outPath
-			return os.WriteFile(ra.outPath, ra.html, 0o644)
+			return atomicwrite.WriteFile(ra.outPath, ra.html, 0o644)
 		})
 	}
 	if err := ag.Wait(); err != nil {
@@ -233,12 +233,9 @@ func writeOutputFile(outputDir, relPath string, data []byte) (string, error) {
 	return path, writeFile(path, data)
 }
 
-// writeFile creates parent directories and writes data to path.
+// writeFile creates parent directories and writes data to path atomically.
 func writeFile(path string, data []byte) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
-	return os.WriteFile(path, data, 0o644)
+	return atomicwrite.WriteFile(path, data, 0o644)
 }
 
 func dirExists(path string) bool {
@@ -246,26 +243,8 @@ func dirExists(path string) bool {
 	return err == nil && info.IsDir()
 }
 
-// copyFile copies a single file from src to dst.
-// Parent directories must already exist.
+// copyFile atomically copies a single file from src to dst.
+// Parent directories are created as needed.
 func copyFile(src, dst string) error {
-	in, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-
-	out, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-
-	// Close explicitly and propagate the close error: io.Copy can succeed
-	// while the deferred flush on Close fails (e.g. disk full), which would
-	// otherwise leave a truncated file recorded as successfully written.
-	_, err = io.Copy(out, in)
-	if cerr := out.Close(); err == nil {
-		err = cerr
-	}
-	return err
+	return atomicwrite.CopyFile(src, dst, 0o644)
 }
