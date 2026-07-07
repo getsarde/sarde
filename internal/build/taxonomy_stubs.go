@@ -3,6 +3,7 @@ package build
 import (
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/engine"
+	sardetemplate "github.com/getsarde/sarde/internal/template"
 )
 
 func buildTaxonomyIndexStub(tax *engine.Taxonomy, termEntries []*engine.TermEntry, lang string) *engine.Page {
@@ -40,7 +41,7 @@ func buildTermStub(tax *engine.Taxonomy, term *engine.TaxonomyTerm, lang string)
 }
 
 func buildTermPaginatedStub(tax *engine.Taxonomy, term *engine.TaxonomyTerm, permalink string, n int, lang string) *engine.Page {
-	barePermalink := "/" + tax.Name + "/" + term.Slug + "/"
+	barePermalink := sardetemplate.PaginationURL("/"+tax.Name+"/"+term.Slug+"/", n)
 	return &engine.Page{
 		PageIdentity: engine.PageIdentity{
 			Title:        term.Label,

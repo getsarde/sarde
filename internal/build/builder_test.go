@@ -431,6 +431,14 @@ func assertFixtureFileExists(t *testing.T, base, rel string) {
 	}
 }
 
+func assertFixtureFileNotExists(t *testing.T, base, rel string) {
+	t.Helper()
+	path := filepath.Join(base, filepath.FromSlash(rel))
+	if _, err := os.Stat(path); err == nil {
+		t.Errorf("expected file NOT to exist: %s", rel)
+	}
+}
+
 func assertFixtureFileContains(t *testing.T, base, rel, substr string) {
 	t.Helper()
 	path := filepath.Join(base, filepath.FromSlash(rel))

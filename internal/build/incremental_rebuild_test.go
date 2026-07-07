@@ -164,6 +164,34 @@ func TestContentRebuild_StructuralChangesFallBackToFullBuild(t *testing.T) {
 	}
 }
 
+func TestContentRebuild_DeletedFileOutputRemovedFromDist(t *testing.T) {
+	dir := createIncrementalSite(t)
+	cfg := config.Defaults()
+	builder := newIncrementalBuilder(dir, cfg)
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(dir, "dist")
+	assertFixtureFileExists(t, distDir, "blog/one/index.html")
+
+	postPath := filepath.Join(dir, "content", "blog", "one.md")
+	if err := os.Remove(postPath); err != nil {
+		t.Fatalf("removing fixture: %v", err)
+	}
+
+	result, err := builder.ContentRebuild([]string{postPath})
+	if err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+	if result.PageCount <= 2 {
+		t.Fatalf("expected full rebuild fallback, got %d rendered pages", result.PageCount)
+	}
+
+	assertFixtureFileNotExists(t, distDir, "blog/one/index.html")
+	assertFixtureFileExists(t, distDir, "blog/two/index.html")
+}
+
 func TestContentRebuild_NonStructuralChangesStayIncremental(t *testing.T) {
 	// maxPages is the highest page count that still indicates an incremental
 	// rebuild: the changed page, the blog index, and the home page (always
@@ -417,6 +445,67 @@ func TestContentRebuild_RemovedCustomTaxonomyTermUpdatesTermPage(t *testing.T) {
 	assertFixtureFileNotContains(t, distDir, "authors/bob/index.html", "/blog/one/")
 	assertFixtureFileContains(t, distDir, "authors/bob/index.html", "/blog/two/")
 	assertFixtureFileContains(t, distDir, "authors/jane/index.html", "/blog/one/")
+}
+
+func TestContentRebuild_LastTermRemovedDeletesOrphanedTermPage(t *testing.T) {
+	dir := createIncrementalSite(t)
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\ntags: [golang]\n---\n# One\nBody.\n")
+	writeFixture(t, dir, "content/blog/two.md", "---\ntitle: Two\ndate: 2025-01-01T00:00:00Z\ntags: [rust]\n---\n# Two\nBody.\n")
+
+	cfg := config.Defaults()
+	builder := newIncrementalBuilder(dir, cfg)
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(dir, "dist")
+	assertFixtureFileExists(t, distDir, "tags/golang/index.html")
+	assertFixtureFileExists(t, distDir, "tags/rust/index.html")
+	assertFixtureFileExists(t, distDir, "tags/index.html")
+
+	postPath := filepath.Join(dir, "content", "blog", "one.md")
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\ntags: []\n---\n# One\nBody.\n")
+
+	result, err := builder.ContentRebuild([]string{postPath})
+	if err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+	if result.PageCount >= 7 {
+		t.Fatalf("expected incremental rebuild, got likely full rebuild page count %d", result.PageCount)
+	}
+
+	assertFixtureFileNotExists(t, distDir, "tags/golang/index.html")
+	assertFixtureFileExists(t, distDir, "tags/rust/index.html")
+	assertFixtureFileExists(t, distDir, "tags/index.html")
+}
+
+func TestContentRebuild_AllTermsRemovedDeletesTaxonomyIndex(t *testing.T) {
+	dir := createIncrementalSite(t)
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\ntags: [golang]\n---\n# One\nBody.\n")
+
+	cfg := config.Defaults()
+	builder := newIncrementalBuilder(dir, cfg)
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(dir, "dist")
+	assertFixtureFileExists(t, distDir, "tags/golang/index.html")
+	assertFixtureFileExists(t, distDir, "tags/index.html")
+
+	postPath := filepath.Join(dir, "content", "blog", "one.md")
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\n---\n# One\nBody.\n")
+
+	result, err := builder.ContentRebuild([]string{postPath})
+	if err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+	if result.PageCount >= 7 {
+		t.Fatalf("expected incremental rebuild, got likely full rebuild page count %d", result.PageCount)
+	}
+
+	assertFixtureFileNotExists(t, distDir, "tags/golang/index.html")
+	assertFixtureFileNotExists(t, distDir, "tags/index.html")
 }
 
 func TestRebuildFallback_HardErrorResetsBuilt(t *testing.T) {

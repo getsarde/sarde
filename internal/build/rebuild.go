@@ -62,6 +62,8 @@ type incrementalRebuildState struct {
 
 	// i18n + taxonomies
 	isMultiLang      bool
+	oldTaxonomies    map[string]*engine.Taxonomy
+	oldTaxByLang     map[string]map[string]*engine.Taxonomy
 	newTaxonomies    map[string]*engine.Taxonomy
 	newTaxByLang     map[string]map[string]*engine.Taxonomy
 	rebuildTaxByLang map[string]map[string]*engine.Taxonomy
@@ -110,6 +112,9 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 	if err := b.rebuildIncrementalI18nAndTaxonomies(s); err != nil {
 		return b.rebuildFallback(err)
 	}
+	if err := b.pruneOrphanedTaxonomyOutputs(s); err != nil {
+		return b.rebuildFallback(err)
+	}
 	if err := b.rerenderDirtyMarkdown(s); err != nil {
 		return b.rebuildFallback(err)
 	}
@@ -126,7 +131,13 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 // full-build path instead of incrementally patching inconsistent state.
 func (b *SiteBuilder) rebuildFallback(err error) (*engine.BuildResult, error) {
 	if errors.Is(err, errFallBackToFull) {
-		return b.Build()
+		oldPaths := b.collectPageOutputPaths()
+		result, buildErr := b.Build()
+		if buildErr != nil {
+			return nil, buildErr
+		}
+		b.pruneRemovedPageOutputs(oldPaths)
+		return result, nil
 	}
 	b.built = false
 	return nil, err
@@ -398,6 +409,10 @@ func (b *SiteBuilder) patchPages(s *incrementalRebuildState) error {
 // index, and refreshes the site context handed to the template engine.
 func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildState) error {
 	s.isMultiLang = b.config.I18n.IsMultiLang()
+	if b.lastSiteCtx != nil {
+		s.oldTaxonomies = b.lastSiteCtx.Taxonomies
+		s.oldTaxByLang = b.lastSiteCtx.TaxonomiesByLang
+	}
 	if s.isMultiLang {
 		defaultLang := b.config.I18n.GetDefaultLanguage()
 		langCodes := b.config.I18n.LanguageCodes()
