@@ -33,6 +33,48 @@ func createIncrementalSite(t *testing.T) string {
 	return dir
 }
 
+func TestContentRebuild_HeadingsReusedForUnchangedPages(t *testing.T) {
+	dir := t.TempDir()
+	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n# Home\n")
+	writeFixture(t, dir, "content/blog/_index.md", "---\ntitle: Blog\n---\n")
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\n---\n## Original Heading\nBody.\n")
+	writeFixture(t, dir, "content/blog/two.md", "---\ntitle: Two\ndate: 2025-01-01T00:00:00Z\n---\n## Stable Heading\nBody.\n")
+
+	cfg := config.Defaults()
+	builder := newIncrementalBuilder(dir, cfg)
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	if !builder.lastPageIndex.HasHeading("/blog/two/", "stable-heading") {
+		t.Fatal("initial build should index heading on blog/two")
+	}
+	if !builder.lastPageIndex.HasHeading("/blog/one/", "original-heading") {
+		t.Fatal("initial build should index heading on blog/one")
+	}
+
+	postPath := filepath.Join(dir, "content", "blog", "one.md")
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\n---\n## Updated Heading\nUpdated body.\n")
+
+	result, err := builder.ContentRebuild([]string{postPath})
+	if err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+	if result.PageCount >= 5 {
+		t.Fatalf("expected incremental rebuild, got full rebuild (page count %d)", result.PageCount)
+	}
+
+	if !builder.lastPageIndex.HasHeading("/blog/two/", "stable-heading") {
+		t.Error("unchanged page's heading should be reused from previous build")
+	}
+	if !builder.lastPageIndex.HasHeading("/blog/one/", "updated-heading") {
+		t.Error("changed page's heading should reflect the new content")
+	}
+	if builder.lastPageIndex.HasHeading("/blog/one/", "original-heading") {
+		t.Error("changed page's old heading should not persist")
+	}
+}
+
 func TestContentRebuild_BodyOnlyUpdatesPageSearchAndValidation(t *testing.T) {
 	dir := createIncrementalSite(t)
 	cfg := config.Defaults()

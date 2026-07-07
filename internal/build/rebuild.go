@@ -525,7 +525,18 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 	} else {
 		s.newPageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
 	}
-	populatePageIndexHeadings(s.newPageIndex, s.patchedAllPages)
+	excludeHeadings := make(map[string]struct{}, len(s.parsed)*2)
+	for _, e := range s.parsed {
+		excludeHeadings[e.newPage.Permalink] = struct{}{}
+	}
+	for _, p := range s.patchedAllPages {
+		if p.IsFallback && p.FilePath != "" {
+			if _, changed := s.changedByPath[p.FilePath]; changed {
+				excludeHeadings[p.Permalink] = struct{}{}
+			}
+		}
+	}
+	s.newPageIndex.CopyHeadingsFrom(b.lastPageIndex, excludeHeadings)
 	if !s.bodyOnly {
 		// Body-only edits cannot change permalinks, so the collision set is
 		// identical to the last build's; skip re-emitting the same warnings.

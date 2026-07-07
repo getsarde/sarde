@@ -235,6 +235,35 @@ func TestPageIndexCopyAssetsFrom(t *testing.T) {
 	}
 }
 
+func TestPageIndexCopyHeadingsFrom(t *testing.T) {
+	prev := BuildPageIndex(nil)
+	prev.SetHeadings("/docs/guide/", []string{"intro", "setup"})
+	prev.SetHeadings("/blog/one/", []string{"summary"})
+
+	exclude := map[string]struct{}{"/blog/one/": {}}
+	idx := BuildPageIndex(nil)
+	idx.CopyHeadingsFrom(prev, exclude)
+
+	if !idx.HasHeading("/docs/guide/", "intro") {
+		t.Error("expected copied heading 'intro' on /docs/guide/")
+	}
+	if !idx.HasHeading("/docs/guide/", "setup") {
+		t.Error("expected copied heading 'setup' on /docs/guide/")
+	}
+	if !idx.HasHeading("/docs/guide/", "_top") {
+		t.Error("expected synthetic '_top' heading on /docs/guide/")
+	}
+	if idx.HasHeading("/blog/one/", "summary") {
+		t.Error("excluded permalink /blog/one/ should not have headings after copy")
+	}
+
+	empty := BuildPageIndex(nil)
+	empty.CopyHeadingsFrom(nil, nil)
+	if empty.HasHeading("/docs/guide/", "intro") {
+		t.Error("CopyHeadingsFrom(nil) should copy nothing")
+	}
+}
+
 func TestPageIndexEmpty(t *testing.T) {
 	idx := BuildPageIndex(nil)
 

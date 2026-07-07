@@ -20,6 +20,13 @@ func buildTestContext(pages []*engine.Page, validationData map[string]engine.Val
 		}
 	}
 
+	changedPages := make([]*engine.Page, 0, len(validationData))
+	for permalink := range validationData {
+		changedPages = append(changedPages, &engine.Page{
+			PageIdentity: engine.PageIdentity{Permalink: permalink},
+		})
+	}
+
 	var warnings []engine.ValidationWarning
 	ctx := &BuildDoneContext{
 		Config: &config.SiteConfig{
@@ -32,7 +39,8 @@ func buildTestContext(pages []*engine.Page, validationData map[string]engine.Val
 		// The plugin is the incremental-rebuild checker; full builds use the
 		// internal/links report instead. These unit tests exercise the
 		// validation logic, so run them in incremental mode.
-		Incremental: true,
+		Incremental:  true,
+		ChangedPages: changedPages,
 	}
 	ctx.SetWarnings(&warnings)
 	return ctx, &warnings
@@ -396,6 +404,7 @@ func TestLinkValidatorWithBasePath(t *testing.T) {
 		PageIndex:      idx,
 		ValidationData: data,
 		Incremental:    true,
+		ChangedPages:   []*engine.Page{{PageIdentity: engine.PageIdentity{Permalink: "/swarm/docs/guide/auth/"}}},
 	}
 	ctx.SetWarnings(&warnings)
 
@@ -467,5 +476,44 @@ func TestLinkValidatorSameSiteError(t *testing.T) {
 	}
 	if err == nil {
 		t.Error("same_site_policy error with fail_build must fail the build")
+	}
+}
+
+func TestLinkValidatorIncrementalScopesToChangedPages(t *testing.T) {
+	data := map[string]engine.ValidationEntry{
+		"/changed/": {
+			FilePath: "content/changed.md",
+			Links:    []engine.CollectedLink{{Href: "/broken/"}},
+		},
+		"/unchanged/": {
+			FilePath: "content/unchanged.md",
+			Links:    []engine.CollectedLink{{Href: "/also-broken/"}},
+		},
+	}
+
+	idx := content.BuildPageIndex(nil)
+	var warnings []engine.ValidationWarning
+	ctx := &BuildDoneContext{
+		Config: &config.SiteConfig{
+			LinkValidation: config.LinkValidationSettings{},
+		},
+		Site:           &engine.SiteContext{},
+		Resolver:       &engine.URLResolver{BasePath: "/"},
+		PageIndex:      idx,
+		ValidationData: data,
+		Incremental:    true,
+		ChangedPages:   []*engine.Page{{PageIdentity: engine.PageIdentity{Permalink: "/changed/"}}},
+	}
+	ctx.SetWarnings(&warnings)
+
+	if err := linkValidatorBuildDone(ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(warnings) != 1 {
+		t.Fatalf("got %d warnings, want 1 (only the changed page's broken link)", len(warnings))
+	}
+	if !contains(warnings[0].Message, "/broken/") {
+		t.Errorf("expected warning about /broken/, got %q", warnings[0].Message)
 	}
 }

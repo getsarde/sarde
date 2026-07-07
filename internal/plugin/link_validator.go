@@ -63,9 +63,23 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 
 	siteURL := ctx.BaseURL()
 
-	var errorCount int
+	// Only re-validate links from pages that actually changed this pass;
+	// unchanged pages' links were validated by a prior build. This mirrors
+	// content_lint's scoping: a link from an unchanged page targeting a
+	// heading removed from a changed page won't be re-flagged until the
+	// next full build or an edit to that file.
+	changedSet := make(map[string]struct{}, len(ctx.ChangedPages))
+	for _, p := range ctx.ChangedPages {
+		changedSet[p.Permalink] = struct{}{}
+	}
+
+	var errorCount, linkCount int
 	for permalink, entry := range ctx.ValidationData {
+		if _, changed := changedSet[permalink]; !changed {
+			continue
+		}
 		for _, link := range entry.Links {
+			linkCount++
 			if link.IsImage && !checkImages {
 				continue
 			}
@@ -80,10 +94,6 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 	if errorCount > 0 {
 		ctx.Log(fmt.Sprintf("Found %d broken link(s)", errorCount))
 	} else {
-		linkCount := 0
-		for _, entry := range ctx.ValidationData {
-			linkCount += len(entry.Links)
-		}
 		ctx.Log(fmt.Sprintf("Validated %d links", linkCount))
 	}
 

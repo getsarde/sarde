@@ -184,6 +184,26 @@ func (idx *PageIndex) CopyAssetsFrom(prev *PageIndex) {
 	}
 }
 
+// CopyHeadingsFrom copies heading entries from a previous build's PageIndex,
+// skipping any permalink in exclude. Used by incremental rebuilds to reuse
+// unchanged pages' headings; changed pages populate their own entries
+// afterward via SetHeadings.
+func (idx *PageIndex) CopyHeadingsFrom(prev *PageIndex, exclude map[string]struct{}) {
+	if prev == nil {
+		return
+	}
+	prev.mu.RLock()
+	defer prev.mu.RUnlock()
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+	for permalink, ids := range prev.headings {
+		if _, skip := exclude[permalink]; skip {
+			continue
+		}
+		idx.headings[permalink] = ids
+	}
+}
+
 // HasAsset reports whether a static asset with the given root-relative path exists.
 func (idx *PageIndex) HasAsset(path string) bool {
 	return idx.assets[path]
