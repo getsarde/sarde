@@ -146,11 +146,26 @@ type BuildDoneContext struct {
 	ValidationData map[string]engine.ValidationEntry // permalink -> collected links per page
 	DevMode        bool
 	Incremental    bool // true after an incremental rebuild rather than a full Build()
-	TrackFn        func(string)
-	mu             *sync.Mutex
-	warnings       *[]engine.ValidationWarning
-	logger         *engine.BuildLogger
-	pluginName     string
+
+	// ChangedPages holds the pages whose parsed content actually changed
+	// during an incremental rebuild. Nil on full builds, non-empty whenever
+	// Incremental is true (the incremental path only reaches BuildDone when
+	// at least one page changed). Plugins that want per-page work
+	// proportional to a save's actual diff should branch on Incremental and
+	// use ChangedPages instead of Pages.
+	ChangedPages []*engine.Page
+
+	// RemovedPermalinks lists permalinks removed by this rebuild. Always nil
+	// today: new and deleted content files force a full rebuild, so the
+	// incremental path never has removals to report. Reserved for a future
+	// incremental path that handles deletions without falling back.
+	RemovedPermalinks []string
+
+	TrackFn    func(string)
+	mu         *sync.Mutex
+	warnings   *[]engine.ValidationWarning
+	logger     *engine.BuildLogger
+	pluginName string
 }
 
 // ResolveURL returns a root-relative URL with basePath, lang, and version applied.

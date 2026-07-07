@@ -65,6 +65,12 @@ func beforeRender(ctx *plugin.BeforeRenderContext, cfg map[string]any) error {
 }
 
 func buildDone(ctx *plugin.BuildDoneContext) error {
+	// The embedded vendor tree never changes between rebuilds of one builder;
+	// the first build of a session is always a full Build() and incremental
+	// rebuilds never prune output, so the files are already on disk.
+	if ctx.Incremental {
+		return nil
+	}
 	return plugin.WriteFSTree(ctx, assetsFS, "assets", vendorPrefix)
 }
 

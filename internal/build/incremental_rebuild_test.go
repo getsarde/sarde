@@ -257,6 +257,67 @@ func TestContentRebuild_BodyEditReRendersHomePage(t *testing.T) {
 	assertFixtureFileExists(t, distDir, "index.html")
 }
 
+func TestContentRebuild_H1TitleEditRebuildsCollection(t *testing.T) {
+	// A page without a frontmatter title infers its title from the first H1,
+	// which the frontmatter digest never sees. An H1-only edit must still be
+	// classified as a title change (collection-scoped) so sibling sidebars
+	// pick up the new title instead of taking the body-only fast path.
+	dir := t.TempDir()
+	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n# Home\n")
+	writeFixture(t, dir, "content/docs/_index.md", "---\ntitle: Docs\n---\n")
+	writeFixture(t, dir, "content/docs/alpha.md", "---\ndescription: Alpha page\n---\n# Alpha Original\n\nAlpha body.\n")
+	writeFixture(t, dir, "content/docs/beta.md", "---\ntitle: Beta\n---\n# Beta\n\nBeta body.\n")
+
+	builder := newIncrementalBuilder(dir, config.Defaults())
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(dir, "dist")
+	assertFixtureFileContains(t, distDir, "docs/beta/index.html", "Alpha Original")
+
+	pagePath := filepath.Join(dir, "content", "docs", "alpha.md")
+	writeFixture(t, dir, "content/docs/alpha.md", "---\ndescription: Alpha page\n---\n# Alpha Renamed\n\nAlpha body.\n")
+
+	if _, err := builder.ContentRebuild([]string{pagePath}); err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+	assertFixtureFileContains(t, distDir, "docs/alpha/index.html", "Alpha Renamed")
+	// The sibling's sidebar proves the collection nav was actually rebuilt.
+	assertFixtureFileContains(t, distDir, "docs/beta/index.html", "Alpha Renamed")
+	assertFixtureFileNotContains(t, distDir, "docs/beta/index.html", "Alpha Original")
+}
+
+func TestContentRebuild_BodyEditWithTaxonomyReusesTermPageContent(t *testing.T) {
+	// The body-only fast path reuses the last build's taxonomy structures
+	// instead of rebuilding them. Term pages render member-page summaries, so
+	// the reused term lists must be re-pointed at the re-parsed page objects
+	// or the term page would show the previous save's content.
+	dir := createIncrementalSite(t)
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\ntags: [go]\n---\n# One\nOriginal distinctive prose for the term page.\n")
+
+	builder := newIncrementalBuilder(dir, config.Defaults())
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(dir, "dist")
+	assertFixtureFileContains(t, distDir, "tags/go/index.html", "Original distinctive prose")
+
+	postPath := filepath.Join(dir, "content", "blog", "one.md")
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\ntags: [go]\n---\n# One\nRefreshed distinctive prose for the term page.\n")
+
+	result, err := builder.ContentRebuild([]string{postPath})
+	if err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+	if result.PageCount >= 6 {
+		t.Fatalf("expected incremental rebuild, got likely full rebuild page count %d", result.PageCount)
+	}
+	assertFixtureFileContains(t, distDir, "tags/go/index.html", "Refreshed distinctive prose")
+	assertFixtureFileNotContains(t, distDir, "tags/go/index.html", "Original distinctive prose")
+}
+
 func TestContentRebuild_TitleChangeRebuildsCollection(t *testing.T) {
 	dir := createIncrementalSite(t)
 	cfg := config.Defaults()

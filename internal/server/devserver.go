@@ -41,6 +41,7 @@ type Options struct {
 	BasePath       string // normalized: "/docs/" or "/"
 	BuilderFactory func() *build.SiteBuilder
 	ThemeDevDirs   []string // external dirs to watch as ChangeTemplate (for --theme-dev)
+	Verbose        bool     // print per-phase rebuild timings and plugin log messages
 }
 
 // DevServer runs the development HTTP server with live reload.
@@ -52,6 +53,7 @@ type DevServer struct {
 	liveReload bool
 	version    string
 	basePath   string // normalized: "/docs/" or "/"
+	verbose    bool
 	hub        *Hub
 	watcher    *Watcher
 	rebuilder  *Rebuilder
@@ -86,6 +88,7 @@ func New(opts Options) *DevServer {
 		liveReload: opts.LiveReload,
 		version:    version,
 		basePath:   basePath,
+		verbose:    opts.Verbose,
 		hub:        NewHub(),
 		rebuilder:  NewRebuilder(opts.BuilderFactory, opts.ProjectDir),
 	}
@@ -313,6 +316,14 @@ func (ds *DevServer) handleRebuildResult(change FileChange, result *RebuildResul
 		devlog.Error("build", "Rebuild failed: %v", result.Error)
 	} else {
 		devlog.Log("build", "Rebuilt %d pages in %s", result.PageCount, result.Duration)
+		if ds.verbose {
+			for _, pt := range result.PhaseTimings {
+				devlog.Log("build", "  %s... done (%s)", pt.Phase, pt.Duration.Round(time.Millisecond))
+			}
+			for _, lm := range result.LogMessages {
+				devlog.Log(lm.Source, "%s", lm.Message)
+			}
+		}
 	}
 
 	msg := ToReloadMessage(change, result, ds.projectDir)

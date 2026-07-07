@@ -11,11 +11,13 @@ import (
 
 // RebuildResult holds the outcome of a rebuild attempt.
 type RebuildResult struct {
-	Success   bool
-	Duration  time.Duration
-	PageCount int
-	Warnings  []engine.ValidationWarning
-	Error     error
+	Success      bool
+	Duration     time.Duration
+	PageCount    int
+	Warnings     []engine.ValidationWarning
+	PhaseTimings []engine.PhaseTiming
+	LogMessages  []engine.BuildLogEntry
+	Error        error
 }
 
 // Rebuilder wraps SiteBuilder for dev-mode rebuilds.
@@ -112,10 +114,12 @@ func (r *Rebuilder) executeBuild(change FileChange) *RebuildResult {
 				}
 			}
 			return &RebuildResult{
-				Success:   true,
-				Duration:  result.Duration,
-				PageCount: result.PageCount,
-				Warnings:  result.Warnings,
+				Success:      true,
+				Duration:     result.Duration,
+				PageCount:    result.PageCount,
+				Warnings:     result.Warnings,
+				PhaseTimings: result.PhaseTimings,
+				LogMessages:  result.LogMessages,
 			}
 		}
 		r.builder = r.builderFactory()
@@ -139,10 +143,12 @@ func (r *Rebuilder) executeBuild(change FileChange) *RebuildResult {
 	}
 
 	return &RebuildResult{
-		Success:   true,
-		Duration:  result.Duration,
-		PageCount: result.PageCount,
-		Warnings:  result.Warnings,
+		Success:      true,
+		Duration:     result.Duration,
+		PageCount:    result.PageCount,
+		Warnings:     result.Warnings,
+		PhaseTimings: result.PhaseTimings,
+		LogMessages:  result.LogMessages,
 	}
 }
 

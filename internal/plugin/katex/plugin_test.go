@@ -60,6 +60,18 @@ func TestBeforeRender_AlwaysConfigForces(t *testing.T) {
 	}
 }
 
+func TestBuildDone_SkipsVendorTreeOnIncremental(t *testing.T) {
+	out := t.TempDir()
+	p := New(nil)
+	ctx := &plugin.BuildDoneContext{OutputDir: out, Incremental: true}
+	if err := p.Hooks.BuildDone(ctx); err != nil {
+		t.Fatalf("BuildDone: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(out, "assets")); !os.IsNotExist(err) {
+		t.Error("incremental BuildDone must not rewrite the vendor tree")
+	}
+}
+
 func TestBuildDone_WritesAssetsToVendorDir(t *testing.T) {
 	out := t.TempDir()
 	p := New(nil)

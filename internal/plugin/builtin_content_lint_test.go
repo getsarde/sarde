@@ -116,6 +116,56 @@ func TestContentLint_Disabled(t *testing.T) {
 	}
 }
 
+func TestContentLint_IncrementalLintsOnlyChangedPages(t *testing.T) {
+	violating := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "Bad", FilePath: "content/bad.md"},
+		PageContent:  engine.PageContent{RawContent: "![](no-alt.png)\n"},
+	}
+	clean := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "Clean", FilePath: "content/clean.md"},
+		PageContent:  engine.PageContent{RawContent: "# Clean\n\nNo issues here.\n"},
+	}
+	cfg := &config.SiteConfig{
+		ContentLint: config.ContentLintSettings{
+			Enabled: boolPtr(true),
+			Rules:   config.ContentLintRules{ImageAltRequired: boolPtr(true)},
+		},
+	}
+
+	// Incremental: only ChangedPages are linted, so the violating page in
+	// Pages produces no warning.
+	var warnings []engine.ValidationWarning
+	ctx := &BuildDoneContext{
+		Config:       cfg,
+		OutputDir:    t.TempDir(),
+		Pages:        []*engine.Page{violating, clean},
+		ChangedPages: []*engine.Page{clean},
+		Incremental:  true,
+	}
+	ctx.SetWarnings(&warnings)
+	if err := contentLintBuildDone(ctx); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(warnings) != 0 {
+		t.Errorf("incremental lint of clean changed page: got %d warnings, want 0", len(warnings))
+	}
+
+	// Full build: all pages are linted.
+	warnings = nil
+	ctx = &BuildDoneContext{
+		Config:    cfg,
+		OutputDir: t.TempDir(),
+		Pages:     []*engine.Page{violating, clean},
+	}
+	ctx.SetWarnings(&warnings)
+	if err := contentLintBuildDone(ctx); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(warnings) != 1 {
+		t.Errorf("full lint: got %d warnings, want 1", len(warnings))
+	}
+}
+
 func TestContentLint_Integration(t *testing.T) {
 	outDir := t.TempDir()
 	var warnings []engine.ValidationWarning

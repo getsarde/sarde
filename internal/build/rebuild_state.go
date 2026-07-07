@@ -39,6 +39,20 @@ func replacePagePointer(pages *[]*engine.Page, old, next *engine.Page) {
 	}
 }
 
+// patchTaxonomyPagePointers swaps old for next inside every term's Pages
+// slice across all taxonomies in the given set. Body-only edits cannot change
+// term membership (frontmatter is proven unchanged by the digest and title
+// gate), but every re-parsed file is a new *engine.Page object, so reused
+// taxonomy structures must be re-pointed or term pages would render the old
+// object's stale summary and content.
+func patchTaxonomyPagePointers(taxonomies map[string]*engine.Taxonomy, old, next *engine.Page) {
+	for _, tax := range taxonomies {
+		for _, term := range tax.Terms {
+			replacePagePointer(&term.Pages, old, next)
+		}
+	}
+}
+
 func copyRenderedContentToFallbacks(pages []*engine.Page, changed map[string]*engine.Page, idx *content.PageIndex) {
 	for _, p := range pages {
 		if !p.IsFallback || p.FilePath == "" {

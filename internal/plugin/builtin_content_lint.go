@@ -31,7 +31,15 @@ func contentLintBuildDone(ctx *BuildDoneContext) error {
 		return nil
 	}
 
-	warnings := LintPages(ctx.Pages, lint)
+	// On incremental rebuilds only the changed pages are re-linted; warnings
+	// are per-rebuild and ephemeral in the dev server, so issues on unchanged
+	// pages are simply not re-reported until the next full build or edit to
+	// the offending file.
+	pages := ctx.Pages
+	if ctx.Incremental {
+		pages = ctx.ChangedPages
+	}
+	warnings := LintPages(pages, lint)
 	for _, w := range warnings {
 		ctx.AddWarning(w)
 	}

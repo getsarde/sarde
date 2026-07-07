@@ -40,10 +40,20 @@ type incrementalRebuildState struct {
 	start      time.Time
 	contentDir string
 
+	// Per-step timing, mirroring buildState.recordTiming for full builds.
+	phaseTimings []engine.PhaseTiming
+	recordTiming func(string)
+
 	// Classify + parse
 	parsed           []parsedEntry
 	warnings         []engine.ValidationWarning
 	dirtyCollections map[string]*engine.Collection
+
+	// bodyOnly reports whether every changed file in the batch passed the
+	// body-only gate (frontmatter digest and inferred title unchanged). It
+	// unlocks the fast path in rebuildIncrementalI18nAndTaxonomies: reused
+	// taxonomies, no static/ walk, no version re-linking.
+	bodyOnly bool
 
 	// Patch
 	patchedAllPages []*engine.Page
@@ -80,13 +90,19 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		contentDir:       b.resolveContentDir(),
 		dirtyCollections: make(map[string]*engine.Collection),
 		dirtyPermalinks:  make(map[string]struct{}),
+		bodyOnly:         true,
+	}
+	phaseStart := time.Now()
+	s.recordTiming = func(phase string) {
+		s.phaseTimings = append(s.phaseTimings, engine.PhaseTiming{Phase: phase, Duration: time.Since(phaseStart)})
+		phaseStart = time.Now()
 	}
 
 	if err := b.classifyAndParseChanges(changedPaths, s); err != nil {
 		return b.rebuildFallback(err)
 	}
 	if len(s.parsed) == 0 && len(s.dirtyCollections) == 0 {
-		return &engine.BuildResult{PageCount: 0, Duration: time.Since(start)}, nil
+		return &engine.BuildResult{PageCount: 0, Duration: time.Since(start), PhaseTimings: s.phaseTimings}, nil
 	}
 	if err := b.patchPages(s); err != nil {
 		return b.rebuildFallback(err)
@@ -205,13 +221,25 @@ func (b *SiteBuilder) classifyAndParseChanges(changedPaths []string, s *incremen
 		}
 		s.warnings = append(s.warnings, pageWarnings...)
 
-		// Layer 2: frontmatter digest gate — if frontmatter unchanged, this is
-		// a body-only change. Skip all eligibility checks and go straight to
-		// the incremental path.
-		if old.FrontmatterDigest != "" && old.FrontmatterDigest == newPage.FrontmatterDigest {
-			// Body-only change — always eligible for incremental rebuild.
+		// Layer 2: frontmatter digest gate. The digest is computed over the raw
+		// frontmatter map before inference runs, so a body edit that changes the
+		// first H1 of a page without an explicit frontmatter title changes
+		// page.Title while leaving the digest identical. Compare the inferred
+		// titles too, so title changes always reach classifyChange (which
+		// rebuilds nav/sort state for them). Date is deliberately NOT compared:
+		// pages without a frontmatter date fall back to file mtime, which
+		// advances on every save; comparing it would misclassify every body
+		// edit on such pages. Mtime-dated sort order going stale between
+		// incremental rebuilds is a known, pre-existing limitation.
+		bodyOnly := old.FrontmatterDigest != "" &&
+			old.FrontmatterDigest == newPage.FrontmatterDigest &&
+			old.Title == newPage.Title
+
+		if bodyOnly {
+			// Body-only change, always eligible for incremental rebuild.
 		} else {
-			// Frontmatter changed — classify the change.
+			// Frontmatter or effective title changed: classify the change.
+			s.bodyOnly = false
 			includeDrafts := config.BoolVal(b.config.Build.Drafts, false)
 			includeFuture := config.BoolVal(b.config.Build.Future, false)
 			includeExpired := config.BoolVal(b.config.Build.Expired, false)
@@ -252,6 +280,7 @@ func (b *SiteBuilder) classifyAndParseChanges(changedPaths []string, s *incremen
 			old:      old,
 		})
 	}
+	s.recordTiming("Parsing content")
 	return nil
 }
 
@@ -360,6 +389,7 @@ func (b *SiteBuilder) patchPages(s *incrementalRebuildState) error {
 	}
 
 	s.patchedAllPages = patchedAllPages
+	s.recordTiming("Assembling site")
 	return nil
 }
 
@@ -436,6 +466,22 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 			s.newTaxByLang[code] = langTax
 		}
 		s.newTaxonomies = s.newTaxByLang[defaultLang]
+	} else if s.bodyOnly {
+		// Body-only fast path: term membership comes from frontmatter, which
+		// the digest and title gate proves unchanged, so the last build's
+		// taxonomy structures (including their term metadata from data/*.yml,
+		// which EnrichTaxonomies would otherwise re-read from disk) are still
+		// valid. Only the page pointers inside term lists must be swapped for
+		// the re-parsed objects. Restricted to single-language sites: on
+		// multi-language sites term lists can contain fallback page objects
+		// that are regenerated on every rebuild, and replacePagePointer
+		// deliberately skips fallbacks, so stale fallback pointers could not
+		// be repaired here. Do not extend this branch to multi-language
+		// without solving that.
+		s.newTaxonomies = b.lastSiteCtx.Taxonomies
+		for _, e := range s.parsed {
+			patchTaxonomyPagePointers(s.newTaxonomies, e.old, e.newPage)
+		}
 	} else {
 		s.newTaxonomies, _ = taxonomy.BuildTaxonomies(s.patchedAllPages, b.config.Taxonomies, "")
 		if _, err := taxonomy.EnrichTaxonomies(s.newTaxonomies, b.config.Taxonomies, b.projectDir, ""); err != nil {
@@ -448,12 +494,28 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 		s.rebuildTaxByLang = map[string]map[string]*engine.Taxonomy{"": s.newTaxonomies}
 	}
 
-	collection.LinkVersions(s.patchedAllPages)
+	// Version peers are frontmatter/path-derived and carried over by
+	// preserveStablePageState, so body-only edits cannot change them. On
+	// multi-language sites the regenerated fallback pages are new objects
+	// that still need linking, so only single-language rebuilds may skip.
+	if !s.bodyOnly || s.isMultiLang {
+		collection.LinkVersions(s.patchedAllPages)
+	}
 
 	s.newPageIndex = content.BuildPageIndex(s.patchedAllPages)
-	s.newPageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
+	if s.bodyOnly {
+		// Static file changes never route through ContentRebuild, so the
+		// previous build's asset walk is still valid; skip re-walking static/.
+		s.newPageIndex.CopyAssetsFrom(b.lastPageIndex)
+	} else {
+		s.newPageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
+	}
 	populatePageIndexHeadings(s.newPageIndex, s.patchedAllPages)
-	emitCollisionWarnings(s.newPageIndex.Collisions())
+	if !s.bodyOnly {
+		// Body-only edits cannot change permalinks, so the collision set is
+		// identical to the last build's; skip re-emitting the same warnings.
+		emitCollisionWarnings(s.newPageIndex.Collisions())
+	}
 
 	if s.newTaxByLang != nil {
 		for _, langTax := range s.newTaxByLang {
@@ -479,6 +541,7 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 	if b.kazariEngine != nil {
 		b.tmplEngine.SetCodeBlockCSS(b.kazariEngine.CSS())
 	}
+	s.recordTiming("i18n + taxonomies + page index")
 	return nil
 }
 
@@ -538,6 +601,7 @@ func (b *SiteBuilder) rerenderDirtyMarkdown(s *incrementalRebuildState) error {
 		setPageIndexHeadings(s.newPageIndex, e.newPage)
 	}
 	copyRenderedContentToFallbacks(s.patchedAllPages, s.changedByPath, s.newPageIndex)
+	s.recordTiming("Rendering markdown")
 	return nil
 }
 
@@ -649,6 +713,7 @@ func (b *SiteBuilder) renderAndWriteDirtyPages(s *incrementalRebuildState) error
 
 	s.dirtyRendered = dirtyRendered
 	s.dirtyAliases = dirtyAliases
+	s.recordTiming("Rendering + writing dirty pages")
 	return nil
 }
 
@@ -668,6 +733,10 @@ func (b *SiteBuilder) finishIncrementalRebuild(s *incrementalRebuildState) (*eng
 
 	buildLogger := engine.NewBuildLogger()
 	var pluginWarnings []engine.ValidationWarning
+	changedPages := make([]*engine.Page, 0, len(s.parsed))
+	for _, e := range s.parsed {
+		changedPages = append(changedPages, e.newPage)
+	}
 	buildDoneCtx := &plugin.BuildDoneContext{
 		Config:         b.config,
 		OutputDir:      b.lastOutputDir,
@@ -679,6 +748,7 @@ func (b *SiteBuilder) finishIncrementalRebuild(s *incrementalRebuildState) (*eng
 		ValidationData: s.mergedValidation,
 		DevMode:        b.devMode,
 		Incremental:    true,
+		ChangedPages:   changedPages,
 	}
 	buildDoneCtx.SetWarnings(&pluginWarnings)
 	buildDoneCtx.SetLogger(buildLogger)
@@ -686,13 +756,15 @@ func (b *SiteBuilder) finishIncrementalRebuild(s *incrementalRebuildState) (*eng
 		devlog.Warn("build", "BuildDone plugin error during incremental rebuild: %v, falling back to full build", err)
 		return b.Build()
 	}
+	s.recordTiming("Running plugins")
 	warnings := append(s.warnings, pluginWarnings...)
 
 	return &engine.BuildResult{
-		PageCount:   len(s.dirtyRendered),
-		Duration:    time.Since(s.start),
-		Warnings:    warnings,
-		OutputDir:   b.lastOutputDir,
-		LogMessages: nil,
+		PageCount:    len(s.dirtyRendered),
+		Duration:     time.Since(s.start),
+		Warnings:     warnings,
+		OutputDir:    b.lastOutputDir,
+		LogMessages:  buildLogger.Messages(),
+		PhaseTimings: s.phaseTimings,
 	}, nil
 }

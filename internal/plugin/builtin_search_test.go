@@ -34,7 +34,7 @@ func TestSearch_GeneratesIndex(t *testing.T) {
 	}
 	ctx.SetWarnings(&warnings)
 
-	err := searchBuildDone(ctx, nil)
+	err := searchBuildDone(ctx, nil, &searchDocCache{})
 	if err != nil {
 		t.Fatalf("searchBuildDone failed: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestSearch_BuildDoneWritesVendorAssets(t *testing.T) {
 	}
 	ctx.SetWarnings(&warnings)
 
-	if err := searchBuildDone(ctx, nil); err != nil {
+	if err := searchBuildDone(ctx, nil, &searchDocCache{}); err != nil {
 		t.Fatalf("searchBuildDone: %v", err)
 	}
 
@@ -93,6 +93,129 @@ func TestSearch_BuildDoneWritesVendorAssets(t *testing.T) {
 		if _, err := readTestFile(outDir, rel); err != nil {
 			t.Errorf("missing %s: %v", rel, err)
 		}
+	}
+}
+
+func TestSearch_IncrementalReusesCachedDocs(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+	cache := &searchDocCache{}
+
+	page := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "Cached", RelPermalink: "/cached/", Permalink: "/cached/"},
+		PageContent:  engine.PageContent{Content: template.HTML("<p>first version</p>"), ContentDigest: "digest-a"},
+	}
+	newCtx := func(incremental bool) *BuildDoneContext {
+		ctx := &BuildDoneContext{
+			Config:      config.Defaults(),
+			OutputDir:   outDir,
+			Pages:       []*engine.Page{page},
+			Incremental: incremental,
+		}
+		ctx.SetWarnings(&warnings)
+		return ctx
+	}
+	readIndex := func() string {
+		t.Helper()
+		data, err := readTestFile(outDir, "search-index.en.json")
+		if err != nil {
+			t.Fatalf("reading search index: %v", err)
+		}
+		return string(data)
+	}
+
+	// Full build populates the cache.
+	if err := searchBuildDone(newCtx(false), nil, cache); err != nil {
+		t.Fatal(err)
+	}
+	if got := readIndex(); !strings.Contains(got, "first version") {
+		t.Fatalf("full build index missing content: %s", got)
+	}
+
+	// Mutate the content without changing the digest: an incremental rebuild
+	// must serve the cached docs rather than re-extract.
+	page.Content = template.HTML("<p>second version</p>")
+	if err := searchBuildDone(newCtx(true), nil, cache); err != nil {
+		t.Fatal(err)
+	}
+	if got := readIndex(); !strings.Contains(got, "first version") {
+		t.Errorf("incremental rebuild re-extracted despite unchanged digest: %s", got)
+	}
+
+	// A changed digest invalidates the entry.
+	page.ContentDigest = "digest-b"
+	if err := searchBuildDone(newCtx(true), nil, cache); err != nil {
+		t.Fatal(err)
+	}
+	if got := readIndex(); !strings.Contains(got, "second version") {
+		t.Errorf("incremental rebuild served stale docs after digest change: %s", got)
+	}
+
+	// A full build always re-extracts, even with a matching digest.
+	page.Content = template.HTML("<p>third version</p>")
+	if err := searchBuildDone(newCtx(false), nil, cache); err != nil {
+		t.Fatal(err)
+	}
+	if got := readIndex(); !strings.Contains(got, "third version") {
+		t.Errorf("full build must not reuse cached docs: %s", got)
+	}
+}
+
+func TestSearch_CacheEvictsRemovedPages(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+	cache := &searchDocCache{}
+
+	pageA := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "A", RelPermalink: "/a/"},
+		PageContent:  engine.PageContent{ContentDigest: "digest-a"},
+	}
+	pageB := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "B", RelPermalink: "/b/"},
+		PageContent:  engine.PageContent{ContentDigest: "digest-b"},
+	}
+
+	ctx := &BuildDoneContext{Config: config.Defaults(), OutputDir: outDir, Pages: []*engine.Page{pageA, pageB}}
+	ctx.SetWarnings(&warnings)
+	if err := searchBuildDone(ctx, nil, cache); err != nil {
+		t.Fatal(err)
+	}
+	if len(cache.entries) != 2 {
+		t.Fatalf("cache size = %d, want 2", len(cache.entries))
+	}
+
+	ctx = &BuildDoneContext{Config: config.Defaults(), OutputDir: outDir, Pages: []*engine.Page{pageA}}
+	ctx.SetWarnings(&warnings)
+	if err := searchBuildDone(ctx, nil, cache); err != nil {
+		t.Fatal(err)
+	}
+	if len(cache.entries) != 1 {
+		t.Fatalf("cache size after removal = %d, want 1", len(cache.entries))
+	}
+	if _, ok := cache.entries["/a/"]; !ok {
+		t.Error("cache lost the surviving page's entry")
+	}
+}
+
+func TestSearch_SkipsVendorAssetsOnIncremental(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+	ctx := &BuildDoneContext{
+		Config:      config.Defaults(),
+		OutputDir:   outDir,
+		Pages:       []*engine.Page{{PageIdentity: engine.PageIdentity{Title: "T", RelPermalink: "/t/"}}},
+		Incremental: true,
+	}
+	ctx.SetWarnings(&warnings)
+
+	if err := searchBuildDone(ctx, nil, &searchDocCache{}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := readTestFile(outDir, "search-index.en.json"); err != nil {
+		t.Errorf("index must still be written on incremental: %v", err)
+	}
+	if _, err := readTestFile(outDir, "assets/vendor/orama/orama.esm.js"); err == nil {
+		t.Error("vendor assets must not be rewritten on incremental rebuilds")
 	}
 }
 
@@ -126,7 +249,7 @@ func TestSearch_IncludesDescription(t *testing.T) {
 	}
 	ctx.SetWarnings(&warnings)
 
-	if err := searchBuildDone(ctx, nil); err != nil {
+	if err := searchBuildDone(ctx, nil, &searchDocCache{}); err != nil {
 		t.Fatal(err)
 	}
 	data, err := readTestFile(outDir, "search-index.en.json")
@@ -158,7 +281,7 @@ func TestSearch_ContentTruncation(t *testing.T) {
 	ctx.SetWarnings(&warnings)
 
 	cfg := map[string]any{"max_content_length": 100}
-	searchBuildDone(ctx, cfg)
+	searchBuildDone(ctx, cfg, &searchDocCache{})
 
 	data, err := readTestFile(outDir, "search-index.en.json")
 	if err != nil {
@@ -222,7 +345,7 @@ func TestSearch_TruncationRuneSafe(t *testing.T) {
 	ctx.SetWarnings(&warnings)
 
 	cfg := map[string]any{"max_content_length": 101}
-	if err := searchBuildDone(ctx, cfg); err != nil {
+	if err := searchBuildDone(ctx, cfg, &searchDocCache{}); err != nil {
 		t.Fatalf("searchBuildDone: %v", err)
 	}
 

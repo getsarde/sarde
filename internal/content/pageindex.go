@@ -170,6 +170,20 @@ func (idx *PageIndex) AddAssets(staticDir string) {
 	})
 }
 
+// CopyAssetsFrom copies another index's asset set. Used by the incremental
+// rebuild's body-only fast path, which skips the static/ directory walk:
+// static file changes never route through ContentRebuild (the dev-server
+// watcher classifies them as static changes, which take the full-build path),
+// so the previous build's asset set is still valid.
+func (idx *PageIndex) CopyAssetsFrom(prev *PageIndex) {
+	if prev == nil {
+		return
+	}
+	for path := range prev.assets {
+		idx.assets[path] = true
+	}
+}
+
 // HasAsset reports whether a static asset with the given root-relative path exists.
 func (idx *PageIndex) HasAsset(path string) bool {
 	return idx.assets[path]

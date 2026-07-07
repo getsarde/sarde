@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/getsarde/sarde/internal/engine"
@@ -20,6 +21,7 @@ var searchRuntimeScripts = []string{
 }
 
 func newSearchPlugin(cfg map[string]any) *Plugin {
+	cache := &searchDocCache{}
 	return &Plugin{
 		Name: "search",
 		Hooks: PluginHooks{
@@ -30,10 +32,30 @@ func newSearchPlugin(cfg map[string]any) *Plugin {
 				return nil
 			},
 			BuildDone: func(ctx *BuildDoneContext) error {
-				return searchBuildDone(ctx, cfg)
+				return searchBuildDone(ctx, cfg, cache)
 			},
 		},
 	}
+}
+
+// searchCacheEntry pairs a page's extracted search documents with the
+// content digest they were derived from.
+type searchCacheEntry struct {
+	digest string
+	docs   []searchDocument
+}
+
+// searchDocCache caches per-page search documents across rebuilds, keyed by
+// page URL and validated against page.ContentDigest, so incremental rebuilds
+// only re-extract text for pages that actually changed. Entries are only
+// reused on incremental rebuilds: a full build can change breadcrumb inputs
+// (collection and section titles from _index.md) without touching a page's
+// own digest, so full builds recompute everything and repopulate the cache.
+// If two distinct pages share a URL (permalink collision), only the
+// first-seen page's entry is kept, consistent with the dedup below.
+type searchDocCache struct {
+	mu      sync.Mutex
+	entries map[string]searchCacheEntry
 }
 
 type searchDocument struct {
@@ -51,9 +73,14 @@ type searchDocument struct {
 	Lang        string   `json:"-"`
 }
 
-func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
+func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any, cache *searchDocCache) error {
 	maxLen := cfgutil.Int(cfg, "max_content_length", 5000)
 	excludePatterns := cfgutil.StringSlice(cfg, "exclude")
+
+	cache.mu.Lock()
+	prev := cache.entries
+	cache.mu.Unlock()
+	next := make(map[string]searchCacheEntry, len(ctx.Pages))
 
 	var docs []searchDocument
 	seen := make(map[string]bool)
@@ -70,49 +97,34 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		}
 		seen[url] = true
 
-		raw := truncateRuneSafe(string(page.Content), maxLen*3)
-		content := truncateRuneSafe(stripHTML(raw), maxLen)
-
-		section := ""
-		if page.Collection != nil {
-			section = page.Collection.Name
+		var pageDocs []searchDocument
+		if ctx.Incremental && page.ContentDigest != "" {
+			if e, ok := prev[url]; ok && e.digest == page.ContentDigest {
+				pageDocs = e.docs
+			}
+		}
+		if pageDocs == nil {
+			pageDocs = buildSearchDocs(page, url, maxLen)
+		}
+		if page.ContentDigest != "" {
+			next[url] = searchCacheEntry{digest: page.ContentDigest, docs: pageDocs}
 		}
 
-		breadcrumb := buildBreadcrumb(page)
-
-		docs = append(docs, searchDocument{
-			ID:          url,
-			Title:       page.Title,
-			URL:         url,
-			Description: page.Description,
-			Content:     content,
-			Section:     section,
-			Tags:        page.Tags,
-			Version:     page.Version,
-			Breadcrumb:  breadcrumb,
-			Kind:        "page",
-			Lang:        page.Lang,
-		})
-
-		for _, h := range page.Headings {
-			hURL := url + "#" + h.ID
-			if seen[hURL] {
+		docs = append(docs, pageDocs[0])
+		for _, d := range pageDocs[1:] {
+			if seen[d.ID] {
 				continue
 			}
-			seen[hURL] = true
-			docs = append(docs, searchDocument{
-				ID:         hURL,
-				Title:      h.Text,
-				URL:        hURL,
-				Section:    section,
-				Breadcrumb: breadcrumb + " > " + page.Title,
-				Kind:       "heading",
-				Anchor:     h.ID,
-				Version:    page.Version,
-				Lang:       page.Lang,
-			})
+			seen[d.ID] = true
+			docs = append(docs, d)
 		}
 	}
+
+	// Swapping in a freshly built map evicts entries for pages that no
+	// longer exist (deletions always route through a full build today).
+	cache.mu.Lock()
+	cache.entries = next
+	cache.mu.Unlock()
 
 	byLang := make(map[string][]searchDocument)
 	for _, d := range docs {
@@ -135,11 +147,69 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		total += len(langDocs)
 	}
 
-	if err := writeSearchAssets(ctx); err != nil {
-		return err
+	// The embedded runtime assets never change between rebuilds of one
+	// builder; the first build of a session is always a full Build() and
+	// incremental rebuilds never prune output, so skipping the copy on
+	// incremental rebuilds is safe.
+	if !ctx.Incremental {
+		if err := writeSearchAssets(ctx); err != nil {
+			return err
+		}
 	}
 	ctx.Log(fmt.Sprintf("Built search index (%d documents, %d languages)", total, len(byLang)))
 	return nil
+}
+
+// buildSearchDocs extracts the searchable documents for one page: the page
+// document itself followed by one document per heading. Heading documents
+// are deduplicated within the page; cross-page dedup happens at the call
+// site against the global seen set.
+func buildSearchDocs(page *engine.Page, url string, maxLen int) []searchDocument {
+	raw := truncateRuneSafe(string(page.Content), maxLen*3)
+	content := truncateRuneSafe(stripHTML(raw), maxLen)
+
+	section := ""
+	if page.Collection != nil {
+		section = page.Collection.Name
+	}
+
+	breadcrumb := buildBreadcrumb(page)
+
+	docs := []searchDocument{{
+		ID:          url,
+		Title:       page.Title,
+		URL:         url,
+		Description: page.Description,
+		Content:     content,
+		Section:     section,
+		Tags:        page.Tags,
+		Version:     page.Version,
+		Breadcrumb:  breadcrumb,
+		Kind:        "page",
+		Lang:        page.Lang,
+	}}
+
+	seenHeadings := make(map[string]bool, len(page.Headings)+1)
+	seenHeadings[url] = true
+	for _, h := range page.Headings {
+		hURL := url + "#" + h.ID
+		if seenHeadings[hURL] {
+			continue
+		}
+		seenHeadings[hURL] = true
+		docs = append(docs, searchDocument{
+			ID:         hURL,
+			Title:      h.Text,
+			URL:        hURL,
+			Section:    section,
+			Breadcrumb: breadcrumb + " > " + page.Title,
+			Kind:       "heading",
+			Anchor:     h.ID,
+			Version:    page.Version,
+			Lang:       page.Lang,
+		})
+	}
+	return docs
 }
 
 // truncateRuneSafe cuts s to at most max bytes without splitting a UTF-8 rune.

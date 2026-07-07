@@ -179,6 +179,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 		}()
 	}
 
+	verbose, _ := cmd.Flags().GetBool("verbose")
 	ds := server.New(server.Options{
 		ProjectDir:     projectDir,
 		OutputDir:      outputDir,
@@ -189,6 +190,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 		BasePath:       cfg.Build.BasePath,
 		BuilderFactory: builderFactory,
 		ThemeDevDirs:   themeDevWatchDirs,
+		Verbose:        verbose,
 	})
 
 	// Graceful shutdown on SIGINT/SIGTERM.

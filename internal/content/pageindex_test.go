@@ -207,6 +207,34 @@ func TestPageIndexAssetsNonexistentDir(t *testing.T) {
 	}
 }
 
+func TestPageIndexCopyAssetsFrom(t *testing.T) {
+	dir := t.TempDir()
+	writeStaticFile(t, dir, "favicon.ico", "icon")
+	writeStaticFile(t, dir, filepath.Join("images", "hero.png"), "img")
+
+	prev := BuildPageIndex(nil)
+	prev.AddAssets(dir)
+
+	idx := BuildPageIndex(nil)
+	idx.CopyAssetsFrom(prev)
+
+	for _, path := range []string{"/favicon.ico", "/images/hero.png"} {
+		if !idx.HasAsset(path) {
+			t.Errorf("HasAsset(%q) = false after CopyAssetsFrom, want true", path)
+		}
+	}
+	if idx.HasAsset("/nonexistent.txt") {
+		t.Error("HasAsset(/nonexistent.txt) = true, want false")
+	}
+
+	// A nil source must be a no-op, not a panic.
+	empty := BuildPageIndex(nil)
+	empty.CopyAssetsFrom(nil)
+	if empty.HasAsset("/favicon.ico") {
+		t.Error("CopyAssetsFrom(nil) should copy nothing")
+	}
+}
+
 func TestPageIndexEmpty(t *testing.T) {
 	idx := BuildPageIndex(nil)
 

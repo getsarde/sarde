@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"golang.org/x/sync/errgroup"
@@ -174,6 +175,24 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 
 	// Render markdown, parallel when page count warrants it.
 	markdownPages := countMarkdownPages(s.allPages)
+	totalPages := int32(len(s.allPages))
+	var rendered atomic.Int32
+	var lastProgress atomic.Int64
+	progressLine := func() {
+		now := time.Now().UnixMilli()
+		prev := lastProgress.Load()
+		n := rendered.Load()
+		if n < totalPages && now-prev < 150 {
+			return
+		}
+		if lastProgress.CompareAndSwap(prev, now) {
+			devlog.SetProgress("build", "Rendering content... %d/%d", n, totalPages)
+		}
+	}
+	clearProgress := func() {
+		devlog.ClearProgress()
+	}
+
 	if workers.ShouldParallelize(s.parallel, markdownPages, s.workerCount) {
 		poolSize := s.workerCount
 		if b.rendererPool == nil {
@@ -191,6 +210,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 		g.SetLimit(cap(b.rendererPool))
 		for _, page := range s.allPages {
 			if page.RawContent == "" {
+				rendered.Add(1)
 				continue
 			}
 			g.Go(func() error {
@@ -222,6 +242,8 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 							validationMu.Unlock()
 						}
 						b.rendererPool <- renderer
+						rendered.Add(1)
+						progressLine()
 						return nil
 					}
 				}
@@ -259,12 +281,16 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 						Links:         result.Links,
 					})
 				}
+				rendered.Add(1)
+				progressLine()
 				return nil
 			})
 		}
 		if err := g.Wait(); err != nil {
+			clearProgress()
 			return err
 		}
+		clearProgress()
 	} else {
 		lr := b.mdRenderer.LinkRenderer()
 		lr.PageIndex = pageIndex
@@ -285,6 +311,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 		for _, page := range s.allPages {
 			collectedLinks, scWarns, err := b.renderMarkdownPageSerial(page, deps, s.siteCtx)
 			if err != nil {
+				clearProgress()
 				return err
 			}
 			s.warnings = append(s.warnings, scWarns...)
@@ -292,7 +319,10 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 				validationData[page.Permalink] = engine.ValidationEntry{Links: collectedLinks, FilePath: page.FilePath, Lang: page.Lang}
 			}
 			pendingAnchors = append(pendingAnchors, lr.DrainPendingAnchors()...)
+			rendered.Add(1)
+			progressLine()
 		}
+		clearProgress()
 	}
 	s.recordTiming("Rendering markdown")
 
@@ -320,6 +350,8 @@ func (b *SiteBuilder) validateLinks(s *buildState) (bool, error) {
 	// Generate structured link validation report.
 	if config.BoolVal(b.config.LinkValidation.Enabled, true) {
 		lvc := b.config.LinkValidation
+
+		devlog.Log("links", "Checking links...")
 
 		extCfg := lvc.External
 		if config.BoolVal(extCfg.Check, false) {
