@@ -599,3 +599,89 @@ func TestCollectionNeedsFullNavRebuild(t *testing.T) {
 		t.Error("multi-language site must escalate any collection-scoped nav change")
 	}
 }
+
+func TestContentRebuild_MultiLangBodyOnlyReusesTaxonomies(t *testing.T) {
+	dir := t.TempDir()
+	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n# Home\n")
+	writeFixture(t, dir, "content/blog/_index.md", "---\ntitle: Blog\n---\n")
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\ntags: [golang]\n---\n# One\nOriginal body.\n")
+	writeFixture(t, dir, "content/blog/two.md", "---\ntitle: Two\ndate: 2025-01-01T00:00:00Z\ntags: [golang, testing]\n---\n# Two\nSecond body.\n")
+
+	cfg := config.Defaults()
+	cfg.I18n.Languages = map[string]config.LanguageConfig{"en": {}, "fr": {}}
+	cfg.Taxonomies = map[string]config.TaxonomyConfig{
+		"tags": {},
+	}
+
+	builder := newIncrementalBuilder(dir, cfg)
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	enTax := builder.lastTaxByLang["en"]
+	if enTax == nil {
+		t.Fatal("expected English taxonomy after build")
+	}
+	golangTerm := enTax["tags"].Terms["golang"]
+	if golangTerm == nil || len(golangTerm.Pages) != 2 {
+		t.Fatalf("expected 2 pages in golang term, got %v", golangTerm)
+	}
+
+	frTax := builder.lastTaxByLang["fr"]
+	if frTax == nil {
+		t.Fatal("expected French taxonomy after build")
+	}
+	frGolangTerm := frTax["tags"].Terms["golang"]
+	if frGolangTerm == nil || len(frGolangTerm.Pages) != 2 {
+		t.Fatalf("expected 2 French fallback pages in golang term, got %v", frGolangTerm)
+	}
+
+	postPath := filepath.Join(dir, "content", "blog", "one.md")
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\ntags: [golang]\n---\n# One\nUpdated body.\n")
+
+	enTagsTaxBefore := enTax["tags"]
+	frTagsTaxBefore := frTax["tags"]
+
+	_, err := builder.ContentRebuild([]string{postPath})
+	if err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+
+	enTaxAfter := builder.lastTaxByLang["en"]
+	if enTaxAfter == nil {
+		t.Fatal("expected English taxonomy after rebuild")
+	}
+	if enTaxAfter["tags"] != enTagsTaxBefore {
+		t.Error("expected English tags taxonomy to be reused (same pointer), not rebuilt from scratch")
+	}
+
+	frTaxAfter := builder.lastTaxByLang["fr"]
+	if frTaxAfter == nil {
+		t.Fatal("expected French taxonomy after rebuild")
+	}
+	if frTaxAfter["tags"] != frTagsTaxBefore {
+		t.Error("expected French tags taxonomy to be reused (same pointer), not rebuilt from scratch")
+	}
+
+	golangTermAfter := enTaxAfter["tags"].Terms["golang"]
+	if golangTermAfter == nil || len(golangTermAfter.Pages) != 2 {
+		t.Fatalf("expected 2 pages in golang term after rebuild, got %v", golangTermAfter)
+	}
+
+	frGolangAfter := frTaxAfter["tags"].Terms["golang"]
+	if frGolangAfter == nil || len(frGolangAfter.Pages) != 2 {
+		t.Fatalf("expected 2 French pages in golang term after rebuild, got %v", frGolangAfter)
+	}
+
+	foundUpdated := false
+	for _, p := range golangTermAfter.Pages {
+		if p.Title == "One" {
+			if strings.Contains(string(p.Content), "Updated body") {
+				foundUpdated = true
+			}
+		}
+	}
+	if !foundUpdated {
+		t.Error("English taxonomy term should contain the updated page content")
+	}
+}

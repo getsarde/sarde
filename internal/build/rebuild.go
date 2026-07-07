@@ -413,6 +413,7 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 		s.oldTaxonomies = b.lastSiteCtx.Taxonomies
 		s.oldTaxByLang = b.lastSiteCtx.TaxonomiesByLang
 	}
+	var fallbackSwaps map[*engine.Page]*engine.Page
 	if s.isMultiLang {
 		defaultLang := b.config.I18n.GetDefaultLanguage()
 		langCodes := b.config.I18n.LanguageCodes()
@@ -449,6 +450,21 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 			}
 		}
 
+		if s.bodyOnly {
+			oldFallbacks := make(map[string]*engine.Page)
+			for _, p := range b.lastAllPages {
+				if p.IsFallback {
+					oldFallbacks[p.Permalink] = p
+				}
+			}
+			fallbackSwaps = make(map[*engine.Page]*engine.Page, len(fallbacks))
+			for _, fb := range fallbacks {
+				if old, ok := oldFallbacks[fb.Permalink]; ok {
+					fallbackSwaps[old] = fb
+				}
+			}
+		}
+
 		i18n.LinkAllTranslations(s.patchedAllPages, weights)
 	}
 
@@ -461,7 +477,25 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 		}
 	}
 
-	if s.isMultiLang {
+	if s.isMultiLang && s.bodyOnly {
+		// Multi-language body-only fast path: term membership comes from
+		// frontmatter (proven unchanged by the digest/title gate), so the
+		// previous build's per-language taxonomy structures are still valid.
+		// Swap page pointers for re-parsed source pages and for their
+		// regenerated i18n fallback clones (matched by identity via the
+		// fallbackSwaps mapping built above).
+		defaultLang := b.config.I18n.GetDefaultLanguage()
+		s.newTaxByLang = b.lastTaxByLang
+		for _, langTax := range s.newTaxByLang {
+			for _, e := range s.parsed {
+				patchTaxonomyPagePointers(langTax, e.old, e.newPage)
+			}
+			for old, next := range fallbackSwaps {
+				patchTaxonomyPagePointers(langTax, old, next)
+			}
+		}
+		s.newTaxonomies = s.newTaxByLang[defaultLang]
+	} else if s.isMultiLang {
 		defaultLang := b.config.I18n.GetDefaultLanguage()
 		langCodes := b.config.I18n.LanguageCodes()
 		s.newTaxByLang = make(map[string]map[string]*engine.Taxonomy, len(langCodes))
@@ -482,17 +516,8 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 		}
 		s.newTaxonomies = s.newTaxByLang[defaultLang]
 	} else if s.bodyOnly {
-		// Body-only fast path: term membership comes from frontmatter, which
-		// the digest and title gate proves unchanged, so the last build's
-		// taxonomy structures (including their term metadata from data/*.yml,
-		// which EnrichTaxonomies would otherwise re-read from disk) are still
-		// valid. Only the page pointers inside term lists must be swapped for
-		// the re-parsed objects. Restricted to single-language sites: on
-		// multi-language sites term lists can contain fallback page objects
-		// that are regenerated on every rebuild, and replacePagePointer
-		// deliberately skips fallbacks, so stale fallback pointers could not
-		// be repaired here. Do not extend this branch to multi-language
-		// without solving that.
+		// Single-language body-only fast path: reuse taxonomy structures,
+		// swap only the re-parsed source page pointers.
 		s.newTaxonomies = b.lastSiteCtx.Taxonomies
 		for _, e := range s.parsed {
 			patchTaxonomyPagePointers(s.newTaxonomies, e.old, e.newPage)

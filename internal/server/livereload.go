@@ -68,6 +68,11 @@ const (
 // h.mu (and with it all broadcasts and new connections) indefinitely.
 const writeTimeout = 5 * time.Second
 
+var (
+	pingInterval = 30 * time.Second
+	pongWait     = 35 * time.Second
+)
+
 // WarningItem is a single structured warning for the browser overlay.
 type WarningItem struct {
 	File    string `json:"file"`
@@ -176,12 +181,35 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	}
 	h.mu.Unlock()
 
-	// Read pump — blocks until client disconnects.
+	conn.SetReadDeadline(time.Now().Add(pongWait))
+	conn.SetPongHandler(func(string) error {
+		conn.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
+
+	done := make(chan struct{})
+	go func() {
+		ticker := time.NewTicker(pingInterval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				if err := conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(writeTimeout)); err != nil {
+					return
+				}
+			case <-done:
+				return
+			}
+		}
+	}()
+
+	// Read pump — blocks until client disconnects or read deadline fires.
 	for {
 		if _, _, err := conn.ReadMessage(); err != nil {
 			break
 		}
 	}
+	close(done)
 
 	h.mu.Lock()
 	delete(h.clients, conn)

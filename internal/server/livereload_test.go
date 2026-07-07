@@ -154,6 +154,55 @@ func TestHub_ConcurrentConnectAndBroadcast(t *testing.T) {
 	}
 }
 
+func TestHub_PingKeepalive(t *testing.T) {
+	saved := pingInterval
+	savedPong := pongWait
+	pingInterval = 200 * time.Millisecond
+	pongWait = 400 * time.Millisecond
+	t.Cleanup(func() {
+		pingInterval = saved
+		pongWait = savedPong
+	})
+
+	hub := NewHub()
+	srv := httptest.NewServer(http.HandlerFunc(hub.HandleWS))
+	defer srv.Close()
+
+	wsURL := "ws" + strings.TrimPrefix(srv.URL, "http") + "/"
+	conn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
+	if err != nil {
+		t.Fatalf("WebSocket dial failed: %v", err)
+	}
+	defer conn.Close()
+
+	// Drain the sync greeting.
+	readMessage(t, conn)
+
+	gotPing := make(chan struct{}, 1)
+	conn.SetPingHandler(func(string) error {
+		select {
+		case gotPing <- struct{}{}:
+		default:
+		}
+		return conn.WriteControl(websocket.PongMessage, nil, time.Now().Add(time.Second))
+	})
+
+	// ReadMessage in background to let the ping handler fire.
+	go func() {
+		for {
+			if _, _, err := conn.ReadMessage(); err != nil {
+				return
+			}
+		}
+	}()
+
+	select {
+	case <-gotPing:
+	case <-time.After(pingInterval + 200*time.Millisecond):
+		t.Fatal("did not receive a ping within the expected interval")
+	}
+}
+
 func TestHub_BroadcastError(t *testing.T) {
 	hub := NewHub()
 

@@ -17,6 +17,51 @@ func TestEventHub_BroadcastNoClients(t *testing.T) {
 	hub.Broadcast(Event{Type: "test"})
 }
 
+func TestEventHub_PingKeepalive(t *testing.T) {
+	saved := pingInterval
+	savedPong := pongWait
+	pingInterval = 200 * time.Millisecond
+	pongWait = 400 * time.Millisecond
+	t.Cleanup(func() {
+		pingInterval = saved
+		pongWait = savedPong
+	})
+
+	hub := NewEventHub()
+	srv := httptest.NewServer(http.HandlerFunc(hub.HandleWS))
+	defer srv.Close()
+
+	wsURL := "ws" + strings.TrimPrefix(srv.URL, "http") + "/"
+	conn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
+	if err != nil {
+		t.Fatalf("WebSocket dial failed: %v", err)
+	}
+	defer conn.Close()
+
+	gotPing := make(chan struct{}, 1)
+	conn.SetPingHandler(func(string) error {
+		select {
+		case gotPing <- struct{}{}:
+		default:
+		}
+		return conn.WriteControl(websocket.PongMessage, nil, time.Now().Add(time.Second))
+	})
+
+	go func() {
+		for {
+			if _, _, err := conn.ReadMessage(); err != nil {
+				return
+			}
+		}
+	}()
+
+	select {
+	case <-gotPing:
+	case <-time.After(pingInterval + 200*time.Millisecond):
+		t.Fatal("did not receive a ping within the expected interval")
+	}
+}
+
 func TestEventHub_ConnectAndBroadcast(t *testing.T) {
 	hub := NewEventHub()
 
