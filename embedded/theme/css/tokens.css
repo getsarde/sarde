@@ -57,6 +57,7 @@
 
 	  /* ── Semantic Text ── */
 	  --sd-text: var(--sd-gray-9);
+	  --sd-text-high: var(--sd-black);
 	  --sd-text-muted: var(--sd-gray-6);
 	  --sd-text-subtle: var(--sd-gray-5);
 	  --sd-text-accent: var(--sd-accent, oklch(0.60 0.22 var(--sd-hue-accent)));

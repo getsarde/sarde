@@ -24,7 +24,7 @@ func KnownTokens() map[string]bool {
 		"indigo": true, "indigo-low": true, "indigo-high": true,
 
 		// Semantic text
-		"text": true, "text-muted": true, "text-subtle": true, "text-accent": true, "text-invert": true,
+		"text": true, "text-high": true, "text-muted": true, "text-subtle": true, "text-accent": true, "text-invert": true,
 		"text-success": true, "text-warning": true, "text-danger": true,
 
 		// Semantic backgrounds

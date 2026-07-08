@@ -9,6 +9,7 @@ func DefaultTokens() map[string]string {
 		"bg-surface": "oklch(0.979 0.004 248)",
 		"bg-code":    "oklch(0.228 0.023 255)",
 		"text":       "oklch(0.228 0.023 255)",
+		"text-high":  "var(--sd-black)",
 		"text-muted": "oklch(0.493 0.025 252)",
 		"border":     "oklch(0.916 0.009 253)",
 		"font-sans":  "'Inter', system-ui, -apple-system, sans-serif",
@@ -24,6 +25,7 @@ func DefaultDarkTokens() map[string]string {
 	return map[string]string{
 		// Semantic text
 		"text":            "var(--sd-gray-3)",
+		"text-high":       "var(--sd-white)",
 		"text-muted":      "var(--sd-gray-4)",
 		"text-subtle":     "var(--sd-gray-5)",
 		"text-accent":     "var(--sd-accent-high, var(--sd-accent, oklch(0.71 0.19 264)))",
