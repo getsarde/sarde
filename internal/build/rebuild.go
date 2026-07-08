@@ -622,6 +622,7 @@ func (b *SiteBuilder) rerenderDirtyMarkdown(s *incrementalRebuildState) error {
 		iconRenderKey:  b.lastIconRenderKey,
 		rendererKey:    b.rendererKey,
 		pageCache:      b.lastPageCache,
+		pageIndex:      s.newPageIndex,
 		assetPipeline:  b.lastAssetPipeline,
 	}
 	for i := range s.parsed {
@@ -643,7 +644,7 @@ func (b *SiteBuilder) rerenderDirtyMarkdown(s *incrementalRebuildState) error {
 				})
 			}
 		}
-		links, _, err := b.renderMarkdownPageSerial(e.newPage, deps, b.lastSiteCtx)
+		links, _, _, err := b.renderMarkdownPageSerial(e.newPage, deps, b.lastSiteCtx)
 		if err != nil {
 			devlog.Warn("build", "ContentRebuild: markdown render error: %v, falling back", err)
 			return errFallBackToFull

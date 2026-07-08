@@ -15,6 +15,7 @@ import (
 	"github.com/getsarde/sarde/internal/content/markdown/icons"
 	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/links"
 	"github.com/getsarde/sarde/internal/shortcode"
 	"github.com/getsarde/sarde/internal/taxonomy"
 	sardetemplate "github.com/getsarde/sarde/internal/template"
@@ -119,6 +120,7 @@ type markdownRenderDeps struct {
 	iconRenderKey  string
 	rendererKey    string
 	pageCache      *PageCache
+	pageIndex      *content.PageIndex
 	assetPipeline  *asset.Pipeline
 }
 
@@ -126,13 +128,13 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 	page *engine.Page,
 	deps markdownRenderDeps,
 	siteCtx *engine.SiteContext,
-) (links []engine.CollectedLink, scWarnings []engine.ValidationWarning, err error) {
+) (collectedLinks []engine.CollectedLink, pendingAnchors []links.PendingAnchorCheck, scWarnings []engine.ValidationWarning, err error) {
 	if page.RawContent == "" {
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
 
 	processed, scWarns := deps.scProcessor.Process(page.RawContent, page, siteCtx, b.mdRenderer)
-	hash := ContentHash(processed + deps.shortcodesHash + deps.resolutionKey + deps.iconRenderKey + deps.rendererKey + "\x00lang=" + page.Lang)
+	hash := pageCacheKey(processed, deps.shortcodesHash, deps.resolutionKey, deps.iconRenderKey, deps.rendererKey, page.Lang)
 
 	if deps.pageCache != nil {
 		if entry := deps.pageCache.Get(hash); entry != nil {
@@ -140,7 +142,8 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 			page.Headings = entry.Headings
 			page.HasCodeBlocks = entry.HasCodeBlocks
 			page.HasImages = entry.HasImages
-			return entry.Links, scWarns, nil
+			replayed := replayPendingAnchors(entry.PendingAnchors, page, deps.pageIndex)
+			return entry.Links, replayed, scWarns, nil
 		}
 	}
 
@@ -149,8 +152,9 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 	b.mdRenderer.SetLinkContext(page)
 
 	result, err := b.mdRenderer.Render(processed)
+	pageAnchors := b.mdRenderer.LinkRenderer().DrainPendingAnchors()
 	if err != nil {
-		return nil, scWarns, fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
+		return nil, nil, scWarns, fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
 	}
 
 	page.Content = htmltemplate.HTML(result.HTML)
@@ -160,16 +164,17 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 
 	if deps.pageCache != nil {
 		deps.pageCache.Put(hash, &CacheEntry{
-			ContentHash:   hash,
-			HTML:          result.HTML,
-			Headings:      result.Headings,
-			HasCodeBlocks: result.HasCodeBlocks,
-			HasImages:     result.HasImages,
-			Links:         result.Links,
+			ContentHash:    hash,
+			HTML:           result.HTML,
+			Headings:       result.Headings,
+			HasCodeBlocks:  result.HasCodeBlocks,
+			HasImages:      result.HasImages,
+			Links:          result.Links,
+			PendingAnchors: toCachedAnchors(pageAnchors),
 		})
 	}
 
-	return result.Links, scWarns, nil
+	return result.Links, pageAnchors, scWarns, nil
 }
 
 func minifyRendered(rendered []RenderedPage, parallel bool, workerCount int) error {

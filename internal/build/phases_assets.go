@@ -229,16 +229,19 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 					validationMu.Unlock()
 				}
 
-				hash := ContentHash(processed + shortcodesHash + b.resolutionKey + iconRenderKey + b.rendererKey + "\x00lang=" + page.Lang)
+				hash := pageCacheKey(processed, shortcodesHash, b.resolutionKey, iconRenderKey, b.rendererKey, page.Lang)
 				if pageCache != nil {
 					if entry := pageCache.Get(hash); entry != nil {
 						page.Content = htmltemplate.HTML(entry.HTML)
 						page.Headings = entry.Headings
 						page.HasCodeBlocks = entry.HasCodeBlocks
 						page.HasImages = entry.HasImages
-						if len(entry.Links) > 0 {
+						if len(entry.Links) > 0 || len(entry.PendingAnchors) > 0 {
 							validationMu.Lock()
-							validationData[page.Permalink] = engine.ValidationEntry{Links: entry.Links, FilePath: page.FilePath, Lang: page.Lang}
+							if len(entry.Links) > 0 {
+								validationData[page.Permalink] = engine.ValidationEntry{Links: entry.Links, FilePath: page.FilePath, Lang: page.Lang}
+							}
+							pendingAnchors = append(pendingAnchors, replayPendingAnchors(entry.PendingAnchors, page, pageIndex)...)
 							validationMu.Unlock()
 						}
 						b.rendererPool <- renderer
@@ -273,12 +276,13 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 
 				if pageCache != nil {
 					pageCache.Put(hash, &CacheEntry{
-						ContentHash:   hash,
-						HTML:          result.HTML,
-						Headings:      result.Headings,
-						HasCodeBlocks: result.HasCodeBlocks,
-						HasImages:     result.HasImages,
-						Links:         result.Links,
+						ContentHash:    hash,
+						HTML:           result.HTML,
+						Headings:       result.Headings,
+						HasCodeBlocks:  result.HasCodeBlocks,
+						HasImages:      result.HasImages,
+						Links:          result.Links,
+						PendingAnchors: toCachedAnchors(pagePendingAnchors),
 					})
 				}
 				rendered.Add(1)
@@ -306,10 +310,11 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 			iconRenderKey:  iconRenderKey,
 			rendererKey:    b.rendererKey,
 			pageCache:      pageCache,
+			pageIndex:      pageIndex,
 			assetPipeline:  assetPipeline,
 		}
 		for _, page := range s.allPages {
-			collectedLinks, scWarns, err := b.renderMarkdownPageSerial(page, deps, s.siteCtx)
+			collectedLinks, pageAnchors, scWarns, err := b.renderMarkdownPageSerial(page, deps, s.siteCtx)
 			if err != nil {
 				clearProgress()
 				return err
@@ -318,7 +323,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 			if len(collectedLinks) > 0 {
 				validationData[page.Permalink] = engine.ValidationEntry{Links: collectedLinks, FilePath: page.FilePath, Lang: page.Lang}
 			}
-			pendingAnchors = append(pendingAnchors, lr.DrainPendingAnchors()...)
+			pendingAnchors = append(pendingAnchors, pageAnchors...)
 			rendered.Add(1)
 			progressLine()
 		}

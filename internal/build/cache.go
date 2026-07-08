@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/links"
 )
 
 const DefaultPageCacheCapacity = 512
@@ -34,12 +35,26 @@ type PageCache struct {
 
 // CacheEntry holds the cached result of rendering a page's markdown.
 type CacheEntry struct {
-	ContentHash   string                 `json:"content_hash"`
-	HTML          string                 `json:"html"`
-	Headings      []engine.Heading       `json:"headings"`
-	HasCodeBlocks bool                   `json:"has_code_blocks,omitempty"`
-	HasImages     bool                   `json:"has_images,omitempty"`
-	Links         []engine.CollectedLink `json:"links,omitempty"`
+	ContentHash    string                 `json:"content_hash"`
+	HTML           string                 `json:"html"`
+	Headings       []engine.Heading       `json:"headings"`
+	HasCodeBlocks  bool                   `json:"has_code_blocks,omitempty"`
+	HasImages      bool                   `json:"has_images,omitempty"`
+	Links          []engine.CollectedLink `json:"links,omitempty"`
+	PendingAnchors []CachedAnchorCheck    `json:"pending_anchors,omitempty"`
+}
+
+// CachedAnchorCheck holds the content-derived fields of a pending anchor
+// check (links.PendingAnchorCheck) that are safe to persist across builds.
+// Page-derived fields (source file, from/target page pointers, dimension)
+// are reconstructed from the live page at cache-hit time; see
+// replayPendingAnchors in helpers.go.
+type CachedAnchorCheck struct {
+	TargetPermalink string         `json:"target_permalink"`
+	Fragment        string         `json:"fragment"`
+	RawHref         string         `json:"raw_href"`
+	Kind            links.LinkKind `json:"kind"`
+	Resolved        string         `json:"resolved"`
 }
 
 // NewPageCache creates a PageCache with the default capacity.
@@ -119,6 +134,20 @@ func (c *PageCache) Put(hash string, entry *CacheEntry) {
 func ContentHash(content string) string {
 	h := sha256.Sum256([]byte(content))
 	return fmt.Sprintf("%x", h)
+}
+
+// pageCacheSchemaVersion is folded into every page-cache key. Bump it whenever
+// CacheEntry gains validation-bearing fields: entries written under an older
+// layout unmarshal cleanly but replay incomplete state (an entry without
+// pending_anchors would keep skipping anchor re-validation on cache hits).
+const pageCacheSchemaVersion = "2"
+
+// pageCacheKey builds the content-addressed key for a rendered page. Both the
+// parallel and serial render paths must use this single helper so the key
+// composition cannot drift between them.
+func pageCacheKey(processed, shortcodesHash, resolutionKey, iconRenderKey, rendererKey, lang string) string {
+	return ContentHash(processed + shortcodesHash + resolutionKey + iconRenderKey + rendererKey +
+		"\x00lang=" + lang + "\x00schema=" + pageCacheSchemaVersion)
 }
 
 // insertFront adds a new node at the MRU position. Evicts LRU if at capacity.
