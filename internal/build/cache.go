@@ -42,6 +42,7 @@ type CacheEntry struct {
 	HasImages      bool                   `json:"has_images,omitempty"`
 	Links          []engine.CollectedLink `json:"links,omitempty"`
 	PendingAnchors []CachedAnchorCheck    `json:"pending_anchors,omitempty"`
+	Refs           []CachedLinkRef        `json:"refs,omitempty"`
 }
 
 // CachedAnchorCheck holds the content-derived fields of a pending anchor
@@ -50,11 +51,27 @@ type CacheEntry struct {
 // are reconstructed from the live page at cache-hit time; see
 // replayPendingAnchors in helpers.go.
 type CachedAnchorCheck struct {
-	TargetPermalink string         `json:"target_permalink"`
-	Fragment        string         `json:"fragment"`
-	RawHref         string         `json:"raw_href"`
-	Kind            links.LinkKind `json:"kind"`
-	Resolved        string         `json:"resolved"`
+	TargetPermalink    string         `json:"target_permalink"`
+	TargetRelPermalink string         `json:"target_rel_permalink,omitempty"`
+	Fragment           string         `json:"fragment"`
+	RawHref            string         `json:"raw_href"`
+	Kind               links.LinkKind `json:"kind"`
+	Resolved           string         `json:"resolved"`
+}
+
+// CachedLinkRef holds the content-derived fields of a recorded link ref
+// (links.LinkRef) that are safe to persist across builds. On a cache hit the
+// snapshot is first verified against the live page index (see entryStale in
+// helpers.go); any divergence demotes the hit to a miss so the page re-renders
+// with fresh URLs instead of replaying stale results.
+type CachedLinkRef struct {
+	RawDest            string           `json:"raw_dest"`
+	Kind               links.LinkKind   `json:"kind"`
+	Resolved           string           `json:"resolved"`
+	TargetPermalink    string           `json:"target_permalink,omitempty"`
+	TargetRelPermalink string           `json:"target_rel_permalink,omitempty"`
+	Fragment           string           `json:"fragment,omitempty"`
+	Status             links.LinkStatus `json:"status"`
 }
 
 // NewPageCache creates a PageCache with the default capacity.
@@ -137,10 +154,13 @@ func ContentHash(content string) string {
 }
 
 // pageCacheSchemaVersion is folded into every page-cache key. Bump it whenever
-// CacheEntry gains validation-bearing fields: entries written under an older
-// layout unmarshal cleanly but replay incomplete state (an entry without
-// pending_anchors would keep skipping anchor re-validation on cache hits).
-const pageCacheSchemaVersion = "2"
+// CacheEntry gains validation-bearing fields or the cached values are computed
+// differently: entries written under an older layout unmarshal cleanly but
+// replay incomplete or stale state (an entry without pending_anchors would
+// keep skipping anchor re-validation; entries from before custom heading IDs
+// were honored carry clobbered ids in Headings; entries without refs would
+// replay zero link refs forever, reproducing the coverage undercount).
+const pageCacheSchemaVersion = "4"
 
 // pageCacheKey builds the content-addressed key for a rendered page. Both the
 // parallel and serial render paths must use this single helper so the key

@@ -66,6 +66,7 @@ type Renderer struct {
 	linkRend      *linkrender.Renderer         // mutable reference — resolves internal links per page
 	kazariEngine  *kazari.Engine               // code block rendering engine; nil disables Kazari extensions
 	fingerprint   string                       // cache-busting digest; computed once at construction
+	headingLinks  bool                         // inject clickable anchor links on headings (site.heading_links)
 }
 
 // SetImageLookup sets the lookup function for bundle-relative image processing.
@@ -186,6 +187,7 @@ func NewRendererFromConfig(cfg RendererConfig) *Renderer {
 		linkCollector: linkcollector.NewCollector(),
 		linkRend:      linkrender.NewRenderer(),
 		kazariEngine:  cfg.KazariEngine,
+		headingLinks:  cfg.HeadingLinks,
 	}
 	r.md, r.fingerprint = r.buildMarkdown(cfg)
 	return r
@@ -249,11 +251,11 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) (goldmark.Markdown, string)
 		)
 	}
 
-	var parserOpts []parser.Option
-	parserOpts = append(parserOpts, parser.WithAttribute())
-	if cfg.HeadingLinks {
-		parserOpts = append(parserOpts, parser.WithAutoHeadingID())
-	}
+	// WithAttribute enables `## Heading {#custom-id}` syntax. Goldmark's
+	// AutoHeadingID is deliberately NOT enabled: extractHeadings assigns
+	// slugified IDs itself, so any id present on a rendered heading is
+	// author-supplied and must be preserved.
+	parserOpts := []parser.Option{parser.WithAttribute()}
 
 	md := goldmark.New(
 		goldmark.WithExtensions(extensions...),
@@ -315,7 +317,7 @@ func (r *Renderer) Render(markdown string) (engine.RenderResult, error) {
 	}
 
 	html := buf.String()
-	headings := extractHeadings(&html)
+	headings := extractHeadings(&html, r.headingLinks)
 
 	var links []engine.CollectedLink
 	if len(r.linkCollector.Links) > 0 {

@@ -130,6 +130,70 @@ func TestRender_HeadingAnchorLink(t *testing.T) {
 	}
 }
 
+func TestRender_CustomHeadingID(t *testing.T) {
+	r := NewRenderer()
+	md := "## My Section {#custom-id}\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, `id="custom-id"`) {
+		t.Errorf("expected custom id preserved, got: %s", result.HTML)
+	}
+	if strings.Contains(result.HTML, `id="my-section"`) {
+		t.Errorf("slugified id should not replace the custom id, got: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, `href="#custom-id"`) {
+		t.Errorf("anchor link should use the custom id, got: %s", result.HTML)
+	}
+	if len(result.Headings) != 1 || result.Headings[0].ID != "custom-id" {
+		t.Errorf("Headings should carry the custom id, got: %+v", result.Headings)
+	}
+}
+
+func TestRender_CustomHeadingIDCollision(t *testing.T) {
+	r := NewRenderer()
+	// The custom id occupies "shared"; the later heading's slug collides
+	// with it and must be bumped by the counter.
+	md := "## Alpha {#shared}\n\n## Shared\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Headings) != 2 {
+		t.Fatalf("expected 2 headings, got %d", len(result.Headings))
+	}
+	if result.Headings[0].ID != "shared" {
+		t.Errorf("first heading id = %q, want %q", result.Headings[0].ID, "shared")
+	}
+	if result.Headings[1].ID != "shared-1" {
+		t.Errorf("second heading id = %q, want %q", result.Headings[1].ID, "shared-1")
+	}
+}
+
+func TestRender_HeadingLinksDisabled(t *testing.T) {
+	r := NewRendererFromConfig(RendererConfig{
+		BlockedHrefSchemes: defaultBlockedHrefSchemes,
+		HeadingLinks:       false,
+	})
+	md := "## My Section\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(result.HTML, "sarde-heading-anchor") {
+		t.Errorf("heading_links: false must not inject anchor links, got: %s", result.HTML)
+	}
+	// IDs are still assigned: the TOC, search index, and anchor validation
+	// depend on them regardless of the anchor-link setting.
+	if !strings.Contains(result.HTML, `id="my-section"`) {
+		t.Errorf("heading id must still be assigned, got: %s", result.HTML)
+	}
+	if len(result.Headings) != 1 || result.Headings[0].ID != "my-section" {
+		t.Errorf("Headings must still be extracted, got: %+v", result.Headings)
+	}
+}
+
 func TestRender_H1NotInTOC(t *testing.T) {
 	r := NewRenderer()
 	md := "# Title\n\n## Section\n"

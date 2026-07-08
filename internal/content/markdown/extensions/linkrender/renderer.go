@@ -32,6 +32,10 @@ type Renderer struct {
 	SiteRootEscapePrefix string
 
 	PendingAnchors []links.PendingAnchorCheck
+	// RecordedRefs buffers a per-render copy of every ref written to LinkGraph,
+	// so the build layer can persist the page's resolution snapshot in the page
+	// cache and replay it on cache hits.
+	RecordedRefs []links.LinkRef
 }
 
 // NewRenderer creates a link renderer with no page context.
@@ -48,6 +52,7 @@ func (r *Renderer) SetPage(page *engine.Page) {
 // Reset clears accumulated state between page renders.
 func (r *Renderer) Reset() {
 	r.PendingAnchors = r.PendingAnchors[:0]
+	r.RecordedRefs = r.RecordedRefs[:0]
 }
 
 // DrainPendingAnchors returns and clears collected anchor checks.
@@ -55,6 +60,14 @@ func (r *Renderer) DrainPendingAnchors() []links.PendingAnchorCheck {
 	out := make([]links.PendingAnchorCheck, len(r.PendingAnchors))
 	copy(out, r.PendingAnchors)
 	r.PendingAnchors = r.PendingAnchors[:0]
+	return out
+}
+
+// DrainRecordedRefs returns and clears the per-render link ref snapshot.
+func (r *Renderer) DrainRecordedRefs() []links.LinkRef {
+	out := make([]links.LinkRef, len(r.RecordedRefs))
+	copy(out, r.RecordedRefs)
+	r.RecordedRefs = r.RecordedRefs[:0]
 	return out
 }
 
@@ -118,6 +131,18 @@ func (r *Renderer) ResolveHref(href string) (resolvedURL string) {
 	return result.URL
 }
 
+// LookupInLaneWithDefaultFallback resolves relPermalink in the page's own
+// (lang, version) lane, falling back to the resolver's default language.
+// Exported so build-side page-cache staleness verification reproduces
+// resolveSiteAbsolute's exact lookup order without risking drift.
+func LookupInLaneWithDefaultFallback(idx *content.PageIndex, relPermalink string, page *engine.Page, resolver *engine.URLResolver) *engine.Page {
+	target := idx.LookupInLane(relPermalink, page.Lang, page.Version)
+	if target == nil && resolver != nil && page.Lang != resolver.DefaultLang {
+		target = idx.LookupInLane(relPermalink, resolver.DefaultLang, page.Version)
+	}
+	return target
+}
+
 // resolveSiteAbsolute handles site-absolute internal hrefs without a .md
 // extension (e.g. "/docs/plugins/auth"). It applies the base path / lang /
 // version prefixing the plain pass-through used to skip, and validates the
@@ -151,10 +176,7 @@ func (r *Renderer) resolveSiteAbsolute(raw string) string {
 	// helpers. Treated as a content-root internal link.
 	dest := ParsedDest{Kind: LinkContentRoot, Raw: raw, Fragment: fragment, Query: query}
 
-	target := r.PageIndex.LookupInLane(relP, r.CurrentPage.Lang, r.CurrentPage.Version)
-	if target == nil && r.URLResolver != nil && r.CurrentPage.Lang != r.URLResolver.DefaultLang {
-		target = r.PageIndex.LookupInLane(relP, r.URLResolver.DefaultLang, r.CurrentPage.Version)
-	}
+	target := LookupInLaneWithDefaultFallback(r.PageIndex, relP, r.CurrentPage, r.URLResolver)
 	if target != nil {
 		version := engine.ResolvePageVersion(r.CurrentPage)
 		url := withSuffix(r.URLResolver.URL(target.RelPermalink, r.CurrentPage.Lang, version), fragment, query)
@@ -263,7 +285,7 @@ func (r *Renderer) recordLinkRef(dest ParsedDest, targetPage *engine.Page, resol
 	if page.Collection != nil {
 		collName = page.Collection.Name
 	}
-	r.LinkGraph.Record(links.LinkRef{
+	ref := links.LinkRef{
 		FromPage: page,
 		FromFile: page.FilePath,
 		RawDest:  dest.Raw,
@@ -277,7 +299,9 @@ func (r *Renderer) recordLinkRef(dest ParsedDest, targetPage *engine.Page, resol
 		TargetPage: targetPage,
 		Fragment:   dest.Fragment,
 		Status:     status,
-	})
+	}
+	r.LinkGraph.Record(ref)
+	r.RecordedRefs = append(r.RecordedRefs, ref)
 }
 
 func mapLinkKind(k LinkKind) links.LinkKind {

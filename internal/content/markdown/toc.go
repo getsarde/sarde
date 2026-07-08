@@ -11,10 +11,13 @@ import (
 )
 
 
-// extractHeadings parses rendered HTML, finds h2-h4 headings, injects slugified
-// IDs and anchor links, and returns the headings as engine.Heading slices.
-// The htmlContent is modified in place with IDs and anchors injected.
-func extractHeadings(htmlContent *string) []engine.Heading {
+// extractHeadings parses rendered HTML, finds h2-h4 headings, injects IDs and
+// (when headingLinks is true) clickable anchor links, and returns the headings
+// as engine.Heading slices. An id already present on the heading is
+// author-supplied via `{#custom-id}` attribute syntax and is preserved;
+// otherwise the ID is slugified from the heading text. The htmlContent is
+// modified in place.
+func extractHeadings(htmlContent *string, headingLinks bool) []engine.Heading {
 	var headings []engine.Heading
 
 	doc, err := nethtml.Parse(strings.NewReader(*htmlContent))
@@ -29,7 +32,10 @@ func extractHeadings(htmlContent *string) []engine.Heading {
 		if n.Type == nethtml.ElementNode && (n.Data == "h2" || n.Data == "h3" || n.Data == "h4") {
 			text := extractText(n)
 			level := int(n.Data[1] - '0')
-			id := slugifyHeading(text)
+			id := getAttr(n, "id")
+			if id == "" {
+				id = slugifyHeading(text)
+			}
 
 			// Handle ID collisions
 			if usedIDs[id] {
@@ -43,16 +49,18 @@ func extractHeadings(htmlContent *string) []engine.Heading {
 
 			setAttr(n, "id", id)
 
-			anchor := &nethtml.Node{
-				Type: nethtml.ElementNode,
-				Data: "a",
-				Attr: []nethtml.Attribute{
-					{Key: "class", Val: "sarde-heading-anchor"},
-					{Key: "href", Val: "#" + id},
-					{Key: "aria-label", Val: "Link to section: " + text},
-				},
+			if headingLinks {
+				anchor := &nethtml.Node{
+					Type: nethtml.ElementNode,
+					Data: "a",
+					Attr: []nethtml.Attribute{
+						{Key: "class", Val: "sarde-heading-anchor"},
+						{Key: "href", Val: "#" + id},
+						{Key: "aria-label", Val: "Link to section: " + text},
+					},
+				}
+				n.AppendChild(anchor)
 			}
-			n.AppendChild(anchor)
 
 			headings = append(headings, engine.Heading{
 				Level: level,
@@ -90,6 +98,15 @@ func extractText(n *nethtml.Node) string {
 	}
 	walk(n)
 	return strings.TrimSpace(buf.String())
+}
+
+func getAttr(n *nethtml.Node, key string) string {
+	for _, attr := range n.Attr {
+		if attr.Key == key {
+			return attr.Val
+		}
+	}
+	return ""
 }
 
 func setAttr(n *nethtml.Node, key, val string) {

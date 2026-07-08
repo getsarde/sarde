@@ -9,12 +9,18 @@ import (
 
 func boolPtr(b bool) *bool { return &b }
 
+// lintLines is a test helper: computes the fence mask the way LintPages does.
+func lintLines(lines []string) ([]string, []bool) {
+	return lines, fencedLines(lines)
+}
+
 func TestContentLint_HeadingLength(t *testing.T) {
-	issues := checkHeadingLength([]string{
+	lines, fenced := lintLines([]string{
 		"# Short",
 		"## This heading is way too long for the configured maximum length limit",
 		"Normal text",
-	}, 20)
+	})
+	issues := checkHeadingLength(lines, fenced, 20)
 
 	if len(issues) != 1 {
 		t.Fatalf("expected 1 issue, got %d", len(issues))
@@ -25,12 +31,12 @@ func TestContentLint_HeadingLength(t *testing.T) {
 }
 
 func TestContentLint_HeadingIncrement(t *testing.T) {
-	issues := checkHeadingIncrement([]string{
+	issues := checkHeadingIncrement(lintLines([]string{
 		"# Title",
 		"### Skipped h2",
 		"## Back to h2",
 		"#### Skipped h3",
-	})
+	}))
 
 	if len(issues) != 2 {
 		t.Fatalf("expected 2 issues, got %d", len(issues))
@@ -44,11 +50,11 @@ func TestContentLint_HeadingIncrement(t *testing.T) {
 }
 
 func TestContentLint_ImageAlt(t *testing.T) {
-	issues := checkImageAlt([]string{
+	issues := checkImageAlt(lintLines([]string{
 		"![Good alt](image.png)",
 		"![](missing-alt.png)",
 		"Text with ![](inline.png) image",
-	})
+	}))
 
 	if len(issues) != 2 {
 		t.Fatalf("expected 2 issues, got %d", len(issues))
@@ -56,17 +62,115 @@ func TestContentLint_ImageAlt(t *testing.T) {
 }
 
 func TestContentLint_EmptyLinks(t *testing.T) {
-	issues := checkEmptyLinks([]string{
+	issues := checkEmptyLinks(lintLines([]string{
 		"[Good link](url)",
 		"[](empty-text.html)",
 		"![](image.png)", // should NOT match — it's an image
-	})
+	}))
 
 	if len(issues) != 1 {
 		t.Fatalf("expected 1 issue, got %d", len(issues))
 	}
 	if issues[0].Line != 2 {
 		t.Errorf("expected line 2, got %d", issues[0].Line)
+	}
+}
+
+func TestContentLint_FencedBlocksSkipped(t *testing.T) {
+	lines, fenced := lintLines([]string{
+		"```md",
+		"![](in-backtick-fence.png)",
+		"[](in-backtick-fence.html)",
+		"```",
+		"~~~",
+		"![](in-tilde-fence.png)",
+		"~~~",
+		"````",
+		"![](in-long-fence.png)",
+		"`````", // closing fence may be longer than the opener
+		"![](real-violation.png)",
+	})
+
+	imgIssues := checkImageAlt(lines, fenced)
+	if len(imgIssues) != 1 {
+		t.Fatalf("expected 1 image issue (outside fences), got %d: %v", len(imgIssues), imgIssues)
+	}
+	if imgIssues[0].Line != 11 {
+		t.Errorf("image issue at line %d, want 11", imgIssues[0].Line)
+	}
+	if linkIssues := checkEmptyLinks(lines, fenced); len(linkIssues) != 0 {
+		t.Errorf("expected 0 empty-link issues, got %d: %v", len(linkIssues), linkIssues)
+	}
+}
+
+func TestContentLint_UnclosedFenceSkippedToEOF(t *testing.T) {
+	lines, fenced := lintLines([]string{
+		"Intro text",
+		"```",
+		"![](never-closed.png)",
+		"[](never-closed.html)",
+	})
+
+	if issues := checkImageAlt(lines, fenced); len(issues) != 0 {
+		t.Errorf("expected 0 image issues in unclosed fence, got %d", len(issues))
+	}
+	if issues := checkEmptyLinks(lines, fenced); len(issues) != 0 {
+		t.Errorf("expected 0 link issues in unclosed fence, got %d", len(issues))
+	}
+}
+
+func TestContentLint_InlineCodeSpansSkipped(t *testing.T) {
+	lines, fenced := lintLines([]string{
+		"Use `![](path)` for images.",
+		"Use ``![](path)`` in double-backtick spans.",
+		"The `![](x)` example plus a real ![](violation.png) image.",
+		"An unmatched ` backtick with ![](also-real.png).",
+	})
+
+	issues := checkImageAlt(lines, fenced)
+	if len(issues) != 2 {
+		t.Fatalf("expected 2 image issues (real ones only), got %d: %v", len(issues), issues)
+	}
+	if issues[0].Line != 3 || issues[1].Line != 4 {
+		t.Errorf("issues at lines %d, %d; want 3, 4", issues[0].Line, issues[1].Line)
+	}
+}
+
+func TestContentLint_HeadingRulesSkipFences(t *testing.T) {
+	lines, fenced := lintLines([]string{
+		"## Real h2",
+		"```python",
+		"# this comment would look like an overlong h1 heading if fences were not masked",
+		"#### fake heading",
+		"```",
+		"### Real h3",
+	})
+
+	if issues := checkHeadingLength(lines, fenced, 30); len(issues) != 0 {
+		t.Errorf("expected 0 heading-length issues, got %d: %v", len(issues), issues)
+	}
+	// h2 -> h3 is a valid increment; the fence content must not perturb state.
+	if issues := checkHeadingIncrement(lines, fenced); len(issues) != 0 {
+		t.Errorf("expected 0 heading-increment issues, got %d: %v", len(issues), issues)
+	}
+}
+
+func TestContentLint_LineNumbersIncludeFrontmatterOffset(t *testing.T) {
+	page := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "Offset", FilePath: "content/offset.md"},
+		PageContent:  engine.PageContent{RawContent: "Fine line\n![](no-alt.png)\n", FrontmatterLines: 5},
+	}
+	warnings := LintPages([]*engine.Page{page}, config.ContentLintSettings{
+		Rules: config.ContentLintRules{ImageAltRequired: boolPtr(true)},
+	})
+
+	if len(warnings) != 1 {
+		t.Fatalf("expected 1 warning, got %d", len(warnings))
+	}
+	// Violation is on RawContent line 2; with 5 frontmatter lines the on-disk
+	// line is 7.
+	if want := "line 7: image missing alt text"; warnings[0].Message != want {
+		t.Errorf("message = %q, want %q", warnings[0].Message, want)
 	}
 }
 

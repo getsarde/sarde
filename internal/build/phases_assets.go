@@ -231,11 +231,14 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 
 				hash := pageCacheKey(processed, shortcodesHash, b.resolutionKey, iconRenderKey, b.rendererKey, page.Lang)
 				if pageCache != nil {
-					if entry := pageCache.Get(hash); entry != nil {
+					if entry := pageCache.Get(hash); entry != nil && !entryStale(entry, page, pageIndex, b.urlResolver, s.collections) {
 						page.Content = htmltemplate.HTML(entry.HTML)
 						page.Headings = entry.Headings
 						page.HasCodeBlocks = entry.HasCodeBlocks
 						page.HasImages = entry.HasImages
+						for _, ref := range replayCachedRefs(entry.Refs, page, pageIndex) {
+							b.linkGraph.Record(ref)
+						}
 						if len(entry.Links) > 0 || len(entry.PendingAnchors) > 0 {
 							validationMu.Lock()
 							if len(entry.Links) > 0 {
@@ -257,6 +260,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 
 				result, err := renderer.Render(processed)
 				pagePendingAnchors := renderer.LinkRenderer().DrainPendingAnchors()
+				pageRecordedRefs := renderer.LinkRenderer().DrainRecordedRefs()
 				b.rendererPool <- renderer
 				if err != nil {
 					return fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
@@ -283,6 +287,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 						HasImages:      result.HasImages,
 						Links:          result.Links,
 						PendingAnchors: toCachedAnchors(pagePendingAnchors),
+						Refs:           toCachedRefs(pageRecordedRefs),
 					})
 				}
 				rendered.Add(1)
@@ -311,6 +316,8 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 			rendererKey:    b.rendererKey,
 			pageCache:      pageCache,
 			pageIndex:      pageIndex,
+			linkGraph:      b.linkGraph,
+			collections:    s.collections,
 			assetPipeline:  assetPipeline,
 		}
 		for _, page := range s.allPages {

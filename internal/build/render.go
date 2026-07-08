@@ -121,6 +121,8 @@ type markdownRenderDeps struct {
 	rendererKey    string
 	pageCache      *PageCache
 	pageIndex      *content.PageIndex
+	linkGraph      *links.LinkGraph // nil in dev incremental rebuilds: skips staleness checks and ref replay
+	collections    map[string]*engine.Collection
 	assetPipeline  *asset.Pipeline
 }
 
@@ -137,11 +139,17 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 	hash := pageCacheKey(processed, deps.shortcodesHash, deps.resolutionKey, deps.iconRenderKey, deps.rendererKey, page.Lang)
 
 	if deps.pageCache != nil {
-		if entry := deps.pageCache.Get(hash); entry != nil {
+		entry := deps.pageCache.Get(hash)
+		if entry != nil && (deps.linkGraph == nil || !entryStale(entry, page, deps.pageIndex, b.urlResolver, deps.collections)) {
 			page.Content = htmltemplate.HTML(entry.HTML)
 			page.Headings = entry.Headings
 			page.HasCodeBlocks = entry.HasCodeBlocks
 			page.HasImages = entry.HasImages
+			if deps.linkGraph != nil {
+				for _, ref := range replayCachedRefs(entry.Refs, page, deps.pageIndex) {
+					deps.linkGraph.Record(ref)
+				}
+			}
 			replayed := replayPendingAnchors(entry.PendingAnchors, page, deps.pageIndex)
 			return entry.Links, replayed, scWarns, nil
 		}
@@ -153,6 +161,7 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 
 	result, err := b.mdRenderer.Render(processed)
 	pageAnchors := b.mdRenderer.LinkRenderer().DrainPendingAnchors()
+	pageRefs := b.mdRenderer.LinkRenderer().DrainRecordedRefs()
 	if err != nil {
 		return nil, nil, scWarns, fmt.Errorf("rendering markdown for %s: %w", page.FilePath, err)
 	}
@@ -171,6 +180,7 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 			HasImages:      result.HasImages,
 			Links:          result.Links,
 			PendingAnchors: toCachedAnchors(pageAnchors),
+			Refs:           toCachedRefs(pageRefs),
 		})
 	}
 
