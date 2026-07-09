@@ -1,0 +1,29 @@
+site:
+  title: "Sarde"
+  description: "Documentation for Sarde, a zero-config static site generator"
+  url: "http://localhost:4727"
+
+theme:
+  name: "default"
+  preset: "docs"
+
+collections:
+  docs:
+    sort: "order"
+    tabs: false
+
+homepage:
+  hero:
+    title: "Sarde Documentation"
+    subtitle: "A zero-config, Go-based static site generator that ships as a single binary."
+    background: gradient
+    cta:
+      label: "Get Started"
+      url: "/docs/start-here/getting-started"
+    secondary_cta:
+      label: "Read the Blog"
+      url: "/blog/hello-world"
+    image:
+      light: /images/hero-light.svg
+      dark: /images/hero-dark.svg
+      alt: "Hero illustration"

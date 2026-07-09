@@ -1,0 +1,424 @@
+---
+title: CLI Commands
+sidebar:
+  order: 3
+---
+
+# CLI Commands
+
+```
+sarde <command> [flags] [project-dir]
+```
+
+Every command accepts an optional project directory as the first positional argument. If omitted, the current working directory is used.
+
+## Global flags
+
+These flags are inherited by all commands.
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--config`, `-c` | string | `sarde.yaml` | Path to the site config file. |
+| `--baseURL` | string | `""` | Override the site base URL. |
+| `--drafts`, `-D` | bool | `false` | Include draft content. |
+| `--future` | bool | `false` | Include future-dated content. |
+| `--verbose`, `-v` | bool | `false` | Enable verbose output. |
+| `--quiet`, `-q` | bool | `false` | Suppress non-error output. |
+
+## `build`
+
+Build the static site from `content/` to the output directory.
+
+```
+sarde build [flags] [project-dir]
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--output`, `-o` | string | `""` | Override the output directory. Defaults to [`build.output`](/reference/configuration#build). |
+| `--base-path` | string | `""` | Override the URL base path (for subdirectory hosting). |
+| `--content` | string | `""` | Override the content directory path. |
+| `--strict-i18n` | bool | `false` | Warn on missing translation keys per language. |
+
+```
+sarde build
+sarde build --output public --drafts
+sarde build /path/to/project
+```
+
+A build lock prevents concurrent `sarde build` or `sarde dev` processes from writing to the same output directory.
+
+## `dev`
+
+Start a local development server with live reload.
+
+```
+sarde dev [flags] [project-dir]
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--port`, `-p` | int | `0` | Server port. Defaults to [`server.port`](/reference/configuration#server) or 4727. |
+| `--host` | string | `""` | Host to bind to. Defaults to `127.0.0.1`. Use `0.0.0.0` for LAN access. |
+| `--no-drafts` | bool | `false` | Exclude draft content. By default, drafts are included in dev mode. |
+| `--base-path` | string | `""` | Override the URL base path. |
+| `--content` | string | `""` | Override the content directory path. |
+| `--watch-stdin` | bool | `false` | Exit when stdin closes (for child-process mode). |
+| `--theme-dev` | string | `""` | Path to a theme source directory for live-reload during framework development. |
+| `--check-syntax` | bool | `false` | Enable syntax checking for unclosed fenced blocks during rebuilds. |
+
+```
+sarde dev
+sarde dev --port 3000 --host 0.0.0.0
+```
+
+Draft and expired content are included by default in dev mode. Pass `--no-drafts` to exclude drafts.
+
+## `check-links`
+
+Run link validation without building the site. Checks internal links and optionally probes external URLs.
+
+```
+sarde check-links [flags] [project-dir]
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--strict` | bool | `false` | Treat all link issues as errors (exit code 1). |
+| `--external` | bool | `false` | Also probe external URLs. |
+| `--report` | string | `""` | Report format. `pretty`, `json`, or `github-actions`. |
+| `--base-path` | string | `""` | Override the URL base path. |
+| `--content` | string | `""` | Override the content directory path. |
+
+```
+sarde check-links
+sarde check-links --external --report github-actions
+```
+
+Aliased as `sarde check` for backward compatibility.
+
+## `check-syntax`
+
+Scan Markdown files for unclosed or mismatched `:::` fenced block tags.
+
+```
+sarde check-syntax [flags] [project-dir]
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--content` | string | `""` | Override the content directory path. |
+| `--format` | string | `"pretty"` | Output format. `pretty` or `json`. |
+
+```
+sarde check-syntax
+sarde check-syntax --format json
+```
+
+Piping Markdown via stdin activates a single-file mode that outputs JSON diagnostics (used for editor/tooling integration).
+
+## `validate`
+
+Validate site configuration and content without rendering or writing output. Runs discovery, parsing, schema validation, and optionally content linting.
+
+```
+sarde validate [flags] [project-dir]
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--lint` | bool | `true` | Run content lint rules after validation. Pass `--lint=false` to disable. |
+| `--strict` | bool | `false` | Exit with code 1 if any warnings exist. |
+
+```
+sarde validate
+sarde validate --strict --lint=false
+```
+
+## `deploy`
+
+Deploy the built site to a hosting provider. Run `sarde build` first.
+
+```
+sarde deploy [flags] [project-dir]
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--provider` | string | `""` | Override the deploy provider. `github`, `netlify`, `cloudflare`, `vercel`, or `custom`. |
+| `--output`, `-o` | string | `""` | Override the output directory. |
+
+```
+sarde build
+sarde deploy --provider github
+```
+
+The output directory must exist. If it does not, an error prompts to run `sarde build` first.
+
+## `version`
+
+Print version, Go runtime, and OS/architecture information.
+
+```
+sarde version
+```
+
+Output:
+
+```
+sarde v0.1.0
+Go: go1.21.0
+OS/Arch: linux/amd64
+```
+
+## `update`
+
+Check for and install the latest version from GitHub Releases.
+
+```
+sarde update [flags]
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--check` | bool | `false` | Only check for updates without installing. |
+
+```
+sarde update
+sarde update --check
+```
+
+Prompts for confirmation before installing. Detects Homebrew installations and suggests `brew upgrade sarde` instead.
+
+## `new`
+
+Create new content and project scaffolding.
+
+### `new <collection> <title>`
+
+Create a new content file in the specified collection.
+
+```
+sarde new docs "Getting Started"
+sarde new blog "My First Post"
+```
+
+Creates `content/<collection>/<slugified-title>.md` with frontmatter.
+
+### `new site [path]`
+
+Scaffold a new Sarde project with starter files and example content.
+
+```
+sarde new site mysite
+sarde new site .
+```
+
+Creates the following structure:
+
+```
+mysite/
+  sarde.yaml
+  kazari.config.yaml
+  .gitignore
+  content/
+    _index.md
+    blog/
+      _index.md
+      hello-world.md
+    docs/
+      _index.md
+      getting-started.md
+  static/
+    .gitkeep
+    images/
+      hero-light.svg
+      hero-dark.svg
+```
+
+### `new course <name>`
+
+Scaffold a new course directory under `content/courses/`.
+
+```
+sarde new course web-development
+```
+
+Creates `content/courses/web-development/` with `config.yaml` and `_index.md`.
+
+### `new lesson <course> <name>`
+
+Create a new auto-numbered lesson inside a course.
+
+```
+sarde new lesson web-development "Introduction"
+```
+
+Creates `content/courses/web-development/01-introduction.md`. The numeric prefix is automatically incremented based on existing lessons.
+
+## `import`
+
+Import content from external sources.
+
+### `import obsidian <vault-path>`
+
+Convert an Obsidian vault to Sarde content. Converts wikilinks, callouts, image embeds, and strips comments.
+
+```
+sarde import obsidian ~/Documents/MyVault
+sarde import obsidian ~/Documents/MyVault --collection notes
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--collection`, `-c` | string | `""` | Target collection name. Defaults to the vault folder name. |
+| `--content` | string | `"content"` | Content directory path. |
+
+## `theme`
+
+Manage themes.
+
+### `theme eject`
+
+Copy the embedded default theme to `themes/default/` for customization.
+
+```
+sarde theme eject
+sarde theme eject --force
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--force` | bool | `false` | Overwrite an existing `themes/default/` directory. |
+
+### `theme list`
+
+List all available themes: the built-in default theme and any themes installed in `themes/`.
+
+```
+sarde theme list
+```
+
+The active theme is marked with `*`.
+
+### `theme add <source>`
+
+Install a theme from a GitHub repository, a URL, or a local directory.
+
+```
+sarde theme add github.com/user/sarde-theme-ocean
+sarde theme add https://example.com/theme.tar.gz
+sarde theme add ./my-local-theme
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--name` | string | `""` | Override the theme directory name. |
+
+Supported sources: GitHub repositories, direct zip/tar.gz URLs, and local directories.
+
+### `theme remove <name>`
+
+Remove an installed theme.
+
+```
+sarde theme remove ocean
+sarde theme remove ocean --force
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--force` | bool | `false` | Remove even if the theme is currently active. |
+
+The embedded `default` theme cannot be removed.
+
+### `theme info <name>`
+
+Show details about a theme (name, version, author, license, description, token counts, presets).
+
+```
+sarde theme info default
+sarde theme info ocean
+```
+
+### `theme chromastyles`
+
+Generate CSS for a Chroma syntax highlighting style.
+
+```
+sarde theme chromastyles --list
+sarde theme chromastyles --style monokai --dark
+sarde theme chromastyles --style dracula --output styles.css
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--style` | string | `""` | Chroma style name. Defaults to the configured light or dark theme. |
+| `--dark` | bool | `false` | Wrap output in `[data-theme="dark"] { }` scoping. |
+| `--list` | bool | `false` | List all available Chroma style names. |
+| `--output`, `-o` | string | `""` | Write CSS to a file instead of stdout. |
+
+## `icons`
+
+Manage icon sets.
+
+### `icons add <prefix> [prefix...]`
+
+Download Iconify icon sets from the npm registry.
+
+```
+sarde icons add mdi
+sarde icons add mdi lucide tabler
+sarde icons add mdi --dest icons/sets
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--dest`, `-d` | string | `""` | Destination directory. Defaults to [`icons.sets_dir`](/reference/configuration#icons) or `icon-sets`. |
+
+After downloading, reference icons as `:icon[prefix:name]` in content.
+
+### `icons list`
+
+List all Iconify icon sets available for download, with local download status.
+
+```
+sarde icons list
+sarde icons list --search material
+sarde icons list --page-size 50
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--search`, `-s` | string | `""` | Filter by prefix, name, or category. |
+| `--page-size`, `-n` | int | `30` | Rows per page. Set to 0 to disable pagination. |
+
+Downloaded sets are marked with `*` in the `DL` column.
+
+## `sidecar`
+
+Start the IPC API server for the desktop app. This is an internal command used by the Tauri-based desktop application.
+
+```
+sarde sidecar [flags]
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--port`, `-p` | int | `0` | Server port. 0 auto-assigns an available port. |
+
+Outputs a JSON line to stdout with `ready`, `port`, and `token` fields for the host process.
+
+## `render`
+
+Render Markdown from stdin to HTML. This is an internal command used for editor preview integration.
+
+```
+echo "# Hello" | sarde render
+```
+
+Outputs JSON with `html` and `headings` fields.
+
+## Environment variables
+
+Environment variables override all other configuration layers. See the [Environment variables](/reference/configuration#environment-variables) section of the Configuration Reference for the full list of supported `SARDE_*` variables.

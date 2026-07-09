@@ -1,12 +1,16 @@
 # Docs (local only)
 my-docs/
-docs/
-docs/STYLE.md
+#docs/
+
 
 coderoo-go/content/
 /content/
 testsite/
 *-output.md
+.coderoo-cache/
+.cache/
+dist1
+
 
 *.png
 *.svg
@@ -47,7 +51,3 @@ package-lock.json
 .vscode/
 *.swp
 *~
-.coderoo-cache/
-.cache/
-dist1
-
