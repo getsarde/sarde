@@ -1,7 +1,7 @@
 ---
 title: Homepage
 sidebar:
-  order: 6
+  order: 5
 ---
 
 The homepage is the `content/_index.md` file. Sarde renders it using one of eight built-in templates, each designed for a different type of site. The default is `hero`.
@@ -46,9 +46,9 @@ homepage:
       url: "https://github.com/getsarde/sarde"
 ```
 
-→ A full-width hero section with the title, subtitle, and two CTA buttons.
+Result: A full-width hero section with the title, subtitle, and two CTA buttons.
 
-<!-- SCREENSHOT: homepage-hero-default — hero template with gradient background and two CTAs -->
+<!-- SCREENSHOT: homepage-hero-default - hero template with gradient background and two CTAs -->
 
 ### Hero fields
 
@@ -92,7 +92,7 @@ homepage:
         sarde dev
 ```
 
-→ A styled code card appears next to the hero text.
+Result: A styled code card appears next to the hero text.
 
 **Stats panel:**
 
@@ -108,7 +108,7 @@ homepage:
         label: "Build time"
 ```
 
-→ A row of stat tiles appears next to the hero text.
+Result: A row of stat tiles appears next to the hero text.
 
 ## Other templates
 

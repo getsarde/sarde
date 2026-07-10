@@ -1,7 +1,7 @@
 ---
 title: Navigation and Sidebar
 sidebar:
-  order: 5
+  order: 4
 ---
 
 Sarde auto-generates sidebar navigation from the directory structure in docs-layout collections. Pages are sorted by `sidebar.order` (from frontmatter or numeric filename prefix), then by title. No configuration is required for the default behavior.
@@ -22,9 +22,9 @@ content/docs/
     writing-content.md
 ```
 
-→ The sidebar shows two collapsible groups with pages nested inside each.
+Result: The sidebar shows two collapsible groups with pages nested inside each.
 
-<!-- SCREENSHOT: sidebar-auto-generated — auto-generated sidebar with two collapsible groups -->
+<!-- SCREENSHOT: sidebar-auto-generated - auto-generated sidebar with two collapsible groups -->
 
 ## Controlling sidebar order
 
@@ -52,7 +52,7 @@ sidebar:
 ---
 ```
 
-→ The sidebar shows "i18n" while the page heading remains "Internationalization and Localization".
+Result: The sidebar shows "i18n" while the page heading remains "Internationalization and Localization".
 
 ## Hiding pages
 
@@ -65,20 +65,6 @@ sidebar:
   hidden: true
 ---
 ```
-
-## Sidebar groups
-
-The `sidebar.group` field assigns a page to a visual group label in the sidebar without creating a subdirectory:
-
-```yaml
----
-title: Authentication
-sidebar:
-  group: "Security"
----
-```
-
-Pages sharing the same group value appear under that group heading.
 
 ## Sidebar badges
 
@@ -125,11 +111,16 @@ collections:
 
 Open/closed state for each group persists across page navigations via `sessionStorage`.
 
-## Manual sidebar with `nav.yaml`
+## Manual tab sidebar with `nav.yaml`
 
-For full manual control, create a `nav.yaml` file in the collection root directory. When present, `nav.yaml` completely replaces auto-generated navigation.
+Tabbed docs collections can use `nav.yaml` inside a tab directory to replace the
+auto-generated navigation for that tab. Use this when the tab needs links that do
+not match the file tree.
 
-`nav.yaml`
+Collection-root `nav.yaml` files are not part of the current docs navigation
+path.
+
+`content/docs/guides/nav.yaml`
 
 ```yaml
 - label: "Getting Started"
@@ -185,16 +176,6 @@ Disable prev/next for a page:
 prev: false
 next: false
 ---
-```
-
-Configure labels per collection:
-
-```yaml
-collections:
-  docs:
-    prev_next:
-      enabled: true
-      labels: ["Previous", "Next"]
 ```
 
 ## Global navigation

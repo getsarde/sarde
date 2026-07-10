@@ -179,7 +179,7 @@ content/docs/
   other-page.md
 ```
 
-→ The sidebar shows `page-a` and `page-b` alongside `other-page`, not nested under an "Internal" group. The `internal/` directory still organizes the files on disk.
+Result: The sidebar shows `page-a` and `page-b` alongside `other-page`, not nested under an "Internal" group. The `internal/` directory still organizes the files on disk.
 
 Transparent sections affect navigation structure only. A transparent section can
 still render its own section page. Add `render: false` to the section's

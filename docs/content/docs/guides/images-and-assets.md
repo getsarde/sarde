@@ -1,7 +1,7 @@
 ---
 title: Images and Assets
 sidebar:
-  order: 15
+  order: 7
 ---
 
 Sarde automatically processes images into responsive variants and bundles CSS/JS through esbuild. Production builds get fingerprinted filenames for cache-busting. Dev mode skips image processing for fast rebuilds.
@@ -38,7 +38,7 @@ For a 1600px-wide source image with the defaults above, Sarde generates three We
 
 Low Quality Image Placeholders (LQIP) provide a blurred preview while the full image loads. Sarde generates a 20px-wide JPEG, blurs it, and base64-encodes it as a data URI applied via `background-image`.
 
-→ A blurred version of the image appears instantly, then fades to the sharp version once loaded.
+Result: A blurred version of the image appears instantly, then fades to the sharp version once loaded.
 
 Set `placeholder: "none"` to disable LQIP generation:
 
@@ -139,7 +139,7 @@ The function accepts a `Resource` and a query string with these parameters:
 | `quality` | int | Override encoding quality. |
 | `format` | string | Output format: `jpeg`, `png`, `webp`, `avif`. |
 
-The function returns a `<picture>` HTML element with responsive variants. When no image processor is available (dev mode), it falls back to a simple `<img>` tag with the original source.
+The function returns a `<picture>` HTML element with responsive variants. When no image processor is available in dev mode, it falls back to a plain `<img>` tag with the original source.
 
 ## Edge cases
 

@@ -1,7 +1,7 @@
 ---
 title: Blog and Taxonomies
 sidebar:
-  order: 7
+  order: 6
 ---
 
 Blog collections are auto-detected by directory name. Place content in `blog/`, `posts/`, `articles/`, or `news/` and Sarde applies date-sorted, feed-enabled defaults with no configuration required.
@@ -94,7 +94,7 @@ tags: [biology, lab-work, plants]
 ---
 ```
 
-→ The post appears on `/tags/biology/`, `/tags/lab-work/`, and `/tags/plants/`. Each term page lists all posts with that tag.
+Result: The post appears on `/tags/biology/`, `/tags/lab-work/`, and `/tags/plants/`. Each term page lists all posts with that tag.
 
 ### Custom taxonomies
 
@@ -129,7 +129,6 @@ taxonomies:
     paginate_by: 20
     undefined_tags: "warn"
     render: true
-    show_tags: true
 ```
 
 | Key | Type | Default | Description |
@@ -138,7 +137,6 @@ taxonomies:
 | `paginate_by` | int | `0` | Items per page on term listing pages. `0` uses the collection default |
 | `undefined_tags` | string | `""` | How to handle terms not defined in `data/<taxonomy>.yml`: `"warn"` or `""` (ignore) |
 | `render` | bool | `true` | Generate HTML pages for this taxonomy |
-| `show_tags` | bool | `true` | Show tag chips on content pages |
 
 ### Term metadata
 

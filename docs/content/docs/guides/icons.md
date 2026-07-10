@@ -1,7 +1,7 @@
 ---
 title: Icons
 sidebar:
-  order: 12
+  order: 13
 ---
 
 Sarde renders inline SVG icons from Iconify icon sets and local SVG files. Insert icons in Markdown with the `:icon[name]` extension. Lucide is the default bundled set.
@@ -14,7 +14,7 @@ Insert an icon by name:
 Click the :icon[settings] icon to open preferences.
 ```
 
-→ An inline SVG of the Lucide "settings" icon appears in the text.
+Result: An inline SVG of the Lucide "settings" icon appears in the text.
 
 Add attributes for color and size:
 
@@ -22,7 +22,7 @@ Add attributes for color and size:
 :icon[alert-triangle color="orange" size=20]
 ```
 
-→ An orange warning triangle at 20px.
+Result: An orange warning triangle at 20px.
 
 ## Icon resolution
 
@@ -55,7 +55,7 @@ Sarde supports any icon set published in Iconify JSON format (4000+ sets availab
 sarde icons add tabler simple-icons
 ```
 
-→ Downloads `tabler.json` and `simple-icons.json` into the `icon-sets/` directory (or the path configured in `icons.sets_dir`).
+Result: Downloads `tabler.json` and `simple-icons.json` into the `icon-sets/` directory or the path configured in `icons.sets_dir`.
 
 Browse available sets:
 
@@ -63,7 +63,7 @@ Browse available sets:
 sarde icons list
 ```
 
-→ Displays a paginated table of all Iconify sets with prefix, name, icon count, and local download status.
+Result: Displays a paginated table of all Iconify sets with prefix, name, icon count, and local download status.
 
 Filter the list:
 

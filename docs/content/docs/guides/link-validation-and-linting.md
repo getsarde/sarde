@@ -91,7 +91,7 @@ sarde check-links
 
 The command is aliased as `sarde check` for backward compatibility.
 
-→ A summary line reports checked links, lanes, broken targets, broken anchors, and warnings.
+Result: A summary line reports checked links, lanes, broken targets, broken anchors, and warnings.
 
 ## Content lint rules
 

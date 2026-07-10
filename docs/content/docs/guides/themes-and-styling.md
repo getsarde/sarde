@@ -1,7 +1,7 @@
 ---
 title: Themes and Styling
 sidebar:
-  order: 10
+  order: 11
 ---
 
 Sarde controls all visual styling through design tokens (CSS custom properties prefixed `--sd-*`). Choose a preset for a ready-made look, override individual tokens for customization, or eject the full theme for complete control.
@@ -115,7 +115,7 @@ theme:
   dark: false
 ```
 
-→ The theme toggle and dark mode CSS are removed from the output.
+Result: The theme toggle and dark mode CSS are removed from the output.
 
 ## CSS layer order
 
@@ -141,7 +141,7 @@ To customize templates, components, or CSS beyond token overrides, eject the emb
 sarde theme eject
 ```
 
-→ Copies the full embedded theme (templates, CSS, JS, components, partials, `theme.yaml`) to `themes/default/`. All files in `themes/default/` override their embedded counterparts.
+Result: Copies the full embedded theme (templates, CSS, JS, components, partials, `theme.yaml`) to `themes/default/`. All files in `themes/default/` override their embedded counterparts.
 
 After ejecting, edit any file in `themes/default/`. The template overlay resolution ensures ejected files take precedence over the compiled-in defaults.
 

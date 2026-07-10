@@ -1,7 +1,7 @@
 ---
 title: Search
 sidebar:
-  order: 8
+  order: 9
 ---
 
 Sarde builds an offline search index at build time and serves it client-side using Orama. No external search service is needed. Search works on any hosting provider, including static file hosts with no server-side capabilities.
@@ -16,9 +16,9 @@ Each page produces a primary document (title, description, content, tags, sectio
 
 Press **Ctrl+K** (Windows/Linux) or **Cmd+K** (macOS) to open the search modal. Alternatively, click the search button in the header.
 
-→ A modal overlay appears with a search input, keyboard navigation hints, and a results list.
+Result: A modal overlay appears with a search input, keyboard navigation hints, and a results list.
 
-<!-- SCREENSHOT: search-modal — search modal with results list and keyboard hints -->
+<!-- SCREENSHOT: search-modal - search modal with results list and keyboard hints -->
 
 Type a query to see results. Use arrow keys to navigate, Enter to select, and Escape to close.
 
@@ -26,7 +26,7 @@ Type a query to see results. Use arrow keys to navigate, Enter to select, and Es
 
 Press **Ctrl+Space** (Windows/Linux) or **Cmd+Space** (macOS) inside the search modal to toggle full-search mode. This expands the modal into a split-pane view with the result list on the left and a preview of the selected result on the right.
 
-<!-- SCREENSHOT: search-full-mode — split-pane search with result list and content preview -->
+<!-- SCREENSHOT: search-full-mode - split-pane search with result list and content preview -->
 
 ## Search scope
 

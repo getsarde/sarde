@@ -1,7 +1,7 @@
 ---
 title: SEO and Feeds
 sidebar:
-  order: 9
+  order: 10
 ---
 
 Sarde generates meta tags, structured data, sitemaps, and feeds automatically. No configuration is needed for sensible defaults. The SEO, sitemap, feeds, and social cards plugins are all enabled by default.

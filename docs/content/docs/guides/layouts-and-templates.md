@@ -1,7 +1,7 @@
 ---
 title: Layouts and Templates
 sidebar:
-  order: 11
+  order: 12
 ---
 
 Layouts control the page chrome: whether a sidebar, table of contents, or full-width content area appears. Set the layout per page in frontmatter or per collection in `sarde.yaml`. Templates render the HTML for each layout using Go's `html/template` engine.
@@ -19,7 +19,7 @@ Sarde ships eight layout types. Each determines which structural elements appear
 | `full` | no | no | Full width | Custom pages, dashboards |
 | `centered` | no | no | Narrow | About pages, legal pages |
 | `split` | no | no | Two equal columns | Comparison pages |
-| `presentation` | no | no | Full width | Slide-style content |
+| `presentation` | no | no | Full width | Presentation-style pages |
 
 Set the layout in frontmatter:
 

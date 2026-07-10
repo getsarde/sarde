@@ -1,10 +1,11 @@
 ---
 title: Code Blocks
 sidebar:
-  order: 4
+  order: 8
 ---
 
-Sarde renders fenced code blocks with syntax highlighting, line markers, titles, copy buttons, and more. Features are controlled through meta-string options on the opening fence.
+Code blocks render with syntax highlighting, optional titles, line markers,
+copy controls, and grouped tabs. Most features are set in the opening fence.
 
 ````markdown
 ```go title="main.go" {3-5}
@@ -18,26 +19,28 @@ func main() {
 ```
 ````
 
-→ A framed code block with the title "main.go", Go syntax highlighting, and lines 3 through 5 highlighted.
+Result: A framed Go code block appears with a `main.go` title and lines 3 through 5
+highlighted.
 
 ## Highlighting engines
 
-Sarde ships two highlighting engines. Set the engine in `sarde.yaml`:
+Sarde embeds Kazari for code block presentation. Kazari can use Nuri or Chroma
+for syntax highlighting.
+
+`sarde.yaml`
 
 ```yaml
 markdown:
   codeblocks:
-    engine: nuri    # or "chroma"
+    engine: nuri
 ```
 
-| Engine | Description |
-|--------|-------------|
-| `nuri` (default) | TextMate grammar tokenizer. Produces VS Code-accurate output. Slower. Best for production builds. |
-| `chroma` | Go-native highlighter. Faster. Minor token differences. Good for dev mode. |
+| Engine | Use for |
+|---|---|
+| `nuri` | VS Code-style TextMate grammar highlighting. |
+| `chroma` | Go-native highlighting with faster startup and fewer dependencies. |
 
-<!-- TODO: replace with link to Nuri/Kazari docs when available -->
-
-Both engines support 200+ languages. Specify the language after the opening fence:
+Set the language after the opening fence.
 
 ````markdown
 ```python
@@ -46,235 +49,176 @@ def greet(name):
 ```
 ````
 
-## Titles
+## Titles and frames
 
-Add a title bar above the code block with the `title` option:
+Add a title with `title`.
 
 ````markdown
 ```yaml title="sarde.yaml"
 site:
-  title: "My Course"
+  title: "Biology Course"
 ```
 ````
 
-→ A title bar labeled "sarde.yaml" appears above the code block.
+Result: A title bar labeled `sarde.yaml` appears above the block.
 
-Filenames in the title (e.g., `main.go`, `config.yaml`) are auto-detected and displayed with a file icon.
+Frames control the visual chrome around a code block.
 
-## Line numbers
+| Frame | Description |
+|---|---|
+| `code` | Standard code block with language badge. |
+| `terminal` | Terminal-style frame for shell commands. |
+| `none` | Code content without surrounding chrome. |
 
-Show line numbers with `showLineNumbers`. Set a custom start number with `startLineNumber`:
+Override the frame when needed.
 
 ````markdown
-```js showLineNumbers
-const x = 1;
-const y = 2;
-const z = x + y;
+```sh frame=none
+sarde build
 ```
 ````
+
+## Line numbers and highlights
+
+Use `showLineNumbers` for a line-number gutter. Use `startLineNumber` when the
+snippet starts in the middle of a larger file.
 
 ````markdown
 ```js showLineNumbers startLineNumber=10
-const x = 1;
+const sunlight = true;
+const water = true;
 ```
 ````
 
-→ Line numbers appear in the gutter. The second block starts numbering at 10.
+Result: Line numbers appear in the gutter and start at 10.
 
-## Line highlighting
-
-Highlight specific lines with curly brace notation. Supports individual lines and ranges:
+Highlight lines with curly braces.
 
 ````markdown
 ```python {3,5-7}
-import os
-import sys
+import csv
 
-def process():
-    data = read_input()
-    result = transform(data)
-    write_output(result)
-    return result
+def read_observations():
+    rows = load_csv("plants.csv")
+    cleaned = remove_empty_rows(rows)
+    validated = check_schema(cleaned)
+    return validated
 ```
 ````
 
-→ Lines 3 and 5 through 7 are highlighted with a background color.
+Result: Line 3 and lines 5 through 7 are highlighted.
 
-### Labeled highlights
-
-Add a label to a highlight group:
+Add labels to highlighted ranges when the reason matters.
 
 ````markdown
-```python {"Input":1-2} {"Processing":4-6}
-data = read_file("input.csv")
+```python {"Input":1-2} {"Validation":4-6}
+data = read_file("plants.csv")
 records = parse_csv(data)
 
-cleaned = remove_duplicates(records)
+cleaned = remove_empty_rows(records)
 validated = check_schema(cleaned)
 result = transform(validated)
 ```
 ````
 
-→ Lines 1-2 and 4-6 are highlighted with their respective labels shown in the gutter.
+## Diff and inline markers
 
-## Inserted and deleted lines
-
-Mark lines as inserted (green) or deleted (red) for diff-style display:
+Use `ins` and `del` to show inserted and deleted lines.
 
 ````markdown
 ```yaml ins={3} del={2}
 site:
-  title: "Old Title"
-  title: "New Title"
+  title: "Old Course"
+  title: "Biology Lab"
 ```
 ````
 
-→ Line 2 shows with a red background (deleted) and line 3 with a green background (inserted).
+Result: Deleted lines render in red and inserted lines render in green.
 
-Text-based markers are also supported:
+Inline markers highlight words or patterns within a line.
 
 ````markdown
-```yaml ins="New Title" del="Old Title"
-site:
-  title: "Old Title"
-  title: "New Title"
+```python "photosynthesis" /plant_\w+/
+result = photosynthesis_rate(plant_sample)
 ```
 ````
 
-## Inline markers
+Result: The exact word and matching pattern are highlighted inside the line.
 
-Highlight specific text within lines using quoted strings or regex patterns:
+## Focus and collapse
 
-````markdown
-```python "transform" /data\w*/
-result = transform(dataFrame)
-```
-````
-
-→ The word "transform" and any match of `data\w*` are highlighted inline.
-
-## Focus mode
-
-Blur all lines except the focused ones to draw attention:
+Use `focus` to dim surrounding lines.
 
 ````markdown
 ```python focus={3-4}
 import os
 
 def main():
-    process_data()
+    run_lesson_export()
 
 if __name__ == "__main__":
     main()
 ```
 ````
 
-→ Lines 3 and 4 are fully visible. All other lines are dimmed.
+Result: Lines 3 and 4 stay fully visible. The other lines are dimmed.
 
-## Collapsible sections
-
-Collapse long code blocks with `collapse`:
+Use `collapse` for long examples.
 
 ````markdown
 ```python collapse
-# A long file with many lines...
-import os
-import sys
+import csv
 import json
 
-def function_one():
-    pass
-
-def function_two():
-    pass
-
-def function_three():
+def load_many_lesson_files():
     pass
 ```
 ````
 
-→ The code block renders collapsed with a toggle to expand.
-
-## Frame types
-
-Three frame types control the visual chrome around code blocks:
-
-| Frame | Description |
-|-------|-------------|
-| `code` (default) | Standard code block with language badge |
-| `terminal` | macOS-style terminal with colored dots. Auto-applied for `bash`, `sh`, `zsh`, `powershell`, `cmd` |
-| `none` | No frame or chrome |
-
-Override the auto-detected frame:
-
-````markdown
-```sh frame=none
-echo "No terminal chrome"
-```
-````
+Result: The block renders collapsed with a control to expand it.
 
 ## Code groups
 
-Group related code blocks into a tabbed interface with `:::code-group`:
+Group related code blocks with `:::code-group`.
 
 ````markdown
 :::code-group
 
-```js title="ESM"
-import { create } from 'sarde';
+```bash title="npm"
+npm run build
 ```
 
-```js title="CommonJS"
-const { create } = require('sarde');
+```bash title="pnpm"
+pnpm build
 ```
 
 :::
 ````
 
-→ A tabbed code block appears. Clicking a tab switches between ESM and CommonJS. Tab selection syncs across all code groups on the page that share the same tab labels.
+Result: A tabbed code block appears. Selecting a tab switches between package
+managers.
 
-## Diff highlighting
+## Common options
 
-Code blocks with the `diff` language auto-detect `+` and `-` prefixes and apply inserted/deleted styling:
-
-````markdown
-```diff
-- old line
-+ new line
-  unchanged line
-```
-````
-
-→ Lines starting with `-` render with red (deleted) styling and `+` with green (inserted). The `+`/`-` prefixes are stripped from the display.
-
-## Per-block theme override
-
-Override the global highlighting theme for a single block:
-
-````markdown
-```python theme="one-dark-pro"
-print("Using One Dark Pro theme")
-```
-````
-
-The theme name must match a theme available to the configured engine.
-
-## Toolbar buttons
-
-Every code block includes toolbar buttons configured in `kazari.config.yaml`:
-
-| Button | Default | Description |
-|--------|---------|-------------|
-| Copy | on | Copy code to clipboard |
-| Fullscreen | on | Expand block to fullscreen |
-| Wrap | on | Toggle word wrap |
-| Language badge | on | Show the language name |
+| Option | Syntax | Description |
+|---|---|---|
+| Language | <code>```go</code> | Selects syntax highlighting. |
+| Title | `title="main.go"` | Adds a title bar. |
+| Line numbers | `showLineNumbers` | Shows a gutter with line numbers. |
+| Start number | `startLineNumber=10` | Starts line numbering at a custom value. |
+| Highlight lines | `{3,5-7}` | Highlights individual lines or ranges. |
+| Insert/delete | `ins={3} del={2}` | Marks inserted and deleted lines. |
+| Inline marker | `"text"` or `/regex/` | Highlights matching text inside a line. |
+| Focus | `focus={3-4}` | Dims lines outside the focused range. |
+| Collapse | `collapse` | Renders the block collapsed by default. |
+| Theme | `theme="one-dark-pro"` | Overrides the highlighting theme for one block. |
+| Frame | `frame=terminal` | Sets the visual frame. |
 
 ## Configuration
 
-Code block behavior is configured at two levels:
+Configure engine and themes in `sarde.yaml`.
 
-`sarde.yaml` (engine and theme selection):
+`sarde.yaml`
 
 ```yaml
 markdown:
@@ -285,7 +229,9 @@ markdown:
     dark_mode_selector: '[data-theme="dark"]'
 ```
 
-`kazari.config.yaml` (toolbar, defaults, language settings):
+Configure Kazari controls in `kazari.config.yaml`.
+
+`kazari.config.yaml`
 
 ```yaml
 copyButton: true
@@ -297,12 +243,7 @@ lineNumbers: false
 defaults:
   wrap: false
   frame: auto
-
-languageDefaults:
-  "bash, sh, zsh":
-    frame: terminal
 ```
 
-See [Configuration](/reference/configuration#markdown) for the `markdown.codeblocks` settings.
-
-<!-- TODO: replace with link to Kazari docs when available -->
+See [Configuration](/reference/configuration#markdown) for
+`markdown.codeblocks` settings.

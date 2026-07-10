@@ -1,7 +1,7 @@
 ---
 title: Versioning
 sidebar:
-  order: 14
+  order: 15
 ---
 
 Sarde supports multiple documentation versions within a single collection. Readers switch between versions using a dropdown in the header, and each version gets its own sidebar navigation, URL prefix, and search scope.
@@ -31,9 +31,9 @@ collections:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `enabled` | bool | `false` | Enable versioning for this collection. |
-| `last_version` | string | — | Version ID treated as "latest." Its content serves at the collection root URL. Must match one of the `versions[].id` values. |
+| `last_version` | string | none | Version ID treated as "latest." Its content serves at the collection root URL. Must match one of the `versions[].id` values. |
 | `publish_latest_at_version_url` | bool | `false` | When `true`, the latest version also publishes at its versioned URL (`/docs/v3/...`) in addition to the collection root. |
-| `fallback` | string | — | i18n fallback policy for this versioned collection. `"default"` or `"omit"`. |
+| `fallback` | string | none | i18n fallback policy for this versioned collection. `"default"` or `"omit"`. |
 
 ## Version entries
 
@@ -41,7 +41,7 @@ Each entry in the `versions` list defines one version:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `id` | string | — | Unique identifier. Must match the directory name under the collection. |
+| `id` | string | none | Unique identifier. Must match the directory name under the collection. |
 | `label` | string | same as `id` | Display name shown in the version switcher dropdown. |
 | `path` | string | same as `id` | URL path segment. Defaults to the `id`. |
 | `banner` | string | `"none"` | `"none"`, `"unmaintained"`, or `"unreleased"`. |
@@ -56,15 +56,15 @@ Place versioned content in subdirectories named by version ID:
 ```
 content/
   docs/
-    getting-started.md       ← latest version (matches last_version)
+    getting-started.md       # latest version (matches last_version)
     guides/
       auth.md
     v2/
-      getting-started.md     ← version 2
+      getting-started.md     # version 2
       guides/
         auth.md
     v1/
-      getting-started.md     ← version 1
+      getting-started.md     # version 1
 ```
 
 The latest version's content lives at the collection root (not inside a version directory). Older versions each get their own subdirectory.
@@ -89,9 +89,9 @@ Set `banner` on a version entry to display a notice at the top of every page in 
 - `"unreleased"`: "You are viewing documentation for an unreleased version."
 - `"none"` (default): No banner.
 
-→ A yellow banner appears with a link to the latest stable version.
+Result: A yellow banner appears with a link to the latest stable version.
 
-<!-- SCREENSHOT: version-banner-unmaintained — an unmaintained version banner with a link to latest -->
+<!-- SCREENSHOT: version-banner-unmaintained - an unmaintained version banner with a link to latest -->
 
 Both banner types include a link to the latest version. The banner text is translatable via the `version.unmaintained_notice`, `version.unreleased_notice`, `version.unmaintained_link`, and `version.unreleased_link` keys in the `i18n/` files.
 
@@ -99,9 +99,9 @@ Both banner types include a link to the latest version. The banner text is trans
 
 The version switcher appears in the header when the current page belongs to a versioned collection. It lists all configured versions with their labels.
 
-→ A dropdown shows each version label. The current version is highlighted. The latest version is marked.
+Result: A dropdown shows each version label. The current version is highlighted. The latest version is marked.
 
-<!-- SCREENSHOT: version-switcher-dropdown — the version switcher open with three versions -->
+<!-- SCREENSHOT: version-switcher-dropdown - the version switcher open with three versions -->
 
 The switcher links to the same page in each version when `redirect: "same-page"` is set. If the equivalent page does not exist in the target version, the link falls back to the version's collection root. Versions with `redirect: "root"` always link to the collection root.
 
@@ -134,14 +134,14 @@ Versioning and internationalization compose. Each (language, version) pair gets 
 ```
 content/
   docs/
-    getting-started.md          ← English, latest
+    getting-started.md          # English, latest
     v2/
-      getting-started.md        ← English, v2
+      getting-started.md        # English, v2
   fr/
     docs/
-      getting-started.md        ← French, latest
+      getting-started.md        # French, latest
       v2/
-        getting-started.md      ← French, v2
+        getting-started.md      # French, v2
 ```
 
 The URL for the French v2 page is `/fr/docs/v2/getting-started/`. The language prefix comes first, followed by the collection mount, then the version segment.

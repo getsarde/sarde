@@ -1,7 +1,7 @@
 ---
 title: Internationalization
 sidebar:
-  order: 13
+  order: 14
 ---
 
 Sarde supports multi-language sites with localized URLs, automatic fallback pages, a language switcher, and translated UI strings. Content for each language lives in its own subdirectory under `content/`.
@@ -40,8 +40,8 @@ Each language entry accepts:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `name` | string | — | Display name shown in the language switcher. |
-| `title` | string | — | Optional site title override for this language. |
+| `name` | string | none | Display name shown in the language switcher. |
+| `title` | string | none | Optional site title override for this language. |
 | `weight` | int | `0` | Sort order in the language switcher. Lower values appear first. |
 | `dir` | string | `"ltr"` | Text direction. Set to `"rtl"` for Arabic, Hebrew, and similar scripts. |
 
@@ -52,17 +52,17 @@ Place translated content in language-prefixed directories under `content/`:
 ```
 content/
   docs/
-    getting-started.md      ← English (default)
+    getting-started.md      # English (default)
     guides/
       auth.md
   fr/
     docs/
-      getting-started.md    ← French translation
+      getting-started.md    # French translation
       guides/
         auth.md
   ar/
     docs/
-      getting-started.md    ← Arabic translation
+      getting-started.md    # Arabic translation
 ```
 
 The default language (`en` above) has no directory prefix. Non-default languages use `content/<lang>/` as the root, then mirror the same structure.
@@ -120,9 +120,9 @@ For the full list of built-in string keys, see the embedded `en.yaml` that ships
 
 When a page exists in the default language but has no translation, Sarde generates a *fallback page*. The fallback displays the default-language content with a notice banner:
 
-→ A banner appears at the top: "This page is not yet available in Français. Showing the original version."
+Result: A banner appears at the top: "This page is not yet available in French. Showing the original version."
 
-<!-- SCREENSHOT: fallback-notice-banner — a fallback notice banner on an untranslated page -->
+<!-- SCREENSHOT: fallback-notice-banner - a fallback notice banner on an untranslated page -->
 
 Control fallback behavior at two levels:
 
@@ -150,9 +150,9 @@ Fallback pages have `IsFallback: true` in templates. The `FallbackNotice` compon
 
 When a page has translations (or fallback pages), the language switcher component appears in the header. It lists all available languages, sorted by weight.
 
-→ A dropdown shows each language by its display name. The current language is highlighted. Fallback entries are visually distinguished.
+Result: A dropdown shows each language by its display name. The current language is highlighted. Fallback entries are visually distinguished.
 
-<!-- SCREENSHOT: language-switcher-dropdown — the language switcher open with three languages -->
+<!-- SCREENSHOT: language-switcher-dropdown - the language switcher open with three languages -->
 
 The switcher links to the same page in each language. For fallback pages, the link points to the fallback URL. The dropdown closes on outside click or the Escape key.
 
