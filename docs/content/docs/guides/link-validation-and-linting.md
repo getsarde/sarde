@@ -1,7 +1,8 @@
 ---
 title: Link Validation and Linting
+description: "Configure internal link checking, external URL probing, and content linting policies"
 sidebar:
-  order: 16
+  order: 17
 ---
 
 Sarde validates internal links during every build and optionally probes external URLs. A separate content linter checks heading structure, image alt text, and other Markdown quality rules. Both produce warnings or errors depending on the configured policy.

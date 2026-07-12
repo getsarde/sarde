@@ -1,5 +1,6 @@
 ---
 title: Feeds
+description: "Generate RSS 2.0 and Atom 1.0 feed files for feed-enabled collections"
 sidebar:
   order: 32
   group: Server-Side

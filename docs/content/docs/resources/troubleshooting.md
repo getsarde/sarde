@@ -1,5 +1,6 @@
 ---
 title: Troubleshooting
+description: "Common build, configuration, dev server, link checking, and theme errors and how to resolve them"
 sidebar:
   order: 4
 ---

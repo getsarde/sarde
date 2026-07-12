@@ -1,5 +1,6 @@
 ---
 title: External Links
+description: "Mark external links with an arrow icon and open them in a new browser tab"
 sidebar:
   order: 12
   group: Client-Side

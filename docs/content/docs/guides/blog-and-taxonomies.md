@@ -1,7 +1,8 @@
 ---
 title: Blog and Taxonomies
+description: "Set up date-sorted blog collections with feeds, list layouts, tags, and categories"
 sidebar:
-  order: 6
+  order: 7
 ---
 
 Blog collections are auto-detected by directory name. Place content in `blog/`, `posts/`, `articles/`, or `news/` and Sarde applies date-sorted, feed-enabled defaults with no configuration required.

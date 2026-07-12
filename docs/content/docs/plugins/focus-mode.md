@@ -1,5 +1,6 @@
 ---
 title: Focus Mode
+description: "Hide the sidebar and table of contents for distraction-free reading"
 sidebar:
   order: 13
   group: Client-Side

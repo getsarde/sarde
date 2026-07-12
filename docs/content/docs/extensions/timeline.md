@@ -1,5 +1,6 @@
 ---
 title: Timeline
+description: "Display a vertical sequence of entries with markers for changelogs or milestones"
 sidebar:
   order: 26
   group: Block

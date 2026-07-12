@@ -1,5 +1,6 @@
 ---
 title: Badges
+description: "Display short colored pill labels with optional icons for status, versions, or categories"
 sidebar:
   order: 12
   group: Block

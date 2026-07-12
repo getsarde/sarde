@@ -1,5 +1,6 @@
 ---
 title: Image Compare
+description: "Compare a before and after image pair with a draggable slider"
 sidebar:
   order: 18
   group: Block

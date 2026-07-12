@@ -1,5 +1,6 @@
 ---
 title: Video
+description: "Embed YouTube, Vimeo, or self-hosted video files with a responsive wrapper"
 sidebar:
   order: 27
   group: Block

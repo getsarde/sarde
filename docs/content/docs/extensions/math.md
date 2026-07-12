@@ -1,5 +1,6 @@
 ---
 title: Math
+description: "Render inline and block LaTeX math expressions using KaTeX"
 sidebar:
   order: 21
   group: Block

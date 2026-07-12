@@ -1,5 +1,6 @@
 ---
 title: Copy Section Link
+description: "Copy a shareable link to a heading section by clicking its anchor icon"
 sidebar:
   order: 11
   group: Client-Side

@@ -1,5 +1,6 @@
 ---
 title: Theme Tokens
+description: "Reference for every CSS custom property token and how the four-layer token cascade resolves them"
 sidebar:
   order: 4
 ---

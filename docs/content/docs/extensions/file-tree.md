@@ -1,5 +1,6 @@
 ---
 title: File Tree
+description: "Render directory structures as a styled tree with folder and file icons"
 sidebar:
   order: 16
   group: Block

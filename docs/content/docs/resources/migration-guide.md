@@ -1,5 +1,6 @@
 ---
 title: Migration Guide
+description: "Step-by-step patterns for migrating existing content to Sarde from Obsidian and other platforms"
 sidebar:
   order: 2
 ---

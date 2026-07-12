@@ -1,5 +1,6 @@
 ---
 title: Search
+description: "Build a JSON search index at build time with embedded, offline Orama search"
 sidebar:
   order: 39
   group: Server-Side

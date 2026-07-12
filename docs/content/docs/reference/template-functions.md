@@ -1,5 +1,6 @@
 ---
 title: Template Functions
+description: "Reference for the custom string, math, date, and data functions registered into Sarde's template engine"
 sidebar:
   order: 5
 ---

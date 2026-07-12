@@ -1,5 +1,6 @@
 ---
 title: Image Lightbox
+description: "Open content images in a full-screen overlay with zoom and pan controls"
 sidebar:
   order: 14
   group: Client-Side

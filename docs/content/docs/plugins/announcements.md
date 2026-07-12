@@ -1,5 +1,6 @@
 ---
 title: Announcements
+description: "Render dismissible announcement banners with scheduling and page targeting"
 sidebar:
   order: 30
   group: Server-Side

@@ -1,10 +1,9 @@
 ---
 title: Frontmatter
+description: "Reference for every frontmatter field, its default, and how it is auto-inferred when omitted"
 sidebar:
   order: 2
 ---
-
-# Frontmatter
 
 Frontmatter is optional metadata at the top of a Markdown file. Sarde uses it to control page titles, dates, sidebar ordering, layout, and more. Fields not provided are auto-inferred from the filename, content, or file metadata.
 

@@ -1,5 +1,6 @@
 ---
 title: Tabs
+description: "Switch between related content panels, with tab selection synced across the site"
 sidebar:
   order: 24
   group: Block

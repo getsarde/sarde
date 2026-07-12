@@ -29,7 +29,7 @@
 	  align-items: center;
 	  gap: var(--sd-space-2);
 	  padding: var(--sd-space-2) var(--sd-space-3);
-	  color: var(--sd-text-muted);
+	  color: var(--sd-text);
 	  font-weight: var(--sd-weight-normal);
 	  text-decoration: none;
 	  border-radius: var(--sd-radius-md);
@@ -73,7 +73,7 @@
 	  padding: 2px var(--sd-space-3);
 	  font-weight: var(--sd-weight-semibold);
 	  font-size: var(--sd-text-base);
-	  color: var(--sd-text);
+	  color: var(--sd-text-high);
 	  cursor: pointer;
 	  user-select: none;
 	  border-radius: var(--sd-radius-md);
@@ -94,6 +94,7 @@
 	  align-items: center;
 	  gap: var(--sd-space-2);
 	  color: inherit;
+	  font-weight: inherit;
 	  text-decoration: none;
 	  flex: 1;
 	  min-width: 0;

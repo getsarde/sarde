@@ -1,5 +1,6 @@
 ---
 title: LLMs.txt
+description: "Generate an llms.txt file listing every content page for LLM discovery"
 sidebar:
   order: 35
   group: Server-Side

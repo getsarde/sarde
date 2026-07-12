@@ -1,5 +1,6 @@
 ---
 title: Reading Progress
+description: "Show a scroll progress bar and an estimated reading time badge"
 sidebar:
   order: 19
   group: Client-Side

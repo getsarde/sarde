@@ -1,5 +1,6 @@
 ---
 title: Accordion
+description: "Group collapsible detail sections so opening one closes the others"
 sidebar:
   order: 10
   group: Block

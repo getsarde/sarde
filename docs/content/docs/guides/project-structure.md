@@ -1,5 +1,6 @@
 ---
 title: Project Structure
+description: "Understand what each directory and config file in a Sarde project does"
 sidebar:
   order: 1
 ---

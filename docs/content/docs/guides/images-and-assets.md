@@ -1,7 +1,8 @@
 ---
 title: Images and Assets
+description: "Configure responsive image generation, LQIP placeholders, static files, and bundled CSS/JS"
 sidebar:
-  order: 7
+  order: 8
 ---
 
 Sarde automatically processes images into responsive variants and bundles CSS/JS through esbuild. Production builds get fingerprinted filenames for cache-busting. Dev mode skips image processing for fast rebuilds.

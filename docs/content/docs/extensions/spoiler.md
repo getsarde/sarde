@@ -1,5 +1,6 @@
 ---
 title: Spoiler
+description: "Hide text behind a blur until the reader hovers, focuses, or clicks to reveal it"
 sidebar:
   order: 35
   group: Inline

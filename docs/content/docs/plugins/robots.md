@@ -1,5 +1,6 @@
 ---
 title: Robots
+description: "Generate a robots.txt file that allows all crawlers and links the sitemap"
 sidebar:
   order: 38
   group: Server-Side

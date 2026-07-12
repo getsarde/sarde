@@ -1,5 +1,6 @@
 ---
 title: Content and Collections
+description: "Learn how folders of Markdown become auto-detected blogs, docs, courses, and other collections"
 sidebar:
   order: 2
 ---
@@ -113,7 +114,7 @@ Available per-collection settings:
 | `layout` | string | Inferred from folder name | Layout type: `default`, `docs`, `splash`, `wide`, `full`, `centered`, or `split`. |
 | `paginate` | int | `10` for blog collections, otherwise `0` | Items per page for list views. `0` disables pagination. |
 | `feed` | bool | `true` for blog collections, otherwise `false` | Generate RSS/Atom feeds for this collection when feed plugins are enabled. |
-| `tabs` | bool | Auto-detected | Enable or disable tabbed docs navigation. |
+| `tabs` | bool | Auto-detected | Enable or disable tabbed docs navigation. See [Tabbed Navigation](/guides/tabbed-navigation). |
 | `permalink` | string | File path URL | URL pattern for non-index pages. |
 | `sidebar` | object | Inferred for docs collections | Sidebar sub-config: `collapsible`, `collapsed_by_default`, `max_depth`, `search`. |
 | `toc` | object | Inferred for docs collections | Table of contents sub-config: `enabled`, `depth`, `scroll_highlight`. |

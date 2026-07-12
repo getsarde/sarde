@@ -80,6 +80,7 @@ type SiteConfig struct {
 type SiteIdentity struct {
 	Title          string `yaml:"title"`
 	Description    string `yaml:"description"`
+	Author         string `yaml:"author"`
 	URL            string `yaml:"url"`
 	Logo           Logo   `yaml:"logo"`
 	Favicon        string `yaml:"favicon"`

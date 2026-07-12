@@ -1,5 +1,6 @@
 ---
 title: Link Card
+description: "Render a clickable card-style link with a title, description, and optional icon or image"
 sidebar:
   order: 20
   group: Block

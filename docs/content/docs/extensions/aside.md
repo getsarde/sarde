@@ -1,5 +1,6 @@
 ---
 title: Aside
+description: "Add colored callout blocks for notes, tips, warnings, and dangers that stand out from content"
 sidebar:
   order: 11
   group: Block

@@ -1,5 +1,6 @@
 ---
 title: Steps
+description: "Display a numbered sequence of instructions with a connecting vertical progress line"
 sidebar:
   order: 23
   group: Block

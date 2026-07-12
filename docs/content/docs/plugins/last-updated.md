@@ -1,5 +1,6 @@
 ---
 title: Last Updated
+description: "Show a badge with the page's last-modified time, relative or absolute"
 sidebar:
   order: 16
   group: Client-Side

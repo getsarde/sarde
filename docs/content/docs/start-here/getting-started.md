@@ -1,5 +1,6 @@
 ---
 title: Getting Started
+description: "Install Sarde, scaffold a new site, and preview it with the local dev server"
 sidebar:
   order: 1
 ---

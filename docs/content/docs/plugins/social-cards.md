@@ -1,5 +1,6 @@
 ---
 title: Social Cards
+description: "Auto-generate Open Graph social card images for pages without one"
 sidebar:
   order: 42
   group: Server-Side

@@ -1,5 +1,6 @@
 ---
 title: Sitemap
+description: "Generate a sitemap.xml listing every non-draft page with metadata"
 sidebar:
   order: 41
   group: Server-Side

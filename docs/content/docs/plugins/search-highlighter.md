@@ -1,5 +1,6 @@
 ---
 title: Search Highlighter
+description: "Highlight search terms on the page when readers arrive from site search"
 sidebar:
   order: 21
   group: Client-Side

@@ -1,5 +1,6 @@
 ---
 title: Content Lint
+description: "Catch heading, alt-text, link, and frontmatter quality issues during the build"
 sidebar:
   order: 31
   group: Server-Side

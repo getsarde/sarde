@@ -1,5 +1,6 @@
 ---
 title: Using Plugins
+description: "Enable, disable, and configure Sarde's built-in server-side and client-side plugins"
 sidebar:
   order: 1
 ---

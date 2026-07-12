@@ -1,5 +1,6 @@
 ---
 title: Navigation and Sidebar
+description: "Control sidebar ordering, grouping, icons, and collapsed state through frontmatter and directory structure"
 sidebar:
   order: 4
 ---
@@ -113,12 +114,12 @@ Open/closed state for each group persists across page navigations via `sessionSt
 
 ## Manual tab sidebar with `nav.yaml`
 
-Tabbed docs collections can use `nav.yaml` inside a tab directory to replace the
-auto-generated navigation for that tab. Use this when the tab needs links that do
-not match the file tree.
+[Tabbed collections](/guides/tabbed-navigation) can use `nav.yaml` inside a tab
+directory to replace the auto-generated navigation for that tab. Use this when
+the tab needs links that do not match the file tree.
 
-Collection-root `nav.yaml` files are not part of the current docs navigation
-path.
+The file only applies per tab. A `nav.yaml` at the collection root is ignored,
+and non-tabbed collections always use the auto-generated sidebar.
 
 `content/docs/guides/nav.yaml`
 

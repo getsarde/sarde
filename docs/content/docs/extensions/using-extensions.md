@@ -1,5 +1,6 @@
 ---
 title: Using Extensions
+description: "How block and inline extension syntax works, including fenced directives and nesting rules"
 sidebar:
   order: 1
 ---

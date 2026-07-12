@@ -1,5 +1,6 @@
 ---
 title: KaTeX
+description: "Ship KaTeX runtime assets to pages that contain math markup"
 sidebar:
   order: 33
   group: Server-Side

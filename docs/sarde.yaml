@@ -11,6 +11,13 @@ collections:
   docs:
     sort: "order"
     tabs: false
+    sidebar:
+      collapsible: true
+      collapsed_by_default: true
+toc:
+  enabled: false
+  max_level: 4
+  min_level: 2
 
 homepage:
   hero:

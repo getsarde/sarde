@@ -6,14 +6,14 @@ import (
 	"strings"
 
 	"github.com/getsarde/sarde/internal/config"
-	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkrender"
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/links"
 )
 
 const (
 	errInvalidLink  = "invalid link"
 	errInvalidHash  = "invalid hash"
-	errRelativeLink = "relative link"
 	errLocalLink    = "local link"
 	errSameSite     = "same site"
 )
@@ -30,11 +30,6 @@ func newLinkValidatorPlugin(cfg map[string]any) *Plugin {
 }
 
 func linkValidatorBuildDone(ctx *BuildDoneContext) error {
-	// Full builds already run the authoritative internal/links report
-	// (SiteBuilder.validateLinks); running here too re-validated the same
-	// collected links against the same config and printed every warning
-	// twice. This plugin is the lightweight checker for incremental rebuilds
-	// only, where the LinkGraph path deliberately does not run.
 	if !ctx.Incremental {
 		return nil
 	}
@@ -49,8 +44,6 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 
 	checkAnchors := config.BoolVal(settings.CheckAnchors, true)
 	checkImages := config.BoolVal(settings.CheckImages, true)
-	warnRelative := settings.EffectiveOnRelativeLinks() != "ignore"
-	warnLocal := settings.EffectiveOnLocalLinks() != "ignore"
 	sameSitePolicy := settings.SameSitePolicy
 	if sameSitePolicy == "" {
 		sameSitePolicy = "ignore"
@@ -61,16 +54,20 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 		excludePatterns = settings.Ignore
 	}
 
-	siteURL := ctx.BaseURL()
+	warnLocal := settings.EffectiveOnLocalLinks() != "ignore"
 
-	// Only re-validate links from pages that actually changed this pass;
-	// unchanged pages' links were validated by a prior build. This mirrors
-	// content_lint's scoping: a link from an unchanged page targeting a
-	// heading removed from a changed page won't be re-flagged until the
-	// next full build or an edit to that file.
+	siteURL := ctx.BaseURL()
+	escapePrefix := settings.SiteRootEscapePrefix
+
 	changedSet := make(map[string]struct{}, len(ctx.ChangedPages))
 	for _, p := range ctx.ChangedPages {
 		changedSet[p.Permalink] = struct{}{}
+	}
+
+	resolveCtx := linkrender.ResolveContext{
+		PageIndex:   ctx.PageIndex,
+		URLResolver: ctx.Resolver.URL,
+		Collections: ctx.Collections,
 	}
 
 	var errorCount, linkCount int
@@ -78,14 +75,18 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 		if _, changed := changedSet[permalink]; !changed {
 			continue
 		}
+		page := ctx.PageIndex.LookupByPermalink(permalink)
+		if page == nil {
+			continue
+		}
 		for _, link := range entry.Links {
 			linkCount++
 			if link.IsImage && !checkImages {
 				continue
 			}
-			if validateLink(ctx, ctx.PageIndex, ctx.Resolver, permalink, entry.FilePath, entry.Lang, link.Href,
-				checkAnchors, warnRelative, warnLocal, sameSitePolicy,
-				siteURL, excludePatterns) {
+			if validateLink(ctx, page, resolveCtx, link.Href,
+				checkAnchors, warnLocal, sameSitePolicy,
+				siteURL, escapePrefix, excludePatterns) {
 				errorCount++
 			}
 		}
@@ -104,10 +105,11 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 	return nil
 }
 
-func validateLink(ctx *BuildDoneContext, idx *content.PageIndex,
-	resolver *engine.URLResolver, pagePermalink, filePath, lang, href string,
-	checkAnchors, warnRelative, warnLocal bool,
-	sameSitePolicy, siteURL string, excludePatterns []string) bool {
+func validateLink(ctx *BuildDoneContext, page *engine.Page,
+	resolveCtx linkrender.ResolveContext, href string,
+	checkAnchors, warnLocal bool,
+	sameSitePolicy, siteURL, escapePrefix string,
+	excludePatterns []string) bool {
 
 	if href == "" {
 		return false
@@ -122,66 +124,50 @@ func validateLink(ctx *BuildDoneContext, idx *content.PageIndex,
 	}
 
 	if warnLocal && isLocalLink(href) {
-		addLinkWarning(ctx, filePath, href, errLocalLink)
+		addLinkWarning(ctx, page.FilePath, href, errLocalLink)
 		return true
 	}
 
 	if sameSitePolicy != "ignore" && siteURL != "" && isSameSite(href, siteURL) {
-		// "warn" and "error" both surface the finding; "error" additionally
-		// counts toward the fail_build threshold via the caller's errorCount
-		// (mirroring internal/links/report.go's handling on full builds).
 		if sameSitePolicy == "warn" || sameSitePolicy == "error" {
-			addLinkWarning(ctx, filePath, href, errSameSite)
+			addLinkWarning(ctx, page.FilePath, href, errSameSite)
 			return true
 		}
 		href = stripOrigin(href, siteURL)
 	}
 
-	if isExternalURL(href) {
-		return false
-	}
+	result := linkrender.CheckHref(href, page, resolveCtx,
+		ctx.PageIndex, ctx.Resolver, escapePrefix)
 
-	if isRelativeLink(href) {
-		if warnRelative {
-			addLinkWarning(ctx, filePath, href, errRelativeLink)
-			return true
-		}
-		return false
-	}
-
-	path, anchor := splitAnchor(href)
-
-	if path == "" && anchor != "" {
-		if checkAnchors && !idx.HasHeading(pagePermalink, anchor) {
-			addLinkWarning(ctx, filePath, href, errInvalidHash)
-			return true
-		}
-		return false
-	}
-
-	normalizedPath := content.NormalizePermalink(path)
-
-	lookupPath := normalizedPath
-	if resolver != nil {
-		lookupPath = resolver.URL(normalizedPath, lang, "")
-	}
-
-	if idx.HasPage(lookupPath) {
-		if anchor != "" && checkAnchors {
-			if !idx.HasHeading(lookupPath, anchor) {
-				addLinkWarning(ctx, filePath, href, errInvalidHash)
+	switch result.Status {
+	case links.StatusOK:
+		if result.HasFragment && checkAnchors {
+			fragment := extractFragment(href)
+			if fragment != "" && !ctx.PageIndex.HasHeading(result.TargetPermalink, fragment) {
+				addLinkWarning(ctx, page.FilePath, href, errInvalidHash)
 				return true
 			}
 		}
 		return false
-	}
 
-	if idx.HasAsset(path) {
+	case links.StatusExternal:
 		return false
-	}
 
-	addLinkWarning(ctx, filePath, href, errInvalidLink)
-	return true
+	default:
+		addLinkWarning(ctx, page.FilePath, href, errInvalidLink)
+		return true
+	}
+}
+
+func extractFragment(href string) string {
+	if i := strings.IndexByte(href, '#'); i >= 0 {
+		frag := href[i+1:]
+		if i := strings.IndexByte(frag, '?'); i >= 0 {
+			frag = frag[:i]
+		}
+		return frag
+	}
+	return ""
 }
 
 func addLinkWarning(ctx *BuildDoneContext, filePath, href, errType string) {
@@ -199,12 +185,6 @@ func isSpecialScheme(href string) bool {
 		strings.HasPrefix(lower, "data:") ||
 		strings.HasPrefix(lower, "javascript:") ||
 		strings.HasPrefix(lower, "vbscript:")
-}
-
-func isExternalURL(href string) bool {
-	return strings.HasPrefix(href, "http://") ||
-		strings.HasPrefix(href, "https://") ||
-		strings.HasPrefix(href, "//")
 }
 
 func isLocalLink(href string) bool {
@@ -240,21 +220,4 @@ func stripOrigin(href, siteURL string) string {
 		return remainder
 	}
 	return href
-}
-
-func isRelativeLink(href string) bool {
-	return strings.HasPrefix(href, "./") || strings.HasPrefix(href, "../")
-}
-
-func splitAnchor(href string) (path, anchor string) {
-	if idx := strings.Index(href, "#"); idx >= 0 {
-		path = href[:idx]
-		anchor = href[idx+1:]
-	} else {
-		path = href
-	}
-	if idx := strings.Index(path, "?"); idx >= 0 {
-		path = path[:idx]
-	}
-	return
 }

@@ -1,5 +1,6 @@
 ---
 title: Mermaid
+description: "Render flowcharts, sequence diagrams, and other visualizations from text definitions"
 sidebar:
   order: 22
   group: Block

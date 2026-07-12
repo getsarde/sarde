@@ -1,5 +1,6 @@
 ---
 title: Deploying
+description: "Build a production site and deploy it to GitHub Pages, Netlify, Cloudflare Pages, Vercel, or a custom target"
 sidebar:
   order: 2
 ---

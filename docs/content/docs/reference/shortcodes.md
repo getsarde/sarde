@@ -1,5 +1,6 @@
 ---
 title: Shortcodes
+description: "Reference for shortcode syntax, parameters, and the built-in alert shortcode"
 sidebar:
   order: 6
 ---

@@ -1,5 +1,6 @@
 ---
 title: Oi Desktop Quickstart
+description: "Create, edit, and preview Sarde content visually with the Oi Desktop app"
 sidebar:
   order: 3
 ---

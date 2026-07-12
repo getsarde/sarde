@@ -1,10 +1,9 @@
 ---
 title: Configuration
+description: "Complete reference for every sarde.yaml setting, resolved through the five-layer config cascade"
 sidebar:
   order: 1
 ---
-
-# Configuration
 
 Sarde reads its configuration from a `sarde.yaml` file at the project root. Every key documented on this page can appear in that file. Keys not present fall back to their defaults.
 
@@ -350,7 +349,7 @@ Each key under `collections` defines overrides for a content collection. Collect
 | `permalink` | string | - | Permalink pattern (e.g., `/:slug`). |
 | `paginate` | int | - | Items per list page. Min: 1. |
 | `feed` | bool | - | Generate RSS/Atom feeds for this collection. |
-| `tabs` | bool | - | Enable tabbed navigation for this collection. |
+| `tabs` | bool | - | Enable [tabbed navigation](/guides/tabbed-navigation) for this collection. |
 | `i18n_fallback` | string | - | i18n fallback strategy for this collection. `default` (use default language page) or `omit` (hide untranslated pages). |
 
 ### `collections.<name>.sidebar`

@@ -1,5 +1,6 @@
 ---
 title: Writing Content
+description: "Cover frontmatter fields, page bundles, drafts, scheduled content, and expiring pages"
 sidebar:
   order: 3
 ---

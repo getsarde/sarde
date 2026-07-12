@@ -1,5 +1,6 @@
 ---
 title: Reading Preferences
+description: "Let readers adjust font, size, spacing, alignment, and content width"
 sidebar:
   order: 18
   group: Client-Side

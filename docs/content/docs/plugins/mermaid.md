@@ -1,5 +1,6 @@
 ---
 title: Mermaid
+description: "Ship Mermaid runtime assets to pages that contain diagram markup"
 sidebar:
   order: 36
   group: Server-Side

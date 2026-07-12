@@ -1,5 +1,6 @@
 ---
 title: Redirects
+description: "Generate redirect files from page aliases and global redirect mappings"
 sidebar:
   order: 37
   group: Server-Side

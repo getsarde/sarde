@@ -1,5 +1,6 @@
 ---
 title: Changelog
+description: "Notable changes to Sarde, grouped by release, covering fixes, improvements, and new features"
 sidebar:
   order: 1
 ---

@@ -1,5 +1,6 @@
 ---
 title: SEO
+description: "Inject Open Graph, Twitter Card, and JSON-LD structured data into every page"
 sidebar:
   order: 40
   group: Server-Side

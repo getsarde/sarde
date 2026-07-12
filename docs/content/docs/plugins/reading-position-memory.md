@@ -1,5 +1,6 @@
 ---
 title: Reading Position Memory
+description: "Remember a reader's scroll position and offer to restore it on return"
 sidebar:
   order: 17
   group: Client-Side

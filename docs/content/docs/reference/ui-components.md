@@ -1,5 +1,6 @@
 ---
 title: UI Components
+description: "Reference for named template components that render layout chrome, and how their three-layer overlay resolves"
 sidebar:
   order: 7
 ---

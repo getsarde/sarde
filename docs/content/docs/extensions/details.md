@@ -1,5 +1,6 @@
 ---
 title: Details
+description: "Create a collapsible section with a clickable summary, optionally expanded by default"
 sidebar:
   order: 14
   group: Block

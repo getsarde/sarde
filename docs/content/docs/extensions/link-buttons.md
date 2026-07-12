@@ -1,5 +1,6 @@
 ---
 title: Link Buttons
+description: "Render styled anchor links that look like buttons, with multiple color variants"
 sidebar:
   order: 19
   group: Block

@@ -1,5 +1,6 @@
 ---
 title: Figure
+description: "Wrap images or other content in a figure element with an optional caption"
 sidebar:
   order: 15
   group: Block

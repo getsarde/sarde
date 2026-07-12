@@ -1,5 +1,6 @@
 ---
 title: Link Validator
+description: "Check internal links, anchors, and image references during the build"
 sidebar:
   order: 34
   group: Server-Side

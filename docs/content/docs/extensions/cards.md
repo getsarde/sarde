@@ -1,5 +1,6 @@
 ---
 title: Cards
+description: "Display content in bordered, elevated containers, arranged in a responsive grid"
 sidebar:
   order: 13
   group: Block

@@ -1,5 +1,6 @@
 ---
 title: Guides
+description: "Workflows for building and maintaining a Sarde site, from content setup to theming and deployment"
 sidebar:
   order: 2
   icon: compass

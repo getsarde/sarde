@@ -1,10 +1,9 @@
 ---
 title: CLI Commands
+description: "Reference for every sarde CLI command, its flags, and global options"
 sidebar:
   order: 3
 ---
-
-# CLI Commands
 
 ```
 sarde <command> [flags] [project-dir]

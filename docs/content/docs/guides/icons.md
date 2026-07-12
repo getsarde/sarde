@@ -1,7 +1,8 @@
 ---
 title: Icons
+description: "Insert inline SVG icons from Iconify sets or local files using the :icon[name] extension"
 sidebar:
-  order: 13
+  order: 14
 ---
 
 Sarde renders inline SVG icons from Iconify icon sets and local SVG files. Insert icons in Markdown with the `:icon[name]` extension. Lucide is the default bundled set.

@@ -1,7 +1,8 @@
 ---
 title: Code Blocks
+description: "Set up syntax highlighting, titles, line markers, copy controls, and grouped tabs for code blocks"
 sidebar:
-  order: 8
+  order: 9
 ---
 
 Code blocks render with syntax highlighting, optional titles, line markers,

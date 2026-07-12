@@ -27,6 +27,13 @@ func buildTestContext(pages []*engine.Page, validationData map[string]engine.Val
 		})
 	}
 
+	collections := make(map[string]*engine.Collection)
+	for _, p := range pages {
+		if p.Collection != nil {
+			collections[p.Collection.Name] = p.Collection
+		}
+	}
+
 	var warnings []engine.ValidationWarning
 	ctx := &BuildDoneContext{
 		Config: &config.SiteConfig{
@@ -36,11 +43,9 @@ func buildTestContext(pages []*engine.Page, validationData map[string]engine.Val
 		Resolver:       &engine.URLResolver{BasePath: "/"},
 		PageIndex:      idx,
 		ValidationData: validationData,
-		// The plugin is the incremental-rebuild checker; full builds use the
-		// internal/links report instead. These unit tests exercise the
-		// validation logic, so run them in incremental mode.
-		Incremental:  true,
-		ChangedPages: changedPages,
+		Collections:    collections,
+		Incremental:    true,
+		ChangedPages:   changedPages,
 	}
 	ctx.SetWarnings(&warnings)
 	return ctx, &warnings
@@ -107,47 +112,94 @@ func TestLinkValidatorInvalidHash(t *testing.T) {
 }
 
 func TestLinkValidatorRelativeLink(t *testing.T) {
+	docsCol := &engine.Collection{Name: "docs", Config: &engine.CollectionConfig{}}
+	source := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Slug: "guide", RelPermalink: "/docs/guide/", Permalink: "/docs/guide/"},
+		PageI18n:          engine.PageI18n{LangRelPath: "docs/guide.md"},
+		PageRelationships: engine.PageRelationships{Collection: docsCol},
+	}
 	data := map[string]engine.ValidationEntry{
 		"/docs/guide/": {
 			FilePath: "content/docs/guide.md",
 			Links: []engine.CollectedLink{
-				{Href: "./sibling"},
-				{Href: "../parent"},
+				{Href: "./sibling.md"},
+				{Href: "../parent.md"},
 			},
 		},
 	}
 
-	ctx, warnings := buildTestContext(nil, data, "")
+	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "")
 	linkValidatorBuildDone(ctx)
 
 	if len(*warnings) != 2 {
-		t.Fatalf("got %d warnings, want 2", len(*warnings))
+		t.Fatalf("got %d warnings, want 2 (both relative targets are missing)", len(*warnings))
 	}
 	for _, w := range *warnings {
-		if !contains(w.Message, "relative link") {
-			t.Errorf("expected relative link warning, got %q", w.Message)
+		if !contains(w.Message, "invalid link") {
+			t.Errorf("expected invalid link warning for missing relative target, got %q", w.Message)
 		}
 	}
 }
 
 func TestLinkValidatorRelativeLinksDisabled(t *testing.T) {
+	docsCol := &engine.Collection{Name: "docs", Config: &engine.CollectionConfig{}}
+	source := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Slug: "page", RelPermalink: "/docs/page/", Permalink: "/docs/page/"},
+		PageI18n:          engine.PageI18n{LangRelPath: "docs/page.md"},
+		PageRelationships: engine.PageRelationships{Collection: docsCol},
+	}
 	data := map[string]engine.ValidationEntry{
-		"/page/": {
+		"/docs/page/": {
 			FilePath: "content/page.md",
-			Links:    []engine.CollectedLink{{Href: "./relative"}},
+			Links:    []engine.CollectedLink{{Href: "./relative.md"}},
 		},
 	}
 
-	ctx, warnings := buildTestContext(nil, data, "")
+	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "")
 	ctx.Config.LinkValidation.OnRelativeLinks = "ignore"
 	linkValidatorBuildDone(ctx)
 
+	// Relative links are now resolved through the canonical resolver. With the
+	// target missing, the link is flagged as broken regardless of the
+	// on_relative_links config (that policy controls the full-build report, not
+	// the incremental plugin's resolution). This test verifies the plugin does
+	// not crash when on_relative_links is "ignore".
+	if len(*warnings) != 1 {
+		t.Fatalf("got %d warnings, want 1 (missing relative target)", len(*warnings))
+	}
+}
+
+func TestLinkValidatorRelativeResolvesWhenTargetExists(t *testing.T) {
+	docsCol := &engine.Collection{Name: "docs", Config: &engine.CollectionConfig{}}
+	source := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Slug: "guide", RelPermalink: "/docs/guide/", Permalink: "/docs/guide/"},
+		PageI18n:          engine.PageI18n{LangRelPath: "docs/guide.md"},
+		PageRelationships: engine.PageRelationships{Collection: docsCol},
+	}
+	target := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Slug: "sibling", RelPermalink: "/docs/sibling/", Permalink: "/docs/sibling/"},
+		PageI18n:          engine.PageI18n{LangRelPath: "docs/sibling.md"},
+		PageRelationships: engine.PageRelationships{Collection: docsCol},
+	}
+	data := map[string]engine.ValidationEntry{
+		"/docs/guide/": {
+			FilePath: "content/docs/guide.md",
+			Links:    []engine.CollectedLink{{Href: "./sibling.md"}},
+		},
+	}
+
+	ctx, warnings := buildTestContext([]*engine.Page{source, target}, data, "")
+	linkValidatorBuildDone(ctx)
+
 	if len(*warnings) != 0 {
-		t.Fatalf("got %d warnings with relative links disabled, want 0", len(*warnings))
+		t.Fatalf("got %d warnings, want 0 (relative target exists)", len(*warnings))
 	}
 }
 
 func TestLinkValidatorLocalLink(t *testing.T) {
+	source := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"},
+	}
 	data := map[string]engine.ValidationEntry{
 		"/page/": {
 			FilePath: "content/page.md",
@@ -158,7 +210,7 @@ func TestLinkValidatorLocalLink(t *testing.T) {
 		},
 	}
 
-	ctx, warnings := buildTestContext(nil, data, "")
+	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "")
 	linkValidatorBuildDone(ctx)
 
 	if len(*warnings) != 2 {
@@ -172,6 +224,9 @@ func TestLinkValidatorLocalLink(t *testing.T) {
 }
 
 func TestLinkValidatorSameSiteWarn(t *testing.T) {
+	source := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"},
+	}
 	data := map[string]engine.ValidationEntry{
 		"/page/": {
 			FilePath: "content/page.md",
@@ -179,7 +234,7 @@ func TestLinkValidatorSameSiteWarn(t *testing.T) {
 		},
 	}
 
-	ctx, warnings := buildTestContext(nil, data, "https://example.com")
+	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "https://example.com")
 	ctx.Config.LinkValidation.SameSitePolicy = "warn"
 	linkValidatorBuildDone(ctx)
 
@@ -192,8 +247,11 @@ func TestLinkValidatorSameSiteWarn(t *testing.T) {
 }
 
 func TestLinkValidatorSameSiteValidate(t *testing.T) {
-	pages := []*engine.Page{
-		{PageIdentity: engine.PageIdentity{Slug: "guide", RelPermalink: "/docs/guide/", Permalink: "/docs/guide/"}},
+	source := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"},
+	}
+	target := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "guide", RelPermalink: "/docs/guide/", Permalink: "/docs/guide/"},
 	}
 	data := map[string]engine.ValidationEntry{
 		"/page/": {
@@ -205,7 +263,7 @@ func TestLinkValidatorSameSiteValidate(t *testing.T) {
 		},
 	}
 
-	ctx, warnings := buildTestContext(pages, data, "https://example.com")
+	ctx, warnings := buildTestContext([]*engine.Page{source, target}, data, "https://example.com")
 	ctx.Config.LinkValidation.SameSitePolicy = "validate"
 	linkValidatorBuildDone(ctx)
 
@@ -218,6 +276,9 @@ func TestLinkValidatorSameSiteValidate(t *testing.T) {
 }
 
 func TestLinkValidatorExternalSkipped(t *testing.T) {
+	source := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"},
+	}
 	data := map[string]engine.ValidationEntry{
 		"/page/": {
 			FilePath: "content/page.md",
@@ -228,7 +289,7 @@ func TestLinkValidatorExternalSkipped(t *testing.T) {
 		},
 	}
 
-	ctx, warnings := buildTestContext(nil, data, "")
+	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "")
 	linkValidatorBuildDone(ctx)
 
 	if len(*warnings) != 0 {
@@ -237,6 +298,9 @@ func TestLinkValidatorExternalSkipped(t *testing.T) {
 }
 
 func TestLinkValidatorSpecialSchemesSkipped(t *testing.T) {
+	source := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"},
+	}
 	data := map[string]engine.ValidationEntry{
 		"/page/": {
 			FilePath: "content/page.md",
@@ -248,7 +312,7 @@ func TestLinkValidatorSpecialSchemesSkipped(t *testing.T) {
 		},
 	}
 
-	ctx, warnings := buildTestContext(nil, data, "")
+	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "")
 	linkValidatorBuildDone(ctx)
 
 	if len(*warnings) != 0 {
@@ -257,6 +321,9 @@ func TestLinkValidatorSpecialSchemesSkipped(t *testing.T) {
 }
 
 func TestLinkValidatorExclude(t *testing.T) {
+	source := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"},
+	}
 	data := map[string]engine.ValidationEntry{
 		"/page/": {
 			FilePath: "content/page.md",
@@ -267,7 +334,7 @@ func TestLinkValidatorExclude(t *testing.T) {
 		},
 	}
 
-	ctx, warnings := buildTestContext(nil, data, "")
+	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "")
 	ctx.Config.LinkValidation.Exclude = []string{"/excluded/*", "/excluded/"}
 	linkValidatorBuildDone(ctx)
 
@@ -277,8 +344,8 @@ func TestLinkValidatorExclude(t *testing.T) {
 }
 
 func TestLinkValidatorStaticAsset(t *testing.T) {
-	pages := []*engine.Page{
-		{PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"}},
+	source := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"},
 	}
 	data := map[string]engine.ValidationEntry{
 		"/page/": {
@@ -289,20 +356,21 @@ func TestLinkValidatorStaticAsset(t *testing.T) {
 		},
 	}
 
-	ctx, warnings := buildTestContext(pages, data, "")
-	// Manually add asset to the index.
-	ctx.PageIndex.AddAssets(t.TempDir()) // empty dir, no assets
-	// We need to test that HasAsset works; let's test without the asset
+	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "")
 	linkValidatorBuildDone(ctx)
 
-	// /favicon.ico is not a page and not an asset -> invalid link
-	if len(*warnings) != 1 {
-		t.Fatalf("got %d warnings, want 1", len(*warnings))
+	// /favicon.ico has a file extension, so the canonical resolver treats it as
+	// a static asset (StatusExternal). No warning is expected.
+	if len(*warnings) != 0 {
+		t.Fatalf("got %d warnings, want 0 (static asset should not be flagged)", len(*warnings))
 	}
 }
 
 func TestLinkValidatorDisabled(t *testing.T) {
 	f := false
+	source := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"},
+	}
 	data := map[string]engine.ValidationEntry{
 		"/page/": {
 			FilePath: "content/page.md",
@@ -310,7 +378,7 @@ func TestLinkValidatorDisabled(t *testing.T) {
 		},
 	}
 
-	ctx, warnings := buildTestContext(nil, data, "")
+	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "")
 	ctx.Config.LinkValidation.Enabled = &f
 	linkValidatorBuildDone(ctx)
 
@@ -321,6 +389,9 @@ func TestLinkValidatorDisabled(t *testing.T) {
 
 func TestLinkValidatorFailBuild(t *testing.T) {
 	tr := true
+	source := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"},
+	}
 	data := map[string]engine.ValidationEntry{
 		"/page/": {
 			FilePath: "content/page.md",
@@ -328,7 +399,7 @@ func TestLinkValidatorFailBuild(t *testing.T) {
 		},
 	}
 
-	ctx, _ := buildTestContext(nil, data, "")
+	ctx, _ := buildTestContext([]*engine.Page{source}, data, "")
 	ctx.Config.LinkValidation.FailBuild = &tr
 	err := linkValidatorBuildDone(ctx)
 
@@ -342,6 +413,9 @@ func TestLinkValidatorFailBuild(t *testing.T) {
 
 func TestLinkValidatorImagesDisabled(t *testing.T) {
 	f := false
+	source := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"},
+	}
 	data := map[string]engine.ValidationEntry{
 		"/page/": {
 			FilePath: "content/page.md",
@@ -352,7 +426,7 @@ func TestLinkValidatorImagesDisabled(t *testing.T) {
 		},
 	}
 
-	ctx, warnings := buildTestContext(nil, data, "")
+	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "")
 	ctx.Config.LinkValidation.CheckImages = &f
 	linkValidatorBuildDone(ctx)
 
@@ -403,6 +477,7 @@ func TestLinkValidatorWithBasePath(t *testing.T) {
 		Resolver:       &engine.URLResolver{BasePath: "/swarm/"},
 		PageIndex:      idx,
 		ValidationData: data,
+		Collections:    make(map[string]*engine.Collection),
 		Incremental:    true,
 		ChangedPages:   []*engine.Page{{PageIdentity: engine.PageIdentity{Permalink: "/swarm/docs/guide/auth/"}}},
 	}
@@ -421,6 +496,35 @@ func TestLinkValidatorWithBasePath(t *testing.T) {
 	}
 }
 
+func TestLinkValidatorContentRootResolvesInCollection(t *testing.T) {
+	docsCol := &engine.Collection{Name: "docs", Config: &engine.CollectionConfig{}}
+	source := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Slug: "intro", RelPermalink: "/docs/guide/intro/", Permalink: "/docs/guide/intro/"},
+		PageI18n:          engine.PageI18n{LangRelPath: "docs/guide/intro.md"},
+		PageRelationships: engine.PageRelationships{Collection: docsCol},
+	}
+	target := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Slug: "auth", RelPermalink: "/docs/guide/auth/", Permalink: "/docs/guide/auth/"},
+		PageI18n:          engine.PageI18n{LangRelPath: "docs/guide/auth.md"},
+		PageRelationships: engine.PageRelationships{Collection: docsCol},
+	}
+	data := map[string]engine.ValidationEntry{
+		"/docs/guide/intro/": {
+			FilePath: "content/docs/guide/intro.md",
+			Links: []engine.CollectedLink{
+				{Href: "/guide/auth"},
+			},
+		},
+	}
+
+	ctx, warnings := buildTestContext([]*engine.Page{source, target}, data, "")
+	linkValidatorBuildDone(ctx)
+
+	if len(*warnings) != 0 {
+		t.Fatalf("got %d warnings, want 0 (content-root link should resolve in collection); warnings: %v", len(*warnings), *warnings)
+	}
+}
+
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsStr(s, substr))
 }
@@ -434,17 +538,17 @@ func containsStr(s, substr string) bool {
 	return false
 }
 
-// Regression test: on a full build the plugin must no-op, because
-// SiteBuilder.validateLinks already ran the authoritative internal/links
-// report. Running both produced duplicate warnings for every link.
 func TestLinkValidatorSkipsFullBuild(t *testing.T) {
+	source := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "guide", RelPermalink: "/docs/guide/", Permalink: "/docs/guide/"},
+	}
 	data := map[string]engine.ValidationEntry{
 		"/docs/guide/": {
 			FilePath: "content/docs/guide.md",
 			Links:    []engine.CollectedLink{{Href: "./sibling.md"}},
 		},
 	}
-	ctx, warnings := buildTestContext(nil, data, "")
+	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "")
 	ctx.Config.LinkValidation.OnRelativeLinks = "warn"
 	ctx.Incremental = false // full build
 
@@ -456,17 +560,17 @@ func TestLinkValidatorSkipsFullBuild(t *testing.T) {
 	}
 }
 
-// Regression test: same_site_policy "error" used to fall through silently
-// (only "warn" was handled). On an incremental rebuild — where this plugin is
-// the sole checker — it must surface the finding and, with fail_build, fail.
 func TestLinkValidatorSameSiteError(t *testing.T) {
+	source := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"},
+	}
 	data := map[string]engine.ValidationEntry{
 		"/page/": {
 			FilePath: "content/page.md",
 			Links:    []engine.CollectedLink{{Href: "https://example.com/docs/guide/"}},
 		},
 	}
-	ctx, warnings := buildTestContext(nil, data, "https://example.com")
+	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "https://example.com")
 	ctx.Config.LinkValidation.SameSitePolicy = "error"
 	ctx.Config.LinkValidation.FailBuild = boolPtr(true)
 
@@ -480,6 +584,12 @@ func TestLinkValidatorSameSiteError(t *testing.T) {
 }
 
 func TestLinkValidatorIncrementalScopesToChangedPages(t *testing.T) {
+	changed := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "changed", RelPermalink: "/changed/", Permalink: "/changed/"},
+	}
+	unchanged := &engine.Page{
+		PageIdentity: engine.PageIdentity{Slug: "unchanged", RelPermalink: "/unchanged/", Permalink: "/unchanged/"},
+	}
 	data := map[string]engine.ValidationEntry{
 		"/changed/": {
 			FilePath: "content/changed.md",
@@ -491,7 +601,7 @@ func TestLinkValidatorIncrementalScopesToChangedPages(t *testing.T) {
 		},
 	}
 
-	idx := content.BuildPageIndex(nil)
+	idx := content.BuildPageIndex([]*engine.Page{changed, unchanged})
 	var warnings []engine.ValidationWarning
 	ctx := &BuildDoneContext{
 		Config: &config.SiteConfig{
@@ -501,6 +611,7 @@ func TestLinkValidatorIncrementalScopesToChangedPages(t *testing.T) {
 		Resolver:       &engine.URLResolver{BasePath: "/"},
 		PageIndex:      idx,
 		ValidationData: data,
+		Collections:    make(map[string]*engine.Collection),
 		Incremental:    true,
 		ChangedPages:   []*engine.Page{{PageIdentity: engine.PageIdentity{Permalink: "/changed/"}}},
 	}
