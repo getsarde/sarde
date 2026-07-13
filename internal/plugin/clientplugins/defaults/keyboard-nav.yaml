@@ -4,3 +4,8 @@ fields:
     label: "Show Keyboard Hint"
     hint: "Display a brief hint about arrow key navigation on first visit"
     default: true
+  show_side_nav:
+    type: toggle
+    label: "Show Side Navigation Arrows"
+    hint: "Display chevron arrows on the left and right edges of the viewport for prev/next navigation"
+    default: true

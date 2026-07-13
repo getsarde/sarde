@@ -19,6 +19,20 @@ toc:
   max_level: 4
   min_level: 2
 
+plugins:
+  enabled:
+    - search
+    - seo
+    - sitemap
+    - robots
+    - rss
+    - atom
+    - content_lint
+    - link_validator
+    - redirects    
+    - social_cards
+    - keyboard-nav
+
 homepage:
   hero:
     title: "Sarde Documentation"
