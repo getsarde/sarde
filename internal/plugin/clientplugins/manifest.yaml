@@ -95,12 +95,3 @@ plugins:
       css: reading-preferences/reading-preferences.css
       js: reading-preferences/reading-preferences.js
     module: true
-
-
-  code-collapsible:
-    description: "Auto-collapse long code blocks with expand/collapse toggle"
-    inject_when: has_code_blocks
-    assets:
-      css: code-collapsible/code-collapsible.css
-      js: code-collapsible/code-collapsible.js
-    module: true

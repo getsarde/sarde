@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-Plugins add behavior to the build process or the generated site. Sarde ships with 27 built-in plugins split into two categories: server-side plugins that run during `sarde build`, and client-side plugins that inject JavaScript and CSS into the generated pages.
+Plugins add behavior to the build process or the generated site. Sarde ships with 26 built-in plugins split into two categories: server-side plugins that run during `sarde build`, and client-side plugins that inject JavaScript and CSS into the generated pages.
 
 ## Enabling and disabling plugins
 
@@ -57,7 +57,7 @@ Each plugin documents its own configuration options. Options not specified fall 
 
 ## Default plugins
 
-Thirteen plugins are enabled by default. Fourteen more are available but must be added to `plugins.enabled` to activate.
+Thirteen plugins are enabled by default. Thirteen more are available but must be added to `plugins.enabled` to activate.
 
 ### Enabled by default
 
@@ -93,7 +93,6 @@ Thirteen plugins are enabled by default. Fourteen more are available but must be
 | `last-updated` | Client | Displays the page's last-updated date. |
 | `reading-position-memory` | Client | Remembers scroll position across visits. |
 | `reading-preferences` | Client | Font size and content width controls. |
-| `code-collapsible` | Client | Auto-collapses long code blocks with a toggle. |
 | `announcements` | Server | Displays announcement banners with scheduling and i18n. |
 
 ## Server-side vs. client-side

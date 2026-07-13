@@ -23,8 +23,8 @@ func TestManifestParsed(t *testing.T) {
 	if len(manifest.Plugins) == 0 {
 		t.Fatal("manifest has no plugins")
 	}
-	if len(manifest.Plugins) != 13 {
-		t.Errorf("expected 13 manifest plugins, got %d", len(manifest.Plugins))
+	if len(manifest.Plugins) != 12 {
+		t.Errorf("expected 12 manifest plugins, got %d", len(manifest.Plugins))
 	}
 }
 
@@ -213,15 +213,15 @@ func TestBundleIsMinified(t *testing.T) {
 
 func TestPluginSlugs(t *testing.T) {
 	slugs := PluginSlugs()
-	if len(slugs) != 13 {
-		t.Errorf("PluginSlugs() = %d entries, want 13", len(slugs))
+	if len(slugs) != 12 {
+		t.Errorf("PluginSlugs() = %d entries, want 12", len(slugs))
 	}
 
 	slugSet := make(map[string]bool)
 	for _, s := range slugs {
 		slugSet[s] = true
 	}
-	for _, expected := range []string{"scroll-to-top", "focus-mode", "code-collapsible"} {
+	for _, expected := range []string{"scroll-to-top", "focus-mode", "reading-progress"} {
 		if !slugSet[expected] {
 			t.Errorf("missing slug %q", expected)
 		}
