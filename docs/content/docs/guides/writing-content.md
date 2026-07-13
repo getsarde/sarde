@@ -160,3 +160,34 @@ expiry_date: 2026-12-31
 Pages with a past `expiry_date` are excluded from builds. This is useful for time-limited announcements or seasonal content.
 
 All three filters apply during production builds. The dev server includes draft and future content by default so authors can preview it.
+
+## Heading IDs and anchor links
+
+Sarde automatically assigns an `id` attribute to headings in the configured range (h2 through h4 by default). The ID is a slugified version of the heading text, e.g., `## Getting Started` becomes `<h2 id="getting-started">`. These IDs serve as fragment link targets (`/docs/guide/#getting-started`), table of contents entries, and search index anchors.
+
+To assign a custom ID, use the `{#custom-id}` attribute syntax:
+
+```markdown
+## My Section {#custom-id}
+```
+
+This produces `<h2 id="custom-id">` instead of the auto-generated slug.
+
+When `site.heading_links` is `true` (the default), each heading also gets a clickable anchor link for sharing direct URLs to that section.
+
+### Configuring the heading range
+
+By default, only h2 through h4 (`##` to `####`) are processed. To include h5 and h6 headings:
+
+```yaml title="sarde.yaml"
+markdown:
+  toc:
+    min_heading_level: 2
+    max_heading_level: 6
+```
+
+Headings outside this range get no ID, no anchor link, and no TOC entry. See [Configuration](/reference/configuration#markdown-toc) for details.
+
+:::tip
+This setting controls heading *extraction* (which headings get IDs and become link targets). A separate [`toc.min_level` / `toc.max_level`](/reference/configuration#toc) setting controls which extracted headings appear in the table of contents sidebar. Set both if you want h5/h6 headings in your TOC.
+:::

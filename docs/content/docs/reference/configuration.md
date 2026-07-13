@@ -81,13 +81,13 @@ social:
 
 ## `toc`
 
-Global table of contents settings. Per-collection overrides are available under [`collections.<name>.toc`](#collections-name-toc).
+Global table of contents *display* settings. These control which extracted headings appear in the TOC sidebar. Per-collection overrides are available under [`collections.<name>.toc`](#collections-name-toc). For controlling which headings are *extracted* (IDs, anchor links, link validation), see [`markdown.toc`](#markdown-toc).
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `enabled` | bool | `true` | Show the table of contents panel. |
-| `min_level` | int | `2` | Minimum heading level to include. Range: 1-6. Must be &le; `max_level`. |
-| `max_level` | int | `4` | Maximum heading level to include. Range: 1-6. |
+| `min_level` | int | `2` | Minimum heading level to display. Range: 1-6. Must be &le; `max_level`. |
+| `max_level` | int | `4` | Maximum heading level to display. Range: 1-6. |
 
 ## `sidebar`
 
@@ -201,10 +201,12 @@ head:
 
 ### `markdown.toc`
 
+Controls which heading levels are *extracted* during the build: ID injection, anchor links, TOC entries, search index anchors, and link validation targets. Headings outside this range are left untouched. This is separate from the display-level [`toc`](#toc) setting, which filters which extracted headings appear in the sidebar widget.
+
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `min_heading_level` | int | `2` | Minimum heading level for the Markdown-generated TOC. Range: 1-6. Must be &le; `max_heading_level`. |
-| `max_heading_level` | int | `4` | Maximum heading level for the Markdown-generated TOC. Range: 1-6. |
+| `min_heading_level` | int | `2` | Minimum heading level to extract. Range: 1-6. Must be &le; `max_heading_level`. |
+| `max_heading_level` | int | `4` | Maximum heading level to extract. Range: 1-6. |
 
 ### `markdown.codeblocks`
 

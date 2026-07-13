@@ -11,13 +11,13 @@ import (
 )
 
 
-// extractHeadings parses rendered HTML, finds h2-h4 headings, injects IDs and
-// (when headingLinks is true) clickable anchor links, and returns the headings
-// as engine.Heading slices. An id already present on the heading is
-// author-supplied via `{#custom-id}` attribute syntax and is preserved;
+// extractHeadings parses rendered HTML, finds headings in the [minLevel, maxLevel]
+// range, injects IDs and (when headingLinks is true) clickable anchor links, and
+// returns the headings as engine.Heading slices. An id already present on the
+// heading is author-supplied via `{#custom-id}` attribute syntax and is preserved;
 // otherwise the ID is slugified from the heading text. The htmlContent is
 // modified in place.
-func extractHeadings(htmlContent *string, headingLinks bool) []engine.Heading {
+func extractHeadings(htmlContent *string, headingLinks bool, minLevel, maxLevel int) []engine.Heading {
 	var headings []engine.Heading
 
 	doc, err := nethtml.Parse(strings.NewReader(*htmlContent))
@@ -29,9 +29,15 @@ func extractHeadings(htmlContent *string, headingLinks bool) []engine.Heading {
 
 	var walk func(*nethtml.Node)
 	walk = func(n *nethtml.Node) {
-		if n.Type == nethtml.ElementNode && (n.Data == "h2" || n.Data == "h3" || n.Data == "h4") {
-			text := extractText(n)
+		if n.Type == nethtml.ElementNode && len(n.Data) == 2 && n.Data[0] == 'h' && n.Data[1] >= '1' && n.Data[1] <= '6' {
 			level := int(n.Data[1] - '0')
+			if level < minLevel || level > maxLevel {
+				for c := n.FirstChild; c != nil; c = c.NextSibling {
+					walk(c)
+				}
+				return
+			}
+			text := extractText(n)
 			id := getAttr(n, "id")
 			if id == "" {
 				id = slugifyHeading(text)

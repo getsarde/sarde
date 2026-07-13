@@ -65,8 +65,10 @@ type Renderer struct {
 	linkCollector *linkcollector.Collector     // mutable reference — collects link destinations per page
 	linkRend      *linkrender.Renderer         // mutable reference — resolves internal links per page
 	kazariEngine  *kazari.Engine               // code block rendering engine; nil disables Kazari extensions
-	fingerprint   string                       // cache-busting digest; computed once at construction
-	headingLinks  bool                         // inject clickable anchor links on headings (site.heading_links)
+	fingerprint      string                    // cache-busting digest; computed once at construction
+	headingLinks     bool                      // inject clickable anchor links on headings (site.heading_links)
+	headingMinLevel  int                       // lowest heading level to extract (1-6, from markdown.toc.min_heading_level)
+	headingMaxLevel  int                       // highest heading level to extract (1-6, from markdown.toc.max_heading_level)
 }
 
 // SetImageLookup sets the lookup function for bundle-relative image processing.
@@ -163,6 +165,8 @@ func execIdentity() string {
 type RendererConfig struct {
 	BlockedHrefSchemes []string
 	HeadingLinks       bool
+	HeadingMinLevel    int
+	HeadingMaxLevel    int
 	KazariEngine       *kazari.Engine
 }
 
@@ -182,12 +186,21 @@ func NewRendererWithConfig(blockedHrefSchemes []string) *Renderer {
 
 // NewRendererFromConfig creates a markdown renderer from a full configuration.
 func NewRendererFromConfig(cfg RendererConfig) *Renderer {
+	minLvl, maxLvl := cfg.HeadingMinLevel, cfg.HeadingMaxLevel
+	if minLvl < 1 {
+		minLvl = 2
+	}
+	if maxLvl < 1 {
+		maxLvl = 4
+	}
 	r := &Renderer{
-		imgRend:       imagerender.NewRenderer(nil),
-		linkCollector: linkcollector.NewCollector(),
-		linkRend:      linkrender.NewRenderer(),
-		kazariEngine:  cfg.KazariEngine,
-		headingLinks:  cfg.HeadingLinks,
+		imgRend:         imagerender.NewRenderer(nil),
+		linkCollector:   linkcollector.NewCollector(),
+		linkRend:        linkrender.NewRenderer(),
+		kazariEngine:    cfg.KazariEngine,
+		headingLinks:    cfg.HeadingLinks,
+		headingMinLevel: minLvl,
+		headingMaxLevel: maxLvl,
 	}
 	r.md, r.fingerprint = r.buildMarkdown(cfg)
 	return r
@@ -287,10 +300,12 @@ func computeFingerprint(extensions []goldmark.Extender, cfg RendererConfig) stri
 		kazariCSS = cfg.KazariEngine.CSS()
 	}
 
-	raw := fmt.Sprintf("bin=%s\x00exts=%s\x00hl=%t\x00schemes=%s\x00kazari=%t\x00css=%s",
+	raw := fmt.Sprintf("bin=%s\x00exts=%s\x00hl=%t\x00hmin=%d\x00hmax=%d\x00schemes=%s\x00kazari=%t\x00css=%s",
 		execIdentity(),
 		strings.Join(names, "|"),
 		cfg.HeadingLinks,
+		cfg.HeadingMinLevel,
+		cfg.HeadingMaxLevel,
 		strings.Join(schemes, ","),
 		cfg.KazariEngine != nil,
 		kazariCSS,
@@ -317,7 +332,7 @@ func (r *Renderer) Render(markdown string) (engine.RenderResult, error) {
 	}
 
 	html := buf.String()
-	headings := extractHeadings(&html, r.headingLinks)
+	headings := extractHeadings(&html, r.headingLinks, r.headingMinLevel, r.headingMaxLevel)
 
 	var links []engine.CollectedLink
 	if len(r.linkCollector.Links) > 0 {

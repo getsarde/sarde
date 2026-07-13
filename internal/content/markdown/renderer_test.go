@@ -201,10 +201,108 @@ func TestRender_H1NotInTOC(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Only h2-h4 should be in headings
 	for _, h := range result.Headings {
 		if h.Level == 1 {
-			t.Error("h1 should not be in headings (ToC is h2-h4)")
+			t.Error("h1 should not be in headings with default config (min=2, max=4)")
+		}
+	}
+}
+
+func TestRender_HeadingLevelRange_H5H6(t *testing.T) {
+	r := NewRendererFromConfig(RendererConfig{
+		BlockedHrefSchemes: defaultBlockedHrefSchemes,
+		HeadingLinks:       true,
+		HeadingMinLevel:    2,
+		HeadingMaxLevel:    6,
+	})
+	md := "## H2\n\n### H3\n\n#### H4\n\n##### H5\n\n###### H6\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Headings) != 5 {
+		t.Fatalf("headings = %d, want 5 (h2-h6)", len(result.Headings))
+	}
+	for i, want := range []int{2, 3, 4, 5, 6} {
+		if result.Headings[i].Level != want {
+			t.Errorf("headings[%d].Level = %d, want %d", i, result.Headings[i].Level, want)
+		}
+	}
+	if !strings.Contains(result.HTML, `id="h5"`) {
+		t.Error("h5 heading should have an injected id")
+	}
+	if !strings.Contains(result.HTML, `id="h6"`) {
+		t.Error("h6 heading should have an injected id")
+	}
+}
+
+func TestRender_HeadingLevelRange_H1Included(t *testing.T) {
+	r := NewRendererFromConfig(RendererConfig{
+		BlockedHrefSchemes: defaultBlockedHrefSchemes,
+		HeadingLinks:       true,
+		HeadingMinLevel:    1,
+		HeadingMaxLevel:    4,
+	})
+	md := "# Title\n\n## Section\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Headings) != 2 {
+		t.Fatalf("headings = %d, want 2 (h1+h2)", len(result.Headings))
+	}
+	if result.Headings[0].Level != 1 {
+		t.Errorf("headings[0].Level = %d, want 1", result.Headings[0].Level)
+	}
+}
+
+func TestRender_HeadingLevelRange_NarrowRange(t *testing.T) {
+	r := NewRendererFromConfig(RendererConfig{
+		BlockedHrefSchemes: defaultBlockedHrefSchemes,
+		HeadingLinks:       true,
+		HeadingMinLevel:    3,
+		HeadingMaxLevel:    5,
+	})
+	md := "## H2\n\n### H3\n\n#### H4\n\n##### H5\n\n###### H6\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Headings) != 3 {
+		t.Fatalf("headings = %d, want 3 (h3, h4, h5)", len(result.Headings))
+	}
+	for i, want := range []int{3, 4, 5} {
+		if result.Headings[i].Level != want {
+			t.Errorf("headings[%d].Level = %d, want %d", i, result.Headings[i].Level, want)
+		}
+	}
+	if strings.Contains(result.HTML, `id="h2"`) {
+		t.Error("h2 should NOT have an id when minLevel=3")
+	}
+	if strings.Contains(result.HTML, `id="h6"`) {
+		t.Error("h6 should NOT have an id when maxLevel=5")
+	}
+}
+
+func TestRender_HeadingLevelRange_DefaultMatchesOldBehavior(t *testing.T) {
+	rDefault := NewRenderer()
+	rExplicit := NewRendererFromConfig(RendererConfig{
+		BlockedHrefSchemes: defaultBlockedHrefSchemes,
+		HeadingLinks:       true,
+		HeadingMinLevel:    2,
+		HeadingMaxLevel:    4,
+	})
+	md := "# H1\n\n## H2\n\n### H3\n\n#### H4\n\n##### H5\n\n###### H6\n"
+
+	res1, _ := rDefault.Render(md)
+	res2, _ := rExplicit.Render(md)
+
+	if len(res1.Headings) != len(res2.Headings) {
+		t.Fatalf("default headings=%d, explicit headings=%d", len(res1.Headings), len(res2.Headings))
+	}
+	for i := range res1.Headings {
+		if res1.Headings[i].Level != res2.Headings[i].Level || res1.Headings[i].ID != res2.Headings[i].ID {
+			t.Errorf("heading[%d] mismatch: default=%+v explicit=%+v", i, res1.Headings[i], res2.Headings[i])
 		}
 	}
 }

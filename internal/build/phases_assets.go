@@ -166,6 +166,8 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 		b.mdRenderer = markdown.NewRendererFromConfig(markdown.RendererConfig{
 			BlockedHrefSchemes: b.config.Security.BlockedHrefSchemes,
 			HeadingLinks:       config.BoolVal(b.config.Site.HeadingLinks, true),
+			HeadingMinLevel:    b.config.Markdown.TOC.MinHeadingLevel,
+			HeadingMaxLevel:    b.config.Markdown.TOC.MaxHeadingLevel,
 			KazariEngine:       b.kazariEngine,
 		})
 	}
@@ -201,6 +203,8 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 				b.rendererPool <- markdown.NewRendererFromConfig(markdown.RendererConfig{
 					BlockedHrefSchemes: b.config.Security.BlockedHrefSchemes,
 					HeadingLinks:       config.BoolVal(b.config.Site.HeadingLinks, true),
+					HeadingMinLevel:    b.config.Markdown.TOC.MinHeadingLevel,
+					HeadingMaxLevel:    b.config.Markdown.TOC.MaxHeadingLevel,
 					KazariEngine:       b.kazariEngine,
 				})
 			}

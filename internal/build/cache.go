@@ -160,7 +160,7 @@ func ContentHash(content string) string {
 // keep skipping anchor re-validation; entries from before custom heading IDs
 // were honored carry clobbered ids in Headings; entries without refs would
 // replay zero link refs forever, reproducing the coverage undercount).
-const pageCacheSchemaVersion = "4"
+const pageCacheSchemaVersion = "5"
 
 // pageCacheKey builds the content-addressed key for a rendered page. Both the
 // parallel and serial render paths must use this single helper so the key

@@ -197,6 +197,57 @@ header:
 
 Header links appear as a horizontal navigation bar. External links open in a new tab.
 
+## Table of contents
+
+Docs-layout pages display a table of contents panel on the right side of the content area. The TOC lists headings extracted from the page content, with scroll-synchronized highlighting of the current section.
+
+Disable the TOC site-wide or per collection:
+
+```yaml title="sarde.yaml"
+toc:
+  enabled: false
+```
+
+Or per page in frontmatter:
+
+```yaml
+---
+toc: false
+---
+```
+
+### Heading level range
+
+Two settings control which headings appear in the TOC:
+
+1. **`markdown.toc.min_heading_level` / `max_heading_level`** controls which headings are *extracted* during the build. Headings outside this range get no `id` attribute, no anchor link, and cannot be linked to with fragment URLs. Default: 2 through 4.
+
+2. **`toc.min_level` / `toc.max_level`** controls which extracted headings are *displayed* in the TOC sidebar. This can only narrow the range, not widen it beyond what was extracted. Default: 2 through 4.
+
+To include all heading levels in the TOC:
+
+```yaml title="sarde.yaml"
+markdown:
+  toc:
+    max_heading_level: 6
+
+toc:
+  max_level: 6
+```
+
+To extract h2 through h6 for IDs and link validation, but only display h2 and h3 in the sidebar:
+
+```yaml title="sarde.yaml"
+markdown:
+  toc:
+    max_heading_level: 6
+
+toc:
+  max_level: 3
+```
+
+Per-page frontmatter can override the display range for individual pages. See [Frontmatter](/reference/frontmatter#table-of-contents-fields) for per-page `toc:` options.
+
 ## Mobile sidebar
 
 On screens narrower than 1024px, the sidebar collapses into a drawer accessible via a hamburger menu button. The drawer slides in from the left and contains the same navigation tree. It closes on link click or by tapping outside the drawer.
