@@ -156,7 +156,6 @@ func buildPage(
 			Order:  fm.Sidebar.Order,
 			Label:  fm.Sidebar.Label,
 			Hidden: fm.Sidebar.Hidden,
-			Group:  fm.Sidebar.Group,
 			Attrs:  fm.Sidebar.Attrs,
 			Badge:  fm.Sidebar.Badge,
 			Icon:   fm.Sidebar.Icon,

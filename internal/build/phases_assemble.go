@@ -64,6 +64,11 @@ func (b *SiteBuilder) phaseAssemble(s *buildState) error {
 
 	collection.LinkVersions(allPages)
 
+	// sidebar.yaml unmatched-key warnings: computed only after every nav tree
+	// has been built, including the i18n-fallback rebuild above, so keys that
+	// match only in fallback-generated lanes are not falsely flagged.
+	s.warnings = append(s.warnings, collection.CollectSidebarOverrideWarnings(s.collections)...)
+
 	// Build taxonomies. Multi-language sites get per-language maps; single-
 	// language sites build one map with lang="". Permalink resolution on the
 	// per-language instances happens after the URLResolver is created (below).

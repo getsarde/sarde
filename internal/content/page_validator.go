@@ -25,8 +25,7 @@ var knownFrontmatterKeys = map[string]bool{
 
 var knownSidebarKeys = map[string]bool{
 	"order": true, "label": true, "hidden": true,
-	"group": true, "attrs": true, "badge": true,
-	"icon": true,
+	"attrs": true, "badge": true, "icon": true,
 }
 
 var knownTOCKeys = map[string]bool{

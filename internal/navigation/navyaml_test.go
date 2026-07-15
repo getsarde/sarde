@@ -145,12 +145,16 @@ func TestBuildNavTreeFromYAML_Badge_ScalarWithLegacyColor(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	page := tree.Root.Children[0].Page
-	if page.Sidebar.Badge.Text != "New" {
-		t.Errorf("sarde-badge text: got %q", page.Sidebar.Badge.Text)
+	node := tree.Root.Children[0]
+	if node.Badge.Text != "New" {
+		t.Errorf("sarde-badge text: got %q", node.Badge.Text)
 	}
-	if page.Sidebar.Badge.Variant != engine.BadgeVariantTip {
-		t.Errorf("sarde-badge variant: got %q, want %q (green→tip alias)", page.Sidebar.Badge.Variant, engine.BadgeVariantTip)
+	if node.Badge.Variant != engine.BadgeVariantTip {
+		t.Errorf("sarde-badge variant: got %q, want %q (green→tip alias)", node.Badge.Variant, engine.BadgeVariantTip)
+	}
+	// The shared Page must NOT be mutated (badge lives on the node).
+	if !node.Page.Sidebar.Badge.IsEmpty() {
+		t.Errorf("page.Sidebar.Badge mutated: got %q", node.Page.Sidebar.Badge.Text)
 	}
 }
 
@@ -167,12 +171,12 @@ func TestBuildNavTreeFromYAML_Badge_ScalarOnly(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	page := tree.Root.Children[0].Page
-	if page.Sidebar.Badge.Text != "Beta" {
-		t.Errorf("sarde-badge text: got %q", page.Sidebar.Badge.Text)
+	node := tree.Root.Children[0]
+	if node.Badge.Text != "Beta" {
+		t.Errorf("sarde-badge text: got %q", node.Badge.Text)
 	}
-	if page.Sidebar.Badge.Variant != engine.BadgeVariantDefault {
-		t.Errorf("sarde-badge variant: got %q, want %q", page.Sidebar.Badge.Variant, engine.BadgeVariantDefault)
+	if node.Badge.Variant != engine.BadgeVariantDefault {
+		t.Errorf("sarde-badge variant: got %q, want %q", node.Badge.Variant, engine.BadgeVariantDefault)
 	}
 }
 
@@ -191,12 +195,12 @@ func TestBuildNavTreeFromYAML_Badge_Mapping(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	page := tree.Root.Children[0].Page
-	if page.Sidebar.Badge.Text != "WIP" {
-		t.Errorf("sarde-badge text: got %q", page.Sidebar.Badge.Text)
+	node := tree.Root.Children[0]
+	if node.Badge.Text != "WIP" {
+		t.Errorf("sarde-badge text: got %q", node.Badge.Text)
 	}
-	if page.Sidebar.Badge.Variant != engine.BadgeVariantCaution {
-		t.Errorf("sarde-badge variant: got %q, want %q", page.Sidebar.Badge.Variant, engine.BadgeVariantCaution)
+	if node.Badge.Variant != engine.BadgeVariantCaution {
+		t.Errorf("sarde-badge variant: got %q, want %q", node.Badge.Variant, engine.BadgeVariantCaution)
 	}
 }
 

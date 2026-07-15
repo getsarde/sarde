@@ -296,17 +296,6 @@ func TestParseFrontmatter_SidebarAttrs(t *testing.T) {
 	}
 }
 
-func TestParseFrontmatter_SidebarGroup(t *testing.T) {
-	raw := []byte("---\ntitle: Test\nsidebar:\n  group: \"API Reference\"\n---\nBody.\n")
-	fm, _, err := ParseFrontmatter(raw)
-	if err != nil {
-		t.Fatalf("ParseFrontmatter error: %v", err)
-	}
-	if fm.Sidebar.Group != "API Reference" {
-		t.Errorf("Sidebar.Group = %q, want %q", fm.Sidebar.Group, "API Reference")
-	}
-}
-
 func TestParseFrontmatter_TOC(t *testing.T) {
 	raw := []byte("---\ntitle: Test\ntoc:\n  enabled: false\n  min_level: 2\n  max_level: 4\n---\nBody.\n")
 	fm, _, err := ParseFrontmatter(raw)

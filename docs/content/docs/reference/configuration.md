@@ -89,27 +89,6 @@ Global table of contents *display* settings. These control which extracted headi
 | `min_level` | int | `2` | Minimum heading level to display. Range: 1-6. Must be &le; `max_level`. |
 | `max_level` | int | `4` | Maximum heading level to display. Range: 1-6. |
 
-## `sidebar`
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `collapsed` | bool | `false` | Collapse all sidebar groups by default. |
-| `badges` | bool | `true` | Show badges next to sidebar items. |
-| `pagination` | bool | `true` | Show previous/next links at the bottom of pages. |
-| `auto_generate` | bool | `true` | Auto-generate sidebar from the content directory tree. |
-| `items` | list | `[]` | Manual sidebar items. Only used when `auto_generate` is `false`. |
-
-### Sidebar items
-
-Each item in the `items` list accepts these fields:
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `label` | string | - | Display label in the sidebar. |
-| `link` | string | - | URL or content path. Omit for a group heading. |
-| `collapsed` | bool | - | Whether this group starts collapsed. |
-| `items` | list | - | Nested child items. Recursive structure. |
-
 ## `header`
 
 | Key | Type | Default | Description |

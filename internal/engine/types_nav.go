@@ -31,6 +31,8 @@ type NavNode struct {
 	Page        *Page
 	Attrs       map[string]string
 	Icon        string
+	Badge       Badge
+	Description string
 }
 
 // GlobalNav represents the top-level site navigation bar.

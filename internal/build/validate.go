@@ -45,6 +45,10 @@ func (b *SiteBuilder) Validate() (*ValidateResult, error) {
 	}
 	allPages = append(allPages, standalones...)
 
+	// This path never runs phaseAssemble, so collect sidebar.yaml
+	// unmatched-key warnings here.
+	warnings = append(warnings, collection.CollectSidebarOverrideWarnings(collections)...)
+
 	return &ValidateResult{
 		PageCount:   len(allPages),
 		Collections: len(collections),

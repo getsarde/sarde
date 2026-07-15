@@ -82,6 +82,8 @@ func cloneNode(node *engine.NavNode, parent *engine.NavNode) *engine.NavNode {
 		Page:        node.Page, // share Page pointer (immutable during render)
 		Parent:      parent,
 		Icon:        node.Icon,
+		Badge:       node.Badge,
+		Description: node.Description,
 		DefaultOpen: node.DefaultOpen,
 		GroupIndex:  node.GroupIndex,
 	}

@@ -214,6 +214,12 @@ func resolveSidebar(rd *engine.RouteData, col *engine.Collection, page *engine.P
 	rd.HasSidebar = true
 	if col.Config != nil && col.Config.Sidebar != nil {
 		rd.SidebarCollapsedByDefault = col.Config.Sidebar.CollapsedByDefault
+		// collapse_level: per-group DefaultOpen (set during tree building)
+		// governs expansion, so the blanket "everything open" default must
+		// step aside.
+		if col.Config.Sidebar.CollapseLevel > 0 {
+			rd.SidebarCollapsedByDefault = true
+		}
 	}
 
 	if col.IsTabbed && col.CompositeTabSets != nil {

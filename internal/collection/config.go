@@ -62,6 +62,9 @@ func MergeCollectionConfig(inferred *engine.CollectionConfig, siteCfg *config.Co
 		if siteCfg.Sidebar.Search != nil {
 			s.Search = *siteCfg.Sidebar.Search
 		}
+		if siteCfg.Sidebar.CollapseLevel != nil {
+			s.CollapseLevel = *siteCfg.Sidebar.CollapseLevel
+		}
 		merged.Sidebar = &s
 	}
 
@@ -130,6 +133,73 @@ func MergeCollectionConfig(inferred *engine.CollectionConfig, siteCfg *config.Co
 	}
 
 	return &merged
+}
+
+// ApplySidebarFile overlays one collection's sidebar.yaml entry onto its
+// resolved config. sidebar.yaml wins over sarde.yaml and frontmatter per the
+// documented precedence chain. Returns a new CollectionConfig (never mutates
+// the input) so it composes after MergeCollectionConfig. entry may be nil.
+func ApplySidebarFile(cfg *engine.CollectionConfig, entry *config.SidebarCollectionEntry) *engine.CollectionConfig {
+	if entry == nil {
+		return cfg
+	}
+	if len(entry.Overrides) == 0 && len(entry.Tabs) == 0 && entry.CollapseLevel == nil {
+		return cfg
+	}
+
+	merged := *cfg
+	sb := engine.SidebarConfig{}
+	if merged.Sidebar != nil {
+		sb = *merged.Sidebar
+	}
+
+	if entry.CollapseLevel != nil {
+		sb.CollapseLevel = *entry.CollapseLevel
+	}
+
+	if len(entry.Overrides) > 0 {
+		sb.Overrides = make(map[string]*engine.SidebarOverride, len(entry.Overrides))
+		for key, ov := range entry.Overrides {
+			if ov == nil {
+				continue
+			}
+			sb.Overrides[normalizeOverrideKey(key)] = &engine.SidebarOverride{
+				Label:       ov.Label,
+				Description: ov.Description,
+				Order:       ov.Order,
+				Collapsed:   ov.Collapsed,
+				Icon:        ov.Icon,
+				Badge:       ov.Badge,
+				Hidden:      ov.Hidden,
+				Attrs:       ov.Attrs,
+			}
+		}
+	}
+
+	if len(entry.Tabs) > 0 {
+		sb.TabOverrides = make(map[string]*engine.TabOverride, len(entry.Tabs))
+		for slug, ov := range entry.Tabs {
+			if ov == nil {
+				continue
+			}
+			sb.TabOverrides[normalizeOverrideKey(slug)] = &engine.TabOverride{
+				Label:       ov.Label,
+				Description: ov.Description,
+				Icon:        ov.Icon,
+				Order:       ov.Order,
+			}
+		}
+	}
+
+	merged.Sidebar = &sb
+	return &merged
+}
+
+// normalizeOverrideKey canonicalizes a sidebar.yaml path key: slashes are
+// forward, no leading or trailing slash.
+func normalizeOverrideKey(key string) string {
+	key = strings.ReplaceAll(key, "\\", "/")
+	return strings.Trim(key, "/")
 }
 
 // parseSortString splits "date desc" into ("date", "desc").

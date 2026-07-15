@@ -485,13 +485,6 @@ func TestBuildPages_PagefindTransferred(t *testing.T) {
 	}
 }
 
-func TestBuildPages_SidebarGroupTransferred(t *testing.T) {
-	page := buildSinglePage(t, "title: Test\nsidebar:\n  group: Reference", "Body.")
-	if page.Sidebar.Group != "Reference" {
-		t.Errorf("Sidebar.Group = %q, want %q", page.Sidebar.Group, "Reference")
-	}
-}
-
 func TestBuildPages_LayoutTransferred(t *testing.T) {
 	page := buildSinglePage(t, "title: Test\nlayout: splash", "Body.")
 	if page.Params["layout"] != "splash" {

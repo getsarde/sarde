@@ -45,6 +45,21 @@ type SidebarConfig struct {
 	CollapsedByDefault bool
 	MaxDepth           int
 	Search             bool
+
+	// CollapseLevel, when > 0, expands groups at depth <= N by default and
+	// collapses deeper groups. 0 = unset (CollapsedByDefault governs).
+	CollapseLevel int
+
+	// Overrides holds sidebar.yaml path-keyed node overrides
+	// (collection-relative path -> override). Nil unless sidebar.yaml sets any.
+	Overrides map[string]*SidebarOverride
+
+	// TabOverrides holds sidebar.yaml tab-bar overrides (tab slug -> override).
+	TabOverrides map[string]*TabOverride
+
+	// Build-time bookkeeping for unmatched-key warnings; see sidebar_override.go.
+	matchedOverrides map[string]bool
+	matchedTabs      map[string]bool
 }
 
 // TOCConfig controls table of contents rendering.

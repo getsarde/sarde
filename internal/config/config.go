@@ -46,7 +46,6 @@ type SiteConfig struct {
 	Social         []SocialLink                     `yaml:"social"`
 	Theme          ThemeSettings                    `yaml:"theme"`
 	TOC            TOCSettings                      `yaml:"toc"`
-	Sidebar        SidebarSettings                  `yaml:"sidebar"`
 	Header         HeaderSettings                   `yaml:"header"`
 	Footer         FooterSettings                   `yaml:"footer"`
 	Head           HeadSettings                     `yaml:"head"`
@@ -71,6 +70,10 @@ type SiteConfig struct {
 	Content        ContentSettings                  `yaml:"content"`
 	LlmsTxt        LlmsTxtSettings                  `yaml:"llms_txt"`
 	Security       SecurityConfig                   `yaml:"security"`
+
+	// SidebarFile is the parsed root-level sidebar.yaml (nil when absent).
+	// Populated programmatically by Resolve, never from sarde.yaml content.
+	SidebarFile SidebarFile `yaml:"-"`
 }
 
 // ---------------------------------------------------------------------------
@@ -150,26 +153,6 @@ type TOCSettings struct {
 	Enabled  *bool `yaml:"enabled"`
 	MinLevel int   `yaml:"min_level"`
 	MaxLevel int   `yaml:"max_level"`
-}
-
-// ---------------------------------------------------------------------------
-// Sidebar
-// ---------------------------------------------------------------------------
-
-type SidebarSettings struct {
-	Collapsed    *bool         `yaml:"collapsed"`
-	Badges       *bool         `yaml:"badges"`
-	Pagination   *bool         `yaml:"pagination"`
-	AutoGenerate *bool         `yaml:"auto_generate"`
-	Items        []SidebarItem `yaml:"items"`
-}
-
-// SidebarItem is a single entry in a manually-defined sidebar.
-type SidebarItem struct {
-	Label     string        `yaml:"label"`
-	Link      string        `yaml:"link,omitempty"`
-	Collapsed *bool         `yaml:"collapsed,omitempty"`
-	Items     []SidebarItem `yaml:"items,omitempty"`
 }
 
 // ---------------------------------------------------------------------------
@@ -561,6 +544,7 @@ type CollectionSidebarConfig struct {
 	CollapsedByDefault *bool `yaml:"collapsed_by_default"`
 	MaxDepth           int   `yaml:"max_depth"`
 	Search             *bool `yaml:"search"`
+	CollapseLevel      *int  `yaml:"collapse_level"`
 }
 
 type CollectionTOCConfig struct {

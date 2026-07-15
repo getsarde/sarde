@@ -64,6 +64,14 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 		mergeConfig(cfg, userCfg)
 	}
 
+	// Optional root-level sidebar.yaml (sibling of sarde.yaml). Not a cascade
+	// layer: a single opt-in file, loaded whole. nil when absent.
+	sidebarFile, err := LoadSidebarFile(filepath.Dir(configPath))
+	if err != nil {
+		return nil, err
+	}
+	cfg.SidebarFile = sidebarFile
+
 	// Layer 4: CLI flags
 	if len(opts.CLIFlags) > 0 {
 		applyCLIFlagOverrides(cfg, opts.CLIFlags)
@@ -151,7 +159,6 @@ func mergeConfig(base, over *SiteConfig) {
 	mergeSocial(&base.Social, over.Social)
 	mergeTheme(&base.Theme, &over.Theme)
 	mergeTOC(&base.TOC, &over.TOC)
-	mergeSidebar(&base.Sidebar, &over.Sidebar)
 	mergeHeader(&base.Header, &over.Header)
 	mergeFooter(&base.Footer, &over.Footer)
 	mergeHead(&base.Head, &over.Head)
@@ -229,16 +236,6 @@ func mergeTOC(base, over *TOCSettings) {
 	mergeBoolP(&base.Enabled, over.Enabled)
 	mergeInt(&base.MinLevel, over.MinLevel)
 	mergeInt(&base.MaxLevel, over.MaxLevel)
-}
-
-func mergeSidebar(base, over *SidebarSettings) {
-	mergeBoolP(&base.Collapsed, over.Collapsed)
-	mergeBoolP(&base.Badges, over.Badges)
-	mergeBoolP(&base.Pagination, over.Pagination)
-	mergeBoolP(&base.AutoGenerate, over.AutoGenerate)
-	if len(over.Items) > 0 {
-		base.Items = over.Items
-	}
 }
 
 func mergeHeader(base, over *HeaderSettings) {

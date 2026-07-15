@@ -25,6 +25,7 @@ func TestClassifyChange(t *testing.T) {
 		{"site config", "/project/sarde.yaml", ChangeConfig},
 		{"theme config", "/project/theme.yaml", ChangeConfig},
 		{"nav config", "/project/nav.yaml", ChangeConfig},
+		{"sidebar config", "/project/sidebar.yaml", ChangeConfig},
 		{"data file", "/project/data/menu.yaml", ChangeStatic},
 		{"random file", "/project/readme.txt", ChangeStatic},
 	}
@@ -161,6 +162,7 @@ func TestIsRootLevelNonConfig(t *testing.T) {
 		{"site config at root", "/project/sarde.yaml", false},
 		{"theme config at root", "/project/theme.yaml", false},
 		{"nav config at root", "/project/nav.yaml", false},
+		{"sidebar config at root", "/project/sidebar.yaml", false},
 		{"stray file at root", "/project/README.md", true},
 		{"watched dir entry at root", "/project/content", true},
 		{"file inside subdir", "/project/content/blog/post.md", false},

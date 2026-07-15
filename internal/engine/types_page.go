@@ -82,7 +82,6 @@ type PageSidebar struct {
 	Order  int
 	Label  string
 	Hidden bool
-	Group  string
 	Attrs  map[string]string
 	Badge  Badge
 	Icon   string
@@ -170,7 +169,6 @@ type FrontmatterSidebar struct {
 	Order  int               `yaml:"order"`
 	Label  string            `yaml:"label"`
 	Hidden bool              `yaml:"hidden"`
-	Group  string            `yaml:"group"`
 	Attrs  map[string]string `yaml:"attrs"`
 	Badge  Badge             `yaml:"badge"`
 	Icon   string            `yaml:"icon"`

@@ -101,6 +101,7 @@ func BuildTabsI18n(col *engine.Collection, contentDir string, langs []string) []
 				tab.Icon = icon
 			}
 		}
+		applyTabOverride(tab, tabOverride(col.Config, sec.Slug))
 
 		for _, lang := range langs {
 			langPages := filterTabPagesByLang(tabPages, lang)
@@ -229,6 +230,7 @@ func buildTab(sec *engine.Section, col *engine.Collection, contentDir string) *e
 			tab.Icon = icon
 		}
 	}
+	applyTabOverride(tab, tabOverride(col.Config, sec.Slug))
 
 	// Build a temporary collection scoped to this tab's pages
 	tabCol := &engine.Collection{
@@ -243,6 +245,40 @@ func buildTab(sec *engine.Section, col *engine.Collection, contentDir string) *e
 	navigation.WirePrevNextFromTree(tab.NavTree)
 
 	return tab
+}
+
+// tabOverride returns the sidebar.yaml tab override for slug, marking it
+// matched so unmatched tab keys can be reported after the build.
+func tabOverride(cfg *engine.CollectionConfig, slug string) *engine.TabOverride {
+	if cfg == nil || cfg.Sidebar == nil || len(cfg.Sidebar.TabOverrides) == 0 {
+		return nil
+	}
+	ov, ok := cfg.Sidebar.TabOverrides[slug]
+	if !ok {
+		return nil
+	}
+	cfg.Sidebar.MarkTabMatched(slug)
+	return ov
+}
+
+// applyTabOverride applies sidebar.yaml tab-bar properties on top of the
+// values derived from the tab's _index.md. Config wins; unset falls through.
+func applyTabOverride(tab *engine.DocsTab, ov *engine.TabOverride) {
+	if ov == nil {
+		return
+	}
+	if ov.Label != "" {
+		tab.Title = ov.Label
+	}
+	if ov.Description != "" {
+		tab.Description = ov.Description
+	}
+	if ov.Icon != "" {
+		tab.Icon = ov.Icon
+	}
+	if ov.Order != nil {
+		tab.Order = *ov.Order
+	}
 }
 
 // buildTabNavTree checks for a per-tab nav.yaml, falling back to auto-generation.

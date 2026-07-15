@@ -28,13 +28,21 @@ func BuildNavTree(collection *engine.Collection) *engine.NavTree {
 		Depth: 0,
 	}
 
+	ctx := sidebarCtx{collName: collection.Name}
+	if collection.Config != nil {
+		ctx.sidebar = collection.Config.Sidebar
+	}
+
 	// Add root-level pages (pages not in any section).
 	rootPages := findRootPages(collection)
 	for _, page := range rootPages {
 		if page.Sidebar.Hidden {
 			continue
 		}
-		node := pageToNode(page, 1)
+		node := pageToNode(page, 1, ctx)
+		if node == nil {
+			continue
+		}
 		node.Parent = root
 		root.Children = append(root.Children, node)
 	}
@@ -45,9 +53,9 @@ func BuildNavTree(collection *engine.Collection) *engine.NavTree {
 		isCollectionRoot := sec.Permalink == collectionRootPermalink
 		if sec.Transparent || isCollectionRoot {
 			// Hoist transparent/root section's children directly to root.
-			addSectionChildren(root, sec, 1, maxDepth)
+			addSectionChildren(root, sec, 1, maxDepth, ctx)
 		} else {
-			node := buildNodeFromSection(sec, 1, maxDepth)
+			node := buildNodeFromSection(sec, 1, maxDepth, ctx)
 			if node != nil {
 				node.Parent = root
 				root.Children = append(root.Children, node)
@@ -80,8 +88,13 @@ func BuildNavTree(collection *engine.Collection) *engine.NavTree {
 }
 
 // buildNodeFromSection recursively converts a Section into a NavNode group.
-func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int) *engine.NavNode {
+func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int, ctx sidebarCtx) *engine.NavNode {
 	if depth > maxDepth {
+		return nil
+	}
+
+	ov := lookupOverride(ctx, collectionRelPath(sec.Permalink, ctx.collName))
+	if ov != nil && ov.Hidden {
 		return nil
 	}
 
@@ -126,7 +139,10 @@ func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int) *engine.
 		if page.Sidebar.Hidden || page.Kind == engine.KindSection {
 			continue
 		}
-		node := pageToNode(page, depth+1)
+		node := pageToNode(page, depth+1, ctx)
+		if node == nil {
+			continue
+		}
 		node.Parent = group
 		group.Children = append(group.Children, node)
 	}
@@ -134,9 +150,9 @@ func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int) *engine.
 	// Add child sections.
 	for _, child := range sec.Sections {
 		if child.Transparent {
-			addSectionChildren(group, child, depth+1, maxDepth)
+			addSectionChildren(group, child, depth+1, maxDepth, ctx)
 		} else {
-			childNode := buildNodeFromSection(child, depth+1, maxDepth)
+			childNode := buildNodeFromSection(child, depth+1, maxDepth, ctx)
 			if childNode != nil {
 				childNode.Parent = group
 				group.Children = append(group.Children, childNode)
@@ -144,25 +160,39 @@ func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int) *engine.
 		}
 	}
 
+	// Depth-based default expansion (collapse_level).
+	if ctx.sidebar != nil && ctx.sidebar.CollapseLevel > 0 && depth <= ctx.sidebar.CollapseLevel {
+		group.DefaultOpen = true
+	}
+
+	// sidebar.yaml override wins over frontmatter and collapse_level.
+	applyOverride(group, ov)
+
 	return group
 }
 
 // addSectionChildren adds a transparent section's pages and sub-sections
 // directly to the parent node (hoisting).
-func addSectionChildren(parent *engine.NavNode, sec *engine.Section, depth int, maxDepth int) {
+func addSectionChildren(parent *engine.NavNode, sec *engine.Section, depth int, maxDepth int, ctx sidebarCtx) {
+	if ov := lookupOverride(ctx, collectionRelPath(sec.Permalink, ctx.collName)); ov != nil && ov.Hidden {
+		return
+	}
 	for _, page := range sec.Pages {
 		if page.Sidebar.Hidden || page.Kind == engine.KindSection {
 			continue
 		}
-		node := pageToNode(page, depth)
+		node := pageToNode(page, depth, ctx)
+		if node == nil {
+			continue
+		}
 		node.Parent = parent
 		parent.Children = append(parent.Children, node)
 	}
 	for _, child := range sec.Sections {
 		if child.Transparent {
-			addSectionChildren(parent, child, depth, maxDepth)
+			addSectionChildren(parent, child, depth, maxDepth, ctx)
 		} else {
-			childNode := buildNodeFromSection(child, depth, maxDepth)
+			childNode := buildNodeFromSection(child, depth, maxDepth, ctx)
 			if childNode != nil {
 				childNode.Parent = parent
 				parent.Children = append(parent.Children, childNode)
@@ -172,12 +202,16 @@ func addSectionChildren(parent *engine.NavNode, sec *engine.Section, depth int, 
 }
 
 // pageToNode creates a leaf NavNode from a Page.
-func pageToNode(page *engine.Page, depth int) *engine.NavNode {
+func pageToNode(page *engine.Page, depth int, ctx sidebarCtx) *engine.NavNode {
+	ov := lookupOverride(ctx, collectionRelPath(page.RelPermalink, ctx.collName))
+	if ov != nil && ov.Hidden {
+		return nil
+	}
 	label := page.Title
 	if page.Sidebar.Label != "" {
 		label = page.Sidebar.Label
 	}
-	return &engine.NavNode{
+	node := &engine.NavNode{
 		Label: label,
 		URL:   page.RelPermalink,
 		Slug:  page.Slug,
@@ -186,7 +220,10 @@ func pageToNode(page *engine.Page, depth int) *engine.NavNode {
 		Page:  page,
 		Attrs: cloneStringMap(page.Sidebar.Attrs),
 		Icon:  page.Sidebar.Icon,
+		Badge: page.Sidebar.Badge,
 	}
+	applyOverride(node, ov)
+	return node
 }
 
 // findRootPages returns pages that belong to the collection but aren't
@@ -278,6 +315,80 @@ func assignGroupIndices(root *engine.NavNode) {
 		}
 	}
 	walk(root)
+}
+
+// ---------------------------------------------------------------------------
+// sidebar.yaml overrides
+// ---------------------------------------------------------------------------
+
+// sidebarCtx carries the collection name and sidebar config through tree
+// building so sidebar.yaml overrides can be consulted per node. Threaded as a
+// parameter (not package state) so future structural sidebar building can
+// reuse the same helpers scoped to a subtree.
+type sidebarCtx struct {
+	collName string
+	sidebar  *engine.SidebarConfig // may be nil
+}
+
+// collectionRelPath converts a permalink to the collection-relative path key
+// used by sidebar.yaml overrides ("/docs/guide/advanced/" -> "guide/advanced").
+// Permalinks are version-free and lang-free by construction, so the same key
+// matches in every (lang, version) lane. Mirrors buildPageLookup in navyaml.go.
+func collectionRelPath(permalink, collectionName string) string {
+	p := strings.TrimPrefix(permalink, "/"+collectionName+"/")
+	return strings.TrimSuffix(p, "/")
+}
+
+// lookupOverride returns the sidebar.yaml override for key, marking the key
+// matched so unmatched keys can be reported once all lanes have built.
+func lookupOverride(ctx sidebarCtx, key string) *engine.SidebarOverride {
+	if ctx.sidebar == nil || len(ctx.sidebar.Overrides) == 0 || key == "" {
+		return nil
+	}
+	ov, ok := ctx.sidebar.Overrides[key]
+	if !ok {
+		return nil
+	}
+	ctx.sidebar.MarkOverrideMatched(key)
+	return ov
+}
+
+// applyOverride applies sidebar.yaml node properties on top of the values
+// derived from frontmatter and inference. Config wins; unset falls through.
+func applyOverride(node *engine.NavNode, ov *engine.SidebarOverride) {
+	if ov == nil {
+		return
+	}
+	if ov.Label != "" {
+		node.Label = ov.Label
+	}
+	if ov.Description != "" {
+		node.Description = ov.Description
+	}
+	if ov.Order != nil {
+		node.Order = *ov.Order
+	}
+	if ov.Icon != "" {
+		node.Icon = ov.Icon
+	}
+	if !ov.Badge.IsEmpty() {
+		node.Badge = ov.Badge
+	}
+	// collapsed: false forces a group open; collapsed: true clears DefaultOpen,
+	// which only closes the group when the collection collapses groups by
+	// default (collapsed_by_default or collapse_level). It cannot force-close
+	// against a blanket-open sidebar, matching nav.yaml semantics.
+	if ov.Collapsed != nil {
+		node.DefaultOpen = !*ov.Collapsed
+	}
+	if len(ov.Attrs) > 0 {
+		if node.Attrs == nil {
+			node.Attrs = make(map[string]string, len(ov.Attrs))
+		}
+		for k, v := range ov.Attrs {
+			node.Attrs[k] = v
+		}
+	}
 }
 
 // computeSidebarHash produces a DJB2 hash of the sidebar's group structure

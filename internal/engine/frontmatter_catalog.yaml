@@ -277,11 +277,6 @@ categories:
         label: Hidden
         description: Hide this page from the sidebar navigation.
 
-      - key: group
-        type: string
-        label: Group
-        description: Sidebar group this page belongs to.
-
       - key: icon
         type: string
         label: Icon

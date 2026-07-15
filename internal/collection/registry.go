@@ -1,12 +1,14 @@
 package collection
 
 import (
+	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/navigation"
@@ -71,6 +73,20 @@ func BuildCollectionsWithOptions(
 						return nil, nil, err
 					}
 				}
+			}
+		}
+
+		// 2b. Overlay sidebar.yaml overrides (independent of sarde.yaml entries)
+		if siteCfg.SidebarFile != nil {
+			entry := siteCfg.SidebarFile[name]
+			collCfg = ApplySidebarFile(collCfg, entry)
+			if entry != nil && len(entry.Items) > 0 {
+				allWarnings = append(allWarnings, engine.ValidationWarning{
+					File:    consts.FileSidebarConfig,
+					Field:   name + ".items",
+					Message: "structural sidebar items are not implemented yet; ignoring",
+					Level:   "warning",
+				})
 			}
 		}
 
@@ -222,7 +238,45 @@ func BuildCollectionsWithOptions(
 		collections[name] = col
 	}
 
+	allWarnings = append(allWarnings, sidebarFileCollectionWarnings(siteCfg.SidebarFile, collections)...)
+
 	return collections, allWarnings, nil
+}
+
+// sidebarFileCollectionWarnings flags sidebar.yaml entries whose collection
+// key matches no collection or targets a collection without a sidebar layout.
+func sidebarFileCollectionWarnings(sf config.SidebarFile, collections map[string]*engine.Collection) []engine.ValidationWarning {
+	if len(sf) == 0 {
+		return nil
+	}
+	names := make([]string, 0, len(sf))
+	for name := range sf {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	var warnings []engine.ValidationWarning
+	for _, name := range names {
+		col, ok := collections[name]
+		if !ok {
+			warnings = append(warnings, engine.ValidationWarning{
+				File:    consts.FileSidebarConfig,
+				Field:   name,
+				Message: fmt.Sprintf("sidebar.yaml declares collection %q but no such collection exists", name),
+				Level:   "warning",
+			})
+			continue
+		}
+		if col.Config == nil || !engine.LayoutHasSidebar(col.Config.Layout) {
+			warnings = append(warnings, engine.ValidationWarning{
+				File:    consts.FileSidebarConfig,
+				Field:   name,
+				Message: fmt.Sprintf("collection %q does not use a sidebar layout; sidebar.yaml entry ignored", name),
+				Level:   "warning",
+			})
+		}
+	}
+	return warnings
 }
 
 // BuildStandalonePages builds Page objects for root-level files (home, standalone).

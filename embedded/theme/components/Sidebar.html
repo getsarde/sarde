@@ -7,29 +7,29 @@
     {{ if .Children }}
     <li>
       <details data-sd-idx="{{ .GroupIndex }}"{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}{{ if .HasActive }} class="has-active"{{ end }}>
-        <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ else }}{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span>{{ .Label }}</span>{{ end }}<span class="sarde-sidebar-chevron"></span></summary>
+        <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ else }}{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ .Label }}</span>{{ end }}{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}<span class="sarde-sidebar-chevron"></span></summary>
         <ul>
         {{ range .Children }}
           {{ if .Children }}
           <li>
             <details data-sd-idx="{{ .GroupIndex }}"{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}{{ if .HasActive }} class="has-active"{{ end }}>
-              <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ else }}{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span>{{ .Label }}</span>{{ end }}<span class="sarde-sidebar-chevron"></span></summary>
+              <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ else }}{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ .Label }}</span>{{ end }}{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}<span class="sarde-sidebar-chevron"></span></summary>
               <ul>
               {{ range .Children }}
-                <li>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ else }}<span>{{ .Label }}</span>{{ end }}{{ if .Page }}{{ if not (.Page.Sidebar.Badge.IsEmpty) }} <span class="sarde-badge {{ .Page.Sidebar.Badge.CSSClass }}">{{ .Page.Sidebar.Badge.Text }}</span>{{ end }}{{ end }}</li>
+                <li>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ else }}<span{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ .Label }}</span>{{ end }}{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}</li>
               {{ end }}
               </ul>
             </details>
           </li>
           {{ else }}
-          <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ if .Page }}{{ if not (.Page.Sidebar.Badge.IsEmpty) }} <span class="sarde-badge {{ .Page.Sidebar.Badge.CSSClass }}">{{ .Page.Sidebar.Badge.Text }}</span>{{ end }}{{ end }}</li>
+          <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}</li>
           {{ end }}
         {{ end }}
         </ul>
       </details>
     </li>
     {{ else }}
-    <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ if .Page }}{{ if not (.Page.Sidebar.Badge.IsEmpty) }} <span class="sarde-badge {{ .Page.Sidebar.Badge.CSSClass }}">{{ .Page.Sidebar.Badge.Text }}</span>{{ end }}{{ end }}</li>
+    <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}</li>
     {{ end }}
   {{ end }}
   </ul>

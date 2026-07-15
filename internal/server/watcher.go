@@ -207,7 +207,8 @@ func (w *Watcher) isRootLevelNonConfig(path string) bool {
 		return false
 	}
 	base := filepath.Base(path)
-	return base != consts.FileSiteConfig && base != consts.FileThemeConfig && base != consts.FileNavConfig
+	return base != consts.FileSiteConfig && base != consts.FileThemeConfig &&
+		base != consts.FileNavConfig && base != consts.FileSidebarConfig
 }
 
 func (w *Watcher) debounceChange(change FileChange) {
@@ -368,7 +369,8 @@ func (w *Watcher) classifyChange(path string) ChangeKind {
 
 	// Config files.
 	base := filepath.Base(rel)
-	if base == consts.FileSiteConfig || base == consts.FileThemeConfig || base == consts.FileNavConfig {
+	if base == consts.FileSiteConfig || base == consts.FileThemeConfig ||
+		base == consts.FileNavConfig || base == consts.FileSidebarConfig {
 		return ChangeConfig
 	}
 

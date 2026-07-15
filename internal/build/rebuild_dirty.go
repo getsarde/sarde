@@ -61,7 +61,6 @@ func classifyChange(old, next *engine.Page, cf content.ContentFile) changeClass 
 	}
 
 	if old.Sidebar.Label != next.Sidebar.Label || old.Sidebar.Hidden != next.Sidebar.Hidden ||
-		old.Sidebar.Group != next.Sidebar.Group ||
 		!reflect.DeepEqual(old.Sidebar.Badge, next.Sidebar.Badge) ||
 		!reflect.DeepEqual(old.Sidebar.Attrs, next.Sidebar.Attrs) {
 		return changeCollectionScoped

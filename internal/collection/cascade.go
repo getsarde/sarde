@@ -82,9 +82,6 @@ func applyCascadeField(page *engine.Page, key string, value any) {
 			if b, ok := subMap["hidden"].(bool); ok && !page.Sidebar.Hidden {
 				page.Sidebar.Hidden = b
 			}
-			if s, ok := subMap["group"].(string); ok && page.Sidebar.Group == "" {
-				page.Sidebar.Group = s
-			}
 		}
 
 	case "toc":

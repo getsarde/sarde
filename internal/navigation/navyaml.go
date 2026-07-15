@@ -91,7 +91,10 @@ func buildNodeFromYAMLItem(item navYAMLItem, lookup map[string]*engine.Page, dep
 		}
 		// Merge attrs: nav.yaml attrs first, then page sidebar attrs overrides.
 		node.Attrs = mergeAttrs(item.Attrs, cloneStringMap(page.Sidebar.Attrs))
-		// Apply badge from nav.yaml (page badge can also be set via frontmatter).
+		// Badge: page frontmatter badge is the baseline; an explicit nav.yaml
+		// badge wins. Stored on the node (not the shared Page) so one tree's
+		// nav.yaml badge cannot leak into other trees referencing the page.
+		node.Badge = page.Sidebar.Badge
 		badge := item.Badge
 		if badge.Variant == engine.BadgeVariantDefault && item.BadgeColor != "" {
 			if alias, ok := engine.VariantAliases[item.BadgeColor]; ok {
@@ -99,7 +102,7 @@ func buildNodeFromYAMLItem(item navYAMLItem, lookup map[string]*engine.Page, dep
 			}
 		}
 		if !badge.IsEmpty() {
-			page.Sidebar.Badge = badge
+			node.Badge = badge
 		}
 	} else if item.URL != "" {
 		// External link.

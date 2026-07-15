@@ -25,12 +25,6 @@ toc:
   min_level: 2
   max_level: 4
 
-sidebar:
-  collapsed: false
-  badges: true
-  pagination: true
-  auto_generate: true
-
 header:
   search: true
   theme_toggle: true

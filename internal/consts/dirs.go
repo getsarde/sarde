@@ -34,10 +34,11 @@ const (
 	CollectionCourses = "courses"
 
 	// Config filenames.
-	FileSiteConfig  = "sarde.yaml"
-	FileThemeConfig = "theme.yaml"
-	FileCollConfig  = "config.yaml"
-	FileNavConfig   = "nav.yaml"
+	FileSiteConfig    = "sarde.yaml"
+	FileThemeConfig   = "theme.yaml"
+	FileCollConfig    = "config.yaml"
+	FileNavConfig     = "nav.yaml"
+	FileSidebarConfig = "sidebar.yaml"
 
 	// Template filenames.
 	TemplateBaseOf = "baseof.html"
