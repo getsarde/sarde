@@ -1,0 +1,422 @@
+# Sarde SSG — Frontmatter Field Catalog
+#
+# Single source of truth for every frontmatter field Sarde recognizes.
+# Embedded into the sarde binary (frontmatter_catalog.go), exposed via
+# `sarde catalog --format json`, and consumed by Sarde Studio's
+# Properties panel.
+#
+# Parity with the validator is enforced by tests:
+#   internal/content/page_validator_catalog_test.go  (field keys)
+#   internal/collection/infer_catalog_test.go        (collection type names)
+#
+# layouts: maps each implemented layout to the field categories available
+# to pages using it. `split` and `presentation` are declared in LayoutType
+# but have no base template yet, so they are deliberately absent here.
+#
+# collection_types: name-based inference hints (mirrors
+# internal/collection/infer.go) plus extra categories granted to matching
+# collections regardless of layout (e.g. blog pages render tags).
+#
+# Field flags:
+#   unrendered: true — parsed by the engine but not rendered by any
+#   template yet; UIs should hide these from field pickers.
+
+layouts:
+  default:  [identity, editorial, navigation, extras, advanced]
+  splash:   [identity, editorial, navigation, extras, advanced]
+  full:     [identity, editorial, navigation, extras, advanced]
+  centered: [identity, editorial, navigation, extras, advanced]
+  wide:     [identity, editorial, navigation, extras, sidebar, section, advanced]
+  docs:     [identity, editorial, navigation, extras, taxonomy, sidebar, section, toc, advanced]
+
+collection_types:
+  blog:
+    names: [blog, posts, articles, news]
+    layout: default
+    extra_categories: [taxonomy]
+  docs:
+    names: [docs, documentation, guides, reference, courses, tutorials, lessons, workshops]
+    layout: docs
+
+categories:
+
+  - name: identity
+    label: Identity
+    fields:
+      - key: title
+        type: string
+        label: Title
+        required: true
+        description: Page title displayed in the browser tab and site navigation.
+
+      - key: slug
+        type: string
+        label: Slug
+        description: URL slug override. Defaults to the filename.
+
+      - key: date
+        type: date
+        label: Date
+        description: Content creation date.
+
+      - key: updated
+        type: date
+        label: Last Updated
+        description: Last modification date override.
+
+      - key: publish_date
+        type: date
+        label: Publish Date
+        description: Future date when the page becomes visible.
+
+      - key: expiry_date
+        type: date
+        label: Expiry Date
+        description: Date after which the page is no longer published.
+
+      - key: aliases
+        type: list
+        label: Aliases
+        description: Alternative URL paths that redirect to this page.
+
+      - key: layout
+        type: enum
+        label: Layout
+        description: Layout template for this page.
+        options:
+          - default
+          - docs
+          - splash
+          - wide
+          - full
+          - centered
+
+      - key: type
+        type: string
+        label: Content Type
+        description: Content type override for template resolution.
+
+      - key: template
+        type: string
+        label: Template
+        description: Explicit template file override.
+
+  - name: editorial
+    label: Editorial
+    fields:
+      - key: draft
+        type: bool
+        label: Draft
+        description: Hide this page from the published site.
+
+      - key: description
+        type: textarea
+        label: Description
+        description: Short description used for SEO meta tags and page summaries.
+
+      - key: summary
+        type: textarea
+        label: Summary
+        description: Summary text shown in list pages and feeds.
+
+      - key: image
+        type: image
+        label: Image
+        description: Preview image for social sharing and page cards.
+
+      - key: icon
+        type: string
+        label: Icon
+        description: Lucide icon name displayed alongside the page title.
+
+      - key: render
+        type: bool
+        label: Render
+        description: Set to false to exclude this page from the build output.
+
+      - key: pagefind
+        type: bool
+        label: Searchable
+        description: Set to false to exclude this page from the search index.
+
+      - key: show_updated
+        type: bool
+        label: Show Updated Date
+        description: Display the last-updated date on this page.
+
+      - key: edit_url
+        type: string
+        label: Edit URL
+        description: Custom "Edit this page" link. Set to false to hide the link.
+
+  - name: taxonomy
+    label: Taxonomy
+    fields:
+      - key: tags
+        type: list
+        label: Tags
+        description: Tag terms for this page.
+
+      - key: categories
+        type: list
+        label: Categories
+        unrendered: true
+        description: Category terms for this page. Not rendered by the current theme.
+
+      - key: show_tags
+        type: bool
+        label: Show Tags
+        description: Display tags on this page. Overrides the site-level setting.
+
+  - name: navigation
+    label: Navigation
+    fields:
+      - key: prev
+        type: object
+        label: Previous Page
+        description: Override the automatic previous-page link. Set to false to hide it.
+        fields:
+          - key: link
+            type: string
+            label: Link
+            description: URL path to the previous page.
+
+          - key: label
+            type: string
+            label: Label
+            description: Display text for the previous-page link.
+
+      - key: next
+        type: object
+        label: Next Page
+        description: Override the automatic next-page link. Set to false to hide it.
+        fields:
+          - key: link
+            type: string
+            label: Link
+            description: URL path to the next page.
+
+          - key: label
+            type: string
+            label: Label
+            description: Display text for the next-page link.
+
+  - name: extras
+    label: Page Extras
+    fields:
+      - key: banner
+        type: object
+        label: Banner
+        description: Announcement banner displayed at the top of the page.
+        fields:
+          - key: content
+            type: string
+            label: Content
+            description: Banner message text (supports Markdown).
+
+          - key: variant
+            type: enum
+            label: Variant
+            description: Banner color variant.
+            options:
+              - note
+              - tip
+              - caution
+              - danger
+
+          - key: icon
+            type: string
+            label: Icon
+            description: Lucide icon name shown in the banner.
+
+      - key: head
+        type: list
+        label: Head Tags
+        description: Custom HTML tags injected into the page head.
+        items:
+          - key: tag
+            type: enum
+            label: Tag
+            description: HTML tag name.
+            options:
+              - meta
+              - link
+              - script
+              - style
+              - noscript
+              - base
+
+          - key: attrs
+            type: object
+            label: Attributes
+            description: HTML attributes for the tag.
+
+          - key: content
+            type: string
+            label: Content
+            description: Inner text content of the tag.
+
+  - name: sidebar
+    label: Sidebar
+    nested: true
+    parent_key: sidebar
+    fields:
+      - key: order
+        type: int
+        label: Order
+        description: Sort position in the sidebar (lower numbers appear first).
+        min: 0
+
+      - key: label
+        type: string
+        label: Label
+        description: Display label in the sidebar. Defaults to the page title.
+
+      - key: hidden
+        type: bool
+        label: Hidden
+        description: Hide this page from the sidebar navigation.
+
+      - key: group
+        type: string
+        label: Group
+        description: Sidebar group this page belongs to.
+
+      - key: icon
+        type: string
+        label: Icon
+        description: Lucide icon name shown in the sidebar entry.
+
+      - key: badge
+        type: object
+        label: Badge
+        description: Badge displayed next to the sidebar entry.
+        fields:
+          - key: text
+            type: string
+            label: Text
+            description: Badge text content.
+
+          - key: variant
+            type: enum
+            label: Variant
+            description: Badge color variant.
+            options:
+              - default
+              - note
+              - tip
+              - success
+              - caution
+              - danger
+
+      - key: attrs
+        type: object
+        label: Attributes
+        description: Custom HTML attributes on the sidebar link.
+
+  - name: section
+    label: Section
+    fields:
+      - key: transparent
+        type: bool
+        label: Transparent Section
+        description: Merge this section's pages into the parent sidebar level instead of creating a nested group.
+
+  - name: toc
+    label: Table of Contents
+    nested: true
+    parent_key: toc
+    fields:
+      - key: enabled
+        type: bool
+        label: Enabled
+        description: Show or hide the table of contents on this page.
+
+      - key: min_level
+        type: int
+        label: Minimum Heading Level
+        description: Lowest heading level to include (1-6).
+        min: 1
+        max: 6
+
+      - key: max_level
+        type: int
+        label: Maximum Heading Level
+        description: Highest heading level to include (1-6).
+        min: 1
+        max: 6
+
+  - name: advanced
+    label: Advanced
+    fields:
+      - key: hero
+        type: object
+        label: Hero Section
+        unrendered: true
+        description: Per-page hero section. Parsed by the engine but not rendered by the current theme (use homepage.hero in sarde.yaml instead).
+        fields:
+          - key: title
+            type: string
+            label: Title
+            description: Hero heading text.
+
+          - key: tagline
+            type: string
+            label: Tagline
+            description: Subtitle text below the hero title.
+
+          - key: image
+            type: object
+            label: Image
+            description: Hero background image with optional light/dark variants.
+            fields:
+              - key: src
+                type: image
+                label: Source
+                description: Image path (used for both themes unless light/dark are set).
+
+              - key: light
+                type: image
+                label: Light Theme
+                description: Image shown in light mode.
+
+              - key: dark
+                type: image
+                label: Dark Theme
+                description: Image shown in dark mode.
+
+              - key: alt
+                type: string
+                label: Alt Text
+                description: Accessible alt text for the hero image.
+
+          - key: actions
+            type: list
+            label: Actions
+            description: Call-to-action buttons in the hero section.
+            items:
+              - key: text
+                type: string
+                label: Button Text
+
+              - key: link
+                type: string
+                label: URL
+
+              - key: variant
+                type: string
+                label: Variant
+
+              - key: icon
+                type: string
+                label: Icon
+
+      - key: cascade
+        type: object
+        label: Cascade
+        description: Key-value pairs inherited by all descendant pages.
+
+      - key: params
+        type: object
+        label: Custom Params
+        description: Arbitrary custom data accessible in templates. Not validated.

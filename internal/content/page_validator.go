@@ -18,7 +18,7 @@ var knownFrontmatterKeys = map[string]bool{
 	"summary": true, "render": true, "pagefind": true,
 	"show_updated": true, "edit_url": true,
 	"sidebar": true, "toc": true, "prev": true, "next": true,
-	"tags": true, "categories": true, "transparent": true,
+	"tags": true, "categories": true, "show_tags": true, "transparent": true,
 	"hero": true, "icon": true, "head": true, "banner": true,
 	"cascade": true, "params": true,
 }
