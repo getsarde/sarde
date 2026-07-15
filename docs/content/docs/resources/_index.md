@@ -2,6 +2,6 @@
 title: Resources
 description: "Changelog, migration guides, contribution instructions, and troubleshooting for Sarde"
 sidebar:
-  order: 6
+  order: 7
   icon: lightbulb
 ---

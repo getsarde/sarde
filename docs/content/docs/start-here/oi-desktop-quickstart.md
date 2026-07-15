@@ -2,7 +2,7 @@
 title: Oi Desktop Quickstart
 description: "Create, edit, and preview Sarde content visually with the Oi Desktop app"
 sidebar:
-  order: 3
+  order: 6
 ---
 
 Oi Desktop is a visual editor for Sarde sites. It wraps the Sarde engine in a native desktop application so content can be created, edited, and previewed without opening a terminal. Available for macOS, Windows, and Linux.

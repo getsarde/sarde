@@ -2,7 +2,7 @@
 title: Getting Started
 description: "Install Sarde, scaffold a new site, and preview it with the local dev server"
 sidebar:
-  order: 1
+  order: 4
 ---
 
 Sarde is a zero-config static site generator. Drop Markdown files into a `content/` folder and get a fully-themed, production-ready website. This page covers installing Sarde, creating a site, and previewing it locally.
