@@ -133,7 +133,7 @@ func printStatsTable(result *engine.BuildResult) {
 		{"Paginator pages", result.PaginatorPages},
 		{"Collections", result.Collections},
 		{"Bundle assets", result.BundleAssets},
-		{"Static files", result.StaticFiles},
+		{"Public files", result.PublicFiles},
 		{"Processed images", result.ProcessedImages},
 		{"Aliases", result.AliasCount},
 		{"Sitemaps", result.SitemapCount},

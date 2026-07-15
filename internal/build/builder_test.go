@@ -295,11 +295,11 @@ func TestBuild_DraftFiltering(t *testing.T) {
 	_ = result
 }
 
-func TestBuild_StaticFiles(t *testing.T) {
+func TestBuild_PublicFiles(t *testing.T) {
 	dir := t.TempDir()
 	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n# Home\n")
-	writeFixture(t, dir, "static/robots.txt", "User-agent: *\nAllow: /\n")
-	writeFixture(t, dir, "static/images/logo.svg", "<svg></svg>")
+	writeFixture(t, dir, "public/robots.txt", "User-agent: *\nAllow: /\n")
+	writeFixture(t, dir, "public/images/logo.svg", "<svg></svg>")
 
 	cfg := config.Defaults()
 	themeCfg := buildThemeConfig()

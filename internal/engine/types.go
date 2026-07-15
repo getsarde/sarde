@@ -132,7 +132,7 @@ type BuildResult struct {
 	PaginatorPages  int
 	Collections     int
 	BundleAssets    int
-	StaticFiles     int
+	PublicFiles     int
 	ProcessedImages int
 	AliasCount      int
 	SitemapCount    int

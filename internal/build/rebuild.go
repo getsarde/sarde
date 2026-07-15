@@ -52,7 +52,7 @@ type incrementalRebuildState struct {
 	// bodyOnly reports whether every changed file in the batch passed the
 	// body-only gate (frontmatter digest and inferred title unchanged). It
 	// unlocks the fast path in rebuildIncrementalI18nAndTaxonomies: reused
-	// taxonomies, no static/ walk, no version re-linking.
+	// taxonomies, no public/ walk, no version re-linking.
 	bodyOnly bool
 
 	// Patch
@@ -544,11 +544,11 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 
 	s.newPageIndex = content.BuildPageIndex(s.patchedAllPages)
 	if s.bodyOnly {
-		// Static file changes never route through ContentRebuild, so the
-		// previous build's asset walk is still valid; skip re-walking static/.
+		// Public file changes never route through ContentRebuild, so the
+		// previous build's asset walk is still valid; skip re-walking public/.
 		s.newPageIndex.CopyAssetsFrom(b.lastPageIndex)
 	} else {
-		s.newPageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
+		s.newPageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirPublic))
 	}
 	excludeHeadings := make(map[string]struct{}, len(s.parsed)*2)
 	for _, e := range s.parsed {

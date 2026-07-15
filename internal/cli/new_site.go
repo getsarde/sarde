@@ -37,8 +37,8 @@ func runNewSite(cmd *cobra.Command, args []string) error {
 		filepath.Join(absDir, consts.DirContent),
 		filepath.Join(absDir, consts.DirContent, "blog"),
 		filepath.Join(absDir, consts.DirContent, "docs"),
-		filepath.Join(absDir, "static"),
-		filepath.Join(absDir, "static", "images"),
+		filepath.Join(absDir, consts.DirPublic),
+		filepath.Join(absDir, consts.DirPublic, "images"),
 	}
 	for _, d := range dirs {
 		if err := os.MkdirAll(d, 0o755); err != nil {
@@ -54,9 +54,9 @@ func runNewSite(cmd *cobra.Command, args []string) error {
 		filepath.Join(consts.DirContent, "blog", "hello-world.md"):      blogPostContent,
 		filepath.Join(consts.DirContent, "docs", "_index.md"):           docsIndexContent,
 		filepath.Join(consts.DirContent, "docs", "getting-started.md"):  docsPageContent,
-		filepath.Join("static", "images", "hero-light.svg"):                string(embedded.ScaffoldHeroLight),
-		filepath.Join("static", "images", "hero-dark.svg"):               string(embedded.ScaffoldHeroDark),
-		filepath.Join("static", ".gitkeep"):                              "",
+		filepath.Join(consts.DirPublic, "images", "hero-light.svg"):         string(embedded.ScaffoldHeroLight),
+		filepath.Join(consts.DirPublic, "images", "hero-dark.svg"):       string(embedded.ScaffoldHeroDark),
+		filepath.Join(consts.DirPublic, ".gitkeep"):                      "",
 		".gitignore":                                                     "dist/\n.cache/\n",
 	}
 

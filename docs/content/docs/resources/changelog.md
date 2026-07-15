@@ -9,6 +9,10 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ## Unreleased
 
+### Breaking
+
+- The `static/` project directory is renamed to `public/`. Files placed in `public/` are copied as-is to the output directory, exactly as `static/` worked before. Rename your project's `static/` directory to `public/` before your next build.
+
 ### Fixed
 
 - Page cache now re-validates link targets on every build, even for cached pages. Warm builds report the same link coverage as cold builds, and renaming a linked page is detected without editing the source file.

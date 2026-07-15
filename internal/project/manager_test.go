@@ -13,7 +13,7 @@ func createTestProject(t *testing.T) string {
 	dir := t.TempDir()
 
 	os.MkdirAll(filepath.Join(dir, "content", "blog"), 0o755)
-	os.MkdirAll(filepath.Join(dir, "static"), 0o755)
+	os.MkdirAll(filepath.Join(dir, "public"), 0o755)
 
 	// sarde.yaml
 	os.WriteFile(filepath.Join(dir, "sarde.yaml"), []byte("site:\n  title: \"Test Site\"\n  url: \"http://localhost:3000\"\n"), 0o644)

@@ -596,9 +596,9 @@ main()
   - icon:palette themes/
     - default/
       - layouts/
-      - static/
+      - public/
       - ...
-  - static/
+  - public/
     - images/
     - favicon.ico
   - icon:settings sarde.yaml  # Site configuration

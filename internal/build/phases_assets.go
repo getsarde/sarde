@@ -94,7 +94,7 @@ func (b *SiteBuilder) setupAssetPipelineAndShortcodes(s *buildState) error {
 
 	// Build page index for link validation and O(1) ref/relref lookups.
 	s.pageIndex = content.BuildPageIndex(s.allPages)
-	s.pageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirStatic))
+	s.pageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirPublic))
 
 	// Build shortcode registry (three-layer overlay: embedded → theme → user).
 	scFuncMap := sardetemplate.BuildShortcodeFuncMap(sardetemplate.ShortcodeFuncMapConfig{

@@ -41,7 +41,7 @@ func TestRebuilder_PendingMergeEscalatesContentPlusStatic(t *testing.T) {
 	r.running = true
 	r.mu.Unlock()
 
-	r.Rebuild(FileChange{Kind: ChangeStatic, Path: "static/logo.png"})
+	r.Rebuild(FileChange{Kind: ChangeStatic, Path: "public/logo.png"})
 	r.Rebuild(FileChange{Kind: ChangeContent, Path: "content/a.md", Paths: []string{"content/a.md"}})
 
 	r.mu.Lock()
@@ -73,7 +73,7 @@ func TestToReloadMessage_Error(t *testing.T) {
 }
 
 func TestToReloadMessage_CSS(t *testing.T) {
-	change := FileChange{Path: "static/style.css", Kind: ChangeCSS}
+	change := FileChange{Path: "public/style.css", Kind: ChangeCSS}
 	result := &RebuildResult{Success: true, PageCount: 10}
 
 	msg := ToReloadMessage(change, result, "")

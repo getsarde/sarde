@@ -23,7 +23,7 @@ my-site/
     docs/
       _index.md
       getting-started.md
-  static/                 # Files copied as-is to output
+  public/                 # Files copied as-is to output
     images/
   .gitignore
 ```
@@ -38,11 +38,11 @@ All Markdown content lives here. Each top-level subdirectory becomes a *collecti
 
 See [Content & Collections](/guides/content-and-collections) for how collections are detected and configured.
 
-### `static/`
+### `public/`
 
-Files in `static/` are copied to the output directory without processing. Use it for images, fonts, PDFs, or any file that does not need transformation.
+Files in `public/` are copied to the output directory without processing. Use it for images, fonts, PDFs, or any file that does not need transformation.
 
-A file at `static/images/logo.png` is available at `/images/logo.png` in the built site.
+A file at `public/images/logo.png` is available at `/images/logo.png` in the built site.
 
 ### `layouts/`
 
@@ -57,7 +57,7 @@ See [Layouts & Templates](/guides/layouts-and-templates) for details on template
 
 ### `assets/`
 
-CSS and JavaScript files for bundling. Sarde processes these through esbuild, producing fingerprinted output files in production builds. Files here are not copied as-is (use `static/` for that).
+CSS and JavaScript files for bundling. Sarde processes these through esbuild, producing fingerprinted output files in production builds. Files here are not copied as-is (use `public/` for that).
 
 ### `themes/`
 

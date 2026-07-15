@@ -67,4 +67,4 @@ No `robots.txt` file is generated. Crawlers typically treat a missing `robots.tx
 ## Edge cases
 
 - The `Sitemap:` directive uses the absolute URL from `site.url`. If `site.url` is empty, no sitemap line is written.
-- The file is always overwritten on each build. Custom `robots.txt` files in the `static/` directory take precedence over the generated one (static files are copied after plugin output).
+- The file is always overwritten on each build. Custom `robots.txt` files in the `public/` directory take precedence over the generated one (public files are copied after plugin output).

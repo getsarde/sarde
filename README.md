@@ -130,7 +130,7 @@ my-site/
     blog/           # Auto-detected as blog collection
     docs/           # Auto-detected as docs collection
     _index.md       # Homepage content (optional)
-  static/           # Copied as-is to output
+  public/           # Copied as-is to output
   icons/            # Local SVG icons
   themes/           # Custom themes (optional)
   sarde.yaml        # Configuration (optional)

@@ -96,7 +96,7 @@ func (w *Watcher) Start() error {
 	w.watcher = fsw
 
 	// Add recursive watches on key directories.
-	watchDirs := []string{consts.DirContent, consts.DirLayouts, consts.DirAssets, consts.DirData, consts.DirStatic, consts.DirThemes}
+	watchDirs := []string{consts.DirContent, consts.DirLayouts, consts.DirAssets, consts.DirData, consts.DirPublic, consts.DirThemes}
 	for _, dir := range watchDirs {
 		abs := filepath.Join(w.projectDir, dir)
 		if info, err := os.Stat(abs); err == nil && info.IsDir() {
@@ -374,10 +374,10 @@ func (w *Watcher) classifyChange(path string) ChangeKind {
 		return ChangeConfig
 	}
 
-	// CSS files in static/ can be hot-swapped directly. CSS under assets/
+	// CSS files in public/ can be hot-swapped directly. CSS under assets/
 	// may be bundled/fingerprinted, so it must go through a rebuild.
 	fext := strings.ToLower(filepath.Ext(path))
-	if fext == ".css" && strings.HasPrefix(rel, "static/") {
+	if fext == ".css" && strings.HasPrefix(rel, consts.DirPublic+"/") {
 		return ChangeCSS
 	}
 

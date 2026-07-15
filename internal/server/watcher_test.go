@@ -19,9 +19,9 @@ func TestClassifyChange(t *testing.T) {
 		{"content index", "/project/content/_index.md", ChangeContent},
 		{"layout template", "/project/layouts/blog/single.html", ChangeTemplate},
 		{"theme file", "/project/themes/default/layouts/base.html", ChangeTemplate},
-		{"css in static", "/project/static/style.css", ChangeCSS},
+		{"css in public", "/project/public/style.css", ChangeCSS},
 		{"css in assets", "/project/assets/main.css", ChangeStatic},
-		{"js in static", "/project/static/app.js", ChangeStatic},
+		{"js in public", "/project/public/app.js", ChangeStatic},
 		{"site config", "/project/sarde.yaml", ChangeConfig},
 		{"theme config", "/project/theme.yaml", ChangeConfig},
 		{"nav config", "/project/nav.yaml", ChangeConfig},
@@ -196,7 +196,7 @@ func TestMergeChanges_ContentPlusCSSEscalatesToStatic(t *testing.T) {
 	// The incremental content path would drop the CSS file (only a full build
 	// copies static files), so mixed batches must escalate to a full build.
 	got := mergeChanges([]FileChange{
-		{Path: "/project/static/style.css", Kind: ChangeCSS},
+		{Path: "/project/public/style.css", Kind: ChangeCSS},
 		{Path: "/project/content/blog/post.md", Kind: ChangeContent},
 	})
 
@@ -208,7 +208,7 @@ func TestMergeChanges_ContentPlusCSSEscalatesToStatic(t *testing.T) {
 func TestMergeChanges_ContentPlusStaticEscalatesToStatic(t *testing.T) {
 	got := mergeChanges([]FileChange{
 		{Path: "/project/content/blog/post.md", Kind: ChangeContent},
-		{Path: "/project/static/logo.png", Kind: ChangeStatic},
+		{Path: "/project/public/logo.png", Kind: ChangeStatic},
 	})
 
 	if got.Kind != ChangeStatic {
@@ -236,7 +236,7 @@ func TestMergeChanges_KeepsEarliestDetectedAt(t *testing.T) {
 	// The earliest timestamp sits on the lower-priority change; a higher
 	// priority change arriving later must not discard it.
 	got := mergeChanges([]FileChange{
-		{Path: "/project/static/logo.png", Kind: ChangeStatic, DetectedAt: early},
+		{Path: "/project/public/logo.png", Kind: ChangeStatic, DetectedAt: early},
 		{Path: "/project/layouts/base.html", Kind: ChangeTemplate, DetectedAt: late},
 	})
 

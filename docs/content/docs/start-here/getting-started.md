@@ -73,7 +73,7 @@ my-site/
     docs/
       _index.md
       getting-started.md # Sample docs page
-  static/
+  public/
     images/
   .gitignore
 ```

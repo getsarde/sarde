@@ -277,13 +277,13 @@ func TestDevServer_Ready_ReportsActualPortOnConflict(t *testing.T) {
 }
 
 func TestOnFileChange_CSSHotSwapSyncsOutputCopy(t *testing.T) {
-	// CSS hot-swap skips the rebuild that copies static/ to the output dir,
+	// CSS hot-swap skips the rebuild that copies public/ to the output dir,
 	// and the file handler serves only from the output dir, so onFileChange
 	// must sync the changed file there before broadcasting.
 	projectDir := t.TempDir()
 	outputDir := filepath.Join(projectDir, "dist")
 
-	src := filepath.Join(projectDir, "static", "css", "style.css")
+	src := filepath.Join(projectDir, "public", "css", "style.css")
 	os.MkdirAll(filepath.Dir(src), 0o755)
 	os.WriteFile(src, []byte("body{color:red}"), 0o644)
 
@@ -303,11 +303,11 @@ func TestOnFileChange_CSSHotSwapSyncsOutputCopy(t *testing.T) {
 	}
 }
 
-func TestSyncStaticFile_RejectsPathsOutsideStatic(t *testing.T) {
+func TestSyncPublicFile_RejectsPathsOutsidePublic(t *testing.T) {
 	projectDir := t.TempDir()
 	ds := &DevServer{projectDir: projectDir, outputDir: filepath.Join(projectDir, "dist")}
 
-	if err := ds.syncStaticFile(filepath.Join(projectDir, "content", "style.css")); err == nil {
-		t.Error("expected error for a file outside static/")
+	if err := ds.syncPublicFile(filepath.Join(projectDir, "content", "style.css")); err == nil {
+		t.Error("expected error for a file outside public/")
 	}
 }

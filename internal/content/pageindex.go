@@ -155,13 +155,13 @@ func (idx *PageIndex) HasHeading(permalink, headingID string) bool {
 	return false
 }
 
-// AddAssets walks a static directory and indexes all files as root-relative paths.
-func (idx *PageIndex) AddAssets(staticDir string) {
-	filepath.Walk(staticDir, func(path string, info os.FileInfo, err error) error {
+// AddAssets walks a public directory and indexes all files as root-relative paths.
+func (idx *PageIndex) AddAssets(dir string) {
+	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return nil
 		}
-		rel, err := filepath.Rel(staticDir, path)
+		rel, err := filepath.Rel(dir, path)
 		if err != nil {
 			return nil
 		}
@@ -171,9 +171,9 @@ func (idx *PageIndex) AddAssets(staticDir string) {
 }
 
 // CopyAssetsFrom copies another index's asset set. Used by the incremental
-// rebuild's body-only fast path, which skips the static/ directory walk:
-// static file changes never route through ContentRebuild (the dev-server
-// watcher classifies them as static changes, which take the full-build path),
+// rebuild's body-only fast path, which skips the public/ directory walk:
+// public file changes never route through ContentRebuild (the dev-server
+// watcher classifies them as ChangeStatic, which take the full-build path),
 // so the previous build's asset set is still valid.
 func (idx *PageIndex) CopyAssetsFrom(prev *PageIndex) {
 	if prev == nil {
@@ -204,7 +204,7 @@ func (idx *PageIndex) CopyHeadingsFrom(prev *PageIndex, exclude map[string]struc
 	}
 }
 
-// HasAsset reports whether a static asset with the given root-relative path exists.
+// HasAsset reports whether a public asset with the given root-relative path exists.
 func (idx *PageIndex) HasAsset(path string) bool {
 	return idx.assets[path]
 }

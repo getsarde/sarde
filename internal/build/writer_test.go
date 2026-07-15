@@ -65,15 +65,14 @@ func TestWriter_Aliases(t *testing.T) {
 	}
 }
 
-func TestWriter_StaticCopy(t *testing.T) {
+func TestWriter_PublicCopy(t *testing.T) {
 	projDir := t.TempDir()
 	outDir := filepath.Join(t.TempDir(), "dist")
 
-	// Create static files.
-	staticDir := filepath.Join(projDir, "static", "fonts")
-	os.MkdirAll(staticDir, 0o755)
-	os.WriteFile(filepath.Join(staticDir, "inter.woff2"), []byte("font-data"), 0o644)
-	os.WriteFile(filepath.Join(projDir, "static", "favicon.ico"), []byte("icon-data"), 0o644)
+	publicDir := filepath.Join(projDir, "public", "fonts")
+	os.MkdirAll(publicDir, 0o755)
+	os.WriteFile(filepath.Join(publicDir, "inter.woff2"), []byte("font-data"), 0o644)
+	os.WriteFile(filepath.Join(projDir, "public", "favicon.ico"), []byte("icon-data"), 0o644)
 
 	w := &Writer{OutputDir: outDir, ProjectDir: projDir}
 	if _, err := w.Write(nil, nil); err != nil {
@@ -84,11 +83,11 @@ func TestWriter_StaticCopy(t *testing.T) {
 	assertFileContains(t, filepath.Join(outDir, "favicon.ico"), "icon-data")
 }
 
-func TestWriter_NoStaticDir(t *testing.T) {
+func TestWriter_NoPublicDir(t *testing.T) {
 	outDir := filepath.Join(t.TempDir(), "dist")
 	w := &Writer{OutputDir: outDir, ProjectDir: t.TempDir()}
 
-	// Should not error when static/ doesn't exist.
+	// Should not error when public/ doesn't exist.
 	if _, err := w.Write(nil, nil); err != nil {
 		t.Fatal(err)
 	}

@@ -21,7 +21,7 @@ type RebuildResult struct {
 }
 
 // Rebuilder wraps SiteBuilder for dev-mode rebuilds.
-// It persists the builder across content/static changes and only creates
+// It persists the builder across content/public changes and only creates
 // a new one when config or templates change.
 //
 // Coalescing: if a rebuild is already running, incoming requests are merged
@@ -48,7 +48,7 @@ func NewRebuilder(factory func() *build.SiteBuilder, projectDir string) *Rebuild
 
 // Rebuild runs a site build and returns the executed change with its result.
 // Config or template changes create a fresh builder (full re-init).
-// Content or static changes reuse the existing builder (template engine skips Load).
+// Content or public changes reuse the existing builder (template engine skips Load).
 //
 // If a rebuild is already in progress, the change is merged into the pending
 // slot and this call returns a nil result (the caller should skip

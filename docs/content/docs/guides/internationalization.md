@@ -2,7 +2,7 @@
 title: Internationalization
 description: "Configure multi-language sites with localized URLs, fallback pages, and a language switcher"
 sidebar:
-  order: 15
+  order: 16
 ---
 
 Sarde supports multi-language sites with localized URLs, automatic fallback pages, a language switcher, and translated UI strings. Content for each language lives in its own subdirectory under `content/`.

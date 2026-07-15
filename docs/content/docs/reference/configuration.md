@@ -32,7 +32,7 @@ Slices (lists) are replaced wholesale, not merged. A non-empty list in a higher 
 | `url` | string | `""` | Production URL (e.g., `https://example.com`). Used for canonical links, sitemaps, and feeds. Recommended. |
 | `language` | string | `"en"` | Default language code (BCP 47). **Required.** |
 | `logo` | string or object | - | Site logo. Accepts a single path string (used for both themes) or an object with `light`, `dark`, and `alt` fields. |
-| `favicon` | string | `""` | Path to the favicon file relative to `static/`. |
+| `favicon` | string | `""` | Path to the favicon file relative to `public/`. |
 | `edit_url` | string | `""` | Base URL for "Edit this page" links. Append the content file path to this URL. Example: `https://github.com/user/repo/edit/main/content`. |
 | `title_delimiter` | string | `"\|"` | Separator between page title and site title in the browser tab. |
 | `heading_links` | bool | `true` | Add anchor links to headings. |

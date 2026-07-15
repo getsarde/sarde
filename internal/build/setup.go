@@ -8,6 +8,7 @@ import (
 
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/collection"
+	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
@@ -210,7 +211,7 @@ func (b *SiteBuilder) phaseParse(s *buildState) error {
 
 func detectFavicon(projectDir string) string {
 	for _, name := range []string{"favicon.svg", "favicon.ico", "favicon.png"} {
-		p := filepath.Join(projectDir, "static", name)
+		p := filepath.Join(projectDir, consts.DirPublic, name)
 		if info, err := os.Stat(p); err == nil && !info.IsDir() {
 			return "/" + name
 		}

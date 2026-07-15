@@ -228,7 +228,7 @@ mysite/
     docs/
       _index.md
       getting-started.md
-  static/
+  public/
     .gitkeep
     images/
       hero-light.svg

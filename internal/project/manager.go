@@ -138,7 +138,7 @@ func (pm *ProjectManager) CreateProject(dir string, opts CreateOpts) (*ProjectIn
 	}
 
 	// Scaffold directories.
-	for _, d := range []string{consts.DirContent, "static"} {
+	for _, d := range []string{consts.DirContent, consts.DirPublic} {
 		if err := os.MkdirAll(filepath.Join(absDir, d), 0o755); err != nil {
 			return nil, fmt.Errorf("creating directory: %w", err)
 		}

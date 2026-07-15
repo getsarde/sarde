@@ -120,7 +120,7 @@ func (b *SiteBuilder) phaseWrite(s *buildState) (*engine.BuildResult, error) {
 		ProjectDir: b.projectDir,
 		Tracker:    tracker,
 	}
-	staticFiles, err := writer.Write(s.rendered, s.aliases)
+	publicFiles, err := writer.Write(s.rendered, s.aliases)
 	if err != nil {
 		return nil, fmt.Errorf("writing output: %w", err)
 	}
@@ -179,7 +179,7 @@ func (b *SiteBuilder) phaseWrite(s *buildState) (*engine.BuildResult, error) {
 		PaginatorPages:  s.paginatorPages,
 		Collections:     len(s.collections),
 		BundleAssets:    bundleAssets,
-		StaticFiles:     staticFiles,
+		PublicFiles:     publicFiles,
 		ProcessedImages: processedImages,
 		AliasCount:      len(s.aliases),
 		SitemapCount:    sitemapCount,

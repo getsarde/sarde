@@ -154,7 +154,7 @@ func ResolveOutputDir(projectDir, configured string) (string, error) {
 		return "", fmt.Errorf("output directory must not be a project ancestor")
 	}
 
-	for _, rel := range []string{".git", consts.DirContent, "layouts", "assets", "data", "static", "themes", "embedded"} {
+	for _, rel := range []string{".git", consts.DirContent, "layouts", "assets", "data", consts.DirPublic, "themes", "embedded"} {
 		sourceDir := filepath.Join(projectRoot, rel)
 		if samePath(outputDir, sourceDir) || IsWithin(sourceDir, outputDir) {
 			return "", fmt.Errorf("output directory must not be inside source directory %q", rel)

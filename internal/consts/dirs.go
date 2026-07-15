@@ -4,7 +4,7 @@ const (
 	// Top-level project directories.
 	DirContent = "content"
 	DirLayouts = "layouts"
-	DirStatic  = "static"
+	DirPublic  = "public"
 	DirThemes  = "themes"
 	DirAssets  = "assets"
 	DirData    = "data"

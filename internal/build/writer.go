@@ -10,6 +10,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/getsarde/sarde/internal/atomicwrite"
+	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/outputpath"
 	"github.com/getsarde/sarde/internal/workers"
@@ -131,31 +132,30 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 		w.Tracker.TrackBatch(tracked)
 	}
 
-	// Copy static files.
-	staticCount, err := w.copyStatic()
+	// Copy public files.
+	publicCount, err := w.copyPublic()
 	if err != nil {
-		return 0, fmt.Errorf("copying static files: %w", err)
+		return 0, fmt.Errorf("copying public files: %w", err)
 	}
 
-	return staticCount, nil
+	return publicCount, nil
 }
 
-// copyStatic copies the ProjectDir/static/ tree to OutputDir/ preserving structure.
-// Returns the number of files copied.
-func (w *Writer) copyStatic() (int, error) {
-	staticDir := filepath.Join(w.ProjectDir, "static")
-	info, err := os.Stat(staticDir)
+// copyPublic copies the ProjectDir/public/ tree to OutputDir/ preserving structure.
+func (w *Writer) copyPublic() (int, error) {
+	publicDir := filepath.Join(w.ProjectDir, consts.DirPublic)
+	info, err := os.Stat(publicDir)
 	if err != nil || !info.IsDir() {
 		return 0, nil
 	}
 
 	type filePair struct{ src, dst string }
 	var pairs []filePair
-	err = filepath.Walk(staticDir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(publicDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return err
 		}
-		relPath, _ := filepath.Rel(staticDir, path)
+		relPath, _ := filepath.Rel(publicDir, path)
 		dst, err := outputpath.SafeJoin(w.OutputDir, relPath)
 		if err != nil {
 			return err
