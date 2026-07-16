@@ -82,3 +82,5 @@ Math syntax (`$...$`) is still parsed by the Math extension, but the rendered ou
 - On incremental rebuilds, vendor assets are not re-copied (they are identical across rebuilds and already present from the initial build).
 - The plugin deduplicates asset URLs: if another plugin or template already added the KaTeX stylesheet, it is not appended a second time.
 - The `always` flag applies to all pages, including listing pages and the homepage.
+
+See the [Math extension](/extensions/math) for the `$...$` and `$$...$$` syntax.

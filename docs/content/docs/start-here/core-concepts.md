@@ -31,13 +31,13 @@ Sarde starts with embedded defaults. Themes, `sarde.yaml`, command-line flags, a
 sarde build --output public
 ```
 
-See [Configuration](/docs/reference/configuration/) for the full configuration reference.
+See [Configuration](/reference/configuration/) for the full configuration reference.
 
 ## Themes
 
 Themes provide layouts, components, styles, and design tokens. Changing a theme does not change the Markdown source.
 
-See [Themes and Styling](/docs/guides/themes-and-styling/) to customize the site.
+See [Themes and Styling](/guides/themes-and-styling/) to customize the site.
 
 ## Development and builds
 

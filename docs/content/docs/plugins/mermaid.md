@@ -84,3 +84,5 @@ Fenced code blocks with the `sarde-mermaid` language are still transformed by th
 - The plugin deduplicates script URLs: if another plugin or template already added the Mermaid script, it is not appended a second time.
 - Unlike the KaTeX plugin, Mermaid does not inject a stylesheet. All styling comes from the Mermaid library's inline SVG output.
 - The `always` flag applies to all pages, including listing pages and the homepage.
+
+See the [Mermaid extension](/extensions/mermaid) for the `:::mermaid` block syntax and fenced code block usage.

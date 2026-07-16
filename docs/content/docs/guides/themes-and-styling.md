@@ -2,7 +2,7 @@
 title: Themes and Styling
 description: "Choose a theme preset, override design tokens, and control dark mode and CSS layer order"
 sidebar:
-  order: 12
+  order: 13
 ---
 
 Sarde controls all visual styling through design tokens (CSS custom properties prefixed `--sd-*`). Choose a preset for a ready-made look, override individual tokens for customization, or eject the full theme for complete control.

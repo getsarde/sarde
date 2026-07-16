@@ -2,7 +2,7 @@
 title: Tabbed Navigation
 description: "Split a large docs collection into top-level tabs with an auto-detected or configured tab switcher"
 sidebar:
-  order: 5
+  order: 6
 ---
 
 Tabbed navigation splits a large docs collection into top-level areas. A tab switcher appears at the top of the sidebar, and the sidebar shows only the pages of the active tab. Sarde turns tabs on automatically when a collection's directory structure fits, and the behavior can be forced on or off in config.

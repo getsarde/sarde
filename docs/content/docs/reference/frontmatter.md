@@ -178,7 +178,7 @@ next:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `tags` | list of string | `[]` | Tags assigned to the page. |
-| `categories` | list of string | `[]` | Categories assigned to the page. |
+| `categories` | list of string | `[]` | Categories assigned to the page. The default theme does not render category listing pages. |
 | `show_tags` | bool | - | Show or hide taxonomy terms on this page. Inherits from the taxonomy configuration. |
 
 ```yaml
@@ -220,7 +220,7 @@ banner:
 
 ### `hero`
 
-Hero section configuration for pages using the `splash` layout.
+Hero section configuration for pages using the `splash` layout. The default theme does not render per-page hero frontmatter. Use `homepage.hero` in `sarde.yaml` to configure the homepage hero instead.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|

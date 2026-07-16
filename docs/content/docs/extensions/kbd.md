@@ -2,7 +2,7 @@
 title: Kbd
 description: "Render keyboard keys and key combinations as styled keycaps"
 sidebar:
-  order: 34
+  order: 35
   group: Inline
 ---
 

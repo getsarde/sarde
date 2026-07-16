@@ -2,7 +2,7 @@
 title: Copy Text
 description: "Turn a text snippet into a one-click clipboard copy styled like inline code"
 sidebar:
-  order: 31
+  order: 32
   group: Inline
 ---
 

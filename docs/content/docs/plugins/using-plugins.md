@@ -63,37 +63,37 @@ Thirteen plugins are enabled by default. Thirteen more are available but must be
 
 | Plugin | Type | Purpose |
 |--------|------|---------|
-| `search` | Server | Builds the Orama offline search index. |
-| `seo` | Server | Generates Open Graph, Twitter Card, and JSON-LD meta tags. |
-| `sitemap` | Server | Writes `sitemap.xml`. |
-| `robots` | Server | Writes `robots.txt`. |
-| `rss` | Server | Generates an RSS 2.0 feed. |
-| `atom` | Server | Generates an Atom 1.0 feed. |
-| `content_lint` | Server | Checks heading structure, image alt text, and empty links. |
-| `link_validator` | Server | Validates internal links, anchors, and images. |
-| `redirects` | Server | Generates redirect pages from aliases and config entries. |
-| `llms_txt` | Server | Writes `llms.txt` for LLM-friendly site summaries. |
-| `katex` | Server | Injects KaTeX runtime assets on pages with math content. |
-| `mermaid` | Server | Injects Mermaid runtime assets on pages with diagrams. |
-| `social_cards` | Server | Auto-generates Open Graph images (1200x630). |
+| [`search`](/plugins/search) | Server | Builds the Orama offline search index. |
+| [`seo`](/plugins/seo) | Server | Generates Open Graph, Twitter Card, and JSON-LD meta tags. |
+| [`sitemap`](/plugins/sitemap) | Server | Writes `sitemap.xml`. |
+| [`robots`](/plugins/robots) | Server | Writes `robots.txt`. |
+| [`rss`](/plugins/feeds) | Server | Generates an RSS 2.0 feed. |
+| [`atom`](/plugins/feeds) | Server | Generates an Atom 1.0 feed. |
+| [`content_lint`](/plugins/content-lint) | Server | Checks heading structure, image alt text, and empty links. |
+| [`link_validator`](/plugins/link-validator) | Server | Validates internal links, anchors, and images. |
+| [`redirects`](/plugins/redirects) | Server | Generates redirect pages from aliases and config entries. |
+| [`llms_txt`](/plugins/llms-txt) | Server | Writes `llms.txt` for LLM-friendly site summaries. |
+| [`katex`](/plugins/katex) | Server | Injects KaTeX runtime assets on pages with math content. |
+| [`mermaid`](/plugins/mermaid) | Server | Injects Mermaid runtime assets on pages with diagrams. |
+| [`social_cards`](/plugins/social-cards) | Server | Auto-generates Open Graph images (1200x630). |
 
 ### Disabled by default
 
 | Plugin | Type | Purpose |
 |--------|------|---------|
-| `scroll-to-top` | Client | Floating button to scroll back to the top. |
-| `copy-section-link` | Client | Click-to-copy anchor links on headings. |
-| `external-links` | Client | Marks external links with an icon and opens them in a new tab. |
-| `image-lightbox` | Client | Click-to-zoom overlay for images. |
-| `keyboard-nav` | Client | Navigate between pages with arrow keys. |
-| `focus-mode` | Client | Hides sidebar and TOC for distraction-free reading. |
-| `reading-progress` | Client | Progress bar showing scroll position. |
-| `search-highlighter` | Client | Highlights search terms on the destination page. |
-| `text-highlighter` | Client | User-driven text highlighting with persistence. |
-| `last-updated` | Client | Displays the page's last-updated date. |
-| `reading-position-memory` | Client | Remembers scroll position across visits. |
-| `reading-preferences` | Client | Font size and content width controls. |
-| `announcements` | Server | Displays announcement banners with scheduling and i18n. |
+| [`scroll-to-top`](/plugins/scroll-to-top) | Client | Floating button to scroll back to the top. |
+| [`copy-section-link`](/plugins/copy-section-link) | Client | Click-to-copy anchor links on headings. |
+| [`external-links`](/plugins/external-links) | Client | Marks external links with an icon and opens them in a new tab. |
+| [`image-lightbox`](/plugins/image-lightbox) | Client | Click-to-zoom overlay for images. |
+| [`keyboard-nav`](/plugins/keyboard-nav) | Client | Navigate between pages with arrow keys. |
+| [`focus-mode`](/plugins/focus-mode) | Client | Hides sidebar and TOC for distraction-free reading. |
+| [`reading-progress`](/plugins/reading-progress) | Client | Progress bar showing scroll position. |
+| [`search-highlighter`](/plugins/search-highlighter) | Client | Highlights search terms on the destination page. |
+| [`text-highlighter`](/plugins/text-highlighter) | Client | User-driven text highlighting with persistence. |
+| [`last-updated`](/plugins/last-updated) | Client | Displays the page's last-updated date. |
+| [`reading-position-memory`](/plugins/reading-position-memory) | Client | Remembers scroll position across visits. |
+| [`reading-preferences`](/plugins/reading-preferences) | Client | Font size and content width controls. |
+| [`announcements`](/plugins/announcements) | Server | Displays announcement banners with scheduling and i18n. |
 
 ## Server-side vs. client-side
 

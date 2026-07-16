@@ -1,11 +1,85 @@
 ---
 title: Images and Assets
-description: "Configure responsive image generation, LQIP placeholders, static files, and bundled CSS/JS"
+description: "Place and link images, PDFs, and other assets from Markdown. Configure responsive image generation, LQIP placeholders, and CSS/JS bundling."
 sidebar:
-  order: 8
+  order: 9
 ---
 
-Sarde automatically processes images into responsive variants and bundles CSS/JS through esbuild. Production builds get fingerprinted filenames for cache-busting. Dev mode skips image processing for fast rebuilds.
+Sarde has two ways to include assets in your site: co-located page bundles (with automatic responsive image processing) and the `public/` directory (copied as-is). This page covers where to place assets, how to link them in Markdown, and how to configure the image processing pipeline.
+
+## Placing assets
+
+### Page bundles (co-located assets)
+
+A [page bundle](/guides/content-and-collections#page-bundles) is a directory with an `index.md` file and sibling non-Markdown files. The sibling files become assets of that page.
+
+```text
+content/blog/
+  my-post/
+    index.md          # Page content
+    cover.jpg          # Bundle asset
+    diagram.svg        # Bundle asset
+    report.pdf         # Bundle asset
+```
+
+Reference bundle assets with a bare relative filename in the Markdown:
+
+```markdown
+![Cover image](cover.jpg)
+![Diagram](diagram.svg)
+[Download the report](report.pdf)
+```
+
+Images referenced this way go through the responsive image pipeline automatically, producing multiple widths, WebP variants, and LQIP placeholders. SVGs pass through unprocessed.
+
+### `public/` directory (site-wide assets)
+
+Files in [`public/`](/guides/project-structure#public) are copied to the output directory without processing. Use it for images, fonts, favicons, or any file shared across pages.
+
+```text
+public/
+  images/
+    logo.png
+  files/
+    brochure.pdf
+  favicon.svg
+```
+
+Reference these with absolute paths:
+
+```markdown
+![Logo](/images/logo.png)
+[Download brochure](/files/brochure.pdf)
+```
+
+Images in `public/` are **not** processed through the responsive pipeline. They render as plain `<img>` tags with the original file.
+
+### Which to use
+
+| Scenario | Placement | Path style |
+|----------|-----------|------------|
+| Image for one specific page | Page bundle (next to `index.md`) | `![alt](photo.jpg)` |
+| Site logo, favicon, shared icons | `public/` directory | `![alt](/images/logo.png)` |
+| PDF download for one page | Page bundle | `[Download](report.pdf)` |
+| PDF shared across the site | `public/` directory | `[Download](/files/report.pdf)` |
+
+## Per-image overrides
+
+Override the default responsive settings on individual images using Goldmark attributes:
+
+```markdown
+![Hero](hero.jpg){width=800 op=fill format=webp quality=90}
+```
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `width` | int | Target width in pixels. |
+| `height` | int | Target height (used with `fill` and `fit` operations). |
+| `op` | string | Resize operation: `scale`, `fit_width`, `fit_height`, `fit`, `fill`. |
+| `quality` | int | Override encoding quality (1-100). |
+| `format` | string | Output format: `jpeg`, `png`, `webp`, `avif`. |
+
+Per-image overrides only apply to page bundle images. Images from `public/` are not processed.
 
 ## Responsive image generation
 
@@ -127,7 +201,8 @@ The hash is the first 8 hex characters of the SHA-256 digest of the file content
 Use `resize_image` in templates to process a page bundle resource with custom parameters:
 
 ```go
-{{ resize_image .Resources.hero "width=800&op=fill&format=webp" }}
+{{ $img := getResource .Resources "hero.jpg" }}
+{{ resize_image $img "width=800&quality=85&format=webp" }}
 ```
 
 The function accepts a `Resource` and a query string with these parameters:

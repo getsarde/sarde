@@ -2,7 +2,7 @@
 title: Versioning
 description: "Set up multiple documentation versions with a version switcher, URL prefixes, and search scoping"
 sidebar:
-  order: 17
+  order: 18
 ---
 
 Sarde supports multiple documentation versions within a single collection. Readers switch between versions using a dropdown in the header, and each version gets its own sidebar navigation, URL prefix, and search scope.

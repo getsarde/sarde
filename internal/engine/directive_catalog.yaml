@@ -1,0 +1,298 @@
+# Directive catalog — the canonical description of every ::: block directive
+# Sarde recognizes, consumed by `sarde directives` and Sarde Studio's
+# directive picker and editor autocomplete.
+#
+# IMPORTANT: entries are derived from each extension's parser grammar
+# (internal/content/markdown/extensions/<name>/parser.go), NOT from the docs,
+# which contain known syntax errors. Parity with the aside parser's ValidTypes
+# is enforced by directive_catalog_test.go.
+#
+# Field placement values control the exact emitted syntax:
+#   attr        key="value"  (values must always be quoted — attrutil.Parse
+#               does not recognize unquoted values)
+#   bare-flag   key          (attrutil.Has-style booleans)
+#   quoted-flag key="true"   (attrutil.Bool-style booleans; omitted when false)
+#   bare-icon   " icon=name" (bare word after the bracket — aside family only)
+#   paren-flag  literal "(open)" token (details only; hand-rolled regex)
+#
+# Container directives define child_template (a repeatable nested child with a
+# literal N index token), child_default_count, and optionally child_count_field
+# naming the field whose value drives the repeat count.
+
+categories:
+  - name: callouts
+    label: Callouts
+    directives:
+      - name: note
+        label: Note
+        description: Blue informational callout
+        kind: callout
+        bracket: { label: Title, required: false, placeholder: "" }
+        fields:
+          - { name: icon, label: Icon, type: icon, placement: bare-icon, placeholder: "lucide icon name, e.g. sparkles" }
+        body_template: "${content}"
+      - name: tip
+        label: Tip
+        description: Green tip callout
+        kind: callout
+        bracket: { label: Title, required: false, placeholder: "" }
+        fields:
+          - { name: icon, label: Icon, type: icon, placement: bare-icon, placeholder: "lucide icon name, e.g. sparkles" }
+        body_template: "${content}"
+      - name: info
+        label: Info
+        description: Blue info callout
+        kind: callout
+        bracket: { label: Title, required: false, placeholder: "" }
+        fields:
+          - { name: icon, label: Icon, type: icon, placement: bare-icon, placeholder: "lucide icon name, e.g. sparkles" }
+        body_template: "${content}"
+      - name: warning
+        label: Warning
+        description: Amber warning callout
+        kind: callout
+        bracket: { label: Title, required: false, placeholder: "" }
+        fields:
+          - { name: icon, label: Icon, type: icon, placement: bare-icon, placeholder: "lucide icon name, e.g. sparkles" }
+        body_template: "${content}"
+      - name: caution
+        label: Caution
+        description: Amber caution callout
+        kind: callout
+        bracket: { label: Title, required: false, placeholder: "" }
+        fields:
+          - { name: icon, label: Icon, type: icon, placement: bare-icon, placeholder: "lucide icon name, e.g. sparkles" }
+        body_template: "${content}"
+      - name: important
+        label: Important
+        description: Purple important callout
+        kind: callout
+        bracket: { label: Title, required: false, placeholder: "" }
+        fields:
+          - { name: icon, label: Icon, type: icon, placement: bare-icon, placeholder: "lucide icon name, e.g. sparkles" }
+        body_template: "${content}"
+      - name: danger
+        label: Danger
+        description: Red danger callout
+        kind: callout
+        bracket: { label: Title, required: false, placeholder: "" }
+        fields:
+          - { name: icon, label: Icon, type: icon, placement: bare-icon, placeholder: "lucide icon name, e.g. sparkles" }
+        body_template: "${content}"
+      - name: gh-note
+        label: GitHub Note
+        description: GitHub-style note callout
+        kind: callout
+        bracket: { label: Title, required: false, placeholder: "" }
+        fields:
+          - { name: icon, label: Icon, type: icon, placement: bare-icon, placeholder: "lucide icon name, e.g. sparkles" }
+        body_template: "${content}"
+      - name: gh-tip
+        label: GitHub Tip
+        description: GitHub-style tip callout
+        kind: callout
+        bracket: { label: Title, required: false, placeholder: "" }
+        fields:
+          - { name: icon, label: Icon, type: icon, placement: bare-icon, placeholder: "lucide icon name, e.g. sparkles" }
+        body_template: "${content}"
+      - name: gh-important
+        label: GitHub Important
+        description: GitHub-style important callout
+        kind: callout
+        bracket: { label: Title, required: false, placeholder: "" }
+        fields:
+          - { name: icon, label: Icon, type: icon, placement: bare-icon, placeholder: "lucide icon name, e.g. sparkles" }
+        body_template: "${content}"
+      - name: gh-warning
+        label: GitHub Warning
+        description: GitHub-style warning callout
+        kind: callout
+        bracket: { label: Title, required: false, placeholder: "" }
+        fields:
+          - { name: icon, label: Icon, type: icon, placement: bare-icon, placeholder: "lucide icon name, e.g. sparkles" }
+        body_template: "${content}"
+      - name: gh-caution
+        label: GitHub Caution
+        description: GitHub-style caution callout
+        kind: callout
+        bracket: { label: Title, required: false, placeholder: "" }
+        fields:
+          - { name: icon, label: Icon, type: icon, placement: bare-icon, placeholder: "lucide icon name, e.g. sparkles" }
+        body_template: "${content}"
+
+  - name: content
+    label: Content
+    directives:
+      - name: badge
+        label: Badge
+        description: Small status badge or tag
+        kind: block
+        fields:
+          # type must always be emitted quoted — the parser silently discards
+          # a bare-word type when any other attribute is present.
+          - { name: type, label: Type, type: enum, placement: attr, required: true, default: default, placeholder: success,
+              options: [default, primary, secondary, success, warning, caution, danger, info, note, tip] }
+          - { name: icon, label: Icon, type: icon, placement: attr }
+          - { name: style, label: Style, type: enum, placement: attr, options: [outline] }
+          - { name: size, label: Size, type: enum, placement: attr, options: [sm, lg] }
+          - { name: no-icon, label: Hide icon, type: boolean, placement: quoted-flag }
+        body_template: "${Label}"
+      - name: badge-group
+        label: Badge Group
+        description: Row of badges
+        kind: block
+        child_template: ":::badge(type=\"success\")\nBadge N\n:::"
+        child_default_count: 2
+      - name: details
+        label: Details
+        description: Collapsible details block
+        kind: block
+        bracket: { label: Summary, required: false, placeholder: Details }
+        fields:
+          - { name: open, label: Open by default, type: boolean, placement: paren-flag }
+        body_template: "${content}"
+      - name: accordion
+        label: Accordion
+        description: Group of collapsible details blocks
+        kind: block
+        fields:
+          - { name: independent, label: Allow multiple open, type: boolean, placement: bare-flag }
+        child_template: ":::details[Question N]\nAnswer N.\n:::"
+        child_default_count: 2
+
+  - name: structure
+    label: Structure
+    directives:
+      - name: card
+        label: Card
+        description: Single content card
+        kind: block
+        bracket: { label: Title, required: false }
+        fields:
+          - { name: icon, label: Icon, type: icon, placement: attr }
+          - { name: variant, label: Variant, type: enum, placement: attr, options: [highlighted, subtle] }
+        body_template: "${content}"
+      - name: card-grid
+        label: Card Grid
+        description: Grid of cards
+        kind: block
+        fields:
+          - { name: cols, label: Columns, type: enum, placement: attr, default: "2", options: ["2", "3", "4"] }
+          - { name: stagger, label: Stagger (forces 2 columns), type: boolean, placement: bare-flag }
+        child_template: ":::card[Card N]\nContent N.\n:::"
+        child_default_count: 2
+        child_count_field: cols
+      - name: columns
+        label: Columns
+        description: Multi-column layout
+        kind: block
+        fields:
+          - { name: cols, label: Columns, type: enum, placement: attr, default: "2", options: ["1", "2", "3", "4"] }
+        child_template: ":::column\nColumn N.\n:::"
+        child_default_count: 2
+        child_count_field: cols
+      - name: tabs
+        label: Tabs
+        description: Tabbed content panel
+        kind: block
+        body_template: "== ${Tab 1}\n${content}\n\n== Tab 2\ncontent"
+      - name: timeline
+        label: Timeline
+        description: Chronological timeline
+        kind: block
+        body_template: "== ${Event 1}\n${description}\n\n== Event 2\ndescription"
+      - name: steps
+        label: Steps
+        description: Numbered steps layout
+        kind: block
+        body_template: "1. ${Step one}\n2. Step two"
+
+  - name: code
+    label: Code
+    directives:
+      # code-group's closer is an exact-match bare ::: (kazari, no depth
+      # tracking) — the outer fence must never be bumped to :::: when nesting.
+      - name: code-group
+        label: Code Group
+        description: Tabbed code examples
+        kind: block
+        child_template: "```js title=\"tab N\"\nconsole.log(N)\n```"
+        child_default_count: 2
+      - name: terminal
+        label: Terminal
+        description: Styled terminal output
+        kind: block
+        body_template: "$ ${command}\noutput line"
+
+  - name: media
+    label: Media
+    directives:
+      - name: figure
+        label: Figure
+        description: Image with caption
+        kind: block
+        bracket: { label: Caption, required: true, placeholder: Caption }
+        body_template: "![${alt}](${url})"
+      - name: gallery
+        label: Gallery
+        description: Image gallery grid with lightbox
+        kind: block
+        bracket: { label: Label, required: false }
+        body_template: "![${alt 1}](url1)\n![alt 2](url2)"
+      - name: image-compare
+        label: Image Compare
+        description: Before/after image slider
+        kind: block
+        bracket: { label: Label, required: false }
+        body_template: "![${Before}](before.jpg)\n![After](after.jpg)"
+      - name: video
+        label: Video
+        description: Embedded video player (YouTube, Vimeo, or native)
+        kind: block
+        fields:
+          - { name: src, label: Video URL, type: string, placement: attr, required: true, placeholder: "https://youtube.com/watch?v=ID" }
+          - { name: title, label: Title, type: string, placement: attr }
+          - { name: ratio, label: Aspect ratio, type: enum, placement: attr, options: ["4:3", "1:1", "9:16"] }
+          - { name: autoplay, label: Autoplay, type: boolean, placement: bare-flag }
+          - { name: muted, label: Muted, type: boolean, placement: bare-flag }
+          - { name: loop, label: Loop, type: boolean, placement: bare-flag }
+
+  - name: navigation
+    label: Navigation
+    directives:
+      - name: link-button
+        label: Link Button
+        description: Styled link button
+        kind: block
+        bracket: { label: Label, required: false, placeholder: Get Started }
+        fields:
+          - { name: href, label: URL, type: string, placement: attr, required: true, placeholder: /docs }
+          - { name: variant, label: Variant, type: enum, placement: attr, options: [primary, secondary, outline, ghost, minimal] }
+          - { name: icon, label: Icon, type: icon, placement: attr }
+          - { name: iconPlacement, label: Icon placement, type: enum, placement: attr, options: [start, end] }
+          - { name: size, label: Size, type: enum, placement: attr, options: [sm, lg] }
+          - { name: block, label: Full width, type: boolean, placement: quoted-flag }
+          - { name: center, label: Center, type: boolean, placement: quoted-flag }
+          - { name: new-tab, label: Open in new tab, type: boolean, placement: quoted-flag }
+      - name: link-button-group
+        label: Link Button Group
+        description: Row of link buttons
+        kind: block
+        child_template: ":::link-button[Button N](href=\"/\")\n:::"
+        child_default_count: 2
+      - name: link-card
+        label: Link Card
+        description: Preview card linking to a page
+        kind: block
+        bracket: { label: Title, required: false }
+        fields:
+          - { name: href, label: URL, type: string, placement: attr, required: true, placeholder: /docs }
+          - { name: description, label: Description, type: string, placement: attr }
+          - { name: icon, label: Icon, type: icon, placement: attr }
+          - { name: image, label: Image URL, type: string, placement: attr }
+          - { name: new-tab, label: Open in new tab, type: boolean, placement: quoted-flag }
+      - name: file-tree
+        label: File Tree
+        description: File tree diagram
+        kind: block
+        body_template: "- ${src/}\n  - index.js\n- package.json"

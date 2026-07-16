@@ -87,3 +87,5 @@ Both `mermaid` and `sarde-mermaid` are accepted as the fenced code block languag
 - Mermaid renders client-side. With JavaScript disabled, the raw diagram source text is visible.
 - The Mermaid runtime scripts are only injected on pages that contain at least one diagram (unless `always: true` is set).
 - Mermaid inherits the page's light/dark theme. The init script configures Mermaid to match the current `data-theme` attribute.
+
+See the [Mermaid plugin](/plugins/mermaid) for runtime asset injection and configuration.

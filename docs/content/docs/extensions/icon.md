@@ -2,7 +2,7 @@
 title: Icon
 description: "Render inline SVG icons from Lucide or other Iconify-compatible sets"
 sidebar:
-  order: 33
+  order: 34
   group: Inline
 ---
 

@@ -339,6 +339,7 @@ Each key under `collections` defines overrides for a content collection. Collect
 |-----|------|---------|-------------|
 | `collapsible` | bool | - | Allow sidebar groups to collapse. |
 | `collapsed_by_default` | bool | - | Start sidebar groups in collapsed state. |
+| `collapse_level` | int | - | Depth at which sidebar groups start collapsed. Sections at this depth or deeper are collapsed by default. Requires `collapsible: true`. |
 | `max_depth` | int | - | Maximum nesting depth to display. Range: 1-10. |
 | `search` | bool | - | Enable sidebar search/filter. |
 

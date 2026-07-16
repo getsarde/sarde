@@ -2,7 +2,7 @@
 title: Internationalization
 description: "Configure multi-language sites with localized URLs, fallback pages, and a language switcher"
 sidebar:
-  order: 16
+  order: 17
 ---
 
 Sarde supports multi-language sites with localized URLs, automatic fallback pages, a language switcher, and translated UI strings. Content for each language lives in its own subdirectory under `content/`.
@@ -178,7 +178,7 @@ The SEO plugin automatically emits `<link rel="alternate" hreflang="...">` tags 
 Link to a specific language version of a page using the `?lang=` query parameter in internal links:
 
 ```markdown
-[French version](/docs/getting-started/?lang=fr)
+[French version](/start-here/getting-started/?lang=fr)
 ```
 
 The link validator resolves this to the French translation of the target page. Without the `?lang=` parameter, internal links resolve within the current language.

@@ -394,6 +394,123 @@ sarde icons list --page-size 50
 
 Downloaded sets are marked with `*` in the `DL` column.
 
+## `i18n`
+
+Manage internationalization: languages and translation files.
+
+The `i18n add-language`, `i18n remove-language`, `i18n scaffold`, and `i18n status` commands output a single JSON line to stdout instead of human-readable text, for integration with the desktop app.
+
+### `i18n add-language <project-dir> <code>`
+
+Add a language to the project.
+
+```
+sarde i18n add-language . fr
+sarde i18n add-language . zh-hans --name "Chinese (Simplified)" --weight 2
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--name` | string | `""` | Display name for the language. |
+| `--weight` | int | `0` | Sort weight. Lower values sort first. |
+| `--dir` | string | `"ltr"` | Text direction. `ltr` or `rtl`. |
+
+The language code must match `[a-z]{2,3}(-[a-z0-9]+)*` (e.g., `fr`, `es`, `zh-hans`). Adds the language to `i18n.languages` in `sarde.yaml`. If this is the first language added, sets `i18n.default_language` to the existing `site.language` value, or `en` if unset.
+
+### `i18n remove-language <project-dir> <code>`
+
+Remove a language from the project.
+
+```
+sarde i18n remove-language . fr
+sarde i18n remove-language . fr --delete-content
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--delete-content` | bool | `false` | Also delete `content/<code>/`. |
+
+The default language cannot be removed.
+
+### `i18n scaffold <project-dir> <code>`
+
+Scaffold content directories and a translation file for a language.
+
+```
+sarde i18n scaffold . fr
+```
+
+Creates `content/<code>/<collection>/` for each collection found in the default language's content directory, with a stub `_index.md` in each. Creates `i18n/<code>.yaml`, seeded from the default language's translation file if one exists.
+
+### `i18n status <project-dir>`
+
+Show translation coverage across all languages and collections.
+
+```
+sarde i18n status .
+```
+
+Reports, per collection and language, the total number of Markdown files in the default language versus the number present in each other language.
+
+## `doc-version`
+
+Manage docs versioning for a collection.
+
+### `doc-version create <project-dir> <collection> <version-id> <label>`
+
+Cut a new version for a collection.
+
+```
+sarde doc-version create . docs v1 "Version 1.0"
+```
+
+Enables versioning for the collection if not already enabled. Archives the collection's current content into `content/<collection>/<old-version>/` (the previous `last_version`, if any), appends the new version entry, and sets `last_version` to the new version ID. The version ID cannot contain `/`, `\`, or `..`.
+
+### `doc-version delete <project-dir> <collection> <version-id>`
+
+Delete a version from a collection.
+
+```
+sarde doc-version delete . docs v1
+```
+
+Removes the version entry from `sarde.yaml` and deletes `content/<collection>/<version-id>/`. The current latest version (`last_version`) cannot be deleted.
+
+### `doc-version update <project-dir> <collection> <version-id>`
+
+Update a version entry's label, banner, or redirect behavior.
+
+```
+sarde doc-version update . docs v1 --label "Version 1.0 (EOL)" --banner unmaintained
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--label` | string | `""` | New display label. |
+| `--banner` | string | `""` | Version banner type. `none`, `unmaintained`, or `unreleased`. |
+| `--redirect` | string | `""` | Redirect behavior. `same-page` or `root`. |
+
+Only the flags explicitly passed are updated; omitted flags leave the existing value unchanged.
+
+## `catalog`
+
+Print the frontmatter field catalog: every frontmatter field Sarde recognizes, grouped by category, with the layout-to-category mapping. Used by Sarde Studio to offer field pickers.
+
+```
+sarde catalog [--format pretty|json]
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--format` | string | `"pretty"` | Output format. `pretty` or `json`. |
+
+```
+sarde catalog
+sarde catalog --format json
+```
+
+The `pretty` format prints fields grouped by category with their type and description, followed by a layout-to-category mapping. The `json` format outputs the raw catalog structure. This command does not take a project directory argument; the catalog is embedded in the binary.
+
 ## `sidecar`
 
 Start the IPC API server for the desktop app. This is an internal command used by the Tauri-based desktop application.

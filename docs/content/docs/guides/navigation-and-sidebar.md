@@ -2,7 +2,7 @@
 title: Navigation and Sidebar
 description: "Control sidebar ordering, grouping, icons, and collapsed state through frontmatter and directory structure"
 sidebar:
-  order: 4
+  order: 5
 ---
 
 Sarde auto-generates sidebar navigation from the directory structure in docs-layout collections. Pages are sorted by `sidebar.order` (from frontmatter or numeric filename prefix), then by title. No configuration is required for the default behavior.
@@ -252,4 +252,4 @@ Per-page frontmatter can override the display range for individual pages. See [F
 
 On screens narrower than 1024px, the sidebar collapses into a drawer accessible via a hamburger menu button. The drawer slides in from the left and contains the same navigation tree. It closes on link click or by tapping outside the drawer.
 
-See [Configuration](/reference/configuration#sidebar) for all sidebar settings, and [Frontmatter](/reference/frontmatter#sidebar-fields) for per-page sidebar fields.
+See [Configuration](/reference/configuration/) for all sidebar settings, and [Frontmatter](/reference/frontmatter#sidebar-fields) for per-page sidebar fields.

@@ -24,9 +24,9 @@ Headings from `h1` through `h6` are constructed with a `#` for each level:
 
 ## Paragraphs
 
-A paragraph is simply one or more consecutive lines of text, separated by one or more blank lines. This is the most basic element of Markdown.
+A paragraph is one or more consecutive lines of text, separated by one or more blank lines.
 
-Here is a second paragraph. Notice how a blank line separates them. Paragraphs can span multiple lines in the source and still render as a single block of text. This sentence is here just to add some length so the paragraph wraps across lines.
+Here is a second paragraph. Notice how a blank line separates them. Paragraphs can span multiple lines in the source and still render as a single block of text.
 
 ---
 

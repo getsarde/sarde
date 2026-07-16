@@ -2,7 +2,7 @@
 title: Annotation
 description: "Attach hoverable, keyboard-accessible tooltips to terms inline without breaking the sentence"
 sidebar:
-  order: 30
+  order: 31
   group: Inline
 ---
 

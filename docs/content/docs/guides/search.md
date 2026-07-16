@@ -2,7 +2,7 @@
 title: Search
 description: "Understand the offline, client-side Orama search index and how to configure it"
 sidebar:
-  order: 10
+  order: 11
 ---
 
 Sarde builds an offline search index at build time and serves it client-side using Orama. No external search service is needed. Search works on any hosting provider, including static file hosts with no server-side capabilities.

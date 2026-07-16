@@ -20,6 +20,14 @@ Sarde:
   folders become docs, blogs, courses, and other collections.
 - [Writing Content](/guides/writing-content/) covers frontmatter, page
   bundles, drafts, scheduled content, and expiring pages.
+- [Internal Links](/guides/internal-links/) covers link syntax, resolution
+  rules, anchor validation, and URL composition across languages and versions.
+- [Navigation and Sidebar](/guides/navigation-and-sidebar/) covers sidebar
+  ordering, grouping, icons, badges, and manual overrides.
+- [Tabbed Navigation](/guides/tabbed-navigation/) explains tab-based
+  navigation for multi-area docs collections.
+- [Blog and Taxonomies](/guides/blog-and-taxonomies/) covers blog
+  collections, tags, categories, and taxonomy pages.
 
 ## Polish the site
 
@@ -31,6 +39,10 @@ Use these guides after the core content exists:
   robots.txt, and social cards.
 - [Link Validation and Linting](/guides/link-validation-and-linting/) covers
   link checks, content linting, and report formats.
+- [Icons](/guides/icons/) explains inline SVG icons from Iconify sets and
+  local files.
+- [Page Banners](/guides/page-banners/) covers per-page and cascading
+  banner notices via frontmatter.
 
 ## Customize the output
 
@@ -42,3 +54,13 @@ Use these when changing the appearance or output behavior:
   selection, template lookup, components, and partials.
 - [Images and Assets](/guides/images-and-assets/) covers responsive images,
   static files, bundled CSS, and bundled JavaScript.
+- [Homepage](/guides/homepage/) covers the eight homepage templates and
+  hero configuration.
+- [Code Blocks](/guides/code-blocks/) covers syntax highlighting, line
+  highlighting, diffs, titles, and code groups.
+- [Internationalization](/guides/internationalization/) covers multi-language
+  sites, localized URLs, and RTL support.
+- [Versioning](/guides/versioning/) covers multi-version documentation with
+  version switcher and search scoping.
+- [Slides and Presentations](/guides/slides-and-presentations/) covers the
+  presentation layout and dual output workflow.

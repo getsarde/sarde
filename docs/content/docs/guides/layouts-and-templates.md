@@ -2,7 +2,7 @@
 title: Layouts and Templates
 description: "Understand page layout types, template lookup order, components, and partials"
 sidebar:
-  order: 13
+  order: 14
 ---
 
 Layouts control the page chrome: whether a sidebar, table of contents, or full-width content area appears. Set the layout per page in frontmatter or per collection in `sarde.yaml`. Templates render the HTML for each layout using Go's `html/template` engine.

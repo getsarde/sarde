@@ -72,3 +72,5 @@ markdown:
 - Empty expressions (`$$`) are ignored.
 - LaTeX characters (`{`, `}`, `&`, `\`) are preserved for KaTeX. Only `<` and `>` are HTML-escaped to prevent injection.
 - Display math can interrupt a paragraph (no blank line required before `$$`).
+
+See the [KaTeX plugin](/plugins/katex) for runtime asset injection and configuration.

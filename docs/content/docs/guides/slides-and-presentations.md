@@ -2,7 +2,7 @@
 title: Slides and Presentations
 description: "Write once, publish as both a website and a slide presentation."
 sidebar:
-  order: 14
+  order: 15
 ---
 
 Sarde can render Markdown content as a slide presentation. Write content once and publish it simultaneously as a documentation page and a full-screen slide deck.

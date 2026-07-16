@@ -2,7 +2,7 @@
 title: Page Banners
 description: "Display contextual banners at the top of individual pages using frontmatter."
 sidebar:
-  order: 19
+  order: 20
 ---
 
 Page banners are colored notices that appear at the top of page content, above the article body. Configure them per-page through frontmatter, with four visual variants and support for cascade inheritance across sections.

@@ -2,7 +2,7 @@
 title: Highlight
 description: "Draw attention to key words or phrases with a colored background highlight"
 sidebar:
-  order: 32
+  order: 33
   group: Inline
 ---
 

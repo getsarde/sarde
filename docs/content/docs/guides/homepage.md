@@ -2,7 +2,7 @@
 title: Homepage
 description: "Choose and configure one of eight built-in homepage templates for content/_index.md"
 sidebar:
-  order: 6
+  order: 7
 ---
 
 The homepage is the `content/_index.md` file. Sarde renders it using one of eight built-in templates, each designed for a different type of site. The default is `hero`.
