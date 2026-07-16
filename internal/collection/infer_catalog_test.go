@@ -21,6 +21,7 @@ func TestCatalog_CollectionTypeNamesMatchInference(t *testing.T) {
 	}{
 		{"blog", blogNames},
 		{"docs", docsNames},
+		{"slides", slidesNames},
 	}
 
 	for _, c := range cases {

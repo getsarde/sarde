@@ -10,8 +10,8 @@
 #   internal/collection/infer_catalog_test.go        (collection type names)
 #
 # layouts: maps each implemented layout to the field categories available
-# to pages using it. `split` and `presentation` are declared in LayoutType
-# but have no base template yet, so they are deliberately absent here.
+# to pages using it. `split` is declared in LayoutType but has no base
+# template yet, so it is deliberately absent here.
 #
 # collection_types: name-based inference hints (mirrors
 # internal/collection/infer.go) plus extra categories granted to matching
@@ -22,12 +22,13 @@
 #   template yet; UIs should hide these from field pickers.
 
 layouts:
-  default:  [identity, editorial, navigation, extras, advanced]
-  splash:   [identity, editorial, navigation, extras, advanced]
-  full:     [identity, editorial, navigation, extras, advanced]
-  centered: [identity, editorial, navigation, extras, advanced]
-  wide:     [identity, editorial, navigation, extras, sidebar, section, advanced]
-  docs:     [identity, editorial, navigation, extras, taxonomy, sidebar, section, toc, advanced]
+  default:      [identity, editorial, navigation, extras, advanced]
+  splash:       [identity, editorial, navigation, extras, advanced]
+  full:         [identity, editorial, navigation, extras, advanced]
+  centered:     [identity, editorial, navigation, extras, advanced]
+  wide:         [identity, editorial, navigation, extras, sidebar, section, advanced]
+  docs:         [identity, editorial, navigation, extras, taxonomy, sidebar, section, toc, advanced]
+  presentation: [identity, editorial, navigation, extras, advanced]
 
 collection_types:
   blog:
@@ -37,6 +38,10 @@ collection_types:
   docs:
     names: [docs, documentation, guides, reference, courses, tutorials, lessons, workshops]
     layout: docs
+  slides:
+    names: [slides, presentations, decks]
+    layout: default
+    extra_categories: [taxonomy]
 
 categories:
 
@@ -90,6 +95,7 @@ categories:
           - wide
           - full
           - centered
+          - presentation
 
       - key: type
         type: string

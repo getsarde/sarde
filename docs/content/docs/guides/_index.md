@@ -62,5 +62,6 @@ Use these when changing the appearance or output behavior:
   sites, localized URLs, and RTL support.
 - [Versioning](/guides/versioning/) covers multi-version documentation with
   version switcher and search scoping.
-- [Slides and Presentations](/guides/slides-and-presentations/) covers the
-  presentation layout and dual output workflow.
+- [Slides and Presentations](/guides/slides-and-presentations/) links to the
+  [Teaching](/teaching/) section for slide decks, presentation layout, and
+  course integration.

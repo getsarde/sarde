@@ -51,3 +51,6 @@ package-lock.json
 .vscode/
 *.swp
 *~
+
+# Private plugin sources (never published)
+private/

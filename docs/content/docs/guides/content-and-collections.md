@@ -49,12 +49,13 @@ collections. The homepage `content/_index.md` is also outside any collection.
 
 ## Auto-detection rules
 
-Sarde recognizes two collection families by directory name:
+Sarde recognizes three collection families by directory name:
 
 | Directory names | Type | Sort | Layout | Feed | Sidebar |
 |-----------------|------|------|--------|------|---------|
 | `blog`, `posts`, `articles`, `news` | Blog | date (newest first) | default | yes | no |
 | `docs`, `documentation`, `guides`, `reference`, `courses`, `tutorials`, `lessons`, `workshops` | Docs | order (ascending) | docs | no | yes |
+| `slides`, `presentations`, `decks` | Slides | date (newest first) | default (gallery) | no | no |
 | Any other name | Default | title (ascending) | default | no | no |
 
 Naming a directory `blog/` is a convention. Sarde auto-detects it as a date-sorted collection with feeds, but any directory name works. A directory named `updates/` would get default-type behavior unless overridden in `sarde.yaml`.
@@ -77,6 +78,14 @@ Each collection type comes with pre-configured behavior:
 - Collapsible sidebar with 4-level depth
 - Table of contents enabled (H2 through H4)
 - Prev/next links wired from the sidebar order
+
+### Slides collections
+
+- Sorted by `date` descending (newest first)
+- Gallery list page with card grid (thumbnails, slide counts, tags, authors)
+- Deck pages auto-default to `layout: presentation` (full-viewport slide viewer, no configuration needed)
+- Course subdirectories render as nested galleries
+- See the [Teaching](/teaching/) section for the full guide
 
 ### Default collections
 

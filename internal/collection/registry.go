@@ -136,6 +136,13 @@ func BuildCollectionsWithOptions(
 		// 7b. Apply frontmatter cascade from section _index.md
 		ApplyCascade(pages)
 
+		// 7c. Slides collections: deck pages default to the presentation
+		// layout. Applied after cascade so explicit frontmatter and cascade
+		// both take precedence over this default.
+		if IsSlidesName(name) {
+			applySlidesLayoutDefault(pages)
+		}
+
 		// 8. Find index page
 		var indexPage *engine.Page
 		for _, p := range pages {

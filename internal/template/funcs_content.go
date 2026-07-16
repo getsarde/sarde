@@ -3,6 +3,7 @@ package template
 import (
 	htmltemplate "html/template"
 	"sort"
+	"strings"
 
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/content"
@@ -115,6 +116,7 @@ func buildContentFuncs(pageIndexPtr **content.PageIndex, sitePtr **engine.SiteCo
 			}
 			return true
 		},
+		"slideCount": fnSlideCount,
 		"topTerms": func(taxonomyName string, n int) []*engine.TaxonomyTerm {
 			s := *sitePtr
 			if s == nil {
@@ -142,6 +144,29 @@ func buildContentFuncs(pageIndexPtr **content.PageIndex, sitePtr **engine.SiteCo
 			return terms
 		},
 	}
+}
+
+// fnSlideCount returns the number of slides a page splits into when rendered
+// as a presentation. An explicit `slide_count` param wins; otherwise slides
+// are counted from `<hr` separators in the rendered HTML (code samples are
+// HTML-escaped by the renderer, so literal `---` in code never miscounts).
+func fnSlideCount(page *engine.Page) int {
+	if page == nil {
+		return 0
+	}
+	if page.Params != nil {
+		switch v := page.Params["slide_count"].(type) {
+		case int:
+			if v > 0 {
+				return v
+			}
+		case float64:
+			if v > 0 {
+				return int(v)
+			}
+		}
+	}
+	return strings.Count(string(page.Content), "<hr") + 1
 }
 
 // fnVersionOf returns the version peer of page matching versionID, or nil if

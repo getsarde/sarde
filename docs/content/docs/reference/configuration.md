@@ -285,6 +285,7 @@ plugins:
     - katex
     - mermaid
     - social_cards
+    - slideviewer
 ```
 
 ```yaml
@@ -294,6 +295,8 @@ plugins:
       skip_if_image: true
     rss:
       limit: 20
+    slideviewer:
+      always: false
 ```
 
 ## `taxonomies`
@@ -318,7 +321,7 @@ taxonomies:
 
 ## `collections`
 
-Each key under `collections` defines overrides for a content collection. Collections are auto-detected from directory names under `content/` (e.g., `blog`, `docs`). These settings overlay the auto-detected defaults.
+Each key under `collections` defines overrides for a content collection. Collections are auto-detected from directory names under `content/` (e.g., `blog`, `docs`, `slides`). These settings overlay the auto-detected defaults. See [Content and Collections](/guides/content-and-collections/) for the full auto-detection table.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|

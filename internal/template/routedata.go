@@ -67,6 +67,12 @@ func buildCollectionRouteData(rd *engine.RouteData, page *engine.Page, col *engi
 		rd.Layout = col.Config.Layout
 	}
 
+	// Per-page frontmatter override (layout: presentation, etc.), including
+	// values inherited via section cascade.
+	if v, ok := page.Params["layout"].(string); ok && v != "" {
+		rd.Layout = engine.ResolveLayout(v)
+	}
+
 	// Resolve template name
 	rd.Template = resolveTemplateName(page, col)
 

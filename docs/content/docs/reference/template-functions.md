@@ -149,6 +149,7 @@ See [`images`](/reference/configuration#images) for global image processing sett
 | `lookupTerm` | `lookupTerm(taxonomyName, termName string) *TaxonomyTerm` | Looks up a taxonomy term by name |
 | `showPageTags` | `showPageTags(page *Page) bool` | Whether to show tags for a page (page override, then taxonomy config, then `true`) |
 | `topTerms` | `topTerms(taxonomyName string, n int) []*TaxonomyTerm` | Top `n` terms sorted by page count descending |
+| `slideCount` | `slideCount(page *Page) int` | Number of slides a page splits into. Returns `params.slide_count` if set, otherwise counts `<hr` separators in rendered HTML + 1. |
 
 The taxonomy functions `termURL`, `lookupTerm`, and `topTerms` are language-aware at render time.
 

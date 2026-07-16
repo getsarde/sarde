@@ -7,11 +7,12 @@ import (
 )
 
 // Layouts with a base-template mapping in internal/template/engine.go.
-// split and presentation are declared in LayoutType but unimplemented,
-// so the catalog must not offer them.
+// split is declared in LayoutType but unimplemented,
+// so the catalog must not offer it.
 var implementedLayouts = map[string]bool{
 	"default": true, "docs": true, "splash": true,
 	"wide": true, "full": true, "centered": true,
+	"presentation": true,
 }
 
 func loadCatalog(t *testing.T) *engine.FrontmatterCatalog {

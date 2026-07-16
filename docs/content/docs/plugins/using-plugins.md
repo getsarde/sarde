@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-Plugins add behavior to the build process or the generated site. Sarde ships with 26 built-in plugins split into two categories: server-side plugins that run during `sarde build`, and client-side plugins that inject JavaScript and CSS into the generated pages.
+Plugins add behavior to the build process or the generated site. Sarde ships with 27 built-in plugins split into two categories: server-side plugins that run during `sarde build`, and client-side plugins that inject JavaScript and CSS into the generated pages.
 
 ## Enabling and disabling plugins
 
@@ -28,6 +28,7 @@ plugins:
     - katex
     - mermaid
     - social_cards
+    - slideviewer
     - reading-progress
     - scroll-to-top
 ```
@@ -57,7 +58,7 @@ Each plugin documents its own configuration options. Options not specified fall 
 
 ## Default plugins
 
-Thirteen plugins are enabled by default. Thirteen more are available but must be added to `plugins.enabled` to activate.
+Fourteen plugins are enabled by default. Thirteen more are available but must be added to `plugins.enabled` to activate.
 
 ### Enabled by default
 
@@ -76,6 +77,7 @@ Thirteen plugins are enabled by default. Thirteen more are available but must be
 | [`katex`](/plugins/katex) | Server | Injects KaTeX runtime assets on pages with math content. |
 | [`mermaid`](/plugins/mermaid) | Server | Injects Mermaid runtime assets on pages with diagrams. |
 | [`social_cards`](/plugins/social-cards) | Server | Auto-generates Open Graph images (1200x630). |
+| [`slideviewer`](/plugins/slideviewer) | Server | Injects SlideViewer runtime on presentation-layout pages. |
 
 ### Disabled by default
 

@@ -1,0 +1,13 @@
+{{ define "content" }}
+{{/* No-JS fallback: the deck content renders as a normal readable page.
+     The slide viewer reads the source container, splits it into slides, and
+     takes over the viewport when it boots (standalone mode). The exit link
+     lives outside the source container so it never becomes slide content. */}}
+{{ if .Page.Section }}
+<p class="sarde-slides-exit-link"><a href="{{ relURL .Page.Section.Permalink }}">&larr; {{ .Page.Section.Title }}</a></p>
+{{ end }}
+<div class="sarde-slides-source sarde-markdown-content">
+  {{ .Page.Content }}
+</div>
+{{ partial "slide-viewer-shell.html" . }}
+{{ end }}

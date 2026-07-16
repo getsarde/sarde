@@ -210,7 +210,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver, devMode bool) error {
 	}
 
 	// Parse base templates (baseof + partials) for each layout type.
-	for _, layout := range []engine.LayoutType{engine.LayoutDefault, engine.LayoutDocs} {
+	for _, layout := range []engine.LayoutType{engine.LayoutDefault, engine.LayoutDocs, engine.LayoutPresentation} {
 		if err := e.loadBase(layout, partialData); err != nil {
 			return fmt.Errorf("loading base for %q layout: %w", layout, err)
 		}

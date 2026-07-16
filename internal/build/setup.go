@@ -19,6 +19,7 @@ import (
 	"github.com/getsarde/sarde/internal/plugin/clientplugins"
 	"github.com/getsarde/sarde/internal/plugin/katex"
 	"github.com/getsarde/sarde/internal/plugin/mermaid"
+	"github.com/getsarde/sarde/internal/plugin/slideviewer"
 	"github.com/getsarde/sarde/internal/plugin/socialcards"
 	"github.com/getsarde/sarde/internal/workers"
 )
@@ -36,6 +37,8 @@ func registerSubpackagePlugins(mgr *plugin.Manager, enabled []string, configs ma
 			mgr.Register(katex.New(configs[name]))
 		case "mermaid":
 			mgr.Register(mermaid.New(configs[name]))
+		case "slideviewer":
+			mgr.Register(slideviewer.New(configs[name]))
 		case "announcements":
 			// Registered in Build() after stringTable is available (needs i18n).
 		case "social_cards":
@@ -119,7 +122,7 @@ func buildResolverRegistries(collections map[string]*engine.Collection) ([]strin
 
 // subpackagePluginNames lists Go subpackage plugins registered via
 // registerSubpackagePlugins (not in plugin.BuiltinNames()).
-var subpackagePluginNames = []string{"katex", "mermaid", "announcements", "social_cards"}
+var subpackagePluginNames = []string{"katex", "mermaid", "announcements", "social_cards", "slideviewer"}
 
 // KnownPluginNames returns the union of all valid plugin names from the
 // Go-side registry, subpackage plugins, and client-side manifest.

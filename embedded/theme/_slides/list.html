@@ -1,0 +1,70 @@
+{{ define "deck-card" }}
+<article class="sarde-deck-card">
+  <a href="{{ .Permalink }}" class="sarde-deck-card-link">
+    {{ if .Image }}
+    <img class="sarde-deck-thumb" src="{{ .Image }}" alt="" loading="lazy">
+    {{ else }}
+    <div class="sarde-deck-thumb sarde-deck-thumb-placeholder">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+        <path d="M8 21h8"></path>
+        <path d="M12 17v4"></path>
+      </svg>
+      <span>{{ .Title | markdownify }}</span>
+    </div>
+    {{ end }}
+    <div class="sarde-deck-card-body">
+      <h3 class="sarde-deck-title">{{ .Title | markdownify }}</h3>
+      {{ if .Description }}<p class="sarde-deck-desc">{{ .Description | markdownify }}</p>{{ end }}
+      <div class="sarde-deck-meta">
+        {{ $n := slideCount . }}
+        <span class="sarde-deck-count">{{ $n }} slide{{ if ne $n 1 }}s{{ end }}</span>
+        {{ if not .Date.IsZero }}<span class="sarde-meta-sep">&middot;</span><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
+      </div>
+    </div>
+  </a>
+  {{ if .Tags }}
+  <div class="sarde-post-card-tags">{{ range .Tags }}<a href="{{ termURL "tags" . }}" class="sarde-post-tag">{{ . }}</a>{{ end }}</div>
+  {{ end }}
+  {{ with .Extra }}{{ with index . "authors" }}
+  <div class="sarde-post-card-authors">{{ range . }}<a href="{{ termURL "authors" . }}" class="sarde-post-author-pill">{{ . }}</a>{{ end }}</div>
+  {{ end }}{{ end }}
+</article>
+{{ end }}
+
+{{ define "content" }}
+<div class="sarde-slides-gallery">
+  {{ if .Page.Title }}<h1 class="sarde-blog-page-title">{{ .Page.Title | markdownify }}</h1>{{ end }}
+  {{ if .Page.Description }}<p class="sarde-blog-page-description">{{ .Page.Description | markdownify }}</p>{{ end }}
+  {{ if .Page.Content }}<div class="sarde-markdown-content">{{ .Page.Content }}</div>{{ end }}
+
+  {{ with .Section }}
+
+  {{ if .Sections }}
+  <div class="sarde-deck-course-grid">
+    {{ range .Sections }}
+    {{ if .Render }}
+    <a href="{{ relURL .Permalink }}" class="sarde-deck-course-card">
+      <h3 class="sarde-deck-course-title">{{ .Title | markdownify }}</h3>
+      {{ if and .IndexPage .IndexPage.Description }}
+      <p class="sarde-deck-course-desc">{{ .IndexPage.Description | markdownify }}</p>
+      {{ end }}
+      {{ $n := len .Pages }}
+      <span class="sarde-deck-course-count">{{ $n }} deck{{ if ne $n 1 }}s{{ end }}</span>
+    </a>
+    {{ end }}
+    {{ end }}
+  </div>
+  {{ end }}
+
+  {{ if .Pages }}
+  <div class="sarde-deck-grid">
+    {{ range .Pages }}
+    {{ template "deck-card" . }}
+    {{ end }}
+  </div>
+  {{ end }}
+
+  {{ end }}
+</div>
+{{ end }}

@@ -10,13 +10,15 @@ const (
 	DirData    = "data"
 
 	// Layout subdirectory names (used in embedded theme and template overlay).
-	DirDefault    = "_default"
-	DirDocs       = "_docs"
-	DirBlog       = "_blog"
-	DirTaxonomy   = "_taxonomy"
-	DirComponents = "components"
-	DirPartials   = "partials"
-	DirShortcodes = "shortcodes"
+	DirDefault      = "_default"
+	DirDocs         = "_docs"
+	DirBlog         = "_blog"
+	DirSlides       = "_slides"
+	DirPresentation = "_presentation"
+	DirTaxonomy     = "_taxonomy"
+	DirComponents   = "components"
+	DirPartials     = "partials"
+	DirShortcodes   = "shortcodes"
 
 	// Internal Params keys shared between builder, template, and collection packages.
 	PaginationCurrentKey = "__pagination_current"
@@ -32,6 +34,7 @@ const (
 	CollectionBlog    = "blog"
 	CollectionDocs    = "docs"
 	CollectionCourses = "courses"
+	CollectionSlides  = "slides"
 
 	// Config filenames.
 	FileSiteConfig    = "sarde.yaml"

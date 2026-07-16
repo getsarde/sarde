@@ -28,6 +28,7 @@ var cssOrder = []string{
 	"css/extensions/media.css",
 	"css/style.css",
 	"css/blog.css",
+	"css/slides.css",
 	"css/taxonomy.css",
 	"css/search.css",
 	"css/homepage.css",

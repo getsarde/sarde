@@ -121,11 +121,27 @@ func buildTemplateCandidates(resolver *engine.ThemeResolver, collection string, 
 		}
 	}
 
+	// Layer 3-4 (presentation only): _presentation/ specific
+	if layout == engine.LayoutPresentation {
+		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, consts.DirPresentation, name)))
+		if theme != "" {
+			candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirThemes, theme, consts.DirLayouts, consts.DirPresentation, name)))
+		}
+	}
+
 	// Layer 3-4 (blog only): _blog/ specific
 	if collection != "" && collectionpkg.IsBlogName(collection) {
 		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, consts.DirBlog, name)))
 		if theme != "" {
 			candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirThemes, theme, consts.DirLayouts, consts.DirBlog, name)))
+		}
+	}
+
+	// Layer 3-4 (slides only): _slides/ specific
+	if collection != "" && collectionpkg.IsSlidesName(collection) {
+		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, consts.DirSlides, name)))
+		if theme != "" {
+			candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirThemes, theme, consts.DirLayouts, consts.DirSlides, name)))
 		}
 	}
 
@@ -148,8 +164,14 @@ func buildTemplateCandidates(resolver *engine.ThemeResolver, collection string, 
 		if layout == engine.LayoutDocs {
 			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirDocs, name)))
 		}
+		if layout == engine.LayoutPresentation {
+			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirPresentation, name)))
+		}
 		if collection != "" && collectionpkg.IsBlogName(collection) {
 			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirBlog, name)))
+		}
+		if collection != "" && collectionpkg.IsSlidesName(collection) {
+			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirSlides, name)))
 		}
 		if collection == consts.DirTaxonomy {
 			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirTaxonomy, name)))
