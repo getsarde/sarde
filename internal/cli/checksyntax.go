@@ -25,25 +25,36 @@ func init() {
 	rootCmd.AddCommand(checkSyntaxCmd)
 }
 
+// stdinModeEligible reports whether an invocation may read markdown from
+// stdin: only when neither a project dir nor --content was given. An explicit
+// target always means directory-scan mode, even if stdin happens to be a pipe
+// (e.g. spawned by a GUI shell that leaves stdin open, which would otherwise
+// block the stdin read forever).
+func stdinModeEligible(args []string, contentFlag string) bool {
+	return len(args) == 0 && contentFlag == ""
+}
+
 func runCheckSyntax(cmd *cobra.Command, args []string) error {
 	format, _ := cmd.Flags().GetString("format")
+	contentDir, _ := cmd.Flags().GetString("content")
 
 	// Stdin mode: read markdown from stdin, write JSON to stdout (for sidecar/studio).
-	if stat, err := os.Stdin.Stat(); err == nil && (stat.Mode()&os.ModeCharDevice) == 0 {
-		input, err := io.ReadAll(os.Stdin)
-		if err != nil {
-			return fmt.Errorf("reading stdin: %w", err)
+	if stdinModeEligible(args, contentDir) {
+		if stat, err := os.Stdin.Stat(); err == nil && (stat.Mode()&os.ModeCharDevice) == 0 {
+			input, err := io.ReadAll(os.Stdin)
+			if err != nil {
+				return fmt.Errorf("reading stdin: %w", err)
+			}
+			diags := syntax.Check("stdin", input, 0)
+			return json.NewEncoder(os.Stdout).Encode(map[string]any{
+				"diagnostics": diags,
+			})
 		}
-		diags := syntax.Check("stdin", input, 0)
-		return json.NewEncoder(os.Stdout).Encode(map[string]any{
-			"diagnostics": diags,
-		})
 	}
 
 	// Standalone mode: scan content/ directory.
 	projectDir := projectDirFromArgs(args)
 
-	contentDir, _ := cmd.Flags().GetString("content")
 	if contentDir == "" {
 		contentDir = filepath.Join(projectDir, "content")
 	} else if !filepath.IsAbs(contentDir) {

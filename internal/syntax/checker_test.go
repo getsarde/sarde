@@ -62,6 +62,10 @@ Some content
 	if diags[0].Tag != "details" {
 		t.Errorf("expected tag 'details', got %s", diags[0].Tag)
 	}
+	want := "unclosed block ':::details' (opened at line 2)"
+	if diags[0].Message != want {
+		t.Errorf("expected message %q, got %q", want, diags[0].Message)
+	}
 }
 
 func TestCheck_MismatchedExplicitClose(t *testing.T) {
@@ -80,6 +84,10 @@ Content
 	for _, d := range diags {
 		if d.Level == "error" && d.Tag == "accordion" {
 			found = true
+			want := "mismatched closing tag ':::/accordion', expected ':::/details' (opened at line 3)"
+			if d.Message != want {
+				t.Errorf("expected message %q, got %q", want, d.Message)
+			}
 		}
 	}
 	if !found {
@@ -111,6 +119,10 @@ func TestCheck_OrphanedExplicitClose(t *testing.T) {
 	}
 	if diags[0].Level != "error" {
 		t.Errorf("expected error, got %s", diags[0].Level)
+	}
+	want := "closing tag ':::/details' with no matching opener"
+	if diags[0].Message != want {
+		t.Errorf("expected message %q, got %q", want, diags[0].Message)
 	}
 }
 
