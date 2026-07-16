@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/getsarde/sarde/internal/engine"
@@ -106,8 +107,80 @@ docs:
 		t.Errorf("attrs: got %v", router.Attrs)
 	}
 
-	if entry.Overrides["plugins/internal"] == nil || !entry.Overrides["plugins/internal"].Hidden {
+	hidden := entry.Overrides["plugins/internal"]
+	if hidden == nil || hidden.Hidden == nil || !*hidden.Hidden {
 		t.Error("hidden override not parsed")
+	}
+	// Overrides without a hidden key must leave it unset (tri-state).
+	if adv.Hidden != nil {
+		t.Errorf("hidden must be nil when absent, got %v", adv.Hidden)
+	}
+}
+
+func TestLoadSidebarFile_EmptyFile(t *testing.T) {
+	dir := t.TempDir()
+	writeSidebarYAML(t, dir, "")
+	sf, err := LoadSidebarFile(dir)
+	if err != nil {
+		t.Fatalf("empty file must not error: %v", err)
+	}
+	if sf != nil {
+		t.Fatalf("empty file must return nil, got %v", sf)
+	}
+}
+
+func TestLoadSidebarFile_CommentsOnlyFile(t *testing.T) {
+	dir := t.TempDir()
+	writeSidebarYAML(t, dir, "# sidebar overrides go here\n# docs:\n")
+	sf, err := LoadSidebarFile(dir)
+	if err != nil {
+		t.Fatalf("comments-only file must not error: %v", err)
+	}
+	if sf != nil {
+		t.Fatalf("comments-only file must return nil, got %v", sf)
+	}
+}
+
+func TestLoadSidebarFile_NormalizesKeys(t *testing.T) {
+	dir := t.TempDir()
+	writeSidebarYAML(t, dir, `
+docs:
+  tabs:
+    /guide/:
+      label: "Guide"
+  overrides:
+    /guide/advanced/:
+      label: "X"
+`)
+	sf, err := LoadSidebarFile(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sf["docs"].Overrides["guide/advanced"] == nil {
+		t.Error("override keys must be normalized at load (slashes trimmed)")
+	}
+	if sf["docs"].Tabs["guide"] == nil {
+		t.Error("tab keys must be normalized at load (slashes trimmed)")
+	}
+}
+
+func TestLoadSidebarFile_DuplicateNormalizedKeysError(t *testing.T) {
+	dir := t.TempDir()
+	writeSidebarYAML(t, dir, `
+docs:
+  overrides:
+    guide/advanced:
+      label: "A"
+    /guide/advanced/:
+      label: "B"
+`)
+	_, err := LoadSidebarFile(dir)
+	if err == nil {
+		t.Fatal("expected error for keys normalizing to the same path")
+	}
+	msg := err.Error()
+	if !strings.Contains(msg, "guide/advanced") || !strings.Contains(msg, "/guide/advanced/") {
+		t.Errorf("error must name both colliding keys, got %q", msg)
 	}
 }
 

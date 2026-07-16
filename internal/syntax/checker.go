@@ -70,7 +70,7 @@ func Check(filename string, content []byte, lineOffset int) []Diagnostic {
 					File:    filename,
 					Line:    lineNum,
 					Tag:     closeTag,
-					Message: "closing tag :::/'" + closeTag + "' with no matching opener",
+					Message: "closing tag ':::/" + closeTag + "' with no matching opener",
 					Level:   "error",
 				})
 			} else {
@@ -80,7 +80,7 @@ func Check(filename string, content []byte, lineOffset int) []Diagnostic {
 						File:    filename,
 						Line:    lineNum,
 						Tag:     closeTag,
-						Message: "mismatched closing tag ':::/'" + closeTag + "', expected ':::/'" + top.tag + "' (opened at line " + itoa(top.line) + ")",
+						Message: "mismatched closing tag ':::/" + closeTag + "', expected ':::/" + top.tag + "' (opened at line " + itoa(top.line) + ")",
 						Level:   "error",
 					})
 				}
@@ -101,7 +101,7 @@ func Check(filename string, content []byte, lineOffset int) []Diagnostic {
 			File:    filename,
 			Line:    entry.line,
 			Tag:     entry.tag,
-			Message: "unclosed block ':::'" + entry.tag + "' (opened at line " + itoa(entry.line) + ")",
+			Message: "unclosed block ':::" + entry.tag + "' (opened at line " + itoa(entry.line) + ")",
 			Level:   "warning",
 		})
 	}

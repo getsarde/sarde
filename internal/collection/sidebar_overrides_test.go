@@ -1,10 +1,12 @@
 package collection
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/navigation"
 )
@@ -43,7 +45,7 @@ func TestApplySidebarFile_ConvertsOverridesAndTabs(t *testing.T) {
 				Order:     intPtr(20),
 				Collapsed: boolPtr(true),
 				Badge:     engine.Badge{Text: "New", Variant: engine.BadgeVariantTip},
-				Hidden:    false,
+				Hidden:    boolPtr(false),
 				Attrs:     map[string]string{"data-x": "y"},
 			},
 		},
@@ -62,6 +64,9 @@ func TestApplySidebarFile_ConvertsOverridesAndTabs(t *testing.T) {
 	}
 	if ov.Label != "Advanced Topics" || *ov.Order != 20 || !*ov.Collapsed {
 		t.Errorf("override fields: got %+v", ov)
+	}
+	if ov.Hidden == nil || *ov.Hidden {
+		t.Errorf("hidden pointer must copy through: got %v", ov.Hidden)
 	}
 	if ov.Badge.Text != "New" || ov.Badge.Variant != engine.BadgeVariantTip {
 		t.Errorf("badge: got %+v", ov.Badge)
@@ -97,19 +102,6 @@ func TestApplySidebarFile_AllocatesSidebarWhenNil(t *testing.T) {
 	}
 	if out.Sidebar.Overrides["guide"].Label != "Guide" {
 		t.Errorf("override: got %+v", out.Sidebar.Overrides["guide"])
-	}
-}
-
-func TestApplySidebarFile_NormalizesKeys(t *testing.T) {
-	cfg := InferCollection("docs")
-	entry := &config.SidebarCollectionEntry{
-		Overrides: map[string]*config.SidebarNodeOverride{
-			"/guide/advanced/": {Label: "X"},
-		},
-	}
-	out := ApplySidebarFile(cfg, entry)
-	if out.Sidebar.Overrides["guide/advanced"] == nil {
-		t.Error("keys must be normalized (slashes trimmed)")
 	}
 }
 
@@ -215,7 +207,7 @@ func TestCollectSidebarOverrideWarnings(t *testing.T) {
 		MaxDepth: 4,
 		Overrides: map[string]*engine.SidebarOverride{
 			"guide/intro":    {Label: "Intro"},
-			"does/not/exist": {Hidden: true},
+			"does/not/exist": {Hidden: boolPtr(true)},
 		},
 		TabOverrides: map[string]*engine.TabOverride{
 			"guide":  {Label: "Guide"},
@@ -243,6 +235,96 @@ func TestCollectSidebarOverrideWarnings(t *testing.T) {
 	}
 	if strings.Contains(joined, "docs.guide/intro") || strings.Contains(joined, "docs.tabs.guide") {
 		t.Errorf("matched keys must not warn, got %v", fields)
+	}
+}
+
+func TestBuildCollections_SidebarFileSkippedForNonSidebarLayout(t *testing.T) {
+	contentDir := t.TempDir()
+	writeTestFile(t, contentDir, filepath.Join("blog", "post.md"), "---\ntitle: Post\n---\nBody.\n")
+
+	scanner := &content.Scanner{}
+	files, err := scanner.DiscoverFiles(contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	siteCfg := config.Defaults()
+	siteCfg.SidebarFile = config.SidebarFile{
+		"blog": &config.SidebarCollectionEntry{
+			Overrides: map[string]*config.SidebarNodeOverride{
+				"post": {Label: "Renamed"},
+			},
+		},
+	}
+
+	collections, warnings, err := BuildCollections(files, siteCfg, contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	blog := collections["blog"]
+	if blog == nil {
+		t.Fatal("blog collection missing")
+	}
+	if blog.Config.Sidebar != nil && blog.Config.Sidebar.Overrides != nil {
+		t.Error("overrides must not attach to a non-sidebar layout")
+	}
+
+	ignored := 0
+	for _, w := range warnings {
+		if strings.Contains(w.Message, "does not use a sidebar layout") {
+			ignored++
+		}
+	}
+	if ignored != 1 {
+		t.Errorf("expected exactly one entry-ignored warning, got %d in %v", ignored, warnings)
+	}
+	if extra := CollectSidebarOverrideWarnings(collections); len(extra) != 0 {
+		t.Errorf("non-sidebar layout must produce no unmatched-key warnings, got %v", extra)
+	}
+}
+
+func TestRebuildNavTreesWithFallbacks_HonorsNavYAML(t *testing.T) {
+	contentDir := t.TempDir()
+	writeTestFile(t, contentDir, filepath.Join("docs", "guide", "nav.yaml"),
+		"- label: Custom Group\n  items:\n    - page: guide/intro\n")
+
+	pages := []*engine.Page{
+		{PageIdentity: engine.PageIdentity{Title: "Guide", Slug: "guide", Kind: engine.KindSection, RelPermalink: "/docs/guide/"}, PageI18n: engine.PageI18n{Lang: "en"}},
+		{PageIdentity: engine.PageIdentity{Title: "Intro", Slug: "intro", Kind: engine.KindPage, RelPermalink: "/docs/guide/intro/"}, PageI18n: engine.PageI18n{Lang: "en"}},
+		{PageIdentity: engine.PageIdentity{Title: "API", Slug: "api", Kind: engine.KindSection, RelPermalink: "/docs/api/"}, PageI18n: engine.PageI18n{Lang: "en"}},
+		{PageIdentity: engine.PageIdentity{Title: "Ref", Slug: "ref", Kind: engine.KindPage, RelPermalink: "/docs/api/ref/"}, PageI18n: engine.PageI18n{Lang: "en"}},
+	}
+	col := &engine.Collection{
+		Name:     "docs",
+		Title:    "Docs",
+		Config:   &engine.CollectionConfig{Layout: engine.LayoutDocs},
+		Pages:    pages,
+		Sections: BuildSectionTree(pages, "docs"),
+		IsTabbed: true,
+	}
+	for _, p := range pages {
+		p.Collection = col
+	}
+	col.Tabs = BuildTabs(col, contentDir)
+
+	RebuildNavTreesWithFallbacks(map[string]*engine.Collection{"docs": col}, pages, []string{"en", "fr"}, contentDir)
+
+	var guide *engine.DocsTab
+	for _, tab := range col.Tabs {
+		if tab.Slug == "guide" {
+			guide = tab
+		}
+	}
+	if guide == nil {
+		t.Fatal("guide tab missing")
+	}
+	tree := guide.NavTrees["en"]
+	if tree == nil || len(tree.Root.Children) == 0 {
+		t.Fatal("guide tab en tree missing after rebuild")
+	}
+	if tree.Root.Children[0].Label != "Custom Group" {
+		t.Errorf("rebuild must honor nav.yaml, got root child %q", tree.Root.Children[0].Label)
 	}
 }
 

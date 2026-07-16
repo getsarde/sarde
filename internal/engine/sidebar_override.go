@@ -8,11 +8,11 @@ import "sort"
 type SidebarOverride struct {
 	Label       string
 	Description string
-	Order       *int // nil = unset (0 is a valid explicit value)
+	Order       *int  // nil = unset (0 is a valid explicit value)
 	Collapsed   *bool
 	Icon        string
 	Badge       Badge
-	Hidden      bool
+	Hidden      *bool // nil = unset; false un-hides a frontmatter-hidden page
 	Attrs       map[string]string
 }
 

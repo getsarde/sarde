@@ -130,7 +130,7 @@ func TestBuildNavTree_HiddenSectionDropsSubtree(t *testing.T) {
 	col := overridesCollection(&engine.SidebarConfig{
 		MaxDepth: 4,
 		Overrides: map[string]*engine.SidebarOverride{
-			"guides": {Hidden: true},
+			"guides": {Hidden: boolPtr(true)},
 		},
 	})
 
@@ -149,7 +149,7 @@ func TestBuildNavTree_HiddenPageDropsLeafOnly(t *testing.T) {
 	col := overridesCollection(&engine.SidebarConfig{
 		MaxDepth: 4,
 		Overrides: map[string]*engine.SidebarOverride{
-			"guides/auth": {Hidden: true},
+			"guides/auth": {Hidden: boolPtr(true)},
 		},
 	})
 
@@ -163,6 +163,49 @@ func TestBuildNavTree_HiddenPageDropsLeafOnly(t *testing.T) {
 	}
 	if findChild(group, "Deploy") == nil {
 		t.Error("sibling page must survive")
+	}
+}
+
+func TestBuildNavTree_HiddenFalseUnhidesFrontmatterHiddenPage(t *testing.T) {
+	col := overridesCollection(&engine.SidebarConfig{
+		MaxDepth: 4,
+		Overrides: map[string]*engine.SidebarOverride{
+			"guides/auth": {Hidden: boolPtr(false)},
+		},
+	})
+	// Hide the page via frontmatter; the override must win and un-hide it.
+	col.Sections[0].Pages[0].Sidebar.Hidden = true
+
+	tree := BuildNavTree(col)
+	group := findChild(tree.Root, "Guides")
+	if group == nil {
+		t.Fatal("guides group missing")
+	}
+	if findChild(group, "Auth") == nil {
+		t.Error("hidden: false override must un-hide a frontmatter-hidden page")
+	}
+}
+
+func TestBuildNavTree_FrontmatterHiddenPageMatchesOverrideKey(t *testing.T) {
+	sidebar := &engine.SidebarConfig{
+		MaxDepth: 4,
+		Overrides: map[string]*engine.SidebarOverride{
+			"guides/auth": {Label: "Authentication"}, // no hidden field
+		},
+	}
+	col := overridesCollection(sidebar)
+	col.Sections[0].Pages[0].Sidebar.Hidden = true
+
+	tree := BuildNavTree(col)
+	group := findChild(tree.Root, "Guides")
+	if group == nil {
+		t.Fatal("guides group missing")
+	}
+	if findChild(group, "Authentication") != nil || findChild(group, "Auth") != nil {
+		t.Error("page must stay hidden when the override does not set hidden")
+	}
+	if got := sidebar.UnmatchedOverrideKeys(); len(got) != 0 {
+		t.Errorf("override on a frontmatter-hidden page must count as matched, got unmatched %v", got)
 	}
 }
 

@@ -9,8 +9,10 @@ import (
 
 // RebuildNavTreesWithFallbacks rebuilds per-language nav trees after fallback
 // pages have been generated, so every language gets a complete sidebar
-// (real translations + fallback pages from the default language).
-func RebuildNavTreesWithFallbacks(collections map[string]*engine.Collection, allPages []*engine.Page, langs []string) {
+// (real translations + fallback pages from the default language). contentDir
+// must be the real content directory so per-tab nav.yaml files are honored on
+// the rebuild exactly as in the initial build.
+func RebuildNavTreesWithFallbacks(collections map[string]*engine.Collection, allPages []*engine.Page, langs []string, contentDir string) {
 	if len(langs) <= 1 {
 		return
 	}
@@ -29,7 +31,7 @@ func RebuildNavTreesWithFallbacks(collections map[string]*engine.Collection, all
 		// Versioned collections: rebuild composite nav trees or tab sets.
 		if col.Config.Versioning != nil && col.Config.Versioning.Enabled {
 			if col.IsTabbed {
-				col.CompositeTabSets = BuildCompositeTabSets(col, "", langs)
+				col.CompositeTabSets = BuildCompositeTabSets(col, contentDir, langs)
 			} else {
 				col.CompositeNavTrees = BuildCompositeNavTrees(col, langs)
 				if len(langs) > 0 {
@@ -58,7 +60,7 @@ func RebuildNavTreesWithFallbacks(collections map[string]*engine.Collection, all
 						Pages:    langPages,
 						Sections: BuildSectionTree(langPages, col.Name),
 					}
-					tree := buildTabNavTree(langCol, col.Name, tab.Slug, "")
+					tree := buildTabNavTree(langCol, col.Name, tab.Slug, contentDir)
 					tab.NavTrees[lang] = tree
 					navigation.WirePrevNextFromTree(tree)
 				}

@@ -3,9 +3,12 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 
@@ -54,7 +57,7 @@ type SidebarNodeOverride struct {
 	Collapsed   *bool             `yaml:"collapsed"`
 	Icon        string            `yaml:"icon"`
 	Badge       engine.Badge      `yaml:"badge"` // scalar or {text, variant} form
-	Hidden      bool              `yaml:"hidden"`
+	Hidden      *bool             `yaml:"hidden"` // nil = unset; false un-hides a frontmatter-hidden page
 	Attrs       map[string]string `yaml:"attrs"`
 }
 
@@ -74,9 +77,12 @@ type SidebarItemEntry struct {
 }
 
 // LoadSidebarFile reads sidebar.yaml from dir (the directory containing
-// sarde.yaml). Returns (nil, nil) if the file is absent; the file is entirely
-// optional. Decoding is always strict (unknown keys are hard errors): unlike
-// sarde.yaml there is no legacy lenient mode to preserve for a brand-new file.
+// sarde.yaml). Returns (nil, nil) if the file is absent or empty; the file is
+// entirely optional. Decoding is always strict (unknown keys are hard errors):
+// unlike sarde.yaml there is no legacy lenient mode to preserve for a
+// brand-new file. Override and tab keys are canonicalized here; two raw keys
+// that normalize to the same canonical key are a hard error, because letting
+// map iteration order pick a winner would make builds nondeterministic.
 func LoadSidebarFile(dir string) (SidebarFile, error) {
 	path := filepath.Join(dir, consts.FileSidebarConfig)
 	f, err := os.Open(path)
@@ -92,7 +98,57 @@ func LoadSidebarFile(dir string) (SidebarFile, error) {
 	dec := yaml.NewDecoder(f)
 	dec.KnownFields(true)
 	if err := dec.Decode(&sf); err != nil {
+		// An empty or comments-only file has no YAML document: valid, no config.
+		if errors.Is(err, io.EOF) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("%s: %w", consts.FileSidebarConfig, err)
 	}
+
+	for collection, entry := range sf {
+		if entry == nil {
+			continue
+		}
+		if entry.Overrides, err = normalizeKeyedMap(collection, "overrides", entry.Overrides); err != nil {
+			return nil, err
+		}
+		if entry.Tabs, err = normalizeKeyedMap(collection, "tabs", entry.Tabs); err != nil {
+			return nil, err
+		}
+	}
 	return sf, nil
+}
+
+// normalizeKeyedMap rebuilds m with canonical keys, erroring when two raw
+// keys collapse into the same canonical key. Keys are visited in sorted order
+// so the reported collision pair is deterministic.
+func normalizeKeyedMap[V any](collection, section string, m map[string]V) (map[string]V, error) {
+	if len(m) == 0 {
+		return m, nil
+	}
+	raw := make([]string, 0, len(m))
+	for key := range m {
+		raw = append(raw, key)
+	}
+	sort.Strings(raw)
+
+	out := make(map[string]V, len(m))
+	seen := make(map[string]string, len(m))
+	for _, key := range raw {
+		canon := normalizeSidebarKey(key)
+		if prev, ok := seen[canon]; ok {
+			return nil, fmt.Errorf("%s: %s.%s: keys %q and %q both normalize to %q",
+				consts.FileSidebarConfig, collection, section, prev, key, canon)
+		}
+		seen[canon] = key
+		out[canon] = m[key]
+	}
+	return out, nil
+}
+
+// normalizeSidebarKey canonicalizes a sidebar.yaml path key: slashes are
+// forward, no leading or trailing slash.
+func normalizeSidebarKey(key string) string {
+	key = strings.ReplaceAll(key, "\\", "/")
+	return strings.Trim(key, "/")
 }

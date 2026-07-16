@@ -76,8 +76,13 @@ func BuildCollectionsWithOptions(
 			}
 		}
 
-		// 2b. Overlay sidebar.yaml overrides (independent of sarde.yaml entries)
-		if siteCfg.SidebarFile != nil {
+		// 2b. Overlay sidebar.yaml overrides (independent of sarde.yaml
+		// entries). Non-sidebar layouts skip the overlay entirely:
+		// sidebarFileCollectionWarnings already emits the single "entry
+		// ignored" warning for them, and attaching overrides anyway would
+		// add one bogus unmatched-key warning per key (their nav trees are
+		// never built).
+		if siteCfg.SidebarFile != nil && engine.LayoutHasSidebar(collCfg.Layout) {
 			entry := siteCfg.SidebarFile[name]
 			collCfg = ApplySidebarFile(collCfg, entry)
 			if entry != nil && len(entry.Items) > 0 {

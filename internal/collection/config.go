@@ -157,13 +157,15 @@ func ApplySidebarFile(cfg *engine.CollectionConfig, entry *config.SidebarCollect
 		sb.CollapseLevel = *entry.CollapseLevel
 	}
 
+	// Keys are already canonicalized (and collision-checked) by
+	// config.LoadSidebarFile, so they are used as-is here.
 	if len(entry.Overrides) > 0 {
 		sb.Overrides = make(map[string]*engine.SidebarOverride, len(entry.Overrides))
 		for key, ov := range entry.Overrides {
 			if ov == nil {
 				continue
 			}
-			sb.Overrides[normalizeOverrideKey(key)] = &engine.SidebarOverride{
+			sb.Overrides[key] = &engine.SidebarOverride{
 				Label:       ov.Label,
 				Description: ov.Description,
 				Order:       ov.Order,
@@ -182,7 +184,7 @@ func ApplySidebarFile(cfg *engine.CollectionConfig, entry *config.SidebarCollect
 			if ov == nil {
 				continue
 			}
-			sb.TabOverrides[normalizeOverrideKey(slug)] = &engine.TabOverride{
+			sb.TabOverrides[slug] = &engine.TabOverride{
 				Label:       ov.Label,
 				Description: ov.Description,
 				Icon:        ov.Icon,
@@ -193,13 +195,6 @@ func ApplySidebarFile(cfg *engine.CollectionConfig, entry *config.SidebarCollect
 
 	merged.Sidebar = &sb
 	return &merged
-}
-
-// normalizeOverrideKey canonicalizes a sidebar.yaml path key: slashes are
-// forward, no leading or trailing slash.
-func normalizeOverrideKey(key string) string {
-	key = strings.ReplaceAll(key, "\\", "/")
-	return strings.Trim(key, "/")
 }
 
 // parseSortString splits "date desc" into ("date", "desc").

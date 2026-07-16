@@ -36,9 +36,6 @@ func BuildNavTree(collection *engine.Collection) *engine.NavTree {
 	// Add root-level pages (pages not in any section).
 	rootPages := findRootPages(collection)
 	for _, page := range rootPages {
-		if page.Sidebar.Hidden {
-			continue
-		}
 		node := pageToNode(page, 1, ctx)
 		if node == nil {
 			continue
@@ -94,7 +91,7 @@ func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int, ctx side
 	}
 
 	ov := lookupOverride(ctx, collectionRelPath(sec.Permalink, ctx.collName))
-	if ov != nil && ov.Hidden {
+	if sectionHidden(ov) {
 		return nil
 	}
 
@@ -136,7 +133,7 @@ func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int, ctx side
 
 	// Add child pages.
 	for _, page := range sec.Pages {
-		if page.Sidebar.Hidden || page.Kind == engine.KindSection {
+		if page.Kind == engine.KindSection {
 			continue
 		}
 		node := pageToNode(page, depth+1, ctx)
@@ -174,11 +171,11 @@ func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int, ctx side
 // addSectionChildren adds a transparent section's pages and sub-sections
 // directly to the parent node (hoisting).
 func addSectionChildren(parent *engine.NavNode, sec *engine.Section, depth int, maxDepth int, ctx sidebarCtx) {
-	if ov := lookupOverride(ctx, collectionRelPath(sec.Permalink, ctx.collName)); ov != nil && ov.Hidden {
+	if sectionHidden(lookupOverride(ctx, collectionRelPath(sec.Permalink, ctx.collName))) {
 		return
 	}
 	for _, page := range sec.Pages {
-		if page.Sidebar.Hidden || page.Kind == engine.KindSection {
+		if page.Kind == engine.KindSection {
 			continue
 		}
 		node := pageToNode(page, depth, ctx)
@@ -201,10 +198,16 @@ func addSectionChildren(parent *engine.NavNode, sec *engine.Section, depth int, 
 	}
 }
 
-// pageToNode creates a leaf NavNode from a Page.
+// pageToNode creates a leaf NavNode from a Page, or nil when the page is
+// hidden. The sidebar.yaml hidden override wins over frontmatter when set:
+// hidden: false un-hides a frontmatter-hidden page.
 func pageToNode(page *engine.Page, depth int, ctx sidebarCtx) *engine.NavNode {
 	ov := lookupOverride(ctx, collectionRelPath(page.RelPermalink, ctx.collName))
-	if ov != nil && ov.Hidden {
+	hidden := page.Sidebar.Hidden
+	if ov != nil && ov.Hidden != nil {
+		hidden = *ov.Hidden
+	}
+	if hidden {
 		return nil
 	}
 	label := page.Title
@@ -337,6 +340,12 @@ type sidebarCtx struct {
 func collectionRelPath(permalink, collectionName string) string {
 	p := strings.TrimPrefix(permalink, "/"+collectionName+"/")
 	return strings.TrimSuffix(p, "/")
+}
+
+// sectionHidden reports whether an override explicitly hides a section.
+// Sections have no frontmatter hidden field, so hidden: false is a no-op.
+func sectionHidden(ov *engine.SidebarOverride) bool {
+	return ov != nil && ov.Hidden != nil && *ov.Hidden
 }
 
 // lookupOverride returns the sidebar.yaml override for key, marking the key
