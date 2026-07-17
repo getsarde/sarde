@@ -165,6 +165,10 @@ func inferredBucket(name string) string {
 		return "blog"
 	case docsNames[name]:
 		return "docs"
+	case labsNames[name]:
+		return "labs"
+	case slidesNames[name]:
+		return "slides"
 	default:
 		return "default"
 	}

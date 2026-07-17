@@ -142,7 +142,7 @@ func (pm *ProjectManager) resolveConfig(projectDir string) (*config.SiteConfig, 
 		ConfigPath:   configPath,
 		EnvPrefix:    "SARDE",
 		Strict:       true,
-		KnownPlugins: build.KnownPluginNames(),
+		KnownPlugins: build.KnownPluginNames(projectDir),
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("resolving config: %w", err)

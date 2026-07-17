@@ -47,17 +47,17 @@ func runNewSite(cmd *cobra.Command, args []string) error {
 	}
 
 	files := map[string]string{
-		consts.FileSiteConfig:  siteYAMLContent,
-		"kazari.config.yaml":   kazariConfigContent,
-		filepath.Join(consts.DirContent, "_index.md"):                    indexMDContent,
-		filepath.Join(consts.DirContent, "blog", "_index.md"):           blogIndexContent,
-		filepath.Join(consts.DirContent, "blog", "hello-world.md"):      blogPostContent,
-		filepath.Join(consts.DirContent, "docs", "_index.md"):           docsIndexContent,
-		filepath.Join(consts.DirContent, "docs", "getting-started.md"):  docsPageContent,
-		filepath.Join(consts.DirPublic, "images", "hero-light.svg"):         string(embedded.ScaffoldHeroLight),
-		filepath.Join(consts.DirPublic, "images", "hero-dark.svg"):       string(embedded.ScaffoldHeroDark),
-		filepath.Join(consts.DirPublic, ".gitkeep"):                      "",
-		".gitignore":                                                     "dist/\n.cache/\n",
+		consts.FileSiteConfig:                                          siteYAMLContent,
+		"kazari.config.yaml":                                           kazariConfigContent,
+		filepath.Join(consts.DirContent, "_index.md"):                  indexMDContent,
+		filepath.Join(consts.DirContent, "blog", "_index.md"):          blogIndexContent,
+		filepath.Join(consts.DirContent, "blog", "hello-world.md"):     blogPostContent,
+		filepath.Join(consts.DirContent, "docs", "_index.md"):          docsIndexContent,
+		filepath.Join(consts.DirContent, "docs", "getting-started.md"): docsPageContent,
+		filepath.Join(consts.DirPublic, "images", "hero-light.svg"):    string(embedded.ScaffoldHeroLight),
+		filepath.Join(consts.DirPublic, "images", "hero-dark.svg"):     string(embedded.ScaffoldHeroDark),
+		filepath.Join(consts.DirPublic, ".gitkeep"):                    "",
+		".gitignore": "dist/\n.cache/\n.sarde/\n",
 	}
 
 	for relPath, content := range files {

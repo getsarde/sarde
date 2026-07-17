@@ -94,7 +94,7 @@ func (r *Rebuilder) executeBuild(change FileChange) *RebuildResult {
 	start := time.Now()
 
 	switch change.Kind {
-	case ChangeConfig, ChangeTemplate:
+	case ChangeConfig, ChangeTemplate, ChangePlugin:
 		devlog.Log("build", "Full rebuild (%s change): new builder", change.Kind)
 		r.builder = r.builderFactory()
 

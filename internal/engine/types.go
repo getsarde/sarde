@@ -39,12 +39,13 @@ const (
 	LayoutCentered     LayoutType = "centered"     // narrow centered column, no sidebar
 	LayoutSplit        LayoutType = "split"        // two equal columns; no sidebar, no ToC
 	LayoutPresentation LayoutType = "presentation" // full-width slide-viewer; no sidebar, no ToC
+	LayoutLabs         LayoutType = "labs"         // lab reader; sidebar + ToC + progress bar
 )
 
 var validLayouts = map[LayoutType]bool{
 	LayoutDefault: true, LayoutDocs: true, LayoutSplash: true,
 	LayoutWide: true, LayoutFull: true, LayoutCentered: true,
-	LayoutSplit: true, LayoutPresentation: true,
+	LayoutSplit: true, LayoutPresentation: true, LayoutLabs: true,
 }
 
 // ValidateLayout returns true if the layout type is recognized.
@@ -61,12 +62,12 @@ func ResolveLayout(s string) LayoutType {
 
 // LayoutHasSidebar returns true if the layout includes a sidebar.
 func LayoutHasSidebar(layout LayoutType) bool {
-	return layout == LayoutDocs || layout == LayoutWide
+	return layout == LayoutDocs || layout == LayoutWide || layout == LayoutLabs
 }
 
 // LayoutHasTOC returns true if the layout includes a table of contents.
 func LayoutHasTOC(layout LayoutType) bool {
-	return layout == LayoutDocs
+	return layout == LayoutDocs || layout == LayoutLabs
 }
 
 // ---------------------------------------------------------------------------
@@ -168,27 +169,27 @@ type ValidationWarning struct {
 
 // SiteContext provides global site data accessible in every template.
 type SiteContext struct {
-	Title       string
-	BaseURL     string
-	BasePath    string // normalized: "/docs/" or "/"
-	SiteID      string
-	Language    string
-	Generator      string
-	Favicon        string
-	FaviconType    string
-	SitemapEnabled bool
-	Config         any // *config.SiteConfig at runtime; any to avoid circular imports
-	Collections map[string]*Collection
+	Title            string
+	BaseURL          string
+	BasePath         string // normalized: "/docs/" or "/"
+	SiteID           string
+	Language         string
+	Generator        string
+	Favicon          string
+	FaviconType      string
+	SitemapEnabled   bool
+	Config           any // *config.SiteConfig at runtime; any to avoid circular imports
+	Collections      map[string]*Collection
 	Taxonomies       map[string]*Taxonomy
 	TaxonomiesByLang map[string]map[string]*Taxonomy
 	Pages            []*Page
-	Data        map[string]any
-	BuildTime   time.Time
-	Languages   []Language
-	DefaultLang string
-	EditURL     string // base URL for "edit this page" links (e.g. https://github.com/user/repo/edit/main/content)
-	KazariScriptURL string // URL of the Kazari interaction JS file served globally on every page
-	IconLicenses []IconLicense // license metadata for loaded icon sets (for an attribution/credits page)
+	Data             map[string]any
+	BuildTime        time.Time
+	Languages        []Language
+	DefaultLang      string
+	EditURL          string        // base URL for "edit this page" links (e.g. https://github.com/user/repo/edit/main/content)
+	KazariScriptURL  string        // URL of the Kazari interaction JS file served globally on every page
+	IconLicenses     []IconLicense // license metadata for loaded icon sets (for an attribution/credits page)
 }
 
 // IconLicense is the license metadata of a loaded icon set, exposed to
@@ -275,9 +276,11 @@ type FieldDef struct {
 	Options   []string `yaml:"options"    json:"options,omitempty"` // for enum type
 }
 
-// ThemeResolver handles three-layer template/asset resolution (user → theme → embedded).
+// ThemeResolver handles template/asset overlay resolution. Priority order:
+// user → theme → plugin → embedded.
 type ThemeResolver struct {
-	ProjectDir string // root of user project (contains layouts/, themes/)
-	ThemeName  string // active theme name (for themes/<name>/layouts/)
-	EmbeddedFS fs.FS  // compiled-in embedded/theme/ filesystem
+	ProjectDir string   // root of user project (contains layouts/, themes/)
+	ThemeName  string   // active theme name (for themes/<name>/layouts/)
+	EmbeddedFS fs.FS    // compiled-in embedded/theme/ filesystem
+	PluginDirs []string // templates/ dirs of active external plugins, sorted by slug
 }

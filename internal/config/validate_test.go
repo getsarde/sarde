@@ -305,6 +305,27 @@ func TestValidate_PluginNames(t *testing.T) {
 	}
 }
 
+func TestValidate_DisabledPluginNames(t *testing.T) {
+	known := []string{"search", "seo", "slideviewer"}
+	cfg := Defaults()
+	cfg.Plugins.Disabled = []string{"slideviewer", "slidevewer"}
+	errs, _ := Validate(cfg, known)
+	found := false
+	for _, e := range errs {
+		if e.Path == "plugins.disabled[1]" {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("expected error for plugins.disabled[1] (typo 'slidevewer'), got: %v", errs)
+	}
+	for _, e := range errs {
+		if e.Path == "plugins.disabled[0]" {
+			t.Errorf("slideviewer should be valid, but got error: %v", e)
+		}
+	}
+}
+
 func TestValidate_PluginNamesSkippedWhenNil(t *testing.T) {
 	cfg := Defaults()
 	cfg.Plugins.Enabled = []string{"anything", "goes", "here"}

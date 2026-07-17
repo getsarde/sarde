@@ -7,8 +7,8 @@ import (
 
 	"github.com/getsarde/sarde/internal/build"
 	"github.com/getsarde/sarde/internal/config"
-	"github.com/getsarde/sarde/internal/outputpath"
 	"github.com/getsarde/sarde/internal/deploy"
+	"github.com/getsarde/sarde/internal/outputpath"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +38,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 		CLIFlags:     CollectCLIFlags(cmd),
 		EnvPrefix:    "SARDE",
 		Strict:       true,
-		KnownPlugins: build.KnownPluginNames(),
+		KnownPlugins: build.KnownPluginNames(projectDir),
 	})
 	if err != nil {
 		return fmt.Errorf("resolving config: %w", err)

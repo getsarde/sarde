@@ -123,7 +123,36 @@ func buildCollectionRouteData(rd *engine.RouteData, page *engine.Page, col *engi
 		}
 	}
 
+	// Labs fields
+	if collection.IsLabsName(col.Name) && page.Params != nil {
+		if v, ok := page.Params["labs_number"].(int); ok {
+			rd.LabNumber = v
+		}
+		if v, ok := page.Params["labs_step_index"].(int); ok {
+			rd.LabStepIndex = v
+		}
+		if v, ok := page.Params["labs_step_total"].(int); ok {
+			rd.LabStepTotal = v
+		}
+		if col.Config != nil && col.Config.Labs != nil {
+			rd.LabStepLabel = col.Config.Labs.StepLabel
+		}
+		if objs, ok := page.Params["learning_objectives"].([]any); ok {
+			rd.LearningObjectives = toStringSlice(objs)
+		}
+	}
+
 	resolveSidebar(rd, col, page)
+}
+
+func toStringSlice(items []any) []string {
+	out := make([]string, 0, len(items))
+	for _, item := range items {
+		if s, ok := item.(string); ok {
+			out = append(out, s)
+		}
+	}
+	return out
 }
 
 // buildStandaloneRouteData populates rd for a page with no collection:
@@ -272,6 +301,14 @@ func resolveSidebar(rd *engine.RouteData, col *engine.Collection, page *engine.P
 			rd.Sidebar = navigation.MarkActive(navTree, page)
 		}
 		rd.Breadcrumbs = navigation.BuildBreadcrumbsVersioned(page, col)
+	} else if collection.IsLabsName(col.Name) && col.LabNavTrees != nil {
+		labPermalink := findLabPermalink(page, col)
+		if labPermalink != "" {
+			if tree, ok := col.LabNavTrees[labPermalink]; ok {
+				rd.Sidebar = navigation.MarkActive(tree, page)
+			}
+		}
+		rd.Breadcrumbs = navigation.BuildBreadcrumbs(page, col)
 	} else {
 		navTree := col.NavTree
 		if col.NavTrees != nil && page.Lang != "" {
@@ -284,6 +321,26 @@ func resolveSidebar(rd *engine.RouteData, col *engine.Collection, page *engine.P
 		}
 		rd.Breadcrumbs = navigation.BuildBreadcrumbs(page, col)
 	}
+}
+
+// findLabPermalink walks the page's section ancestry to find the lab-level
+// section permalink (the key into Collection.LabNavTrees).
+func findLabPermalink(page *engine.Page, col *engine.Collection) string {
+	if page.Section == nil {
+		return ""
+	}
+	labDepth := 1
+	if col.IsMultiCourse {
+		labDepth = 2
+	}
+	sec := page.Section
+	for sec != nil {
+		if engine.SectionDepth(sec) == labDepth {
+			return sec.Permalink
+		}
+		sec = sec.Parent
+	}
+	return ""
 }
 
 func applyNavOverride(params map[string]any, key string, pagination **engine.PaginationLinks, isPrev bool) {
@@ -336,6 +393,14 @@ func resolveTemplateName(page *engine.Page, col *engine.Collection) string {
 	}
 
 	prefix := col.Name
+
+	// Labs: lab-level section pages render as content (single), not card grids (list).
+	if page.Kind == engine.KindSection && collection.IsLabsName(col.Name) {
+		if isLabSection(page, col) {
+			return prefix + "/single"
+		}
+	}
+
 	switch page.Kind {
 	case engine.KindSection:
 		return prefix + "/list"
@@ -344,6 +409,19 @@ func resolveTemplateName(page *engine.Page, col *engine.Collection) string {
 	default:
 		return prefix + "/single"
 	}
+}
+
+// isLabSection returns true if the page's section is at lab depth
+// (depth 1 for 2-level, depth 2 for 3-level collections).
+func isLabSection(page *engine.Page, col *engine.Collection) bool {
+	if page.Section == nil {
+		return false
+	}
+	depth := engine.SectionDepth(page.Section)
+	if col.IsMultiCourse {
+		return depth >= 2
+	}
+	return depth >= 1
 }
 
 // resolveLang determines the language code for a page's RouteData.

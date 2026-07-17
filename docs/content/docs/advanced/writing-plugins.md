@@ -7,6 +7,10 @@ sidebar:
 
 Plugins extend the build with custom logic: generating files, injecting scripts, adding template functions, or reacting to content. A plugin is a Go struct with a name and a set of optional lifecycle hooks.
 
+:::note
+This page covers Go plugins compiled into the `sarde` binary. For declarative, no-code plugins packaged as `plugin.yaml` directories and installed per project, see [Authoring External Plugins](/advanced/external-plugin-authoring/).
+:::
+
 ```go
 type Plugin struct {
     Name  string
@@ -105,7 +109,7 @@ Enable a plugin by adding its name to `plugins.enabled` in `sarde.yaml`. Per-plu
 
 ## Client-side plugins
 
-Client-side plugins ship browser JS/CSS instead of Go code, and use a declarative manifest rather than lifecycle hooks. Each plugin has a `manifest.yaml`:
+Client-side plugins ship browser JS/CSS instead of Go code, and use a declarative manifest rather than lifecycle hooks. The `manifest.yaml` format described here is internal to the plugins bundled with Sarde; it is not something site or plugin authors write. The author-facing equivalent is the external plugin `plugin.yaml`, documented in [Authoring External Plugins](/advanced/external-plugin-authoring/). Each bundled plugin has a `manifest.yaml`:
 
 - `description` -- what the plugin does
 - `inject_when` -- a named rule controlling which pages include the plugin

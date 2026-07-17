@@ -177,7 +177,6 @@ plugins:
     - katex
     - mermaid
     - social_cards
-    - slideviewer
   config: {}
 
 taxonomies:

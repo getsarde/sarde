@@ -30,6 +30,9 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Added
 
+- External plugin system: install declarative `plugin.yaml` packages into `plugins/<slug>/` with `sarde plugin install`, supporting conditional CSS/JS injection, template contributions (partials, components, shortcodes), and asset copying to the build output. No plugin code executes at build time.
+- New `plugins.disabled` config list that turns off any plugin (built-in, client-side, or external) without replacing the `plugins.enabled` list.
+- Offline license verification for premium external plugins, managed with `sarde license install` and `sarde license list`. A missing or invalid license deactivates the plugin with a warning; the build never fails.
 - Announcement banners plugin with three display modes (stack, first, rotate), date scheduling, page targeting via glob patterns, and i18n message resolution.
 - Social card auto-generation (1200x630 PNG/JPEG) with theme-aware colors, Inter font embedding, and title auto-sizing.
 - `llms.txt` generation for LLM discoverability, with optional blog content exclusion.

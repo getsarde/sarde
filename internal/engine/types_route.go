@@ -44,6 +44,15 @@ type RouteTabs struct {
 	ActiveTab *DocsTab
 }
 
+// RouteLabs groups lab-collection fields (progress, numbering, objectives).
+type RouteLabs struct {
+	LabNumber          int
+	LabStepIndex       int
+	LabStepTotal       int
+	LabStepLabel       string
+	LearningObjectives []string
+}
+
 // RouteAssets holds per-page asset URLs injected by plugins via BeforeRender.
 type RouteAssets struct {
 	Scripts       []string
@@ -71,6 +80,7 @@ type RouteData struct {
 	RouteI18n
 	RouteVersioning
 	RouteTabs
+	RouteLabs
 	RouteAssets
 
 	Homepage     *HomepageData

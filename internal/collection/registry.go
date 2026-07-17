@@ -143,6 +143,12 @@ func BuildCollectionsWithOptions(
 			applySlidesLayoutDefault(pages)
 		}
 
+		// 7d. Labs collections: lab-level and deeper pages default to the
+		// labs layout. Applied after cascade so explicit overrides win.
+		if IsLabsName(name) {
+			applyLabsLayoutDefault(pages)
+		}
+
 		// 8. Find index page
 		var indexPage *engine.Page
 		for _, p := range pages {
@@ -196,7 +202,9 @@ func BuildCollectionsWithOptions(
 		// 9. Build navigation (versioned, tabbed, or standard)
 		langs := collectLanguages(pages)
 
-		if collCfg.Versioning != nil && collCfg.Versioning.Enabled {
+		if IsLabsName(name) {
+			BuildLabsNav(col)
+		} else if collCfg.Versioning != nil && collCfg.Versioning.Enabled {
 			col.Versioning = collCfg.Versioning
 			if DetectTabs(col) {
 				col.IsTabbed = true

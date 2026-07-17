@@ -8,8 +8,8 @@ import (
 
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/collection"
-	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/i18n"
@@ -17,9 +17,9 @@ import (
 	"github.com/getsarde/sarde/internal/plugin"
 	"github.com/getsarde/sarde/internal/plugin/announcements"
 	"github.com/getsarde/sarde/internal/plugin/clientplugins"
+	"github.com/getsarde/sarde/internal/plugin/external"
 	"github.com/getsarde/sarde/internal/plugin/katex"
 	"github.com/getsarde/sarde/internal/plugin/mermaid"
-	"github.com/getsarde/sarde/internal/plugin/slideviewer"
 	"github.com/getsarde/sarde/internal/plugin/socialcards"
 	"github.com/getsarde/sarde/internal/workers"
 )
@@ -37,8 +37,6 @@ func registerSubpackagePlugins(mgr *plugin.Manager, enabled []string, configs ma
 			mgr.Register(katex.New(configs[name]))
 		case "mermaid":
 			mgr.Register(mermaid.New(configs[name]))
-		case "slideviewer":
-			mgr.Register(slideviewer.New(configs[name]))
 		case "announcements":
 			// Registered in Build() after stringTable is available (needs i18n).
 		case "social_cards":
@@ -122,16 +120,39 @@ func buildResolverRegistries(collections map[string]*engine.Collection) ([]strin
 
 // subpackagePluginNames lists Go subpackage plugins registered via
 // registerSubpackagePlugins (not in plugin.BuiltinNames()).
-var subpackagePluginNames = []string{"katex", "mermaid", "announcements", "social_cards", "slideviewer"}
+var subpackagePluginNames = []string{"katex", "mermaid", "announcements", "social_cards"}
 
 // KnownPluginNames returns the union of all valid plugin names from the
-// Go-side registry, subpackage plugins, and client-side manifest.
-func KnownPluginNames() []string {
+// Go-side registry, subpackage plugins, client-side manifest, and external
+// plugins discovered under {projectDir}/plugins. An empty projectDir skips
+// external discovery.
+func KnownPluginNames(projectDir string) []string {
 	_ = clientplugins.Initialize()
 	names := plugin.BuiltinNames()
 	names = append(names, subpackagePluginNames...)
 	names = append(names, clientplugins.PluginSlugs()...)
+	if projectDir != "" {
+		names = append(names, external.DiscoverSlugs(projectDir)...)
+	}
 	return names
+}
+
+// filterDisabled returns enabled minus any names present in disabled.
+func filterDisabled(enabled, disabled []string) []string {
+	if len(disabled) == 0 {
+		return enabled
+	}
+	off := make(map[string]bool, len(disabled))
+	for _, name := range disabled {
+		off[name] = true
+	}
+	kept := make([]string, 0, len(enabled))
+	for _, name := range enabled {
+		if !off[name] {
+			kept = append(kept, name)
+		}
+	}
+	return kept
 }
 
 func (b *SiteBuilder) phaseInitialize(s *buildState) error {
@@ -167,7 +188,7 @@ func (b *SiteBuilder) phaseInitialize(s *buildState) error {
 	b.scanner.VersionIDs = buildScannerVersionIDs(b.config.Collections)
 
 	if !b.built {
-		for _, name := range b.config.Plugins.Enabled {
+		for _, name := range filterDisabled(b.config.Plugins.Enabled, b.config.Plugins.Disabled) {
 			if name == "announcements" {
 				b.pluginMgr.Register(announcements.New(
 					b.config.Plugins.Config[name],
@@ -208,6 +229,9 @@ func (b *SiteBuilder) phaseParse(s *buildState) error {
 	s.collections = collections
 	s.standalones = standalones
 	s.warnings = warnings
+	// External-plugin diagnostics (skipped manifests, missing licenses) are
+	// collected once at builder construction but surfaced on every build.
+	s.warnings = append(s.warnings, b.externalPluginWarnings...)
 	s.recordTiming("Parsing content")
 	return nil
 }

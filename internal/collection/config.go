@@ -132,6 +132,18 @@ func MergeCollectionConfig(inferred *engine.CollectionConfig, siteCfg *config.Co
 		merged.Versioning = vc
 	}
 
+	// Labs merge
+	if siteCfg.Labs != nil {
+		if merged.Labs == nil {
+			merged.Labs = &engine.LabsConfig{}
+		}
+		lc := *merged.Labs
+		if siteCfg.Labs.Label != "" {
+			lc.StepLabel = siteCfg.Labs.Label
+		}
+		merged.Labs = &lc
+	}
+
 	return &merged
 }
 

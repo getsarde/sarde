@@ -63,13 +63,18 @@ func resolveAllPartials(resolver *engine.ThemeResolver) map[string][]byte {
 		loadPartials(resolver.EmbeddedFS, consts.DirPartials, partials)
 	}
 
-	// 2. Theme partials
+	// 2. External plugin partials
+	for _, pluginDir := range resolver.PluginDirs {
+		loadPartials(os.DirFS(filepath.Join(pluginDir, consts.DirPartials)), ".", partials)
+	}
+
+	// 3. Theme partials
 	if resolver.ThemeName != "" {
 		themeDir := filepath.Join(resolver.ProjectDir, consts.DirThemes, resolver.ThemeName, consts.DirLayouts, consts.DirPartials)
 		loadPartials(os.DirFS(themeDir), ".", partials)
 	}
 
-	// 3. User partials (highest priority)
+	// 4. User partials (highest priority)
 	userDir := filepath.Join(resolver.ProjectDir, consts.DirLayouts, consts.DirPartials)
 	loadPartials(os.DirFS(userDir), ".", partials)
 
@@ -78,7 +83,7 @@ func resolveAllPartials(resolver *engine.ThemeResolver) map[string][]byte {
 
 // candidate represents a single location to check for a template file.
 type candidate struct {
-	label string        // human-readable path for error messages
+	label string                 // human-readable path for error messages
 	read  func() ([]byte, error) // reads the file
 }
 
@@ -145,6 +150,22 @@ func buildTemplateCandidates(resolver *engine.ThemeResolver, collection string, 
 		}
 	}
 
+	// Layer 3-4 (labs layout): _labs/ specific
+	if layout == engine.LayoutLabs {
+		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, consts.DirLabs, name)))
+		if theme != "" {
+			candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirThemes, theme, consts.DirLayouts, consts.DirLabs, name)))
+		}
+	}
+
+	// Layer 3-4 (labs collection): _labs/ specific
+	if collection != "" && collectionpkg.IsLabsName(collection) {
+		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, consts.DirLabs, name)))
+		if theme != "" {
+			candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirThemes, theme, consts.DirLayouts, consts.DirLabs, name)))
+		}
+	}
+
 	// Layer: _taxonomy/ specific (taxonomy pages)
 	if collection == consts.DirTaxonomy {
 		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirLayouts, consts.DirTaxonomy, name)))
@@ -173,6 +194,12 @@ func buildTemplateCandidates(resolver *engine.ThemeResolver, collection string, 
 		if collection != "" && collectionpkg.IsSlidesName(collection) {
 			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirSlides, name)))
 		}
+		if layout == engine.LayoutLabs {
+			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirLabs, name)))
+		}
+		if collection != "" && collectionpkg.IsLabsName(collection) {
+			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirLabs, name)))
+		}
 		if collection == consts.DirTaxonomy {
 			candidates = append(candidates, embeddedCandidate(resolver.EmbeddedFS, path.Join(consts.DirTaxonomy, name)))
 		}
@@ -195,6 +222,11 @@ func buildPartialCandidates(resolver *engine.ThemeResolver, name string) []candi
 	// Theme partials
 	if theme != "" {
 		candidates = append(candidates, fsCandidate(filepath.Join(projDir, consts.DirThemes, theme, consts.DirLayouts, consts.DirPartials, name)))
+	}
+
+	// External plugin partials (later slugs win, so probe in reverse)
+	for i := len(resolver.PluginDirs) - 1; i >= 0; i-- {
+		candidates = append(candidates, fsCandidate(filepath.Join(resolver.PluginDirs[i], consts.DirPartials, name)))
 	}
 
 	// Embedded partials

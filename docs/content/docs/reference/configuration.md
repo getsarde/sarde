@@ -264,7 +264,8 @@ icons:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `enabled` | list of string | See below | List of enabled plugin names. Replaces the default list entirely when set. |
+| `enabled` | list of string | See below | List of enabled built-in plugin names. Replaces the default list entirely when set. Does not affect external plugins. |
+| `disabled` | list of string | `[]` | Plugin names to turn off, of any type (built-in, client-side, or external). Only removes the named entries; never replaces the rest. |
 | `config` | map | `{}` | Per-plugin configuration. Keys are plugin names, values are maps of plugin-specific options. |
 
 Default `enabled` list:
@@ -285,7 +286,6 @@ plugins:
     - katex
     - mermaid
     - social_cards
-    - slideviewer
 ```
 
 ```yaml
@@ -297,6 +297,13 @@ plugins:
       limit: 20
     slideviewer:
       always: false
+```
+
+```yaml
+plugins:
+  disabled:
+    - social_cards
+    - reading-progress
 ```
 
 ## `taxonomies`

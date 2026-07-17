@@ -179,17 +179,9 @@ func precomputeDefaults() {
 		if err != nil {
 			continue
 		}
-		var raw struct {
-			Fields map[string]map[string]any `yaml:"fields"`
-		}
-		if err := yaml.Unmarshal(data, &raw); err != nil {
+		defaults, err := cfgutil.DefaultsFromFields(data)
+		if err != nil {
 			continue
-		}
-		defaults := make(map[string]any, len(raw.Fields))
-		for name, field := range raw.Fields {
-			if def, ok := field["default"]; ok {
-				defaults[name] = def
-			}
 		}
 		pluginDefaults[slug] = defaults
 	}
@@ -292,27 +284,7 @@ func Defaults(slug string) map[string]any {
 }
 
 func shouldInject(rule string, page *engine.Page, rd *engine.RouteData) bool {
-	switch rule {
-	case "always":
-		return true
-	case "has_sidebar":
-		return engine.LayoutHasSidebar(rd.Layout)
-	case "has_toc":
-		return engine.LayoutHasTOC(rd.Layout) && len(page.Headings) > 0
-	case "has_headings":
-		return len(page.Headings) > 0
-	case "has_code_blocks":
-		return page.HasCodeBlocks
-	case "has_images":
-		return page.HasImages
-	case "has_prev_next":
-		return page.PrevPage != nil || page.NextPage != nil
-	case "is_content_page":
-		return page.Kind == engine.KindPage || page.Kind == engine.KindBundle
-	case "has_updated":
-		return !page.Updated.IsZero()
-	}
-	return false
+	return plugin.MatchesInjectRule(rule, page, rd)
 }
 
 func mergeConfig(defaults, userCfg map[string]any) map[string]any {

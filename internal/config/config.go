@@ -477,7 +477,13 @@ type CollectionSiteConfig struct {
 	TOC          *CollectionTOCConfig      `yaml:"toc"`
 	PrevNext     *CollectionPrevNextConfig `yaml:"prev_next"`
 	Versioning   *VersioningConfig         `yaml:"versioning"`
+	Labs         *CollectionLabsConfig     `yaml:"labs"`
 	I18nFallback string                    `yaml:"i18n_fallback"` // "" (inherit site), "default", or "omit"
+}
+
+// CollectionLabsConfig holds labs-specific overrides in sarde.yaml.
+type CollectionLabsConfig struct {
+	Label string `yaml:"label"` // "Lab", "Exercise", "Activity", etc.
 }
 
 // ---------------------------------------------------------------------------
@@ -637,8 +643,9 @@ type HeroImageSettings struct {
 // ---------------------------------------------------------------------------
 
 type PluginSettings struct {
-	Enabled []string                  `yaml:"enabled"`
-	Config  map[string]map[string]any `yaml:"config"`
+	Enabled  []string                  `yaml:"enabled"`
+	Disabled []string                  `yaml:"disabled"`
+	Config   map[string]map[string]any `yaml:"config"`
 }
 
 // ---------------------------------------------------------------------------

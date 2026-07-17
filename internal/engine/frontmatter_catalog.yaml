@@ -29,6 +29,7 @@ layouts:
   wide:         [identity, editorial, navigation, extras, sidebar, section, advanced]
   docs:         [identity, editorial, navigation, extras, taxonomy, sidebar, section, toc, advanced]
   presentation: [identity, editorial, navigation, extras, advanced]
+  labs:         [identity, editorial, navigation, extras, taxonomy, sidebar, section, toc, labs_fields, advanced]
 
 collection_types:
   blog:
@@ -42,6 +43,9 @@ collection_types:
     names: [slides, presentations, decks]
     layout: default
     extra_categories: [taxonomy]
+  labs:
+    names: [labs]
+    layout: labs
 
 categories:
 
@@ -96,6 +100,7 @@ categories:
           - full
           - centered
           - presentation
+          - labs
 
       - key: type
         type: string
@@ -421,3 +426,11 @@ categories:
         type: object
         label: Custom Params
         description: Arbitrary custom data accessible in templates. Not validated.
+
+  - name: labs_fields
+    label: Lab
+    fields:
+      - key: learning_objectives
+        type: list
+        label: Learning Objectives
+        description: List of learning objectives displayed at the top of a lab page.

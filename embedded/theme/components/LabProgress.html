@@ -1,0 +1,6 @@
+{{ if gt .LabStepTotal 0 }}
+<div class="sarde-labs-progress" role="status" aria-label="{{ t "labs.step" }} {{ .LabStepIndex }} {{ t "labs.of" }} {{ .LabStepTotal }}">
+  <progress class="sarde-labs-progress__bar" value="{{ .LabStepIndex }}" max="{{ .LabStepTotal }}"></progress>
+  <span class="sarde-labs-progress__text">{{ t "labs.step" }} {{ .LabStepIndex }} {{ t "labs.of" }} {{ .LabStepTotal }}</span>
+</div>
+{{ end }}

@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/frostybee/kazari"
 	"github.com/getsarde/sarde/internal/asset"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/consts"
@@ -15,9 +16,9 @@ import (
 	"github.com/getsarde/sarde/internal/links"
 	"github.com/getsarde/sarde/internal/plugin"
 	"github.com/getsarde/sarde/internal/plugin/clientplugins"
+	"github.com/getsarde/sarde/internal/plugin/external"
 	"github.com/getsarde/sarde/internal/shortcode"
 	sardetemplate "github.com/getsarde/sarde/internal/template"
-	"github.com/frostybee/kazari"
 )
 
 // BuildOptions provides the inputs for creating a SiteBuilder.
@@ -45,6 +46,9 @@ type SiteBuilder struct {
 	pluginMgr    *plugin.Manager
 	rendererPool chan *markdown.Renderer // lazily initialized pool, persisted across rebuilds
 	built        bool                    // true after first Build(); gates one-time registrations
+
+	externalPluginDirs     []string                   // templates/ dirs of active external plugins
+	externalPluginWarnings []engine.ValidationWarning // skipped-plugin diagnostics, surfaced each build
 
 	urlResolver   *engine.URLResolver // URL resolver for basePath prefixing
 	resolutionKey string              // digest of resolver state; folded into page-cache keys
@@ -91,19 +95,23 @@ func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
 	}
 
 	mgr := plugin.NewManager()
-	mgr.RegisterBuiltins(opts.Config.Plugins.Enabled, opts.Config.Plugins.Config)
-	registerSubpackagePlugins(mgr, opts.Config.Plugins.Enabled, opts.Config.Plugins.Config)
+	enabled := filterDisabled(opts.Config.Plugins.Enabled, opts.Config.Plugins.Disabled)
+	mgr.RegisterBuiltins(enabled, opts.Config.Plugins.Config)
+	registerSubpackagePlugins(mgr, enabled, opts.Config.Plugins.Config)
+	extDirs, extWarnings := external.LoadAll(mgr, opts.ProjectDir, opts.Config, KnownPluginNames(""))
 
 	return &SiteBuilder{
-		projectDir:  opts.ProjectDir,
-		config:      opts.Config,
-		themeConfig: opts.ThemeConfig,
-		embeddedFS:  opts.EmbeddedFS,
-		devMode:     opts.DevMode,
-		checkSyntax: opts.CheckSyntax,
-		scanner:     &content.Scanner{},
-		tmplEngine:  sardetemplate.NewEngine(),
-		pluginMgr:   mgr,
+		projectDir:             opts.ProjectDir,
+		config:                 opts.Config,
+		themeConfig:            opts.ThemeConfig,
+		embeddedFS:             opts.EmbeddedFS,
+		devMode:                opts.DevMode,
+		checkSyntax:            opts.CheckSyntax,
+		scanner:                &content.Scanner{},
+		tmplEngine:             sardetemplate.NewEngine(),
+		pluginMgr:              mgr,
+		externalPluginDirs:     extDirs,
+		externalPluginWarnings: extWarnings,
 	}
 }
 
@@ -175,4 +183,3 @@ func (b *SiteBuilder) runBuild() (*engine.BuildResult, error) {
 	result.PhaseTimings = timings
 	return result, nil
 }
-

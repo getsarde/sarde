@@ -28,6 +28,9 @@ func TestClassifyChange(t *testing.T) {
 		{"sidebar config", "/project/sidebar.yaml", ChangeConfig},
 		{"data file", "/project/data/menu.yaml", ChangeStatic},
 		{"random file", "/project/readme.txt", ChangeStatic},
+		{"plugin manifest", "/project/plugins/slideviewer/plugin.yaml", ChangePlugin},
+		{"plugin asset", "/project/plugins/slideviewer/assets/css/x.css", ChangePlugin},
+		{"plugin template", "/project/plugins/slideviewer/templates/partials/p.html", ChangePlugin},
 	}
 
 	for _, tt := range tests {
@@ -213,6 +216,19 @@ func TestMergeChanges_ContentPlusStaticEscalatesToStatic(t *testing.T) {
 
 	if got.Kind != ChangeStatic {
 		t.Fatalf("Kind = %q, want %q (escalated full build)", got.Kind, ChangeStatic)
+	}
+}
+
+func TestMergeChanges_PluginBeatsContent(t *testing.T) {
+	// A plugin change needs a fresh builder; a mixed batch must not collapse
+	// into an incremental content rebuild that would miss the plugin change.
+	got := mergeChanges([]FileChange{
+		{Path: "/project/content/blog/post.md", Kind: ChangeContent},
+		{Path: "/project/plugins/cohort-banner/plugin.yaml", Kind: ChangePlugin},
+	})
+
+	if got.Kind != ChangePlugin {
+		t.Fatalf("Kind = %q, want %q", got.Kind, ChangePlugin)
 	}
 }
 

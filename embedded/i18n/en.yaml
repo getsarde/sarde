@@ -29,6 +29,12 @@ blog:
   page: "Page"
   of: "of"
 
+labs:
+  step: "Step"
+  of: "of"
+  overview: "Overview"
+  learning_objectives: "Learning Objectives"
+
 home:
   all_posts: "View all posts"
   get_started: "Get Started"

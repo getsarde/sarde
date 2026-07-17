@@ -2,7 +2,7 @@
 title: Dev Server
 description: "Dev server internals, WebSocket live reload, CSS hot-swap, and draft content handling."
 sidebar:
-  order: 4
+  order: 5
 ---
 
 `sarde dev` starts a local development server with file watching, live reload, and incremental rebuilds. It serves the built output directory with clean URL support and injects a WebSocket client for instant browser updates.
@@ -17,18 +17,19 @@ A ping/pong keepalive runs every 30 seconds to detect stale connections.
 
 ## File watching
 
-The server watches these project directories for changes: `content/`, `layouts/`, `assets/`, `data/`, `public/`, `themes/`. It also watches the project root non-recursively for config file changes (`sarde.yaml`, `theme.yaml`, `nav.yaml`, `sidebar.yaml`).
+The server watches these project directories for changes: `content/`, `layouts/`, `assets/`, `data/`, `public/`, `themes/`, `plugins/`. It also watches the project root non-recursively for config file changes (`sarde.yaml`, `theme.yaml`, `nav.yaml`, `sidebar.yaml`).
 
 Changes are debounced (150ms) and batched before processing.
 
 ## Change classification
 
-Each changed file is classified into one of five kinds:
+Each changed file is classified into one of six kinds:
 
 | Kind | Trigger | Behavior |
 |------|---------|----------|
 | Config | `sarde.yaml`, `theme.yaml`, `nav.yaml`, `sidebar.yaml` | Fresh builder, full build |
 | Template | Files under `layouts/` or `themes/` | Fresh builder, full build |
+| Plugin | Files under `plugins/` | Fresh builder, full build |
 | Content | Files under `content/` | Incremental rebuild, reuses existing builder |
 | CSS | `.css` files under `public/` | Hot-swap, no rebuild |
 | Static | Everything else (`assets/`, `data/`, other files) | Full build, reuses existing builder |
@@ -41,7 +42,7 @@ CSS files under `assets/` are excluded from hot-swap because they may be bundled
 
 ## Batch merging
 
-When a batch contains mixed change kinds, the highest-priority kind wins: config (5) > template (4) > content (3) > static (2) > CSS (1).
+When a batch contains mixed change kinds, the highest-priority kind wins: config (5) > template and plugin (4) > content (3) > static (2) > CSS (1).
 
 One exception: if a batch mixes content changes with any non-content kind, the result is escalated to a full build (static kind). The incremental content path would miss the accompanying static/CSS files.
 

@@ -315,6 +315,13 @@ func mapFrontmatterToParams(page *engine.Page, fm *engine.Frontmatter, fmMap map
 	if fm.Icon != "" {
 		page.Params["icon"] = fm.Icon
 	}
+	if len(fm.LearningObjectives) > 0 {
+		objs := make([]any, len(fm.LearningObjectives))
+		for i, o := range fm.LearningObjectives {
+			objs[i] = o
+		}
+		page.Params["learning_objectives"] = objs
+	}
 	if len(fm.Cascade) > 0 {
 		page.Params[consts.CascadeKey] = fm.Cascade
 	}

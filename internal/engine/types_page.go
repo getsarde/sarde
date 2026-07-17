@@ -217,16 +217,17 @@ type Frontmatter struct {
 	TOC                 FrontmatterTOC     `yaml:"toc"`
 	FrontmatterNav      `yaml:",inline"`
 
-	Tags        []string       `yaml:"tags"`
-	Categories  []string       `yaml:"categories"`
-	ShowTags    *bool          `yaml:"show_tags"`
-	Transparent bool           `yaml:"transparent"`
-	Hero        *HeroConfig    `yaml:"hero"`
-	Icon        string         `yaml:"icon"`
-	Head        []HeadTag      `yaml:"head"`
-	Banner      *PageBanner    `yaml:"banner"`
-	Cascade     map[string]any `yaml:"cascade"`
-	Params      map[string]any `yaml:"params"`
+	Tags               []string       `yaml:"tags"`
+	Categories         []string       `yaml:"categories"`
+	ShowTags           *bool          `yaml:"show_tags"`
+	Transparent        bool           `yaml:"transparent"`
+	Hero               *HeroConfig    `yaml:"hero"`
+	Icon               string         `yaml:"icon"`
+	Head               []HeadTag      `yaml:"head"`
+	Banner             *PageBanner    `yaml:"banner"`
+	Cascade            map[string]any `yaml:"cascade"`
+	Params             map[string]any `yaml:"params"`
+	LearningObjectives []string       `yaml:"learning_objectives"`
 }
 
 // HeroConfig defines hero section fields for splash layout pages.

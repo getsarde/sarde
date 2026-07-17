@@ -12,7 +12,7 @@ import (
 var implementedLayouts = map[string]bool{
 	"default": true, "docs": true, "splash": true,
 	"wide": true, "full": true, "centered": true,
-	"presentation": true,
+	"presentation": true, "labs": true,
 }
 
 func loadCatalog(t *testing.T) *engine.FrontmatterCatalog {

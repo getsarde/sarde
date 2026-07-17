@@ -6,39 +6,31 @@ sidebar:
   group: Server-Side
 ---
 
-Ships the SlideViewer runtime (JS and CSS) and injects it on pages that use the `presentation` layout. Enabled by default, but assets are only loaded on presentation pages.
+Ships the SlideViewer runtime (JS and CSS) and injects it on pages that use the `presentation` layout. SlideViewer is distributed as an [external plugin](/plugins/external-plugins): install it into your project's `plugins/` directory and it activates automatically. Assets are only loaded on presentation pages.
+
+## Installation
+
+```bash
+sarde plugin install slideviewer.zip
+```
+
+This places the plugin at `{project}/plugins/slideviewer/`:
+
+```
+plugins/slideviewer/
+  plugin.yaml
+  assets/
+    js/SlideViewer.min.js          (bundled ES module)
+    css/slideviewer-index.min.css  (bundled stylesheet)
+```
+
+External plugins are enabled by presence on disk; no `plugins.enabled` entry is needed.
 
 ## How it works
 
-During `BeforeRender`, the plugin checks each page's resolved layout. When `layout == presentation`, it appends the SlideViewer module entry point and stylesheet to the page's asset list. Pages with any other layout receive no SlideViewer assets.
+During `BeforeRender`, the plugin manifest's inject rule (`when: layout`, `layout: presentation`) checks each page's resolved layout. When it matches, the SlideViewer module and stylesheet are appended to the page's asset list. Pages with any other layout receive no SlideViewer assets.
 
-During `BuildDone`, the vendored runtime is copied to `assets/vendor/slideviewer/` in the build output:
-
-```
-assets/vendor/slideviewer/
-  js/
-    SlideViewer.js          (entry point, ES module)
-    BookmarkManager.js
-    FontManager.js
-    FullscreenManager.js
-    KeyboardHelpManager.js
-    LaserPointerManager.js
-    MobileMenuManager.js
-    ReadingModeManager.js
-    SearchManager.js
-    ThemeManager.js
-    ThemeToggleManager.js
-    ThemeUIController.js
-    ThumbnailManager.js
-    TOCManager.js
-  css/
-    slideviewer-index.css   (aggregator stylesheet)
-    slideviewer.css
-    slideviewer-themes.css
-    slideviewer-modals.css
-    slideviewer-toc.css
-    slideviewer-bookmarks.css
-```
+During `BuildDone`, the runtime is copied to `assets/vendor/slideviewer/` in the build output.
 
 The viewer's UI markup is provided by the embedded theme partial `slide-viewer-shell.html`. The JS binds to pre-existing element IDs in that shell; it does not build its own DOM.
 
@@ -70,29 +62,16 @@ See the [Teaching](/teaching/) section for the full guide.
 
 ## Relationship to the slides collection
 
-The plugin handles asset delivery only. The `slides` collection type and `layout: presentation` are engine features that exist independently of this plugin. Disabling the plugin removes the viewer runtime from the output; presentation pages then render as readable pages with no slide navigation.
+The plugin handles asset delivery only. The `slides` collection type and `layout: presentation` are engine features that exist independently of this plugin. Removing the plugin removes the viewer runtime from the output; presentation pages then render as readable pages with no slide navigation.
 
 ## Disabling the plugin
 
-Remove `slideviewer` from the enabled list:
+Either remove the `plugins/slideviewer/` directory, or disable it in place:
 
 ```yaml
 plugins:
-  enabled:
-    - search
-    - seo
-    - sitemap
-    - robots
-    - rss
-    - atom
-    - content_lint
-    - link_validator
-    - redirects
-    - llms_txt
-    - katex
-    - mermaid
-    - social_cards
-    # slideviewer removed
+  disabled:
+    - slideviewer
 ```
 
 Presentation pages still render with the presentation layout (no site chrome), but the viewer JS and CSS are not loaded.

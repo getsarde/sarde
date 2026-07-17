@@ -57,6 +57,22 @@ func TestMergeBuild_ExpiredAndCache(t *testing.T) {
 	}
 }
 
+func TestMergePlugins_Disabled(t *testing.T) {
+	base := &PluginSettings{Enabled: []string{"search"}, Disabled: []string{"seo"}}
+	mergePlugins(base, &PluginSettings{Disabled: []string{"slideviewer"}})
+	if len(base.Disabled) != 1 || base.Disabled[0] != "slideviewer" {
+		t.Errorf("Disabled not replaced by overriding layer: %v", base.Disabled)
+	}
+	if len(base.Enabled) != 1 || base.Enabled[0] != "search" {
+		t.Errorf("Enabled should be untouched by empty override: %v", base.Enabled)
+	}
+
+	mergePlugins(base, &PluginSettings{})
+	if len(base.Disabled) != 1 || base.Disabled[0] != "slideviewer" {
+		t.Errorf("empty override should keep base Disabled: %v", base.Disabled)
+	}
+}
+
 // Regression: mergeI18n used to omit Strict, silently dropping i18n.strict.
 func TestMergeI18n_Strict(t *testing.T) {
 	base := &I18nSettings{}

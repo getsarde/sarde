@@ -1,0 +1,13 @@
+{{ if .LearningObjectives }}
+<aside class="sarde-aside sarde-aside-tip sarde-learning-objectives not-content">
+  <p class="sarde-aside-title">
+    {{ icon "lightbulb" }}
+    {{ t "labs.learning_objectives" }}
+  </p>
+  <ul>
+    {{ range .LearningObjectives }}
+    <li>{{ . }}</li>
+    {{ end }}
+  </ul>
+</aside>
+{{ end }}

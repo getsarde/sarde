@@ -271,7 +271,7 @@ func resolveBenchmarkSite(b *testing.B, projectDir string) (*config.SiteConfig, 
 	cfg, err := config.Resolve(config.ResolveOptions{
 		ConfigPath:   filepath.Join(projectDir, "sarde.yaml"),
 		EnvPrefix:    "SARDE",
-		KnownPlugins: KnownPluginNames(),
+		KnownPlugins: KnownPluginNames(projectDir),
 	})
 	if err != nil {
 		b.Fatalf("resolving config: %v", err)

@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/getsarde/sarde/internal/content"
@@ -148,7 +149,36 @@ func BuildSectionTree(pages []*engine.Page, collectionName string) []*engine.Sec
 		}
 	}
 
+	sortSectionsRecursive(roots)
+
 	return roots
+}
+
+// sortSectionsRecursive sorts Section.Sections at each level by
+// (IndexPage.Sidebar.Order, Title), matching the comparator used by
+// sortNodesRecursive in navigation/tree.go. This ensures deterministic
+// ordering despite map-iteration randomness in the parent-child wiring loop.
+func sortSectionsRecursive(sections []*engine.Section) {
+	sort.SliceStable(sections, func(i, j int) bool {
+		a, b := sections[i], sections[j]
+		ao, bo := sectionOrder(a), sectionOrder(b)
+		if ao != bo {
+			return ao < bo
+		}
+		return strings.ToLower(a.Title) < strings.ToLower(b.Title)
+	})
+	for _, sec := range sections {
+		if len(sec.Sections) > 0 {
+			sortSectionsRecursive(sec.Sections)
+		}
+	}
+}
+
+func sectionOrder(sec *engine.Section) int {
+	if sec.IndexPage != nil {
+		return sec.IndexPage.Sidebar.Order
+	}
+	return 0
 }
 
 // sectionDir extracts the directory path relative to collection from a permalink.

@@ -22,6 +22,10 @@ type Collection struct {
 	Versioning        *VersionConfig
 	CompositeNavTrees map[string]*NavTree   // keyed by langVersionKey(lang, ver) for versioned collections
 	CompositeTabSets  map[string][]*DocsTab // keyed by langVersionKey(lang, ver) for versioned+tabbed collections
+
+	// Labs
+	LabNavTrees   map[string]*NavTree // keyed by lab section permalink, for lab-scoped sidebar
+	IsMultiCourse bool                // true when the labs collection has a course grouping layer
 }
 
 // CollectionConfig holds per-collection settings (auto-detected or explicit).
@@ -37,6 +41,7 @@ type CollectionConfig struct {
 	PrevNext   *PrevNextConfig
 	Tabs       *bool          // nil = auto-detect, true = force tabs, false = disable tabs
 	Versioning *VersionConfig // nil = no versioning
+	Labs       *LabsConfig    // nil = not a labs collection
 }
 
 // SidebarConfig controls sidebar behavior for docs-layout collections.
@@ -100,16 +105,30 @@ type DocsTab struct {
 // Section
 // ---------------------------------------------------------------------------
 
+// LabsConfig holds labs-collection-specific settings.
+type LabsConfig struct {
+	StepLabel string // "Lab" (default), configurable to "Exercise", "Activity", etc.
+}
+
+// SectionDepth returns the nesting depth of a section (root = 0).
+func SectionDepth(sec *Section) int {
+	depth := 0
+	for s := sec.Parent; s != nil; s = s.Parent {
+		depth++
+	}
+	return depth
+}
+
 // Section represents a directory with child pages and sub-sections.
 type Section struct {
-	Title      string
-	Slug       string
-	Permalink  string
-	Pages      []*Page
-	Sections   []*Section
-	IndexPage  *Page
-	Parent     *Section
-	Collection *Collection
+	Title       string
+	Slug        string
+	Permalink   string
+	Pages       []*Page
+	Sections    []*Section
+	IndexPage   *Page
+	Parent      *Section
+	Collection  *Collection
 	Transparent bool
-	Render     bool
+	Render      bool
 }

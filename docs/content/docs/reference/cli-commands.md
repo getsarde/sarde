@@ -492,6 +492,88 @@ sarde doc-version update . docs v1 --label "Version 1.0 (EOL)" --banner unmainta
 
 Only the flags explicitly passed are updated; omitted flags leave the existing value unchanged.
 
+## `plugin`
+
+Manage [external plugins](/plugins/external-plugins/) installed in the project's `plugins/` directory.
+
+### `plugin install <source>`
+
+Install a plugin from a local zip file, a local directory, a GitHub repository, or a direct zip/tar.gz URL.
+
+```
+sarde plugin install cohort-banner.zip
+sarde plugin install ./local-plugins/cohort-banner
+sarde plugin install github.com/example-org/grade-sync
+sarde plugin install https://example.com/downloads/grade-sync.tar.gz
+```
+
+GitHub sources accept a branch and subdirectory: `github.com/example-org/plugin-monorepo/tree/main/plugins/grade-sync`.
+
+The destination directory always takes the slug declared in the plugin's manifest; there is no rename flag. Installing a premium plugin prints its purchase URL and the license file locations. Installation fails if the plugin is already installed, the manifest is invalid, or the slug collides with a built-in plugin name.
+
+### `plugin list`
+
+List installed external plugins with version, license status, and enabled state.
+
+```
+sarde plugin list
+```
+
+```
+SLUG                 VERSION    LICENSE              STATUS
+cohort-banner        1.0.0      free                 enabled
+grade-sync           2.1.0      premium (licensed)   enabled
+```
+
+### `plugin info <slug>`
+
+Show a plugin's manifest details: name, version, author, premium status, license state, injection condition, assets, and output prefix.
+
+```
+sarde plugin info grade-sync
+```
+
+### `plugin remove <slug>`
+
+Delete `plugins/<slug>/` from the project. License files live outside the plugin directory and are kept.
+
+```
+sarde plugin remove cohort-banner
+```
+
+## `license`
+
+Manage licenses for [premium plugins](/plugins/premium-plugins/).
+
+### `license install <license-file>`
+
+Copy a license file into the license directory and verify it.
+
+```
+sarde license install grade-sync.license
+sarde license install grade-sync.license --project
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--project` | bool | `false` | Install into the project's `.sarde/licenses/` instead of the user home directory (`~/.sarde/licenses/`). |
+
+A license that fails verification is still installed, with a warning that the plugin stays inactive until a valid license is present.
+
+### `license list`
+
+List installed licenses from both the project and user home locations, with validity status.
+
+```
+sarde license list
+```
+
+```
+PLUGIN               LICENSEE                       EXPIRES      STATUS
+grade-sync           jane@school.edu                never        valid
+quiz-widgets         jane@school.edu                2026-06-30   license expired on 2026-06-30
+```
+
 ## `catalog`
 
 Print the frontmatter field catalog: every frontmatter field Sarde recognizes, grouped by category, with the layout-to-category mapping. Used by Sarde Studio to offer field pickers.

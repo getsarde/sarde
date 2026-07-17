@@ -467,6 +467,9 @@ func mergePlugins(base, over *PluginSettings) {
 	if len(over.Enabled) > 0 {
 		base.Enabled = over.Enabled
 	}
+	if len(over.Disabled) > 0 {
+		base.Disabled = over.Disabled
+	}
 	if len(over.Config) > 0 {
 		base.Config = over.Config
 	}

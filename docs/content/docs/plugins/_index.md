@@ -7,10 +7,14 @@ sidebar:
 ---
 
 Plugins add behavior to the build process or the generated site. Sarde ships
-with 27 built-in plugins.
+with 27 built-in plugins, and sites can install external plugins into their
+`plugins/` directory.
 
 Read [Using Plugins](/plugins/using-plugins/) for enable/disable configuration,
-plugin options, lifecycle hooks, and page injection rules.
+plugin options, lifecycle hooks, and page injection rules. Read
+[External Plugins](/plugins/external-plugins/) for installing and managing
+plugins distributed outside the Sarde binary, and
+[Premium Plugins](/plugins/premium-plugins/) for licensed ones.
 
 **Server-side plugins** run during `sarde build` and produce files or inject
 metadata: [Search](/plugins/search), [SEO](/plugins/seo),

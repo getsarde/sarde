@@ -158,7 +158,7 @@ func (pm *ProjectManager) CreateProject(dir string, opts CreateOpts) (*ProjectIn
 	}
 
 	// Write .gitignore.
-	if err := os.WriteFile(filepath.Join(absDir, ".gitignore"), []byte("dist/\n.cache/\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(absDir, ".gitignore"), []byte("dist/\n.cache/\n.sarde/\n"), 0o644); err != nil {
 		return nil, err
 	}
 

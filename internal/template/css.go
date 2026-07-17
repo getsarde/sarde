@@ -29,6 +29,7 @@ var cssOrder = []string{
 	"css/style.css",
 	"css/blog.css",
 	"css/slides.css",
+	"css/labs.css",
 	"css/taxonomy.css",
 	"css/search.css",
 	"css/homepage.css",

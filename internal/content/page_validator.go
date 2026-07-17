@@ -21,6 +21,7 @@ var knownFrontmatterKeys = map[string]bool{
 	"tags": true, "categories": true, "show_tags": true, "transparent": true,
 	"hero": true, "icon": true, "head": true, "banner": true,
 	"cascade": true, "params": true,
+	"learning_objectives": true,
 }
 
 var knownSidebarKeys = map[string]bool{

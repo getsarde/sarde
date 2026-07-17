@@ -364,10 +364,12 @@ func (ds *DevServer) handleRebuildResult(change FileChange, result *RebuildResul
 }
 
 // changePriority ranks change kinds for batch classification and pending-merge
-// decisions: config > template > content > static > css.
+// decisions: config > template/plugin > content > static > css. Plugin shares
+// the template tier: both require a fresh builder and a full build.
 var changePriority = map[ChangeKind]int{
 	ChangeConfig:   5,
 	ChangeTemplate: 4,
+	ChangePlugin:   4,
 	ChangeContent:  3,
 	ChangeStatic:   2,
 	ChangeCSS:      1,

@@ -96,13 +96,14 @@ func (b *SiteBuilder) setupAssetPipelineAndShortcodes(s *buildState) error {
 	s.pageIndex = content.BuildPageIndex(s.allPages)
 	s.pageIndex.AddAssets(filepath.Join(b.projectDir, consts.DirPublic))
 
-	// Build shortcode registry (three-layer overlay: embedded → theme → user).
+	// Build shortcode registry (overlay: embedded → plugin → theme → user).
 	scFuncMap := sardetemplate.BuildShortcodeFuncMap(sardetemplate.ShortcodeFuncMapConfig{
 		Site: &s.siteCtx,
 		Resolver: &engine.ThemeResolver{
 			ProjectDir: b.projectDir,
 			ThemeName:  b.config.Theme.Name,
 			EmbeddedFS: b.embeddedFS,
+			PluginDirs: b.externalPluginDirs,
 		},
 		AssetResolver:  s.assetPipeline.Resolver(),
 		AssetManifest:  s.assetPipeline.Manifest(),
@@ -112,6 +113,11 @@ func (b *SiteBuilder) setupAssetPipelineAndShortcodes(s *buildState) error {
 	scRegistry, err := shortcode.NewRegistry(b.embeddedFS, scFuncMap)
 	if err != nil {
 		return fmt.Errorf("loading shortcode registry: %w", err)
+	}
+	for _, pluginDir := range b.externalPluginDirs {
+		if err := scRegistry.LoadOverridesFromDir(filepath.Join(pluginDir, consts.DirShortcodes)); err != nil {
+			return fmt.Errorf("loading plugin shortcode overrides: %w", err)
+		}
 	}
 	if b.config.Theme.Name != "" {
 		themeScDir := filepath.Join(b.projectDir, consts.DirThemes, b.config.Theme.Name, consts.DirLayouts, consts.DirShortcodes)
@@ -549,6 +555,7 @@ func (b *SiteBuilder) wireTemplateEngine(s *buildState) error {
 		ProjectDir: b.projectDir,
 		ThemeName:  b.config.Theme.Name,
 		EmbeddedFS: b.embeddedFS,
+		PluginDirs: b.externalPluginDirs,
 	}
 	if err := b.tmplEngine.Load(resolver, b.devMode); err != nil {
 		return fmt.Errorf("loading templates: %w", err)

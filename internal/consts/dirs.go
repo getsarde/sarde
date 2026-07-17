@@ -8,6 +8,7 @@ const (
 	DirThemes  = "themes"
 	DirAssets  = "assets"
 	DirData    = "data"
+	DirPlugins = "plugins"
 
 	// Layout subdirectory names (used in embedded theme and template overlay).
 	DirDefault      = "_default"
@@ -15,6 +16,7 @@ const (
 	DirBlog         = "_blog"
 	DirSlides       = "_slides"
 	DirPresentation = "_presentation"
+	DirLabs         = "_labs"
 	DirTaxonomy     = "_taxonomy"
 	DirComponents   = "components"
 	DirPartials     = "partials"
@@ -35,6 +37,7 @@ const (
 	CollectionDocs    = "docs"
 	CollectionCourses = "courses"
 	CollectionSlides  = "slides"
+	CollectionLabs    = "labs"
 
 	// Config filenames.
 	FileSiteConfig    = "sarde.yaml"
@@ -42,6 +45,11 @@ const (
 	FileCollConfig    = "config.yaml"
 	FileNavConfig     = "nav.yaml"
 	FileSidebarConfig = "sidebar.yaml"
+
+	// External plugin filenames (see internal/plugin/external).
+	FilePluginManifest  = "plugin.yaml"
+	FilePluginConfig    = "config.yaml"
+	FilePluginBlueprint = "blueprint.yaml"
 
 	// Template filenames.
 	TemplateBaseOf = "baseof.html"

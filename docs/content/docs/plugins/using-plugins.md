@@ -5,11 +5,11 @@ sidebar:
   order: 1
 ---
 
-Plugins add behavior to the build process or the generated site. Sarde ships with 27 built-in plugins split into two categories: server-side plugins that run during `sarde build`, and client-side plugins that inject JavaScript and CSS into the generated pages.
+Plugins add behavior to the build process or the generated site. Sarde ships with 27 built-in plugins split into two categories: server-side plugins that run during `sarde build`, and client-side plugins that inject JavaScript and CSS into the generated pages. Plugins installed into a project's `plugins/` directory are covered separately in [External Plugins](/plugins/external-plugins/).
 
 ## Enabling and disabling plugins
 
-Configure the active plugin list in `sarde.yaml` under `plugins.enabled`:
+Configure the active built-in plugin list in `sarde.yaml` under `plugins.enabled`:
 
 `sarde.yaml`
 ```yaml
@@ -28,16 +28,29 @@ plugins:
     - katex
     - mermaid
     - social_cards
-    - slideviewer
     - reading-progress
     - scroll-to-top
 ```
 
 :::warning
-Setting `plugins.enabled` replaces the default list entirely. If only `reading-progress` is listed, every other plugin (search, seo, sitemap, etc.) is disabled. Always include the default plugins alongside any additions.
+Setting `plugins.enabled` replaces the default list entirely. If only `reading-progress` is listed, every other plugin (search, seo, sitemap, etc.) is disabled. Always include the default plugins alongside any additions. This applies to built-in and client-side plugins only; [external plugins](/plugins/external-plugins/) are never governed by `plugins.enabled`.
 :::
 
-To disable a single default plugin, copy the full default list and remove the unwanted entry.
+### Disabling individual plugins
+
+To turn off a single plugin without touching the enabled list, add its name to `plugins.disabled`:
+
+`sarde.yaml`
+```yaml
+plugins:
+  disabled:
+    - social_cards
+    - slideviewer
+```
+
+`plugins.disabled` accepts any plugin name: built-in, client-side, or external. It only removes the named entries and never replaces anything, which makes it the simplest way to opt out of a default plugin. A name that matches no known plugin fails config validation, so typos are caught at build time.
+
+External plugins are enabled by their presence in the `plugins/` directory and disabled the same way, through `plugins.disabled`. See [External Plugins](/plugins/external-plugins/#enabling-and-disabling-plugins) for the full model.
 
 ## Plugin configuration
 
@@ -77,7 +90,8 @@ Fourteen plugins are enabled by default. Thirteen more are available but must be
 | [`katex`](/plugins/katex) | Server | Injects KaTeX runtime assets on pages with math content. |
 | [`mermaid`](/plugins/mermaid) | Server | Injects Mermaid runtime assets on pages with diagrams. |
 | [`social_cards`](/plugins/social-cards) | Server | Auto-generates Open Graph images (1200x630). |
-| [`slideviewer`](/plugins/slideviewer) | Server | Injects SlideViewer runtime on presentation-layout pages. |
+
+[SlideViewer](/plugins/slideviewer) is distributed separately as an [external plugin](/plugins/external-plugins) and activates by presence in your project's `plugins/` directory.
 
 ### Disabled by default
 

@@ -12,8 +12,8 @@ import (
 // knownPlugins is the set of valid plugin names, collected by the build layer
 // from the actual plugin registries. If nil, plugin name validation is skipped.
 func Validate(cfg *SiteConfig, knownPlugins []string) (errs []validate.Error, warns []validate.Error) {
-	var c validate.Checker  // hard errors
-	var w validate.Checker  // warnings
+	var c validate.Checker // hard errors
+	var w validate.Checker // warnings
 
 	validateRequired(&c, cfg)
 	validateRecommended(&w, cfg)
@@ -147,6 +147,9 @@ func validateSliceElements(c *validate.Checker, cfg *SiteConfig, knownPlugins []
 	if len(knownPlugins) > 0 {
 		for i, name := range cfg.Plugins.Enabled {
 			c.OneOf(fmt.Sprintf("plugins.enabled[%d]", i), name, knownPlugins)
+		}
+		for i, name := range cfg.Plugins.Disabled {
+			c.OneOf(fmt.Sprintf("plugins.disabled[%d]", i), name, knownPlugins)
 		}
 	}
 }

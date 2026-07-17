@@ -172,6 +172,13 @@ func (e *Engine) Load(resolver *engine.ThemeResolver, devMode bool) error {
 		return fmt.Errorf("creating component registry: %w", err)
 	}
 
+	// Load external plugin components (above embedded, below theme and user).
+	for _, pluginDir := range resolver.PluginDirs {
+		if err := registry.LoadOverridesFromDir(filepath.Join(pluginDir, consts.DirComponents)); err != nil {
+			return fmt.Errorf("loading plugin component overrides: %w", err)
+		}
+	}
+
 	// Load theme component overrides.
 	if resolver.ThemeName != "" {
 		themeCompDir := filepath.Join(resolver.ProjectDir, consts.DirThemes, resolver.ThemeName, consts.DirLayouts, consts.DirComponents)
@@ -210,7 +217,7 @@ func (e *Engine) Load(resolver *engine.ThemeResolver, devMode bool) error {
 	}
 
 	// Parse base templates (baseof + partials) for each layout type.
-	for _, layout := range []engine.LayoutType{engine.LayoutDefault, engine.LayoutDocs, engine.LayoutPresentation} {
+	for _, layout := range []engine.LayoutType{engine.LayoutDefault, engine.LayoutDocs, engine.LayoutPresentation, engine.LayoutLabs} {
 		if err := e.loadBase(layout, partialData); err != nil {
 			return fmt.Errorf("loading base for %q layout: %w", layout, err)
 		}

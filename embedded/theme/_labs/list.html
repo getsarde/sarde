@@ -1,0 +1,44 @@
+{{ define "content" }}
+{{ if .Page.Content }}{{ .Page.Content }}{{ end }}
+{{ if or .Section.Sections .Section.Pages }}
+<div class="sarde-card-grid sarde-labs-card-grid">
+  {{ range .Section.Sections }}
+  {{ if .Render }}
+  <a href="{{ relURL .Permalink }}" class="sarde-doc-card sarde-labs-card">
+    {{ if and .IndexPage .IndexPage.Image }}
+    <div class="sarde-labs-card__image">
+      <img src="{{ relURL .IndexPage.Image }}" alt="" loading="lazy">
+    </div>
+    {{ end }}
+    <div class="sarde-labs-card__body">
+      <h3 class="sarde-doc-card__title">{{ .Title | markdownify }}</h3>
+      {{ if and .IndexPage .IndexPage.Description }}
+      <p class="sarde-doc-card__desc">{{ .IndexPage.Description | markdownify }}</p>
+      {{ end }}
+      {{ if .Sections }}
+      <span class="sarde-doc-card__count">{{ len .Sections }} labs</span>
+      {{ else if .Pages }}
+      <span class="sarde-doc-card__count">{{ len .Pages }} steps</span>
+      {{ end }}
+    </div>
+  </a>
+  {{ end }}
+  {{ end }}
+  {{ range .Section.Pages }}
+  <a href="{{ .Permalink }}" class="sarde-doc-card sarde-labs-card">
+    {{ if .Image }}
+    <div class="sarde-labs-card__image">
+      <img src="{{ relURL .Image }}" alt="" loading="lazy">
+    </div>
+    {{ end }}
+    <div class="sarde-labs-card__body">
+      <h3 class="sarde-doc-card__title">{{ .Title | markdownify }}</h3>
+      {{ if .Description }}
+      <p class="sarde-doc-card__desc">{{ .Description | markdownify }}</p>
+      {{ end }}
+    </div>
+  </a>
+  {{ end }}
+</div>
+{{ end }}
+{{ end }}

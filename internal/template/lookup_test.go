@@ -186,3 +186,37 @@ func TestResolveAllPartials(t *testing.T) {
 		t.Errorf("custom.html: got %q, want user-partial-custom", partials["custom.html"])
 	}
 }
+
+func TestPartials_PluginLayerPriority(t *testing.T) {
+	resolver, dir := tempResolver(t)
+
+	// Plugin layer: overrides embedded, contributes a new partial.
+	pluginTpl := filepath.Join(dir, "plugins", "demo", "templates")
+	writeFile(t, filepath.Join(pluginTpl, "partials", "head.html"), "plugin-partial-head")
+	writeFile(t, filepath.Join(pluginTpl, "partials", "promo.html"), "plugin-partial-promo")
+	resolver.PluginDirs = []string{pluginTpl}
+
+	partials := resolveAllPartials(resolver)
+	if string(partials["head.html"]) != "plugin-partial-head" {
+		t.Errorf("plugin should override embedded: got %q", partials["head.html"])
+	}
+	if string(partials["promo.html"]) != "plugin-partial-promo" {
+		t.Errorf("plugin-contributed partial missing: got %q", partials["promo.html"])
+	}
+
+	// User layer still beats the plugin layer.
+	writeFile(t, filepath.Join(dir, "layouts", "partials", "promo.html"), "user-partial-promo")
+	partials = resolveAllPartials(resolver)
+	if string(partials["promo.html"]) != "user-partial-promo" {
+		t.Errorf("user should override plugin: got %q", partials["promo.html"])
+	}
+
+	// Single-partial resolution follows the same chain.
+	data, _, err := resolvePartial(resolver, "head.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "plugin-partial-head" {
+		t.Errorf("resolvePartial: got %q, want plugin-partial-head", data)
+	}
+}

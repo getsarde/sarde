@@ -10,8 +10,8 @@ import (
 
 	"github.com/getsarde/sarde/internal/devlog"
 
-	"github.com/getsarde/sarde/internal/consts"
 	"github.com/fsnotify/fsnotify"
+	"github.com/getsarde/sarde/internal/consts"
 )
 
 // ChangeKind classifies a file system change.
@@ -23,12 +23,13 @@ const (
 	ChangeCSS      ChangeKind = "css"
 	ChangeConfig   ChangeKind = "config"
 	ChangeStatic   ChangeKind = "static"
+	ChangePlugin   ChangeKind = "plugin"
 )
 
 // FileChange represents a detected filesystem change.
 type FileChange struct {
 	Path       string
-	Paths      []string   // all changed file paths in the batch (populated for content changes)
+	Paths      []string // all changed file paths in the batch (populated for content changes)
 	Kind       ChangeKind
 	DetectedAt time.Time // when fsnotify first reported this change
 }
@@ -96,7 +97,7 @@ func (w *Watcher) Start() error {
 	w.watcher = fsw
 
 	// Add recursive watches on key directories.
-	watchDirs := []string{consts.DirContent, consts.DirLayouts, consts.DirAssets, consts.DirData, consts.DirPublic, consts.DirThemes}
+	watchDirs := []string{consts.DirContent, consts.DirLayouts, consts.DirAssets, consts.DirData, consts.DirPublic, consts.DirThemes, consts.DirPlugins}
 	for _, dir := range watchDirs {
 		abs := filepath.Join(w.projectDir, dir)
 		if info, err := os.Stat(abs); err == nil && info.IsDir() {
@@ -384,6 +385,12 @@ func (w *Watcher) classifyChange(path string) ChangeKind {
 	// Templates and themes.
 	if strings.HasPrefix(rel, "layouts/") || strings.HasPrefix(rel, "themes/") {
 		return ChangeTemplate
+	}
+
+	// External plugins: manifests, assets, and templates all require a fresh
+	// builder since plugin registration happens at construction time.
+	if strings.HasPrefix(rel, consts.DirPlugins+"/") {
+		return ChangePlugin
 	}
 
 	// Content.

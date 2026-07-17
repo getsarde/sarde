@@ -23,6 +23,7 @@ const (
 	SourceZipURL
 	SourceTarGzURL
 	SourceLocalDir
+	SourceLocalZipFile
 	SourceUnknown
 )
 
@@ -54,6 +55,9 @@ func InferSourceKind(src string) SourceKind {
 	info, err := os.Stat(src)
 	if err == nil && info.IsDir() {
 		return SourceLocalDir
+	}
+	if err == nil && !info.IsDir() && strings.HasSuffix(lower, ".zip") {
+		return SourceLocalZipFile
 	}
 
 	return SourceUnknown
@@ -153,7 +157,11 @@ func ExtractZip(zipPath, destDir string, stripComponents int) error {
 	defer r.Close()
 
 	for _, f := range r.File {
-		name := filepath.ToSlash(f.Name)
+		// Normalize separators explicitly: Windows-created archives (e.g.
+		// PowerShell Compress-Archive) store entry names with backslashes,
+		// which filepath.ToSlash only fixes when running on Windows.
+		name := strings.ReplaceAll(f.Name, "\\", "/")
+		isDir := f.FileInfo().IsDir() || strings.HasSuffix(name, "/")
 		name = stripLeading(name, stripComponents)
 		if name == "" {
 			continue
@@ -164,7 +172,7 @@ func ExtractZip(zipPath, destDir string, stripComponents int) error {
 			continue
 		}
 
-		if f.FileInfo().IsDir() {
+		if isDir {
 			os.MkdirAll(dest, 0o755)
 			continue
 		}
