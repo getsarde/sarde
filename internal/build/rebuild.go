@@ -163,6 +163,16 @@ func (b *SiteBuilder) classifyAndParseChanges(changedPaths []string, s *incremen
 		}
 		path = filepath.Clean(path)
 
+		// Hidden/ignored paths (.trash/…, _drafts/…) are not content — skip
+		// them entirely rather than letting the _index.md structural check or
+		// ClassifyFile turn them into a full rebuild. Must mirror the
+		// DiscoverFiles filter or a change under .trash would resurrect pages
+		// the scanner no longer discovers.
+		if rel, relErr := filepath.Rel(s.contentDir, path); relErr == nil &&
+			!strings.HasPrefix(rel, "..") && content.HasIgnoredSegment(filepath.ToSlash(rel)) {
+			continue
+		}
+
 		base := filepath.Base(path)
 		if base == "_index.md" || base == "404.md" || (strings.HasPrefix(base, "404.") && filepath.Ext(base) == ".md") {
 			devlog.Warn("build", "ContentRebuild: structural content changed (%s), falling back to full rebuild", base)

@@ -126,9 +126,10 @@ func BuildEffectiveConfig(projectDir string) ([]EffectiveCollection, error) {
 }
 
 // enumerateCollectionNames returns every collection name: subdirectories of
-// content/ (same dot-/underscore-prefix filter as the project scanner)
-// unioned with keys of sarde.yaml's collections map, so a
-// configured-but-not-yet-created collection still appears in the output.
+// content/ (same dot-/underscore-prefix filter as the content scanner's
+// content.IsIgnoredDirName) unioned with keys of sarde.yaml's collections
+// map, so a configured-but-not-yet-created collection still appears in the
+// output.
 func enumerateCollectionNames(projectDir string, cfg *config.SiteConfig) []string {
 	seen := make(map[string]bool)
 	var names []string

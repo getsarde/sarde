@@ -215,3 +215,95 @@ func TestDiscoverFiles_VersioningWithoutI18n(t *testing.T) {
 		t.Errorf("v2 page Version = %q, want %q", v, "v2")
 	}
 }
+
+func TestDiscoverFiles_SkipsIgnoredDirsAndFiles(t *testing.T) {
+	dir := t.TempDir()
+	content := filepath.Join(dir, "content")
+
+	// Real content, including underscore-prefixed _index.md files that the
+	// filter must NOT touch (only directories skip on "_").
+	writeFile(t, content, "_index.md", "---\ntitle: Home\n---\n")
+	writeFile(t, content, filepath.Join("blog", "_index.md"), "---\ntitle: Blog\n---\n")
+	writeFile(t, content, filepath.Join("blog", "post.md"), "---\ntitle: Post\n---\n")
+
+	// Must all be invisible to discovery.
+	writeFile(t, content, filepath.Join(".trash", "removed.md"), "---\ntitle: Removed\n---\n")
+	writeFile(t, content, filepath.Join("blog", ".trash", "old-post.md"), "---\ntitle: Old\n---\n")
+	writeFile(t, content, filepath.Join("_drafts", "wip.md"), "---\ntitle: WIP\n---\n")
+	writeFile(t, content, ".hidden.md", "---\ntitle: Hidden\n---\n")
+	writeFileRaw(t, filepath.Join(content, ".obsidian", "workspace.json"), []byte("{}"))
+
+	scanner := &Scanner{}
+	files, err := scanner.DiscoverFiles(content)
+	if err != nil {
+		t.Fatalf("DiscoverFiles error: %v", err)
+	}
+
+	got := make(map[string]bool)
+	for _, f := range files {
+		got[f.RelPath] = true
+	}
+
+	for _, want := range []string{"_index.md", "blog/_index.md", "blog/post.md"} {
+		if !got[want] {
+			t.Errorf("expected %q to be discovered", want)
+		}
+	}
+	for _, banned := range []string{
+		".trash/removed.md", "blog/.trash/old-post.md", "_drafts/wip.md", ".hidden.md",
+	} {
+		if got[banned] {
+			t.Errorf("ignored path %q leaked into discovery", banned)
+		}
+	}
+	if len(files) != 3 {
+		t.Errorf("expected exactly 3 discovered files, got %d: %v", len(files), got)
+	}
+}
+
+func TestDiscoverFiles_IgnoredDirAssetsAreNotBundleAssets(t *testing.T) {
+	dir := t.TempDir()
+	content := filepath.Join(dir, "content")
+
+	// A bundle whose directory also contains a hidden sibling file — the
+	// hidden file must not be tracked as a bundle asset.
+	writeFile(t, content, filepath.Join("blog", "my-bundle", "index.md"), "---\ntitle: Bundle\n---\n")
+	writeFileRaw(t, filepath.Join(content, "blog", "my-bundle", "hero.jpg"), []byte("img"))
+	writeFileRaw(t, filepath.Join(content, "blog", "my-bundle", ".DS_Store"), []byte("junk"))
+
+	scanner := &Scanner{}
+	files, err := scanner.DiscoverFiles(content)
+	if err != nil {
+		t.Fatalf("DiscoverFiles error: %v", err)
+	}
+	if len(files) != 1 {
+		t.Fatalf("expected 1 file, got %d", len(files))
+	}
+	if len(files[0].BundleAssets) != 1 {
+		t.Fatalf("expected 1 bundle asset, got %v", files[0].BundleAssets)
+	}
+	if filepath.Base(files[0].BundleAssets[0]) != "hero.jpg" {
+		t.Errorf("expected hero.jpg as the only bundle asset, got %v", files[0].BundleAssets)
+	}
+}
+
+func TestHasIgnoredSegment(t *testing.T) {
+	tests := []struct {
+		rel  string
+		want bool
+	}{
+		{"blog/post.md", false},
+		{"_index.md", false},                // underscore FILES are content
+		{"blog/_index.md", false},
+		{".hidden.md", true},                // hidden file
+		{".trash/removed.md", true},         // hidden dir
+		{"blog/.trash/old.md", true},        // nested hidden dir
+		{"_drafts/wip.md", true},            // underscore dir
+		{"docs/_archive/old/page.md", true}, // underscore dir mid-path
+	}
+	for _, tt := range tests {
+		if got := HasIgnoredSegment(tt.rel); got != tt.want {
+			t.Errorf("HasIgnoredSegment(%q) = %v, want %v", tt.rel, got, tt.want)
+		}
+	}
+}

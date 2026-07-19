@@ -128,7 +128,16 @@ func countMarkdownFiles(dir string) int {
 		if err != nil {
 			return nil
 		}
-		if !d.IsDir() && strings.HasSuffix(d.Name(), ".md") {
+		// Mirror the scanner's discovery filter so the page counts shown in
+		// the UI match what actually builds (nested .trash/_drafts dirs and
+		// hidden files don't count).
+		if d.IsDir() {
+			if path != dir && content.IsIgnoredDirName(d.Name()) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !content.IsIgnoredFileName(d.Name()) && strings.HasSuffix(d.Name(), ".md") {
 			count++
 		}
 		return nil

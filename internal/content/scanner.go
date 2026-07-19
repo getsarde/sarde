@@ -48,6 +48,35 @@ func (s *Scanner) Discover(contentDir string) (map[string][]string, error) {
 	return result, nil
 }
 
+// IsIgnoredDirName reports whether a directory is excluded from content
+// discovery. Dot- and underscore-prefixed directories (.trash, .obsidian,
+// _drafts) are never content — the same convention the collection
+// enumerators in internal/collection and internal/project apply.
+func IsIgnoredDirName(name string) bool {
+	return strings.HasPrefix(name, ".") || strings.HasPrefix(name, "_")
+}
+
+// IsIgnoredFileName reports whether a file is excluded from discovery. Only
+// dot-prefixed (hidden) files are skipped — underscore-prefixed files such
+// as _index.md are meaningful content.
+func IsIgnoredFileName(name string) bool {
+	return strings.HasPrefix(name, ".")
+}
+
+// HasIgnoredSegment reports whether any directory segment of the
+// slash-separated content-relative path is ignored, or its leaf is an
+// ignored file. Used by the incremental-rebuild path, which resolves single
+// changed files without a directory walk.
+func HasIgnoredSegment(rel string) bool {
+	segments := strings.Split(rel, "/")
+	for _, seg := range segments[:len(segments)-1] {
+		if IsIgnoredDirName(seg) {
+			return true
+		}
+	}
+	return IsIgnoredFileName(segments[len(segments)-1])
+}
+
 // DiscoverFiles walks contentDir and returns a richer ContentFile for each .md file found.
 func (s *Scanner) DiscoverFiles(contentDir string) ([]ContentFile, error) {
 	contentDir = filepath.Clean(contentDir)
@@ -61,6 +90,12 @@ func (s *Scanner) DiscoverFiles(contentDir string) ([]ContentFile, error) {
 			return err
 		}
 		if d.IsDir() {
+			if path != contentDir && IsIgnoredDirName(d.Name()) {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if IsIgnoredFileName(d.Name()) {
 			return nil
 		}
 		ext := strings.ToLower(filepath.Ext(path))
@@ -80,7 +115,13 @@ func (s *Scanner) DiscoverFiles(contentDir string) ([]ContentFile, error) {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() || strings.ToLower(filepath.Ext(path)) != ".md" {
+		if d.IsDir() {
+			if path != contentDir && IsIgnoredDirName(d.Name()) {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if IsIgnoredFileName(d.Name()) || strings.ToLower(filepath.Ext(path)) != ".md" {
 			return nil
 		}
 

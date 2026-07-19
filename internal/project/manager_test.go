@@ -238,3 +238,23 @@ func TestProjectManager_RenderMarkdown(t *testing.T) {
 		t.Error("expected non-zero word count")
 	}
 }
+
+func TestCountMarkdownFiles_SkipsIgnoredDirsAndFiles(t *testing.T) {
+	dir := t.TempDir()
+	write := func(rel, body string) {
+		path := filepath.Join(dir, rel)
+		os.MkdirAll(filepath.Dir(path), 0755)
+		os.WriteFile(path, []byte(body), 0644)
+	}
+	write("_index.md", "---\ntitle: Blog\n---\n")
+	write("post.md", "---\ntitle: Post\n---\n")
+	write("nested/page.md", "---\ntitle: Page\n---\n")
+	// None of these may count — they don't build (see content scanner filter).
+	write(".trash/old.md", "trashed")
+	write("_archive/legacy.md", "archived")
+	write(".hidden.md", "hidden")
+
+	if got := countMarkdownFiles(dir); got != 3 {
+		t.Errorf("countMarkdownFiles = %d, want 3", got)
+	}
+}
