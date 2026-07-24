@@ -19,10 +19,10 @@ FIRST-PARTY GO MODULES (MIT)
 
 The following modules are authored by the Sarde maintainer:
 
-Module:    github.com/frostybee/kazari v1.0.1
+Module:    github.com/frostybee/kazari v1.1.0
 Source:    https://github.com/frostybee/kazari
 
-Module:    github.com/frostybee/nuri v1.0.0
+Module:    github.com/frostybee/nuri v1.0.1
 Source:    https://github.com/frostybee/nuri
 
 Module:    github.com/frostybee/edict v0.1.0

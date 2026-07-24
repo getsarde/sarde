@@ -10,7 +10,7 @@ require (
 	github.com/frostybee/edict v0.1.0
 	github.com/frostybee/go-swarm-icons v0.1.0
 	github.com/frostybee/go-swarm-icons/lucide v0.1.0
-	github.com/frostybee/kazari v1.0.1
+	github.com/frostybee/kazari v1.1.0
 	github.com/frostybee/nuri v1.0.1
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gen2brain/avif v0.4.4
@@ -52,5 +52,3 @@ require (
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 )
-
-replace github.com/frostybee/kazari v1.0.1 => D:\dev\my-repos\kazari
