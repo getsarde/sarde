@@ -3,7 +3,6 @@ title: Timeline
 description: "Display a vertical sequence of entries with markers for changelogs or milestones"
 sidebar:
   order: 26
-  group: Block
 ---
 
 Timelines display a vertical sequence of entries with markers and a connecting line. Use them for changelogs, project milestones, or historical sequences.

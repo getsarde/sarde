@@ -3,7 +3,6 @@ title: Keyboard Nav
 description: "Navigate between previous and next pages using the arrow keys, with optional side navigation arrows"
 sidebar:
   order: 15
-  group: Client-Side
 ---
 
 Navigate between previous and next pages using the ::kbd[Left] and ::kbd[Right] arrow keys. Optionally displays chevron arrows on the left and right edges of the viewport for click navigation. Disabled by default.

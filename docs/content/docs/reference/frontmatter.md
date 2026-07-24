@@ -57,6 +57,23 @@ If a file has no frontmatter delimiters, the entire file is treated as Markdown 
 | `type` | string | - | Content type identifier. |
 | `template` | string | - | Template override for rendering this page. |
 
+### Date values
+
+The four date fields accept a plain `YYYY-MM-DD` date, a full RFC 3339 timestamp, or `YYYY-MM-DD HH:MM:SS`:
+
+```yaml
+date: 2026-07-24
+updated: 2026-07-24T10:30:00Z
+```
+
+An empty value means "not set" and is treated exactly like omitting the key, so a cleared date field does not fail the build:
+
+```yaml
+publish_date: ""
+```
+
+A value that is neither empty nor a recognized date is an error, and the build reports the offending file and value.
+
 ## Meta fields
 
 | Key | Type | Default | Description |

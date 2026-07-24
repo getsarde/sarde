@@ -3,7 +3,6 @@ title: Details
 description: "Create a collapsible section with a clickable summary, optionally expanded by default"
 sidebar:
   order: 14
-  group: Block
 ---
 
 Details creates a collapsible section that readers can expand and collapse. It renders as an HTML `<details>` element with a clickable summary.

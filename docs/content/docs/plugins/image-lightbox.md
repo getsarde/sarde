@@ -3,7 +3,6 @@ title: Image Lightbox
 description: "Open content images in a full-screen overlay with zoom and pan controls"
 sidebar:
   order: 14
-  group: Client-Side
 ---
 
 Clicking an image in the content area opens it in a full-screen overlay with zoom and pan controls. Disabled by default.

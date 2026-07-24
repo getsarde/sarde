@@ -3,7 +3,6 @@ title: Mermaid
 description: "Ship Mermaid runtime assets to pages that contain diagram markup"
 sidebar:
   order: 36
-  group: Server-Side
 ---
 
 Ships Mermaid runtime assets and injects them into pages that contain diagram markup. Enabled by default, but assets are only loaded on pages that use Mermaid diagrams.

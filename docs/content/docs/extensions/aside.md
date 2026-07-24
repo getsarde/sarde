@@ -3,7 +3,6 @@ title: Aside
 description: "Add colored callout blocks for notes, tips, warnings, and dangers that stand out from content"
 sidebar:
   order: 11
-  group: Block
 ---
 
 Asides add colored callout blocks (notes, tips, cautions, and dangers) that stand out from the surrounding content. Each type has a distinct color and icon.

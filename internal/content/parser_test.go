@@ -393,3 +393,23 @@ func TestParseFrontmatter_Hero(t *testing.T) {
 		t.Errorf("Actions[0].Icon = %q, want %q", a.Icon, "lucide:arrow-right")
 	}
 }
+
+func TestParseFrontmatter_EmptyDateFields(t *testing.T) {
+	// Sarde Studio writes an empty string when a date field is cleared. Such a
+	// page must parse as "date unset", not abort the whole build.
+	raw := []byte("---\ntitle: Cleared Dates\npublish_date: ''\nexpiry_date: ''\ndate: ''\n---\n\nBody.\n")
+	fm, body, err := ParseFrontmatter(raw)
+	if err != nil {
+		t.Fatalf("ParseFrontmatter error: %v", err)
+	}
+	if fm.Title != "Cleared Dates" {
+		t.Errorf("Title = %q, want %q", fm.Title, "Cleared Dates")
+	}
+	if !fm.Date.IsZero() || !fm.PublishDate.IsZero() || !fm.ExpiryDate.IsZero() {
+		t.Errorf("empty date strings should decode as zero, got date=%v publish=%v expiry=%v",
+			fm.Date.Time, fm.PublishDate.Time, fm.ExpiryDate.Time)
+	}
+	if body != "\nBody.\n" {
+		t.Errorf("body = %q, want %q", body, "\nBody.\n")
+	}
+}

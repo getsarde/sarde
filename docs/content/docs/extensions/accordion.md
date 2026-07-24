@@ -3,7 +3,6 @@ title: Accordion
 description: "Group collapsible detail sections so opening one closes the others"
 sidebar:
   order: 10
-  group: Block
 ---
 
 Accordions group multiple collapsible sections so that opening one closes the others. Wrap `:::details` blocks inside an `:::accordion` container.

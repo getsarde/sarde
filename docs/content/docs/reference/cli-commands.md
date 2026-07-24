@@ -456,9 +456,9 @@ Reports, per collection and language, the total number of Markdown files in the 
 
 Manage docs versioning for a collection.
 
-### `doc-version create <project-dir> <collection> <version-id> <label>`
+### `doc-version create <project-dir> <collection> <version-id>`
 
-Cut a new version for a collection.
+Cut a new version for a collection. Takes a trailing `<label>` argument, the human-readable name shown in the version switcher.
 
 ```
 sarde doc-version create . docs v1 "Version 1.0"

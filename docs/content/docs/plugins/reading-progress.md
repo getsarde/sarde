@@ -3,7 +3,6 @@ title: Reading Progress
 description: "Show a scroll progress bar and an estimated reading time badge"
 sidebar:
   order: 19
-  group: Client-Side
 ---
 
 Adds a thin progress bar below the navigation header that fills as the reader scrolls, and an estimated reading time badge below the page title. Disabled by default.

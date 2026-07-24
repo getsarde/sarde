@@ -3,7 +3,6 @@ title: Last Updated
 description: "Show a badge with the page's last-modified time, relative or absolute"
 sidebar:
   order: 16
-  group: Client-Side
 ---
 
 Displays a "Last updated" badge showing when the page was last modified, using either a relative timestamp ("3 days ago") or an absolute date. Disabled by default.

@@ -3,7 +3,6 @@ title: Link Button Group
 description: "Wrap multiple link buttons in a horizontal row with consistent spacing"
 sidebar:
   order: 30
-  group: Block
 ---
 
 Link Button Group wraps multiple [link buttons](/extensions/link-buttons) in a horizontal row with consistent spacing.

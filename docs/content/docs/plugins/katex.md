@@ -3,7 +3,6 @@ title: KaTeX
 description: "Ship KaTeX runtime assets to pages that contain math markup"
 sidebar:
   order: 33
-  group: Server-Side
 ---
 
 Ships KaTeX runtime assets (JS, CSS, fonts) and injects them into pages that contain math markup. Enabled by default, but assets are only loaded on pages that use math.

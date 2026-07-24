@@ -3,7 +3,6 @@ title: Figure
 description: "Wrap images or other content in a figure element with an optional caption"
 sidebar:
   order: 15
-  group: Block
 ---
 
 Figures wrap images (or other content) in an HTML `<figure>` element with an optional `<figcaption>`. Use them when an image needs a visible caption below it.

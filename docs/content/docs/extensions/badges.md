@@ -3,7 +3,6 @@ title: Badges
 description: "Display short colored pill labels with optional icons for status, versions, or categories"
 sidebar:
   order: 12
-  group: Block
 ---
 
 Badges display short labels with colored backgrounds and optional icons. Use them for status indicators, version labels, or category tags.

@@ -3,7 +3,6 @@ title: Search
 description: "Build a JSON search index at build time with embedded, offline Orama search"
 sidebar:
   order: 39
-  group: Server-Side
 ---
 
 Builds a JSON search index at build time and ships the Orama client-side search runtime. Every page gets the search script injected, and the search UI is available via ::kbd[Ctrl+K] (or ::kbd[Cmd+K] on macOS). Enabled by default.

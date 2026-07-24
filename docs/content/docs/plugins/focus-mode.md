@@ -3,7 +3,6 @@ title: Focus Mode
 description: "Hide the sidebar and table of contents for distraction-free reading"
 sidebar:
   order: 13
-  group: Client-Side
 ---
 
 Focus mode hides the sidebar and table of contents for distraction-free reading. The content area re-centers at a comfortable reading width. Disabled by default.

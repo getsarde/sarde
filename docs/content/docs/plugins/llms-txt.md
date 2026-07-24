@@ -3,7 +3,6 @@ title: LLMs.txt
 description: "Generate an llms.txt file listing every content page for LLM discovery"
 sidebar:
   order: 35
-  group: Server-Side
 ---
 
 Generates an `llms.txt` file in the build output, listing every content page with its title and absolute URL. This file follows the llms.txt convention for making site content discoverable by large language models. Enabled by default.

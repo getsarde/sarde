@@ -3,7 +3,6 @@ title: Sitemap
 description: "Generate a sitemap.xml listing every non-draft page with metadata"
 sidebar:
   order: 41
-  group: Server-Side
 ---
 
 Generates a `sitemap.xml` file at the site root listing every non-draft page with its URL, last modification date, change frequency, and priority. Enabled by default.

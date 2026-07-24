@@ -3,7 +3,6 @@ title: Copy Section Link
 description: "Copy a shareable link to a heading section by clicking its anchor icon"
 sidebar:
   order: 11
-  group: Client-Side
 ---
 
 Clicking a heading's anchor icon copies a shareable link to that section. A tooltip confirms the copy. Disabled by default.

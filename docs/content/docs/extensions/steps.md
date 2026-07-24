@@ -3,7 +3,6 @@ title: Steps
 description: "Display a numbered sequence of instructions with a connecting vertical progress line"
 sidebar:
   order: 23
-  group: Block
 ---
 
 Steps display a numbered sequence of instructions with a vertical progress line connecting each step. Two input modes are supported: heading mode and ordered-list mode.

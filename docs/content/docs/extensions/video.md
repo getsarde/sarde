@@ -3,7 +3,6 @@ title: Video
 description: "Embed YouTube, Vimeo, or self-hosted video files with a responsive wrapper"
 sidebar:
   order: 27
-  group: Block
 ---
 
 Video embeds YouTube, Vimeo, or self-hosted video files with a responsive wrapper. YouTube and Vimeo URLs are auto-detected and rendered as privacy-friendly iframes.

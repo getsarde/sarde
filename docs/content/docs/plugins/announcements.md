@@ -3,7 +3,6 @@ title: Announcements
 description: "Render dismissible announcement banners with scheduling and page targeting"
 sidebar:
   order: 30
-  group: Server-Side
 ---
 
 Renders dismissible announcement banners at the bottom of every page. Supports multiple announcements, three display modes, date scheduling, page targeting, and i18n message resolution. Disabled by default.

@@ -3,7 +3,6 @@ title: Image Compare
 description: "Compare a before and after image pair with a draggable slider"
 sidebar:
   order: 18
-  group: Block
 ---
 
 Image Compare displays two images side by side with a draggable slider, letting readers compare a "before" and "after" view.

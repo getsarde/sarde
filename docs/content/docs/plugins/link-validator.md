@@ -3,7 +3,6 @@ title: Link Validator
 description: "Check internal links, anchors, and image references during the build"
 sidebar:
   order: 34
-  group: Server-Side
 ---
 
 Checks internal links, anchors, and image references during the build and reports broken targets. Also validates relative links, localhost links, and same-site absolute URLs. Enabled by default.

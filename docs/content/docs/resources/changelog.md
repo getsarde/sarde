@@ -7,7 +7,9 @@ sidebar:
 
 Notable changes to Sarde, grouped by release. Bug fixes, new features, and breaking changes are listed separately within each release.
 
-## Unreleased
+## 1.0.0 - 2026-07-24
+
+The first stable release. Everything below has accumulated since the 0.1.x previews.
 
 ### Breaking
 
@@ -15,6 +17,8 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Fixed
 
+- Frontmatter date fields (`date`, `updated`, `publish_date`, `expiry_date`) may now be left empty. An empty value means "not set" instead of aborting the build, which is what an editor writes when a date field is cleared.
+- Frontmatter parse errors now name the file they came from, instead of reporting a bare parse failure with no location.
 - Page cache now re-validates link targets on every build, even for cached pages. Warm builds report the same link coverage as cold builds, and renaming a linked page is detected without editing the source file.
 - Custom heading IDs (`## Heading {#custom-id}`) are now preserved. Previously, all heading IDs were overwritten with auto-generated slugs, causing links to custom anchors to be falsely reported as broken.
 - The `site.heading_links` config option is now functional. It controls whether clickable anchor links appear next to headings. Heading IDs are always assigned (required by the TOC, search, and link validation), but the visible anchor element is now toggled by this setting.

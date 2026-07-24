@@ -3,7 +3,6 @@ title: Spoiler
 description: "Hide text behind a blur until the reader hovers, focuses, or clicks to reveal it"
 sidebar:
   order: 36
-  group: Inline
 ---
 
 Spoilers hide text behind a blur until the reader hovers, focuses, or clicks to reveal it. The syntax follows the Discord convention of double pipes.

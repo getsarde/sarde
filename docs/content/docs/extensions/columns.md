@@ -3,7 +3,6 @@ title: Columns
 description: "Split content into side-by-side columns with a configurable column count"
 sidebar:
   order: 28
-  group: Block
 ---
 
 Columns split content into a side-by-side grid. Use it to place related blocks, such as a code sample and its explanation, next to each other.

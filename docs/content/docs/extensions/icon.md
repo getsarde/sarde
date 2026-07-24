@@ -3,7 +3,6 @@ title: Icon
 description: "Render inline SVG icons from Lucide or other Iconify-compatible sets"
 sidebar:
   order: 34
-  group: Inline
 ---
 
 Icons render inline SVG glyphs that match the surrounding text size and color. The default icon set is [Lucide](https://lucide.dev), with support for additional Iconify-compatible sets.

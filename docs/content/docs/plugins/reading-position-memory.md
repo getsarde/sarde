@@ -3,7 +3,6 @@ title: Reading Position Memory
 description: "Remember a reader's scroll position and offer to restore it on return"
 sidebar:
   order: 17
-  group: Client-Side
 ---
 
 Remembers the scroll position on each page and offers to restore it on return. A toast notification lets the reader jump back to where they left off. Disabled by default.

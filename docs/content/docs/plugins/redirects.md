@@ -3,7 +3,6 @@ title: Redirects
 description: "Generate redirect files from page aliases and global redirect mappings"
 sidebar:
   order: 37
-  group: Server-Side
 ---
 
 Generates redirect files from page aliases and global redirect mappings. Outputs HTML meta-refresh pages as a universal fallback, plus platform-specific files for Netlify/Cloudflare (`_redirects`) and Vercel (`vercel.json`). Enabled by default.

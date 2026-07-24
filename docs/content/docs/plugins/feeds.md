@@ -3,7 +3,6 @@ title: Feeds
 description: "Generate RSS 2.0 and Atom 1.0 feed files for feed-enabled collections"
 sidebar:
   order: 32
-  group: Server-Side
 ---
 
 Generates RSS 2.0 and Atom 1.0 feed files for collections that have feeds enabled. Both the `rss` and `atom` plugins are enabled by default and share the same configuration structure.

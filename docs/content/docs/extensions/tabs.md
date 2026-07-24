@@ -3,7 +3,6 @@ title: Tabs
 description: "Switch between related content panels, with tab selection synced across the site"
 sidebar:
   order: 24
-  group: Block
 ---
 
 Tabs let readers switch between related content panels without leaving the page. Tab selections persist in localStorage and sync across all tab groups on the site that share the same label.

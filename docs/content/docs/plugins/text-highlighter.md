@@ -3,7 +3,6 @@ title: Text Highlighter
 description: "Let readers highlight text passages, persisted across visits via localStorage"
 sidebar:
   order: 22
-  group: Client-Side
 ---
 
 Lets readers highlight text passages on a page with colored markers, persisted in `localStorage` so highlights survive page reloads and revisits. Disabled by default.

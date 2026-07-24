@@ -3,7 +3,6 @@ title: Link Card
 description: "Render a clickable card-style link with a title, description, and optional icon or image"
 sidebar:
   order: 20
-  group: Block
 ---
 
 Link cards render a clickable card-style link with a title, optional description, and optional icon or image. External links automatically show the domain name.

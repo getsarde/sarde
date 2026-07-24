@@ -3,7 +3,6 @@ title: Kbd
 description: "Render keyboard keys and key combinations as styled keycaps"
 sidebar:
   order: 35
-  group: Inline
 ---
 
 Keyboard keys render as styled keycaps that visually match physical keyboard buttons. Key combinations split on `+` and display each key separately with a separator.

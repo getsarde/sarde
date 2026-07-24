@@ -3,7 +3,6 @@ title: Mermaid
 description: "Render flowcharts, sequence diagrams, and other visualizations from text definitions"
 sidebar:
   order: 22
-  group: Block
 ---
 
 Mermaid diagrams render flowcharts, sequence diagrams, class diagrams, and other visualizations from text definitions. The diagram source is written in a fenced code block and rendered client-side by the Mermaid library.

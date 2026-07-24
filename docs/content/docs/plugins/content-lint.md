@@ -3,7 +3,6 @@ title: Content Lint
 description: "Catch heading, alt-text, link, and frontmatter quality issues during the build"
 sidebar:
   order: 31
-  group: Server-Side
 ---
 
 Checks Markdown content for common quality issues during the build: heading length violations, skipped heading levels, missing image alt text, empty links, and missing frontmatter fields. Enabled by default.

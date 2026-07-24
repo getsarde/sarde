@@ -3,7 +3,6 @@ title: SEO
 description: "Inject Open Graph, Twitter Card, and JSON-LD structured data into every page"
 sidebar:
   order: 40
-  group: Server-Side
 ---
 
 Injects Open Graph, Twitter Card, and JSON-LD structured data into every page during the build. Populates page-level `seo` params that the Head component reads to render `<meta>` tags. Enabled by default.

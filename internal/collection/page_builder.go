@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"os"
@@ -99,7 +100,7 @@ func buildPage(
 	// Parse frontmatter: single pass produces both untyped map and typed struct.
 	fmMap, fm, body, fmLines, err := content.ParseAll(raw)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("%s: %w", cf.RelPath, err)
 	}
 
 	contentDigest := rawDigest(raw)
@@ -129,10 +130,10 @@ func buildPage(
 		PageIdentity: engine.PageIdentity{
 			Title:       fm.Title,
 			Slug:        fm.Slug,
-			Date:        fm.Date,
-			Updated:     fm.Updated,
-			PublishDate: fm.PublishDate,
-			ExpiryDate:  fm.ExpiryDate,
+			Date:        fm.Date.Time,
+			Updated:     fm.Updated.Time,
+			PublishDate: fm.PublishDate.Time,
+			ExpiryDate:  fm.ExpiryDate.Time,
 			Kind:        cf.Kind,
 			FilePath:    cf.FilePath,
 		},

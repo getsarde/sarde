@@ -3,7 +3,6 @@ title: Social Cards
 description: "Auto-generate Open Graph social card images for pages without one"
 sidebar:
   order: 42
-  group: Server-Side
 ---
 
 Auto-generates 1200×630 Open Graph images for pages that do not already have one. Each card displays the page title, description, site branding, collection name, and date, rendered with the Inter font family. Enabled by default, but images are only generated during production builds.

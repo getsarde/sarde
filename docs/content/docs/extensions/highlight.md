@@ -3,7 +3,6 @@ title: Highlight
 description: "Draw attention to key words or phrases with a colored background highlight"
 sidebar:
   order: 33
-  group: Inline
 ---
 
 Highlighted text draws attention to key words or phrases with a colored background, similar to a marker pen on paper.

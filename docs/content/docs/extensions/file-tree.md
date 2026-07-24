@@ -3,7 +3,6 @@ title: File Tree
 description: "Render directory structures as a styled tree with folder and file icons"
 sidebar:
   order: 16
-  group: Block
 ---
 
 File trees render directory structures with folder/file icons, indentation lines, and optional highlights and comments. Write the tree as a standard Markdown list inside a `:::file-tree` block.

@@ -3,7 +3,6 @@ title: Cards
 description: "Display content in bordered, elevated containers, arranged in a responsive grid"
 sidebar:
   order: 13
-  group: Block
 ---
 
 Cards display content in bordered, elevated containers with optional titles and icons. Use `:::card-grid` to arrange multiple cards in a responsive column layout.

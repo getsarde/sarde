@@ -3,7 +3,6 @@ title: Scroll to Top
 description: "A floating button that scrolls back to the top, with an optional progress ring"
 sidebar:
   order: 20
-  group: Client-Side
 ---
 
 A floating button that scrolls the page back to the top when clicked. Optionally displays a circular progress ring showing how far down the page the reader has scrolled. Disabled by default.

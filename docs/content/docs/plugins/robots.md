@@ -3,7 +3,6 @@ title: Robots
 description: "Generate a robots.txt file that allows all crawlers and links the sitemap"
 sidebar:
   order: 38
-  group: Server-Side
 ---
 
 Generates a `robots.txt` file at the site root that allows all crawlers and includes a sitemap directive. Enabled by default.

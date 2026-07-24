@@ -3,7 +3,6 @@ title: Reading Preferences
 description: "Let readers adjust font, size, spacing, alignment, and content width"
 sidebar:
   order: 18
-  group: Client-Side
 ---
 
 Adds a floating panel where readers can adjust font family, font size, spacing, text alignment, and content width. Preferences persist across pages via `localStorage`. Disabled by default.

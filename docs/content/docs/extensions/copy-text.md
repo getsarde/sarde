@@ -3,7 +3,6 @@ title: Copy Text
 description: "Turn a text snippet into a one-click clipboard copy styled like inline code"
 sidebar:
   order: 32
-  group: Inline
 ---
 
 Copy text turns a snippet into a one-click clipboard copy, styled like inline code with a small copy button attached.

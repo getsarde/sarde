@@ -3,7 +3,6 @@ title: Gallery
 description: "Display multiple images in a responsive grid with a built-in full-screen lightbox"
 sidebar:
   order: 17
-  group: Block
 ---
 
 Galleries display multiple images in a responsive grid with a built-in lightbox for full-screen viewing.

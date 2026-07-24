@@ -3,7 +3,6 @@ title: Terminal
 description: "Render content inside a macOS-style terminal window with automatic line classification"
 sidebar:
   order: 25
-  group: Block
 ---
 
 Terminal renders content inside a macOS-style terminal window with colored traffic-light buttons and automatic line classification.

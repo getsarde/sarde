@@ -3,7 +3,6 @@ title: SlideViewer
 description: "Ship the SlideViewer presentation runtime to pages using the presentation layout"
 sidebar:
   order: 43
-  group: Server-Side
 ---
 
 Ships the SlideViewer runtime (JS and CSS) and injects it on pages that use the `presentation` layout. SlideViewer is distributed as an [external plugin](/plugins/external-plugins): install it into your project's `plugins/` directory and it activates automatically. Assets are only loaded on presentation pages.

@@ -3,7 +3,6 @@ title: External Links
 description: "Mark external links with an arrow icon and open them in a new browser tab"
 sidebar:
   order: 12
-  group: Client-Side
 ---
 
 External links in the content area receive a small arrow icon and open in a new browser tab. Disabled by default.

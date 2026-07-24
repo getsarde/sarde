@@ -3,7 +3,6 @@ title: Search Highlighter
 description: "Highlight search terms on the page when readers arrive from site search"
 sidebar:
   order: 21
-  group: Client-Side
 ---
 
 Highlights search terms on the page when a reader arrives from the site search. Matched terms are wrapped in colored `<mark>` elements, and a sticky badge shows the match count with previous/next navigation. Disabled by default.

@@ -140,16 +140,16 @@ type Page struct {
 
 // FrontmatterIdentity holds core identity fields parsed from frontmatter.
 type FrontmatterIdentity struct {
-	Title       string    `yaml:"title"`
-	Slug        string    `yaml:"slug"`
-	Date        time.Time `yaml:"date"`
-	Updated     time.Time `yaml:"updated"`
-	PublishDate time.Time `yaml:"publish_date"`
-	ExpiryDate  time.Time `yaml:"expiry_date"`
-	Aliases     []string  `yaml:"aliases"`
-	Layout      string    `yaml:"layout"`
-	Type        string    `yaml:"type"`
-	Template    string    `yaml:"template"`
+	Title       string   `yaml:"title"`
+	Slug        string   `yaml:"slug"`
+	Date        FlexDate `yaml:"date"`
+	Updated     FlexDate `yaml:"updated"`
+	PublishDate FlexDate `yaml:"publish_date"`
+	ExpiryDate  FlexDate `yaml:"expiry_date"`
+	Aliases     []string `yaml:"aliases"`
+	Layout      string   `yaml:"layout"`
+	Type        string   `yaml:"type"`
+	Template    string   `yaml:"template"`
 }
 
 // FrontmatterMeta holds editorial and behavioral override fields.

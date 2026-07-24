@@ -3,7 +3,6 @@ title: Math
 description: "Render inline and block LaTeX math expressions using KaTeX"
 sidebar:
   order: 21
-  group: Block
 ---
 
 Math expressions render LaTeX notation using KaTeX. Inline expressions use single dollar signs. Display (block) expressions use double dollar signs.
