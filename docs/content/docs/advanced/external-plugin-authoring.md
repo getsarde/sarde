@@ -9,6 +9,10 @@ sidebar:
 This page covers external plugins: declarative `plugin.yaml` packages installed with `sarde plugin install`, no code required. For Go plugins compiled into the `sarde` binary using lifecycle hooks, see [Writing Plugins](/advanced/writing-plugins/). The `manifest.yaml` format described in that page's client-side section is internal to Sarde's bundled plugins and is not something plugin authors write.
 :::
 
+:::caution[Manifest format is provisional]
+The `plugin.yaml` schema shipped shortly before Sarde 1.0 and has not yet been exercised by a wide range of plugins. It is **not** covered by Sarde's 1.x compatibility promise: field names and defaults may still change in a 1.x release while the format settles. Changes will be announced in the [changelog](/resources/changelog/) with a migration path. Pin the Sarde version you build against if you publish a plugin.
+:::
+
 An external plugin is a directory of static files plus one manifest. Sarde reads the manifest at build time and wires the declared assets and templates into the site. Because no plugin code executes, a plugin cannot break or slow down a build; the worst a bad manifest can do is get itself skipped with a warning.
 
 ## Plugin anatomy

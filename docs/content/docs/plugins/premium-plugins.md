@@ -5,6 +5,10 @@ sidebar:
   order: 3
 ---
 
+:::caution[License format is provisional]
+The signed license file format shipped with Sarde 1.0 and is **not** covered by the 1.x compatibility promise: its fields may still change in a 1.x release while the format settles. Verification behavior described below (offline, warn and disable, never fail the build) is stable. Sellers should expect to reissue license files if the format changes, and any such change will be announced in the [changelog](/resources/changelog/).
+:::
+
 Premium plugins are [external plugins](/plugins/external-plugins/) that declare `premium: true` in their manifest. A premium plugin installs like any other plugin but stays inactive until a matching license file is present.
 
 ## How licensing works
