@@ -134,6 +134,21 @@ type Page struct {
 	Params    map[string]any
 }
 
+// ShowUpdated reports whether the page's Updated timestamp should be surfaced
+// to visitors, from the show_updated frontmatter field (default true).
+//
+// This gates display only. Updated is always resolved as data, so sitemap
+// lastmod, SEO dateModified, and feed timestamps stay correct on pages whose
+// badge is hidden.
+func (p *Page) ShowUpdated() bool {
+	if v, ok := p.Params["show_updated"]; ok {
+		if b, ok := v.(bool); ok {
+			return b
+		}
+	}
+	return true
+}
+
 // ---------------------------------------------------------------------------
 // Frontmatter
 // ---------------------------------------------------------------------------

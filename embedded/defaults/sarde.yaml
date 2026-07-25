@@ -47,7 +47,10 @@ build:
   clean: true
   sitemap: true
   minify: false
-  last_updated: mtime
+  # git uses each file's last commit time. Outside a git repository it falls
+  # back to mtime automatically. mtime is unreliable in CI, where a fresh clone
+  # gives every file the checkout time.
+  last_updated: git
   feed: true
   drafts: false
   future: false

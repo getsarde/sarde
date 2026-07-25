@@ -198,3 +198,26 @@ func TestInfer_IndexMdSlugFromParentDir(t *testing.T) {
 		t.Errorf("Slug = %q, want %q", page.Slug, "docs")
 	}
 }
+
+// show_updated controls whether the timestamp is shown, not whether it is
+// resolved. Zeroing Updated would also strip sitemap lastmod, SEO
+// dateModified, and feed timestamps for that page.
+func TestInfer_ShowUpdatedFalseStillResolvesUpdated(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "test.md")
+	os.WriteFile(path, []byte("content"), 0644)
+
+	page := &engine.Page{
+		PageContent: engine.PageContent{RawContent: "content"},
+		Params:      map[string]any{"show_updated": false},
+	}
+	inf := &Inferrer{}
+	inf.Infer(page, path)
+
+	if page.Updated.IsZero() {
+		t.Error("Updated should still be resolved as data when show_updated is false")
+	}
+	if page.ShowUpdated() {
+		t.Error("ShowUpdated should report false so the badge stays hidden")
+	}
+}

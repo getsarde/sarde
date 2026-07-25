@@ -49,7 +49,7 @@ If a file has no frontmatter delimiters, the entire file is treated as Markdown 
 | `title` | string | inferred | Page title. Inferred from the first `# H1` heading or the filename if not set. **Required** (after inference). |
 | `slug` | string | inferred | URL slug for the page. Inferred from the filename with numeric prefixes stripped. |
 | `date` | date | inferred | Publication date. Inferred from a `YYYY-MM-DD` filename prefix or the file modification time. |
-| `updated` | date | inferred | Last modification date. Inferred from git commit date or file modification time (controlled by [`build.last_updated`](/reference/configuration#build)). |
+| `updated` | date | inferred | Last modification date. Inferred from the file's last git commit, or its modification time, per [`build.last_updated`](/reference/configuration#last-updated-strategy). Set it explicitly when a commit date would misrepresent the change (a formatting sweep, for example). |
 | `publish_date` | date | - | Future publication date. Pages with a future `publish_date` are excluded unless `build.future` is enabled. |
 | `expiry_date` | date | - | Expiration date. Pages past this date are excluded unless `build.expired` is enabled. |
 | `aliases` | list of string | `[]` | Alternative URL paths that redirect to this page. |
@@ -84,7 +84,7 @@ A value that is neither empty nor a recognized date is an error, and the build r
 | `summary` | string | inferred | Page summary. Falls back to `description`, then to the first paragraph truncated to [`content.summary_length`](/reference/configuration#content) words. |
 | `render` | bool | - | Whether to render this page. Treated as `true` when unset. Set to `false` to process the page in the content pipeline without generating an output file. |
 | `pagefind` | bool | - | Include this page in the search index. Treated as `true` when unset. |
-| `show_updated` | bool | - | Show the "last updated" date on this page. Set to `false` to suppress the updated date even when one is available. |
+| `show_updated` | bool | - | Show the "last updated" date on this page. Set to `false` to hide it. This gates display only: the timestamp is still resolved, so sitemap `lastmod`, SEO `dateModified`, and feed timestamps stay correct. |
 | `edit_url` | bool or string | - | Controls the "Edit this page" link. `false` hides it. `true` uses the site-wide [`site.edit_url`](/reference/configuration#site). A string provides a custom URL for this page. |
 
 ## Sidebar fields

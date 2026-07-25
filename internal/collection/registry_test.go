@@ -49,7 +49,7 @@ func TestBuildCollections_BlogDefaults(t *testing.T) {
 	contentDir, files := createTestSite(t)
 	siteCfg := config.Defaults()
 
-	collections, _, err := BuildCollections(files, siteCfg, contentDir)
+	collections, _, err := BuildCollections(files, siteCfg, contentDir, nil)
 	if err != nil {
 		t.Fatalf("BuildCollections error: %v", err)
 	}
@@ -73,7 +73,7 @@ func TestBuildCollections_DocsDefaults(t *testing.T) {
 	contentDir, files := createTestSite(t)
 	siteCfg := config.Defaults()
 
-	collections, _, err := BuildCollections(files, siteCfg, contentDir)
+	collections, _, err := BuildCollections(files, siteCfg, contentDir, nil)
 	if err != nil {
 		t.Fatalf("BuildCollections error: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestBuildCollections_DraftFiltering(t *testing.T) {
 	siteCfg := config.Defaults()
 	// Defaults have drafts=false
 
-	collections, _, err := BuildCollections(files, siteCfg, contentDir)
+	collections, _, err := BuildCollections(files, siteCfg, contentDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,7 +113,7 @@ func TestBuildCollections_DraftIncluded(t *testing.T) {
 	siteCfg := config.Defaults()
 	siteCfg.Build.Drafts = config.BoolPtr(true)
 
-	collections, _, err := BuildCollections(files, siteCfg, contentDir)
+	collections, _, err := BuildCollections(files, siteCfg, contentDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,7 +134,7 @@ func TestBuildCollections_BlogSortDateDesc(t *testing.T) {
 	contentDir, files := createTestSite(t)
 	siteCfg := config.Defaults()
 
-	collections, _, err := BuildCollections(files, siteCfg, contentDir)
+	collections, _, err := BuildCollections(files, siteCfg, contentDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -160,7 +160,7 @@ func TestBuildCollections_DocsSortWeightAsc(t *testing.T) {
 	contentDir, files := createTestSite(t)
 	siteCfg := config.Defaults()
 
-	collections, _, err := BuildCollections(files, siteCfg, contentDir)
+	collections, _, err := BuildCollections(files, siteCfg, contentDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,7 +184,7 @@ func TestBuildCollections_PrevNext(t *testing.T) {
 	contentDir, files := createTestSite(t)
 	siteCfg := config.Defaults()
 
-	collections, _, err := BuildCollections(files, siteCfg, contentDir)
+	collections, _, err := BuildCollections(files, siteCfg, contentDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -212,7 +212,7 @@ func TestBuildCollections_CollectionBackref(t *testing.T) {
 	contentDir, files := createTestSite(t)
 	siteCfg := config.Defaults()
 
-	collections, _, err := BuildCollections(files, siteCfg, contentDir)
+	collections, _, err := BuildCollections(files, siteCfg, contentDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -230,7 +230,7 @@ func TestBuildCollections_IndexPage(t *testing.T) {
 	contentDir, files := createTestSite(t)
 	siteCfg := config.Defaults()
 
-	collections, _, err := BuildCollections(files, siteCfg, contentDir)
+	collections, _, err := BuildCollections(files, siteCfg, contentDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -260,7 +260,7 @@ func TestBuildCollections_FeaturedFiltering(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	collections, _, err := BuildCollections(files, config.Defaults(), contentDir)
+	collections, _, err := BuildCollections(files, config.Defaults(), contentDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -281,7 +281,7 @@ func TestBuildCollections_RelPathPopulated(t *testing.T) {
 	contentDir, files := createTestSite(t)
 	siteCfg := config.Defaults()
 
-	collections, _, err := BuildCollections(files, siteCfg, contentDir)
+	collections, _, err := BuildCollections(files, siteCfg, contentDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -327,7 +327,7 @@ func buildSinglePage(t *testing.T, frontmatter, body string) *engine.Page {
 		t.Fatal(err)
 	}
 
-	collections, _, err := BuildCollections(files, config.Defaults(), contentDir)
+	collections, _, err := BuildCollections(files, config.Defaults(), contentDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -349,7 +349,7 @@ func buildSinglePage(t *testing.T, frontmatter, body string) *engine.Page {
 func TestBuildStandalonePages(t *testing.T) {
 	contentDir, files := createTestSite(t)
 
-	pages, err := BuildStandalonePages(files, contentDir, 70, "")
+	pages, err := BuildStandalonePages(files, contentDir, 70, "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -387,7 +387,7 @@ func TestBuildPages_RenderFalseTransferred(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	collections, _, err := BuildCollections(files, config.Defaults(), contentDir)
+	collections, _, err := BuildCollections(files, config.Defaults(), contentDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -422,7 +422,7 @@ func TestBuildPages_TransparentTransferred(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	collections, _, err := BuildCollections(files, config.Defaults(), contentDir)
+	collections, _, err := BuildCollections(files, config.Defaults(), contentDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

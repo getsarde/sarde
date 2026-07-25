@@ -257,7 +257,7 @@ func TestBuildCollections_SidebarFileSkippedForNonSidebarLayout(t *testing.T) {
 		},
 	}
 
-	collections, warnings, err := BuildCollections(files, siteCfg, contentDir)
+	collections, warnings, err := BuildCollections(files, siteCfg, contentDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -3,6 +3,10 @@
 
 const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["last-updated"]) || {};
 
+// The page's language, emitted by the Head component. Drives both relative and
+// absolute formatting so dates follow the page rather than the visitor's browser.
+const lang = (window.__SARDE__ && window.__SARDE__.lang) || undefined;
+
 const config = {
     position: cfg.position || 'bottom',
     useRelativeTime: cfg.use_relative_time !== false,
@@ -14,7 +18,40 @@ const ICON_SVG = '<svg class="sarde-last-updated-icon" xmlns="http://www.w3.org/
     + '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>'
     + '</svg>';
 
+// Intl.RelativeTimeFormat handles translation and pluralization for every
+// locale, so relative phrases need no string table of their own.
+const supportsRelativeTimeFormat =
+    typeof Intl !== 'undefined' && typeof Intl.RelativeTimeFormat === 'function';
+
+const RELATIVE_DIVISIONS = [
+    { amount: 60, unit: 'second' },
+    { amount: 60, unit: 'minute' },
+    { amount: 24, unit: 'hour' },
+    { amount: 30, unit: 'day' },
+    { amount: 12, unit: 'month' },
+    { amount: Infinity, unit: 'year' },
+];
+
+function formatRelativeIntl(timestamp) {
+    const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' });
+    let elapsed = Date.now() / 1000 - timestamp;
+    for (const { amount, unit } of RELATIVE_DIVISIONS) {
+        if (Math.abs(elapsed) < amount) {
+            return rtf.format(-Math.round(elapsed), unit);
+        }
+        elapsed /= amount;
+    }
+    return rtf.format(-Math.round(elapsed), 'year');
+}
+
 function formatRelative(timestamp) {
+    return supportsRelativeTimeFormat
+        ? formatRelativeIntl(timestamp)
+        : formatRelativeFallback(timestamp);
+}
+
+// English-only fallback for engines without Intl.RelativeTimeFormat.
+function formatRelativeFallback(timestamp) {
     const now = Date.now() / 1000;
     const diff = Math.floor(now - timestamp);
 
@@ -52,7 +89,7 @@ function formatAbsolute(timestamp, format) {
         day: 'numeric',
     };
 
-    return date.toLocaleDateString(undefined, options);
+    return date.toLocaleDateString(lang, options);
 }
 
 function init() {
@@ -77,7 +114,7 @@ function init() {
     badge.appendChild(iconContainer);
 
     const text = document.createElement('span');
-    text.textContent = 'Last updated: ' + dateText;
+    text.textContent = (article.dataset.lastUpdatedLabel || 'Last updated') + ': ' + dateText;
     badge.appendChild(text);
 
     if (config.useRelativeTime) {
@@ -101,8 +138,12 @@ function init() {
             }
         }
     } else {
-        const pagination = article.querySelector('nav.pagination');
-        if (pagination) {
+        // Page navigation is a sibling of <article>, not a descendant, and
+        // carries a sarde- prefixed class. Searching the article for
+        // "nav.pagination" never matched, so the badge always fell through to
+        // the end of the prose instead of sitting above the navigation.
+        const pagination = document.querySelector('nav.sarde-pagination, nav.sarde-post-navigation');
+        if (pagination && pagination.parentNode) {
             pagination.parentNode.insertBefore(badge, pagination);
         } else {
             article.appendChild(badge);

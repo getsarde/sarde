@@ -21,6 +21,10 @@ type Inferrer struct {
 	// LastUpdatedStrategy selects how missing Updated timestamps are resolved:
 	// "git" (via `git log`), "mtime" (default), or "false"/"off"/"none" (disabled).
 	LastUpdatedStrategy string
+
+	// GitIndex is the batched git-history snapshot used by the "git" strategy.
+	// Nil falls back to resolving each file with its own subprocess.
+	GitIndex *GitLastModIndex
 }
 
 // Infer populates empty fields on a Page from the filesystem and content.
@@ -28,7 +32,7 @@ type Inferrer struct {
 // Inference cascade:
 //   - Title:    frontmatter �� first H1 in RawContent → filename title-cased
 //   - Date:     frontmatter → file modification time
-//   - Updated:  frontmatter → file modification time (git deferred to later)
+//   - Updated:  frontmatter → git commit time or file mtime, per LastUpdatedStrategy
 //   - Weight:   frontmatter → numeric prefix from filename → 0
 //   - Slug:     frontmatter → filename with prefix stripped, slugified
 //   - Template: "splash" for home pages if not set
@@ -98,18 +102,12 @@ func (inf *Inferrer) Infer(page *engine.Page, filePath string) error {
 	}
 
 	// Updated: honor the configured last_updated strategy (git/mtime/false).
-	// Skip inference if the page has opted out with show_updated: false.
+	// This resolves the timestamp as data. Whether it is shown to visitors is a
+	// separate concern gated by Page.ShowUpdated, so that show_updated: false
+	// hides the badge without also stripping sitemap, SEO, and feed metadata.
 	if page.Updated.IsZero() {
-		showUpdated := true
-		if v, ok := page.Params["show_updated"]; ok {
-			if b, ok := v.(bool); ok {
-				showUpdated = b
-			}
-		}
-		if showUpdated {
-			if t := GetLastUpdated(filePath, inf.LastUpdatedStrategy); t != nil {
-				page.Updated = *t
-			}
+		if t := GetLastUpdated(filePath, inf.LastUpdatedStrategy, inf.GitIndex); t != nil {
+			page.Updated = *t
 		}
 	}
 

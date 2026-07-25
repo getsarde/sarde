@@ -55,7 +55,7 @@
             {{ component "PageTags" . }}
           </div>
           <div class="sarde-content-panel">
-            <article class="sarde-markdown-content"{{ if and .Page .Page.IsFallback }} dir="ltr"{{ end }}{{ if and .Page .Page.Updated (not .Page.Updated.IsZero) }} data-last-modified="{{ .Page.Updated.Unix }}"{{ end }}>
+            <article class="sarde-markdown-content"{{ if and .Page .Page.IsFallback }} dir="ltr"{{ end }}{{ if and .Page .Page.Updated (not .Page.Updated.IsZero) .Page.ShowUpdated }} data-last-modified="{{ .Page.Updated.Unix }}" data-last-updated-label="{{ t `last_updated_label` }}"{{ end }}>
               {{ block "content" . }}{{ .Page.Content }}{{ end }}
             </article>
             {{ component "EditLink" . }}

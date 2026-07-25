@@ -66,6 +66,7 @@ type SiteBuilder struct {
 	lastSiteCtx        *engine.SiteContext
 	lastTaxByLang      map[string]map[string]*engine.Taxonomy
 	lastPageIndex      *content.PageIndex
+	lastGitIndex       *content.GitLastModIndex // reused by incremental rebuilds; refreshed on full builds
 	lastOutputDir      string
 	lastAssetPipeline  *asset.Pipeline
 	globalCSSURLs      []string

@@ -29,12 +29,17 @@ func (b *SiteBuilder) Validate() (*ValidateResult, error) {
 		return nil, fmt.Errorf("discovering content: %w", err)
 	}
 
-	collections, warnings, err := collection.BuildCollections(files, b.config, contentDir)
+	gitIndex, gitWarning := b.resolveGitIndex(files, contentDir)
+
+	collections, warnings, err := collection.BuildCollections(files, b.config, contentDir, gitIndex)
 	if err != nil {
 		return nil, fmt.Errorf("building collections: %w", err)
 	}
+	if gitWarning != nil {
+		warnings = append(warnings, *gitWarning)
+	}
 
-	standalones, err := collection.BuildStandalonePages(files, contentDir, b.config.Content.SummaryLength, string(b.config.Build.LastUpdated))
+	standalones, err := collection.BuildStandalonePages(files, contentDir, b.config.Content.SummaryLength, string(b.config.Build.LastUpdated), gitIndex)
 	if err != nil {
 		return nil, fmt.Errorf("building standalone pages: %w", err)
 	}

@@ -217,18 +217,24 @@ func (b *SiteBuilder) phaseDiscover(s *buildState) error {
 }
 
 func (b *SiteBuilder) phaseParse(s *buildState) error {
+	gitIndex, gitWarning := b.resolveGitIndex(s.files, s.contentDir)
+	b.lastGitIndex = gitIndex
+
 	parseOpts := collection.BuildOptions{Parallel: s.parallel, WorkerCount: s.workerCount}
-	collections, warnings, err := collection.BuildCollectionsWithOptions(s.files, b.config, s.contentDir, parseOpts)
+	collections, warnings, err := collection.BuildCollectionsWithOptions(s.files, b.config, s.contentDir, gitIndex, parseOpts)
 	if err != nil {
 		return fmt.Errorf("building collections: %w", err)
 	}
-	standalones, err := collection.BuildStandalonePagesWithOptions(s.files, s.contentDir, b.config.Content.SummaryLength, string(b.config.Build.LastUpdated), parseOpts)
+	standalones, err := collection.BuildStandalonePagesWithOptions(s.files, s.contentDir, b.config.Content.SummaryLength, string(b.config.Build.LastUpdated), gitIndex, parseOpts)
 	if err != nil {
 		return fmt.Errorf("building standalone pages: %w", err)
 	}
 	s.collections = collections
 	s.standalones = standalones
 	s.warnings = warnings
+	if gitWarning != nil {
+		s.warnings = append(s.warnings, *gitWarning)
+	}
 	// External-plugin diagnostics (skipped manifests, missing licenses) are
 	// collected once at builder construction but surfaced on every build.
 	s.warnings = append(s.warnings, b.externalPluginWarnings...)

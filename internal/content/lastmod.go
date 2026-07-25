@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -15,17 +16,30 @@ import (
 //
 // Strategies:
 //   - "false" / "off" / "none" — disabled, returns nil
-//   - "git"                    — `git log -1 --format=%ct` for the file, falls back to mtime on error
+//   - "git"                    — commit time, falls back to mtime when unavailable
 //   - "mtime" (default)        — file modification time
-func GetLastUpdated(filePath, strategy string) *time.Time {
+//
+// The git strategy has three cases depending on idx:
+//   - nil index: resolve per file (one subprocess), for callers with no index
+//   - index present but unavailable: git was already probed and found unusable,
+//     so fall straight back to mtime rather than retrying per file
+//   - index available: O(1) map lookup, no subprocess
+func GetLastUpdated(filePath, strategy string, idx *GitLastModIndex) *time.Time {
 	switch strings.ToLower(strings.TrimSpace(strategy)) {
 	case "false", "off", "none":
 		return nil
 	case "git":
-		if t, ok := gitLastCommitTime(filePath); ok {
-			return &t
+		switch {
+		case idx == nil:
+			if t, ok := gitLastCommitTime(filePath); ok {
+				return &t
+			}
+		case idx.Available():
+			if t, ok := idx.Lookup(filePath); ok {
+				return &t
+			}
 		}
-		// Fall through to mtime
+		// Untracked, unresolved, or git unusable: fall through to mtime.
 	}
 	info, err := os.Stat(filePath)
 	if err != nil {
@@ -36,9 +50,12 @@ func GetLastUpdated(filePath, strategy string) *time.Time {
 }
 
 // gitLastCommitTime runs `git log -1 --format=%ct -- <filePath>` in the file's
-// directory and returns the parsed commit time.
+// own directory and returns the parsed commit time. Setting cmd.Dir matters:
+// without it git runs in the process working directory and reports the file as
+// outside the repository whenever the build runs from elsewhere.
 func gitLastCommitTime(filePath string) (time.Time, bool) {
 	cmd := exec.Command("git", "log", "-1", "--format=%ct", "--", filePath)
+	cmd.Dir = filepath.Dir(filePath)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

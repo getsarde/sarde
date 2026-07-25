@@ -1,6 +1,6 @@
 {{ define "content" }}
 <div class="sarde-blog-post-container">
-  <article class="sarde-markdown-content">
+  <article class="sarde-markdown-content"{{ if and .Page .Page.Updated (not .Page.Updated.IsZero) .Page.ShowUpdated }} data-last-modified="{{ .Page.Updated.Unix }}" data-last-updated-label="{{ t `last_updated_label` }}"{{ end }}>
     <header class="sarde-post-header">
       <h1 class="sarde-post-title">{{ .Page.Title | markdownify }}</h1>
       <div class="sarde-post-meta">

@@ -27,11 +27,11 @@ func TestBuildCollectionsWithOptions_ParallelMatchesSerialOrdering(t *testing.T)
 	}
 	cfg := config.Defaults()
 
-	serialCollections, serialWarnings, err := BuildCollectionsWithOptions(files, cfg, contentDir, BuildOptions{Parallel: false})
+	serialCollections, serialWarnings, err := BuildCollectionsWithOptions(files, cfg, contentDir, nil, BuildOptions{Parallel: false})
 	if err != nil {
 		t.Fatalf("serial BuildCollectionsWithOptions failed: %v", err)
 	}
-	parallelCollections, parallelWarnings, err := BuildCollectionsWithOptions(files, cfg, contentDir, BuildOptions{Parallel: true, WorkerCount: 2})
+	parallelCollections, parallelWarnings, err := BuildCollectionsWithOptions(files, cfg, contentDir, nil, BuildOptions{Parallel: true, WorkerCount: 2})
 	if err != nil {
 		t.Fatalf("parallel BuildCollectionsWithOptions failed: %v", err)
 	}

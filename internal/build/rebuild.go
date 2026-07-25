@@ -234,6 +234,7 @@ func (b *SiteBuilder) classifyAndParseChanges(changedPaths []string, s *incremen
 			cf, s.contentDir, collCfg, schema,
 			b.config.Content.SummaryLength,
 			string(b.config.Build.LastUpdated),
+			b.lastGitIndex,
 			b.config.Taxonomies,
 		)
 		if err != nil {

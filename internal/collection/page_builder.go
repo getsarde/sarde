@@ -30,9 +30,10 @@ func buildPages(
 	schema *engine.FrontmatterSchema,
 	summaryLength int,
 	lastUpdatedStrategy string,
+	gitIndex *content.GitLastModIndex,
 	taxCfg map[string]config.TaxonomyConfig,
 ) ([]*engine.Page, []engine.ValidationWarning, error) {
-	return buildPagesWithOptions(files, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, BuildOptions{}, taxCfg)
+	return buildPagesWithOptions(files, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, gitIndex, BuildOptions{}, taxCfg)
 }
 
 func buildPagesWithOptions(
@@ -42,6 +43,7 @@ func buildPagesWithOptions(
 	schema *engine.FrontmatterSchema,
 	summaryLength int,
 	lastUpdatedStrategy string,
+	gitIndex *content.GitLastModIndex,
 	opts BuildOptions,
 	taxCfg map[string]config.TaxonomyConfig,
 ) ([]*engine.Page, []engine.ValidationWarning, error) {
@@ -51,7 +53,7 @@ func buildPagesWithOptions(
 	}
 	results := make([]result, len(files))
 	err := workers.ParallelFor(files, opts.Parallel, opts.WorkerCount, func(i int, cf content.ContentFile) error {
-		page, pageWarnings, err := buildPage(cf, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, taxCfg)
+		page, pageWarnings, err := buildPage(cf, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, gitIndex, taxCfg)
 		if err != nil {
 			return err
 		}
@@ -78,9 +80,10 @@ func buildPage(
 	schema *engine.FrontmatterSchema,
 	summaryLength int,
 	lastUpdatedStrategy string,
+	gitIndex *content.GitLastModIndex,
 	taxCfg map[string]config.TaxonomyConfig,
 ) (*engine.Page, []engine.ValidationWarning, error) {
-	inferrer := &content.Inferrer{LastUpdatedStrategy: lastUpdatedStrategy}
+	inferrer := &content.Inferrer{LastUpdatedStrategy: lastUpdatedStrategy, GitIndex: gitIndex}
 	transformer := &content.Transformer{SummaryLength: summaryLength}
 	validator := &content.Validator{}
 

@@ -158,13 +158,27 @@ head:
 | `clean` | bool | `true` | Delete the output directory before each build. |
 | `sitemap` | bool | `true` | Generate `sitemap.xml`. |
 | `minify` | bool | `false` | Minify HTML output. |
-| `last_updated` | string | `"mtime"` | Strategy for page "last updated" timestamps. `git` uses git commit dates. `mtime` uses file modification time. `false`, `off`, or `none` disables it. |
+| `last_updated` | string | `"git"` | Strategy for page "last updated" timestamps. `git` uses each file's last commit date, falling back to file modification time outside a git repository. `mtime` always uses file modification time. `false`, `off`, or `none` disables it. See [the caveats below](#last-updated-strategy). |
 | `feed` | bool | `true` | Generate RSS and Atom feeds for blog collections. |
 | `drafts` | bool | `false` | Include draft pages in the build output. |
 | `future` | bool | `false` | Include pages with future `publish_date` values. |
 | `expired` | bool | - | Include pages past their `expiry_date`. |
 | `parallel` | bool | `true` | Enable parallel rendering. |
 | `cache` | bool | - | Enable build caching. |
+
+### Last-updated strategy
+
+`git` is the default because `mtime` is unreliable wherever sites are usually published. A CI job clones the repository fresh, which writes every file at the same instant, so `mtime` reports the checkout time and every page claims to have changed on every deploy.
+
+Sarde resolves commit times with a single pass over git history for the whole content directory, so the cost is a few tens of milliseconds regardless of page count.
+
+Three caveats are worth knowing:
+
+- **Shallow clones lose history.** With `fetch-depth: 1`, pages whose last change predates the shallow boundary fall back to `mtime`. Use `fetch-depth: 0`. Sarde emits a build warning when it detects a shallow clone.
+- **Commit time is a proxy for content change.** A formatting sweep or lint pass bumps the date on every file it touches, even when nothing reader-visible changed. Set `updated` in [frontmatter](/reference/frontmatter#core-fields) to state the real date explicitly.
+- **Uncommitted edits keep their last committed date.** During `sarde dev` a page's timestamp does not move until you commit, which is correct but can look like a bug while writing.
+
+Outside a git repository, or when git is unavailable, Sarde falls back to `mtime` and emits one build warning explaining the consequence.
 
 ## `markdown`
 

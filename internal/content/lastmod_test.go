@@ -19,7 +19,7 @@ func writeFileTest(t *testing.T, dir, name, contents string) string {
 func TestGetLastUpdated_Disabled(t *testing.T) {
 	p := writeFileTest(t, t.TempDir(), "x.md", "hello")
 	for _, strategy := range []string{"false", "off", "none", "FALSE", " off "} {
-		if got := GetLastUpdated(p, strategy); got != nil {
+		if got := GetLastUpdated(p, strategy, nil); got != nil {
 			t.Errorf("GetLastUpdated(%q) = %v, want nil", strategy, got)
 		}
 	}
@@ -34,7 +34,7 @@ func TestGetLastUpdated_Mtime(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got := GetLastUpdated(p, "mtime")
+	got := GetLastUpdated(p, "mtime", nil)
 	if got == nil {
 		t.Fatal("GetLastUpdated(mtime) returned nil")
 	}
@@ -46,7 +46,7 @@ func TestGetLastUpdated_Mtime(t *testing.T) {
 func TestGetLastUpdated_DefaultFallsBackToMtime(t *testing.T) {
 	// Empty/unknown strategy falls through to mtime.
 	p := writeFileTest(t, t.TempDir(), "x.md", "hello")
-	got := GetLastUpdated(p, "")
+	got := GetLastUpdated(p, "", nil)
 	if got == nil {
 		t.Error("GetLastUpdated(\"\") returned nil, want mtime")
 	}
@@ -57,7 +57,7 @@ func TestGetLastUpdated_GitFallsBackOnMissingGit(t *testing.T) {
 	// through to mtime. This validates the fallback path without requiring
 	// an actual git-initialised repository.
 	p := writeFileTest(t, t.TempDir(), "x.md", "hello")
-	got := GetLastUpdated(p, "git")
+	got := GetLastUpdated(p, "git", nil)
 	if got == nil {
 		t.Error("GetLastUpdated(git) returned nil, expected mtime fallback")
 	}

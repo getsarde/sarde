@@ -9,9 +9,19 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ## Unreleased
 
+### Changed
+
+- `build.last_updated` now defaults to `git` instead of `mtime`. Page timestamps come from each file's last commit rather than its filesystem modification time, which in CI is the checkout time and made every page report the same moment on every deploy. Outside a git repository the behavior is unchanged, since `git` falls back to `mtime` automatically. Set `build.last_updated: mtime` to keep the old behavior.
+- `show_updated: false` now hides only the "last updated" badge. The timestamp is still resolved, so sitemap `lastmod`, SEO `dateModified`, and feed timestamps for that page remain correct. Previously it suppressed the date entirely, stripping that metadata as a side effect.
+
 ### Fixed
 
 - "Edit this page" links now render on docs pages. `site.edit_url` was previously honored only by blog and default layouts, so a docs site could configure it correctly and see links on blog posts alone. Sites that do not set `site.edit_url` are unaffected.
+- `show_updated: false` was ignored on pages that set `updated:` explicitly in frontmatter.
+- The "last updated" badge never appeared on blog posts.
+- The badge's `position: bottom` setting placed it at the end of the page content instead of above the previous/next navigation.
+- The badge is now localized: relative times use the page's language via `Intl.RelativeTimeFormat`, and absolute dates and the label follow the page language rather than the visitor's browser locale.
+- Sarde now warns once when `build.last_updated: git` cannot be used (git missing, not a repository, or a shallow clone) instead of silently falling back to file modification times.
 - The "Made with Sarde" footer credit linked to a domain that does not resolve. It now points to the documentation site. Because the footer template is compiled into the binary, sites built with 1.0.0 or 1.0.1 keep the old link until you upgrade and rebuild.
 
 ## 1.0.1 - 2026-07-25

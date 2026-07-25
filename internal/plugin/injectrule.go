@@ -24,7 +24,7 @@ func MatchesInjectRule(rule string, page *engine.Page, rd *engine.RouteData) boo
 	case "is_content_page":
 		return page.Kind == engine.KindPage || page.Kind == engine.KindBundle
 	case "has_updated":
-		return !page.Updated.IsZero()
+		return !page.Updated.IsZero() && page.ShowUpdated()
 	}
 	return false
 }

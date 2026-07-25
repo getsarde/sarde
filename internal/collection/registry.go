@@ -27,8 +27,9 @@ func BuildCollections(
 	files []content.ContentFile,
 	siteCfg *config.SiteConfig,
 	contentDir string,
+	gitIndex *content.GitLastModIndex,
 ) (map[string]*engine.Collection, []engine.ValidationWarning, error) {
-	return BuildCollectionsWithOptions(files, siteCfg, contentDir, BuildOptions{})
+	return BuildCollectionsWithOptions(files, siteCfg, contentDir, gitIndex, BuildOptions{})
 }
 
 // BuildCollectionsWithOptions groups discovered files into typed collections with optional parallel parsing.
@@ -36,6 +37,7 @@ func BuildCollectionsWithOptions(
 	files []content.ContentFile,
 	siteCfg *config.SiteConfig,
 	contentDir string,
+	gitIndex *content.GitLastModIndex,
 	opts BuildOptions,
 ) (map[string]*engine.Collection, []engine.ValidationWarning, error) {
 	grouped := groupByCollection(files)
@@ -108,7 +110,7 @@ func BuildCollectionsWithOptions(
 		schema, _ := content.LoadSchema(filepath.Join(contentDir, name))
 
 		// 4. Build pages
-		pages, warnings, err := buildPagesWithOptions(colFiles, contentDir, collCfg, schema, siteCfg.Content.SummaryLength, string(siteCfg.Build.LastUpdated), opts, siteCfg.Taxonomies)
+		pages, warnings, err := buildPagesWithOptions(colFiles, contentDir, collCfg, schema, siteCfg.Content.SummaryLength, string(siteCfg.Build.LastUpdated), gitIndex, opts, siteCfg.Taxonomies)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -305,8 +307,9 @@ func BuildStandalonePages(
 	contentDir string,
 	summaryLength int,
 	lastUpdatedStrategy string,
+	gitIndex *content.GitLastModIndex,
 ) ([]*engine.Page, error) {
-	return BuildStandalonePagesWithOptions(files, contentDir, summaryLength, lastUpdatedStrategy, BuildOptions{})
+	return BuildStandalonePagesWithOptions(files, contentDir, summaryLength, lastUpdatedStrategy, gitIndex, BuildOptions{})
 }
 
 // BuildStandalonePagesWithOptions builds root-level pages with optional parallel parsing.
@@ -315,6 +318,7 @@ func BuildStandalonePagesWithOptions(
 	contentDir string,
 	summaryLength int,
 	lastUpdatedStrategy string,
+	gitIndex *content.GitLastModIndex,
 	opts BuildOptions,
 ) ([]*engine.Page, error) {
 	grouped := groupByCollection(files)
@@ -333,7 +337,7 @@ func BuildStandalonePagesWithOptions(
 		filtered = append(filtered, f)
 	}
 
-	pages, _, err := buildPagesWithOptions(filtered, contentDir, nil, nil, summaryLength, lastUpdatedStrategy, opts, nil)
+	pages, _, err := buildPagesWithOptions(filtered, contentDir, nil, nil, summaryLength, lastUpdatedStrategy, gitIndex, opts, nil)
 	return pages, err
 }
 
@@ -346,9 +350,10 @@ func BuildSinglePage(
 	schema *engine.FrontmatterSchema,
 	summaryLength int,
 	lastUpdatedStrategy string,
+	gitIndex *content.GitLastModIndex,
 	taxCfg map[string]config.TaxonomyConfig,
 ) (*engine.Page, []engine.ValidationWarning, error) {
-	pages, warnings, err := buildPages([]content.ContentFile{cf}, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, taxCfg)
+	pages, warnings, err := buildPages([]content.ContentFile{cf}, contentDir, collCfg, schema, summaryLength, lastUpdatedStrategy, gitIndex, taxCfg)
 	if err != nil || len(pages) == 0 {
 		return nil, warnings, err
 	}

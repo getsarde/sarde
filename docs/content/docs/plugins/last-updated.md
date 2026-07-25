@@ -25,10 +25,10 @@ plugins:
 The badge reads the page's last-modified timestamp, which Sarde resolves through a fallback chain:
 
 1. The frontmatter `updated` field, if set.
-2. The file's last git commit time (when `build.last_updated` is `"git"`).
-3. The file's filesystem modification time (when `build.last_updated` is `"mtime"`, the default).
+2. The file's last git commit time (when `build.last_updated` is `"git"`, the default).
+3. The file's filesystem modification time (when `build.last_updated` is `"mtime"`, or when git is unavailable).
 
-Pages without a resolvable timestamp receive no badge.
+Pages without a resolvable timestamp receive no badge. The badge renders on docs, blog, labs, and default layouts.
 
 By default, the badge appears at the bottom of the page above the previous/next navigation. It shows relative time ("3 days ago") with the full date available on hover as a tooltip.
 
@@ -64,8 +64,8 @@ build:
 
 | Value | Behavior |
 |-------|----------|
-| `"mtime"` (default) | Uses the file's filesystem modification time. |
-| `"git"` | Uses the file's last git commit time. Falls back to mtime if the file is untracked or git is unavailable. |
+| `"git"` (default) | Uses the file's last git commit time. Falls back to mtime if the file is untracked or git is unavailable. |
+| `"mtime"` | Uses the file's filesystem modification time. Unreliable in CI, where a fresh clone gives every file the checkout time. |
 | `"false"` | Disables timestamp resolution entirely. The badge does not appear on any page. |
 
 Override the timestamp for a specific page with the `updated` frontmatter field:
@@ -76,7 +76,7 @@ updated: 2026-03-15
 ---
 ```
 
-Suppress the badge on a specific page with `show_updated: false` in frontmatter.
+Suppress the badge on a specific page with `show_updated: false` in frontmatter. This hides the badge only. The timestamp is still resolved, so sitemap `lastmod`, SEO `dateModified`, and feed timestamps for that page stay correct.
 
 ## Injection rule
 
@@ -84,7 +84,8 @@ This plugin activates on pages with a non-zero `updated` timestamp (`has_updated
 
 ## Edge cases
 
-- Relative time uses fixed-length approximations (30-day months, 365-day years), not calendar-aware math.
-- Absolute dates use the visitor's browser locale for formatting, so month names and punctuation may vary.
+- Relative time is rendered with `Intl.RelativeTimeFormat` in the page's language, so phrasing and pluralization follow the locale. Browsers without it fall back to fixed-length English approximations (30-day months, 365-day years).
+- Absolute dates and the badge label also follow the page's language rather than the visitor's browser locale.
+- Under the `git` strategy the date reflects the last commit, so it does not move while you edit uncommitted files during `sarde dev`, and a formatting-only commit will bump it. Set `updated` in frontmatter to override.
 - When positioned at the top alongside a reading time badge, both are wrapped in a shared flex row to avoid layout shifts.
 - The badge icon is a hardcoded SVG. All user-facing text is set via `textContent` to prevent injection.
