@@ -28,7 +28,9 @@ The badge reads the page's last-modified timestamp, which Sarde resolves through
 2. The file's last git commit time (when `build.last_updated` is `"git"`, the default).
 3. The file's filesystem modification time (when `build.last_updated` is `"mtime"`, or when git is unavailable).
 
-Pages without a resolvable timestamp receive no badge. The badge renders on docs, blog, labs, and default layouts.
+Pages without a resolvable timestamp receive no badge.
+
+On the docs and labs layouts the date is already rendered server-side by the [LastUpdated component](/reference/ui-components#lastupdated), so it appears with the plugin disabled and without JavaScript. Enabling this plugin upgrades that element in place to relative time rather than adding a second badge, and the `position` option does not apply there because the template controls placement. On blog and default layouts the plugin creates the badge itself at the configured position.
 
 By default, the badge appears at the bottom of the page above the previous/next navigation. It shows relative time ("3 days ago") with the full date available on hover as a tooltip.
 

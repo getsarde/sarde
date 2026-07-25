@@ -1,18 +1,8 @@
 @layer sarde.plugins {
-/* Last Updated Badge Plugin */
-
-.sarde-last-updated {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 0.825rem;
-    color: var(--sd-text-muted, #6b7280);
-}
-
-.sarde-last-updated-icon {
-    flex-shrink: 0;
-    opacity: 0.6;
-}
+/* Last Updated Badge Plugin
+   Base .sarde-last-updated and .sarde-last-updated-icon styling lives in the
+   core theme's components.css so the server-rendered LastUpdated component
+   works without this plugin. Only the position variants belong here. */
 
 /* Top position (next to reading time) */
 .sarde-last-updated-top {

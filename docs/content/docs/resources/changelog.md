@@ -9,6 +9,10 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ## Unreleased
 
+### Added
+
+- Docs and labs pages now show a "Last updated" date without needing the `last-updated` plugin. It is rendered server-side, so it works without JavaScript and causes no layout shift. Enabling the plugin upgrades it in place to relative time rather than adding a second badge.
+
 ### Changed
 
 - `build.last_updated` now defaults to `git` instead of `mtime`. Page timestamps come from each file's last commit rather than its filesystem modification time, which in CI is the checkout time and made every page report the same moment on every deploy. Outside a git repository the behavior is unchanged, since `git` falls back to `mtime` automatically. Set `build.last_updated: mtime` to keep the old behavior.

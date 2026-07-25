@@ -1231,4 +1231,28 @@
 	  margin-inline: var(--sd-space-1);
 	}
 
+
+  /* Last updated
+     Base styling lives here rather than in the last-updated plugin so the
+     LastUpdated component renders correctly when the plugin is disabled.
+     The plugin supplies only its position variants. */
+  .sarde-last-updated {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.825rem;
+    color: var(--sd-text-muted, #6b7280);
+  }
+
+  .sarde-last-updated-icon {
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+
+  /* Wired into the docs and labs layouts, where it sits under the article
+     alongside the edit link. */
+  .sarde-content-panel > .sarde-last-updated {
+    margin-top: var(--sd-space-2);
+  }
+
 }

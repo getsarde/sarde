@@ -92,18 +92,41 @@ function formatAbsolute(timestamp, format) {
     return date.toLocaleDateString(lang, options);
 }
 
-function init() {
-    if (document.querySelector('.sarde-last-updated')) return;
+// Upgrade a server-rendered badge in place. The LastUpdated component emits an
+// absolute date so the page is correct without JS and does not shift on load;
+// this rewrites it to the configured format. The template owns placement, so
+// the position option does not apply here.
+function enhance(existing, timestamp, dateText, label) {
+    const time = existing.querySelector('time');
+    if (time) {
+        time.textContent = dateText;
+    } else {
+        existing.textContent = label + ': ' + dateText;
+    }
+    if (config.useRelativeTime) {
+        existing.title = formatAbsolute(timestamp, 'long');
+    }
+}
 
+function init() {
     const article = document.querySelector('article.sarde-markdown-content[data-last-modified]');
     if (!article) return;
 
     const timestamp = parseInt(article.dataset.lastModified || '', 10);
     if (!timestamp || isNaN(timestamp)) return;
 
+    const label = article.dataset.lastUpdatedLabel || 'Last updated';
     const dateText = config.useRelativeTime
         ? formatRelative(timestamp)
         : formatAbsolute(timestamp, config.dateFormat);
+
+    // A layout may already render the badge server-side. Enhance it rather than
+    // adding a second one.
+    const existing = document.querySelector('.sarde-last-updated');
+    if (existing) {
+        enhance(existing, timestamp, dateText, label);
+        return;
+    }
 
     // Build badge with safe DOM methods
     const badge = document.createElement('div');
@@ -114,7 +137,7 @@ function init() {
     badge.appendChild(iconContainer);
 
     const text = document.createElement('span');
-    text.textContent = (article.dataset.lastUpdatedLabel || 'Last updated') + ': ' + dateText;
+    text.textContent = label + ': ' + dateText;
     badge.appendChild(text);
 
     if (config.useRelativeTime) {

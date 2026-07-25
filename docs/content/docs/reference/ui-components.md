@@ -132,14 +132,14 @@ All 27 built-in components, alphabetically.
 | CenterToggle | Centered/wide content width toggle | Static | Header |
 | ContentPanel | Content area wrapper | `.Page.Content` | *Not called by default* |
 | DocsTabSwitcher | Mobile docs tab dropdown | `.IsTabbed`, `.DocsTabs`, `.ActiveTab` | Sidebar |
-| EditLink | "Edit this page" link | `.Page.Params`, `.Site.EditURL` | Blog single templates |
+| EditLink | "Edit this page" link | `.Page.Params`, `.Site.EditURL` | `_docs/baseof.html`, blog singles, `_default/single.html` |
 | FallbackNotice | i18n fallback content notice | `.Page.IsFallback` | Both baseof templates |
 | Footer | Site footer with links and credits | `.Site.Config.Footer.*` | Both baseof templates |
 | GlobalNav | Top navigation bar | `.GlobalNav.Items` | Header |
 | Head | `<head>` content (meta, styles, scripts) | `.Site.*`, `.Page.*`, `.Styles` | Both baseof templates |
 | Header | Header chrome, composes 8 sub-components | Multiple | Both baseof templates |
 | LanguageSwitcher | Language dropdown | `.AllTranslations`, `.Lang` | Header |
-| LastUpdated | "Last updated" byline | `.Page.Updated` | *Not called by default* |
+| LastUpdated | "Last updated" byline | `.Page.Updated` | `_docs/baseof.html`, `_labs/baseof.html` |
 | MobileTableOfContents | Mobile collapsible ToC with progress ring | `.Page.Headings` | `_docs/baseof.html` |
 | PageBanner | Frontmatter-driven page banner | `.PageBanner` | Both baseof templates |
 | PageTags | Tag chips with taxonomy links | `.Page.Tags` | `_docs/baseof.html`, blog singles |
@@ -245,10 +245,19 @@ VersionSwitcher renders a dropdown of all versions from `.Versions` with the cur
 
 Renders a language dropdown from `.AllTranslations`. Hidden on single-language sites (empty `.AllTranslations` list). Each entry shows the language name, direction indicator for RTL languages, and a fallback badge when the translation is a fallback page.
 
-### ContentPanel, LastUpdated, and TagSidebar
+### LastUpdated
 
-These three components are registered and overridable but not called by the default docs or default layouts. They serve as insertion points for custom layouts:
+Renders `<p class="sarde-last-updated">` containing a `<time>` element with the absolute date from `.Page.Updated`, gated by `show_updated` in [frontmatter](/reference/frontmatter#meta-fields) (default `true`).
+
+Called from the docs and labs layouts, below the article. It renders nothing when the page has no resolvable timestamp.
+
+Because it is server-rendered, the date is present without JavaScript and the page does not shift on load. When the [last-updated plugin](/plugins/last-updated/) is also enabled, the plugin upgrades this element in place to the configured format (relative time by default) rather than adding a second badge. Its `position` option does not apply on these layouts, since the template controls placement.
+
+Base styling ships in the core theme, so the component looks correct with the plugin disabled.
+
+### ContentPanel and TagSidebar
+
+These two components are registered and overridable but not called by the default docs or default layouts. They serve as insertion points for custom layouts:
 
 - **ContentPanel** wraps `.Page.Content` in a `<div>`. Use it to add a content-area wrapper (ads, feedback widget) without overriding the entire layout.
-- **LastUpdated** renders a `<time>` element from `.Page.Updated`, gated by `show_updated` in [frontmatter](/reference/frontmatter#meta-fields) (default `true`).
 - **TagSidebar** renders the top 20 tags via `topTerms "tags" 20` as a sidebar widget. Used by blog list templates (`_blog/list.html`, `_blog/list-grid.html`) but not by the docs layout.

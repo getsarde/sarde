@@ -59,6 +59,7 @@
               {{ block "content" . }}{{ .Page.Content }}{{ end }}
             </article>
             {{ component "EditLink" . }}
+            {{ component "LastUpdated" . }}
             {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
             {{ component "Footer" . }}
           </div>
