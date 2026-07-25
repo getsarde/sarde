@@ -4,13 +4,16 @@ set -e
 REPO="getsarde/sarde"
 BINARY="sarde"
 
+# Must match the archive name_template in .goreleaser.yaml, which is
+# {{ .ProjectName }}_{{ .Os }}_{{ .Arch }} using Go's lowercase GOOS/GOARCH
+# names. Any drift here produces a 404 at download time.
 detect_platform() {
   OS=$(uname -s)
   ARCH=$(uname -m)
 
   case "$OS" in
-    Linux)  OS="Linux" ;;
-    Darwin) OS="Darwin" ;;
+    Linux)  OS="linux" ;;
+    Darwin) OS="darwin" ;;
     *)
       echo "Error: unsupported OS: $OS" >&2
       exit 1
@@ -18,13 +21,22 @@ detect_platform() {
   esac
 
   case "$ARCH" in
-    x86_64|amd64) ARCH="x86_64" ;;
+    x86_64|amd64) ARCH="amd64" ;;
     aarch64|arm64) ARCH="arm64" ;;
     *)
       echo "Error: unsupported architecture: $ARCH" >&2
       exit 1
       ;;
   esac
+
+  # goreleaser does not build linux/arm64, so fail with a usable message
+  # rather than letting the download 404.
+  if [ "$OS" = "linux" ] && [ "$ARCH" = "arm64" ]; then
+    echo "Error: no prebuilt binary for linux/arm64." >&2
+    echo "Install from source instead:" >&2
+    echo "  go install github.com/getsarde/sarde/cmd/sarde@latest" >&2
+    exit 1
+  fi
 
   echo "${OS}_${ARCH}"
 }
