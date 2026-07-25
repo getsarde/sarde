@@ -29,15 +29,8 @@ detect_platform() {
       ;;
   esac
 
-  # goreleaser does not build linux/arm64, so fail with a usable message
-  # rather than letting the download 404.
-  if [ "$OS" = "linux" ] && [ "$ARCH" = "arm64" ]; then
-    echo "Error: no prebuilt binary for linux/arm64." >&2
-    echo "Install from source instead:" >&2
-    echo "  go install github.com/getsarde/sarde/cmd/sarde@latest" >&2
-    exit 1
-  fi
-
+  # windows/arm64 is the only combination goreleaser excludes, and this script
+  # never runs there (the OS check above already rejected it).
   echo "${OS}_${ARCH}"
 }
 
