@@ -78,6 +78,22 @@ social:
 | `font_mono` | string | `""` | Monospace font family CSS value. |
 | `code_light` | string | `""` | Syntax highlighting theme for light mode. |
 | `code_dark` | string | `""` | Syntax highlighting theme for dark mode. |
+| `date_format` | string | `"short"` | Display format for the "last updated" date. See below. |
+
+### Date format
+
+`theme.date_format` accepts three names or any [Go layout string](https://pkg.go.dev/time#pkg-constants):
+
+| Value | Renders as |
+|-------|-----------|
+| `short` (default) | Jan 2, 2006 |
+| `long` | January 2, 2006 |
+| `iso` | 2006-01-02 |
+| Any other value | Used verbatim as a Go layout, e.g. `2006/01/02` |
+
+This controls **only** the "last updated" date rendered by the [LastUpdated component](/reference/ui-components#lastupdated). Other dates in the theme, such as blog post dates and list-page dates, use formats fixed by their templates; override those templates to change them.
+
+The `datetime` attribute on the emitted `<time>` element is always ISO 8601 regardless of this setting, so the markup stays machine-readable. To change where the timestamp comes from rather than how it looks, see [`build.last_updated`](#last-updated-strategy).
 
 ## `toc`
 

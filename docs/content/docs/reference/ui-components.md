@@ -139,7 +139,7 @@ All 27 built-in components, alphabetically.
 | Head | `<head>` content (meta, styles, scripts) | `.Site.*`, `.Page.*`, `.Styles` | Both baseof templates |
 | Header | Header chrome, composes 8 sub-components | Multiple | Both baseof templates |
 | LanguageSwitcher | Language dropdown | `.AllTranslations`, `.Lang` | Header |
-| LastUpdated | "Last updated" byline | `.Page.Updated` | `_docs/baseof.html`, `_labs/baseof.html` |
+| LastUpdated | "Last updated" byline | `.Page.Updated`, `theme.date_format` | docs, labs, blog singles, `_default/single.html` |
 | MobileTableOfContents | Mobile collapsible ToC with progress ring | `.Page.Headings` | `_docs/baseof.html` |
 | PageBanner | Frontmatter-driven page banner | `.PageBanner` | Both baseof templates |
 | PageTags | Tag chips with taxonomy links | `.Page.Tags` | `_docs/baseof.html`, blog singles |
@@ -249,11 +249,11 @@ Renders a language dropdown from `.AllTranslations`. Hidden on single-language s
 
 Renders `<p class="sarde-last-updated">` containing a `<time>` element with the absolute date from `.Page.Updated`, gated by `show_updated` in [frontmatter](/reference/frontmatter#meta-fields) (default `true`).
 
-Called from the docs and labs layouts, below the article. It renders nothing when the page has no resolvable timestamp.
+Called from the docs, labs, blog single, and default single layouts, below the article. It renders nothing when the page has no resolvable timestamp.
 
-Because it is server-rendered, the date is present without JavaScript and the page does not shift on load. When the [last-updated plugin](/plugins/last-updated/) is also enabled, the plugin upgrades this element in place to the configured format (relative time by default) rather than adding a second badge. Its `position` option does not apply on these layouts, since the template controls placement.
+The date is rendered at build time, so it is present without JavaScript and the page does not shift on load.
 
-Base styling ships in the core theme, so the component looks correct with the plugin disabled.
+The display format comes from [`theme.date_format`](/reference/configuration#theme), which accepts `short`, `long`, `iso`, or any Go layout string. The `datetime` attribute is always ISO 8601 regardless, so the markup stays machine-readable. The timestamp itself is resolved by [`build.last_updated`](/reference/configuration#last-updated-strategy).
 
 ### ContentPanel and TagSidebar
 

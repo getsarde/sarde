@@ -19,6 +19,9 @@ theme:
   preset: ""
   dark: true
   overrides: {}
+  # Format for the "last updated" date. Accepts "short", "long", "iso", or any
+  # Go layout string (e.g. "2006/01/02").
+  date_format: "short"
 
 toc:
   enabled: true

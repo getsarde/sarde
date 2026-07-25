@@ -82,6 +82,7 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 
 	// Normalize fields that accept multiple input forms.
 	cfg.Build.BasePath = NormalizeBasePath(cfg.Build.BasePath)
+	cfg.Theme.DateFormat = NormalizeDateFormat(cfg.Theme.DateFormat)
 
 	// Apply i18n defaults and validation.
 	if err := normalizeI18n(&cfg.I18n); err != nil {
@@ -230,6 +231,7 @@ func mergeTheme(base, over *ThemeSettings) {
 	mergeStr(&base.FontMono, over.FontMono)
 	mergeStr(&base.CodeLight, over.CodeLight)
 	mergeStr(&base.CodeDark, over.CodeDark)
+	mergeStr(&base.DateFormat, over.DateFormat)
 }
 
 func mergeTOC(base, over *TOCSettings) {

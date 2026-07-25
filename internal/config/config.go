@@ -143,6 +143,11 @@ type ThemeSettings struct {
 	FontMono      string            `yaml:"font_mono"`
 	CodeLight     string            `yaml:"code_light"`
 	CodeDark      string            `yaml:"code_dark"`
+
+	// DateFormat is the Go layout used for the "last updated" date. Accepts the
+	// names "short", "long", and "iso", or any raw Go layout. Normalized to a
+	// layout string at config load by NormalizeDateFormat.
+	DateFormat string `yaml:"date_format"`
 }
 
 // ---------------------------------------------------------------------------

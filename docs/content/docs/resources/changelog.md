@@ -9,9 +9,14 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ## Unreleased
 
+### Breaking
+
+- **The `last-updated` client plugin has been removed.** If your `sarde.yaml` lists `last-updated` under `plugins.enabled`, **delete that line** or the build will fail with `config validation failed: plugins.enabled[N]`. The date is now rendered by the theme itself on docs, labs, blog, and default layouts, with no plugin and no JavaScript required. The plugin's `date_format` option lives on as [`theme.date_format`](/reference/configuration#date-format). Relative time ("3 days ago") is no longer available; the date is always absolute.
+
 ### Added
 
-- Docs and labs pages now show a "Last updated" date without needing the `last-updated` plugin. It is rendered server-side, so it works without JavaScript and causes no layout shift. Enabling the plugin upgrades it in place to relative time rather than adding a second badge.
+- Docs, labs, blog, and default layouts now render a "Last updated" date server-side, so it works without JavaScript and causes no layout shift.
+- New `theme.date_format` setting controls how that date is displayed. Accepts `short`, `long`, `iso`, or any Go layout string.
 
 ### Changed
 
@@ -22,9 +27,6 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 - "Edit this page" links now render on docs pages. `site.edit_url` was previously honored only by blog and default layouts, so a docs site could configure it correctly and see links on blog posts alone. Sites that do not set `site.edit_url` are unaffected.
 - `show_updated: false` was ignored on pages that set `updated:` explicitly in frontmatter.
-- The "last updated" badge never appeared on blog posts.
-- The badge's `position: bottom` setting placed it at the end of the page content instead of above the previous/next navigation.
-- The badge is now localized: relative times use the page's language via `Intl.RelativeTimeFormat`, and absolute dates and the label follow the page language rather than the visitor's browser locale.
 - Sarde now warns once when `build.last_updated: git` cannot be used (git missing, not a repository, or a shallow clone) instead of silently falling back to file modification times.
 - The "Made with Sarde" footer credit linked to a domain that does not resolve. It now points to the documentation site. Because the footer template is compiled into the binary, sites built with 1.0.0 or 1.0.1 keep the old link until you upgrade and rebuild.
 

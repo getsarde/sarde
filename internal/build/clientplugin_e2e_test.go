@@ -476,7 +476,7 @@ func TestBuild_AllClientPlugins(t *testing.T) {
 		"scroll-to-top", "copy-section-link", "external-links",
 		"image-lightbox", "keyboard-nav", "focus-mode",
 		"reading-progress", "search-highlighter", "text-highlighter",
-		"last-updated", "reading-position-memory",
+		"reading-position-memory",
 		"reading-preferences",
 		"announcements",
 	}
@@ -501,7 +501,7 @@ func TestBuild_AllClientPlugins(t *testing.T) {
 
 	result, err := builder.Build()
 	if err != nil {
-		t.Fatalf("Build with all 16 plugins failed: %v", err)
+		t.Fatalf("Build with all 12 plugins failed: %v", err)
 	}
 
 	if result.PageCount == 0 {
@@ -511,7 +511,7 @@ func TestBuild_AllClientPlugins(t *testing.T) {
 	distDir := filepath.Join(projDir, "dist")
 	pluginDir := filepath.Join(distDir, "assets", "plugins")
 
-	// Should have 2 bundle files + announcements dir (13 client plugins total)
+	// Should have 2 bundle files + announcements dir (12 client plugins total)
 	entries, err := os.ReadDir(pluginDir)
 	if err != nil {
 		t.Fatalf("reading plugin dir: %v", err)

@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-Plugins add behavior to the build process or the generated site. Sarde ships with 27 built-in plugins split into two categories: server-side plugins that run during `sarde build`, and client-side plugins that inject JavaScript and CSS into the generated pages. Plugins installed into a project's `plugins/` directory are covered separately in [External Plugins](/plugins/external-plugins/).
+Plugins add behavior to the build process or the generated site. Sarde ships with 26 built-in plugins split into two categories: server-side plugins that run during `sarde build`, and client-side plugins that inject JavaScript and CSS into the generated pages. Plugins installed into a project's `plugins/` directory are covered separately in [External Plugins](/plugins/external-plugins/).
 
 ## Enabling and disabling plugins
 
@@ -71,7 +71,7 @@ Each plugin documents its own configuration options. Options not specified fall 
 
 ## Default plugins
 
-Fourteen plugins are enabled by default. Thirteen more are available but must be added to `plugins.enabled` to activate.
+Fourteen plugins are enabled by default. Twelve more are available but must be added to `plugins.enabled` to activate.
 
 ### Enabled by default
 
@@ -106,7 +106,6 @@ Fourteen plugins are enabled by default. Thirteen more are available but must be
 | [`reading-progress`](/plugins/reading-progress) | Client | Progress bar showing scroll position. |
 | [`search-highlighter`](/plugins/search-highlighter) | Client | Highlights search terms on the destination page. |
 | [`text-highlighter`](/plugins/text-highlighter) | Client | User-driven text highlighting with persistence. |
-| [`last-updated`](/plugins/last-updated) | Client | Displays the page's last-updated date. |
 | [`reading-position-memory`](/plugins/reading-position-memory) | Client | Remembers scroll position across visits. |
 | [`reading-preferences`](/plugins/reading-preferences) | Client | Font size and content width controls. |
 | [`announcements`](/plugins/announcements) | Server | Displays announcement banners with scheduling and i18n. |

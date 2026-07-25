@@ -72,14 +72,6 @@ plugins:
     module: true
 
 
-  last-updated:
-    description: "Last updated badge with relative or absolute time"
-    inject_when: has_updated
-    assets:
-      css: last-updated/last-updated.css
-      js: last-updated/last-updated.js
-    module: true
-
   reading-position-memory:
     description: "Remember and offer to restore scroll position per page"
     inject_when: is_content_page
