@@ -57,7 +57,9 @@
               {{ block "content" . }}{{ .Page.Content }}{{ end }}
             </article>
             {{ component "LabProgress" . }}
-            {{ component "LastUpdated" . }}
+            <div class="sarde-page-meta">
+              {{ component "LastUpdated" . }}
+            </div>
             {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
             {{ component "Footer" . }}
           </div>

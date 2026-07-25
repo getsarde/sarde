@@ -229,7 +229,9 @@ Renders tag chips when [`showPageTags`](/reference/template-functions#content) r
 
 Resolves the "Edit this page" URL in order: a custom string from `edit_url` in [page frontmatter](/reference/frontmatter#meta-fields), or [`site.edit_url`](/reference/configuration#site) joined with the page's relative path. Set `edit_url: false` in frontmatter to disable the link for a specific page.
 
-Called from the blog, default, and docs layouts. It renders nothing unless `site.edit_url` is set, so sites that do not configure it see no change.
+Renders `<a class="sarde-edit-link edit-link">` containing an inline pencil icon followed by the label. The legacy `edit-link` class is kept alongside the new one so existing custom CSS keeps working.
+
+Called from the blog, default, and docs layouts, inside the shared [page meta row](#page-meta-row). It renders nothing unless `site.edit_url` is set, so sites that do not configure it see no change.
 
 `site.edit_url` must point at the **content directory**, not the repository root, because the page path appended to it is relative to `content/`. For a site whose project lives in `docs/`, that means `https://github.com/user/repo/edit/main/docs/content`.
 
@@ -249,11 +251,26 @@ Renders a language dropdown from `.AllTranslations`. Hidden on single-language s
 
 Renders `<p class="sarde-last-updated">` containing a `<time>` element with the absolute date from `.Page.Updated`, gated by `show_updated` in [frontmatter](/reference/frontmatter#meta-fields) (default `true`).
 
-Called from the docs, labs, blog single, and default single layouts, below the article. It renders nothing when the page has no resolvable timestamp.
+Called from the docs, labs, blog single, and default single layouts, inside the shared [page meta row](#page-meta-row) below the article. It renders nothing when the page has no resolvable timestamp.
 
 The date is rendered at build time, so it is present without JavaScript and the page does not shift on load.
 
 The display format comes from [`theme.date_format`](/reference/configuration#theme), which accepts `short`, `long`, `iso`, or any Go layout string. The `datetime` attribute is always ISO 8601 regardless, so the markup stays machine-readable. The timestamp itself is resolved by [`build.last_updated`](/reference/configuration#last-updated-strategy).
+
+### Page meta row
+
+The docs, labs, default single, and blog single layouts wrap `EditLink` and `LastUpdated` in a shared `<div class="sarde-page-meta">` that sits between the article and the prev/next navigation:
+
+```html
+<div class="sarde-page-meta">
+  {{ component "EditLink" . }}
+  {{ component "LastUpdated" . }}
+</div>
+```
+
+The row is a flex container with `justify-content: space-between`, so the edit link sits at the start and the last-updated line at the end, both in muted text at the small type size. On narrow viewports the row wraps to two lines. When only `LastUpdated` renders it still sits at the end, and when neither component renders the row collapses to `display: none` so no vertical gap is left behind.
+
+The wrapper lives in the layouts rather than in a component of its own, because components are parsed before the component registry exists and therefore cannot call other components.
 
 ### ContentPanel and TagSidebar
 

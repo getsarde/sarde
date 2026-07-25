@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/getsarde/sarde/embedded"
@@ -27,7 +28,7 @@ import (
 // registerSubpackagePlugins wires plugins whose assets live in their own
 // subpackage (and therefore can't be referenced from internal/plugin/registry.go
 // without creating an import cycle).
-func registerSubpackagePlugins(mgr *plugin.Manager, enabled []string, configs map[string]map[string]any) {
+func registerSubpackagePlugins(mgr *plugin.Manager, enabled []string, configs map[string]map[string]any, pluginAssetsDir string) {
 	if err := clientplugins.Initialize(); err != nil {
 		devlog.Warn("build", "clientplugins init: %v", err)
 	}
@@ -43,7 +44,7 @@ func registerSubpackagePlugins(mgr *plugin.Manager, enabled []string, configs ma
 			mgr.Register(socialcards.New(configs[name]))
 		}
 	}
-	clientplugins.RegisterAll(mgr, enabled, configs)
+	clientplugins.RegisterAll(mgr, enabled, configs, pluginAssetsDir)
 }
 
 // appendVersionedLatestPages appends duplicate RenderedPage entries for
@@ -135,6 +136,65 @@ func KnownPluginNames(projectDir string) []string {
 		names = append(names, external.DiscoverSlugs(projectDir)...)
 	}
 	return names
+}
+
+// warnUnusedPluginConfig reports plugins.config entries whose plugin is not
+// active, and whose settings are therefore silently ignored. External plugins
+// are enabled by their presence under plugins/ rather than by plugins.enabled,
+// so they count as active unless explicitly disabled.
+func warnUnusedPluginConfig(cfg *config.SiteConfig, enabled []string, projectDir string) []engine.ValidationWarning {
+	if len(cfg.Plugins.Config) == 0 {
+		return nil
+	}
+
+	active := make(map[string]bool, len(enabled))
+	for _, name := range enabled {
+		active[name] = true
+	}
+	disabled := make(map[string]bool, len(cfg.Plugins.Disabled))
+	for _, name := range cfg.Plugins.Disabled {
+		disabled[name] = true
+	}
+	for _, slug := range external.DiscoverSlugs(projectDir) {
+		if !disabled[slug] {
+			active[slug] = true
+		}
+	}
+
+	known := make(map[string]bool)
+	for _, name := range KnownPluginNames(projectDir) {
+		known[name] = true
+	}
+
+	names := make([]string, 0, len(cfg.Plugins.Config))
+	for name := range cfg.Plugins.Config {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	var warnings []engine.ValidationWarning
+	for _, name := range names {
+		if active[name] {
+			continue
+		}
+		ref := "sarde.yaml: plugins.config." + name
+		if known[name] {
+			warnings = append(warnings, engine.ValidationWarning{
+				File:    ref,
+				Field:   "plugin",
+				Message: fmt.Sprintf("plugin %q is not in plugins.enabled, configuration ignored", name),
+				Level:   "warning",
+			})
+			continue
+		}
+		warnings = append(warnings, engine.ValidationWarning{
+			File:    ref,
+			Field:   "plugin",
+			Message: fmt.Sprintf("unknown plugin %q, configuration ignored", name),
+			Level:   "warning",
+		})
+	}
+	return warnings
 }
 
 // filterDisabled returns enabled minus any names present in disabled.

@@ -19,6 +19,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/getsarde/sarde/internal/asset"
+	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/plugin"
 	"github.com/getsarde/sarde/internal/plugin/cfgutil"
@@ -52,50 +53,66 @@ type Manifest struct {
 var (
 	manifest       Manifest
 	pluginDefaults map[string]map[string]any
-
-	bundleMu      sync.RWMutex
-	bundleCSS     []byte
-	bundleJS      []byte
-	bundleCSSURL  string
-	bundleJSURL   string
-	bundleCSSPath string
-	bundleJSPath  string
 )
 
 var initOnce sync.Once
 var initErr error
 
-// Initialize loads the embedded plugin manifest and pre-computes bundles.
+// Initialize loads the embedded plugin manifest and per-plugin defaults.
 // Safe to call multiple times; only the first call does work.
+//
+// Bundling deliberately does not happen here: which plugins belong in the
+// bundle depends on the site's plugins.enabled, and Initialize runs during
+// config resolution (see build.KnownPluginNames), before any config exists.
+// RegisterAll builds the bundle instead, once the enabled set is known.
 func Initialize() error {
 	initOnce.Do(func() {
 		if err := yaml.Unmarshal(manifestData, &manifest); err != nil {
 			initErr = fmt.Errorf("clientplugins: bad manifest.yaml: %w", err)
 			return
 		}
-		computeBundles(assetsFS, "assets/")
 		precomputeDefaults()
 	})
 	return initErr
 }
 
-// RecomputeFromDir reloads and rebundles all plugin client assets from the
-// given filesystem directory. For use by 'sarde dev --theme-dev' only.
-func RecomputeFromDir(dir string) error {
-	if _, err := os.Stat(dir); err != nil {
-		return fmt.Errorf("clientplugins: cannot access asset dir %s: %w", dir, err)
-	}
-	computeBundles(os.DirFS(dir), "")
-	return nil
+// bundle holds the concatenated client assets for one resolved set of enabled
+// plugins. It is a value rather than package state so that two builds with
+// different configs in the same process cannot see each other's bundle.
+type bundle struct {
+	css, js         []byte
+	cssPath, jsPath string
+	cssURL, jsURL   string
 }
 
-func computeBundles(fsys fs.FS, pathPrefix string) {
-	slugs := sortedSlugs()
+// assetSource returns the filesystem to read plugin assets from. A non-empty
+// dir (from 'sarde dev --theme-dev') wins over the embedded assets; an
+// unreadable dir falls back to embedded rather than shipping nothing.
+func assetSource(dir string) (fs.FS, string) {
+	if dir == "" {
+		return assetsFS, "assets/"
+	}
+	if _, err := os.Stat(dir); err != nil {
+		devlog.Warn("build", "clientplugins: cannot access asset dir %s: %v", dir, err)
+		return assetsFS, "assets/"
+	}
+	return os.DirFS(dir), ""
+}
+
+// buildBundle concatenates and minifies the assets of the given slugs. Slugs
+// are sorted first so the bundle bytes, and therefore the fingerprint, are
+// deterministic regardless of map iteration order.
+func buildBundle(fsys fs.FS, pathPrefix string, slugs []string) bundle {
+	sorted := append([]string(nil), slugs...)
+	sort.Strings(sorted)
 
 	var cssBuilder, jsBuilder bytes.Buffer
 
-	for _, slug := range slugs {
-		entry := manifest.Plugins[slug]
+	for _, slug := range sorted {
+		entry, ok := manifest.Plugins[slug]
+		if !ok {
+			continue
+		}
 		if entry.Assets.CSS != "" {
 			data, err := fs.ReadFile(fsys, pathPrefix+entry.Assets.CSS)
 			if err == nil && len(data) > 0 {
@@ -114,36 +131,21 @@ func computeBundles(fsys fs.FS, pathPrefix string) {
 		}
 	}
 
-	bundleMu.Lock()
-	defer bundleMu.Unlock()
-
-	bundleCSS = nil
-	bundleJS = nil
-	bundleCSSURL = ""
-	bundleJSURL = ""
-	bundleCSSPath = ""
-	bundleJSPath = ""
+	var b bundle
 
 	if rawCSS := cssBuilder.Bytes(); len(rawCSS) > 0 {
-		bundleCSS = minifyCSS(rawCSS)
-		bundleCSSPath = "assets/plugins/" + asset.FingerprintedName("plugins.css", asset.Fingerprint(bundleCSS))
-		bundleCSSURL = "/" + bundleCSSPath
+		b.css = minifyCSS(rawCSS)
+		b.cssPath = "assets/plugins/" + asset.FingerprintedName("plugins.css", asset.Fingerprint(b.css))
+		b.cssURL = "/" + b.cssPath
 	}
 
 	if rawJS := jsBuilder.Bytes(); len(rawJS) > 0 {
-		bundleJS = minifyJS(rawJS)
-		bundleJSPath = "assets/plugins/" + asset.FingerprintedName("plugins.js", asset.Fingerprint(bundleJS))
-		bundleJSURL = "/" + bundleJSPath
+		b.js = minifyJS(rawJS)
+		b.jsPath = "assets/plugins/" + asset.FingerprintedName("plugins.js", asset.Fingerprint(b.js))
+		b.jsURL = "/" + b.jsPath
 	}
-}
 
-func sortedSlugs() []string {
-	slugs := make([]string, 0, len(manifest.Plugins))
-	for slug := range manifest.Plugins {
-		slugs = append(slugs, slug)
-	}
-	sort.Strings(slugs)
-	return slugs
+	return b
 }
 
 func minifyCSS(data []byte) []byte {
@@ -189,7 +191,11 @@ func precomputeDefaults() {
 
 // RegisterAll registers a single "clientplugins" meta-plugin that injects the
 // bundled CSS/JS on every page and per-plugin config scripts gated by inject_when.
-func RegisterAll(mgr *plugin.Manager, enabled []string, configs map[string]map[string]any) {
+//
+// Only plugins named in enabled contribute to the bundle, so a site ships no
+// code for plugins it has not turned on. assetDir overrides the embedded assets
+// for 'sarde dev --theme-dev'; empty means use the embedded ones.
+func RegisterAll(mgr *plugin.Manager, enabled []string, configs map[string]map[string]any, assetDir string) {
 	enabledSet := make(map[string]bool, len(enabled))
 	for _, name := range enabled {
 		enabledSet[name] = true
@@ -201,6 +207,7 @@ func RegisterAll(mgr *plugin.Manager, enabled []string, configs map[string]map[s
 		config map[string]any
 	}
 	var activePlugins []pluginCfg
+	var activeSlugs []string
 
 	for slug, entry := range manifest.Plugins {
 		if !enabledSet[slug] {
@@ -208,11 +215,15 @@ func RegisterAll(mgr *plugin.Manager, enabled []string, configs map[string]map[s
 		}
 		cfg := mergeConfig(pluginDefaults[slug], configs[slug])
 		activePlugins = append(activePlugins, pluginCfg{slug, entry, cfg})
+		activeSlugs = append(activeSlugs, slug)
 	}
 
 	if len(activePlugins) == 0 {
 		return
 	}
+
+	fsys, pathPrefix := assetSource(assetDir)
+	b := buildBundle(fsys, pathPrefix, activeSlugs)
 
 	p := &plugin.Plugin{
 		Name: "clientplugins",
@@ -220,16 +231,11 @@ func RegisterAll(mgr *plugin.Manager, enabled []string, configs map[string]map[s
 			BeforeRender: func(ctx *plugin.BeforeRenderContext) error {
 				rd := ctx.RouteData
 
-				bundleMu.RLock()
-				cssURL := bundleCSSURL
-				jsURL := bundleJSURL
-				bundleMu.RUnlock()
-
-				if cssURL != "" {
-					rd.Styles = cfgutil.AppendUnique(rd.Styles, cssURL)
+				if b.cssURL != "" {
+					rd.Styles = cfgutil.AppendUnique(rd.Styles, b.cssURL)
 				}
-				if jsURL != "" {
-					rd.ModuleScripts = cfgutil.AppendUnique(rd.ModuleScripts, jsURL)
+				if b.jsURL != "" {
+					rd.ModuleScripts = cfgutil.AppendUnique(rd.ModuleScripts, b.jsURL)
 				}
 
 				merged := make(map[string]any)
@@ -247,18 +253,13 @@ func RegisterAll(mgr *plugin.Manager, enabled []string, configs map[string]map[s
 				return nil
 			},
 			BuildDone: func(ctx *plugin.BuildDoneContext) error {
-				bundleMu.RLock()
-				css, cssPath := bundleCSS, bundleCSSPath
-				js, jsPath := bundleJS, bundleJSPath
-				bundleMu.RUnlock()
-
-				if len(css) > 0 {
-					if err := ctx.WriteFile(cssPath, css); err != nil {
+				if len(b.css) > 0 {
+					if err := ctx.WriteFile(b.cssPath, b.css); err != nil {
 						return err
 					}
 				}
-				if len(js) > 0 {
-					if err := ctx.WriteFile(jsPath, js); err != nil {
+				if len(b.js) > 0 {
+					if err := ctx.WriteFile(b.jsPath, b.js); err != nil {
 						return err
 					}
 				}

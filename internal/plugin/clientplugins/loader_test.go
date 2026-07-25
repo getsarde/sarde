@@ -2,6 +2,7 @@ package clientplugins
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -152,62 +153,131 @@ func TestShouldInject_LayoutGating(t *testing.T) {
 
 func TestRegisterAll(t *testing.T) {
 	mgr := plugin.NewManager()
-	RegisterAll(mgr, []string{"scroll-to-top", "focus-mode"}, nil)
+	RegisterAll(mgr, []string{"scroll-to-top", "focus-mode"}, nil, "")
+}
+
+// testBundle builds a bundle from the embedded assets for the given slugs.
+func testBundle(slugs ...string) bundle {
+	return buildBundle(assetsFS, "assets/", slugs)
 }
 
 func TestBundleURLs(t *testing.T) {
-	if bundleCSSURL == "" {
-		t.Error("bundleCSSURL is empty")
+	b := testBundle("scroll-to-top", "focus-mode")
+
+	if b.cssURL == "" {
+		t.Error("cssURL is empty")
 	}
-	if bundleJSURL == "" {
-		t.Error("bundleJSURL is empty")
+	if b.jsURL == "" {
+		t.Error("jsURL is empty")
 	}
-	if !strings.HasPrefix(bundleCSSURL, "/assets/plugins/plugins.") {
-		t.Errorf("bundleCSSURL = %q, want prefix /assets/plugins/plugins.", bundleCSSURL)
+	if !strings.HasPrefix(b.cssURL, "/assets/plugins/plugins.") {
+		t.Errorf("cssURL = %q, want prefix /assets/plugins/plugins.", b.cssURL)
 	}
-	if !strings.HasSuffix(bundleCSSURL, ".css") {
-		t.Errorf("bundleCSSURL = %q, want suffix .css", bundleCSSURL)
+	if !strings.HasSuffix(b.cssURL, ".css") {
+		t.Errorf("cssURL = %q, want suffix .css", b.cssURL)
 	}
-	if !strings.HasPrefix(bundleJSURL, "/assets/plugins/plugins.") {
-		t.Errorf("bundleJSURL = %q, want prefix /assets/plugins/plugins.", bundleJSURL)
+	if !strings.HasPrefix(b.jsURL, "/assets/plugins/plugins.") {
+		t.Errorf("jsURL = %q, want prefix /assets/plugins/plugins.", b.jsURL)
 	}
-	if !strings.HasSuffix(bundleJSURL, ".js") {
-		t.Errorf("bundleJSURL = %q, want suffix .js", bundleJSURL)
+	if !strings.HasSuffix(b.jsURL, ".js") {
+		t.Errorf("jsURL = %q, want suffix .js", b.jsURL)
 	}
 }
 
 func TestBundleData(t *testing.T) {
-	if len(bundleCSS) == 0 {
-		t.Error("bundleCSS is empty")
+	b := testBundle("scroll-to-top", "focus-mode")
+
+	if len(b.css) == 0 {
+		t.Error("css is empty")
 	}
-	if len(bundleJS) == 0 {
-		t.Error("bundleJS is empty")
+	if len(b.js) == 0 {
+		t.Error("js is empty")
+	}
+}
+
+// TestBundleOnlyEnabled guards the contract that plugins.enabled governs:
+// a plugin that is not enabled must contribute nothing to the bundle.
+func TestBundleOnlyEnabled(t *testing.T) {
+	b := testBundle("scroll-to-top")
+
+	if strings.Contains(string(b.js), "Navigate between pages") {
+		t.Error("bundle contains keyboard-nav JS, which was not enabled")
+	}
+	if strings.Contains(string(b.css), "sarde-kbd-nav-hint") {
+		t.Error("bundle contains keyboard-nav CSS, which was not enabled")
+	}
+	if !strings.Contains(string(b.css), "sarde-scroll-to-top") {
+		t.Error("bundle is missing scroll-to-top CSS, which was enabled")
+	}
+}
+
+// TestBundleEmptyWhenNothingEnabled covers a site that enables no client
+// plugins at all: nothing to bundle means nothing to write or reference.
+func TestBundleEmptyWhenNothingEnabled(t *testing.T) {
+	b := testBundle()
+
+	if len(b.css) != 0 || len(b.js) != 0 {
+		t.Error("bundle is non-empty with no plugins enabled")
+	}
+	if b.cssURL != "" || b.jsURL != "" {
+		t.Errorf("bundle URLs are set with no plugins enabled: %q / %q", b.cssURL, b.jsURL)
+	}
+}
+
+// TestBundleSlugOrderIndependent ensures the fingerprint depends on which
+// plugins are bundled, not on the order they were passed in.
+func TestBundleSlugOrderIndependent(t *testing.T) {
+	a := testBundle("scroll-to-top", "focus-mode")
+	b := testBundle("focus-mode", "scroll-to-top")
+
+	if a.cssURL != b.cssURL || a.jsURL != b.jsURL {
+		t.Errorf("bundle URLs differ by slug order: %q/%q vs %q/%q", a.cssURL, a.jsURL, b.cssURL, b.jsURL)
+	}
+}
+
+// TestAssetSourceDir covers the 'sarde dev --theme-dev' path: assets read from
+// a directory must match the embedded ones, and a bad dir must fall back to
+// embedded rather than producing an empty bundle.
+func TestAssetSourceDir(t *testing.T) {
+	slugs := []string{"scroll-to-top", "focus-mode"}
+	want := testBundle(slugs...)
+
+	fsys, prefix := assetSource("assets")
+	if got := buildBundle(fsys, prefix, slugs); got.jsURL != want.jsURL || got.cssURL != want.cssURL {
+		t.Errorf("dir-sourced bundle differs from embedded: %q/%q vs %q/%q",
+			got.cssURL, got.jsURL, want.cssURL, want.jsURL)
+	}
+
+	fsys, prefix = assetSource(filepath.Join(t.TempDir(), "does-not-exist"))
+	if got := buildBundle(fsys, prefix, slugs); got.jsURL != want.jsURL {
+		t.Errorf("missing dir did not fall back to embedded assets: jsURL = %q", got.jsURL)
 	}
 }
 
 func TestBundleHashDeterministic(t *testing.T) {
-	hash := asset.Fingerprint(bundleCSS)
+	b := testBundle("scroll-to-top", "focus-mode")
+
+	hash := asset.Fingerprint(b.css)
 	expected := "/assets/plugins/plugins." + hash + ".css"
-	if bundleCSSURL != expected {
-		t.Errorf("bundleCSSURL = %q, want %q", bundleCSSURL, expected)
+	if b.cssURL != expected {
+		t.Errorf("cssURL = %q, want %q", b.cssURL, expected)
 	}
 
-	hash = asset.Fingerprint(bundleJS)
+	hash = asset.Fingerprint(b.js)
 	expected = "/assets/plugins/plugins." + hash + ".js"
-	if bundleJSURL != expected {
-		t.Errorf("bundleJSURL = %q, want %q", bundleJSURL, expected)
+	if b.jsURL != expected {
+		t.Errorf("jsURL = %q, want %q", b.jsURL, expected)
 	}
 }
 
 func TestBundleIsMinified(t *testing.T) {
-	css := string(bundleCSS)
-	if strings.Contains(css, "/* scroll-to-top */") {
-		t.Error("bundled CSS still contains source comments — minification not applied")
-	}
+	b := testBundle("scroll-to-top", "focus-mode")
 
-	js := string(bundleJS)
-	if strings.Contains(js, "/* scroll-to-top */") {
-		t.Error("bundled JS still contains source comments — minification not applied")
+	if strings.Contains(string(b.css), "/* scroll-to-top */") {
+		t.Error("bundled CSS still contains source comments, minification not applied")
+	}
+	if strings.Contains(string(b.js), "/* scroll-to-top */") {
+		t.Error("bundled JS still contains source comments, minification not applied")
 	}
 }
 

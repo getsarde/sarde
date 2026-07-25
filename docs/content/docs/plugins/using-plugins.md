@@ -116,6 +116,17 @@ Fourteen plugins are enabled by default. Twelve more are available but must be a
 
 **Client-side plugins** ship as bundled JavaScript and CSS. All enabled client-side plugins are concatenated into a single pair of files (`plugins.<hash>.css` and `plugins.<hash>.js`) for minimal network overhead. Each plugin reads its configuration from an inline script and activates only on pages where its `inject_when` condition is met.
 
+A plugin that is not enabled contributes nothing to the bundle, so a site never downloads code for plugins it has not turned on. Enabling a different set of plugins changes the bundle contents and therefore its hash. If no client-side plugin is enabled, no bundle is written and no page references one.
+
+Because `plugins.config` only reaches plugins that are actually active, a config block for a plugin that is not enabled is ignored. The build warns when this happens:
+
+```
+WARN  plugin  sarde.yaml: plugins.config.keyboard-nav
+      plugin "keyboard-nav" is not in plugins.enabled, configuration ignored
+```
+
+A config block naming no known plugin (usually a typo) warns as `unknown plugin`. External plugins are exempt from both warnings, since they are enabled by their presence under `plugins/` rather than by `plugins.enabled`.
+
 ## Page injection rules
 
 Client-side plugins declare when their configuration is injected into a page. The plugin's JavaScript and CSS bundle is always loaded, but the plugin only activates on pages matching its condition:

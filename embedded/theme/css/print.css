@@ -8,7 +8,7 @@
 	  .copy-btn, .heading-anchor, .mobile-menu-toggle,
 	  .sarde-menu-toggle, .sarde-sidebar-backdrop,
 	  .sarde-sidebar-footer, .sarde-mobile-nav,
-	  .spoiler-toggle, .sarde-skip-link, .sarde-pagination,
+	  .spoiler-toggle, .sarde-skip-link, .sarde-pagination, .sarde-edit-link,
 	  .post-navigation, .blog-pagination,
 	  .header, .navbar, .footer { display: none !important; }
 

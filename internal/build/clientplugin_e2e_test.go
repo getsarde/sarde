@@ -91,6 +91,161 @@ func TestBuild_ClientPlugins_BundleOutput(t *testing.T) {
 	}
 }
 
+// readPluginBundle returns the concatenated contents of every file in
+// dist/assets/plugins/, or "" when the directory does not exist.
+func readPluginBundle(t *testing.T, distDir string) string {
+	t.Helper()
+	pluginDir := filepath.Join(distDir, "assets", "plugins")
+	entries, err := os.ReadDir(pluginDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return ""
+		}
+		t.Fatalf("reading plugin dir: %v", err)
+	}
+	var sb strings.Builder
+	for _, e := range entries {
+		data, err := os.ReadFile(filepath.Join(pluginDir, e.Name()))
+		if err != nil {
+			t.Fatalf("reading %s: %v", e.Name(), err)
+		}
+		sb.Write(data)
+	}
+	return sb.String()
+}
+
+// TestBuild_ClientPlugins_DisabledNotBundled is the end-to-end guard for
+// plugins.enabled governing client plugins: a plugin that is not enabled must
+// ship no code. Mirrors TestBuild_ExternalPlugin_DisabledViaConfig.
+func TestBuild_ClientPlugins_DisabledNotBundled(t *testing.T) {
+	projDir := createRichFixtureSite(t)
+	cfg := config.Defaults()
+	cfg.Plugins.Enabled = []string{"scroll-to-top"}
+	themeCfg := buildThemeConfig()
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: themeCfg,
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	bundle := readPluginBundle(t, filepath.Join(projDir, "dist"))
+	if bundle == "" {
+		t.Fatal("no plugin bundle emitted, expected scroll-to-top")
+	}
+	if !strings.Contains(bundle, "sarde-scroll-to-top") {
+		t.Error("bundle is missing scroll-to-top, which was enabled")
+	}
+	for _, marker := range []string{"Navigate between pages", "sarde-kbd-nav-hint", "sarde-reading-progress"} {
+		if strings.Contains(bundle, marker) {
+			t.Errorf("bundle contains %q from a plugin that was not enabled", marker)
+		}
+	}
+}
+
+// TestBuild_ClientPlugins_NoneEnabled covers a site that enables no client
+// plugins: no bundle is written and no page references one.
+func TestBuild_ClientPlugins_NoneEnabled(t *testing.T) {
+	projDir := createRichFixtureSite(t)
+	cfg := config.Defaults()
+	cfg.Plugins.Enabled = []string{"seo"}
+	themeCfg := buildThemeConfig()
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: themeCfg,
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(projDir, "dist")
+	if bundle := readPluginBundle(t, distDir); bundle != "" {
+		t.Error("plugin bundle emitted with no client plugins enabled")
+	}
+	if html := readFixture(t, distDir, "docs/guide/index.html"); strings.Contains(html, "/assets/plugins/plugins.") {
+		t.Error("page references a plugin bundle with no client plugins enabled")
+	}
+}
+
+// buildAndCollectWarnings builds the fixture and returns its warning messages.
+func buildAndCollectWarnings(t *testing.T, projDir string, cfg *config.SiteConfig) []string {
+	t.Helper()
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: buildThemeConfig(),
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+	result, err := builder.Build()
+	if err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+	msgs := make([]string, 0, len(result.Warnings))
+	for _, w := range result.Warnings {
+		msgs = append(msgs, w.Message)
+	}
+	return msgs
+}
+
+func containsSubstring(msgs []string, want string) bool {
+	for _, m := range msgs {
+		if strings.Contains(m, want) {
+			return true
+		}
+	}
+	return false
+}
+
+// TestBuild_PluginConfig_IgnoredWarns covers the diagnostic for the failure
+// mode this fix addresses: configuring a plugin that is not enabled used to be
+// a silent no-op.
+func TestBuild_PluginConfig_IgnoredWarns(t *testing.T) {
+	cfg := config.Defaults()
+	cfg.Plugins.Enabled = []string{"scroll-to-top"}
+	cfg.Plugins.Config = map[string]map[string]any{
+		"keyboard-nav":  {"show_hint": false},
+		"keyboard_nav":  {"show_hint": false},
+		"scroll-to-top": {"showTooltip": true},
+	}
+
+	msgs := buildAndCollectWarnings(t, createRichFixtureSite(t), cfg)
+
+	if !containsSubstring(msgs, `plugin "keyboard-nav" is not in plugins.enabled`) {
+		t.Errorf("expected a not-enabled warning for keyboard-nav, warnings: %v", msgs)
+	}
+	if !containsSubstring(msgs, `unknown plugin "keyboard_nav"`) {
+		t.Errorf("expected an unknown-plugin warning for the typo, warnings: %v", msgs)
+	}
+	if containsSubstring(msgs, "scroll-to-top") {
+		t.Errorf("enabled plugin should not warn, warnings: %v", msgs)
+	}
+}
+
+// TestBuild_PluginConfig_EnabledNoWarn is the counterpart: once the plugin is
+// enabled, its config block is live and must not warn.
+func TestBuild_PluginConfig_EnabledNoWarn(t *testing.T) {
+	cfg := config.Defaults()
+	cfg.Plugins.Enabled = []string{"scroll-to-top", "keyboard-nav"}
+	cfg.Plugins.Config = map[string]map[string]any{
+		"keyboard-nav": {"show_hint": false},
+	}
+
+	msgs := buildAndCollectWarnings(t, createRichFixtureSite(t), cfg)
+
+	if containsSubstring(msgs, "keyboard-nav") {
+		t.Errorf("enabled plugin should not warn, warnings: %v", msgs)
+	}
+}
+
 func TestBuild_ClientPlugins_BundleOnEveryPage(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()

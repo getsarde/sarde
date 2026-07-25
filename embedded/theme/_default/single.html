@@ -2,8 +2,10 @@
 <article class="sarde-markdown-content"{{ if and .Page .Page.IsFallback }} dir="ltr"{{ end }}>
   {{ component "PageTitle" . }}
   {{ .Page.Content }}
-  {{ component "EditLink" . }}
-  {{ component "LastUpdated" . }}
+  <div class="sarde-page-meta">
+    {{ component "EditLink" . }}
+    {{ component "LastUpdated" . }}
+  </div>
   {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
 </article>
 {{ end }}

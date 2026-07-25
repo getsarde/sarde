@@ -26,10 +26,12 @@
 
     {{ .Page.Content }}
 
-    {{ component "EditLink" . }}
   </article>
 
-  {{ component "LastUpdated" . }}
+  <div class="sarde-page-meta">
+    {{ component "EditLink" . }}
+    {{ component "LastUpdated" . }}
+  </div>
 
   {{ if .Pagination }}
   <nav class="sarde-post-navigation">

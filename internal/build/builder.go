@@ -11,11 +11,9 @@ import (
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/content/markdown"
-	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/links"
 	"github.com/getsarde/sarde/internal/plugin"
-	"github.com/getsarde/sarde/internal/plugin/clientplugins"
 	"github.com/getsarde/sarde/internal/plugin/external"
 	"github.com/getsarde/sarde/internal/shortcode"
 	sardetemplate "github.com/getsarde/sarde/internal/template"
@@ -89,17 +87,12 @@ type SiteBuilder struct {
 
 // NewSiteBuilder creates a SiteBuilder with all dependencies initialized.
 func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
-	if opts.PluginAssetsDir != "" {
-		if err := clientplugins.RecomputeFromDir(opts.PluginAssetsDir); err != nil {
-			devlog.Warn("build", "Plugin live-reload failed: %v", err)
-		}
-	}
-
 	mgr := plugin.NewManager()
 	enabled := filterDisabled(opts.Config.Plugins.Enabled, opts.Config.Plugins.Disabled)
 	mgr.RegisterBuiltins(enabled, opts.Config.Plugins.Config)
-	registerSubpackagePlugins(mgr, enabled, opts.Config.Plugins.Config)
+	registerSubpackagePlugins(mgr, enabled, opts.Config.Plugins.Config, opts.PluginAssetsDir)
 	extDirs, extWarnings := external.LoadAll(mgr, opts.ProjectDir, opts.Config, KnownPluginNames(""))
+	extWarnings = append(extWarnings, warnUnusedPluginConfig(opts.Config, enabled, opts.ProjectDir)...)
 
 	return &SiteBuilder{
 		projectDir:             opts.ProjectDir,
