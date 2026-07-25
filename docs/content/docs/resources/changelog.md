@@ -7,6 +7,18 @@ sidebar:
 
 Notable changes to Sarde, grouped by release. Bug fixes, new features, and breaking changes are listed separately within each release.
 
+## Unreleased
+
+### Fixed
+
+- The "Made with Sarde" footer credit linked to a domain that does not resolve. It now points to the documentation site. Because the footer template is compiled into the binary, sites built with 1.0.0 or 1.0.1 keep the old link until you upgrade and rebuild.
+
+## 1.0.1 - 2026-07-25
+
+### Fixed
+
+- Added `linux/arm64` binaries, which were missing from the 1.0.0 release. ARM Linux servers and CI runners can now install with the standard script.
+
 ## 1.0.0 - 2026-07-24
 
 The first stable release. Everything below has accumulated since the 0.1.x previews.
