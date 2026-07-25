@@ -58,6 +58,7 @@
             <article class="sarde-markdown-content"{{ if and .Page .Page.IsFallback }} dir="ltr"{{ end }}{{ if and .Page .Page.Updated (not .Page.Updated.IsZero) }} data-last-modified="{{ .Page.Updated.Unix }}"{{ end }}>
               {{ block "content" . }}{{ .Page.Content }}{{ end }}
             </article>
+            {{ component "EditLink" . }}
             {{ if .Pagination }}{{ component "Pagination" . }}{{ end }}
             {{ component "Footer" . }}
           </div>

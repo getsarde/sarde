@@ -11,6 +11,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Fixed
 
+- "Edit this page" links now render on docs pages. `site.edit_url` was previously honored only by blog and default layouts, so a docs site could configure it correctly and see links on blog posts alone. Sites that do not set `site.edit_url` are unaffected.
 - The "Made with Sarde" footer credit linked to a domain that does not resolve. It now points to the documentation site. Because the footer template is compiled into the binary, sites built with 1.0.0 or 1.0.1 keep the old link until you upgrade and rebuild.
 
 ## 1.0.1 - 2026-07-25

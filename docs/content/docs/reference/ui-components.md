@@ -227,7 +227,11 @@ Renders tag chips when [`showPageTags`](/reference/template-functions#content) r
 
 ### EditLink
 
-Resolves the "Edit this page" URL in order: a custom string from `edit_url` in [page frontmatter](/reference/frontmatter#meta-fields), or [`site.edit_url`](/reference/configuration#site) joined with the page's relative path. Set `edit_url: false` in frontmatter to disable the link for a specific page. Not called from the docs layout by default.
+Resolves the "Edit this page" URL in order: a custom string from `edit_url` in [page frontmatter](/reference/frontmatter#meta-fields), or [`site.edit_url`](/reference/configuration#site) joined with the page's relative path. Set `edit_url: false` in frontmatter to disable the link for a specific page.
+
+Called from the blog, default, and docs layouts. It renders nothing unless `site.edit_url` is set, so sites that do not configure it see no change.
+
+`site.edit_url` must point at the **content directory**, not the repository root, because the page path appended to it is relative to `content/`. For a site whose project lives in `docs/`, that means `https://github.com/user/repo/edit/main/docs/content`.
 
 ### TableOfContents and MobileTableOfContents
 
