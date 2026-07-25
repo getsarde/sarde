@@ -8,8 +8,14 @@
 <p align="center">
   <a href="https://github.com/getsarde/sarde/actions/workflows/ci.yml"><img src="https://github.com/getsarde/sarde/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/getsarde/sarde/releases/latest"><img src="https://img.shields.io/github/v/release/getsarde/sarde" alt="Latest Release"></a>
-  <img src="https://img.shields.io/badge/Go-%E2%89%A51.21-007d9c" alt="Go Version">
+  <img src="https://img.shields.io/badge/Go-%E2%89%A51.25-007d9c" alt="Go Version">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+</p>
+
+<p align="center">
+  <a href="https://getsarde.github.io/sarde/"><strong>Documentation</strong></a> &middot;
+  <a href="https://getsarde.github.io/sarde/docs/start-here/getting-started/">Getting Started</a> &middot;
+  <a href="https://getsarde.github.io/sarde/blog/">Blog</a>
 </p>
 
 <p align="center">
@@ -299,4 +305,4 @@ MIT
 
 ---
 
-Documentation: [getsarde.com](https://getsarde.com) (coming soon) | Default config reference: [sarde.yaml](embedded/defaults/sarde.yaml)
+Documentation: [getsarde.github.io/sarde](https://getsarde.github.io/sarde/) | Default config reference: [sarde.yaml](embedded/defaults/sarde.yaml)
