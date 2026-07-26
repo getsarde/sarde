@@ -111,7 +111,7 @@ Rename `.mdx` files to `.md`. Remove JSX imports and component syntax:
 | Starlight (MDX) | Sarde |
 |-----------------|-------|
 | `import { Tabs, TabItem } from '@astrojs/starlight/components'` | Remove the import. |
-| `<Tabs>` / `<TabItem label="...">` | `::::tabs` / `:::tab[label="..."]` |
+| `<Tabs>` / `<TabItem label="...">` | `::::tabs` / `== Label` |
 | `<Card title="...">` | `:::card[title="..."]` |
 | `<Steps>` | `:::steps` |
 | `<Aside type="tip">` | `:::tip` |

@@ -33,7 +33,7 @@ Sarde supports three frontmatter formats. YAML is the most common.
 
 :::tabs
 
-=== YAML
+== YAML
 
 ```yaml
 ---
@@ -42,7 +42,7 @@ tags: [biology, plants]
 ---
 ```
 
-=== TOML
+== TOML
 
 ```toml
 +++
@@ -51,7 +51,7 @@ tags = ["biology", "plants"]
 +++
 ```
 
-=== JSON
+== JSON
 
 ```json
 {

@@ -383,6 +383,16 @@ func TestRender_Tabs(t *testing.T) {
 	if !strings.Contains(result.HTML, "tablist") || !strings.Contains(result.HTML, "tabpanel") {
 		t.Errorf("expected tablist/tabpanel, got: %s", result.HTML)
 	}
+	// The markdown above has no blank lines between markers, so both labels
+	// and both bodies must survive the paragraph split.
+	for _, want := range []string{`data-tab-label="Tab 1"`, `data-tab-label="Tab 2"`, "Content 1", "Content 2"} {
+		if !strings.Contains(result.HTML, want) {
+			t.Errorf("expected %s, got: %s", want, result.HTML)
+		}
+	}
+	if strings.Contains(result.HTML, "== Tab 2") {
+		t.Errorf("literal marker leaked into output: %s", result.HTML)
+	}
 }
 
 func TestRender_Steps(t *testing.T) {

@@ -438,6 +438,7 @@ type ContentLintRules struct {
 	ImageAltRequired    *bool    `yaml:"image_alt_required"`
 	NoEmptyLinks        *bool    `yaml:"no_empty_links"`
 	FrontmatterRequired []string `yaml:"frontmatter_required"`
+	TabsMarkerSyntax    *bool    `yaml:"tabs_marker_syntax"`
 }
 
 // ---------------------------------------------------------------------------

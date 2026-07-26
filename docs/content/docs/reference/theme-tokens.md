@@ -351,7 +351,7 @@ The derivation formulas depend on the color format of the `accent` value.
 
 :::tabs
 
-=== Hex
+== Hex
 
 For hex colors (`#RGB` or `#RRGGBB`), derivation converts to HSL, adjusts lightness, and converts back.
 
@@ -361,7 +361,7 @@ For hex colors (`#RGB` or `#RRGGBB`), derivation converts to HSL, adjusts lightn
 | `accent-high` | Lightness + 0.20 (20% lighter) |
 | `accent-low` | `rgba(r, g, b, 0.1)` |
 
-=== OKLCH
+== OKLCH
 
 For OKLCH colors (`oklch(L C H)`), derivation adjusts the lightness component directly.
 

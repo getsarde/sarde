@@ -46,3 +46,20 @@ func TestTimeline_SameParagraphBodyInlineRendered(t *testing.T) {
 		t.Errorf("literal markdown leaked into output:\n%s", out)
 	}
 }
+
+// Entries not separated by blank lines land in a single paragraph. Each
+// "== Title" must still start its own entry instead of being swallowed into
+// the previous entry's body as literal text.
+func TestTimeline_CompactConsecutiveEntries(t *testing.T) {
+	md := ":::timeline\n== 2024-01-15\nReleased v1.\n== 2024-02-01\nReleased v2.\n:::\n"
+	out := renderTimelineMarkdown(t, md)
+
+	for _, want := range []string{"2024-01-15", "2024-02-01", "Released v1.", "Released v2."} {
+		if strings.Count(out, want) != 1 {
+			t.Errorf("expected %q exactly once:\n%s", want, out)
+		}
+	}
+	if strings.Contains(out, "== 2024-02-01") {
+		t.Errorf("literal marker leaked into output:\n%s", out)
+	}
+}

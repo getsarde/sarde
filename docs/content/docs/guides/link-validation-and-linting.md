@@ -107,6 +107,7 @@ content_lint:
     image_alt_required: true
     no_empty_links: true
     frontmatter_required: []
+    tabs_marker_syntax: true
 ```
 
 | Rule | Type | Default | Description |
@@ -116,6 +117,7 @@ content_lint:
 | `image_alt_required` | bool | `true` | Warn on images with empty alt text (`![](...)`). |
 | `no_empty_links` | bool | `true` | Warn on links with empty text (`[](...)`). |
 | `frontmatter_required` | string[] | `[]` | List of frontmatter fields that must be present (e.g., `["title", "description"]`). |
+| `tabs_marker_syntax` | bool | `true` | Warn on `:::tabs` blocks whose `== Label` markers are malformed or missing. |
 
 Draft pages are excluded from linting. On incremental rebuilds, only changed pages are re-linted.
 

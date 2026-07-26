@@ -13,6 +13,8 @@ Sarde supports three frontmatter formats. All three use the same field names.
 
 :::tabs
 
+== YAML
+
 ```yaml title="YAML (---)"
 ---
 title: My Page
@@ -22,6 +24,8 @@ tags:
 ---
 ```
 
+== TOML
+
 ```toml title="TOML (+++)"
 +++
 title = "My Page"
@@ -29,6 +33,8 @@ date = 2024-03-15
 tags = ["tutorial"]
 +++
 ```
+
+== JSON
 
 ```json title="JSON ({...})"
 {

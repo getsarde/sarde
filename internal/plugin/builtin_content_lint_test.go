@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/getsarde/sarde/internal/config"
@@ -306,5 +307,165 @@ func TestContentLint_Integration(t *testing.T) {
 		for _, w := range warnings {
 			t.Logf("  %s: %s", w.File, w.Message)
 		}
+	}
+}
+
+func TestContentLint_TabsBadEqualsCount(t *testing.T) {
+	issues := checkTabsBlocks(lintLines([]string{
+		":::tabs",
+		"== Good",
+		"body",
+		"=== Bad",
+		"body",
+		"==== Worse",
+		":::",
+	}))
+
+	if len(issues) != 2 {
+		t.Fatalf("expected 2 issues, got %d: %v", len(issues), issues)
+	}
+	if issues[0].Line != 4 || issues[1].Line != 6 {
+		t.Errorf("expected issues on lines 4 and 6, got %d and %d", issues[0].Line, issues[1].Line)
+	}
+	if !strings.Contains(issues[0].Message, `"== Bad"`) {
+		t.Errorf("message should suggest the fix, got: %s", issues[0].Message)
+	}
+}
+
+func TestContentLint_TabsZeroMarkers(t *testing.T) {
+	issues := checkTabsBlocks(lintLines([]string{
+		"Intro paragraph",
+		":::tabs",
+		"```yaml",
+		"title: My Page",
+		"```",
+		":::",
+	}))
+
+	if len(issues) != 1 {
+		t.Fatalf("expected 1 issue, got %d: %v", len(issues), issues)
+	}
+	if issues[0].Line != 2 {
+		t.Errorf("expected the issue on the opener line 2, got %d", issues[0].Line)
+	}
+}
+
+func TestContentLint_TabsFakeDirective(t *testing.T) {
+	for _, directive := range []string{
+		":::tab[Biology]",
+		`:::tab(label="macOS")`,
+		`:::tab{label="First"}`,
+		"::tab{label=Tab1}",
+	} {
+		issues := checkTabsBlocks(lintLines([]string{"::::tabs", directive, "body", ":::", "::::"}))
+		if len(issues) != 1 {
+			t.Errorf("%s: expected 1 issue, got %d: %v", directive, len(issues), issues)
+			continue
+		}
+		if issues[0].Line != 2 {
+			t.Errorf("%s: expected line 2, got %d", directive, issues[0].Line)
+		}
+	}
+}
+
+func TestContentLint_TabsValidBlockNotFlagged(t *testing.T) {
+	issues := checkTabsBlocks(lintLines([]string{
+		":::tabs",
+		"== Alpha",
+		"one",
+		"== Beta",
+		"two",
+		":::",
+	}))
+
+	if len(issues) != 0 {
+		t.Errorf("expected no issues, got %v", issues)
+	}
+}
+
+// Documentation pages show tabs syntax inside code fences. Those examples are
+// deliberately malformed sometimes, and must never be flagged.
+func TestContentLint_TabsInsideCodeFenceSkipped(t *testing.T) {
+	issues := checkTabsBlocks(lintLines([]string{
+		"Example:",
+		"````",
+		":::tabs",
+		"=== Bad",
+		":::tab[Biology]",
+		":::",
+		"````",
+	}))
+
+	if len(issues) != 0 {
+		t.Errorf("expected no issues for a fenced example, got %v", issues)
+	}
+}
+
+func TestContentLint_TabsFourColonOpener(t *testing.T) {
+	issues := checkTabsBlocks(lintLines([]string{
+		"::::tabs",
+		"=== Bad",
+		"::::",
+	}))
+
+	if len(issues) != 1 || issues[0].Line != 2 {
+		t.Errorf("expected 1 issue on line 2, got %v", issues)
+	}
+}
+
+// A nested ":::note" must not be mistaken for the end of the tabs block.
+func TestContentLint_TabsNestedNoteDoesNotEndBlock(t *testing.T) {
+	issues := checkTabsBlocks(lintLines([]string{
+		"::::tabs",
+		"== Alpha",
+		":::note",
+		"careful",
+		":::",
+		"== Beta",
+		"=== Bad",
+		"::::",
+	}))
+
+	if len(issues) != 1 {
+		t.Fatalf("expected 1 issue, got %d: %v", len(issues), issues)
+	}
+	if issues[0].Line != 7 {
+		t.Errorf("expected the bad marker on line 7 to be flagged, got line %d", issues[0].Line)
+	}
+}
+
+func TestContentLint_TabsMultipleBlocks(t *testing.T) {
+	issues := checkTabsBlocks(lintLines([]string{
+		":::tabs",
+		"== Alpha",
+		"one",
+		":::",
+		"Prose between blocks.",
+		":::tabs",
+		"no markers here",
+		":::",
+	}))
+
+	if len(issues) != 1 || issues[0].Line != 6 {
+		t.Errorf("expected 1 issue on line 6, got %v", issues)
+	}
+}
+
+// The rule fires without any content_lint config, which is the state of most
+// sites, including Sarde's own docs.
+func TestContentLint_TabsRuleOnByDefault(t *testing.T) {
+	page := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "T", FilePath: "content/t.md"},
+		PageContent:  engine.PageContent{RawContent: ":::tabs\n\n=== Alpha\n\none\n\n:::\n"},
+	}
+
+	warnings := LintPages([]*engine.Page{page}, config.ContentLintSettings{})
+	if len(warnings) != 1 {
+		t.Fatalf("expected 1 warning with empty rules, got %d: %v", len(warnings), warnings)
+	}
+
+	off := config.ContentLintSettings{Rules: config.ContentLintRules{TabsMarkerSyntax: boolPtr(false)}}
+	if warnings := LintPages([]*engine.Page{page}, off); len(warnings) != 0 {
+		t.Errorf("expected the rule to be disableable, got %v", warnings)
 	}
 }

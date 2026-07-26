@@ -98,7 +98,8 @@ Non-active panels have the `hidden` attribute and are removed from the tab order
 
 ## Edge cases
 
-- Content before the first `== Label` line creates an implicit tab labeled "Tab 1".
+- Content before the first `== Label` line creates an implicit tab labeled "Tab 1". A block with no `== Label` line at all becomes a single tab with that name, and the build warns about it.
+- Blank lines around `== Label` are optional. `== npm` immediately followed by its content on the next line starts a tab just as well.
 - Tab labels are case-sensitive for localStorage sync. "npm" and "NPM" are treated as different tabs.
 - Multiple tab groups on the same page each have independent IDs. ARIA references (`aria-controls`, `aria-labelledby`) are scoped per group.
 - With JavaScript disabled, only the first tab panel is visible. The others remain hidden.

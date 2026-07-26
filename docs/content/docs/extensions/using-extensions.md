@@ -23,16 +23,19 @@ Mitochondria are the powerhouse of the cell.
 
 → A blue callout box appears with a "Note" label and an info icon.
 
-Some block extensions wrap child content with a specific structure, like tabs wrapping individual tab panels:
+Some block extensions divide their content into sections with marker lines rather than nested fences. Tabs use `== Label` to start each panel, and a panel can contain other block extensions:
 
 ````
 ::::tabs
-:::tab[Biology]
+== Biology
+
+:::note
 Photosynthesis converts light energy into chemical energy.
 :::
-:::tab[Chemistry]
+
+== Chemistry
+
 The reaction produces glucose and oxygen from water and CO₂.
-:::
 ::::
 ````
 

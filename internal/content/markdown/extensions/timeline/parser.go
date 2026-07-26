@@ -79,26 +79,25 @@ func (p *timelineParser) Close(node ast.Node, reader text.Reader, pc parser.Cont
 	}
 
 	for _, child := range children {
-		// Check for "== Title" paragraph boundary
+		// A paragraph may hold several "== Title" markers, because Markdown
+		// only starts a new paragraph at a blank line. Split it so compact
+		// markup keeps every entry, and so body lines are re-attached as
+		// child paragraphs that still go through goldmark's inline pass
+		// (bold/links/code render as HTML). Close() runs before inline
+		// parsing, so pre-extracting the text would strip that markup.
 		if para, ok := child.(*ast.Paragraph); ok {
-			text := strings.TrimSpace(string(para.Text(source)))
-			if matches := entryBoundaryRegex.FindStringSubmatch(text); matches != nil {
-				currentItem = &TimelineItem{
-					Title: strings.TrimSpace(matches[1]),
-				}
-				items = append(items, currentItem)
-				// If the paragraph has more lines after the "== Title" line,
-				// re-attach them as a child paragraph so they go through
-				// goldmark's inline pass (bold/links/code render as HTML).
-				// Close() runs before inline parsing, so pre-extracting the
-				// text and escaping it in the renderer would strip markup.
-				lines := para.Lines()
-				if lines.Len() > 1 {
-					body := ast.NewParagraph()
-					for i := 1; i < lines.Len(); i++ {
-						body.Lines().Append(lines.At(i))
+			if segments := blockutil.SplitParagraphAtMarkers(para, source, entryBoundaryRegex); segments != nil {
+				for _, seg := range segments {
+					if seg.IsMarker {
+						currentItem = &TimelineItem{Title: seg.Marker}
+						items = append(items, currentItem)
+					} else if currentItem == nil {
+						currentItem = &TimelineItem{Title: ""}
+						items = append(items, currentItem)
 					}
-					currentItem.AppendChild(currentItem, body)
+					if seg.Body != nil {
+						currentItem.AppendChild(currentItem, seg.Body)
+					}
 				}
 				continue
 			}

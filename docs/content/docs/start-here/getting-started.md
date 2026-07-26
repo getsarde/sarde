@@ -11,23 +11,23 @@ Sarde is a zero-config static site generator. Drop Markdown files into a `conten
 
 :::tabs
 
-=== Homebrew
+== Homebrew
 
 ```sh
 brew install getsarde/sarde/sarde
 ```
 
-=== Shell script
+== Shell script
 
 ```sh
 curl -sSfL https://raw.githubusercontent.com/getsarde/sarde/main/install.sh | sh
 ```
 
-=== Binary download
+== Binary download
 
 Download the latest release for your platform from [GitHub Releases](https://github.com/getsarde/sarde/releases). Extract the archive and place the `sarde` binary in a directory on your `PATH`.
 
-=== From source
+== From source
 
 Requires [Go](https://go.dev/dl/) 1.21 or later.
 

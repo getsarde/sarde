@@ -78,6 +78,12 @@ func LintPages(pages []*engine.Page, lint config.ContentLintSettings) []engine.V
 		if config.BoolVal(rules.NoEmptyLinks, false) {
 			issues = append(issues, checkEmptyLinks(lines, fenced)...)
 		}
+		// Defaults to true, unlike the rules above: the patterns it flags are
+		// always bugs rather than style choices, and they render silently
+		// wrong, so a site that never configures content_lint still gets told.
+		if config.BoolVal(rules.TabsMarkerSyntax, true) {
+			issues = append(issues, checkTabsBlocks(lines, fenced)...)
+		}
 		// Line-scanning rules report lines relative to RawContent, which has
 		// frontmatter stripped; shift to on-disk line numbers.
 		for i := range issues {
@@ -106,6 +112,99 @@ var headingRegex = regexp.MustCompile(`^(#{1,6})\s+(.*)`)
 // backticks or tildes and closes on a run of the same character at least as
 // long as the opener with nothing else on the line; an unclosed fence extends
 // to the end of the content.
+// Tabs blocks open with ":::tabs" (or more colons) and mark each tab with a
+// "== Label" line. These mirror the parser's own patterns; the parser keeps
+// them unexported, and the lint has to scan raw text anyway, before any AST
+// exists. tabsFakeDirectiveRegex allows two colons so it also catches the
+// "::tab{...}" spelling, and tabsBadEqualsRegex requires trailing text so a
+// bare "===" setext underline is not mistaken for a marker.
+var (
+	tabsOpenRegex          = regexp.MustCompile(`^:{3,}\s*tabs\s*$`)
+	tabsCloseRegex         = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
+	tabsNestedOpenRegex    = regexp.MustCompile(`^:{3,}\s*\w+`)
+	tabsBoundaryRegex      = regexp.MustCompile(`^==\s+\S`)
+	tabsBadEqualsRegex     = regexp.MustCompile(`^(={3,})\s+(.+)$`)
+	tabsFakeDirectiveRegex = regexp.MustCompile(`^:{2,}\s*tab[\[({]`)
+)
+
+// checkTabsBlocks flags tabs blocks that will silently collapse into a single
+// implicit "Tab 1": markers written with too many "=" signs, the ":::tab"
+// directive that Sarde does not implement, and blocks with no markers at all.
+func checkTabsBlocks(lines []string, fenced []bool) []lintIssue {
+	var issues []lintIssue
+
+	for i := 0; i < len(lines); i++ {
+		if fenced[i] || !tabsOpenRegex.MatchString(strings.TrimSpace(lines[i])) {
+			continue
+		}
+
+		openLine := i + 1
+		markers, malformed, depth := 0, 0, 0
+		j := i + 1
+
+		for ; j < len(lines); j++ {
+			if fenced[j] {
+				continue
+			}
+			line := strings.TrimSpace(lines[j])
+
+			if tabsFakeDirectiveRegex.MatchString(line) {
+				issues = append(issues, lintIssue{
+					Line:    j + 1,
+					Message: `":::tab" is not a Sarde directive; start a tab with "== Label" instead`,
+				})
+				malformed++
+				continue
+			}
+
+			// Track nested containers so an inner ":::note ... :::" does not
+			// look like the end of the tabs block.
+			if strings.HasPrefix(line, ":::") {
+				if tabsNestedOpenRegex.MatchString(line) && !tabsCloseRegex.MatchString(line) {
+					depth++
+					continue
+				}
+				if m := tabsCloseRegex.FindStringSubmatch(line); m != nil {
+					if depth > 0 {
+						depth--
+						continue
+					}
+					if m[1] == "" || m[1] == "tabs" {
+						break
+					}
+				}
+				continue
+			}
+
+			if tabsBoundaryRegex.MatchString(line) {
+				markers++
+				continue
+			}
+
+			if m := tabsBadEqualsRegex.FindStringSubmatch(line); m != nil {
+				issues = append(issues, lintIssue{
+					Line:    j + 1,
+					Message: fmt.Sprintf("tab marker uses %d %q signs; write %q", len(m[1]), "=", "== "+m[2]),
+				})
+				malformed++
+			}
+		}
+
+		// Only report the empty block when nothing looked like a marker.
+		// Otherwise the malformed-marker issues above already explain it.
+		if markers == 0 && malformed == 0 {
+			issues = append(issues, lintIssue{
+				Line:    openLine,
+				Message: `tabs block has no "== Label" markers; its content will collapse into a single tab labelled "Tab 1"`,
+			})
+		}
+
+		i = j
+	}
+
+	return issues
+}
+
 func fencedLines(lines []string) []bool {
 	mask := make([]bool, len(lines))
 	var fenceChar byte

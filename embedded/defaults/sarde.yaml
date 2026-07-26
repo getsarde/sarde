@@ -152,6 +152,7 @@ content_lint:
     image_alt_required: true
     no_empty_links: true
     frontmatter_required: []
+    tabs_marker_syntax: true
 
 analytics:
   provider: ""

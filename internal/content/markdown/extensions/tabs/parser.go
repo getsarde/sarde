@@ -98,30 +98,38 @@ func (p *tabsParser) Close(node ast.Node, reader text.Reader, pc parser.Context)
 		children = append(children, c)
 	}
 
+	newTab := func(label, icon string) {
+		currentItem = &TabItem{
+			Label: label,
+			Icon:  icon,
+			Index: tabIndex,
+		}
+		items = append(items, currentItem)
+		tabIndex++
+	}
+
 	for _, child := range children {
-		// Check if this is a paragraph whose text starts with "== "
+		// A paragraph may hold several "== Label" markers, because Markdown
+		// only starts a new paragraph at a blank line. Split it so compact
+		// markup keeps every tab and every line of body text.
 		if para, ok := child.(*ast.Paragraph); ok {
-			text := strings.TrimSpace(string(para.Text(source)))
-			if matches := tabBoundaryRegex.FindStringSubmatch(text); matches != nil {
-				label, icon := parseTabLabel(strings.TrimSpace(matches[1]))
-				currentItem = &TabItem{
-					Label: label,
-					Icon:  icon,
-					Index: tabIndex,
+			if segments := blockutil.SplitParagraphAtMarkers(para, source, tabBoundaryRegex); segments != nil {
+				for _, seg := range segments {
+					if seg.IsMarker {
+						newTab(parseTabLabel(seg.Marker))
+					} else if currentItem == nil {
+						newTab("Tab 1", "")
+					}
+					if seg.Body != nil {
+						currentItem.AppendChild(currentItem, seg.Body)
+					}
 				}
-				items = append(items, currentItem)
-				tabIndex++
 				continue
 			}
 		}
 
 		if currentItem == nil {
-			currentItem = &TabItem{
-				Label: "Tab 1",
-				Index: 0,
-			}
-			items = append(items, currentItem)
-			tabIndex++
+			newTab("Tab 1", "")
 		}
 
 		child.Parent().RemoveChild(child.Parent(), child)

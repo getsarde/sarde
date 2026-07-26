@@ -21,6 +21,7 @@ content_lint:
     image_alt_required: true
     no_empty_links: true
     frontmatter_required: []
+    tabs_marker_syntax: true
 ```
 
 ## Rules
@@ -83,6 +84,28 @@ Flags links with no visible text (`[](url)`).
 
 → Warning: `link has empty text`
 
+### Tabs marker syntax
+
+Flags `:::tabs` blocks that will render as a single tab instead of the tabs you meant. A tab starts with `== Label`, and three mistakes silently collapse the whole block into one panel labelled "Tab 1": writing the marker with more than two `=` signs, using a `:::tab` directive (which Sarde does not have), and writing no markers at all.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `tabs_marker_syntax` | Boolean | `true` | Check that tabs blocks use `== Label` markers. |
+
+```markdown
+:::tabs
+
+=== npm
+
+npm install sarde
+
+:::
+```
+
+→ Warning: `tab marker uses 3 "=" signs; write "== npm"`
+
+Examples inside fenced code blocks are never flagged, so documentation that shows tabs syntax is safe.
+
 ### Required frontmatter
 
 Flags pages that are missing specified frontmatter fields.
@@ -135,6 +158,7 @@ During incremental rebuilds (e.g., in `sarde dev`), only changed pages are re-li
 | `rules.image_alt_required` | Boolean | `true` | Require non-empty image alt text. |
 | `rules.no_empty_links` | Boolean | `true` | Flag links with empty display text. |
 | `rules.frontmatter_required` | List | `[]` | Frontmatter fields that must be present on every non-draft page. |
+| `rules.tabs_marker_syntax` | Boolean | `true` | Flag tabs blocks whose `== Label` markers are malformed or missing. |
 
 ## Edge cases
 
