@@ -100,6 +100,10 @@ func (b *SiteBuilder) ContentRebuild(changedPaths []string) (*engine.BuildResult
 		phaseStart = time.Now()
 	}
 
+	// Commit dates otherwise freeze at the HEAD of the last full build for the
+	// rest of the dev session.
+	b.refreshGitIndexIfStale()
+
 	if err := b.classifyAndParseChanges(changedPaths, s); err != nil {
 		return b.rebuildFallback(err)
 	}

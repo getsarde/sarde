@@ -39,6 +39,10 @@ var dateFormatPresets = map[string]string{
 // An empty value yields the "short" preset, matching the format the theme used
 // before the setting existed.
 //
+// Since the locale-aware date work this is a format-time fallback used by the
+// template layer (custom layouts, or languages without CLDR data), no longer
+// applied eagerly at config load; Theme.DateFormat keeps the raw value.
+//
 //	""        -> "Jan 2, 2006"
 //	"short"   -> "Jan 2, 2006"
 //	"long"    -> "January 2, 2006"

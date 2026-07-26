@@ -144,9 +144,11 @@ type ThemeSettings struct {
 	CodeLight     string            `yaml:"code_light"`
 	CodeDark      string            `yaml:"code_dark"`
 
-	// DateFormat is the Go layout used for the "last updated" date. Accepts the
-	// names "short", "long", and "iso", or any raw Go layout. Normalized to a
-	// layout string at config load by NormalizeDateFormat.
+	// DateFormat controls the "last updated" date display. Accepts the
+	// preset names "short", "long", and "iso", or any raw Go layout. Kept raw
+	// here: the dateFormat template function resolves presets per page
+	// language (CLDR data when available, NormalizeDateFormat otherwise).
+	// Custom Go layouts always render English month names.
 	DateFormat string `yaml:"date_format"`
 }
 
@@ -211,8 +213,8 @@ type BuildSettings struct {
 	Sitemap  *bool  `yaml:"sitemap"`
 	Minify   *bool  `yaml:"minify"`
 	// LastUpdated selects the strategy for page "last updated" timestamps:
-	//   "git"   — `git log -1` for the file, fall back to mtime on error
-	//   "mtime" — filesystem modification time (default)
+	//   "git"   — last commit time for the file, fall back to mtime on error (default)
+	//   "mtime" — filesystem modification time
 	//   "false" / "off" — disabled; no timestamp rendered
 	// Legacy YAML bool form is accepted: true → "mtime", false → "false" (with deprecation warning).
 	LastUpdated LastUpdatedStrategy `yaml:"last_updated"`

@@ -255,7 +255,7 @@ Called from the docs, labs, blog single, and default single layouts, inside the 
 
 The date is rendered at build time, so it is present without JavaScript and the page does not shift on load.
 
-The display format comes from [`theme.date_format`](/reference/configuration#theme), which accepts `short`, `long`, `iso`, or any Go layout string. The `datetime` attribute is always ISO 8601 regardless, so the markup stays machine-readable. The timestamp itself is resolved by [`build.last_updated`](/reference/configuration#last-updated-strategy).
+The display format comes from [`theme.date_format`](/reference/configuration#theme), which accepts `short`, `long`, `iso`, or any Go layout string. The `short` and `long` presets are locale-aware: each page renders the date in its own language (CLDR data for about 30 common languages, English fallback otherwise), while custom Go layouts always render English. The `datetime` attribute is always ISO 8601 regardless, so the markup stays machine-readable. The timestamp itself is resolved by [`build.last_updated`](/reference/configuration#last-updated-strategy).
 
 ### Page meta row
 

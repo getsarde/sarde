@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -11,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/getsarde/sarde/internal/devlog"
 )
 
 // gitLogHardCommitCap bounds the walk when some requested paths are untracked
@@ -32,7 +35,12 @@ const gitCommitSentinel = '\x01'
 // unusable; callers must fall straight back to mtime rather than retrying per
 // file.
 type GitLastModIndex struct {
-	byPath    map[string]int64
+	byPath map[string]int64
+	// dead holds wanted paths whose newest git event is a deletion. The file
+	// still exists on disk (it was re-created or kept untracked), so the
+	// deletion time is not a last-updated time; the tombstone blocks older
+	// commits from claiming the path and Lookup misses, giving mtime.
+	dead      map[string]struct{}
 	repoRoot  string
 	headSHA   string
 	available bool
@@ -48,7 +56,10 @@ func (idx *GitLastModIndex) Available() bool { return idx != nil && idx.availabl
 func (idx *GitLastModIndex) Shallow() bool { return idx != nil && idx.shallow }
 
 // Lookup returns the most recent commit time for absPath. The second result is
-// false when the path is untracked, was renamed, or no index is available.
+// false when the path is untracked, was deleted from git after its last
+// commit (tombstoned), or no index is available. Renamed files resolve
+// normally: the walk keys the rename destination, so they carry the
+// rename-commit time.
 func (idx *GitLastModIndex) Lookup(absPath string) (time.Time, bool) {
 	if !idx.Available() {
 		return time.Time{}, false
@@ -96,6 +107,7 @@ func BuildGitLastModIndex(contentDir string, wantedPaths []string) (*GitLastModI
 
 	idx := &GitLastModIndex{
 		byPath:    make(map[string]int64, len(wantedPaths)),
+		dead:      make(map[string]struct{}),
 		repoRoot:  repoRoot,
 		headSHA:   headSHA,
 		available: true,
@@ -119,19 +131,36 @@ func BuildGitLastModIndex(contentDir string, wantedPaths []string) (*GitLastModI
 // walk streams `git log`, recording the first timestamp seen for each wanted
 // path. Git emits newest-first, so the first hit is the most recent commit.
 func (idx *GitLastModIndex) walk(relContentDir string, wanted map[string]struct{}) error {
-	ctx, cancel := context.WithCancel(context.Background())
+	// Timeout, not just cancel: WaitDelay bounds I/O after the process exits,
+	// but only a deadline bounds a git that never exits at all.
+	ctx, cancel := context.WithTimeout(context.Background(), gitCommandTimeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "git", "log",
-		"--format=%x01%ct", "--name-only", "--", filepath.ToSlash(relContentDir))
+	// core.quotepath=off makes git emit non-ASCII paths as raw UTF-8 bytes.
+	// The default quoting octal-escapes them ("docs/caf\303\251.md", in double
+	// quotes), which can never match a foldGitPath key.
+	//
+	// --name-status rather than --name-only, for the status letter: a D line
+	// tombstones the path (see the dead map), and rename lines carry the
+	// destination as their last field. Shapes seen in the wild: "M\tpath",
+	// "A\tpath", "D\tpath", "R100\told\tnew" (rename inside the pathspec),
+	// plain "A\tnew" for a rename whose source lies outside the pathspec, and
+	// separate A + D lines when diff.renames is disabled.
+	cmd := exec.CommandContext(ctx, "git", "-c", "core.quotepath=off", "log",
+		"--format=%x01%ct", "--name-status", "--", filepath.ToSlash(relContentDir))
 	cmd.Dir = idx.repoRoot
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return fmt.Errorf("git log: %w", err)
 	}
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
+	// Leave Stderr nil so os/exec wires it to the null device directly. Giving
+	// it an in-process writer instead makes os/exec run a copy goroutine, and
+	// Wait blocks on that goroutine until every writer of the pipe is closed.
+	// A handle inherited by an unrelated process therefore hung the whole build
+	// after git had already exited. WaitDelay bounds the same risk for the
+	// stdout pipe, which the early exits below deliberately stop reading.
+	cmd.WaitDelay = 5 * time.Second
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("git log: %w", err)
 	}
@@ -158,18 +187,38 @@ func (idx *GitLastModIndex) walk(relContentDir string, wanted map[string]struct{
 			continue
 		}
 
-		key := foldGitPath(filepath.Join(idx.repoRoot, filepath.FromSlash(line)))
+		fields := strings.Split(line, "\t")
+		if len(fields) < 2 {
+			continue
+		}
+		status := fields[0]
+		// The last field is the path, or the destination for renames/copies.
+		key := foldGitPath(filepath.Join(idx.repoRoot, filepath.FromSlash(fields[len(fields)-1])))
 		if _, want := wanted[key]; !want {
 			continue
 		}
 		if _, seen := idx.byPath[key]; seen {
 			continue
 		}
-		idx.byPath[key] = current
+		if _, seen := idx.dead[key]; seen {
+			continue
+		}
+		if strings.HasPrefix(status, "D") {
+			idx.dead[key] = struct{}{}
+		} else {
+			idx.byPath[key] = current
+		}
 		resolved++
 		if resolved == len(wanted) {
 			break
 		}
+	}
+
+	// A scan error (a line past the buffer cap, a read failure) ends the loop
+	// exactly like history running out; unresolved paths degrade to mtime, but
+	// the truncation should at least be visible.
+	if scanErr := scanner.Err(); scanErr != nil {
+		devlog.Warn("content", "git log scan: %v", scanErr)
 	}
 
 	// Cancelling closes the pipe, so Wait reports the kill rather than a real
@@ -179,10 +228,49 @@ func (idx *GitLastModIndex) walk(relContentDir string, wanted map[string]struct{
 	return nil
 }
 
-func gitRevParse(dir string, args ...string) (string, error) {
-	cmd := exec.Command("git", append([]string{"rev-parse"}, args...)...)
+// gitCommandTimeout bounds every git subprocess the build starts. Commit dates
+// are an optimization with an mtime fallback, so a git that never returns (an
+// index lock, a credential prompt, an unresponsive network mount) must degrade
+// to that fallback rather than stall the build.
+const gitCommandTimeout = 30 * time.Second
+
+// gitWaitDelay bounds how long Wait blocks on I/O once the process has exited.
+// os/exec runs a copy goroutine for any in-process stdout/stderr writer, and
+// Wait blocks on that goroutine until every writer of the pipe is closed. A
+// handle inherited by an unrelated process can keep it open indefinitely, which
+// is what deadlocked whole builds before these bounds existed.
+const gitWaitDelay = 5 * time.Second
+
+// runGitCapture runs git in dir and returns its stdout. Stderr is deliberately
+// left nil so os/exec wires it to the null device rather than starting a second
+// copy goroutine; no caller reads it. Prefer this over exec.Command().Output(),
+// which captures both streams into buffers and waits without any bound.
+func runGitCapture(dir string, args ...string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), gitCommandTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "git", args...)
 	cmd.Dir = dir
-	out, err := cmd.Output()
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.WaitDelay = gitWaitDelay
+	if err := cmd.Run(); err != nil {
+		// ErrWaitDelay means the process exited with success and only the
+		// stdout copy was cut off by WaitDelay, which happens when an
+		// inherited handle keeps the pipe open after git is gone. Git already
+		// wrote everything before exiting, so the captured output is complete
+		// and discarding it would silently disable the git strategy in the
+		// very scenario these bounds exist for.
+		if errors.Is(err, exec.ErrWaitDelay) {
+			return stdout.Bytes(), nil
+		}
+		return nil, err
+	}
+	return stdout.Bytes(), nil
+}
+
+func gitRevParse(dir string, args ...string) (string, error) {
+	out, err := runGitCapture(dir, append([]string{"rev-parse"}, args...)...)
 	if err != nil {
 		return "", err
 	}

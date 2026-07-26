@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/getsarde/sarde/internal/asset"
 	"github.com/getsarde/sarde/internal/component"
@@ -299,6 +300,12 @@ func (e *Engine) funcMapForLang(lang string) htmltemplate.FuncMap {
 			return key
 		}
 		return e.i18nStrings.Resolve(lang, key, data)
+	}
+	// Locale-aware override of the base dateFormat func: presets resolve
+	// through CLDR data for the render language, custom layouts keep plain
+	// time.Format behavior.
+	fm["dateFormat"] = func(t time.Time, format string) string {
+		return localizedDateFormat(t, format, lang)
 	}
 	fm["relURL"] = func(relPath string) string {
 		if strings.Contains(relPath, "://") {

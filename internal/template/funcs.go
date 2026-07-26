@@ -250,6 +250,10 @@ func (e *Engine) buildFuncMap(
 
 // ── Date function implementations ──
 
+// fnDateFormat is the language-less fallback; funcMapForLang overrides it per
+// render with a locale-aware closure. It still resolves the "short"/"long"/
+// "iso" presets (theme.date_format is stored raw since the locale work), just
+// always in English.
 func fnDateFormat(t time.Time, layout string) string {
-	return t.Format(layout)
+	return localizedDateFormat(t, layout, "")
 }

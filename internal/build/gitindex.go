@@ -5,6 +5,7 @@ import (
 
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
 )
 
@@ -49,4 +50,44 @@ func (b *SiteBuilder) resolveGitIndex(files []content.ContentFile, contentDir st
 	}
 
 	return idx, nil
+}
+
+// refreshGitIndexIfStale rebuilds b.lastGitIndex when HEAD moved since it was
+// captured (a commit landed from another terminal while the dev server was
+// running), so incremental rebuilds resolve fresh commit dates instead of
+// dates frozen at the last full build's HEAD.
+//
+// Runs once per ContentRebuild call, before any file in the batch is parsed.
+// It rebuilds against every page path known from the last build, not just this
+// batch's files: later rebuilds reuse the same index, and a narrower list
+// would drop entries for every other page.
+//
+// A rebuild failure keeps the previous index in place; a mid-session dev
+// server must not lose dates it already resolved over a transient git
+// problem, so the failure is only logged.
+func (b *SiteBuilder) refreshGitIndexIfStale() {
+	if !b.lastGitIndex.Available() || !b.lastGitIndex.Stale() {
+		return
+	}
+
+	seen := make(map[string]struct{}, len(b.lastAllPages))
+	paths := make([]string, 0, len(b.lastAllPages))
+	for _, p := range b.lastAllPages {
+		if p.FilePath == "" || p.IsFallback {
+			continue
+		}
+		if _, ok := seen[p.FilePath]; ok {
+			continue
+		}
+		seen[p.FilePath] = struct{}{}
+		paths = append(paths, p.FilePath)
+	}
+
+	idx, err := content.BuildGitLastModIndex(b.resolveContentDir(), paths)
+	if err != nil {
+		devlog.Warn("build", "ContentRebuild: git index refresh failed after HEAD moved, keeping previous dates: %v", err)
+		return
+	}
+	devlog.Log("build", "ContentRebuild: refreshed git index for %d path(s) (HEAD moved)", len(paths))
+	b.lastGitIndex = idx
 }

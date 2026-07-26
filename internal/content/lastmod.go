@@ -1,9 +1,7 @@
 package content
 
 import (
-	"bytes"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -16,8 +14,8 @@ import (
 //
 // Strategies:
 //   - "false" / "off" / "none" — disabled, returns nil
-//   - "git"                    — commit time, falls back to mtime when unavailable
-//   - "mtime" (default)        — file modification time
+//   - "git" (default)          — commit time, falls back to mtime when unavailable
+//   - "mtime"                  — file modification time
 //
 // The git strategy has three cases depending on idx:
 //   - nil index: resolve per file (one subprocess), for callers with no index
@@ -54,15 +52,11 @@ func GetLastUpdated(filePath, strategy string, idx *GitLastModIndex) *time.Time 
 // without it git runs in the process working directory and reports the file as
 // outside the repository whenever the build runs from elsewhere.
 func gitLastCommitTime(filePath string) (time.Time, bool) {
-	cmd := exec.Command("git", "log", "-1", "--format=%ct", "--", filePath)
-	cmd.Dir = filepath.Dir(filePath)
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
+	out, err := runGitCapture(filepath.Dir(filePath), "log", "-1", "--format=%ct", "--", filePath)
+	if err != nil {
 		return time.Time{}, false
 	}
-	raw := strings.TrimSpace(stdout.String())
+	raw := strings.TrimSpace(string(out))
 	if raw == "" {
 		return time.Time{}, false
 	}

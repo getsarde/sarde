@@ -135,6 +135,97 @@ func TestGitIndex_MostRecentCommitWinsPerPath(t *testing.T) {
 	}
 }
 
+// Renames resolve at the rename commit: with --name-status the destination is
+// the line's last field, and even --name-only listed the destination, so this
+// guards behavior the index has always had against a parser regression.
+func TestGitIndex_RenamedFileResolvesAtRenameCommit(t *testing.T) {
+	repo := initTestRepo(t)
+	t1 := time.Date(2026, 1, 5, 8, 0, 0, 0, time.UTC)
+	t2 := time.Date(2026, 4, 20, 16, 45, 0, 0, time.UTC)
+
+	writeFileTest(t, repo, "old.md", "same body, moved later")
+	gitRun(t, repo, "add", "old.md")
+	commitAt(t, repo, "add old", t1)
+
+	gitRun(t, repo, "mv", "old.md", "new.md")
+	commitAt(t, repo, "rename to new", t2)
+
+	newPath := filepath.Join(repo, "new.md")
+	idx, err := BuildGitLastModIndex(repo, []string{newPath})
+	if err != nil {
+		t.Fatalf("BuildGitLastModIndex: %v", err)
+	}
+	if got, ok := idx.Lookup(newPath); !ok || !got.Equal(t2) {
+		t.Errorf("renamed file = %v (ok=%v), want rename-commit time %v", got.UTC(), ok, t2)
+	}
+}
+
+// A rename that also edits content (lower similarity, still detected or split
+// into A + D) must likewise resolve at the commit that produced the new path.
+func TestGitIndex_RenameWithEditResolvesAtRenameCommit(t *testing.T) {
+	repo := initTestRepo(t)
+	t1 := time.Date(2026, 2, 1, 10, 0, 0, 0, time.UTC)
+	t2 := time.Date(2026, 5, 10, 11, 30, 0, 0, time.UTC)
+
+	writeFileTest(t, repo, "old.md", "line one\nline two\nline three\nline four\n")
+	gitRun(t, repo, "add", "old.md")
+	commitAt(t, repo, "add old", t1)
+
+	gitRun(t, repo, "mv", "old.md", "new.md")
+	writeFileTest(t, repo, "new.md", "line one\nline two\nline three\nchanged\n")
+	gitRun(t, repo, "add", "new.md")
+	commitAt(t, repo, "rename and edit", t2)
+
+	newPath := filepath.Join(repo, "new.md")
+	idx, err := BuildGitLastModIndex(repo, []string{newPath})
+	if err != nil {
+		t.Fatalf("BuildGitLastModIndex: %v", err)
+	}
+	if got, ok := idx.Lookup(newPath); !ok || !got.Equal(t2) {
+		t.Errorf("renamed+edited file = %v (ok=%v), want %v", got.UTC(), ok, t2)
+	}
+}
+
+// A file whose newest git event is a deletion, but which still exists on disk
+// (kept untracked via git rm --cached), must miss the index and fall back to
+// mtime. Recording the deletion time, or letting an older commit claim the
+// path, would both be wrong.
+func TestGitIndex_DeletedButOnDiskFallsBackToMtime(t *testing.T) {
+	repo := initTestRepo(t)
+	t1 := time.Date(2026, 1, 10, 9, 0, 0, 0, time.UTC)
+	t2 := time.Date(2026, 3, 3, 13, 0, 0, 0, time.UTC)
+
+	p := writeFileTest(t, repo, "page.md", "hello")
+	gitRun(t, repo, "add", "page.md")
+	commitAt(t, repo, "add page", t1)
+
+	gitRun(t, repo, "rm", "--cached", "-q", "page.md")
+	commitAt(t, repo, "untrack page", t2)
+
+	// A distinct mtime proves the fallback source.
+	stamp := time.Date(2026, 6, 6, 6, 0, 0, 0, time.UTC)
+	if err := os.Chtimes(p, stamp, stamp); err != nil {
+		t.Fatal(err)
+	}
+
+	idx, err := BuildGitLastModIndex(repo, []string{p})
+	if err != nil {
+		t.Fatalf("BuildGitLastModIndex: %v", err)
+	}
+	if got, ok := idx.Lookup(p); ok {
+		t.Errorf("deleted-in-git file resolved to %v, want a miss", got.UTC())
+	}
+
+	resolved := GetLastUpdated(p, "git", idx)
+	if resolved == nil {
+		t.Fatal("expected mtime fallback, got nil")
+	}
+	if !resolved.Equal(stamp) {
+		t.Errorf("fallback = %v, want mtime %v (not commit times %v / %v)",
+			resolved.UTC(), stamp, t1, t2)
+	}
+}
+
 func TestGitIndex_UntrackedFileFallsBackToMtime(t *testing.T) {
 	repo := initTestRepo(t)
 	tracked := writeFileTest(t, repo, "tracked.md", "hello")

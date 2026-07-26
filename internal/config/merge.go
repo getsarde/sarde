@@ -80,9 +80,12 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 	// Layer 5: environment variables
 	applyEnvOverrides(cfg, opts.EnvPrefix)
 
-	// Normalize fields that accept multiple input forms.
+	// Normalize fields that accept multiple input forms. theme.date_format is
+	// deliberately NOT normalized here: the dateFormat template function needs
+	// the raw preset name ("short"/"long"/"iso") to pick a locale-aware CLDR
+	// format per page language, and only falls back to NormalizeDateFormat for
+	// custom Go layouts or languages without CLDR data.
 	cfg.Build.BasePath = NormalizeBasePath(cfg.Build.BasePath)
-	cfg.Theme.DateFormat = NormalizeDateFormat(cfg.Theme.DateFormat)
 
 	// Apply i18n defaults and validation.
 	if err := normalizeI18n(&cfg.I18n); err != nil {

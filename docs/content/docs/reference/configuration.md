@@ -82,14 +82,16 @@ social:
 
 ### Date format
 
-`theme.date_format` accepts three names or any [Go layout string](https://pkg.go.dev/time#pkg-constants):
+`theme.date_format` accepts three preset names or any [Go layout string](https://pkg.go.dev/time#pkg-constants):
 
-| Value | Renders as |
+| Value | Renders as (English) |
 |-------|-----------|
 | `short` (default) | Jan 2, 2006 |
 | `long` | January 2, 2006 |
 | `iso` | 2006-01-02 |
 | Any other value | Used verbatim as a Go layout, e.g. `2006/01/02` |
+
+The `short` and `long` presets are **locale-aware**: on a multilingual site, each page renders the date in its own language using CLDR data, so a French page shows "1 juin 2025" while the English page shows "Jun 1, 2025". Around 30 common languages are supported out of the box; a language without built-in data falls back to the English format. `iso` is locale-independent, and a custom Go layout always renders English month names.
 
 This controls **only** the "last updated" date rendered by the [LastUpdated component](/reference/ui-components#lastupdated). Other dates in the theme, such as blog post dates and list-page dates, use formats fixed by their templates; override those templates to change them.
 
