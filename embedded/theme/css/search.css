@@ -397,6 +397,11 @@
 	  flex-direction: column;
 	  align-items: flex-start;
 	  border-inline-start: 3px solid transparent;
+	  /* Square the leading corners so the accent bar reads as a straight rail
+	     instead of being clipped into a curve by the shared 0.5rem radius.
+	     Logical properties keep this on the same edge as the border above in RTL. */
+	  border-start-start-radius: 0;
+	  border-end-start-radius: 0;
 	}
 	.sarde-search-result.is-compact.is-selected {
 	  border-inline-start-color: var(--sd-accent);
