@@ -2,7 +2,7 @@
 title: Deploying
 description: "Build a production site and deploy it to GitHub Pages, Netlify, Cloudflare Pages, Vercel, or a custom target"
 sidebar:
-  order: 5
+  order: 4
 ---
 
 Sarde builds a static site that works on any hosting provider. Run `sarde build` to generate the output, then deploy the result to your platform of choice.

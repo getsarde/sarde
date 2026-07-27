@@ -209,6 +209,7 @@ Outside a git repository, or when git is unavailable, Sarde falls back to `mtime
 | `typographer` | bool | `true` | Enable typographic replacements (smart quotes, dashes). |
 | `github_alerts` | bool | `true` | Parse GitHub-style alert blocks (`> [!NOTE]`, `> [!TIP]`, etc.). |
 | `triple_colon_callouts` | bool | `true` | Parse `:::` container-based callouts/asides. |
+| `hard_wraps` | bool | `false` | Render every single newline inside a paragraph as a line break. Off by default, so prose wrapped in the source reflows as one paragraph. Explicit breaks (two trailing spaces, or a trailing backslash) work either way. |
 
 ### `markdown.toc`
 

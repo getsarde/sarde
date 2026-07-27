@@ -52,6 +52,9 @@ func TestDefaults_ReturnsPopulatedConfig(t *testing.T) {
 	if cfg.Markdown.Codeblocks.Style != "class" {
 		t.Errorf("Markdown.Codeblocks.Style = %q, want %q", cfg.Markdown.Codeblocks.Style, "class")
 	}
+	if BoolVal(cfg.Markdown.HardWraps, true) {
+		t.Error("Markdown.HardWraps should be false")
+	}
 	if cfg.Taxonomies["tags"].Singular != "tag" {
 		t.Errorf("Taxonomies[tags].Singular = %q, want %q", cfg.Taxonomies["tags"].Singular, "tag")
 	}

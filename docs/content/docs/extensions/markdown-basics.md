@@ -28,6 +28,17 @@ A paragraph is one or more consecutive lines of text, separated by one or more b
 
 Here is a second paragraph. Notice how a blank line separates them. Paragraphs can span multiple lines in the source and still render as a single block of text.
 
+That last point matters when wrapping prose at a fixed width: a single newline inside a paragraph is a soft break and renders as a space, so the text reflows to the reader's screen width. Only a blank line starts a new paragraph.
+
+To force a line break inside a paragraph, end the line with two spaces or a backslash:
+
+```markdown
+First line  
+second line, on its own row.
+```
+
+To make every newline break the line instead, set [`markdown.hard_wraps`](/reference/configuration#markdown) to `true`.
+
 ---
 
 ## Inline Text Formatting

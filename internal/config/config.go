@@ -264,6 +264,7 @@ type MarkdownSettings struct {
 	Typographer         *bool               `yaml:"typographer"`
 	GithubAlerts        *bool               `yaml:"github_alerts"`
 	TripleColonCallouts *bool               `yaml:"triple_colon_callouts"`
+	HardWraps           *bool               `yaml:"hard_wraps"`
 	TOC                 MarkdownTOCSettings `yaml:"toc"`
 	Codeblocks          CodeblocksSettings  `yaml:"codeblocks"`
 }

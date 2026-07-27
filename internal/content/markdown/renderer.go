@@ -167,7 +167,10 @@ type RendererConfig struct {
 	HeadingLinks       bool
 	HeadingMinLevel    int
 	HeadingMaxLevel    int
-	KazariEngine       *kazari.Engine
+	// HardWraps renders a single newline inside a paragraph as <br>. Off by
+	// default, matching CommonMark, so prose wrapped in the source reflows.
+	HardWraps    bool
+	KazariEngine *kazari.Engine
 }
 
 // NewRenderer creates a markdown renderer with all extensions and default security.
@@ -270,16 +273,20 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) (goldmark.Markdown, string)
 	// author-supplied and must be preserved.
 	parserOpts := []parser.Option{parser.WithAttribute()}
 
+	rendererOpts := []gmrenderer.Option{
+		gmhtml.WithUnsafe(),
+		gmrenderer.WithNodeRenderers(
+			util.Prioritized(r.linkRend, 49),
+		),
+	}
+	if cfg.HardWraps {
+		rendererOpts = append(rendererOpts, gmhtml.WithHardWraps())
+	}
+
 	md := goldmark.New(
 		goldmark.WithExtensions(extensions...),
 		goldmark.WithParserOptions(parserOpts...),
-		goldmark.WithRendererOptions(
-			gmhtml.WithHardWraps(),
-			gmhtml.WithUnsafe(),
-			gmrenderer.WithNodeRenderers(
-				util.Prioritized(r.linkRend, 49),
-			),
-		),
+		goldmark.WithRendererOptions(rendererOpts...),
 	)
 	return md, computeFingerprint(extensions, cfg)
 }
@@ -300,12 +307,13 @@ func computeFingerprint(extensions []goldmark.Extender, cfg RendererConfig) stri
 		kazariCSS = cfg.KazariEngine.CSS()
 	}
 
-	raw := fmt.Sprintf("bin=%s\x00exts=%s\x00hl=%t\x00hmin=%d\x00hmax=%d\x00schemes=%s\x00kazari=%t\x00css=%s",
+	raw := fmt.Sprintf("bin=%s\x00exts=%s\x00hl=%t\x00hmin=%d\x00hmax=%d\x00hw=%t\x00schemes=%s\x00kazari=%t\x00css=%s",
 		execIdentity(),
 		strings.Join(names, "|"),
 		cfg.HeadingLinks,
 		cfg.HeadingMinLevel,
 		cfg.HeadingMaxLevel,
+		cfg.HardWraps,
 		strings.Join(schemes, ","),
 		cfg.KazariEngine != nil,
 		kazariCSS,

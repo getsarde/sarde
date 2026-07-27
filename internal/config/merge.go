@@ -297,6 +297,7 @@ func mergeMarkdown(base, over *MarkdownSettings) {
 	mergeBoolP(&base.Typographer, over.Typographer)
 	mergeBoolP(&base.GithubAlerts, over.GithubAlerts)
 	mergeBoolP(&base.TripleColonCallouts, over.TripleColonCallouts)
+	mergeBoolP(&base.HardWraps, over.HardWraps)
 	mergeInt(&base.TOC.MinHeadingLevel, over.TOC.MinHeadingLevel)
 	mergeInt(&base.TOC.MaxHeadingLevel, over.TOC.MaxHeadingLevel)
 	mergeStr(&base.Codeblocks.Engine, over.Codeblocks.Engine)

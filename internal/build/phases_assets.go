@@ -174,6 +174,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 			HeadingLinks:       config.BoolVal(b.config.Site.HeadingLinks, true),
 			HeadingMinLevel:    b.config.Markdown.TOC.MinHeadingLevel,
 			HeadingMaxLevel:    b.config.Markdown.TOC.MaxHeadingLevel,
+			HardWraps:          config.BoolVal(b.config.Markdown.HardWraps, false),
 			KazariEngine:       b.kazariEngine,
 		})
 	}
@@ -211,6 +212,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 					HeadingLinks:       config.BoolVal(b.config.Site.HeadingLinks, true),
 					HeadingMinLevel:    b.config.Markdown.TOC.MinHeadingLevel,
 					HeadingMaxLevel:    b.config.Markdown.TOC.MaxHeadingLevel,
+					HardWraps:          config.BoolVal(b.config.Markdown.HardWraps, false),
 					KazariEngine:       b.kazariEngine,
 				})
 			}

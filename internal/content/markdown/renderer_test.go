@@ -542,3 +542,56 @@ func TestRenderer_Fingerprint_ChangesWithBlockedSchemes(t *testing.T) {
 		t.Error("different BlockedHrefSchemes should produce different fingerprints")
 	}
 }
+
+func TestRender_SoftLineBreakIsSpaceByDefault(t *testing.T) {
+	r := NewRenderer()
+	result, err := r.Render("First line\nsecond line.")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(result.HTML, "<br") {
+		t.Errorf("a soft line break must not render a break tag, got: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, "First line\nsecond line.") {
+		t.Errorf("expected both lines in one paragraph, got: %s", result.HTML)
+	}
+}
+
+func TestRender_HardWrapsEnabled(t *testing.T) {
+	r := NewRendererFromConfig(RendererConfig{HardWraps: true})
+	result, err := r.Render("First line\nsecond line.")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "<br") {
+		t.Errorf("HardWraps should render a break tag, got: %s", result.HTML)
+	}
+}
+
+// Explicit breaks are independent of HardWraps: two trailing spaces or a
+// trailing backslash must still break the line when soft wraps are in effect.
+func TestRender_ExplicitLineBreaksSurviveSoftWraps(t *testing.T) {
+	for name, md := range map[string]string{
+		"trailing spaces":    "First line  \nsecond line.",
+		"trailing backslash": "First line\\\nsecond line.",
+	} {
+		t.Run(name, func(t *testing.T) {
+			r := NewRenderer()
+			result, err := r.Render(md)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !strings.Contains(result.HTML, "<br") {
+				t.Errorf("expected an explicit break tag, got: %s", result.HTML)
+			}
+		})
+	}
+}
+
+func TestRenderer_Fingerprint_ChangesWithHardWraps(t *testing.T) {
+	r1 := NewRendererFromConfig(RendererConfig{HardWraps: true})
+	r2 := NewRendererFromConfig(RendererConfig{HardWraps: false})
+	if r1.Fingerprint() == r2.Fingerprint() {
+		t.Error("different HardWraps values should produce different fingerprints")
+	}
+}

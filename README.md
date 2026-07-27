@@ -19,16 +19,14 @@
 </p>
 
 <p align="center">
-  A zero-config static site generator written in Go. Hugo's speed, Docusaurus's defaults, no config file needed.
+  A static site generator written in Go. Drop in Markdown, get a themed site. Conventions handle the structure, so the config file stays a few lines long.
 </p>
 
 ## Why Sarde
 
-Most static site generators make you choose: Hugo gives you speed and a single binary but demands configuration and template boilerplate. Docusaurus and Starlight give you great defaults for docs sites but require Node.js and a build toolchain.
+Sarde is a single Go binary with no runtime dependencies, and your directory structure is the site structure. Put files in `content/blog/` and you get a date-sorted blog with RSS. A `content/docs/` directory produces sidebar navigation, versioning, and a table of contents. Both layouts are selected by directory name alone, without additional configuration.
 
-Sarde gives you both. It ships as a single Go binary with no runtime dependencies. Your directory structure is your site structure. Put files in `content/blog/` and you get a date-sorted blog with RSS. Put files in `content/docs/` and you get a docs site with sidebar navigation, versioning, and table of contents. No config file needed for either.
-
-When you do need control, everything is overridable through a single `sarde.yaml` file, CLI flags, or environment variables.
+Defaults can be overridden through `sarde.yaml`, CLI flags, or environment variables.
 
 <!-- TODO: Add a screenshot of a generated docs site here -->
 <!-- <p align="center">
@@ -38,20 +36,21 @@ When you do need control, everything is overridable through a single `sarde.yaml
 ## Features
 
 **Content**
-- Auto-detected collections: directories named `blog`, `posts`, `articles`, `news` get date-sorted feed layouts; `docs`, `guides`, `courses`, `tutorials` get docs layouts with sidebar and ToC
+- Auto-detected collections: directory names select date-sorted blogs, docs layouts with sidebar and ToC, lab guides, or slide decks (see the table under [Project structure](#project-structure))
 - Frontmatter in YAML, TOML, or JSON
-- Title, date, and weight inferred automatically from filenames, headings, and git history
+- Title, date, and sidebar order inferred automatically from filenames, headings, and git history
 - Page bundles (directory with `index.md` + images) with automatic responsive image generation
 - Versioned docs (Docusaurus-style) with URL shadowing for the latest version
 - i18n with per-language directories, RTL support, and translation fallback
+- Optional `sidebar.yaml` for per-path sidebar overrides, tab overrides, and `collapse_level`
 
 **Markdown**
-- 24+ Goldmark extensions: code blocks with syntax highlighting (Kazari + Nuri), KaTeX math, Mermaid diagrams, GitHub-style alerts, callouts, cards, tabs, file trees, image comparison, keyboard shortcuts, spoilers, and more
+- 30+ Goldmark extensions: code blocks with syntax highlighting (Kazari + Nuri), KaTeX math, Mermaid diagrams, GitHub-style alerts, callouts, cards, tabs, multi-column layouts, accordions, file trees, timelines, image comparison, keyboard shortcuts, spoilers, and more
 - Syntax highlighting via [Kazari](https://github.com/frostybee/kazari) (Expressive Code-style frames, diff markers, line numbers) powered by [Nuri](https://github.com/frostybee/nuri) (TextMate grammars, 400+ languages)
 
 **Asset pipeline**
 - CSS/JS bundling via esbuild (Go API, no Node.js)
-- Image processing: resize, crop, WebP/AVIF conversion, LQIP blur-up placeholders
+- Image processing: resize, crop, WebP conversion, LQIP blur-up placeholders (AVIF is available, but only in builds compiled with `-tags avif`; release binaries skip AVIF variants with a warning)
 - Content-hash fingerprinting for cache busting
 - HTML/CSS/JS minification
 
@@ -66,10 +65,25 @@ When you do need control, everything is overridable through a single `sarde.yaml
 - `redirects` for redirect stubs (HTML or Netlify `_redirects`)
 - `llms_txt` for LLM-friendly site index
 
+**Client-side plugins** (11 available, all opt-in)
+
+Add any of these to `plugins.enabled` to bundle its CSS and JS. Nothing ships to the browser unless it is listed, and each one is injected only on pages that need it.
+
+`scroll-to-top`, `copy-section-link`, `external-links`, `image-lightbox`, `keyboard-nav`, `focus-mode`, `reading-progress`, `search-highlighter`, `text-highlighter`, `reading-position-memory`, `reading-preferences`
+
+**External plugins**
+- Install third-party plugins into `plugins/{slug}/` with `sarde plugin install`, from a zip, directory, URL, or GitHub repo
+- Plugins are declarative (`plugin.yaml` manifest, assets, templates), so installing one never executes third-party code at build time
+- `plugins.disabled` turns off any plugin, built-in or external, without replacing the whole `plugins.enabled` list
+- Premium plugins are unlocked by an offline ed25519-signed license file (`sarde license install`). A missing or invalid license warns and skips the plugin; it never fails the build
+- The plugin manifest and license file formats are provisional for 1.0 and may change in a 1.x release
+
 **Developer experience**
 - Dev server with WebSocket live reload and incremental rebuilds
 - Link checking with terminal, JSON, and GitHub Actions annotation output
 - Content validation without building (`sarde validate`)
+- Fenced-block syntax checking (`sarde check-syntax`)
+- Merged configuration inspection with provenance (`sarde effective-config`)
 - Obsidian vault importer (converts wikilinks and callouts)
 - Deploy command for GitHub Pages, Netlify, Cloudflare Pages, and Vercel
 
@@ -132,14 +146,17 @@ Output goes to `dist/` by default.
 
 ```
 my-site/
-  content/          # Your Markdown files (required)
-    blog/           # Auto-detected as blog collection
-    docs/           # Auto-detected as docs collection
-    _index.md       # Homepage content (optional)
-  public/           # Copied as-is to output
-  icons/            # Local SVG icons
-  themes/           # Custom themes (optional)
-  sarde.yaml        # Configuration (optional)
+  content/              # Your Markdown files (required)
+    blog/               # Auto-detected as blog collection
+    docs/               # Auto-detected as docs collection
+    _index.md           # Homepage content (optional)
+  public/               # Copied as-is to output
+  icons/                # Local SVG icons
+  themes/               # Custom themes (optional)
+  plugins/              # Installed external plugins (optional)
+  sarde.yaml            # Configuration (optional)
+  sidebar.yaml          # Sidebar overrides (optional)
+  kazari.config.yaml    # Code block presentation (optional)
 ```
 
 Collections are detected by directory name:
@@ -147,8 +164,12 @@ Collections are detected by directory name:
 | Directory names | Type | Default sort | Layout |
 |---|---|---|---|
 | `blog`, `posts`, `articles`, `news` | Blog | date descending | Feed with pagination |
-| `docs`, `guides`, `courses`, `tutorials` | Docs | weight ascending | Three-column with sidebar + ToC |
+| `docs`, `documentation`, `guides`, `reference`, `courses`, `tutorials`, `lessons`, `workshops` | Docs | `sidebar.order` ascending | Three-column with sidebar + ToC |
+| `labs` | Labs | `sidebar.order` ascending | Lab guide with progress and objectives |
+| `slides`, `presentations`, `decks` | Slides | date descending | Presentation deck with gallery landing |
 | Anything else | Generic | title ascending | Default |
+
+These names are a convention, not a requirement. Any directory name works, and an unrecognized name becomes a generic collection. To get docs behavior under a different name, set it explicitly under `collections:` in `sarde.yaml` rather than renaming the directory.
 
 ## Configuration
 
@@ -208,12 +229,17 @@ i18n:
       name: Français
 
 plugins:
+  # Listing `enabled` replaces the default set, so name every plugin you want.
   enabled:
     - sitemap
     - rss
     - search
     - seo
     - link_validator
+    - scroll-to-top     # client-side plugins are opt-in
+  # `disabled` turns off individual plugins without replacing the list above.
+  disabled:
+    - social_cards
 ```
 
 See the [default configuration](embedded/defaults/sarde.yaml) for every available option and its default value.
@@ -221,18 +247,31 @@ See the [default configuration](embedded/defaults/sarde.yaml) for every availabl
 ## Commands
 
 ```bash
-sarde build                        # Build for production
-sarde dev                          # Dev server with live reload (port 4727)
-sarde new site <path>              # Scaffold a new project
-sarde new course <name>            # Create a course directory
-sarde new lesson <course> <name>   # Add an auto-numbered lesson
-sarde check-links                  # Validate links without building
-sarde validate                     # Validate config and content
-sarde deploy                       # Deploy to configured provider
-sarde theme list|add|remove|eject  # Manage themes
-sarde icons add|list               # Download/list Iconify icon sets
-sarde import obsidian <vault>      # Import an Obsidian vault
-sarde version                      # Print version info
+sarde build                            # Build for production
+sarde dev                              # Dev server with live reload (port 4727)
+
+sarde new site <path>                  # Scaffold a new project
+sarde new <collection> <title>         # Add a page to a collection
+sarde new course <name>                # Create a course directory
+sarde new lesson <course> <name>       # Add an auto-numbered lesson
+
+sarde check-links                      # Validate links without building
+sarde check-syntax                     # Check fenced-block syntax
+sarde validate                         # Validate config and content
+sarde effective-config                 # Print merged config with provenance
+
+sarde deploy                           # Deploy to configured provider
+sarde theme list|add|remove|eject      # Manage themes
+sarde theme info|chromastyles          # Inspect a theme, dump Chroma styles
+sarde plugin list|install|remove|info  # Manage external plugins
+sarde license install|list             # Manage premium plugin licenses
+sarde icons add|list                   # Download/list Iconify icon sets
+sarde i18n add-language|status         # Manage languages (also remove-language, scaffold)
+sarde doc-version create|delete|update # Manage docs versions
+
+sarde import obsidian <vault>          # Import an Obsidian vault
+sarde update                           # Self-update the binary
+sarde version                          # Print version info
 ```
 
 Global flags: `--config/-c`, `--baseURL`, `--drafts/-D`, `--future`, `--verbose/-v`, `--quiet/-q`
@@ -241,9 +280,9 @@ Global flags: `--config/-c`, `--baseURL`, `--drafts/-D`, `--future`, `--verbose/
 
 Three layers:
 
-1. **Interface**: CLI (Cobra) and [Desktop App](https://github.com/getsarde/sarde-studio) (Tauri+Svelte) both call into a unified ProjectManager API
-2. **Engine**: Six-phase pipeline: Initialize, Discover, Parse (parallel), Assemble, Assets, Render (parallel), Write
-3. **Plugins**: Four lifecycle hooks run in order: ConfigSetup (serial), ContentLoaded (serial), BeforeRender (serial per page), BuildDone (parallel)
+1. **Interface**: the CLI (Cobra) drives everything through ProjectManager, a unified API over the engine rather than direct file access
+2. **Engine**: seven-phase pipeline: Initialize, Discover, Parse (parallel), Assemble, Assets, Render (parallel), Write
+3. **Plugins**: four lifecycle hooks run in order: ConfigSetup (serial), ContentLoaded (serial), BeforeRender (serial per page), BuildDone (parallel)
 
 The engine is designed around Go interfaces (`ContentDiscoverer`, `FrontmatterParser`, `MarkdownRenderer`, `TemplateEngine`) so each pipeline stage is independently testable.
 
@@ -272,7 +311,6 @@ On Windows, `build.bat` wraps these commands: `build.bat build`, `build.bat test
 ## Tech stack
 
 - **Core**: Go, Goldmark, Cobra, Chroma v2, esbuild (Go API), fsnotify, go:embed
-- **Desktop app**: Tauri v2 (Rust) + Svelte 5 + CodeMirror 6 ([sarde-studio](https://github.com/getsarde/sarde-studio))
 - **Generated sites**: Pure HTML/CSS with ~1KB inline JS, no framework runtime
 - **Search**: Orama (offline, embedded in output)
 - **Minification**: tdewolff/minify (HTML), esbuild (CSS/JS)

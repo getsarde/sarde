@@ -159,8 +159,10 @@ func ContentHash(content string) string {
 // replay incomplete or stale state (an entry without pending_anchors would
 // keep skipping anchor re-validation; entries from before custom heading IDs
 // were honored carry clobbered ids in Headings; entries without refs would
-// replay zero link refs forever, reproducing the coverage undercount).
-const pageCacheSchemaVersion = "5"
+// replay zero link refs forever, reproducing the coverage undercount; entries
+// from before markdown.hard_wraps became configurable carry <br> for every
+// soft line break).
+const pageCacheSchemaVersion = "6"
 
 // pageCacheKey builds the content-addressed key for a rendered page. Both the
 // parallel and serial render paths must use this single helper so the key
