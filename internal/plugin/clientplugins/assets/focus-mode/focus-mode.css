@@ -157,84 +157,80 @@ body.focus-mode .sarde-focus-mode-btn.pos-bottom-left {
 
 /* ── Focus Mode Layout Changes ────────────────────────────────── */
 
-body.focus-mode aside.sarde-sidebar {
-    transform: translateX(-100%);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
+/* Scoped to the width at which the sidebar is a persistent column (matching
+   layout.css). Below it the sidebar is a drawer and the TOC is the mobile bar,
+   so focus mode must not touch either: a state persisted from a desktop visit
+   would otherwise keep the drawer from opening, with no button to switch off. */
+@media (min-width: 1024px) {
+    body.focus-mode aside.sarde-sidebar {
+        transform: translateX(-100%);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
 
-[dir="rtl"] body.focus-mode aside.sarde-sidebar {
-    transform: translateX(100%);
-}
+    [dir="rtl"] body.focus-mode aside.sarde-sidebar {
+        transform: translateX(100%);
+    }
 
-body.focus-mode aside.sarde-toc {
-    transform: translateX(100%);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    position: absolute;
-}
+    body.focus-mode aside.sarde-toc {
+        transform: translateX(100%);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        position: absolute;
+    }
 
-[dir="rtl"] body.focus-mode aside.sarde-toc {
-    transform: translateX(-100%);
-}
+    [dir="rtl"] body.focus-mode aside.sarde-toc {
+        transform: translateX(-100%);
+    }
 
-body.focus-mode .sarde-doc-body {
-    padding-inline-start: 0;
-}
+    body.focus-mode .sarde-doc-body {
+        padding-inline-start: 0;
+    }
 
-body.focus-mode .sarde-mobile-toc {
-    inset-inline-start: 0;
-}
+    /* Between 1024px and 1279px the sidebar column and the mobile TOC bar are
+       both present, so the bar has to follow the collapsing sidebar. */
+    body.focus-mode .sarde-mobile-toc {
+        inset-inline-start: 0;
+    }
 
-body.focus-mode div.sarde-content-panel {
-    max-width: 55rem;
-    margin: 0 auto;
-}
+    body.focus-mode div.sarde-content-panel {
+        max-width: 55rem;
+        margin: 0 auto;
+    }
 
-/* Smooth transitions for entering/exiting focus mode */
-aside.sarde-sidebar {
-    transition: transform var(--focus-mode-speed, 300ms) ease,
-                opacity var(--focus-mode-speed, 300ms) ease,
-                visibility var(--focus-mode-speed, 300ms) ease;
-}
+    /* Smooth transitions for entering/exiting focus mode */
+    aside.sarde-sidebar {
+        transition: transform var(--focus-mode-speed, 300ms) ease,
+                    opacity var(--focus-mode-speed, 300ms) ease,
+                    visibility var(--focus-mode-speed, 300ms) ease;
+    }
 
-aside.sarde-toc {
-    transition: transform var(--focus-mode-speed, 300ms) ease,
-                opacity var(--focus-mode-speed, 300ms) ease,
-                visibility var(--focus-mode-speed, 300ms) ease;
-}
+    aside.sarde-toc {
+        transition: transform var(--focus-mode-speed, 300ms) ease,
+                    opacity var(--focus-mode-speed, 300ms) ease,
+                    visibility var(--focus-mode-speed, 300ms) ease;
+    }
 
-.sarde-doc-body {
-    transition: padding-inline-start var(--focus-mode-speed, 300ms) ease;
-}
+    .sarde-doc-body {
+        transition: padding-inline-start var(--focus-mode-speed, 300ms) ease;
+    }
 
-div.sarde-content-panel {
-    transition: max-width var(--focus-mode-speed, 300ms) ease,
-                margin var(--focus-mode-speed, 300ms) ease;
+    div.sarde-content-panel {
+        transition: max-width var(--focus-mode-speed, 300ms) ease,
+                    margin var(--focus-mode-speed, 300ms) ease;
+    }
 }
 
 /* ── Mobile ───────────────────────────────────────────────────── */
 
 @media (max-width: 1023px) {
-    /* Sidebar and TOC are already hidden on mobile, so focus mode
-       only hides the header toggle and gives a wider content area */
+    /* The sidebar is a drawer and the TOC is the mobile bar at this width, so
+       there is nothing left for focus mode to collapse. Hide the button rather
+       than shrink it. */
     .sarde-focus-mode-btn {
-        bottom: 1.25rem;
-        inset-inline-end: 1.25rem;
-        width: 40px;
-        height: 40px;
-    }
-
-    .sarde-focus-mode-btn.pos-bottom-left {
-        inset-inline-end: auto;
-        inset-inline-start: 1.25rem;
-    }
-
-    .sarde-focus-mode-btn svg {
-        width: 20px;
-        height: 20px;
+        display: none;
     }
 }
 

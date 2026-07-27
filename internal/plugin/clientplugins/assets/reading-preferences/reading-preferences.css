@@ -279,24 +279,14 @@ body.focus-mode div.sarde-content-panel {
 
 /* Mobile */
 @media (max-width: 1023px) {
-    .sarde-reading-prefs-btn {
-        bottom: 1.25rem;
-        inset-inline-end: 1.25rem;
-        width: 40px;
-        height: 40px;
-    }
-
-    .sarde-reading-prefs-btn svg {
-        width: 20px;
-        height: 20px;
-    }
-
+    /* scroll-to-top is the only floating button at this width. Both it and
+       this button used to collapse to the same corner, leaving this one buried
+       under its higher z-index and untappable. Saved preferences are also not
+       applied here (see applyPrefs in reading-preferences.js), so there is
+       nothing for the panel to adjust. */
+    .sarde-reading-prefs-btn,
     .sarde-reading-prefs-panel {
-        bottom: auto;
-        inset-inline-end: 0.75rem;
-        inset-inline-start: 0.75rem;
-        top: calc(var(--sd-nav-height, 60px) + 0.5rem);
-        width: auto;
+        display: none;
     }
 }
 

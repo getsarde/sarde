@@ -40,6 +40,8 @@ On page load, a brief toast appears at the bottom of the screen showing ::kbd[Le
 
 Set `show_hint: false` to suppress the toast.
 
+The hint is hidden on viewports narrower than 1024px, where it would advertise keys a touch device does not have. The arrow-key handlers stay bound at every width, so a tablet with an attached keyboard still navigates.
+
 ## Configuration
 
 `sarde.yaml`
@@ -63,6 +65,6 @@ This plugin activates on pages with previous or next navigation links (`has_prev
 ## Accessibility
 
 - Side arrows include `aria-label` attributes ("Previous page" / "Next page") and native `title` tooltips with the target page title.
-- The hint toast uses `role="status"` for screen reader announcements.
+- The hint toast uses `role="status"` for screen reader announcements. Below 1024px it is hidden with `display: none`, which also removes it from the accessibility tree, so nothing is announced there.
 - Keyboard navigation respects `prefers-reduced-motion`: transition animations are disabled when the user prefers reduced motion.
 - Side arrows and the hint toast are hidden in print output.

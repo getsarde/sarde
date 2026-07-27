@@ -69,8 +69,8 @@ This plugin activates on pages with a sidebar (`has_sidebar`), which includes th
 - Selecting the "Dyslexic" font family loads the Open Dyslexic font from an external CDN (`fonts.cdnfonts.com`). This requires an internet connection and makes a third-party network request.
 - Changing `min_font_size` or `max_font_size` in config retroactively clamps any previously saved out-of-range font size on the next page load.
 - When `show_width_control` is `false`, any previously saved width preference is preserved in `localStorage` but not applied. Turning the option back on restores the saved width.
-- The content width setting also applies while Focus Mode is active. The reading-preferences width takes precedence over Focus Mode's default centered width.
+- The content width setting also applies while Focus Mode is active. The reading-preferences width takes precedence over Focus Mode's default centered width. Both are desktop-only, so this interaction only arises at 1024px and above.
 - Paragraph spacing adjustments do not apply inside elements marked with the `not-content` class (e.g., certain callout blocks).
 - The "Reset" button restores all controls to their defaults and saves the reset state.
-- On mobile (below 1024px), the panel appears as a top sheet spanning the full width below the navigation bar.
+- Below 1024px the toggle button and panel are hidden and saved preferences are not applied, so the page renders at its default typography. The values stay in `localStorage` and reapply as soon as the viewport is wide enough, including when the reader resizes or rotates across the breakpoint without reloading. This keeps a preference set on a desktop from following the reader to a phone where there is no control to undo it.
 - The panel and toggle button are hidden in print output.

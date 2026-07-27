@@ -83,7 +83,18 @@ function loadDyslexicFont() {
     document.head.appendChild(link);
 }
 
+// The toggle button and panel are hidden below 1024px (see reading-preferences.css),
+// so a preference applied there would be one the reader has no way to undo. Saved
+// values are left untouched in localStorage and reapply once the viewport is wide
+// enough again.
+const desktopQuery = window.matchMedia('(min-width: 1024px)');
+
 function applyPrefs() {
+    if (!desktopQuery.matches) {
+        const existing = document.getElementById('sarde-rp-vars');
+        if (existing) existing.remove();
+        return;
+    }
     if (prefs.fontFamily === 'dyslexic') loadDyslexicFont();
     const vars = [];
     if (prefs.fontFamily !== DEFAULTS.fontFamily) {
@@ -326,6 +337,9 @@ function init() {
     if (!document.querySelector('aside.sarde-sidebar')) return;
     createButton();
     applyPrefs();
+    // Resizing or rotating across the breakpoint swaps the preferences in and
+    // out without waiting for a reload.
+    desktopQuery.addEventListener('change', applyPrefs);
 }
 
 init();

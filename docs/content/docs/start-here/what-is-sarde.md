@@ -98,14 +98,11 @@ Sarde fits sites where files are the source of truth and content changes through
 - Handbooks and internal wikis
 - Blogs and changelogs
 
-The choices that make those sites easy cost flexibility elsewhere.
+The choices that make those sites easy cost flexibility elsewhere:
 
-**Conventions carry weight.** Directory names determine layout and sorting. Renaming `docs/` to `handbook/` changes the inferred behavior unless the collection is configured explicitly, so [Core Concepts](/start-here/core-concepts/) is worth reading before restructuring content.
-
-**No server-side rendering.** Pages are built once. Personalized content, authenticated views, and anything that varies per visitor must be handled in the browser or by a separate service. An application framework suits those better.
-
-**No browser-based editing.** Publishing means editing a file and running a build, usually through Git. Contributors who expect a web form and a publish button need a content management system (CMS) instead.
-
-**A smaller ecosystem.** Hugo and Astro have more themes, more plugins, and more answered questions. Sarde covers documentation and content sites thoroughly. It does not try to cover everything.
+- **Conventions carry weight**: Directory names determine layout and sorting, so renaming `docs/` to `handbook/` changes the inferred behavior unless the collection is configured explicitly.
+- **No server-side rendering**: Pages are built once, so anything that varies per visitor has to happen in the browser or in a separate service.
+- **No browser-based editing**: Publishing means editing a file and running a build, usually through Git. Contributors who expect a publish button need a content management system instead.
+- **A smaller ecosystem**: Hugo and Astro have more themes, more plugins, and more answered questions. Sarde covers documentation and content sites thoroughly rather than trying to cover everything.
 
 Continue to [Getting Started](/start-here/getting-started/) to install Sarde, or to [Core Concepts](/start-here/core-concepts/) for the model behind these defaults.

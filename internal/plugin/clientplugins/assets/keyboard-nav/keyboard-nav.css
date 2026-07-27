@@ -135,6 +135,15 @@
     }
 }
 
+@media (max-width: 1023px) {
+    /* The hint advertises the arrow keys, which a touch device does not have,
+       and the side arrows it pairs with are already gone by this width. The key
+       handlers stay bound, so a tablet with a keyboard still navigates. */
+    .sarde-kbd-nav-hint {
+        display: none;
+    }
+}
+
 /* ── Reduced motion ── */
 
 @media (prefers-reduced-motion: reduce) {
