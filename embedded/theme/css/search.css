@@ -60,13 +60,19 @@
 
 	/* Section filter chips */
 	.sarde-search-filters {
-	  display: flex; gap: 0.375rem; padding: 0.5rem 1rem;
-	  border-bottom: 1px solid var(--sd-border); overflow-x: auto; flex-wrap: wrap;
+	  display: flex; gap: 0.375rem; padding: 0.625rem 1rem;
+	  border-bottom: 1px solid var(--sd-border); flex-wrap: wrap;
+	  /* Never compress this row. It is a flex item of the max-height-constrained
+	     panel, so on a short viewport it was squashed and the chips clipped. The
+	     old overflow-x: auto made that possible by suppressing the automatic
+	     minimum size, and was redundant anyway: the chips wrap rather than
+	     scrolling sideways. */
+	  flex-shrink: 0;
 	}
 	.sarde-search-filters[hidden] { display: none; }
 	.sarde-search-filter-chip {
 	  border: 1px solid var(--sd-border); border-radius: 999px;
-	  padding: 0.25rem 0.75rem; font-size: 0.75rem; background: none;
+	  padding: 0.375rem 0.875rem; font-size: 0.75rem; line-height: 1.25; background: none;
 	  color: var(--sd-text-muted); cursor: pointer; white-space: nowrap;
 	  transition: background 0.1s, color 0.1s, border-color 0.1s;
 	}

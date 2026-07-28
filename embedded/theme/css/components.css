@@ -806,6 +806,7 @@
 	/* Center Toggle */
 	.sarde-center-toggle {
 	  display: none;
+	  position: relative;
 	  align-items: center;
 	  justify-content: center;
 	  width: 2rem;
@@ -839,6 +840,44 @@
 
 	.sd-docs-centered .sarde-center-icon-wide {
 	  display: inline;
+	}
+
+	/* Tooltip. The text is read straight off aria-label, which center-toggle.js
+	   swaps between "Center content" and "Expand content width", so it follows
+	   the button state with no extra markup or script. Styled like the language
+	   switcher menu so it reads as the same popover in both themes. */
+	.sarde-center-toggle::after {
+	  content: attr(aria-label);
+	  position: absolute;
+	  top: calc(100% + var(--sd-space-2));
+	  inset-inline-end: 0;
+	  z-index: 1;
+	  padding: var(--sd-space-1) var(--sd-space-2);
+	  background: var(--sd-bg);
+	  color: var(--sd-text);
+	  border: 1px solid var(--sd-border);
+	  border-radius: var(--sd-radius);
+	  box-shadow: var(--sd-shadow-md);
+	  font-size: var(--sd-text-xs);
+	  line-height: 1.4;
+	  white-space: nowrap;
+	  opacity: 0;
+	  visibility: hidden;
+	  transition: opacity var(--sd-transition-fast), visibility var(--sd-transition-fast);
+	  pointer-events: none;
+	}
+
+	.sarde-center-toggle:focus-visible::after {
+	  opacity: 1;
+	  visibility: visible;
+	}
+
+	/* Gated so a tap on a touch screen does not leave the tooltip stuck open. */
+	@media (hover: hover) {
+	  .sarde-center-toggle:hover::after {
+	    opacity: 1;
+	    visibility: visible;
+	  }
 	}
 
 	@media (min-width: 1280px) {
