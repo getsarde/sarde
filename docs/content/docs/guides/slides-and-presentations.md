@@ -2,7 +2,7 @@
 title: Slides and Presentations
 description: "Write once, publish as both a website and a slide presentation."
 sidebar:
-  order: 15
+  order: 16
 ---
 
 Sarde can render Markdown content as interactive slide presentations. The full documentation for this feature has moved to the [Teaching](/teaching/) section:

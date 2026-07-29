@@ -31,7 +31,7 @@ Slices (lists) are replaced wholesale, not merged. A non-empty list in a higher 
 | `description` | string | `""` | Site description. Used in meta tags and feeds. Recommended. |
 | `url` | string | `""` | Production URL (e.g., `https://example.com`). Used for canonical links, sitemaps, and feeds. Recommended. |
 | `language` | string | `"en"` | Default language code (BCP 47). **Required.** |
-| `logo` | string or object | - | Site logo. Accepts a single path string (used for both themes) or an object with `light`, `dark`, and `alt` fields. |
+| `logo` | string or object | - | Site logo, rendered in the header before the site title. Accepts a single path string (used for both themes) or an object with `light`, `dark`, `alt`, and `replaces_title` fields. |
 | `favicon` | string | `""` | Path to the favicon file relative to `public/`. |
 | `edit_url` | string | `""` | Base URL for "Edit this page" links. Append the content file path to this URL. Example: `https://github.com/user/repo/edit/main/content`. |
 | `title_delimiter` | string | `"\|"` | Separator between page title and site title in the browser tab. |
@@ -45,6 +45,20 @@ Slices (lists) are replaced wholesale, not merged. A non-empty list in a higher 
 | `light` | string | `""` | Logo path for light mode. |
 | `dark` | string | `""` | Logo path for dark mode. |
 | `alt` | string | `""` | Alt text for the logo image. |
+| `replaces_title` | bool | `false` | Visually hide the site title text so only the logo shows. The title stays in the DOM for screen readers. |
+
+```yaml
+site:
+  logo:
+    light: /img/logo-light.svg
+    dark: /img/logo-dark.svg
+    alt: My Site
+    replaces_title: true
+```
+
+Paths are relative to `public/` and resolve against `build.base_path`. Size the logo with the [`logo-height`](/reference/theme-tokens#layout) token.
+
+See [Branding](/guides/branding) for variant behavior, image formats, and favicon setup.
 
 ## `social`
 

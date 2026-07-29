@@ -148,7 +148,7 @@ All 27 built-in components, alphabetically.
 | Scripts | `<script>` tags (deferred, inline, module) | `.Scripts`, `.InlineScripts`, `.ModuleScripts` | Both baseof templates |
 | Search | Search trigger button and dialog modal | `.Site.Config.Search.Provider` | Header |
 | Sidebar | Docs nav tree (3 levels deep) | `.Sidebar`, `.SidebarCollapsedByDefault` | `_docs/baseof.html` |
-| SiteTitle | Site name/logo link to `/` | `.Site.Title` | Header |
+| SiteTitle | Site name/logo link to `/` | `.Site.Title`, `.Site.Logo` | Header |
 | Social | Social icon links row | `.Site.Config.Social` | Header, Footer |
 | TableOfContents | Desktop sidebar ToC | `.Page.Headings` | `_docs/baseof.html` |
 | TagSidebar | Popular tags widget (top 20) | `topTerms "tags" 20` | *Not called by default* |

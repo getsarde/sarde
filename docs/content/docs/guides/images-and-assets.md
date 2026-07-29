@@ -60,6 +60,7 @@ Images in `public/` are **not** processed through the responsive pipeline. They 
 |----------|-----------|------------|
 | Image for one specific page | Page bundle (next to `index.md`) | `![alt](photo.jpg)` |
 | Site logo, favicon, shared icons | `public/` directory | `![alt](/images/logo.png)` |
+| Logo in the site header | `public/` directory | [`site.logo`](/guides/branding) config |
 | PDF download for one page | Page bundle | `[Download](report.pdf)` |
 | PDF shared across the site | `public/` directory | `[Download](/files/report.pdf)` |
 
