@@ -101,10 +101,15 @@ type SiteIdentity struct {
 //	  light: "/img/logo-light.svg"
 //	  dark:  "/img/logo-dark.svg"
 //	  alt:   "My Site"
+//	  replaces_title: true
 type Logo struct {
 	Light string `yaml:"light"`
 	Dark  string `yaml:"dark"`
 	Alt   string `yaml:"alt"`
+	// ReplacesTitle visually hides the site title text so only the logo shows.
+	// The title stays in the DOM (screen-reader only) so the link keeps an
+	// accessible name.
+	ReplacesTitle *bool `yaml:"replaces_title"`
 }
 
 func (l *Logo) UnmarshalYAML(value *yaml.Node) error {

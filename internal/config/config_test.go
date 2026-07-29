@@ -250,6 +250,22 @@ func TestLogo_ObjectForm(t *testing.T) {
 	if s.Logo.Alt != "My Logo" {
 		t.Errorf("Logo.Alt = %q, want %q", s.Logo.Alt, "My Logo")
 	}
+	if s.Logo.ReplacesTitle != nil {
+		t.Errorf("Logo.ReplacesTitle = %v, want nil when unset", *s.Logo.ReplacesTitle)
+	}
+}
+
+func TestLogo_ReplacesTitle(t *testing.T) {
+	input := []byte("logo:\n  light: \"/img/light.svg\"\n  replaces_title: true\n")
+	var s struct {
+		Logo Logo `yaml:"logo"`
+	}
+	if err := yaml.Unmarshal(input, &s); err != nil {
+		t.Fatalf("Unmarshal error: %v", err)
+	}
+	if !BoolVal(s.Logo.ReplacesTitle, false) {
+		t.Error("Logo.ReplacesTitle = false, want true")
+	}
 }
 
 // ---------------------------------------------------------------------------

@@ -7,6 +7,11 @@ site:
   description: ""
   url: ""
   language: "en"
+  logo:
+    light: ""
+    dark: ""
+    alt: ""
+    replaces_title: false
   favicon: ""
   edit_url: ""
   title_delimiter: "|"

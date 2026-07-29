@@ -9,4 +9,9 @@
 	  opacity: 0.9;
 	}
 
+	/* Site chrome is authored per theme, so never dim it. */
+	:root[data-theme="dark"] .sarde-site-logo {
+	  opacity: 1;
+	}
+
 }

@@ -57,7 +57,7 @@ func (e *ResourceEnhancer) EnhancePageResources(page *engine.Page) error {
 
 		// Read image dimensions (cheap — only decodes header).
 		if IsImage(res.Name) && res.Width == 0 {
-			w, h, err := imageSize(res.SrcPath)
+			w, h, err := ImageSize(res.SrcPath)
 			if err == nil {
 				res.Width = w
 				res.Height = h
@@ -68,8 +68,8 @@ func (e *ResourceEnhancer) EnhancePageResources(page *engine.Page) error {
 	return nil
 }
 
-// imageSize reads image dimensions without decoding the full image.
-func imageSize(path string) (width, height int, err error) {
+// ImageSize reads image dimensions without decoding the full image.
+func ImageSize(path string) (width, height int, err error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return 0, 0, err

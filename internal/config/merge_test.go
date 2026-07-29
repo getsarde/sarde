@@ -111,3 +111,28 @@ func TestMergePrefetch_NilDelayKeepsBase(t *testing.T) {
 		t.Errorf("Delay = %v, want 300 (omitted override must keep base value)", base.Delay)
 	}
 }
+
+func TestMergeLogo_ReplacesTitleCascades(t *testing.T) {
+	// Embedded defaults ship replaces_title: false; a user setting true must win,
+	// and a user layer that omits the key must leave the base value intact.
+	f := false
+	tr := true
+
+	base := Logo{Light: "/theme-logo.svg", ReplacesTitle: &f}
+	mergeLogo(&base, &Logo{Light: "/user-logo.svg", ReplacesTitle: &tr})
+	if base.Light != "/user-logo.svg" {
+		t.Errorf("Light = %q, want /user-logo.svg", base.Light)
+	}
+	if !BoolVal(base.ReplacesTitle, false) {
+		t.Error("ReplacesTitle = false, want true (user layer wins)")
+	}
+
+	base = Logo{Light: "/theme-logo.svg", Alt: "Theme", ReplacesTitle: &tr}
+	mergeLogo(&base, &Logo{})
+	if base.Alt != "Theme" {
+		t.Errorf("Alt = %q, want Theme (empty over must not clobber)", base.Alt)
+	}
+	if !BoolVal(base.ReplacesTitle, false) {
+		t.Error("ReplacesTitle = false, want true (nil over must not clobber)")
+	}
+}

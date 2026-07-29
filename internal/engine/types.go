@@ -177,6 +177,7 @@ type SiteContext struct {
 	Generator        string
 	Favicon          string
 	FaviconType      string
+	Logo             LogoContext
 	SitemapEnabled   bool
 	Config           any // *config.SiteConfig at runtime; any to avoid circular imports
 	Collections      map[string]*Collection
@@ -190,6 +191,26 @@ type SiteContext struct {
 	EditURL          string        // base URL for "edit this page" links (e.g. https://github.com/user/repo/edit/main/content)
 	KazariScriptURL  string        // URL of the Kazari interaction JS file served globally on every page
 	IconLicenses     []IconLicense // license metadata for loaded icon sets (for an attribution/credits page)
+}
+
+// LogoImage is one resolved logo variant. Width and Height are 0 for SVG logos
+// and whenever the dimensions could not be probed, in which case the template
+// omits the corresponding attributes.
+type LogoImage struct {
+	URL    string
+	Width  int
+	Height int
+}
+
+// LogoContext carries the resolved site logo into templates as .Site.Logo.
+type LogoContext struct {
+	Light         LogoImage
+	Dark          LogoImage
+	Alt           string
+	ReplacesTitle bool
+	// Single reports that one image serves both themes, so the template renders
+	// a single <img> with no light/dark toggle classes.
+	Single bool
 }
 
 // IconLicense is the license metadata of a loaded icon set, exposed to

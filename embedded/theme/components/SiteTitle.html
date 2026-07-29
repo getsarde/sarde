@@ -1,1 +1,10 @@
-<a href="{{ relURL "/" }}" class="sarde-site-title">{{ .Site.Title | markdownify }}</a>
+{{- $logo := .Site.Logo -}}
+<a href="{{ relURL "/" }}" class="sarde-site-title">
+  {{- if $logo.Light.URL }}
+  <img class="sarde-site-logo{{ if not $logo.Single }} sarde-site-logo-light{{ end }}" src="{{ $logo.Light.URL }}" alt="{{ $logo.Alt }}"{{ with $logo.Light.Width }} width="{{ . }}"{{ end }}{{ with $logo.Light.Height }} height="{{ . }}"{{ end }}>
+  {{- if not $logo.Single }}
+  <img class="sarde-site-logo sarde-site-logo-dark" src="{{ $logo.Dark.URL }}" alt="{{ $logo.Alt }}"{{ with $logo.Dark.Width }} width="{{ . }}"{{ end }}{{ with $logo.Dark.Height }} height="{{ . }}"{{ end }}>
+  {{- end }}
+  {{- end }}
+  <span{{ if $logo.ReplacesTitle }} class="sr-only"{{ end }}>{{ .Site.Title | markdownify }}</span>
+</a>

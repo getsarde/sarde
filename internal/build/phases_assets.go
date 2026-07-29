@@ -515,6 +515,9 @@ func (b *SiteBuilder) bundleGlobalAssets(s *buildState) error {
 		s.siteCtx.FaviconType = faviconMIME(detected)
 	}
 
+	// Resolve the site logo (light/dark variants) from public/.
+	s.siteCtx.Logo = resolveLogo(b.config.Site.Logo, b.projectDir, b.urlResolver)
+
 	// Externalize theme token CSS as a fingerprinted file.
 	if b.themeConfig != nil {
 		tokenCSS := theme.GenerateCSS(b.themeConfig.Tokens, b.themeConfig.DarkTokens) +

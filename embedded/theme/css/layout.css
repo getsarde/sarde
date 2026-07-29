@@ -38,6 +38,9 @@
 	}
 
 	.sarde-site-title {
+	  display: inline-flex;
+	  align-items: center;
+	  gap: var(--sd-space-2);
 	  font-weight: var(--sd-weight-bold);
 	  font-size: var(--sd-text-lg);
 	  color: var(--sd-text);
@@ -49,6 +52,24 @@
 
 	.sarde-site-title:hover {
 	  text-decoration: none;
+	}
+
+	.sarde-site-logo {
+	  height: var(--sd-logo-height);
+	  width: auto;
+	  max-width: 100%;
+	  object-fit: contain;
+	  object-position: 0 50%;
+	  flex: 0 0 auto;
+	}
+
+	/* Light/dark logo swap. data-theme is set inline before paint, so no flash. */
+	[data-theme="dark"] .sarde-site-logo-light {
+	  display: none;
+	}
+
+	:root:not([data-theme="dark"]) .sarde-site-logo-dark {
+	  display: none;
 	}
 
 	/* ── Global Nav ── */
@@ -466,6 +487,10 @@
 	    margin-inline-end: var(--sd-space-2);
 	    font-size: var(--sd-text-base);
 	    line-height: 1.1;
+	  }
+
+	  .sarde-site-logo {
+	    height: calc(var(--sd-logo-height) * 0.85);
 	  }
 
 	  .sarde-header-nav {

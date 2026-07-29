@@ -210,6 +210,7 @@ func mergeLogo(base, over *Logo) {
 	mergeStr(&base.Light, over.Light)
 	mergeStr(&base.Dark, over.Dark)
 	mergeStr(&base.Alt, over.Alt)
+	mergeBoolP(&base.ReplacesTitle, over.ReplacesTitle)
 }
 
 func mergeSocial(base *[]SocialLink, over []SocialLink) {
