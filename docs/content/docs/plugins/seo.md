@@ -116,6 +116,6 @@ No meta tags, Open Graph tags, Twitter Card tags, or JSON-LD are generated. The 
 
 - Pages without a collection are typed as `"website"` for Open Graph (not `"article"`).
 - If `default_image` is a relative path, it is resolved to an absolute URL using `site.url`.
-- The `auto_description` fallback uses the page's auto-generated summary, which may truncate mid-sentence.
+- The `auto_description` fallback uses the page's auto-generated summary, which may truncate mid-sentence. When the summary is also empty (a body that is entirely directive blocks has no prose paragraph to extract), the description falls back to plain text taken from the rendered page content, so directive-built homepages still get a meaningful description instead of none.
 - If a versioned page has no peer in the latest version, the canonical URL remains the page's own URL.
 - Breadcrumb JSON-LD is only emitted when the route has at least two breadcrumb entries (a single entry is not useful as a list).

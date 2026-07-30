@@ -240,6 +240,41 @@ categories:
             label: Icon
             description: Lucide icon name shown in the banner.
 
+      - key: og_card
+        type: object
+        label: Social Card
+        description: Per-page social card overrides (colors and toggles). Empty fields fall back to the social_cards plugin config.
+        fields:
+          - key: bg_color
+            type: string
+            label: Background Color
+            description: Card background as a hex color.
+
+          - key: accent_color
+            type: string
+            label: Accent Color
+            description: Accent color for the strip and branding, as a hex color.
+
+          - key: accent_color_2
+            type: string
+            label: Second Accent Color
+            description: Second accent color, turning the accent strip into a gradient.
+
+          - key: text_color
+            type: string
+            label: Text Color
+            description: Title and description color, as a hex color.
+
+          - key: hide_watermark
+            type: bool
+            label: Hide Watermark
+            description: Hide the watermark on this page's card.
+
+          - key: hide_logo
+            type: bool
+            label: Hide Logo
+            description: Hide the logo mark on this page's card.
+
       - key: head
         type: list
         label: Head Tags

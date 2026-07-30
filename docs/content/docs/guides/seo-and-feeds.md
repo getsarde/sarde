@@ -30,7 +30,7 @@ description: "How plants convert light into chemical energy."
 ---
 ```
 
-When `description` is not set, the SEO plugin falls back to the page summary (first paragraph, truncated).
+When `description` is not set, the SEO plugin falls back to the page summary (first prose paragraph, truncated; code fences and directive blocks are skipped). If the body has no prose at all, such as a homepage built entirely from directive blocks, the description is derived from the rendered page text instead.
 
 ## JSON-LD structured data
 

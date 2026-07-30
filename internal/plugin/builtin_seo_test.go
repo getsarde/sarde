@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"html/template"
 	"strings"
 	"testing"
 	"time"
@@ -260,5 +261,56 @@ func TestSEO_DisableJSONLD(t *testing.T) {
 	seo := page.Params["seo"].(map[string]any)
 	if seo["json_ld"] != nil {
 		t.Error("json_ld should be nil when disabled")
+	}
+}
+
+func TestSEO_RenderedFallbackWhenSummaryEmpty(t *testing.T) {
+	// A directive-only body leaves Description and Summary empty; the
+	// description then falls back to plain text from the rendered HTML,
+	// entity-decoded and with the leading title heading trimmed.
+	content := `<h1>Welcome</h1><div class="card-grid"><a href="/docs/"><h3>Getting Started</h3><p>Install Sarde &amp; build</p></a></div>`
+	page := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "Welcome", RelPermalink: "/"},
+		PageContent:  engine.PageContent{Content: template.HTML(content)},
+	}
+	ctx := &BeforeRenderContext{
+		Page:  page,
+		Site:  &engine.SiteContext{BaseURL: "https://example.com", Title: "My Site"},
+		store: NewStore(),
+	}
+	if err := seoBeforeRender(ctx, map[string]any{}); err != nil {
+		t.Fatalf("seoBeforeRender failed: %v", err)
+	}
+
+	seo := page.Params["seo"].(map[string]any)
+	desc, _ := seo["og_description"].(string)
+	if desc != "Getting Started Install Sarde & build" {
+		t.Errorf("og_description = %q", desc)
+	}
+	if seo["twitter_description"] != desc {
+		t.Errorf("twitter_description = %v, want %q", seo["twitter_description"], desc)
+	}
+	if strings.Contains(desc, "<") || strings.Contains(desc, "&amp;") {
+		t.Errorf("description must be tag-free and entity-decoded: %q", desc)
+	}
+}
+
+func TestSEO_RenderedFallbackRespectsAutoDescriptionOptOut(t *testing.T) {
+	page := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "Welcome", RelPermalink: "/"},
+		PageContent:  engine.PageContent{Content: template.HTML("<p>Some rendered prose.</p>")},
+	}
+	ctx := &BeforeRenderContext{
+		Page:  page,
+		Site:  &engine.SiteContext{BaseURL: "https://example.com"},
+		store: NewStore(),
+	}
+	if err := seoBeforeRender(ctx, map[string]any{"auto_description": false}); err != nil {
+		t.Fatalf("seoBeforeRender failed: %v", err)
+	}
+
+	seo := page.Params["seo"].(map[string]any)
+	if desc, _ := seo["og_description"].(string); desc != "" {
+		t.Errorf("auto_description: false must skip the rendered fallback, got %q", desc)
 	}
 }

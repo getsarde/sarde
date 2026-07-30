@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"html/template"
 	"strings"
 	"testing"
 	"time"
@@ -109,5 +110,19 @@ func TestAtom_Limit(t *testing.T) {
 	data, _ := readTestFile(outDir, "blog/atom.xml")
 	if got := strings.Count(string(data), "<entry>"); got != 3 {
 		t.Errorf("expected 3 entries, got %d", got)
+	}
+}
+
+func TestAtom_RenderedFallbackSummary(t *testing.T) {
+	pages := []*engine.Page{{
+		PageIdentity: engine.PageIdentity{Title: "Post", RelPermalink: "/blog/post/", Date: time.Date(2025, 3, 1, 0, 0, 0, 0, time.UTC)},
+		PageContent:  engine.PageContent{Content: template.HTML("<p>Rendered prose &amp; more.</p>")},
+	}}
+	entries := buildAtomEntries(pages, "https://example.com", 20)
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(entries))
+	}
+	if entries[0].Summary != "Rendered prose & more." {
+		t.Errorf("Summary = %q", entries[0].Summary)
 	}
 }

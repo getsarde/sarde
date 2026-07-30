@@ -66,6 +66,7 @@ plugins:
       accent_color: "#E43D3D"
       text_color: "#F4F1EA"
       logo: "sarde"
+      logo_size: 96
       watermark: true
     scroll-to-top:
       showProgressRing: true

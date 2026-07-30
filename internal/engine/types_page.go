@@ -247,9 +247,23 @@ type Frontmatter struct {
 	Icon               string         `yaml:"icon"`
 	Head               []HeadTag      `yaml:"head"`
 	Banner             *PageBanner    `yaml:"banner"`
+	OGCard             *OGCard        `yaml:"og_card"`
 	Cascade            map[string]any `yaml:"cascade"`
 	Params             map[string]any `yaml:"params"`
 	LearningObjectives []string       `yaml:"learning_objectives"`
+}
+
+// OGCard holds per-page social card overrides from the og_card frontmatter
+// block. Scope is deliberately colors and toggles only: text on the card
+// always comes from the page's own title and description. Empty color fields
+// fall back to the social_cards plugin config.
+type OGCard struct {
+	BgColor       string `yaml:"bg_color"`
+	AccentColor   string `yaml:"accent_color"`
+	AccentColor2  string `yaml:"accent_color_2"`
+	TextColor     string `yaml:"text_color"`
+	HideWatermark bool   `yaml:"hide_watermark"`
+	HideLogo      bool   `yaml:"hide_logo"`
 }
 
 // HeroConfig defines hero section fields for splash layout pages.

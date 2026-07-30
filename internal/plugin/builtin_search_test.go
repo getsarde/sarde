@@ -317,9 +317,9 @@ func TestTruncateRuneSafe(t *testing.T) {
 		{"empty", "", 5, ""},
 	}
 	for _, tt := range tests {
-		got := truncateRuneSafe(tt.s, tt.max)
+		got := TruncateRuneSafe(tt.s, tt.max)
 		if got != tt.want {
-			t.Errorf("%s: truncateRuneSafe(%q, %d) = %q, want %q", tt.name, tt.s, tt.max, got, tt.want)
+			t.Errorf("%s: TruncateRuneSafe(%q, %d) = %q, want %q", tt.name, tt.s, tt.max, got, tt.want)
 		}
 		if !utf8.ValidString(got) {
 			t.Errorf("%s: result %q is not valid UTF-8", tt.name, got)
@@ -404,9 +404,9 @@ func TestStripHTML(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		got := stripHTML(tt.input)
+		got := StripHTML(tt.input)
 		if got != tt.want {
-			t.Errorf("stripHTML(%q) = %q, want %q", tt.input, got, tt.want)
+			t.Errorf("StripHTML(%q) = %q, want %q", tt.input, got, tt.want)
 		}
 	}
 }

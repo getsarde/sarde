@@ -89,7 +89,7 @@ A value that is neither empty nor a recognized date is an error, and the build r
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `draft` | bool | `false` | Mark the page as a draft. Drafts are excluded from builds unless `build.drafts` is enabled. |
-| `description` | string | inferred | Page description for meta tags and feeds. Auto-derived from the first paragraph (truncated to 160 characters) if not set. |
+| `description` | string | inferred | Page description for meta tags and feeds. Auto-derived from the first prose paragraph (truncated to 160 characters) if not set; code fences and directive blocks, including nested ones, are skipped. |
 | `image` | string | - | Featured image path for social cards and Open Graph tags. |
 | `summary` | string | inferred | Page summary. Falls back to `description`, then to the first paragraph truncated to [`content.summary_length`](/reference/configuration#content) words. |
 | `render` | bool | - | Whether to render this page. Treated as `true` when unset. Set to `false` to process the page in the content pipeline without generating an output file. |
@@ -224,6 +224,7 @@ categories:
 | `icon` | string | - | Page-level icon. Distinct from `sidebar.icon`, which controls the sidebar entry. |
 | `head` | list | `[]` | Custom HTML tags injected into the page's `<head>`. |
 | `banner` | object | - | Per-page announcement banner. See [`banner`](#banner) below. |
+| `og_card` | object | - | Per-page social card overrides. See [`og_card`](#og-card) below. |
 | `hero` | object | - | Hero section for splash layout pages. See [`hero`](#hero) below. |
 | `cascade` | map | - | Arbitrary key-value pairs propagated to all descendant pages in the section tree. |
 | `params` | map | - | Arbitrary user-defined data accessible in templates via `.Params`. |
@@ -244,6 +245,26 @@ banner:
   content: "This page is under construction"
   variant: caution
   icon: construction
+```
+
+### `og_card`
+
+Per-page overrides for the generated [social card](/plugins/social-cards#per-page-overrides). Scope is colors and toggles only; the card text always comes from the page's title and description. Empty fields fall back to the `social_cards` plugin config.
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `bg_color` | string | - | Card background as a hex color. |
+| `accent_color` | string | - | Accent color for the strip and branding. |
+| `accent_color_2` | string | - | Second accent color, turning the accent strip into a gradient. |
+| `text_color` | string | - | Title and description color. |
+| `hide_watermark` | bool | `false` | Hide the watermark on this page's card. |
+| `hide_logo` | bool | `false` | Hide the logo mark on this page's card. |
+
+```yaml
+og_card:
+  bg_color: "#0d1117"
+  accent_color: "#58a6ff"
+  hide_watermark: true
 ```
 
 ### `hero`
@@ -331,8 +352,8 @@ Sarde fills in missing frontmatter fields automatically. Frontmatter values alwa
 | `date` | Frontmatter, then `YYYY-MM-DD` filename prefix, then file modification time |
 | `updated` | Frontmatter, then git commit date or file modification time (per [`build.last_updated`](/reference/configuration#build) strategy) |
 | `sidebar.order` | Frontmatter, then numeric filename prefix |
-| `description` | Frontmatter, then first paragraph of content (truncated to 160 characters) |
-| `summary` | Frontmatter, then `description`, then first paragraph (truncated to [`content.summary_length`](/reference/configuration#content) words) |
+| `description` | Frontmatter, then first prose paragraph of content (truncated to 160 characters; code fences and directive blocks are skipped) |
+| `summary` | Frontmatter, then `description`, then first prose paragraph (truncated to [`content.summary_length`](/reference/configuration#content) words; same skipping) |
 
 ### Filename patterns
 

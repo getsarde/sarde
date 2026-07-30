@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"encoding/xml"
+	"html"
 	"time"
 
 	"github.com/getsarde/sarde/internal/engine"
@@ -65,6 +66,11 @@ func buildAtomEntries(pages []*engine.Page, baseURL string, limit int) []atomEnt
 		summary := page.Description
 		if summary == "" {
 			summary = string(page.Summary)
+		}
+		if summary == "" {
+			// Rendered-text fallback for bodies that are entirely directive
+			// blocks. Decoded once here; encoding/xml re-escapes on output.
+			summary = html.UnescapeString(RenderedTextFallback(page.Content, RenderedFallbackMaxChars))
 		}
 
 		entryURL := baseURL + page.URL()

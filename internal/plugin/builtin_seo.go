@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"encoding/json"
+	"html"
 	"strings"
 	"time"
 
@@ -42,11 +43,19 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 		siteTitle = ctx.Site.Title
 	}
 
-	// Build description.
+	// Build description: frontmatter, then the raw-markdown auto summary,
+	// then plain text from the rendered HTML. The last tier covers bodies
+	// that are entirely directive blocks, which the summary extractor
+	// rightly skips. The rendered tier carries HTML entities, so the final
+	// value is decoded exactly once; html/template re-escapes on output.
 	description := page.Description
 	if description == "" && autoDesc {
 		description = string(page.Summary)
 	}
+	if description == "" && autoDesc {
+		description = TrimTitlePrefix(RenderedTextFallback(page.Content, RenderedFallbackMaxChars), page.Title)
+	}
+	description = html.UnescapeString(description)
 
 	// Build image URL.
 	ogImage := page.Image

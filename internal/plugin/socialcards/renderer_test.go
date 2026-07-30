@@ -304,6 +304,152 @@ func TestRenderCard_MaxDensity_NoOverlap(t *testing.T) {
 	}
 }
 
+func TestBackgroundRowColor_Override(t *testing.T) {
+	bg := color.NRGBA{0x1a, 0x1a, 0x2e, 0xff}
+	red := color.NRGBA{0xff, 0x00, 0x00, 0xff}
+	blue := color.NRGBA{0x00, 0x00, 0xff, 0xff}
+
+	// Nil override: the automatic contrast gradient.
+	if got := backgroundRowColor(bg, nil, 0, cardHeight); got != bg {
+		t.Errorf("nil override row 0 = %v, want %v", got, bg)
+	}
+	if got := backgroundRowColor(bg, nil, cardHeight-1, cardHeight); got != gradientRowColor(bg, cardHeight-1, cardHeight, gradientAmount) {
+		t.Error("nil override must match the automatic gradient")
+	}
+
+	// Single color: solid fill, every row identical.
+	for _, row := range []int{0, cardHeight / 2, cardHeight - 1} {
+		if got := backgroundRowColor(bg, []color.NRGBA{red}, row, cardHeight); got != red {
+			t.Errorf("solid override row %d = %v, want %v", row, got, red)
+		}
+	}
+
+	// Two colors: row 0 is the first color exactly, the last row the second,
+	// and the middle a blend of both.
+	override := []color.NRGBA{red, blue}
+	if got := backgroundRowColor(bg, override, 0, cardHeight); got != red {
+		t.Errorf("gradient override row 0 = %v, want %v exactly", got, red)
+	}
+	if got := backgroundRowColor(bg, override, cardHeight-1, cardHeight); got != blue {
+		t.Errorf("gradient override last row = %v, want %v", got, blue)
+	}
+	mid := backgroundRowColor(bg, override, cardHeight/2, cardHeight)
+	if mid == red || mid == blue {
+		t.Errorf("gradient override midpoint should blend, got %v", mid)
+	}
+}
+
+func TestRenderCard_GradientOverride(t *testing.T) {
+	regFont, boldFont := loadTestFonts(t)
+	faces, err := newFaceSet(regFont, boldFont)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	red := color.NRGBA{0xff, 0x00, 0x00, 0xff}
+	blue := color.NRGBA{0x00, 0x00, 0xff, 0xff}
+	params := CardParams{
+		Title:            "Override",
+		SiteTitle:        "Site",
+		BgColor:          color.NRGBA{26, 26, 46, 255},
+		AccentColor:      color.NRGBA{233, 69, 96, 255},
+		TextColor:        color.NRGBA{255, 255, 255, 255},
+		GradientOverride: []color.NRGBA{red, blue},
+		Faces:            faces,
+		BoldFont:         boldFont,
+	}
+
+	img := renderCard(params)
+	// The top-right corner is free of text, logo, and the accent strip.
+	if got := img.NRGBAAt(cardWidth-1, 0); got != red {
+		t.Errorf("top row = %v, want the first override color %v", got, red)
+	}
+	if got := img.NRGBAAt(cardWidth-1, cardHeight-accentStripH-1); got == red {
+		t.Error("bottom rows should have blended away from the first color")
+	}
+}
+
+func TestRenderCard_BgImageDrawn(t *testing.T) {
+	regFont, boldFont := loadTestFonts(t)
+	faces, err := newFaceSet(regFont, boldFont)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	green := color.NRGBA{0, 255, 0, 255}
+	bgImg := image.NewNRGBA(image.Rect(0, 0, cardWidth, cardHeight))
+	for y := 0; y < cardHeight; y++ {
+		for x := 0; x < cardWidth; x++ {
+			bgImg.SetNRGBA(x, y, green)
+		}
+	}
+
+	params := CardParams{
+		Title:       "With Background",
+		SiteTitle:   "Site",
+		BgColor:     color.NRGBA{26, 26, 46, 255},
+		AccentColor: color.NRGBA{233, 69, 96, 255},
+		TextColor:   color.NRGBA{255, 255, 255, 255},
+		BgImage:     bgImg,
+		Faces:       faces,
+		BoldFont:    boldFont,
+	}
+
+	img := renderCard(params)
+	// Zero BgImageOpacity defaults to fully opaque, covering the gradient.
+	if got := img.NRGBAAt(cardWidth-1, 0); got != green {
+		t.Errorf("bg image pixel = %v, want %v", got, green)
+	}
+
+	// A dimmed image blends with the gradient instead of replacing it.
+	params.BgImageOpacity = 0.5
+	dimmed := renderCard(params)
+	if got := dimmed.NRGBAAt(cardWidth-1, 0); got == green {
+		t.Error("dimmed bg image should blend with the gradient, not replace it")
+	}
+}
+
+func TestResizeLogoMark_CustomSize(t *testing.T) {
+	src := image.NewNRGBA(image.Rect(0, 0, 512, 512))
+	if got := resizeLogoMark(src, 128).Bounds().Dx(); got != 128 {
+		t.Errorf("size 128 mark width = %d, want 128", got)
+	}
+	if got := resizeLogoMark(src, 0).Bounds().Dx(); got != logoDrawSize {
+		t.Errorf("size 0 must keep the default %d, got %d", logoDrawSize, got)
+	}
+}
+
+func TestRenderCard_LargeLogoNoOverlap(t *testing.T) {
+	regFont, boldFont := loadTestFonts(t)
+	faces, err := newFaceSet(regFont, boldFont)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// A 128px mark with max-density content: the branding-row clamp must
+	// keep the layout intact (no panic, full-size card).
+	logo := image.NewNRGBA(image.Rect(0, 0, 128, 128))
+	params := CardParams{
+		Title:          "An Exceptionally Long Page Title Designed To Occupy Three Full Wrapped Lines At The Largest Ladder Size Available",
+		Description:    "A long description that will certainly need to wrap across the full two lines available to it under the enlarged logo mark",
+		SiteTitle:      "My Site",
+		CollectionName: "Documentation",
+		Date:           time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC),
+		DateExplicit:   true,
+		BgColor:        color.NRGBA{26, 26, 46, 255},
+		AccentColor:    color.NRGBA{233, 69, 96, 255},
+		TextColor:      color.NRGBA{255, 255, 255, 255},
+		LogoImage:      logo,
+		Faces:          faces,
+		BoldFont:       boldFont,
+	}
+
+	img := renderCard(params)
+	if img == nil || img.Bounds().Dx() != cardWidth || img.Bounds().Dy() != cardHeight {
+		t.Fatal("large-logo card did not render at full size")
+	}
+}
+
 func TestResolveBackground_ConfigOverride(t *testing.T) {
 	cfg := map[string]any{"bg_color": "#ff0000"}
 	c := resolveBackground(cfg, nil)

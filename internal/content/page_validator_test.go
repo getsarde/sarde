@@ -194,7 +194,10 @@ func TestDetectUnknownFields_UnknownTopLevel(t *testing.T) {
 }
 
 func TestDetectUnknownFields_KnownKey(t *testing.T) {
-	fmMap := map[string]any{"title": "hello", "draft": true, "tags": []string{"go"}}
+	fmMap := map[string]any{
+		"title": "hello", "draft": true, "tags": []string{"go"},
+		"og_card": map[string]any{"bg_color": "#0d1117"},
+	}
 	warnings := DetectUnknownFields(fmMap, nil, nil, "test.md")
 	if len(warnings) != 0 {
 		t.Errorf("expected no warnings for known keys, got %d: %v", len(warnings), warnings)

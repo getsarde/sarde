@@ -318,6 +318,9 @@ func mapFrontmatterToParams(page *engine.Page, fm *engine.Frontmatter, fmMap map
 	if fm.Banner != nil && fm.Banner.Content != "" {
 		page.Params["banner"] = fm.Banner
 	}
+	if fm.OGCard != nil {
+		page.Params["og_card"] = fm.OGCard
+	}
 	if fm.ShowUpdated != nil {
 		page.Params["show_updated"] = *fm.ShowUpdated
 	}

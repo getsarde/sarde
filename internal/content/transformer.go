@@ -3,6 +3,7 @@ package content
 import (
 	"html/template"
 	"math"
+	"regexp"
 	"strings"
 
 	"github.com/getsarde/sarde/internal/engine"
@@ -56,67 +57,53 @@ func countWords(text string) int {
 	return len(strings.Fields(text))
 }
 
-// extractSummary extracts the first paragraph from markdown, truncated to maxWords.
-func extractSummary(markdown string, maxWords int) string {
-	// Find first non-empty, non-heading paragraph
+// directiveOpenRe matches an opening directive fence: three or more colons
+// followed by a name, e.g. ":::card-grid" or ":::card(title=\"Fast\")". A
+// bare ":::" or a ":::/name" closer has no name character after the colons
+// and deliberately does not match.
+var directiveOpenRe = regexp.MustCompile(`^:{3,}\s*[\w-]`)
+
+// firstProseParagraph extracts the first prose paragraph from raw markdown.
+// It skips headings, frontmatter-like "---" lines, HTML block lines, fenced
+// code blocks, and directive container blocks. Directives nest with the same
+// fence length (":::card-grid" containing ":::card", both closed by a bare
+// ":::"), so nesting is tracked by depth rather than a toggle; a stray
+// closer clamps at depth zero. Returns "" when the body has no prose at all,
+// e.g. a homepage that is entirely directive blocks.
+func firstProseParagraph(markdown string) string {
 	lines := strings.Split(markdown, "\n")
 	var para strings.Builder
+	inCodeFence := false
+	directiveDepth := 0
 	inPara := false
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "```") {
+			inCodeFence = !inCodeFence
+			continue
+		}
+		if inCodeFence {
+			continue
+		}
+		if strings.HasPrefix(trimmed, ":::") {
+			if directiveOpenRe.MatchString(trimmed) {
+				directiveDepth++
+			} else if directiveDepth > 0 {
+				directiveDepth--
+			}
+			continue
+		}
+		if directiveDepth > 0 {
+			continue
+		}
 		if trimmed == "" {
 			if inPara {
 				break // end of paragraph
 			}
 			continue
 		}
-		// Skip headings and frontmatter-like lines
-		if strings.HasPrefix(trimmed, "#") || strings.HasPrefix(trimmed, "---") {
-			if inPara {
-				break
-			}
-			continue
-		}
-		if inPara {
-			para.WriteString(" ")
-		}
-		para.WriteString(trimmed)
-		inPara = true
-	}
-
-	text := para.String()
-	words := strings.Fields(text)
-	if len(words) > maxWords {
-		words = words[:maxWords]
-		return strings.Join(words, " ") + "..."
-	}
-	return strings.Join(words, " ")
-}
-
-// extractDescription extracts a plain-text description from markdown content,
-// suitable for SEO meta tags. Truncates to maxChars at a word boundary.
-func extractDescription(markdown string, maxChars int) string {
-	lines := strings.Split(markdown, "\n")
-	var para strings.Builder
-	inFence := false
-	inPara := false
-
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "```") || strings.HasPrefix(trimmed, ":::") {
-			inFence = !inFence
-			continue
-		}
-		if inFence {
-			continue
-		}
-		if trimmed == "" {
-			if inPara {
-				break
-			}
-			continue
-		}
+		// Skip headings, frontmatter-like lines, and HTML blocks.
 		if strings.HasPrefix(trimmed, "#") ||
 			strings.HasPrefix(trimmed, "---") ||
 			strings.HasPrefix(trimmed, "<") {
@@ -132,7 +119,25 @@ func extractDescription(markdown string, maxChars int) string {
 		inPara = true
 	}
 
-	text := para.String()
+	return para.String()
+}
+
+// extractSummary extracts the first prose paragraph from markdown, truncated
+// to maxWords.
+func extractSummary(markdown string, maxWords int) string {
+	text := firstProseParagraph(markdown)
+	words := strings.Fields(text)
+	if len(words) > maxWords {
+		words = words[:maxWords]
+		return strings.Join(words, " ") + "..."
+	}
+	return strings.Join(words, " ")
+}
+
+// extractDescription extracts a plain-text description from markdown content,
+// suitable for SEO meta tags. Truncates to maxChars at a word boundary.
+func extractDescription(markdown string, maxChars int) string {
+	text := firstProseParagraph(markdown)
 	if text == "" {
 		return ""
 	}

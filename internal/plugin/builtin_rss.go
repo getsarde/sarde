@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"encoding/xml"
+	"html"
 	"time"
 
 	"github.com/getsarde/sarde/internal/engine"
@@ -52,6 +53,11 @@ func buildRSSItems(pages []*engine.Page, baseURL string, limit int) []rssItem {
 		desc := page.Description
 		if desc == "" {
 			desc = string(page.Summary)
+		}
+		if desc == "" {
+			// Rendered-text fallback for bodies that are entirely directive
+			// blocks. Decoded once here; encoding/xml re-escapes on output.
+			desc = html.UnescapeString(RenderedTextFallback(page.Content, RenderedFallbackMaxChars))
 		}
 
 		items = append(items, rssItem{

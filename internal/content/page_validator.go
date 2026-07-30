@@ -19,7 +19,7 @@ var knownFrontmatterKeys = map[string]bool{
 	"show_updated": true, "edit_url": true,
 	"sidebar": true, "toc": true, "prev": true, "next": true,
 	"tags": true, "categories": true, "show_tags": true, "transparent": true,
-	"hero": true, "icon": true, "head": true, "banner": true,
+	"hero": true, "icon": true, "head": true, "banner": true, "og_card": true,
 	"cascade": true, "params": true,
 	"learning_objectives": true,
 }

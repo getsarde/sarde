@@ -54,3 +54,42 @@ func TestBuildPage_DateExplicit_MtimeFallback(t *testing.T) {
 		t.Error("mtime fallback should still populate Date")
 	}
 }
+
+func TestBuildPage_OGCard(t *testing.T) {
+	page := buildTestPage(t, `---
+title: Post
+og_card:
+  bg_color: "#0d1117"
+  accent_color: "#58a6ff"
+  hide_watermark: true
+---
+
+Body.
+`)
+	oc, ok := page.Params["og_card"].(*engine.OGCard)
+	if !ok {
+		t.Fatalf("og_card should land in Params as *engine.OGCard, got %T", page.Params["og_card"])
+	}
+	if oc.BgColor != "#0d1117" {
+		t.Errorf("bg_color = %q, want %q", oc.BgColor, "#0d1117")
+	}
+	if oc.AccentColor != "#58a6ff" {
+		t.Errorf("accent_color = %q, want %q", oc.AccentColor, "#58a6ff")
+	}
+	if oc.AccentColor2 != "" || oc.TextColor != "" {
+		t.Error("omitted color fields should stay empty")
+	}
+	if !oc.HideWatermark {
+		t.Error("hide_watermark should parse true")
+	}
+	if oc.HideLogo {
+		t.Error("omitted hide_logo should stay false")
+	}
+}
+
+func TestBuildPage_OGCard_AbsentLeavesParamUnset(t *testing.T) {
+	page := buildTestPage(t, "---\ntitle: Post\n---\n\nBody.\n")
+	if _, ok := page.Params["og_card"]; ok {
+		t.Error("pages without an og_card block must not set the param")
+	}
+}

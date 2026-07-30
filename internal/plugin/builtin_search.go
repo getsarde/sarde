@@ -7,7 +7,6 @@ import (
 	"io/fs"
 	"strings"
 	"sync"
-	"unicode/utf8"
 
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/plugin/cfgutil"
@@ -165,8 +164,8 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any, cache *searchDoc
 // are deduplicated within the page; cross-page dedup happens at the call
 // site against the global seen set.
 func buildSearchDocs(page *engine.Page, url string, maxLen int) []searchDocument {
-	raw := truncateRuneSafe(string(page.Content), maxLen*3)
-	content := truncateRuneSafe(stripHTML(raw), maxLen)
+	raw := TruncateRuneSafe(string(page.Content), maxLen*3)
+	content := TruncateRuneSafe(StripHTML(raw), maxLen)
 
 	section := ""
 	if page.Collection != nil {
@@ -210,20 +209,6 @@ func buildSearchDocs(page *engine.Page, url string, maxLen int) []searchDocument
 		})
 	}
 	return docs
-}
-
-// truncateRuneSafe cuts s to at most max bytes without splitting a UTF-8 rune.
-func truncateRuneSafe(s string, max int) string {
-	if max < 0 {
-		max = 0
-	}
-	if len(s) <= max {
-		return s
-	}
-	for max > 0 && !utf8.RuneStart(s[max]) {
-		max--
-	}
-	return s[:max]
 }
 
 func buildBreadcrumb(page *engine.Page) string {
@@ -281,40 +266,4 @@ func appendUniqueScript(list []string, item string) []string {
 		}
 	}
 	return append(list, item)
-}
-
-// stripHTML removes HTML tags and collapses whitespace.
-func stripHTML(s string) string {
-	var b strings.Builder
-	b.Grow(len(s))
-	inTag := false
-	lastSpace := true
-	for i := 0; i < len(s); i++ {
-		c := s[i]
-		if c == '<' {
-			inTag = true
-			if !lastSpace {
-				b.WriteByte(' ')
-				lastSpace = true
-			}
-			continue
-		}
-		if c == '>' {
-			inTag = false
-			continue
-		}
-		if inTag {
-			continue
-		}
-		if c <= ' ' {
-			if !lastSpace {
-				b.WriteByte(' ')
-				lastSpace = true
-			}
-			continue
-		}
-		b.WriteByte(c)
-		lastSpace = false
-	}
-	return strings.TrimSpace(b.String())
 }

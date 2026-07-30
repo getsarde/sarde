@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"html/template"
 	"strings"
 	"testing"
 	"time"
@@ -190,5 +191,19 @@ func TestRSS_PerLanguageFeeds(t *testing.T) {
 	}
 	if strings.Contains(string(fr), "English Post") {
 		t.Error("fr feed must not contain English post")
+	}
+}
+
+func TestRSS_RenderedFallbackDescription(t *testing.T) {
+	pages := []*engine.Page{{
+		PageIdentity: engine.PageIdentity{Title: "Post", RelPermalink: "/blog/post/", Date: time.Date(2025, 3, 1, 0, 0, 0, 0, time.UTC)},
+		PageContent:  engine.PageContent{Content: template.HTML("<p>Rendered prose &amp; more.</p>")},
+	}}
+	items := buildRSSItems(pages, "https://example.com", 20)
+	if len(items) != 1 {
+		t.Fatalf("expected 1 item, got %d", len(items))
+	}
+	if items[0].Description != "Rendered prose & more." {
+		t.Errorf("Description = %q", items[0].Description)
 	}
 }

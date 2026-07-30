@@ -78,6 +78,17 @@ type CardParams struct {
 	// edge, already resized to watermarkLongEdge. Nil draws no watermark.
 	WatermarkImage   *image.NRGBA
 	WatermarkOpacity float64
+	// BgImage is an optional background image, already fitted to the card
+	// (cover crops to exactly 1200x630, contain letterboxes inside it). It is
+	// drawn centered over the gradient and under the watermark and all text.
+	BgImage *image.NRGBA
+	// BgImageOpacity dims the background image so text stays readable over
+	// busy artwork. Zero or negative means fully opaque.
+	BgImageOpacity float64
+	// GradientOverride replaces the auto-derived background gradient: nil
+	// keeps the automatic contrast gradient, one color fills solid, two
+	// colors blend vertically from the first (top) to the second (bottom).
+	GradientOverride []color.NRGBA
 	Faces            *FaceSet
 	BoldFont         *opentype.Font
 }
@@ -122,10 +133,24 @@ func renderCard(p CardParams) *image.NRGBA {
 	// the card reads as dark as its configured color); light backgrounds
 	// brighten instead, for the same contrast reason with dark text. Row 0
 	// always equals the configured background exactly, so a logo whose tile
-	// matches bg_color sits seamlessly in the top corner.
+	// matches bg_color sits seamlessly in the top corner. A GradientOverride
+	// replaces this automatic gradient entirely.
 	for row := 0; row < cardHeight; row++ {
-		rowColor := gradientRowColor(p.BgColor, row, cardHeight, gradientAmount)
+		rowColor := backgroundRowColor(p.BgColor, p.GradientOverride, row, cardHeight)
 		draw.Draw(canvas, image.Rect(0, row, cardWidth, row+1), image.NewUniform(rowColor), image.Point{}, draw.Src)
+	}
+
+	// Background image: centered over the gradient (cover-fitted images span
+	// the whole card, contain-fitted ones letterbox against it), under the
+	// watermark and all text.
+	if p.BgImage != nil {
+		opacity := p.BgImageOpacity
+		if opacity <= 0 {
+			opacity = 1.0
+		}
+		bb := p.BgImage.Bounds()
+		pos := image.Pt((cardWidth-bb.Dx())/2, (cardHeight-bb.Dy())/2)
+		canvas = imaging.Overlay(canvas, p.BgImage, pos, opacity)
 	}
 
 	// Watermark: large low-opacity mark bleeding off the right edge. Drawn
@@ -190,7 +215,7 @@ func renderCard(p CardParams) *image.NRGBA {
 		}
 	}
 
-	footer := buildFooter(p.CollectionName, p.Date, p.DateExplicit)
+	footer := buildFooter(p.CollectionName, p.Title, p.Date, p.DateExplicit)
 	footerLineH := p.Faces.Footer.Metrics().Height.Ceil()
 	if footer != "" {
 		blockH += gapDescFooter + footerLineH
@@ -234,6 +259,24 @@ func renderCard(p CardParams) *image.NRGBA {
 	drawAccentStrip(canvas, stripRect, p.AccentColor, p.AccentColor2)
 
 	return canvas
+}
+
+// backgroundRowColor returns the background color for one row of the card:
+// the automatic contrast gradient when override is nil, a solid fill for a
+// single override color, or a vertical top-to-bottom blend for two.
+func backgroundRowColor(bg color.NRGBA, override []color.NRGBA, row, totalRows int) color.NRGBA {
+	switch len(override) {
+	case 0:
+		return gradientRowColor(bg, row, totalRows, gradientAmount)
+	case 1:
+		return override[0]
+	default:
+		if totalRows <= 1 || row == 0 {
+			return override[0]
+		}
+		t := float64(row) / float64(totalRows-1)
+		return lerpColor(override[0], override[1], t)
+	}
 }
 
 // gradientRowColor returns the background color for one row of the vertical
@@ -317,10 +360,13 @@ func autoSizeTitle(title string, boldFont *opentype.Font, defaultFace font.Face,
 
 // buildFooter joins the collection name and, only when it was explicitly
 // authored (frontmatter or filename prefix), the page date. Inferred mtime
-// dates are never shown: they are build metadata, not publish dates.
-func buildFooter(collectionName string, date time.Time, dateExplicit bool) string {
+// dates are never shown: they are build metadata, not publish dates. The
+// collection name is dropped when it matches the page title, as on a
+// collection's own index page, where repeating the title directly under
+// itself reads as a mistake.
+func buildFooter(collectionName, title string, date time.Time, dateExplicit bool) string {
 	parts := []string{}
-	if collectionName != "" {
+	if collectionName != "" && !strings.EqualFold(collectionName, title) {
 		parts = append(parts, collectionName)
 	}
 	if dateExplicit && !date.IsZero() {

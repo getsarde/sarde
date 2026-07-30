@@ -5,7 +5,20 @@ docs/STYLE.md
 
 coderoo-go/content/
 /content/
-testsite/
+# Testsite fixtures are generated locally and in CI; only the deterministic
+# generator sources (and their standalone go.mod) are tracked. Regenerate the
+# corpus with: go -C testsite/benchmark/cmd/generate run . -root <abs-path>
+testsite/*
+!testsite/benchmark/
+testsite/benchmark/*
+!testsite/benchmark/cmd/
+testsite/benchmark/cmd/*
+!testsite/benchmark/cmd/generate/
+!testsite/hugo-benchmark/
+testsite/hugo-benchmark/*
+!testsite/hugo-benchmark/cmd/
+testsite/hugo-benchmark/cmd/*
+!testsite/hugo-benchmark/cmd/generate/
 *-output.md
 .coderoo-cache/
 .cache/
@@ -39,9 +52,6 @@ go.work.sum
 
 # Go content output
 dist/
-
-# Hugo benchmark (local only)
-testsite/hugo-benchmark/
 
 # Node (themes may use package.json)
 node_modules/
