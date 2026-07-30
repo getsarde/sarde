@@ -99,6 +99,12 @@ Theme-specific configuration. Only present inside a theme directory (`themes/<na
 
 See [Themes & Styling](/guides/themes-and-styling) for theme presets and token overrides.
 
+### `sidebar.yaml`
+
+Per-entry sidebar overrides, placed at the project root. Relabels, reorders, hides, or un-hides individual sidebar entries without editing their frontmatter, and adjusts the tab bar on tabbed collections. It is the highest-precedence sidebar layer, above `sarde.yaml`.
+
+See [Navigation & Sidebar](/guides/navigation-and-sidebar#overrides-with-sidebar-yaml) for the override schema.
+
 ### `nav.yaml`
 
 Manual sidebar navigation overrides. Only applicable to tabbed docs collections. Sarde auto-generates sidebar navigation from the directory structure by default, so this file is rarely needed.

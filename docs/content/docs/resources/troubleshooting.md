@@ -111,6 +111,26 @@ A name in `plugins.enabled` does not match any built-in or client-side plugin.
 
 ## Dev server errors
 
+### "another sarde process is already writing"
+
+```
+another sarde process (pid 4812, running "sarde dev", started 2026-07-30T09:14:02Z) is
+already writing to output directory "dist"; stop it first, or delete "dist/.sarde.lock"
+if you are sure it is not running
+```
+
+Sarde takes a lock on the output directory so two builds cannot interleave writes into the same `dist/`. Both `sarde build` and `sarde dev` take it.
+
+**Fix:** Stop the process named in the message. It is usually a `sarde dev` left running in another terminal or an editor's integrated preview.
+
+If that process is gone, for example after a crash or a hard kill, the lock file outlived it. Delete the lock file named in the message and run the command again. A variant of the message reads `(lock metadata unreadable)` when the lock file exists but cannot be parsed, and the fix is the same.
+
+To run two builds at once on purpose, give each its own output directory:
+
+```bash
+sarde build --output dist-preview
+```
+
 ### Port in use
 
 ```

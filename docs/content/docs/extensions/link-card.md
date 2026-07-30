@@ -70,6 +70,8 @@ External URLs automatically open in a new tab. The domain name appears at the bo
 
 → The card shows "GitHub Repository" as the title and "github.com" as the domain label. The `www.` prefix is stripped from the domain display.
 
+External cards also rotate the arrow indicator 45 degrees so it points up and to the right, the usual "leaves this site" cue. Internal cards keep the arrow horizontal. Both nudge it on hover, mirrored under `dir="rtl"`.
+
 Override the new-tab behavior with `new-tab="false"`:
 
 ````

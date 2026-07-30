@@ -145,6 +145,26 @@ func TestInfer_DatePrefixFilename(t *testing.T) {
 	if page.Slug != "hello-world" {
 		t.Errorf("Slug = %q, want %q", page.Slug, "hello-world")
 	}
+	if !page.DateExplicit {
+		t.Error("a filename date prefix is a deliberate choice: DateExplicit should be true")
+	}
+}
+
+func TestInfer_MtimeDateIsNotExplicit(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "plain-page.md")
+	os.WriteFile(path, []byte("content"), 0644)
+
+	page := &engine.Page{PageContent: engine.PageContent{RawContent: "content"}}
+	inf := &Inferrer{}
+	inf.Infer(page, path)
+
+	if page.Date.IsZero() {
+		t.Fatal("expected mtime fallback to populate Date")
+	}
+	if page.DateExplicit {
+		t.Error("an mtime-inferred date must not be marked explicit")
+	}
 }
 
 func TestInfer_DatePrefixFrontmatterWins(t *testing.T) {

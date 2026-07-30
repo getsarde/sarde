@@ -49,6 +49,26 @@ Backslashes and special characters pass through literally:
 
 → The Windows path renders verbatim with no escape processing.
 
+## In tables
+
+Copy snippets work inside table cells, which suits reference tables of endpoints, keys, or connection strings:
+
+```markdown
+| Setting | Value |
+|---------|-------|
+| Host | ::copy[localhost:4727] |
+| Token | ::copy[abc123] |
+```
+
+| Setting | Value |
+|---------|-------|
+| Host | ::copy[localhost:4727] |
+| Token | ::copy[abc123] |
+
+→ Each cell holds its own copy button.
+
+A value containing a pipe needs escaping as `\|`, the usual Markdown table rule.
+
 ## Copy feedback
 
 Clicking the copy button triggers a brief visual confirmation. The clipboard icon swaps to a green checkmark for 1.5 seconds, then reverts.

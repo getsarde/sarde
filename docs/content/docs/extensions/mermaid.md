@@ -57,7 +57,7 @@ The Mermaid plugin then detects `class="sarde-mermaid"` in the rendered HTML and
 
 ## Configuration
 
-Mermaid is enabled by default via `markdown.mermaid: true` in `sarde.yaml`.
+The [Mermaid plugin](/plugins/mermaid/) is enabled by default. Remove `mermaid` from `plugins.enabled` in `sarde.yaml` to turn it off.
 
 To force Mermaid assets on every page (useful when diagrams are loaded dynamically):
 

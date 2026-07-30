@@ -124,7 +124,7 @@ These are Go embedded structs, but `html/template` promotes embedded fields auto
 
 ## Component reference
 
-All 27 built-in components, alphabetically.
+All 30 built-in components, alphabetically.
 
 | Name | Purpose | Key data | Called by |
 |------|---------|----------|----------|
@@ -138,8 +138,11 @@ All 27 built-in components, alphabetically.
 | GlobalNav | Top navigation bar | `.GlobalNav.Items` | Header |
 | Head | `<head>` content (meta, styles, scripts) | `.Site.*`, `.Page.*`, `.Styles` | Both baseof templates |
 | Header | Header chrome, composes 8 sub-components | Multiple | Both baseof templates |
+| LabBadge | "Lab N" eyebrow chip above the title | `.LabNumber`, `.LabStepLabel` | `_labs/baseof.html` |
+| LabProgress | Step progress bar reading "Step X of Y" | `.LabStepIndex`, `.LabStepTotal` | `_labs/baseof.html` |
 | LanguageSwitcher | Language dropdown | `.AllTranslations`, `.Lang` | Header |
 | LastUpdated | "Last updated" byline | `.Page.Updated`, `theme.date_format` | docs, labs, blog singles, `_default/single.html` |
+| LearningObjectives | Callout listing a lab's objectives | `.LearningObjectives` | `_labs/baseof.html` |
 | MobileTableOfContents | Mobile collapsible ToC with progress ring | `.Page.Headings` | `_docs/baseof.html` |
 | PageBanner | Frontmatter-driven page banner | `.PageBanner` | Both baseof templates |
 | PageTags | Tag chips with taxonomy links | `.Page.Tags` | `_docs/baseof.html`, blog singles |

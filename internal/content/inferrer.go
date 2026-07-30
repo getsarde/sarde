@@ -91,9 +91,14 @@ func (inf *Inferrer) Infer(page *engine.Page, filePath string) error {
 	}
 
 	// Date: filename date prefix takes precedence over mtime when frontmatter
-	// did not set it.
+	// did not set it. A filename date is a deliberate authoring choice, so it
+	// also counts as explicit for DateExplicit purposes. Note: buildPage
+	// pre-fills page.Date from the file's mtime before calling Infer, so this
+	// branch is currently unreachable through that path; it is kept correct
+	// for direct callers.
 	if page.Date.IsZero() && !filenameDate.IsZero() {
 		page.Date = filenameDate
+		page.DateExplicit = true
 	}
 	if page.Date.IsZero() {
 		if info, err := os.Stat(filePath); err == nil {

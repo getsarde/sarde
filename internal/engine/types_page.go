@@ -57,6 +57,13 @@ type PageMeta struct {
 	Draft       bool
 	Description string
 	Image       string
+
+	// DateExplicit reports whether Date came from an explicit source (a
+	// frontmatter "date" key or a YYYY-MM-DD filename prefix) rather than
+	// being inferred from file modification time. Consumers that display
+	// dates as editorial content (e.g. social cards) should check this to
+	// avoid presenting an mtime as a publish date.
+	DateExplicit bool
 }
 
 // PageRelationships holds graph connections to other pages and structures.

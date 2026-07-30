@@ -3,6 +3,10 @@ site:
   description: "Documentation for Sarde, a zero-config static site generator"
   url: "https://getsarde.github.io"
   edit_url: "https://github.com/getsarde/sarde/edit/main/docs/content"
+  # The Lebanese Red woven mark from brand/icon.svg. The navy tile keeps its
+  # edges in both themes. The favicon is brand/favicon.ico, copied to
+  # public/favicon.ico where auto-detection finds it.
+  logo: "/images/sarde-icon.svg"
 
 build:
   # Project site at https://getsarde.github.io/sarde/
@@ -55,6 +59,14 @@ plugins:
     - scroll-to-top
     - keyboard-nav
   config:
+    social_cards:
+      # Lebanese Red brand palette from brand/README.md: deep navy tile
+      # background, red ribbon accent, warm ivory text.
+      bg_color: "#111827"
+      accent_color: "#E43D3D"
+      text_color: "#F4F1EA"
+      logo: "sarde"
+      watermark: true
     scroll-to-top:
       showProgressRing: true
       showTooltip: true

@@ -5,7 +5,7 @@ sidebar:
   order: 42
 ---
 
-Auto-generates 1200×630 Open Graph images for pages that do not already have one. Each card displays the page title, description, site branding, collection name, and date, rendered with the Inter font family. Enabled by default, but images are only generated during production builds.
+Auto-generates 1200×630 Open Graph images for pages that do not already have one. Each card displays the page title, description, site branding (with an optional logo mark and watermark), collection name, and date, rendered with the Inter font family. Enabled by default, but images are only generated during production builds.
 
 ## How it works
 
@@ -15,14 +15,16 @@ Cards are not generated during `sarde dev` (dev mode). The SEO params are still 
 
 ## Card layout
 
-Each card contains:
+Cards use an editorial layout: branding at the top, a large title block anchored to the bottom, and generous negative space in between. Each card contains:
 
-- **Site title** in the accent color (top, small text)
-- **Accent bar** (4px horizontal line)
-- **Page title** in bold, auto-sized (56pt, 44pt, or 36pt depending on length)
-- **Description** at 75% opacity (up to 3 lines, 22pt)
-- **Footer** with collection name and date, right-aligned (bottom)
-- **Bottom accent strip** (10px)
+- **Logo mark** top-left, when a logo is configured (see Logo and watermark below)
+- **Site title** in the accent color, next to the logo; when no logo is set it renders larger and bold, acting as a text wordmark
+- **Background gradient**, a subtle vertical shift of the background color away from the text color (dark backgrounds deepen toward the bottom, light backgrounds brighten), so the bottom-anchored text gains contrast
+- **Watermark**, an optional large low-opacity rendering of the logo bleeding off the right edge
+- **Page title** in bold, bottom-anchored and auto-sized (76pt, 60pt, or 48pt depending on length)
+- **Description** below the title (up to 2 lines, 32pt)
+- **Footer** with collection name and, for explicitly dated pages, the date (bottom-left)
+- **Accent strip**, a thin partial-width line in the bottom-right corner; becomes a two-color gradient when `accent_color_2` is set
 
 <!-- SCREENSHOT: social-card-example - a generated social card showing title, description, and footer -->
 
@@ -38,7 +40,11 @@ plugins:
       quality: 90
       bg_color: ""
       accent_color: ""
+      accent_color_2: ""
       text_color: "#ffffff"
+      logo: ""
+      watermark: false
+      watermark_opacity: 0.07
       collections:
         - docs
         - blog
@@ -50,9 +56,43 @@ plugins:
 | `format` | String | `"png"` | Output format: `"png"` or `"jpeg"` (also accepts `"jpg"`). |
 | `quality` | Number | `90` | JPEG quality (1-100). Ignored for PNG output. |
 | `bg_color` | String | `""` | Card background color as a hex value (e.g., `"#1a1a2e"`). Empty derives from the theme accent color (darkened by 30%). |
-| `accent_color` | String | `""` | Accent color for the bar and branding. Empty uses `theme.accent_color` from `sarde.yaml`. |
+| `accent_color` | String | `""` | Accent color for the strip and branding. Empty uses `theme.accent_color` from `sarde.yaml`. |
+| `accent_color_2` | String | `""` | Second accent color. When set, the bottom-right accent strip becomes a horizontal gradient from `accent_color` to this value. |
 | `text_color` | String | `"#ffffff"` | Text color for the title and description. |
+| `logo` | String | `""` | Logo source: a path under `public/`, the literal `"sarde"` for the built-in Sarde mark, or `"none"` to opt out. Empty falls back to `site.logo`. |
+| `watermark` | Boolean | `false` | Draw a large low-opacity rendering of the logo bleeding off the right edge. Ignored when no watermark source resolves. |
+| `watermark_image` | String | `""` | Separate artwork for the watermark, as a path under `public/`. Empty reuses the logo. Lets a site pair a compact corner mark with a larger or line-art watermark. |
+| `watermark_opacity` | Number | `0.07` | Watermark opacity (0.0-1.0). |
 | `collections` | List | `[]` | Restrict card generation to these collection names. Empty generates cards for all collections. |
+
+## Logo and watermark
+
+The `logo` option resolves in this order:
+
+1. `"none"`: no logo, even when `site.logo` is set.
+2. `"sarde"`: the embedded Sarde mark and ribbon artwork. Used by the Sarde docs site itself.
+3. Any other non-empty value: an image path under the project's `public/` directory, the same convention as `site.logo` (e.g. `logo: "/images/mark.png"`).
+4. Empty (the default): fall back to the site's own `site.logo`. The dark variant is preferred since cards have dark backgrounds by default, then the light variant.
+
+A missing or unreadable logo file never fails the build; the card simply renders without a logo.
+
+### Supported image formats
+
+| Format | Supported | Notes |
+|--------|-----------|-------|
+| PNG | Yes | Recommended. Transparency blends cleanly over the card background. |
+| WebP | Yes | Also supports transparency. |
+| JPEG | Yes | No alpha channel: the logo renders as an opaque rectangle, and the watermark becomes a ghosted rectangle rather than a ghosted shape. |
+| GIF | Yes | First frame only; limited palette. |
+| BMP | Yes | No transparency. |
+| TIFF | Yes | |
+| SVG | No | Cards have no vector rasterizer. SVG logos are skipped with a build log note. |
+
+Prefer a transparent PNG (or WebP) around 512 to 1024 pixels: the logo mark draws at 64px and the watermark scales its file up to roughly 820px, so that range keeps both crisp. If your logo only exists as SVG, export it to PNG once and point `logo` at the exported file.
+
+The watermark reuses whatever logo resolved: when nothing resolves, `watermark: true` is a no-op. With `logo: "sarde"`, the watermark uses a dedicated ribbon-only artwork (no background disc) so the bleed stays airy.
+
+Set `watermark_image` to give the watermark its own artwork instead of reusing the logo. This mirrors the built-in Sarde split: a simplified, small-size-legible mark in the corner and a more detailed or line-art rendering as the watermark. A detail-dense logo often benefits from this, since marks draw at 64px where fine features disappear, while the watermark runs large where they read well.
 
 ## Theme-aware colors
 
@@ -76,11 +116,11 @@ Long titles are automatically resized to fit the card:
 
 | Font size | Used when |
 |-----------|-----------|
-| 56pt | Title fits in 3 lines or fewer |
-| 44pt | Title is too long at 56pt |
-| 36pt | Title is too long at 44pt |
+| 76pt | Title fits in 3 lines or fewer |
+| 60pt | Title is too long at 76pt |
+| 48pt | Title is too long at 60pt |
 
-If the title still exceeds 3 lines at 36pt, the third line is truncated with "...".
+If the title still exceeds 3 lines at 48pt, the third line is truncated with "...".
 
 ## Output paths
 
@@ -130,8 +170,8 @@ plugins:
 
 ## Edge cases
 
-- Cards are rendered in parallel using a worker pool sized to the available CPU cores (capped at the number of pages).
+- Cards are rendered in parallel using a worker pool sized to the available CPU cores (capped at the number of pages). Logo images are decoded once per build and shared read-only across workers.
 - Description text falls back to the page's auto-generated summary when no explicit description is set. HTML tags in the summary are stripped.
-- The footer shows the collection title and date separated by " · ". If both are missing, the footer is omitted.
+- The footer shows the collection title and date separated by " · ". The date only appears when it was explicitly authored, via a frontmatter `date` field or a `YYYY-MM-DD-slug` filename prefix. Dates inferred from file modification time are never shown, so docs pages without frontmatter dates do not display a misleading build date. If both parts are missing, the footer is omitted.
 - PNG format produces larger files but preserves sharp text. JPEG at quality 90 is a good compromise for smaller file sizes.
 - Hex colors accept both `#rgb` shorthand and `#rrggbb` full format.

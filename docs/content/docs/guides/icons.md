@@ -141,4 +141,20 @@ The `:icon[]` extension accepts these attributes inside the brackets:
 
 Icons without `title` or `aria-label` are rendered with `aria-hidden="true"` for accessibility.
 
+## Icons on pages and sections
+
+`sidebar.icon` in a page's frontmatter sets the icon on its sidebar entry, and the same icon is rendered before the page's own `<h1>`:
+
+```yaml
+---
+title: Guides
+sidebar:
+  icon: compass
+---
+```
+
+On a section's `_index.md` this gives the section index page a heading icon matching its sidebar group, which is where the field is most useful.
+
+A page-level `icon` field is separate and does not touch the sidebar. See [Frontmatter](/reference/frontmatter#sidebar-fields).
+
 See [CLI Commands](/reference/cli-commands#icons) for `sarde icons` usage, and [Configuration](/reference/configuration#icons) for all icon settings.

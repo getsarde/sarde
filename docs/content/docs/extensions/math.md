@@ -47,7 +47,7 @@ $$ F = ma $$
 
 KaTeX assets (CSS, JS, fonts) are automatically injected on pages that contain math markup. The KaTeX plugin detects `class="sarde-math"` in the rendered HTML and appends the required scripts and stylesheet.
 
-No configuration is needed. KaTeX is enabled by default via `markdown.katex: true` in `sarde.yaml`.
+No configuration is needed. The [KaTeX plugin](/plugins/katex/) is enabled by default. Remove `katex` from `plugins.enabled` in `sarde.yaml` to turn it off.
 
 To force KaTeX assets on every page (useful when math is loaded dynamically):
 

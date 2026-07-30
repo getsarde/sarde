@@ -115,7 +115,26 @@ fallback:
 
 Values can include Go template syntax. The `fallback.notice` key receives a `.Lang` variable with the current language's display name.
 
-For the full list of built-in string keys, see the embedded `en.yaml` that ships with Sarde.
+### Built-in string keys
+
+Override any of these. Anything left out falls back to the default language.
+
+| Group | Keys |
+|-------|------|
+| `nav` | `previous`, `next`, `newer`, `older`, `newer_posts`, `older_posts`, `toc`, `toc_label`, `toc_overview`, `search`, `draft`, `reading_time`, `language`, `version`, `version_latest`, `back_to_top`, `skip_to_content`, `menu`, `collapse_sidebar`, `breadcrumb`, `section_nav`, `page_nav`, `footer`, `opens_new_tab` |
+| `search` | `results`, `no_results`, `close`, `tip_typos`, `tip_keywords`, `kbd_navigate`, `kbd_select`, `kbd_close`, `full_search`, `switch_full_search` |
+| `theme` | `selection`, `light`, `system`, `dark` |
+| `taxonomy` | `post`, `posts`, `tags`, `authors` |
+| `blog` | `featured`, `page`, `of` |
+| `labs` | `step`, `of`, `overview`, `learning_objectives` |
+| `home` | `all_posts`, `get_started` |
+| `error` | `not_found`, `not_found_desc`, `return_home`, `not_found_illustrated`, `not_found_illustrated_desc` |
+| `version` | `unmaintained_notice`, `unreleased_notice`, `unmaintained_link`, `unreleased_link` |
+| `fallback` | `notice` |
+| `announcements` | `dismiss` |
+| (top level) | `edit_this_page`, `last_updated_label` |
+
+Two keys take template variables: `nav.reading_time` receives `.Minutes`, and `fallback.notice` receives `.Lang`.
 
 ## Fallback pages
 

@@ -130,3 +130,19 @@ All enabled client-side plugins are concatenated into a single fingerprinted CSS
 | `has_prev_next` | Pages with prev/next navigation |
 | `is_content_page` | Regular content pages, not section indexes |
 | `has_updated` | Pages with a last-updated date |
+
+## Opting markup out of prose styles
+
+Everything rendered inside `.sarde-markdown-content` picks up prose styling, including the automatic sibling spacing that puts `margin-top` between consecutive block elements. That is right for authored prose and wrong for generated UI, where it inserts gaps between the parts of a single widget.
+
+Add the `not-content` class to the outermost element of any markup that is a component rather than prose:
+
+```html
+<aside class="sarde-aside not-content">
+  ...
+</aside>
+```
+
+Descendants of a `not-content` element are exempt from the sibling-spacing rule, so a widget lays itself out with its own CSS. The built-in extensions use this convention throughout: asides, cards, file trees, and the rest all carry it. Follow it in any extension or plugin that emits structural HTML into the content area.
+
+The class exempts an element from prose spacing only. It does not disable inherited typography such as font family or color, which components usually want to keep.

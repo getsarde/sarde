@@ -49,13 +49,14 @@ collections. The homepage `content/_index.md` is also outside any collection.
 
 ## Auto-detection rules
 
-Sarde recognizes three collection families by directory name:
+Sarde recognizes four collection families by directory name:
 
 | Directory names | Type | Sort | Layout | Feed | Sidebar |
 |-----------------|------|------|--------|------|---------|
 | `blog`, `posts`, `articles`, `news` | Blog | date (newest first) | default | yes | no |
 | `docs`, `documentation`, `guides`, `reference`, `courses`, `tutorials`, `lessons`, `workshops` | Docs | order (ascending) | docs | no | yes |
 | `slides`, `presentations`, `decks` | Slides | date (newest first) | default (gallery) | no | no |
+| `labs` | [Labs](/teaching/labs/) | order (ascending) | default at the top, labs inside a lab | no | yes (per lab) |
 | Any other name | Default | title (ascending) | default | no | no |
 
 Naming a directory `blog/` is a convention. Sarde auto-detects it as a date-sorted collection with feeds, but any directory name works. A directory named `updates/` would get default-type behavior unless overridden in `sarde.yaml`.

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Sarde — Lebanese Red woven narrative</title>
+  <desc id="desc">The detailed Sarde icon: a narrative thread woven through a red ribbon.</desc>
+  <rect x="0" y="0" width="256" height="256" rx="50" fill="#111827"/>
+  <path d="M190 51.5H99C72 51.5 55 67.5 55 90.5s17 38 44 38h58c27 0 44 15 44 38s-17 38-44 38H66" fill="none" stroke="#E43D3D" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M180 78.5H99c-12 0-19 5-19 12M76 177.5h81c12 0 19-5 19-12" fill="none" stroke="#111827" stroke-width="17" stroke-linecap="round"/>
+  <path d="M180 78.5H99c-12 0-19 5-19 12M76 177.5h81c12 0 19-5 19-12" fill="none" stroke="#F4F1EA" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="190" cy="51.5" r="6" fill="#F4F1EA"/>
+  <circle cx="66" cy="204.5" r="6" fill="#F4F1EA"/>
+</svg>

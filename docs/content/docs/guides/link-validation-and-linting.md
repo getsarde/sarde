@@ -153,4 +153,5 @@ This is useful in CI pipelines where a non-zero exit code should block deploymen
 - The link checker resolves internal links within content dimensions. A link in French v2 docs resolves against French v2 pages. Use `?lang=` or `?version=` query parameters for cross-lane links.
 - Static assets (`/img/logo.png`) and the site root (`/`) are never flagged as unverified.
 - Content lint warnings are ephemeral in dev mode. On incremental rebuilds, only changed pages are checked. A full build re-lints all pages.
+- Link targets and anchors are re-validated on every full build, including for pages served from the page cache. A warm build reports the same coverage as a cold one, and renaming a linked page is caught without editing the file that links to it.
 - The `sarde check-links` command runs discovery, parsing, and link resolution without rendering templates or writing output.

@@ -48,6 +48,10 @@ tags = ["tutorial"]
 
 If a file has no frontmatter delimiters, the entire file is treated as Markdown content.
 
+JSON frontmatter has no closing delimiter, so the parser finds the end of the block by matching braces. The match is string-aware: a `{` or `}` inside a quoted value does not affect the depth, so `"title": "Braces } inside { a string"` parses correctly.
+
+If the opening brace is never balanced, the file is treated as content with no frontmatter rather than raising a parse error. A page whose title unexpectedly falls back to its filename, with the JSON visible in the rendered body, is the symptom of a missing closing brace.
+
 ## Core fields
 
 | Key | Type | Default | Description |
@@ -223,6 +227,7 @@ categories:
 | `hero` | object | - | Hero section for splash layout pages. See [`hero`](#hero) below. |
 | `cascade` | map | - | Arbitrary key-value pairs propagated to all descendant pages in the section tree. |
 | `params` | map | - | Arbitrary user-defined data accessible in templates via `.Params`. |
+| `learning_objectives` | list | `[]` | List of objectives rendered as a highlighted callout at the top of the page. Used by the [labs collection](/teaching/labs/). |
 
 ### `banner`
 

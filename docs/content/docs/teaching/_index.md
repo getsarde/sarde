@@ -1,13 +1,14 @@
 ---
 title: Teaching
-description: "Build slide decks, courses, and presentations with Sarde"
+description: "Build slide decks, courses, labs, and presentations with Sarde"
 sidebar:
   order: 3
   icon: graduation-cap
 ---
 
-Build slide decks and course material from Markdown. Sarde renders presentations
-as full-screen slide viewers and organizes decks into SlideShare-style galleries.
+Build slide decks, labs, and course material from Markdown. Sarde renders presentations
+as full-screen slide viewers, organizes decks into SlideShare-style galleries, and turns a
+`labs` directory into a step-by-step workbook.
 
 - [Slides Collection](/teaching/slides-collection/) covers the auto-detected
   `slides` collection type, gallery pages, and multi-course organization.
@@ -19,3 +20,5 @@ as full-screen slide viewers and organizes decks into SlideShare-style galleries
   search, bookmarks, laser pointer, and keyboard shortcuts.
 - [Courses with Slides](/teaching/courses-with-slides/) shows how to embed
   presentations inside docs or courses collections with sidebar integration.
+- [Labs](/teaching/labs/) covers the `labs` collection type, per-lab sidebars,
+  step progress, and learning objectives.

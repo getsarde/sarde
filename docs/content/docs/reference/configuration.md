@@ -194,9 +194,17 @@ head:
 | `feed` | bool | `true` | Generate RSS and Atom feeds for blog collections. |
 | `drafts` | bool | `false` | Include draft pages in the build output. |
 | `future` | bool | `false` | Include pages with future `publish_date` values. |
-| `expired` | bool | - | Include pages past their `expiry_date`. |
+| `expired` | bool | `false` | Include pages past their `expiry_date`. Pages are otherwise dropped from the build once that date passes. |
 | `parallel` | bool | `true` | Enable parallel rendering. |
-| `cache` | bool | - | Enable build caching. |
+| `cache` | bool | `true` | Reuse rendered pages and processed images across builds. See [Build caching](#build-caching). |
+
+### Build caching
+
+Rendered pages are cached under `.cache/pages` and processed image variants under `.cache/images`, both relative to the project root. Add `.cache/` to `.gitignore`.
+
+Page cache entries are keyed by content hash plus a renderer fingerprint, so editing a page or changing a setting that affects rendering invalidates only the affected entries. Upgrading Sarde can invalidate the whole cache when the renderer changes shape.
+
+Set `cache: false` to render everything on every build. Deleting `.cache/` by hand has the same one-time effect. Caching does not affect link validation: targets and anchors are re-checked on every full build even for cached pages.
 
 ### Last-updated strategy
 
@@ -216,14 +224,11 @@ Outside a git repository, or when git is unavailable, Sarde falls back to `mtime
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `katex` | bool | `true` | Enable KaTeX math rendering. Assets are injected only when math syntax is detected on a page. |
-| `mermaid` | bool | `true` | Enable Mermaid diagram rendering. Assets are injected only when `sarde-mermaid` code blocks are detected. |
-| `cdn` | bool | `false` | Load KaTeX/Mermaid assets from a CDN instead of bundled files. |
-| `unsafe` | bool | `false` | Allow raw HTML in Markdown content. |
-| `typographer` | bool | `true` | Enable typographic replacements (smart quotes, dashes). |
-| `github_alerts` | bool | `true` | Parse GitHub-style alert blocks (`> [!NOTE]`, `> [!TIP]`, etc.). |
-| `triple_colon_callouts` | bool | `true` | Parse `:::` container-based callouts/asides. |
 | `hard_wraps` | bool | `false` | Render every single newline inside a paragraph as a line break. Off by default, so prose wrapped in the source reflows as one paragraph. Explicit breaks (two trailing spaces, or a trailing backslash) work either way. |
+
+Math and diagram rendering are controlled by the [KaTeX](/plugins/katex/) and
+[Mermaid](/plugins/mermaid/) plugins, not by this section. Add or remove them in
+[`plugins.enabled`](#plugins).
 
 ### `markdown.toc`
 
@@ -396,7 +401,7 @@ Each key under `collections` defines overrides for a content collection. Collect
 |-----|------|---------|-------------|
 | `collapsible` | bool | - | Allow sidebar groups to collapse. |
 | `collapsed_by_default` | bool | - | Start sidebar groups in collapsed state. |
-| `collapse_level` | int | - | Depth at which sidebar groups start collapsed. Sections at this depth or deeper are collapsed by default. Requires `collapsible: true`. |
+| `collapse_level` | int | - | Depth at which sidebar groups start collapsed. Sections at this depth or deeper are collapsed by default. Requires `collapsible: true`. Also settable per collection in [`sidebar.yaml`](/guides/navigation-and-sidebar#overrides-with-sidebar-yaml), which takes precedence. |
 | `max_depth` | int | - | Maximum nesting depth to display. Range: 1-10. |
 | `search` | bool | - | Enable sidebar search/filter. |
 
@@ -414,6 +419,14 @@ Each key under `collections` defines overrides for a content collection. Collect
 |-----|------|---------|-------------|
 | `enabled` | bool | - | Show previous/next navigation links. |
 | `labels` | list of string | - | Custom labels for the previous and next links (two-element list). |
+
+### `collections.<name>.labs`
+
+Applies to [labs collections](/teaching/labs/).
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `label` | string | `"Lab"` | Word used in the per-page badge, rendered as `<label> <number>`. Set to `"Exercise"` or `"Activity"` to relabel. The progress bar always reads "Step". |
 
 ### `collections.<name>.versioning`
 
@@ -576,6 +589,7 @@ i18n:
 | `image_alt_required` | bool | `true` | Require alt text on all images. |
 | `no_empty_links` | bool | `true` | Flag links with empty text. |
 | `frontmatter_required` | list of string | `[]` | Frontmatter fields that must be present on every page (e.g., `["title", "description"]`). |
+| `tabs_marker_syntax` | bool | `true` | Flag `:::tabs` blocks whose panels will silently collapse into one, such as `=== Label` instead of `== Label`, or a `::tab[...]` directive that does not exist. |
 
 ## `content`
 
@@ -668,7 +682,6 @@ Boolean values accept: `true`, `1`, `yes`, `on` (truthy) and `false`, `0`, `no`,
 | `SARDE_BUILD_MINIFY` | `build.minify` | Minify HTML output. |
 | `SARDE_BUILD_CLEAN` | `build.clean` | Clean output directory before build. |
 | `SARDE_BUILD_PARALLEL` | `build.parallel` | Enable parallel rendering. |
-| `SARDE_MARKDOWN_UNSAFE` | `markdown.unsafe` | Allow raw HTML in Markdown. |
 | `SARDE_SEARCH_ENABLED` | `search.enabled` | Enable site search. |
 | `SARDE_THEME_DARK` | `theme.dark` | Enable dark mode toggle. |
 

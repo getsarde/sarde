@@ -1,10 +1,25 @@
 name: CI
 
+# Documentation only commits cannot change vet, build, or test results, so they
+# skip this workflow entirely. Test fixtures are written into t.TempDir from
+# inline Go strings rather than checked in, so no tracked .md file is test input.
+# Note that docs.yml is deliberately left unfiltered: it builds the site with a
+# binary compiled from this repo, so a Go change really can change the output.
+# GitHub Actions does not support YAML anchors, so the two lists below are
+# duplicated by necessity.
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/workflows/docs.yml"
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/workflows/docs.yml"
 
 jobs:
   test:

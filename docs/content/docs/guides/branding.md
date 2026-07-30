@@ -90,6 +90,8 @@ For raster formats, Sarde reads the intrinsic dimensions during the build and em
 
 Files in `public/` bypass the responsive image pipeline, so a raster logo gets no generated `srcset`. Supply it at two to three times the rendered height to stay sharp on high-density displays.
 
+One more format consideration: the [Social Cards plugin](/plugins/social-cards#logo-and-watermark) reuses `site.logo` to brand generated Open Graph images, but it can only composite raster formats. An SVG header logo works fine in the header while the cards silently render without it. To get both, keep the SVG for the header and point `social_cards.logo` at a PNG export.
+
 ## Favicon
 
 Point `site.favicon` at a file in `public/`:

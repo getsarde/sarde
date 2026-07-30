@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Sarde — Lebanese Red small icon</title>
+  <desc id="desc">A simplified red narrative ribbon on a deep navy tile for use at 16 and 32 pixels.</desc>
+  <rect x="0" y="0" width="256" height="256" rx="50" fill="#111827"/>
+  <path d="M190 51.5H99C72 51.5 55 67.5 55 90.5s17 38 44 38h58c27 0 44 15 44 38s-17 38-44 38H66" fill="none" stroke="#E43D3D" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -25,6 +25,8 @@ content/docs/
 
 Result: The sidebar shows two collapsible groups with pages nested inside each.
 
+Each group label is a link to that section's `_index.md`, so clicking "Guides" opens the section index rather than only expanding the group. Set `render: false` in the section's `_index.md` to keep the label as plain text, which suits a section index that exists only to name the group.
+
 <!-- SCREENSHOT: sidebar-auto-generated - auto-generated sidebar with two collapsible groups -->
 
 ## Controlling sidebar order
@@ -111,6 +113,83 @@ collections:
 | `search` | bool | `true` | Show the sidebar filter input |
 
 Open/closed state for each group persists across page navigations via `sessionStorage`.
+
+## Overrides with `sidebar.yaml`
+
+A `sidebar.yaml` at the project root adjusts individual sidebar entries without touching their frontmatter. Use it to relabel or reorder pages you do not own, or to keep presentation choices out of the content files.
+
+```yaml
+docs:
+  collapse_level: 2
+  overrides:
+    guide:
+      label: "Getting Started"
+      order: 1
+      icon: rocket
+      collapsed: true
+    guide/intro:
+      label: "Introduction"
+      badge: New
+    guide/legacy:
+      hidden: true
+```
+
+The top-level key is the collection name. `sidebar.yaml` sits above `sarde.yaml` in the cascade, so anything set here wins.
+
+### Override keys
+
+Each key under `overrides` is a page or section path relative to the collection root, with no leading or trailing slash. A page at `/docs/guide/intro/` in the `docs` collection is keyed `guide/intro`.
+
+Keys are canonicalized before matching: backslashes become forward slashes, and leading and trailing slashes are trimmed. Two keys that canonicalize to the same path are a build error rather than a silent last-wins, so `/guide/intro/` and `guide/intro` in the same file stop the build and name both spellings.
+
+A key matching nothing produces a warning naming the key and its collection, and the build continues.
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `label` | string | Replaces the sidebar text |
+| `description` | string | Description text where the theme shows one |
+| `order` | int | Sort position, same scale as `sidebar.order` |
+| `collapsed` | bool | Start this group open or closed |
+| `icon` | string | Icon on the entry |
+| `badge` | string or object | Badge chip, scalar or `{text, variant}` |
+| `hidden` | bool | Show or hide the entry. See below |
+| `attrs` | map | Extra HTML attributes on the link |
+
+`collapsed: true` is ignored while the reader is on a page inside that group, so the current page is never hidden behind a closed section.
+
+### Un-hiding a page
+
+`hidden` is three-state. Leaving it out changes nothing, `hidden: true` removes the entry, and `hidden: false` restores a page that set `sidebar.hidden: true` in its own frontmatter.
+
+That last case is the reason the field is not a plain boolean: it lets a site reveal a page it does not want to edit. Sections have no frontmatter `hidden` field, so `hidden: false` on a section does nothing.
+
+### Tab overrides
+
+For [tabbed collections](/guides/tabbed-navigation), `tabs` adjusts the tab bar. Each key is the tab's directory name.
+
+```yaml
+docs:
+  tabs:
+    api:
+      label: "API"
+      icon: plug
+      order: 1
+```
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `label` | string | Replaces the tab title from the tab's `_index.md` |
+| `description` | string | Description shown in the mobile tab menu |
+| `icon` | string | Icon on the tab |
+| `order` | int | Tab position |
+
+### Validation
+
+The file is strictly parsed. An unknown field is a build error naming the line and the field, so a typo like `lable:` fails loudly instead of being silently dropped. An empty or comments-only file is valid and contributes nothing.
+
+:::caution
+A structural `items:` list is accepted by the parser but not implemented. Supplying one emits `structural sidebar items are not implemented yet; ignoring` and the entry is dropped. Use `nav.yaml` below to hand-author a tree.
+:::
 
 ## Manual tab sidebar with `nav.yaml`
 

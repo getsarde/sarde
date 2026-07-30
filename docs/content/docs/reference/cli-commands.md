@@ -45,7 +45,7 @@ sarde build --output public --drafts
 sarde build /path/to/project
 ```
 
-A build lock prevents concurrent `sarde build` or `sarde dev` processes from writing to the same output directory.
+A build lock prevents concurrent `sarde build` or `sarde dev` processes from writing to the same output directory. The second process exits with `another sarde process (pid N, ...) is already writing to output directory`. See [Troubleshooting](/resources/troubleshooting#another-sarde-process-is-already-writing) if no such process is running.
 
 ## `dev`
 
@@ -72,6 +72,8 @@ sarde dev --port 3000 --host 0.0.0.0
 ```
 
 Draft and expired content are included by default in dev mode. Pass `--no-drafts` to exclude drafts.
+
+If the requested port is taken, the server tries up to 10 consecutive ports before giving up, and prints the one it bound to. `sarde dev` takes the same output-directory build lock as `sarde build`.
 
 ## `check-links`
 
@@ -272,6 +274,8 @@ sarde import obsidian ~/Documents/MyVault --collection notes
 |------|------|---------|-------------|
 | `--collection`, `-c` | string | `""` | Target collection name. Defaults to the vault folder name. |
 | `--content` | string | `"content"` | Content directory path. |
+
+Obsidian allows two images in different folders to share a filename, while Sarde copies them into one flat `assets/` directory. When two files share a name but differ in content, the second is saved as `<name>-2.<ext>`, the third as `<name>-3.<ext>`, and so on. Each rename prints a warning naming both source files. Markdown references to that name resolve to the first copy, so check the warnings and repoint any embed that should have used the renamed file.
 
 ## `theme`
 
@@ -592,6 +596,39 @@ sarde catalog --format json
 ```
 
 The `pretty` format prints fields grouped by category with their type and description, followed by a layout-to-category mapping. The `json` format outputs the raw catalog structure. This command does not take a project directory argument; the catalog is embedded in the binary.
+
+## `directives`
+
+Print the catalog of `:::` block directives Sarde recognizes, grouped by category, with syntax templates and key fields. Used by Sarde Studio to offer a directive picker.
+
+```
+sarde directives [--format pretty|json]
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--format` | string | `"pretty"` | Output format. `pretty` or `json`. |
+
+Like `catalog`, this command takes no project directory; the list is embedded in the binary.
+
+## `effective-config`
+
+Print each content collection's fully resolved configuration, after zero-config inference and any `sarde.yaml` overrides. Every field is labeled with where its value came from: `inferred` from the collection directory's name, or `sarde_yaml` when set explicitly.
+
+```
+sarde effective-config [project-dir] [--format pretty|json]
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--format` | string | `"pretty"` | Output format. `pretty` or `json`. |
+
+Use it to see what a collection is actually doing before overriding anything, which is the quickest way to answer why a directory sorted or laid itself out the way it did.
+
+```
+sarde effective-config
+sarde effective-config ./my-site --format json
+```
 
 ## `sidecar`
 

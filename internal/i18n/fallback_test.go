@@ -21,6 +21,7 @@ func TestGenerateFallbacks_CreatesMissing(t *testing.T) {
 	// en has an extra page that fr doesn't have
 	enOnly := &engine.Page{
 		PageIdentity: engine.PageIdentity{Title: "API Reference", RelPermalink: "/docs/api/", Permalink: "/docs/api/"},
+		PageMeta:     engine.PageMeta{DateExplicit: true},
 		PageI18n:     engine.PageI18n{Lang: "en", LangRelPath: "docs/api.md"},
 	}
 
@@ -46,6 +47,9 @@ func TestGenerateFallbacks_CreatesMissing(t *testing.T) {
 	}
 	if fb.Title != "API Reference" {
 		t.Errorf("fallback Title = %q, want %q", fb.Title, "API Reference")
+	}
+	if !fb.DateExplicit {
+		t.Error("clonePage should carry DateExplicit over to fallback pages")
 	}
 }
 

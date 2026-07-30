@@ -106,6 +106,7 @@ func (b *SiteBuilder) phaseWrite(s *buildState) (*engine.BuildResult, error) {
 		PageIndex:      s.pageIndex,
 		ValidationData: s.validationData,
 		DevMode:        b.devMode,
+		ProjectDir:     b.projectDir,
 		TrackFn:        trackFn,
 	}
 	buildDoneCtx.SetWarnings(&pluginWarnings)

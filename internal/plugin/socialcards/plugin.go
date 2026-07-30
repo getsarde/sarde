@@ -1,18 +1,26 @@
 package socialcards
 
 import (
+	"bytes"
 	"embed"
 	"errors"
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
 	"io/fs"
+	"path/filepath"
 	"strings"
 	"sync"
 
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/plugin"
 	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 	"github.com/getsarde/sarde/internal/workers"
 
+	"github.com/disintegration/imaging"
 	"golang.org/x/image/font/opentype"
 )
 
@@ -116,6 +124,21 @@ func buildDone(ctx *plugin.BuildDoneContext, cfg map[string]any, pending *sync.M
 	accentColor := resolveAccent(cfg, ctx.Config)
 	textColor := parseHexColor(cfgutil.String(cfg,"text_color", "#ffffff"))
 
+	var accentColor2 *color.NRGBA
+	if v := cfgutil.String(cfg, "accent_color_2", ""); v != "" {
+		c := parseHexColor(v)
+		accentColor2 = &c
+	}
+
+	// Resolve logo images once, before the worker pool: goroutines share the
+	// decoded images read-only.
+	logoMark, watermarkSrc := loadLogoImages(cfg, ctx.Config, ctx.ProjectDir, ctx.Log)
+	var watermarkImg *image.NRGBA
+	if cfgutil.Bool(cfg, "watermark", false) && watermarkSrc != nil {
+		watermarkImg = watermarkSrc
+	}
+	watermarkOpacity := cfgutil.Float(cfg, "watermark_opacity", watermarkOpacityDefault)
+
 	siteTitle := ""
 	if ctx.Site != nil {
 		siteTitle = ctx.Site.Title
@@ -160,16 +183,21 @@ func buildDone(ctx *plugin.BuildDoneContext, cfg map[string]any, pending *sync.M
 				}
 
 				params := CardParams{
-					Title:          j.page.Title,
-					Description:    description,
-					SiteTitle:      siteTitle,
-					CollectionName: collectionName,
-					Date:           j.page.Date,
-					BgColor:        bgColor,
-					AccentColor:    accentColor,
-					TextColor:      textColor,
-					Faces:          faces,
-					BoldFont:       boldFont,
+					Title:            j.page.Title,
+					Description:      description,
+					SiteTitle:        siteTitle,
+					CollectionName:   collectionName,
+					Date:             j.page.Date,
+					DateExplicit:     j.page.DateExplicit,
+					BgColor:          bgColor,
+					AccentColor:      accentColor,
+					AccentColor2:     accentColor2,
+					TextColor:        textColor,
+					LogoImage:        logoMark,
+					WatermarkImage:   watermarkImg,
+					WatermarkOpacity: watermarkOpacity,
+					Faces:            faces,
+					BoldFont:         boldFont,
 				}
 
 				img := renderCard(params)
@@ -218,6 +246,118 @@ func loadFonts() (*opentype.Font, *opentype.Font, error) {
 		return nil, nil, err
 	}
 	return regFont, boldFont, nil
+}
+
+// loadLogoImages resolves the card logo and returns the top-left mark
+// (resized to logoDrawSize) and the watermark source (resized to
+// watermarkLongEdge). Resolution order for the "logo" config key:
+//
+//	"none":   no logo, even when site.logo is set
+//	"sarde":  the embedded Sarde mark and ribbon
+//	"<path>": an image under the project's public/ directory
+//	"":       fall back to site.logo (dark variant preferred, since cards
+//	          have dark backgrounds by default), else no logo
+//
+// The "watermark_image" config key, when set, replaces the watermark source
+// with its own image so a site can pair a compact corner mark with different
+// watermark artwork, mirroring the built-in Sarde mark/ribbon split.
+//
+// Only raster formats are supported: SVG logos are skipped with a log note
+// (there is no SVG rasterizer dependency). Failures never fail the build;
+// they log and fall back to no logo.
+func loadLogoImages(cfg map[string]any, siteCfg *config.SiteConfig, projectDir string, logf func(string)) (mark, watermark *image.NRGBA) {
+	mark, watermark = resolveLogoImages(cfg, siteCfg, projectDir, logf)
+	if override := cfgutil.String(cfg, "watermark_image", ""); override != "" {
+		if img := loadProjectImage(override, projectDir, logf); img != nil {
+			watermark = resizeWatermark(img)
+		}
+	}
+	return mark, watermark
+}
+
+// resolveLogoImages implements the "logo" key resolution described on
+// loadLogoImages, without the watermark_image override.
+func resolveLogoImages(cfg map[string]any, siteCfg *config.SiteConfig, projectDir string, logf func(string)) (mark, watermark *image.NRGBA) {
+	choice := cfgutil.String(cfg, "logo", "")
+	switch choice {
+	case "none":
+		return nil, nil
+	case "sarde":
+		m, err := decodeEmbeddedPNG("assets/logo/sarde-mark.png")
+		if err != nil {
+			logf(fmt.Sprintf("social_cards: embedded mark: %v", err))
+			return nil, nil
+		}
+		r, err := decodeEmbeddedPNG("assets/logo/sarde-ribbon.png")
+		if err != nil {
+			logf(fmt.Sprintf("social_cards: embedded ribbon: %v", err))
+			r = m
+		}
+		return resizeLogoMark(m), resizeWatermark(r)
+	case "":
+		if siteCfg == nil {
+			return nil, nil
+		}
+		path := siteCfg.Site.Logo.Dark
+		if path == "" {
+			path = siteCfg.Site.Logo.Light
+		}
+		if path == "" {
+			return nil, nil
+		}
+		img := loadProjectImage(path, projectDir, logf)
+		if img == nil {
+			return nil, nil
+		}
+		return resizeLogoMark(img), resizeWatermark(img)
+	default:
+		img := loadProjectImage(choice, projectDir, logf)
+		if img == nil {
+			return nil, nil
+		}
+		return resizeLogoMark(img), resizeWatermark(img)
+	}
+}
+
+// loadProjectImage opens a raster image under the project's public/
+// directory, mirroring how site.logo paths are resolved. Returns nil (after
+// logging) on SVG input, missing files, or decode errors.
+func loadProjectImage(path, projectDir string, logf func(string)) *image.NRGBA {
+	if strings.EqualFold(filepath.Ext(path), ".svg") {
+		logf(fmt.Sprintf("social_cards: logo %s is an SVG, which cards cannot rasterize; provide a PNG or JPEG to brand cards", path))
+		return nil
+	}
+	srcPath := filepath.Join(projectDir, consts.DirPublic, filepath.FromSlash(strings.TrimPrefix(path, "/")))
+	img, err := imaging.Open(srcPath)
+	if err != nil {
+		logf(fmt.Sprintf("social_cards: logo %s: %v (cards render without a logo)", path, err))
+		return nil
+	}
+	return imaging.Clone(img)
+}
+
+func decodeEmbeddedPNG(name string) (*image.NRGBA, error) {
+	data, err := fs.ReadFile(assetsFS, name)
+	if err != nil {
+		return nil, err
+	}
+	img, err := png.Decode(bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+	return imaging.Clone(img), nil
+}
+
+func resizeLogoMark(img *image.NRGBA) *image.NRGBA {
+	return imaging.Fit(img, logoDrawSize, logoDrawSize, imaging.Lanczos)
+}
+
+func resizeWatermark(img *image.NRGBA) *image.NRGBA {
+	b := img.Bounds()
+	if b.Dx() >= b.Dy() {
+		return imaging.Resize(img, watermarkLongEdge, 0, imaging.Lanczos)
+	}
+	return imaging.Resize(img, 0, watermarkLongEdge, imaging.Lanczos)
 }
 
 func computeCardPath(page *engine.Page, format string) string {

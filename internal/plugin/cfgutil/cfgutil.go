@@ -53,6 +53,27 @@ func Int(cfg map[string]any, key string, fallback int) int {
 	}
 }
 
+// Float reads a float64 from a plugin config map with a fallback default.
+func Float(cfg map[string]any, key string, fallback float64) float64 {
+	if cfg == nil {
+		return fallback
+	}
+	v, ok := cfg[key]
+	if !ok {
+		return fallback
+	}
+	switch n := v.(type) {
+	case float64:
+		return n
+	case int:
+		return float64(n)
+	case int64:
+		return float64(n)
+	default:
+		return fallback
+	}
+}
+
 // StringSlice reads a string slice from a plugin config map.
 func StringSlice(cfg map[string]any, key string) []string {
 	if cfg == nil {

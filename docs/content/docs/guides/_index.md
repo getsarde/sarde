@@ -50,6 +50,8 @@ Use these when changing the appearance or output behavior:
 
 - [Themes and Styling](/guides/themes-and-styling/) covers presets, tokens,
   dark mode, and CSS layer order.
+- [Branding](/guides/branding/) covers the site logo, light and dark variants,
+  and the favicon.
 - [Layouts and Templates](/guides/layouts-and-templates/) explains layout
   selection, template lookup, components, and partials.
 - [Images and Assets](/guides/images-and-assets/) covers responsive images,

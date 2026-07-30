@@ -137,6 +137,7 @@ func (m *Manager) RunBuildDone(ctx *BuildDoneContext) error {
 				ValidationData:    ctx.ValidationData,
 				DevMode:           ctx.DevMode,
 				Incremental:       ctx.Incremental,
+				ProjectDir:        ctx.ProjectDir,
 				ChangedPages:      ctx.ChangedPages,
 				RemovedPermalinks: ctx.RemovedPermalinks,
 				TrackFn:           ctx.TrackFn,

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/disintegration/imaging"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
@@ -22,16 +23,36 @@ import (
 const (
 	cardWidth  = 1200
 	cardHeight = 630
-	padding    = 60
+	padding    = 64 // 8px grid
 	maxContent = cardWidth - 2*padding
+
+	logoDrawSize   = 64 // on-card logo box, px
+	logoTextGap    = 16 // gap between logo and site title
+	brandingGapMin = 24 // min gap between branding row and bottom block
+
+	titleLineGap = 4  // extra leading between title lines
+	gapTitleDesc = 20 // gap between title block and description
+	gapDescFooter = 24 // gap between description and footer
+
+	accentStripW = 180 // bottom-right partial accent strip width
+	accentStripH = 3
+
+	watermarkLongEdge       = 820  // watermark image long edge, px
+	watermarkBleed          = 200  // how far the watermark hangs off the right edge
+	watermarkOpacityDefault = 0.07
+
+	gradientAmount = 0.08 // background gradient lightness delta
 )
 
-// FaceSet holds pre-created font faces for a single goroutine.
+// FaceSet holds pre-created font faces for a single goroutine. Sizes follow
+// OG-image readability guidance: cards render at roughly 40% scale in feeds
+// and 200px wide as thumbnails, so nothing important goes below ~20px.
 type FaceSet struct {
-	Regular font.Face // 22pt
-	Bold    font.Face // 56pt (may be resized per-card)
-	Small   font.Face // 18pt
-	Footer  font.Face // 16pt
+	Small  font.Face // 20pt site title, next to a logo mark
+	Brand  font.Face // 28pt bold site title, standing alone (no logo)
+	Desc   font.Face // 32pt description
+	Bold   font.Face // 76pt title, first ladder rung (may be resized per-card)
+	Footer font.Face // 20pt footer
 }
 
 // CardParams holds all data needed to render a single social card.
@@ -41,11 +62,24 @@ type CardParams struct {
 	SiteTitle      string
 	CollectionName string
 	Date           time.Time
-	BgColor        color.NRGBA
-	AccentColor    color.NRGBA
-	TextColor      color.NRGBA
-	Faces          *FaceSet
-	BoldFont       *opentype.Font
+	// DateExplicit gates the footer date: an inferred (mtime) date is build
+	// metadata, not a publish date, and is never shown.
+	DateExplicit bool
+	BgColor      color.NRGBA
+	AccentColor  color.NRGBA
+	// AccentColor2 turns the accent strip into a two-stop horizontal
+	// gradient when non-nil.
+	AccentColor2 *color.NRGBA
+	TextColor    color.NRGBA
+	// LogoImage is the brand mark drawn top-left, already resized to
+	// logoDrawSize. Nil draws no logo.
+	LogoImage *image.NRGBA
+	// WatermarkImage is the large low-opacity mark bleeding off the right
+	// edge, already resized to watermarkLongEdge. Nil draws no watermark.
+	WatermarkImage   *image.NRGBA
+	WatermarkOpacity float64
+	Faces            *FaceSet
+	BoldFont         *opentype.Font
 }
 
 func newFace(f *opentype.Font, sizePt float64) (font.Face, error) {
@@ -57,98 +91,207 @@ func newFace(f *opentype.Font, sizePt float64) (font.Face, error) {
 }
 
 func newFaceSet(regularFont, boldFont *opentype.Font) (*FaceSet, error) {
-	regular, err := newFace(regularFont, 22)
+	desc, err := newFace(regularFont, 32)
 	if err != nil {
 		return nil, err
 	}
-	bold, err := newFace(boldFont, 56)
+	bold, err := newFace(boldFont, 76)
 	if err != nil {
 		return nil, err
 	}
-	small, err := newFace(regularFont, 18)
+	small, err := newFace(regularFont, 20)
 	if err != nil {
 		return nil, err
 	}
-	footer, err := newFace(regularFont, 16)
+	brand, err := newFace(boldFont, 28)
 	if err != nil {
 		return nil, err
 	}
-	return &FaceSet{Regular: regular, Bold: bold, Small: small, Footer: footer}, nil
+	footer, err := newFace(regularFont, 20)
+	if err != nil {
+		return nil, err
+	}
+	return &FaceSet{Small: small, Brand: brand, Desc: desc, Bold: bold, Footer: footer}, nil
 }
 
 func renderCard(p CardParams) *image.NRGBA {
 	canvas := image.NewNRGBA(image.Rect(0, 0, cardWidth, cardHeight))
 
-	// Background fill.
-	draw.Draw(canvas, canvas.Bounds(), image.NewUniform(p.BgColor), image.Point{}, draw.Src)
-
-	// Bottom accent strip (10px).
-	stripRect := image.Rect(0, cardHeight-10, cardWidth, cardHeight)
-	draw.Draw(canvas, stripRect, image.NewUniform(p.AccentColor), image.Point{}, draw.Src)
-
-	y := padding
-
-	// Site title (branding).
-	if p.SiteTitle != "" {
-		accentImg := image.NewUniform(p.AccentColor)
-		d := &font.Drawer{Dst: canvas, Src: accentImg, Face: p.Faces.Small}
-		d.Dot = fixed.P(padding, y+18)
-		d.DrawString(p.SiteTitle)
-		y += 30
+	// Background: subtle vertical gradient. Dark backgrounds deepen toward
+	// the bottom so the bottom-anchored light text gets more contrast (and
+	// the card reads as dark as its configured color); light backgrounds
+	// brighten instead, for the same contrast reason with dark text. Row 0
+	// always equals the configured background exactly, so a logo whose tile
+	// matches bg_color sits seamlessly in the top corner.
+	for row := 0; row < cardHeight; row++ {
+		rowColor := gradientRowColor(p.BgColor, row, cardHeight, gradientAmount)
+		draw.Draw(canvas, image.Rect(0, row, cardWidth, row+1), image.NewUniform(rowColor), image.Point{}, draw.Src)
 	}
 
-	// Accent bar (4px).
-	barRect := image.Rect(padding, y, padding+maxContent, y+4)
-	draw.Draw(canvas, barRect, image.NewUniform(p.AccentColor), image.Point{}, draw.Src)
-	y += 36
+	// Watermark: large low-opacity mark bleeding off the right edge. Drawn
+	// before all text so content always sits on top.
+	if p.WatermarkImage != nil {
+		opacity := p.WatermarkOpacity
+		if opacity <= 0 {
+			opacity = watermarkOpacityDefault
+		}
+		wb := p.WatermarkImage.Bounds()
+		pos := image.Pt(cardWidth-wb.Dx()+watermarkBleed, (cardHeight-wb.Dy())/2)
+		canvas = imaging.Overlay(canvas, p.WatermarkImage, pos, opacity)
+	}
 
-	// Title (auto-sized).
+	// Branding row, top-left: optional logo mark plus site title.
+	brandingBottom := padding
+	if p.LogoImage != nil {
+		lb := p.LogoImage.Bounds()
+		canvas = imaging.Overlay(canvas, p.LogoImage, image.Pt(padding, padding), 1.0)
+		if bottom := padding + lb.Dy(); bottom > brandingBottom {
+			brandingBottom = bottom
+		}
+	}
+	if p.SiteTitle != "" {
+		// Next to a logo the site title is a small annotation; standing
+		// alone it is the whole brand presence, so it renders as a larger
+		// bold wordmark instead.
+		face := p.Faces.Small
+		if p.LogoImage == nil {
+			face = p.Faces.Brand
+		}
+		metrics := face.Metrics()
+		textX := padding
+		var baseline int
+		if p.LogoImage != nil {
+			// Vertically center the text against the logo box.
+			textX = padding + p.LogoImage.Bounds().Dx() + logoTextGap
+			baseline = padding + (p.LogoImage.Bounds().Dy()+metrics.Ascent.Ceil()-metrics.Descent.Ceil())/2
+		} else {
+			baseline = padding + metrics.Ascent.Ceil()
+			if bottom := padding + metrics.Height.Ceil(); bottom > brandingBottom {
+				brandingBottom = bottom
+			}
+		}
+		d := &font.Drawer{Dst: canvas, Src: image.NewUniform(p.AccentColor), Face: face}
+		d.Dot = fixed.P(textX, baseline)
+		d.DrawString(p.SiteTitle)
+	}
+
+	// Bottom-anchored content block: measure first, then draw downward from
+	// the computed start.
 	titleLines, titleFace := autoSizeTitle(p.Title, p.BoldFont, p.Faces.Bold, maxContent)
+	titleLineH := titleFace.Metrics().Height.Ceil() + titleLineGap
+	blockH := len(titleLines) * titleLineH
+
+	var descLines []string
+	descLineH := p.Faces.Desc.Metrics().Height.Ceil()
+	if p.Description != "" {
+		descLines = wrapText(p.Description, p.Faces.Desc, maxContent, 2)
+		if len(descLines) > 0 {
+			blockH += gapTitleDesc + len(descLines)*descLineH
+		}
+	}
+
+	footer := buildFooter(p.CollectionName, p.Date, p.DateExplicit)
+	footerLineH := p.Faces.Footer.Metrics().Height.Ceil()
+	if footer != "" {
+		blockH += gapDescFooter + footerLineH
+	}
+
+	y := (cardHeight - padding) - blockH
+	// Never overlap the branding row: extreme content degrades to starting
+	// right below it instead of true bottom anchoring.
+	if minY := brandingBottom + brandingGapMin; y < minY {
+		y = minY
+	}
+
 	textImg := image.NewUniform(p.TextColor)
-	lineHeight := titleFace.Metrics().Height
 	for _, line := range titleLines {
-		y += lineHeight.Ceil()
+		y += titleFace.Metrics().Height.Ceil()
 		d := &font.Drawer{Dst: canvas, Src: textImg, Face: titleFace, Dot: fixed.P(padding, y)}
 		d.DrawString(line)
-		y += 4
+		y += titleLineGap
 	}
 
-	y += 24
-
-	// Description (up to 3 lines, 75% opacity).
-	if p.Description != "" {
-		descColor := color.NRGBA{R: p.TextColor.R, G: p.TextColor.G, B: p.TextColor.B, A: 191}
+	if len(descLines) > 0 {
+		y += gapTitleDesc
+		descColor := color.NRGBA{R: p.TextColor.R, G: p.TextColor.G, B: p.TextColor.B, A: 200}
 		descImg := image.NewUniform(descColor)
-		descLines := wrapText(p.Description, p.Faces.Regular, maxContent, 3)
-		descHeight := p.Faces.Regular.Metrics().Height
 		for _, line := range descLines {
-			y += descHeight.Ceil()
-			d := &font.Drawer{Dst: canvas, Src: descImg, Face: p.Faces.Regular, Dot: fixed.P(padding, y)}
+			y += descLineH
+			d := &font.Drawer{Dst: canvas, Src: descImg, Face: p.Faces.Desc, Dot: fixed.P(padding, y)}
 			d.DrawString(line)
 		}
 	}
 
-	// Footer (collection + date, right-aligned).
-	footer := buildFooter(p.CollectionName, p.Date)
 	if footer != "" {
-		footerColor := color.NRGBA{R: p.TextColor.R, G: p.TextColor.G, B: p.TextColor.B, A: 140}
-		footerImg := image.NewUniform(footerColor)
-		footerWidth := font.MeasureString(p.Faces.Footer, footer)
-		footerX := cardWidth - padding - footerWidth.Ceil()
-		footerY := cardHeight - 10 - 30
-		d := &font.Drawer{Dst: canvas, Src: footerImg, Face: p.Faces.Footer, Dot: fixed.P(footerX, footerY)}
+		y += gapDescFooter + footerLineH
+		footerColor := color.NRGBA{R: p.TextColor.R, G: p.TextColor.G, B: p.TextColor.B, A: 130}
+		d := &font.Drawer{Dst: canvas, Src: image.NewUniform(footerColor), Face: p.Faces.Footer, Dot: fixed.P(padding, y)}
 		d.DrawString(footer)
 	}
+
+	// Partial-width accent strip, flush to the bottom-right padding corner.
+	stripRect := image.Rect(cardWidth-padding-accentStripW, cardHeight-accentStripH, cardWidth-padding, cardHeight)
+	drawAccentStrip(canvas, stripRect, p.AccentColor, p.AccentColor2)
 
 	return canvas
 }
 
+// gradientRowColor returns the background color for one row of the vertical
+// gradient. Row 0 is exactly bg; the last row is bg with its HSL lightness
+// shifted by amount, away from the text color's end of the scale: dark
+// backgrounds darken toward the bottom and light backgrounds lighten, so the
+// bottom-anchored text always gains contrast rather than losing it.
+func gradientRowColor(bg color.NRGBA, row, totalRows int, amount float64) color.NRGBA {
+	// Short-circuit the base row: the RGB->HSL->RGB round trip is lossy, and
+	// the top edge must match the configured background exactly.
+	if totalRows <= 1 || row == 0 {
+		return bg
+	}
+	h, s, l := rgbToHSL(bg.R, bg.G, bg.B)
+	endL := l - amount
+	if l > 0.5 {
+		endL = l + amount
+	}
+	endL = math.Max(0, math.Min(1, endL))
+	t := float64(row) / float64(totalRows-1)
+	r, g, b := hslToRGB(h, s, l+(endL-l)*t)
+	return color.NRGBA{R: r, G: g, B: b, A: bg.A}
+}
+
+// drawAccentStrip fills rect with c1, or with a horizontal left-to-right
+// linear blend from c1 to c2 when c2 is non-nil.
+func drawAccentStrip(canvas *image.NRGBA, rect image.Rectangle, c1 color.NRGBA, c2 *color.NRGBA) {
+	if c2 == nil {
+		draw.Draw(canvas, rect, image.NewUniform(c1), image.Point{}, draw.Src)
+		return
+	}
+	w := rect.Dx()
+	if w <= 1 {
+		draw.Draw(canvas, rect, image.NewUniform(c1), image.Point{}, draw.Src)
+		return
+	}
+	for x := 0; x < w; x++ {
+		t := float64(x) / float64(w-1)
+		col := lerpColor(c1, *c2, t)
+		draw.Draw(canvas, image.Rect(rect.Min.X+x, rect.Min.Y, rect.Min.X+x+1, rect.Max.Y), image.NewUniform(col), image.Point{}, draw.Src)
+	}
+}
+
+// lerpColor linearly interpolates between two colors in RGB space, matching
+// how SVG linear gradients interpolate their stops.
+func lerpColor(a, b color.NRGBA, t float64) color.NRGBA {
+	lerp := func(x, y uint8) uint8 {
+		return uint8(math.Round(float64(x) + (float64(y)-float64(x))*t))
+	}
+	return color.NRGBA{R: lerp(a.R, b.R), G: lerp(a.G, b.G), B: lerp(a.B, b.B), A: lerp(a.A, b.A)}
+}
+
 func autoSizeTitle(title string, boldFont *opentype.Font, defaultFace font.Face, maxWidth int) ([]string, font.Face) {
-	sizes := []float64{56, 44, 36}
+	sizes := []float64{76, 60, 48}
 
 	for _, size := range sizes {
 		var face font.Face
-		if size == 56 {
+		if size == sizes[0] {
 			face = defaultFace
 		} else {
 			var err error
@@ -164,7 +307,7 @@ func autoSizeTitle(title string, boldFont *opentype.Font, defaultFace font.Face,
 	}
 
 	// Smallest size, cap at 3 lines with truncation.
-	face, err := newFace(boldFont, 36)
+	face, err := newFace(boldFont, sizes[len(sizes)-1])
 	if err != nil {
 		face = defaultFace
 	}
@@ -172,12 +315,15 @@ func autoSizeTitle(title string, boldFont *opentype.Font, defaultFace font.Face,
 	return lines, face
 }
 
-func buildFooter(collectionName string, date time.Time) string {
+// buildFooter joins the collection name and, only when it was explicitly
+// authored (frontmatter or filename prefix), the page date. Inferred mtime
+// dates are never shown: they are build metadata, not publish dates.
+func buildFooter(collectionName string, date time.Time, dateExplicit bool) string {
 	parts := []string{}
 	if collectionName != "" {
 		parts = append(parts, collectionName)
 	}
-	if !date.IsZero() {
+	if dateExplicit && !date.IsZero() {
 		parts = append(parts, date.Format("Jan 2, 2006"))
 	}
 	if len(parts) == 0 {
@@ -276,6 +422,14 @@ func hexVal(b byte) uint8 {
 func darken(c color.NRGBA, amount float64) color.NRGBA {
 	h, s, l := rgbToHSL(c.R, c.G, c.B)
 	l = math.Max(0, l-amount)
+	r, g, b := hslToRGB(h, s, l)
+	return color.NRGBA{R: r, G: g, B: b, A: c.A}
+}
+
+// lighten increases the lightness of a color by the given amount (0.0-1.0).
+func lighten(c color.NRGBA, amount float64) color.NRGBA {
+	h, s, l := rgbToHSL(c.R, c.G, c.B)
+	l = math.Min(1, l+amount)
 	r, g, b := hslToRGB(h, s, l)
 	return color.NRGBA{R: r, G: g, B: b, A: c.A}
 }

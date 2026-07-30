@@ -109,6 +109,10 @@ func buildPage(
 	contentDigest := rawDigest(raw)
 	frontmatterDigest := fmDigest(fmMap)
 
+	// Capture date provenance before ApplyDefaults reassigns fmMap: a schema
+	// default could inject a "date" key, which must not count as explicit.
+	_, dateExplicit := fmMap["date"]
+
 	// Detect unknown frontmatter keys (always runs)
 	if unknownWarnings := content.DetectUnknownFields(fmMap, schema, taxCfg, cf.RelPath); len(unknownWarnings) > 0 {
 		warnings = append(warnings, unknownWarnings...)
@@ -147,9 +151,10 @@ func buildPage(
 			FrontmatterLines:  fmLines,
 		},
 		PageMeta: engine.PageMeta{
-			Draft:       fm.Draft,
-			Description: fm.Description,
-			Image:       fm.Image,
+			Draft:        fm.Draft,
+			Description:  fm.Description,
+			Image:        fm.Image,
+			DateExplicit: dateExplicit,
 		},
 		PageTaxonomy: engine.PageTaxonomy{
 			Tags:       fm.Tags,

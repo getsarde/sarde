@@ -146,6 +146,10 @@ type BuildDoneContext struct {
 	DevMode        bool
 	Incremental    bool // true after an incremental rebuild rather than a full Build()
 
+	// ProjectDir is the absolute path of the project root, for plugins that
+	// resolve user-supplied files (e.g. a logo under public/).
+	ProjectDir string
+
 	// ChangedPages holds the pages whose parsed content actually changed
 	// during an incremental rebuild. Nil on full builds, non-empty whenever
 	// Incremental is true (the incremental path only reaches BuildDone when

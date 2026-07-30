@@ -1,9 +1,10 @@
 package socialcards
 
 import (
+	"bytes"
+	"image"
 	"image/color"
 	"image/png"
-	"bytes"
 	"testing"
 	"time"
 
@@ -125,6 +126,7 @@ func TestRenderCard_WithDate(t *testing.T) {
 		Title:          "Blog Post",
 		CollectionName: "Blog",
 		Date:           time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC),
+		DateExplicit:   true,
 		BgColor:        color.NRGBA{26, 26, 46, 255},
 		AccentColor:    color.NRGBA{233, 69, 96, 255},
 		TextColor:      color.NRGBA{255, 255, 255, 255},
@@ -172,6 +174,133 @@ func TestDarken(t *testing.T) {
 	// Darkening white by 0.3 should give a light gray
 	if darkened.R > 200 {
 		t.Errorf("darkened white should be noticeably darker, got R=%d", darkened.R)
+	}
+}
+
+func TestLighten(t *testing.T) {
+	black := color.NRGBA{0, 0, 0, 255}
+	lightened := lighten(black, 0.3)
+	if lightened.R < 50 {
+		t.Errorf("lightened black should be noticeably lighter, got R=%d", lightened.R)
+	}
+
+	white := color.NRGBA{255, 255, 255, 255}
+	clamped := lighten(white, 0.5)
+	if clamped.R != 255 || clamped.G != 255 || clamped.B != 255 {
+		t.Errorf("lightening white should clamp at white, got %v", clamped)
+	}
+}
+
+func TestGradientRowColor(t *testing.T) {
+	darkBg := color.NRGBA{0x1a, 0x1a, 0x2e, 0xff}
+
+	// Row 0 returns the base color exactly.
+	if got := gradientRowColor(darkBg, 0, cardHeight, gradientAmount); got != darkBg {
+		t.Errorf("row 0 = %v, want %v", got, darkBg)
+	}
+
+	// Dark backgrounds darken toward the bottom, where the light text sits.
+	last := gradientRowColor(darkBg, cardHeight-1, cardHeight, gradientAmount)
+	if last == darkBg {
+		t.Error("last row should differ from the base color")
+	}
+	_, _, lBase := rgbToHSL(darkBg.R, darkBg.G, darkBg.B)
+	_, _, lLast := rgbToHSL(last.R, last.G, last.B)
+	if lLast >= lBase {
+		t.Errorf("dark background should darken toward the bottom: base L=%f last L=%f", lBase, lLast)
+	}
+
+	// Light backgrounds lighten toward the bottom, where the dark text sits.
+	lightBg := color.NRGBA{0xee, 0xee, 0xee, 0xff}
+	lastLight := gradientRowColor(lightBg, cardHeight-1, cardHeight, gradientAmount)
+	_, _, lLightBase := rgbToHSL(lightBg.R, lightBg.G, lightBg.B)
+	_, _, lLightLast := rgbToHSL(lastLight.R, lastLight.G, lastLight.B)
+	if lLightLast <= lLightBase {
+		t.Errorf("light background should lighten toward the bottom: base L=%f last L=%f", lLightBase, lLightLast)
+	}
+
+	// Monotonic across rows (sampled): dark backgrounds only get darker.
+	prev := 2.0
+	for row := 0; row < cardHeight; row += 100 {
+		c := gradientRowColor(darkBg, row, cardHeight, gradientAmount)
+		_, _, l := rgbToHSL(c.R, c.G, c.B)
+		if l > prev {
+			t.Errorf("lightness regressed at row %d: %f > %f", row, l, prev)
+		}
+		prev = l
+	}
+}
+
+func TestRenderCard_WithLogoAndWatermark(t *testing.T) {
+	regFont, boldFont := loadTestFonts(t)
+	faces, err := newFaceSet(regFont, boldFont)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Solid opaque synthetic mark, distinct from the background.
+	logo := image.NewNRGBA(image.Rect(0, 0, logoDrawSize, logoDrawSize))
+	fill := color.NRGBA{0, 255, 0, 255}
+	for y := 0; y < logoDrawSize; y++ {
+		for x := 0; x < logoDrawSize; x++ {
+			logo.SetNRGBA(x, y, fill)
+		}
+	}
+
+	bg := color.NRGBA{26, 26, 46, 255}
+	params := CardParams{
+		Title:            "Branded Card",
+		Description:      "With a logo and watermark",
+		SiteTitle:        "My Site",
+		BgColor:          bg,
+		AccentColor:      color.NRGBA{233, 69, 96, 255},
+		TextColor:        color.NRGBA{255, 255, 255, 255},
+		LogoImage:        logo,
+		WatermarkImage:   logo,
+		WatermarkOpacity: 0.07,
+		Faces:            faces,
+		BoldFont:         boldFont,
+	}
+
+	img := renderCard(params)
+	if img.Bounds().Dx() != cardWidth || img.Bounds().Dy() != cardHeight {
+		t.Fatalf("unexpected dimensions %dx%d", img.Bounds().Dx(), img.Bounds().Dy())
+	}
+
+	// The pixel inside the logo box must no longer be the background color.
+	got := img.NRGBAAt(padding+2, padding+2)
+	if got == gradientRowColor(bg, padding+2, cardHeight, gradientAmount) {
+		t.Error("logo position pixel still matches the background, logo not drawn")
+	}
+}
+
+func TestRenderCard_MaxDensity_NoOverlap(t *testing.T) {
+	regFont, boldFont := loadTestFonts(t)
+	faces, err := newFaceSet(regFont, boldFont)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	logo := image.NewNRGBA(image.Rect(0, 0, logoDrawSize, logoDrawSize))
+	params := CardParams{
+		Title:          "An Exceptionally Long Page Title Designed To Occupy Three Full Wrapped Lines At The Largest Ladder Size Available",
+		Description:    "A long description that will certainly need to wrap across the full two lines available to it in the new bottom-anchored layout of the redesigned social sharing card",
+		SiteTitle:      "My Site",
+		CollectionName: "Documentation",
+		Date:           time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC),
+		DateExplicit:   true,
+		BgColor:        color.NRGBA{26, 26, 46, 255},
+		AccentColor:    color.NRGBA{233, 69, 96, 255},
+		TextColor:      color.NRGBA{255, 255, 255, 255},
+		LogoImage:      logo,
+		Faces:          faces,
+		BoldFont:       boldFont,
+	}
+
+	// Must not panic and must produce a full-size card even at max density.
+	img := renderCard(params)
+	if img == nil || img.Bounds().Dx() != cardWidth || img.Bounds().Dy() != cardHeight {
+		t.Fatal("max-density card did not render at full size")
 	}
 }
 

@@ -129,10 +129,22 @@ Sarde organizes CSS into layers using `@layer` declarations. Layers cascade in t
 | `sarde.core` | Layout grid systems |
 | `sarde.content` | Prose styles, blog styles, homepage styles |
 | `sarde.components` | UI components, extensions, search |
+| `sarde.variants` | Layout variant styles, such as the labs layout |
 | `sarde.utils` | Utility classes, print styles |
-| `kazari` | Code block highlighting styles (managed by Kazari) |
+| `sarde.plugins` | Styles contributed by plugins |
+| `sarde.user` | Reserved for the project's own CSS. Nothing ships in it |
 
 Custom CSS added via `head.custom_css` loads after all layers and can override any style.
+
+To place your own rules inside the cascade instead of after it, wrap them in the reserved layer:
+
+```css
+@layer sarde.user {
+  .sarde-sidebar { border-inline-end: 1px solid var(--sd-border); }
+}
+```
+
+Rules in `sarde.user` beat every Sarde layer, including plugin styles, without `!important`.
 
 ## Theme eject
 
@@ -149,5 +161,23 @@ After ejecting, edit any file in `themes/default/`. The template overlay resolut
 :::note
 Ejecting creates a snapshot of the current embedded theme. Future Sarde updates do not automatically update ejected files. Merge changes manually after upgrading.
 :::
+
+### The theme `css/` directory
+
+A theme's stylesheets live in `themes/<name>/css/`. When that directory exists and contains at least one of the stylesheets Sarde looks for, it **replaces** the embedded CSS bundle rather than merging with it.
+
+:::caution
+Replacement is all or nothing. A `css/` directory holding only `components.css` ships that one file and drops `tokens.css`, `base.css`, `layout.css`, and the rest, leaving the site nearly unstyled. Eject the full theme and edit what you need, rather than creating a partial `css/` directory by hand.
+:::
+
+To change a few rules, prefer `head.custom_css` or the `sarde.user` layer above. Reach for a theme `css/` directory only when replacing the stylesheet set wholesale.
+
+## Content width toggle
+
+Docs pages carry a header button that switches the article between a centered column and the full available width. It is pure presentation, needs no configuration, and is on by default.
+
+The button appears only on the docs layout and only at viewports of 1280px or wider, since narrower screens have no spare width to give back. The choice is stored in `localStorage` under `sd-docs-centered` and applied by toggling a class of the same name on `<html>`, so it survives navigation and reloads.
+
+To remove it, override the `Header` component and drop the `CenterToggle` call. To restyle it, target `.sarde-center-toggle`.
 
 See [Theme Tokens](/reference/theme-tokens) for the complete token reference, and [Configuration](/reference/configuration#theme) for all theme settings.

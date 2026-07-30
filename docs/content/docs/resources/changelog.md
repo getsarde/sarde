@@ -74,5 +74,5 @@ The first stable release. Everything below has accumulated since the 0.1.x previ
 - Tab state persistence across page navigation via `localStorage`.
 - Collapsible sidebar groups with `collapsed_by_default` configuration.
 - Mobile sidebar drawer.
-- 16 client-side plugins: scroll to top, copy section link, external links, image lightbox, focus mode, reading progress, reading preferences, reading position memory, search highlighter, text highlighter, and last updated badge.
-- 24 Markdown extensions: aside, accordion, badges, cards, details, figure, file tree, gallery, image compare, link buttons, link card, math, mermaid, steps, tabs, terminal, timeline, video, annotation, copy text, highlight, icon, kbd, and spoiler.
+- 11 client-side plugins: scroll to top, copy section link, external links, image lightbox, focus mode, keyboard nav, reading progress, reading preferences, reading position memory, search highlighter, and text highlighter.
+- 25 Markdown extensions: aside, accordion, badges, cards, columns, details, figure, file tree, gallery, image compare, link buttons, link card, math, mermaid, steps, tabs, terminal, timeline, video, annotation, copy text, highlight, icon, kbd, and spoiler.

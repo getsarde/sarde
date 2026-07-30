@@ -815,6 +815,7 @@ func (b *SiteBuilder) finishIncrementalRebuild(s *incrementalRebuildState) (*eng
 		ValidationData: s.mergedValidation,
 		DevMode:        b.devMode,
 		Incremental:    true,
+		ProjectDir:     b.projectDir,
 		ChangedPages:   changedPages,
 	}
 	buildDoneCtx.SetWarnings(&pluginWarnings)

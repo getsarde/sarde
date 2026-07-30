@@ -64,7 +64,7 @@ plugins:
 
 ## Social card images
 
-The social cards plugin auto-generates 1200x630 PNG images for every page, used as `og:image` and `twitter:image`. Cards include the page title, description, site name, collection, and date, styled with the active theme colors.
+The social cards plugin auto-generates 1200x630 PNG images for every page, used as `og:image` and `twitter:image`. Cards include the page title, description, site branding (site name, plus an optional logo mark and watermark), the collection name, and, for explicitly dated pages, the date, styled with the active theme colors.
 
 ```yaml
 plugins:

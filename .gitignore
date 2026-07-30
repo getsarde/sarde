@@ -13,8 +13,13 @@ dist1
 
 
 *.png
+!internal/plugin/socialcards/assets/logo/*.png
+!brand/**/*.png
+!docs/public/**/*.png
 *.svg
 !embedded/scaffold/*.svg
+!brand/*.svg
+!docs/public/**/*.svg
 *.txt
 
 # Go binaries

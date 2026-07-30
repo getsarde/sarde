@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-Extensions add custom syntax to Markdown. Sarde includes block extensions (asides, tabs, steps, cards, and more) and inline extensions (icons, badges, keyboard shortcuts). All extensions are built into the binary and active by default.
+Extensions add custom syntax to Markdown. Sarde includes block extensions (asides, tabs, steps, cards, and more) and inline extensions (icons, keyboard shortcuts, annotations). All extensions are built into the binary and active by default.
 
 ## Block syntax
 
@@ -43,23 +43,28 @@ Use four or more colons (`::::`) for the outer fence when nesting extensions ins
 
 ## Inline syntax
 
-Inline extensions use a `:name[content]` pattern embedded directly in paragraph text:
+Inline extensions embed directly in paragraph text. Most use a `::name[content]` pattern:
 
 ```markdown
-Press :kbd[Ctrl+S] to save the file.
+Press ::kbd[Ctrl+S] to save the file.
 ```
 
 → The key combination renders as styled keyboard keys inline with the text.
 
-Some inline extensions accept attributes after the content:
+The prefix is not the same for every inline extension. Use the form shown here:
 
-```markdown
-:badge[New]{type="success"}
-```
+| Extension | Syntax |
+|-----------|--------|
+| [Icon](/extensions/icon/) | `:icon[settings]` (one colon) |
+| [Kbd](/extensions/kbd/) | `::kbd[Ctrl+S]` |
+| [Annotation](/extensions/annotation/) | `::annotation[term]` |
+| [Copy text](/extensions/copy-text/) | `::copy[npm install]` |
+| [Highlight](/extensions/highlight/) | `==marked text==` |
+| [Spoiler](/extensions/spoiler/) | `\|\|hidden text\|\|` |
 
 ## Attributes
 
-Block extensions accept parameters in square brackets or as space-separated key-value pairs on the opening fence:
+Block extensions accept parameters in square brackets, in parentheses, or as space-separated key-value pairs on the opening fence:
 
 ```markdown
 :::aside[Custom Title] icon=sparkles
@@ -67,10 +72,22 @@ Content here.
 :::
 ```
 
-Inline extensions accept attributes in curly braces after the closing bracket:
+```markdown
+:::badge(success icon="rocket")
+Shipped
+:::
+```
+
+Inline extensions that take attributes accept them in parentheses after the closing bracket:
 
 ```markdown
-:badge[Beta]{type="warning" size="sm"}
+::kbd[Esc](size="lg" wide)
+```
+
+Icon is the exception: its attributes go inside the brackets, after the icon name.
+
+```markdown
+:icon[heart class="sarde-icon-sm"]
 ```
 
 Attribute values use `key="value"` or `key='value'` syntax. Bare flags (no value) are also supported for boolean options:
@@ -114,6 +131,6 @@ These are always enabled and require no configuration.
 
 Each extension is documented on its own page. Block extensions handle multi-line containers. Inline extensions handle text-level markers.
 
-**Block extensions:** [Aside](/extensions/aside), [Accordion](/extensions/accordion), [Badges](/extensions/badges) (group), [Cards](/extensions/cards), Code Group, Columns, [Details](/extensions/details), [Figure](/extensions/figure), [File Tree](/extensions/file-tree), [Gallery](/extensions/gallery), [Image Compare](/extensions/image-compare), [Link Buttons](/extensions/link-buttons) (group), [Link Card](/extensions/link-card), [Math](/extensions/math) (display), [Mermaid](/extensions/mermaid), [Steps](/extensions/steps), [Tabs](/extensions/tabs), [Terminal](/extensions/terminal), [Timeline](/extensions/timeline), [Video](/extensions/video).
+**Block extensions:** [Aside](/extensions/aside), [Accordion](/extensions/accordion), [Badges](/extensions/badges) (group), [Cards](/extensions/cards), Code Group, [Columns](/extensions/columns), [Details](/extensions/details), [Figure](/extensions/figure), [File Tree](/extensions/file-tree), [Gallery](/extensions/gallery), [Image Compare](/extensions/image-compare), [Link Buttons](/extensions/link-buttons) (group), [Link Card](/extensions/link-card), [Math](/extensions/math) (display), [Mermaid](/extensions/mermaid), [Steps](/extensions/steps), [Tabs](/extensions/tabs), [Terminal](/extensions/terminal), [Timeline](/extensions/timeline), [Video](/extensions/video).
 
-**Inline extensions:** [Annotation](/extensions/annotation), Badge, [Copy Text](/extensions/copy-text), [Highlight](/extensions/highlight), [Icon](/extensions/icon), [Kbd](/extensions/kbd), [Spoiler](/extensions/spoiler).
+**Inline extensions:** [Annotation](/extensions/annotation), [Copy Text](/extensions/copy-text), [Highlight](/extensions/highlight), [Icon](/extensions/icon), [Kbd](/extensions/kbd), [Spoiler](/extensions/spoiler).

@@ -11,7 +11,19 @@ sidebar:
 
 The server maintains WebSocket connections to all open browser tabs via a connection hub. When a build completes, the hub broadcasts a reload message and every connected tab refreshes.
 
-Each HTML response is intercepted before serving: the server injects a `<script>` tag before `</body>` containing the live-reload client and a build ID (a monotonic timestamp). When the client receives a reload message with a newer build ID, it triggers a page reload. CSS-only changes use a lighter mechanism that swaps stylesheets without a full page reload.
+Each HTML response is intercepted before serving: the server injects a `<script>` tag before `</body>` containing the live-reload client and a build ID (a monotonic timestamp), exposed to the page as `window.__SARDE_LR_BUILD__`. When the client receives a reload message with a newer build ID, it triggers a page reload. CSS-only changes use a lighter mechanism that swaps stylesheets without a full page reload.
+
+Messages arrive over the WebSocket with a `type` field:
+
+| Type | Meaning |
+|------|---------|
+| `reload` | Full page reload |
+| `css` | Swap stylesheets in place |
+| `error` | Build failed; show the error overlay |
+| `warning` | Build succeeded with warnings |
+| `sync` | Sent to a client on connect, carrying the latest successful build ID |
+
+`sync` is what keeps a tab from going stale. On connect the client compares the announced build ID against the one embedded in its own page, and reloads only if the page predates the build. A tab that was open across a server restart, a dropped connection, or a missed broadcast catches up exactly once, and a freshly loaded tab never reloads spuriously.
 
 A ping/pong keepalive runs every 30 seconds to detect stale connections.
 
@@ -57,3 +69,15 @@ At most one rebuild runs at a time. If a file change arrives during an active re
 The file server resolves URLs without extensions to their `index.html` equivalents: `/docs/guide/` serves `docs/guide/index.html`, and `/docs/guide` (no trailing slash) does the same. Directory listings are suppressed. All responses use `Cache-Control: no-store` to prevent stale cached output during development.
 
 If no matching file exists, the server tries a language-scoped `404.html` (derived from the first URL path segment), then falls back to the root `404.html`. If neither exists, a minimal HTML skeleton is served so the live-reload client can still attach and display the error overlay.
+
+## Port binding
+
+If the requested port is taken, the server tries up to 10 consecutive ports before giving up, and reports the one it bound to. Code driving the server through the project API gets the same value back from the preview call, so a caller that passed port 0 or a busy port learns the real port rather than assuming its request was honored.
+
+## Timing a rebuild
+
+Run the server with `--verbose` to print per-phase timings on every rebuild. Use it to find which phase a slow save is spending its time in before reaching for the cache settings.
+
+```bash
+sarde dev --verbose
+```

@@ -155,6 +155,23 @@ lab-work:
 
 Term metadata controls how tags appear in the sidebar tag cloud and on tag chips throughout the site.
 
+### Slug collisions
+
+Terms are keyed by slug, so two terms that slugify to the same string become one. Sarde warns rather than failing, in both cases the build can hit:
+
+```
+taxonomy "tags": terms "Lab Work" and "lab work" collide on slug "lab-work"
+```
+
+Two different term names reduced to the same slug. Their pages merge under whichever name was seen first, which makes the winner depend on content order. Pick one spelling.
+
+```
+taxonomy "tags": permalink "biology" of "Life Sciences" collides with an existing
+slug — merged 4 page(s) into the existing entry (check data/tags.yml)
+```
+
+A custom permalink in `data/<taxonomy>.yml` points a term at a slug another term already occupies. The pages merge into the existing entry and the term keeps its old name. Change the permalink in the data file.
+
 ## Feeds
 
 Blog collections generate RSS and Atom feeds automatically:
