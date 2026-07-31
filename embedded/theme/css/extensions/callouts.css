@@ -66,8 +66,17 @@
 	    border-color: color-mix(in oklch, var(--sd-border) 50%, transparent);
 	}
 
+	/* Inline code inside asides: tint the chip with the aside accent */
+	.sarde-aside:not(.sarde-aside-github) .sarde-aside-content code:not(pre code) {
+	    background: color-mix(in oklab, var(--sd-aside-accent) var(--sd-aside-code-bg-mix), transparent);
+	    border: 1px solid color-mix(in oklab, var(--sd-aside-accent) var(--sd-aside-code-border-mix), transparent);
+	    border-radius: var(--sd-radius-md);
+	    color: var(--sd-text);
+	}
+
 	/* Note - Blue */
 	.sarde-aside-note {
+	    --sd-aside-accent: var(--sd-aside-note);
 	    border-color: var(--sd-aside-note);
 	    background-color: var(--sd-aside-note-bg);
 	}
@@ -76,6 +85,7 @@
 
 	/* Tip - Green */
 	.sarde-aside-tip {
+	    --sd-aside-accent: var(--sd-aside-tip);
 	    border-color: var(--sd-aside-tip);
 	    background-color: var(--sd-aside-tip-bg);
 	}
@@ -84,6 +94,7 @@
 
 	/* Info - Cyan */
 	.sarde-aside-info {
+	    --sd-aside-accent: var(--sd-aside-info);
 	    border-color: var(--sd-aside-info);
 	    background-color: var(--sd-aside-info-bg);
 	}
@@ -92,6 +103,7 @@
 
 	/* Warning - Amber */
 	.sarde-aside-warning {
+	    --sd-aside-accent: var(--sd-aside-caution);
 	    border-color: var(--sd-aside-caution);
 	    background-color: var(--sd-aside-caution-bg);
 	}
@@ -100,6 +112,7 @@
 
 	/* Danger - Red */
 	.sarde-aside-danger {
+	    --sd-aside-accent: var(--sd-aside-danger);
 	    border-color: var(--sd-aside-danger);
 	    background-color: var(--sd-aside-danger-bg);
 	}
@@ -108,6 +121,7 @@
 
 	/* Success - Green */
 	.sarde-aside-success {
+	    --sd-aside-accent: var(--sd-aside-success);
 	    border-color: var(--sd-aside-success);
 	    background-color: var(--sd-aside-success-bg);
 	}

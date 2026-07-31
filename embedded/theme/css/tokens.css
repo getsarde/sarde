@@ -73,7 +73,8 @@
 	  --sd-bg-sidebar: var(--sd-gray-1);
 	  --sd-bg-footer: var(--sd-bg);
 	  --sd-bg-toc: transparent;
-	  --sd-bg-inline-code: var(--sd-gray-2);
+	  --sd-bg-inline-code: color-mix(in oklab, var(--sd-text) 5%, transparent);
+	  --sd-text-inline-code: color-mix(in oklab, var(--sd-text-accent) 60%, var(--sd-text));
 	  --sd-bg-accent: var(--sd-accent, oklch(0.60 0.22 var(--sd-hue-accent)));
 	  --sd-bg-accent-subtle: var(--sd-accent-low, oklch(0.60 0.22 var(--sd-hue-accent) / 0.1));
 	  --sd-hover: var(--sd-gray-2);
@@ -224,6 +225,8 @@
 	  --sd-aside-danger-bg: var(--sd-red-low);
 	  --sd-aside-success: var(--sd-green);
 	  --sd-aside-success-bg: var(--sd-green-low);
+	  --sd-aside-code-bg-mix: 10%;
+	  --sd-aside-code-border-mix: 25%;
 	}
 
 	@media (min-width: 50em) {

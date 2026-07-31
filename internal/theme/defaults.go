@@ -37,7 +37,6 @@ func DefaultDarkTokens() map[string]string {
 		"bg":              "#1a1a1c",
 		"bg-sidebar":      "#18181b",
 		"bg-surface":      "var(--sd-gray-9)",
-		"bg-inline-code":  "var(--sd-gray-8)",
 		"bg-accent-subtle": "var(--sd-accent-low, oklch(0.60 0.22 264 / 0.15))",
 		"hover":           "var(--sd-gray-8)",
 		// Borders
@@ -63,5 +62,7 @@ func DefaultDarkTokens() map[string]string {
 		"aside-caution-bg": "oklch(0.75 0.16 75 / 0.1)",
 		"aside-danger-bg":  "oklch(0.55 0.20 25 / 0.1)",
 		"aside-success-bg": "oklch(0.62 0.17 155 / 0.1)",
+		"aside-code-bg-mix":     "16%",
+		"aside-code-border-mix": "35%",
 	}
 }

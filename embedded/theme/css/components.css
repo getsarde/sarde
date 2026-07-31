@@ -37,7 +37,7 @@
 	}
 
 	.sarde-sidebar-nav a:hover {
-	  color: var(--sd-text);
+	  color: var(--sd-text-accent);
 	  background: var(--sd-hover);
 	}
 
