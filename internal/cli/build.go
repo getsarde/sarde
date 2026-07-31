@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -30,10 +31,16 @@ func init() {
 	buildCmd.Flags().String("base-path", "", "Override URL base path (e.g. /docs/)")
 	buildCmd.Flags().String("content", "", "Override content directory path")
 	buildCmd.Flags().Bool("strict-i18n", false, "Warn on missing translation keys per language")
+	buildCmd.Flags().String("format", "pretty", "Output format: pretty, json")
 	rootCmd.AddCommand(buildCmd)
 }
 
 func runBuild(cmd *cobra.Command, args []string) error {
+	format, _ := cmd.Flags().GetString("format")
+	if format != "pretty" && format != "json" {
+		return fmt.Errorf("unknown format %q (expected pretty or json)", format)
+	}
+
 	projectDir := projectDirFromArgs(args)
 
 	// Resolve config.
@@ -73,7 +80,17 @@ func runBuild(cmd *cobra.Command, args []string) error {
 
 	result, err := builder.Build()
 	if err != nil {
+		if format == "json" {
+			return printJSONError(fmt.Errorf("build failed: %w", err))
+		}
 		return fmt.Errorf("build failed: %w", err)
+	}
+
+	// JSON output: emit the raw BuildResult and skip the human-readable
+	// summary entirely. Consumed by the benchmark harness (cmd/sarde-bench)
+	// and any tooling that wants structured build stats.
+	if format == "json" {
+		return json.NewEncoder(os.Stdout).Encode(result)
 	}
 
 	// Print summary.

@@ -5,20 +5,13 @@ docs/STYLE.md
 
 coderoo-go/content/
 /content/
-# Testsite fixtures are generated locally and in CI; only the deterministic
-# generator sources (and their standalone go.mod) are tracked. Regenerate the
-# corpus with: go -C testsite/benchmark/cmd/generate run . -root <abs-path>
-testsite/*
-!testsite/benchmark/
-testsite/benchmark/*
-!testsite/benchmark/cmd/
-testsite/benchmark/cmd/*
-!testsite/benchmark/cmd/generate/
-!testsite/hugo-benchmark/
-testsite/hugo-benchmark/*
-!testsite/hugo-benchmark/cmd/
-testsite/hugo-benchmark/cmd/*
-!testsite/hugo-benchmark/cmd/generate/
+# Local dev-only Sarde sites (themes, i18n, manual testing). Never tracked.
+testsite/
+
+# Generated benchmark fixture corpora. The deterministic generators that
+# produce them are tracked at benchmarks/generators/; regenerate with:
+# go -C benchmarks/generators/sarde run . -root <abs-path>/benchmarks/fixtures/sarde
+benchmarks/fixtures/
 *-output.md
 .coderoo-cache/
 .cache/

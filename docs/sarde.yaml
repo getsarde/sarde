@@ -5,8 +5,10 @@ site:
   edit_url: "https://github.com/getsarde/sarde/edit/main/docs/content"
   # The Lebanese Red woven mark from brand/icon.svg. The navy tile keeps its
   # edges in both themes. The favicon is brand/favicon.ico, copied to
-  # public/favicon.ico where auto-detection finds it.
+  # public/favicon.ico; declared explicitly rather than relying on
+  # auto-detection, matching the Kazari docs setup.
   logo: "/images/sarde-icon.svg"
+  favicon: "/favicon.ico"
 
 build:
   # Project site at https://getsarde.github.io/sarde/
@@ -88,10 +90,13 @@ homepage:
     secondary_cta:
       label: "Read the Blog"
       url: "/blog/hello-world"
+    # The brand mark doubles as the hero art: its self-contained navy tile
+    # reads correctly on both the light and dark gradient backgrounds, so
+    # both variants point at the same file.
     image:
-      light: /images/hero-light.svg
-      dark: /images/hero-dark.svg
-      alt: "Hero illustration"
+      light: /images/sarde-icon.svg
+      dark: /images/sarde-icon.svg
+      alt: "The Sarde woven ribbon mark on a navy tile"
 social:
 - icon: github
   label: GitHub

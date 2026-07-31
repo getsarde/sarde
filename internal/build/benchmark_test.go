@@ -120,25 +120,29 @@ func BenchmarkBuild_AssetHeavy_Serial(b *testing.B) {
 }
 
 func BenchmarkBuild_TestsiteBenchmark_Parallel(b *testing.B) {
-	benchmarkRealTestsite(b, "benchmark", true)
+	benchmarkRealTestsite(b, filepath.Join("benchmarks", "fixtures", "sarde"), true)
 }
 
 func BenchmarkBuild_TestsiteBenchmark_Serial(b *testing.B) {
-	benchmarkRealTestsite(b, "benchmark", false)
+	benchmarkRealTestsite(b, filepath.Join("benchmarks", "fixtures", "sarde"), false)
 }
 
 func BenchmarkBuild_TestsiteGeneral_Parallel(b *testing.B) {
-	benchmarkRealTestsite(b, "general", true)
+	benchmarkRealTestsite(b, filepath.Join("testsite", "general"), true)
 }
 
 func BenchmarkBuild_TestsiteGeneral_Serial(b *testing.B) {
-	benchmarkRealTestsite(b, "general", false)
+	benchmarkRealTestsite(b, filepath.Join("testsite", "general"), false)
 }
 
-func benchmarkRealTestsite(b *testing.B, name string, parallel bool) {
-	src := repoTestsiteDir(b, name)
+// benchmarkRealTestsite benchmarks a full build of a fixture site given by
+// its repo-relative path. The generated benchmark corpus lives under
+// benchmarks/fixtures/ (see benchmarks/README.md); testsite/ holds local
+// dev-only sites. Both are untracked, so the benchmark skips when absent.
+func benchmarkRealTestsite(b *testing.B, rel string, parallel bool) {
+	src := repoTestsiteDir(b, rel)
 	if _, err := os.Stat(filepath.Join(src, "sarde.yaml")); err != nil {
-		b.Skipf("real testsite %q not found at %s", name, src)
+		b.Skipf("fixture site %q not found at %s", rel, src)
 	}
 	dir := copyRealTestsite(b, src)
 	cfg, themeCfg := resolveBenchmarkSite(b, dir)
@@ -206,13 +210,15 @@ func configureAssetBench(cfg *config.SiteConfig) {
 	cfg.Head.CustomJS = []string{"js/site.js"}
 }
 
-func repoTestsiteDir(b *testing.B, name string) string {
+// repoTestsiteDir resolves a repo-relative fixture path to an absolute one.
+// This file lives at internal/build/, two levels below the repo root.
+func repoTestsiteDir(b *testing.B, rel string) string {
 	b.Helper()
 	_, file, _, ok := runtime.Caller(0)
 	if !ok {
 		b.Fatal("runtime.Caller failed")
 	}
-	return filepath.Clean(filepath.Join(filepath.Dir(file), "..", "..", "..", "testsite", name))
+	return filepath.Clean(filepath.Join(filepath.Dir(file), "..", "..", rel))
 }
 
 func copyRealTestsite(b *testing.B, src string) string {

@@ -1,6 +1,5 @@
 <p align="center">
-  <!-- Switch to sarde-icon-v4.svg to use the quote-to-page variant -->
-  <img src="sarde-icon-v10.svg" alt="Sarde" width="128">
+  <img src="brand/icon.svg" alt="Sarde" width="128">
 </p>
 
 <h1 align="center">Sarde</h1>

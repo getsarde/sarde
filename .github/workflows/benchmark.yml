@@ -1,0 +1,61 @@
+name: Benchmark
+
+# Reporting-only build-performance check. It never fails the job on a perf
+# regression: GitHub-hosted runners are too noisy to hard-gate merges on wall
+# time. Results go to the job summary as a markdown table, compared against
+# benchmarks/baseline.json. A maintainer reviews the summary and hand-updates
+# the baseline when a change is an accepted regression or improvement (see
+# benchmarks/README.md).
+# Triggers: pushes to main only, and only when build-relevant Go code, the
+# harness, the fixture generator, or the baseline changes. The paths list is
+# an allowlist, so docs-only or content-only commits never run this workflow.
+# workflow_dispatch stays for seeding the baseline manually.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "internal/build/**"
+      - "internal/engine/**"
+      - "internal/content/**"
+      - "internal/asset/**"
+      - "internal/plugin/**"
+      - "cmd/sarde-bench/**"
+      - "benchmarks/generators/**"
+      - "benchmarks/baseline.json"
+      - ".github/workflows/benchmark.yml"
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.25"
+          cache-dependency-path: go.sum
+
+      - name: Build the sarde binary
+        run: go build -o sarde ./cmd/sarde
+
+      - name: Build the benchmark harness
+        run: go build -o sarde-bench ./cmd/sarde-bench
+
+      - name: Generate the benchmark fixture
+        run: go -C benchmarks/generators/sarde run . -root "$GITHUB_WORKSPACE/benchmarks/fixtures/sarde"
+
+      - name: Run the benchmark
+        run: |
+          ./sarde-bench \
+            --sarde-bin ./sarde \
+            --site benchmarks/fixtures/sarde \
+            --runs 5 \
+            --json results.json \
+            --baseline benchmarks/baseline.json \
+            >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: results.json

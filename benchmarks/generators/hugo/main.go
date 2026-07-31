@@ -988,9 +988,12 @@ func main() {
 	flag.Parse()
 
 	if *root == "" {
+		// Auto-detection only works for a binary built into this source dir
+		// (benchmarks/generators/hugo); under `go run` the executable lives
+		// in the build cache, so always pass -root explicitly there.
 		exe, err := os.Executable()
 		if err == nil {
-			candidate := filepath.Join(filepath.Dir(exe), "..", "..")
+			candidate := filepath.Join(filepath.Dir(exe), "..", "..", "fixtures", "hugo")
 			if abs, err := filepath.Abs(candidate); err == nil {
 				*root = abs
 			}

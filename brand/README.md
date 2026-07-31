@@ -35,7 +35,7 @@ The primary identity is the centred woven-narrative mark. Its red ribbon spans `
 
 | Master | Copy to | Used by |
 |--------|---------|---------|
-| `icon.svg` | `docs/public/images/sarde-icon.svg` | Docs site header logo, via `site.logo` in `docs/sarde.yaml` |
+| `icon.svg` | `docs/public/images/sarde-icon.svg` | Docs site header logo (`site.logo`) and homepage hero image (`homepage.hero.image`) in `docs/sarde.yaml` |
 | `favicon.ico` | `docs/public/favicon.ico` | Docs site favicon, picked up by Sarde's favicon auto-detection |
 | `social-card-mark.png` | `internal/plugin/socialcards/assets/logo/sarde-mark.png` | Social card corner mark when a site sets `social_cards.logo: "sarde"` |
 | `social-card-watermark.png` | `internal/plugin/socialcards/assets/logo/sarde-ribbon.png` | Social card watermark for `logo: "sarde"` |
