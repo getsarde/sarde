@@ -2,7 +2,7 @@
 title: Contributing
 description: "How to report issues, set up a development environment, and contribute code, themes, or plugins to Sarde"
 sidebar:
-  order: 3
+  order: 4
 ---
 
 How to report issues, contribute code, and develop themes or plugins for Sarde.

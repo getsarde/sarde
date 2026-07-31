@@ -38,6 +38,7 @@ sarde build [flags] [project-dir]
 | `--base-path` | string | `""` | Override the URL base path (for subdirectory hosting). |
 | `--content` | string | `""` | Override the content directory path. |
 | `--strict-i18n` | bool | `false` | Warn on missing translation keys per language. |
+| `--format` | string | `pretty` | Output format: `pretty` or `json`. With `json`, the build result (page counts, duration, per-phase timings, warnings) is printed to stdout as a single JSON object and the human-readable summary is suppressed. |
 
 ```
 sarde build

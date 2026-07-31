@@ -105,4 +105,4 @@ The choices that make those sites easy cost flexibility elsewhere:
 - **No browser-based editing**: Publishing means editing a file and running a build, usually through Git. Contributors who expect a publish button need a content management system instead.
 - **A smaller ecosystem**: Hugo and Astro have more themes, more plugins, and more answered questions. Sarde covers documentation and content sites thoroughly rather than trying to cover everything.
 
-Continue to [Getting Started](/start-here/getting-started/) to install Sarde, or to [Core Concepts](/start-here/core-concepts/) for the model behind these defaults.
+Continue to [Getting Started](/start-here/getting-started/) to install Sarde and build a first site. Once it runs, [Core Concepts](/start-here/core-concepts/) explains the model behind these defaults.

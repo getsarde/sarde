@@ -2,10 +2,10 @@
 title: Core Concepts
 description: "How Sarde turns content, configuration, and a theme into a finished site."
 sidebar:
-  order: 2
+  order: 3
 ---
 
-Every Sarde build combines three inputs and writes one output directory.
+Every Sarde build combines three inputs and writes one output directory. [Getting Started](/start-here/getting-started/) showed the commands; this page explains the model behind them.
 
 ```text
 content + configuration + theme → sarde build → dist/
@@ -67,7 +67,7 @@ Each top-level directory inside `content/` is a collection, and Sarde infers how
 | `blog`, `posts`, `articles`, `news` | Date-sorted newest first, feed enabled, paginated at 10, Newer/Older links |
 | `docs`, `documentation`, `guides`, `reference`, `courses`, `tutorials`, `lessons`, `workshops` | Docs layout, sorted by `sidebar.order`, collapsible sidebar, table of contents, Previous/Next links |
 | `labs` | Labs layout for lab pages, sorted by `sidebar.order` |
-| `slides`, `presentations`, `decks` | Presentation layout per deck, date-sorted |
+| `slides`, `presentations`, `decks` | Date-sorted; deck pages use the presentation layout, the list page is a card gallery |
 | Any other name | Default layout, sorted by title |
 
 These names are a convention, not a requirement. Any directory name works, and an unrecognized name produces a general collection sorted by title. To use a different name with docs behavior, set the collection explicitly in `sarde.yaml` rather than renaming the directory.
@@ -80,6 +80,8 @@ collections:
     sort: order
     layout: docs
 ```
+
+See [Content and Collections](/guides/content-and-collections/) for the full per-family defaults and every collection setting.
 
 ## Configuration
 

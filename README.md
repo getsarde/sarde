@@ -301,11 +301,13 @@ GOOS=darwin  GOARCH=arm64 go build -o dist/sarde-macos ./cmd/sarde
 # Tests
 go test ./...
 
-# Benchmarks
+# Benchmarks (in-process, over synthetic sites)
 go test -bench=. -benchmem -timeout 300s ./internal/build/
 ```
 
 On Windows, `build.bat` wraps these commands: `build.bat build`, `build.bat test`, `build.bat release`.
+
+For end-to-end build benchmarks (median wall time over a generated ~1,000 page fixture, pages/sec, per-phase timings, peak RSS, and an optional Hugo comparison), see [benchmarks/README.md](benchmarks/README.md).
 
 ## Tech stack
 

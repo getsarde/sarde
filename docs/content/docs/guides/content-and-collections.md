@@ -25,27 +25,12 @@ content/
 
 `blog/` and `docs/` become separate collections. Sarde uses the folder name as
 the collection name and URL mount, so these folders render at `/blog/` and
-`/docs/`.
+`/docs/`. Each collection carries its own inferred defaults: sorting, layout,
+sidebar, table of contents, and feeds.
 
 This is a convention, not a special setup step. Any top-level folder with
 Markdown content becomes a collection. Known folder names only change the
 defaults Sarde applies.
-
-## What collections contain
-
-Collections contain the pages, sections, and navigation data for one area of a
-site.
-
-| Item | Description |
-|---|---|
-| Pages | Markdown files inside the collection folder. |
-| Sections | Subdirectories inside the collection. A section can have its own `_index.md`. |
-| Index page | The collection landing page, usually `_index.md`. |
-| Navigation | Sidebar groups, breadcrumbs, and prev/next links when the layout supports them. |
-| Defaults | Inferred sorting, layout, feed, sidebar, and table-of-contents behavior. |
-
-Markdown files placed directly in `content/` are standalone pages, not
-collections. The homepage `content/_index.md` is also outside any collection.
 
 ## Auto-detection rules
 
@@ -55,7 +40,7 @@ Sarde recognizes four collection families by directory name:
 |-----------------|------|------|--------|------|---------|
 | `blog`, `posts`, `articles`, `news` | Blog | date (newest first) | default | yes | no |
 | `docs`, `documentation`, `guides`, `reference`, `courses`, `tutorials`, `lessons`, `workshops` | Docs | order (ascending) | docs | no | yes |
-| `slides`, `presentations`, `decks` | Slides | date (newest first) | default (gallery) | no | no |
+| `slides`, `presentations`, `decks` | Slides | date (newest first) | default list rendered as a gallery, presentation per deck | no | no |
 | `labs` | [Labs](/teaching/labs/) | order (ascending) | default at the top, labs inside a lab | no | yes (per lab) |
 | Any other name | Default | title (ascending) | default | no | no |
 
@@ -83,7 +68,7 @@ Each collection type comes with pre-configured behavior:
 ### Slides collections
 
 - Sorted by `date` descending (newest first)
-- Gallery list page with card grid (thumbnails, slide counts, tags, authors)
+- The list page uses the default layout, rendered through a gallery template with a card grid (thumbnails, slide counts, tags, authors). There is no separate `gallery` layout value.
 - Deck pages auto-default to `layout: presentation` (full-viewport slide viewer, no configuration needed)
 - Course subdirectories render as nested galleries
 - See the [Teaching](/teaching/) section for the full guide
@@ -124,13 +109,13 @@ Available per-collection settings:
 | `layout` | string | Inferred from folder name | Layout type: `default`, `docs`, `splash`, `wide`, `full`, `centered`, or `split`. |
 | `paginate` | int | `10` for blog collections, otherwise `0` | Items per page for list views. `0` disables pagination. |
 | `feed` | bool | `true` for blog collections, otherwise `false` | Generate RSS/Atom feeds for this collection when feed plugins are enabled. |
-| `tabs` | bool | Auto-detected | Enable or disable tabbed docs navigation. See [Tabbed Navigation](/guides/tabbed-navigation). |
+| `tabs` | bool | Auto-detected | Enable or disable tabbed docs navigation. See [Tabbed Navigation](/guides/tabbed-navigation/). |
 | `permalink` | string | File path URL | URL pattern for non-index pages. |
 | `sidebar` | object | Inferred for docs collections | Sidebar sub-config: `collapsible`, `collapsed_by_default`, `max_depth`, `search`. |
 | `toc` | object | Inferred for docs collections | Table of contents sub-config: `enabled`, `depth`, `scroll_highlight`. |
 | `versioning` | object | Disabled | Version config: `enabled`, `versions`, `last_version`. |
 
-See [Configuration](/reference/configuration) for the complete reference.
+See [Configuration](/reference/configuration/) for the complete reference.
 
 ## Sections and `_index.md`
 
@@ -233,4 +218,4 @@ Sarde classifies every Markdown file into one of five kinds:
 | Bundle | `index.md` with sibling non-Markdown files | Page bundle |
 | Standalone | `.md` file at `content/` root (not `_index.md`) | About page, contact page |
 
-See [Frontmatter](/reference/frontmatter) for all available frontmatter fields and auto-inference rules.
+See [Frontmatter](/reference/frontmatter/) for all available frontmatter fields and auto-inference rules.

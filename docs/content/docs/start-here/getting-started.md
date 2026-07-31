@@ -1,11 +1,11 @@
 ---
 title: Getting Started
-description: "Install Sarde, scaffold a new site, and preview it with the local dev server"
+description: "Install Sarde, scaffold a new site, preview it locally, and produce a production build"
 sidebar:
-  order: 3
+  order: 2
 ---
 
-Sarde is a zero-config static site generator. Drop Markdown files into a `content/` folder and get a fully-themed, production-ready website. This page covers installing Sarde, creating a site, and previewing it locally.
+This page goes from nothing to a working site. By the end, Sarde is installed, a scaffolded site is running in the browser with live reload, a first page is in the sidebar, and a production build sits in `dist/` ready to host.
 
 ## Install Sarde
 
@@ -13,23 +13,34 @@ Sarde is a zero-config static site generator. Drop Markdown files into a `conten
 
 == Homebrew
 
+On macOS or Linux with [Homebrew](https://brew.sh/):
+
 ```sh
 brew install getsarde/sarde/sarde
 ```
 
 == Shell script
 
+The install script supports macOS and Linux. On Windows, use the Windows tab instead.
+
 ```sh
 curl -sSfL https://raw.githubusercontent.com/getsarde/sarde/main/install.sh | sh
 ```
 
+== Windows
+
+1. Download `sarde_windows_amd64.zip` from [GitHub Releases](https://github.com/getsarde/sarde/releases).
+2. Extract the archive and move `sarde.exe` into a permanent folder, for example `C:\Users\<name>\sarde`.
+3. Add that folder to the `PATH` environment variable so any terminal can find the program: open **Settings > System > About > Advanced system settings**, click **Environment Variables**, select `Path` under *User variables*, then click **Edit > New** and paste the folder path.
+4. Open a new terminal window. Terminals that were already open do not pick up the `PATH` change.
+
 == Binary download
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/getsarde/sarde/releases). Extract the archive and place the `sarde` binary in a directory on your `PATH`.
+Download the latest release archive for your platform from [GitHub Releases](https://github.com/getsarde/sarde/releases). Extract it and place the `sarde` binary in a directory on the `PATH`.
 
 == From source
 
-Requires [Go](https://go.dev/dl/) 1.21 or later.
+Requires [Go](https://go.dev/dl/) 1.25 or later.
 
 ```sh
 go install github.com/getsarde/sarde/cmd/sarde@latest
@@ -43,7 +54,13 @@ Verify the installation:
 sarde version
 ```
 
-→ Prints the installed version number and build platform.
+→ The terminal prints:
+
+```text
+sarde v1.0.0
+Go: go1.25.0
+OS/Arch: linux/amd64
+```
 
 ## Create a site
 
@@ -78,7 +95,7 @@ my-site/
   .gitignore
 ```
 
-The `sarde.yaml` file controls the site title, theme preset, homepage hero, and all other settings. See [Configuration](/reference/configuration) for the full reference.
+The `sarde.yaml` file controls the site title, theme preset, homepage hero, and all other settings; see [Configuration](/reference/configuration/) for the full reference. The `kazari.config.yaml` file controls syntax highlighting, covered in [Code Blocks](/guides/code-blocks/).
 
 ## Start the dev server
 
@@ -96,7 +113,7 @@ sarde dev
 
 Open `http://localhost:4727` in a browser to see the site. The dev server watches for file changes and reloads the browser automatically. CSS changes hot-swap without a full page reload.
 
-Draft and expired content is included by default in dev mode. Use `--no-drafts` to exclude it.
+[Draft, scheduled, and expired content](/guides/writing-content/#drafts-scheduled-and-expiring-content) is included by default in dev mode. Use `--no-drafts` to exclude it.
 
 ## Add content
 
@@ -112,20 +129,55 @@ sarde new docs "My First Page"
 Created content/docs/my-first-page.md
 ```
 
-Open `content/docs/my-first-page.md` in an editor. The file starts with frontmatter pre-filled by Sarde:
+Open `content/docs/my-first-page.md` in an editor. The file starts with *frontmatter*, a short metadata block between `---` fences that sets the page title and other fields. Sarde pre-fills it:
 
 ```yaml
 ---
+draft: true
 title: My First Page
+date: 2026-03-15T09:00:00-05:00
 ---
 ```
 
-Add Markdown content below the frontmatter, save the file, and the browser updates automatically. The new page appears in the sidebar navigation.
+The `draft: true` line marks the page as work in progress: the dev server shows it, but `sarde build` leaves it out. Remove the line (or set it to `false`) when the page is ready to publish.
+
+Add Markdown content below the frontmatter and save the file:
+
+```markdown
+## Welcome
+
+This page was created with `sarde new docs`.
+
+:::note
+Sarde's Markdown goes beyond the basics. Asides like this one, tabs, cards,
+and more are built in.
+:::
+```
+
+The browser updates automatically, the new page appears in the sidebar navigation, and the `:::note` block renders as a colored callout. See [Using Extensions](/extensions/using-extensions/) for the full extended syntax.
 
 Sarde auto-detects the collection type from the directory name. Content in `docs/` gets the docs layout with sidebar navigation, while content in `blog/` gets the blog layout with date-sorted posts.
 
+## Build the site
+
+Remove the `draft: true` line from the new page, then produce the publishable site:
+
+```sh
+sarde build
+```
+
+→ The terminal prints:
+
+```text
+Built in 320 ms
+  Output: /path/to/my-site/dist
+```
+
+The `dist/` directory is the complete site as plain HTML, CSS, and JavaScript. It needs no server-side runtime, so any static host can serve it. [Deploying](/start-here/deploying/) covers publishing it to GitHub Pages, Netlify, Cloudflare Pages, Vercel, or a custom target.
+
 ## Next steps
 
-- [Configuration](/reference/configuration) to customize `sarde.yaml`
-- [Content & Collections](/guides/content-and-collections) to understand collections, sections, and page bundles
-- [Deploying](/start-here/deploying) to publish the site to the web
+- [Writing Content](/guides/writing-content/) covers frontmatter, drafts, and page bundles
+- [Content and Collections](/guides/content-and-collections/) explains how folders become blogs, docs, and courses
+- [Using Extensions](/extensions/using-extensions/) tours the extended Markdown: asides, tabs, cards, and more
+- [Deploying](/start-here/deploying/) publishes the site to the web

@@ -7,6 +7,8 @@ sidebar:
 
 Patterns for migrating content to Sarde from other platforms. Each section covers the key differences and the steps to convert existing content.
 
+This guide covers the one-time conversion. For a summary of the behavioral differences that persist after migrating (inference, i18n model, absent config surface), see [Divergences from Hugo and Starlight](/resources/divergences/).
+
 ## From Obsidian
 
 Sarde includes a built-in Obsidian vault importer that converts notes to Sarde-compatible Markdown.
