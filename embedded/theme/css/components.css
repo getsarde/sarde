@@ -1227,9 +1227,20 @@
 	  flex-shrink: 0;
 	}
 	.sarde-icon-inline {
+	  /* base.css resets svg to display: block; inline icons must flow with text */
+	  display: inline-block;
 	  width: 1em;
 	  height: 1em;
 	  vertical-align: -0.125em;
+	}
+	/* An explicit size from :icon[name width="28"] arrives as width/height
+	   attributes on the SVG, and attributes lose to the 1em rule above. Let
+	   them win whenever the author asked for a size. The renderer emits
+	   width="16" when no size was requested, so the bare default keeps
+	   scaling with the surrounding text at 1em. */
+	svg.sarde-icon-inline[width]:not([width="16"]) {
+	  width: auto;
+	  height: auto;
 	}
 	.sarde-icon-sm {
 	  width: 1rem;
