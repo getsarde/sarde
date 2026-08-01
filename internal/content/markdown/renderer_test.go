@@ -1,9 +1,12 @@
 package markdown
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/getsarde/sarde/internal/directive"
 	"github.com/getsarde/sarde/internal/engine"
 )
 
@@ -593,5 +596,54 @@ func TestRenderer_Fingerprint_ChangesWithHardWraps(t *testing.T) {
 	r2 := NewRendererFromConfig(RendererConfig{HardWraps: false})
 	if r1.Fingerprint() == r2.Fingerprint() {
 		t.Error("different HardWraps values should produce different fingerprints")
+	}
+}
+
+// loadFingerprintRegistry builds a directive registry from the given files
+// written into a temp dir.
+func loadFingerprintRegistry(t *testing.T, files map[string]string) *directive.Registry {
+	t.Helper()
+	dir := t.TempDir()
+	for name, body := range files {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	r := directive.NewRegistry(nil)
+	if warns := r.LoadDir(dir, "site"); len(warns) != 0 {
+		t.Fatalf("unexpected warnings: %+v", warns)
+	}
+	return r
+}
+
+func TestRenderer_Fingerprint_DirectiveRegistry(t *testing.T) {
+	base := map[string]string{
+		"pq.yaml": "name: pq\nkind: leaf\nlabel: PQ\ndescription: d\n",
+		"pq.html": "<div>{{.Body}}</div>",
+		"pq.css":  ".pq { color: red; }",
+	}
+	fp := func(reg *directive.Registry) string {
+		return NewRendererFromConfig(RendererConfig{DirectiveRegistry: reg}).Fingerprint()
+	}
+
+	fpBase := fp(loadFingerprintRegistry(t, base))
+
+	cssChanged := map[string]string{"pq.yaml": base["pq.yaml"], "pq.html": base["pq.html"], "pq.css": ".pq { color: blue; }"}
+	if fp(loadFingerprintRegistry(t, cssChanged)) == fpBase {
+		t.Error("fingerprint must change when only directive CSS changes")
+	}
+
+	htmlChanged := map[string]string{"pq.yaml": base["pq.yaml"], "pq.html": "<span>{{.Body}}</span>", "pq.css": base["pq.css"]}
+	if fp(loadFingerprintRegistry(t, htmlChanged)) == fpBase {
+		t.Error("fingerprint must change when a directive template changes")
+	}
+
+	fpNil := NewRendererFromConfig(RendererConfig{}).Fingerprint()
+	fpEmpty := fp(directive.NewRegistry(nil))
+	if fpNil != fpEmpty {
+		t.Error("nil and empty registries must produce identical fingerprints")
+	}
+	if fpNil == fpBase {
+		t.Error("non-empty registry must change the fingerprint")
 	}
 }

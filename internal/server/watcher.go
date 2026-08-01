@@ -97,7 +97,7 @@ func (w *Watcher) Start() error {
 	w.watcher = fsw
 
 	// Add recursive watches on key directories.
-	watchDirs := []string{consts.DirContent, consts.DirLayouts, consts.DirAssets, consts.DirData, consts.DirPublic, consts.DirThemes, consts.DirPlugins}
+	watchDirs := []string{consts.DirContent, consts.DirLayouts, consts.DirAssets, consts.DirData, consts.DirPublic, consts.DirThemes, consts.DirPlugins, consts.DirDirectives}
 	for _, dir := range watchDirs {
 		abs := filepath.Join(w.projectDir, dir)
 		if info, err := os.Stat(abs); err == nil && info.IsDir() {
@@ -384,6 +384,13 @@ func (w *Watcher) classifyChange(path string) ChangeKind {
 
 	// Templates and themes.
 	if strings.HasPrefix(rel, "layouts/") || strings.HasPrefix(rel, "themes/") {
+		return ChangeTemplate
+	}
+
+	// Generic directives: registry build and Engine.Load run at builder
+	// construction, so any yaml/html/css change needs a fresh builder,
+	// same as templates. Theme-side directives/ hit the themes/ rule above.
+	if strings.HasPrefix(rel, consts.DirDirectives+"/") {
 		return ChangeTemplate
 	}
 

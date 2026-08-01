@@ -26,6 +26,7 @@ import (
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/figure"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/filetree"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/gallery"
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/genericdirective"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/highlight"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/icon"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/imagecompare"
@@ -44,6 +45,7 @@ import (
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkcollector"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkrender"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/video"
+	"github.com/getsarde/sarde/internal/directive"
 	"github.com/getsarde/sarde/internal/engine"
 
 	"github.com/yuin/goldmark"
@@ -171,6 +173,9 @@ type RendererConfig struct {
 	// default, matching CommonMark, so prose wrapped in the source reflows.
 	HardWraps    bool
 	KazariEngine *kazari.Engine
+	// DirectiveRegistry holds site/theme generic directives. Nil or empty
+	// no-ops the generic directive extension.
+	DirectiveRegistry *directive.Registry
 }
 
 // NewRenderer creates a markdown renderer with all extensions and default security.
@@ -267,6 +272,11 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) (goldmark.Markdown, string)
 		)
 	}
 
+	// Generic (site/theme-authored) directives go LAST: same-trigger block
+	// parsers run in registration order, so every built-in and Kazari's
+	// :::code-group win name conflicts automatically.
+	extensions = append(extensions, &genericdirective.Extension{Registry: cfg.DirectiveRegistry})
+
 	// WithAttribute enables `## Heading {#custom-id}` syntax. Goldmark's
 	// AutoHeadingID is deliberately NOT enabled: extractHeadings assigns
 	// slugified IDs itself, so any id present on a rendered heading is
@@ -307,7 +317,12 @@ func computeFingerprint(extensions []goldmark.Extender, cfg RendererConfig) stri
 		kazariCSS = cfg.KazariEngine.CSS()
 	}
 
-	raw := fmt.Sprintf("bin=%s\x00exts=%s\x00hl=%t\x00hmin=%d\x00hmax=%d\x00hw=%t\x00schemes=%s\x00kazari=%t\x00css=%s",
+	directiveHash := ""
+	if cfg.DirectiveRegistry != nil {
+		directiveHash = cfg.DirectiveRegistry.Hash()
+	}
+
+	raw := fmt.Sprintf("bin=%s\x00exts=%s\x00hl=%t\x00hmin=%d\x00hmax=%d\x00hw=%t\x00schemes=%s\x00kazari=%t\x00css=%s\x00directives=%s",
 		execIdentity(),
 		strings.Join(names, "|"),
 		cfg.HeadingLinks,
@@ -317,6 +332,7 @@ func computeFingerprint(extensions []goldmark.Extender, cfg RendererConfig) stri
 		strings.Join(schemes, ","),
 		cfg.KazariEngine != nil,
 		kazariCSS,
+		directiveHash,
 	)
 	sum := sha256.Sum256([]byte(raw))
 	return fmt.Sprintf("%x", sum)

@@ -2,13 +2,14 @@ package consts
 
 const (
 	// Top-level project directories.
-	DirContent = "content"
-	DirLayouts = "layouts"
-	DirPublic  = "public"
-	DirThemes  = "themes"
-	DirAssets  = "assets"
-	DirData    = "data"
-	DirPlugins = "plugins"
+	DirContent    = "content"
+	DirLayouts    = "layouts"
+	DirPublic     = "public"
+	DirThemes     = "themes"
+	DirAssets     = "assets"
+	DirData       = "data"
+	DirPlugins    = "plugins"
+	DirDirectives = "directives"
 
 	// Layout subdirectory names (used in embedded theme and template overlay).
 	DirDefault      = "_default"

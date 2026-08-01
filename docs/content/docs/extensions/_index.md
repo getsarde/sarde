@@ -10,7 +10,10 @@ Extensions add custom syntax to Markdown. All extensions are built into the
 Sarde binary and active by default.
 
 Read [Using Extensions](/extensions/using-extensions/) for the block (`:::`)
-and inline (`:name[]`) syntax conventions, nesting rules, and attributes.
+and inline (`:name[]`) syntax conventions, nesting rules, and attributes. You
+can also define your own `:::` blocks with
+[Custom Directives](/extensions/custom-directives/): a YAML schema plus an
+HTML template in a `directives/` folder, no Go required.
 
 **Block extensions** handle multi-line containers: [Aside](/extensions/aside)
 (callouts), [Tabs](/extensions/tabs), [Cards](/extensions/cards),

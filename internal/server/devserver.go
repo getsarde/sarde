@@ -343,7 +343,7 @@ func (ds *DevServer) handleRebuildResult(change FileChange, result *RebuildResul
 	if result.Success && msg.Type == ReloadFull {
 		var items []WarningItem
 		for _, w := range result.Warnings {
-			if w.Field != "syntax" {
+			if w.Field != "syntax" && w.Field != "directive" {
 				continue
 			}
 			items = append(items, WarningItem{

@@ -20,6 +20,7 @@ import (
 	"github.com/getsarde/sarde/internal/content/markdown"
 	"github.com/getsarde/sarde/internal/content/markdown/icons"
 	"github.com/getsarde/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/directive"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/links"
 	"github.com/getsarde/sarde/internal/shortcode"
@@ -132,6 +133,21 @@ func (b *SiteBuilder) setupAssetPipelineAndShortcodes(s *buildState) error {
 	s.scProcessor = shortcode.NewProcessor(scRegistry)
 	s.shortcodesHash = scRegistry.TemplateHash()
 
+	// Build the generic directive registry (overlay: theme then site, site
+	// wins). Definitions reuse the shortcode FuncMap (icon, i18n, URL
+	// helpers). Bad definitions warn and are skipped; built-in name
+	// collisions warn and are dropped.
+	dirRegistry := directive.NewRegistry(scFuncMap)
+	if b.config.Theme.Name != "" {
+		themeDirDir := filepath.Join(b.projectDir, consts.DirThemes, b.config.Theme.Name, consts.DirDirectives)
+		s.warnings = append(s.warnings, dirRegistry.LoadDir(themeDirDir, "theme")...)
+	}
+	s.warnings = append(s.warnings, dirRegistry.LoadDir(filepath.Join(b.projectDir, consts.DirDirectives), "site")...)
+	if cat, err := engine.LoadDirectiveCatalog(); err == nil {
+		s.warnings = append(s.warnings, dirRegistry.ValidateAgainstBuiltins(cat)...)
+	}
+	s.directiveRegistry = dirRegistry
+
 	s.iconRenderKey = "icon-inline"
 	if icons.SpriteMode() {
 		s.iconRenderKey = "icon-sprite"
@@ -176,6 +192,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 			HeadingMaxLevel:    b.config.Markdown.TOC.MaxHeadingLevel,
 			HardWraps:          config.BoolVal(b.config.Markdown.HardWraps, false),
 			KazariEngine:       b.kazariEngine,
+			DirectiveRegistry:  s.directiveRegistry,
 		})
 	}
 	if b.rendererKey == "" {
@@ -214,6 +231,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 					HeadingMaxLevel:    b.config.Markdown.TOC.MaxHeadingLevel,
 					HardWraps:          config.BoolVal(b.config.Markdown.HardWraps, false),
 					KazariEngine:       b.kazariEngine,
+					DirectiveRegistry:  s.directiveRegistry,
 				})
 			}
 		}
@@ -555,6 +573,9 @@ func (b *SiteBuilder) wireTemplateEngine(s *buildState) error {
 		b.tmplEngine.SetI18nStrings(s.stringTable)
 	}
 	b.tmplEngine.SetCodeBlockCSS(b.kazariEngine.CSS())
+	if s.directiveRegistry != nil {
+		b.tmplEngine.SetDirectiveCSS(s.directiveRegistry.CSS())
+	}
 
 	resolver := &engine.ThemeResolver{
 		ProjectDir: b.projectDir,

@@ -40,6 +40,7 @@ func init() {
 	newCmd.AddCommand(newSiteCmd)
 	newCmd.AddCommand(newCourseCmd)
 	newCmd.AddCommand(newLessonCmd)
+	newCmd.AddCommand(newDirectiveCmd)
 	rootCmd.AddCommand(newCmd)
 }
 

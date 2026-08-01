@@ -27,6 +27,19 @@ type DirectiveCategory struct {
 	Directives []CatalogDirective `yaml:"directives" json:"directives"`
 }
 
+// ValidDirectiveFieldTypes is the set of allowed CatalogDirectiveField.Type
+// values. Shared by the catalog parity tests and the generic directive loader
+// (internal/directive) so both validate against one source of truth.
+var ValidDirectiveFieldTypes = map[string]bool{
+	"string": true, "enum": true, "boolean": true, "number": true, "icon": true,
+}
+
+// ValidDirectiveFieldPlacements is the set of allowed
+// CatalogDirectiveField.Placement values.
+var ValidDirectiveFieldPlacements = map[string]bool{
+	"attr": true, "bare-flag": true, "quoted-flag": true, "bare-icon": true, "paren-flag": true,
+}
+
 // CatalogDirective describes one ::: block directive's syntax: its exact
 // fence name, the optional [bracket] group, the attr/flag fields on the
 // opening fence, and either a literal body template or a repeatable child
@@ -36,6 +49,12 @@ type CatalogDirective struct {
 	Label       string `yaml:"label" json:"label"`
 	Description string `yaml:"description" json:"description"`
 	Kind        string `yaml:"kind" json:"kind"` // "callout" | "block"
+
+	// Source identifies where the directive comes from: "builtin" for the
+	// embedded catalog, "site" or "theme" for generic directives loaded from
+	// a directives/ folder. Empty in the embedded YAML; stamped when catalogs
+	// are merged (internal/directive MergeCatalog).
+	Source string `yaml:"source,omitempty" json:"source,omitempty"`
 
 	// Bracket describes [Title]/[Summary]/[Label] support. Nil when the
 	// directive's grammar has no bracket group at all (e.g. badge, video).

@@ -36,6 +36,7 @@ type Engine struct {
 	cssURL         string // external CSS bundle URL (set during Load)
 	tokenCSSURL    string // external token CSS URL (set by builder)
 	codeBlockCSS   string // dynamically generated code block syntax theme CSS
+	directiveCSS   string // concatenated generic directive CSS sidecars
 	assetResolver  *asset.Resolver
 	assetManifest  *asset.Manifest
 	imageProcessor *asset.ImageProcessor
@@ -78,6 +79,12 @@ func (e *Engine) SetImageProcessor(p *asset.ImageProcessor) {
 // SetCodeBlockCSS sets dynamically generated code block syntax theme CSS.
 // Must be called before Load().
 func (e *Engine) SetCodeBlockCSS(css string) { e.codeBlockCSS = css }
+
+// SetDirectiveCSS sets the concatenated CSS sidecars of all generic
+// directives (internal/directive Registry.CSS). Appended unlayered to the
+// main CSS bundle, same treatment as code block CSS. Must be called before
+// Load().
+func (e *Engine) SetDirectiveCSS(css string) { e.directiveCSS = css }
 
 // SetTokenCSSURL sets the external URL for the theme token CSS file.
 func (e *Engine) SetTokenCSSURL(url string) { e.tokenCSSURL = url }
@@ -154,6 +161,9 @@ func (e *Engine) Load(resolver *engine.ThemeResolver, devMode bool) error {
 	}
 	if e.codeBlockCSS != "" {
 		raw += "\n" + e.codeBlockCSS
+	}
+	if e.directiveCSS != "" {
+		raw += "\n" + e.directiveCSS
 	}
 	processed, err := asset.TransformCSS(raw, !devMode)
 	if err != nil {

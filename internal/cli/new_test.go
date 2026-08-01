@@ -144,3 +144,74 @@ func TestRunNew_FlatCommand(t *testing.T) {
 		t.Error("my-first-post.md not created")
 	}
 }
+
+func TestRunNewDirective(t *testing.T) {
+	dir := t.TempDir()
+	origWd, _ := os.Getwd()
+	os.Chdir(dir)
+	defer os.Chdir(origWd)
+
+	cmd := rootCmd
+	cmd.SetArgs([]string{"new", "directive", "pullquote"})
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("new directive failed: %v", err)
+	}
+
+	for _, ext := range []string{".yaml", ".html", ".css"} {
+		p := filepath.Join(dir, "directives", "pullquote"+ext)
+		if _, err := os.Stat(p); err != nil {
+			t.Errorf("%s not created: %v", p, err)
+		}
+	}
+
+	data, _ := os.ReadFile(filepath.Join(dir, "directives", "pullquote.yaml"))
+	if !strings.Contains(string(data), "name: pullquote") {
+		t.Errorf("yaml missing name, got: %s", data)
+	}
+	css, _ := os.ReadFile(filepath.Join(dir, "directives", "pullquote.css"))
+	if !strings.Contains(string(css), "--sd-accent") {
+		t.Errorf("css missing --sd-* token usage, got: %s", css)
+	}
+}
+
+func TestRunNewDirective_RejectsBuiltinName(t *testing.T) {
+	dir := t.TempDir()
+	origWd, _ := os.Getwd()
+	os.Chdir(dir)
+	defer os.Chdir(origWd)
+
+	cmd := rootCmd
+	cmd.SetArgs([]string{"new", "directive", "card"})
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("expected error for built-in name card")
+	}
+}
+
+func TestRunNewDirective_RejectsInvalidName(t *testing.T) {
+	dir := t.TempDir()
+	origWd, _ := os.Getwd()
+	os.Chdir(dir)
+	defer os.Chdir(origWd)
+
+	cmd := rootCmd
+	cmd.SetArgs([]string{"new", "directive", "My_Thing"})
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("expected error for invalid name")
+	}
+}
+
+func TestRunNewDirective_AlreadyExists(t *testing.T) {
+	dir := t.TempDir()
+	origWd, _ := os.Getwd()
+	os.Chdir(dir)
+	defer os.Chdir(origWd)
+
+	os.MkdirAll(filepath.Join(dir, "directives"), 0o755)
+	os.WriteFile(filepath.Join(dir, "directives", "pullquote.yaml"), []byte("name: pullquote\n"), 0o644)
+
+	cmd := rootCmd
+	cmd.SetArgs([]string{"new", "directive", "pullquote"})
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("expected error when directive already exists")
+	}
+}

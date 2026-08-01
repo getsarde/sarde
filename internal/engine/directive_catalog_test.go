@@ -16,13 +16,9 @@ func loadDirectiveCatalog(t *testing.T) *engine.DirectiveCatalog {
 	return cat
 }
 
-var validFieldTypes = map[string]bool{
-	"string": true, "enum": true, "boolean": true, "number": true, "icon": true,
-}
+var validFieldTypes = engine.ValidDirectiveFieldTypes
 
-var validPlacements = map[string]bool{
-	"attr": true, "bare-flag": true, "quoted-flag": true, "bare-icon": true, "paren-flag": true,
-}
+var validPlacements = engine.ValidDirectiveFieldPlacements
 
 func TestDirectiveCatalog_Structure(t *testing.T) {
 	cat := loadDirectiveCatalog(t)

@@ -3,6 +3,7 @@ package build
 import (
 	"github.com/getsarde/sarde/internal/asset"
 	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/directive"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/i18n"
 	"github.com/getsarde/sarde/internal/links"
@@ -39,9 +40,10 @@ type buildState struct {
 	// Phase 4.5 — Assets + Markdown render
 	assetPipeline  *asset.Pipeline
 	pageIndex      *content.PageIndex
-	scProcessor    *shortcode.Processor
-	shortcodesHash string
-	iconRenderKey  string
+	scProcessor       *shortcode.Processor
+	shortcodesHash    string
+	directiveRegistry *directive.Registry
+	iconRenderKey     string
 	pageCache      *PageCache
 	pendingAnchors []links.PendingAnchorCheck
 	validationData map[string]engine.ValidationEntry
