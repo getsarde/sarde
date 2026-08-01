@@ -202,7 +202,7 @@ The default layout (`_default/baseof.html`) is leaner: Head, Header, FallbackNot
 
 ### Head
 
-Renders `<head>` content: charset, viewport, and generator meta tags, sitemap link (if [`search`](/reference/configuration#search) enables it), favicon, an inline `window.__SARDE__` config object, the `<title>` tag, meta description, SEO tags via `partial "seo.html"`, theme styles via [`themeStyles`](/reference/template-functions#templates), per-page stylesheets from `.Styles`, and per-page head tags from [`frontmatter head`](/reference/frontmatter#head).
+Renders `<head>` content: viewport and generator meta tags, sitemap link (if [`search`](/reference/configuration#search) enables it), favicon, an inline `window.__SARDE__` config object, the `<title>` tag, meta description, SEO tags via `partial "seo.html"`, theme styles via [`themeStyles`](/reference/template-functions#templates), per-page stylesheets from `.Styles`, and per-page head tags from [`frontmatter head`](/reference/frontmatter#head). The `<meta charset="utf-8">` declaration is not part of this component: each `baseof.html` emits it as the first element inside `<head>` so it stays within the first 1024 bytes of the document. A custom `baseof.html` must declare it itself.
 
 ### Header
 

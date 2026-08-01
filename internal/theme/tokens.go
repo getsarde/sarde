@@ -8,14 +8,21 @@ import (
 	"strings"
 )
 
+// accentTextMaxL caps the OKLCH lightness of the derived accent-text token.
+// An accent at or below this lightness keeps at least a 4.5:1 (WCAG AA)
+// contrast ratio against white and near-white surfaces at typical chroma.
+const accentTextMaxL = 0.48
+
 // DeriveTokens auto-generates variant tokens from the accent color.
-// When accent is a valid hex color, it derives:
+// When accent is a valid hex or oklch color, it derives:
 //   - accent-hover: 10% darker
 //   - accent-high: 20% lighter (for dark mode emphasis)
 //   - accent-low: rgba() at 10% opacity (for subtle backgrounds)
+//   - accent-text: lightness-capped variant for accent-colored text,
+//     guaranteed readable (4.5:1) on light surfaces
 //
 // Derivation is skipped if a key already exists (user overrides win).
-// Non-hex accent values are skipped gracefully.
+// Unparseable accent values are skipped gracefully.
 func DeriveTokens(tokens map[string]string) map[string]string {
 	primary, ok := tokens["accent"]
 	if !ok || primary == "" {
@@ -37,6 +44,12 @@ func DeriveTokens(tokens map[string]string) map[string]string {
 		if _, exists := tokens["accent-low"]; !exists {
 			tokens["accent-low"] = fmt.Sprintf("rgba(%d, %d, %d, 0.1)", r, g, b)
 		}
+		if _, exists := tokens["accent-text"]; !exists {
+			// Cap lightness in OKLCH space: HSL lightness is a poor
+			// perceptual proxy (cyan/green/amber hues stay too light).
+			ol, oc, oh := rgbToOKLCH(r, g, b)
+			tokens["accent-text"] = fmt.Sprintf("oklch(%.3f %.3f %.1f)", clamp(math.Min(ol-0.05, accentTextMaxL), 0, 1), oc, oh)
+		}
 		return tokens
 	}
 
@@ -51,10 +64,40 @@ func DeriveTokens(tokens map[string]string) map[string]string {
 		if _, exists := tokens["accent-low"]; !exists {
 			tokens["accent-low"] = fmt.Sprintf("oklch(%.3f %.3f %.1f / 0.1)", l, c, h)
 		}
+		if _, exists := tokens["accent-text"]; !exists {
+			tokens["accent-text"] = fmt.Sprintf("oklch(%.3f %.3f %.1f)", clamp(math.Min(l-0.05, accentTextMaxL), 0, 1), c, h)
+		}
 		return tokens
 	}
 
 	return tokens
+}
+
+// rgbToOKLCH converts RGB (0-255) to OKLCH (L 0-1, C, H 0-360).
+func rgbToOKLCH(r, g, b int) (l, c, h float64) {
+	lin := func(v int) float64 {
+		x := float64(v) / 255
+		if x <= 0.04045 {
+			return x / 12.92
+		}
+		return math.Pow((x+0.055)/1.055, 2.4)
+	}
+	lr, lg, lb := lin(r), lin(g), lin(b)
+
+	lms1 := math.Cbrt(0.4122214708*lr + 0.5363325363*lg + 0.0514459929*lb)
+	lms2 := math.Cbrt(0.2119034982*lr + 0.6806995451*lg + 0.1073969566*lb)
+	lms3 := math.Cbrt(0.0883024619*lr + 0.2817188376*lg + 0.6299787005*lb)
+
+	l = 0.2104542553*lms1 + 0.7936177850*lms2 - 0.0040720468*lms3
+	a := 1.9779984951*lms1 - 2.4285922050*lms2 + 0.4505937099*lms3
+	bb := 0.0259040371*lms1 + 0.7827717662*lms2 - 0.8086757660*lms3
+
+	c = math.Sqrt(a*a + bb*bb)
+	h = math.Atan2(bb, a) * 180 / math.Pi
+	if h < 0 {
+		h += 360
+	}
+	return l, c, h
 }
 
 // parseHex parses a hex color string (#RGB or #RRGGBB) into RGB components.

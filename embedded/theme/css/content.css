@@ -129,6 +129,16 @@
 	  font-size: inherit;
 	}
 
+	/* Kazari line numbers: syntax themes ship editor-style dimmed gutter
+	   colors (around 2:1 contrast). Re-derive the color from the block's own
+	   editor foreground/background so it clears WCAG AA on any theme, light
+	   or dark. Declared on .kazari-block so it beats Kazari's inherited :root
+	   values, while per-block forced themes ([data-kz-theme]) still win. */
+	.kazari-block {
+	  --kz-ln-fg: color-mix(in oklab, var(--kz-editor-fg) 70%, var(--kz-editor-bg));
+	  --kz-ln-opacity: 1;
+	}
+
 	/* ── Tables ── */
 	article table,
 	.content table {

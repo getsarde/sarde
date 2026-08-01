@@ -99,6 +99,81 @@ func TestDeriveTokens_OKLCH_Percent(t *testing.T) {
 	}
 }
 
+func TestDeriveTokens_AccentText_OKLCH_Capped(t *testing.T) {
+	// A light accent must be capped at accentTextMaxL, not just darkened.
+	tokens := map[string]string{"accent": "oklch(0.670 0.190 211.0)"}
+	result := DeriveTokens(tokens)
+
+	want := "oklch(0.480 0.190 211.0)"
+	if result["accent-text"] != want {
+		t.Errorf("accent-text: got %q, want %q", result["accent-text"], want)
+	}
+}
+
+func TestDeriveTokens_AccentText_OKLCH_DarkAccentDarkens(t *testing.T) {
+	// An already-dark accent darkens by 0.05 rather than snapping to the cap.
+	tokens := map[string]string{"accent": "oklch(0.420 0.210 264.0)"}
+	result := DeriveTokens(tokens)
+
+	want := "oklch(0.370 0.210 264.0)"
+	if result["accent-text"] != want {
+		t.Errorf("accent-text: got %q, want %q", result["accent-text"], want)
+	}
+}
+
+func TestDeriveTokens_AccentText_Hex(t *testing.T) {
+	// Hex accents derive accent-text through OKLCH, not HSL: perceptually
+	// light hues (cyan, green, amber) must land at the same lightness cap.
+	tokens := map[string]string{"accent": "#0ea5e9"}
+	result := DeriveTokens(tokens)
+
+	at := result["accent-text"]
+	if !strings.HasPrefix(at, "oklch(0.480 ") {
+		t.Errorf("accent-text should be capped at oklch L 0.480, got %q", at)
+	}
+}
+
+func TestDeriveTokens_AccentText_ExistingKeyNotOverridden(t *testing.T) {
+	tokens := map[string]string{
+		"accent":      "oklch(0.600 0.220 264.0)",
+		"accent-text": "#custom",
+	}
+	DeriveTokens(tokens)
+
+	if tokens["accent-text"] != "#custom" {
+		t.Errorf("existing accent-text should not be overridden, got %q", tokens["accent-text"])
+	}
+}
+
+func TestRGBToOKLCH(t *testing.T) {
+	// White: L=1, C=0. Hue is meaningless at zero chroma.
+	l, c, _ := rgbToOKLCH(255, 255, 255)
+	if l < 0.999 || l > 1.001 {
+		t.Errorf("white L: got %f, want 1.0", l)
+	}
+	if c > 0.001 {
+		t.Errorf("white C: got %f, want 0", c)
+	}
+
+	// Black: L=0.
+	l, _, _ = rgbToOKLCH(0, 0, 0)
+	if l > 0.001 {
+		t.Errorf("black L: got %f, want 0", l)
+	}
+
+	// Pure red: known reference oklch(0.628 0.258 29.2).
+	l, c, h := rgbToOKLCH(255, 0, 0)
+	if l < 0.62 || l > 0.64 {
+		t.Errorf("red L: got %f, want ~0.628", l)
+	}
+	if c < 0.25 || c > 0.27 {
+		t.Errorf("red C: got %f, want ~0.258", c)
+	}
+	if h < 28 || h > 30 {
+		t.Errorf("red H: got %f, want ~29.2", h)
+	}
+}
+
 func TestDeriveTokens_OKLCH_ClampAtBounds(t *testing.T) {
 	tokens := map[string]string{"accent": "oklch(0.020 0.15 200)"}
 	result := DeriveTokens(tokens)

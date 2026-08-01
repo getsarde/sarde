@@ -27,7 +27,9 @@ func DefaultDarkTokens() map[string]string {
 		"text":            "var(--sd-gray-3)",
 		"text-high":       "var(--sd-white)",
 		"text-muted":      "var(--sd-gray-4)",
-		"text-subtle":     "var(--sd-gray-5)",
+		// gray-5 alone is ~3.6:1 on the dark background; nudge toward gray-4
+		// to clear WCAG AA while staying dimmer than text-muted.
+		"text-subtle":     "color-mix(in oklch, var(--sd-gray-5) 30%, var(--sd-gray-4))",
 		"text-accent":     "var(--sd-accent-high, var(--sd-accent, oklch(0.71 0.19 264)))",
 		"text-invert":     "var(--sd-black)",
 		"text-success":    "var(--sd-green-high)",
@@ -62,6 +64,14 @@ func DefaultDarkTokens() map[string]string {
 		"aside-caution-bg": "oklch(0.75 0.16 75 / 0.1)",
 		"aside-danger-bg":  "oklch(0.55 0.20 25 / 0.1)",
 		"aside-success-bg": "oklch(0.62 0.17 155 / 0.1)",
+		// Aside titles/icons: the light-mode title colors are too dark for
+		// dark backgrounds; the -high variants keep 4.5:1 on the tinted bgs.
+		"aside-note-text":    "var(--sd-blue-high)",
+		"aside-tip-text":     "var(--sd-green-high)",
+		"aside-info-text":    "var(--sd-cyan-high)",
+		"aside-caution-text": "var(--sd-amber-high)",
+		"aside-danger-text":  "var(--sd-red-high)",
+		"aside-success-text": "var(--sd-green-high)",
 		"aside-code-bg-mix":     "16%",
 		"aside-code-border-mix": "35%",
 	}

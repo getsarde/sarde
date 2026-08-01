@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ .Lang }}" dir="{{ .Dir }}">
 <head>
+  <meta charset="utf-8">
   <script>(function(){var t=localStorage.getItem('sd-theme')||'system';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');if(localStorage.getItem('sd-sidebar')==='collapsed'&&matchMedia('(min-width:1024px)').matches){document.documentElement.classList.add('sd-sidebar-collapsed')}})()</script>
   {{ component "Head" . }}
 </head>

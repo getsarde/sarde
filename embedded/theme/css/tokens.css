@@ -59,8 +59,12 @@
 	  --sd-text: var(--sd-gray-9);
 	  --sd-text-high: var(--sd-black);
 	  --sd-text-muted: var(--sd-gray-6);
-	  --sd-text-subtle: var(--sd-gray-5);
-	  --sd-text-accent: var(--sd-accent, oklch(0.60 0.22 var(--sd-hue-accent)));
+	  /* Halfway between gray-5 and gray-6: gray-5 alone sits at ~4.5:1 on
+	     surface backgrounds, right on the WCAG AA boundary. */
+	  --sd-text-subtle: color-mix(in oklch, var(--sd-gray-5) 50%, var(--sd-gray-6));
+	  /* Accent-colored text uses the derived accent-text (lightness capped so
+	     it clears 4.5:1 on light surfaces); raw accent stays for borders/bgs. */
+	  --sd-text-accent: var(--sd-accent-text, var(--sd-accent, oklch(0.52 0.22 var(--sd-hue-accent))));
 	  --sd-text-invert: var(--sd-white);
 	  --sd-text-success: var(--sd-green);
 	  --sd-text-warning: var(--sd-amber);
@@ -225,6 +229,15 @@
 	  --sd-aside-danger-bg: var(--sd-red-low);
 	  --sd-aside-success: var(--sd-green);
 	  --sd-aside-success-bg: var(--sd-green-low);
+	  /* Title/icon text inside asides. Darker than the accent colors above,
+	     which fall below 4.5:1 on the tinted aside backgrounds (the amber
+	     accent is ~2:1). Dark mode remaps these to the -high variants. */
+	  --sd-aside-note-text: oklch(0.48 0.19 231);
+	  --sd-aside-tip-text: oklch(0.48 0.14 155);
+	  --sd-aside-info-text: oklch(0.48 0.13 196);
+	  --sd-aside-caution-text: oklch(0.52 0.13 75);
+	  --sd-aside-danger-text: oklch(0.50 0.19 25);
+	  --sd-aside-success-text: oklch(0.48 0.14 155);
 	  --sd-aside-code-bg-mix: 10%;
 	  --sd-aside-code-border-mix: 25%;
 	}
