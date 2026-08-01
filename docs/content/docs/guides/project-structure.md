@@ -79,6 +79,12 @@ Local SVG icon files. Place `.svg` files here and reference them by filename wit
 
 See [Icons](/guides/icons) for icon sets and configuration.
 
+### `directives/`
+
+Custom `:::` block directives. Each directive is a `<name>.yaml` schema plus a `<name>.html` template, with an optional `<name>.css` sidecar that is bundled into the site stylesheet automatically. Scaffold one with `sarde new directive <name>`.
+
+See [Custom Directives](/extensions/custom-directives) for the schema and template data.
+
 ## Config files
 
 ### `sarde.yaml`

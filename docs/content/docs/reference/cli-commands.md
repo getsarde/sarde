@@ -258,6 +258,18 @@ sarde new lesson web-development "Introduction"
 
 Creates `content/courses/web-development/01-introduction.md`. The numeric prefix is automatically incremented based on existing lessons.
 
+### `new directive <name>`
+
+Scaffold a custom `:::` block directive.
+
+```
+sarde new directive pullquote
+```
+
+Creates `directives/pullquote.yaml` (schema), `directives/pullquote.html` (template), and `directives/pullquote.css` (styles, bundled into the site stylesheet automatically). Names must be lowercase letters, digits, and hyphens starting with a letter; names that collide with a built-in directive are rejected.
+
+See [Custom Directives](/extensions/custom-directives) for the schema and template data.
+
 ## `import`
 
 Import content from external sources.
@@ -603,14 +615,17 @@ The `pretty` format prints fields grouped by category with their type and descri
 Print the catalog of `:::` block directives Sarde recognizes, grouped by category, with syntax templates and key fields. Used by Sarde Studio to offer a directive picker.
 
 ```
-sarde directives [--format pretty|json]
+sarde directives [project-dir] [--format pretty|json] [--check]
 ```
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--format` | string | `"pretty"` | Output format. `pretty` or `json`. |
+| `--check` | bool | `false` | Validate directive definitions only. Prints warnings and exits 1 if any are found. |
 
-Like `catalog`, this command takes no project directory; the list is embedded in the binary.
+The built-in directives are embedded in the binary. Any [custom directives](/extensions/custom-directives) in the project's `directives/` folder are merged into the output, and every entry carries a `source` field: `builtin` for the embedded catalog, `site` for the project's own. Theme-provided directives are resolved at build time and are not listed here.
+
+`--check` is a fast lint: it loads and validates the definitions without running a build, so it fits an edit-save loop or a pre-commit hook.
 
 ## `effective-config`
 
