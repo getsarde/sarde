@@ -30,7 +30,7 @@ type Def struct {
 	Label       string
 	Description string
 	Category    string
-	Source      string // "site" | "theme"
+	Source      string // "site" | "theme" | "plugin:<slug>"
 	Bracket     *engine.CatalogDirectiveBracket
 	Fields      []engine.CatalogDirectiveField
 	Template    *htmltemplate.Template

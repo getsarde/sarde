@@ -19,6 +19,10 @@ import (
 // (partials/, components/, shortcodes/).
 const dirTemplates = "templates"
 
+// dirDirectives is the plugin subdirectory holding generic directive
+// definitions (<name>.yaml + <name>.html, optional <name>.css).
+const dirDirectives = "directives"
+
 // LoadAll discovers, validates, and registers every external plugin found
 // under {projectDir}/plugins. External plugins are enabled by presence on
 // disk; slugs listed in plugins.disabled are skipped. reserved holds plugin
@@ -27,8 +31,9 @@ const dirTemplates = "templates"
 // Each plugin is handled independently: a malformed manifest, a reserved
 // slug, or a failed premium license check produces a warning and skips only
 // that plugin. Returns the templates/ directories of active plugins (for the
-// template overlay chain) and the accumulated warnings.
-func LoadAll(mgr *plugin.Manager, projectDir string, cfg *config.SiteConfig, reserved []string) (templateDirs []string, warnings []engine.ValidationWarning) {
+// template overlay chain), their directives/ directories (for the generic
+// directive overlay chain), and the accumulated warnings.
+func LoadAll(mgr *plugin.Manager, projectDir string, cfg *config.SiteConfig, reserved []string) (templateDirs, directiveDirs []string, warnings []engine.ValidationWarning) {
 	disabled := make(map[string]bool, len(cfg.Plugins.Disabled))
 	for _, name := range cfg.Plugins.Disabled {
 		disabled[name] = true
@@ -82,9 +87,13 @@ func LoadAll(mgr *plugin.Manager, projectDir string, cfg *config.SiteConfig, res
 		if info, err := os.Stat(tplDir); err == nil && info.IsDir() {
 			templateDirs = append(templateDirs, tplDir)
 		}
+		if dirDir, ok := directivesDirOf(dir); ok {
+			directiveDirs = append(directiveDirs, dirDir)
+		}
 	}
 	warnings = append(warnings, templateCollisionWarnings(templateDirs)...)
-	return templateDirs, warnings
+	warnings = append(warnings, directiveCollisionWarnings(directiveDirs)...)
+	return templateDirs, directiveDirs, warnings
 }
 
 // templateCollisionWarnings flags template filenames claimed by more than one
@@ -124,6 +133,69 @@ func templateCollisionWarnings(templateDirs []string) []engine.ValidationWarning
 		slugs := claimed[key]
 		warnings = append(warnings, pluginWarning(consts.DirPlugins,
 			fmt.Sprintf("template %s is provided by multiple plugins (%s); %s wins",
+				key, strings.Join(slugs, ", "), slugs[len(slugs)-1])))
+	}
+	return warnings
+}
+
+// DirectiveDirs returns the directives/ directories of every plugin present
+// under {projectDir}/plugins, regardless of enablement or licensing. It is
+// the lightweight discovery used by CLI tools that do not resolve full
+// config; LoadAll applies the disabled-list and license gating for builds.
+func DirectiveDirs(projectDir string) []string {
+	var dirs []string
+	for _, dir := range DiscoverDirs(projectDir) {
+		if dirDir, ok := directivesDirOf(dir); ok {
+			dirs = append(dirs, dirDir)
+		}
+	}
+	return dirs
+}
+
+// directivesDirOf reports the directives/ subdirectory of one plugin dir, if
+// present.
+func directivesDirOf(pluginDir string) (string, bool) {
+	d := filepath.Join(pluginDir, dirDirectives)
+	if info, err := os.Stat(d); err == nil && info.IsDir() {
+		return d, true
+	}
+	return "", false
+}
+
+// directiveCollisionWarnings flags directive names claimed by more than one
+// plugin. Directive dirs are loaded in the sorted slug order, so the
+// last-listed plugin wins; the warning makes that shadowing visible. Site or
+// theme directives shadowing plugin ones is intentional overriding and is not
+// flagged.
+func directiveCollisionWarnings(directiveDirs []string) []engine.ValidationWarning {
+	claimed := make(map[string][]string) // "name.yaml" -> plugin slugs, in load order
+	for _, dirDir := range directiveDirs {
+		slug := filepath.Base(filepath.Dir(dirDir))
+		entries, err := os.ReadDir(dirDir)
+		if err != nil {
+			continue
+		}
+		for _, e := range entries {
+			if e.IsDir() || !strings.HasSuffix(e.Name(), ".yaml") {
+				continue
+			}
+			claimed[e.Name()] = append(claimed[e.Name()], slug)
+		}
+	}
+
+	keys := make([]string, 0, len(claimed))
+	for key, slugs := range claimed {
+		if len(slugs) > 1 {
+			keys = append(keys, key)
+		}
+	}
+	sort.Strings(keys)
+
+	var warnings []engine.ValidationWarning
+	for _, key := range keys {
+		slugs := claimed[key]
+		warnings = append(warnings, pluginWarning(consts.DirPlugins,
+			fmt.Sprintf("directive %s is provided by multiple plugins (%s); %s wins",
 				key, strings.Join(slugs, ", "), slugs[len(slugs)-1])))
 	}
 	return warnings

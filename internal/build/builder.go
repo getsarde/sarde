@@ -45,8 +45,9 @@ type SiteBuilder struct {
 	rendererPool chan *markdown.Renderer // lazily initialized pool, persisted across rebuilds
 	built        bool                    // true after first Build(); gates one-time registrations
 
-	externalPluginDirs     []string                   // templates/ dirs of active external plugins
-	externalPluginWarnings []engine.ValidationWarning // skipped-plugin diagnostics, surfaced each build
+	externalPluginDirs          []string                   // templates/ dirs of active external plugins
+	externalPluginDirectiveDirs []string                   // directives/ dirs of active external plugins
+	externalPluginWarnings      []engine.ValidationWarning // skipped-plugin diagnostics, surfaced each build
 
 	urlResolver   *engine.URLResolver // URL resolver for basePath prefixing
 	resolutionKey string              // digest of resolver state; folded into page-cache keys
@@ -91,21 +92,22 @@ func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
 	enabled := filterDisabled(opts.Config.Plugins.Enabled, opts.Config.Plugins.Disabled)
 	mgr.RegisterBuiltins(enabled, opts.Config.Plugins.Config)
 	registerSubpackagePlugins(mgr, enabled, opts.Config.Plugins.Config, opts.PluginAssetsDir)
-	extDirs, extWarnings := external.LoadAll(mgr, opts.ProjectDir, opts.Config, KnownPluginNames(""))
+	extDirs, extDirectiveDirs, extWarnings := external.LoadAll(mgr, opts.ProjectDir, opts.Config, KnownPluginNames(""))
 	extWarnings = append(extWarnings, warnUnusedPluginConfig(opts.Config, enabled, opts.ProjectDir)...)
 
 	return &SiteBuilder{
-		projectDir:             opts.ProjectDir,
-		config:                 opts.Config,
-		themeConfig:            opts.ThemeConfig,
-		embeddedFS:             opts.EmbeddedFS,
-		devMode:                opts.DevMode,
-		checkSyntax:            opts.CheckSyntax,
-		scanner:                &content.Scanner{},
-		tmplEngine:             sardetemplate.NewEngine(),
-		pluginMgr:              mgr,
-		externalPluginDirs:     extDirs,
-		externalPluginWarnings: extWarnings,
+		projectDir:                  opts.ProjectDir,
+		config:                      opts.Config,
+		themeConfig:                 opts.ThemeConfig,
+		embeddedFS:                  opts.EmbeddedFS,
+		devMode:                     opts.DevMode,
+		checkSyntax:                 opts.CheckSyntax,
+		scanner:                     &content.Scanner{},
+		tmplEngine:                  sardetemplate.NewEngine(),
+		pluginMgr:                   mgr,
+		externalPluginDirs:          extDirs,
+		externalPluginDirectiveDirs: extDirectiveDirs,
+		externalPluginWarnings:      extWarnings,
 	}
 }
 

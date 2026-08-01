@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-Custom directives let you add new `:::` block syntax to your site without writing Go or waiting for a release. A directive is three files in a `directives/` folder at your site root (themes can ship them too, under `themes/<name>/directives/`):
+Custom directives let you add new `:::` block syntax to your site without writing Go or waiting for a release. A directive is three files in a `directives/` folder at your site root (themes can ship them too, under `themes/<name>/directives/`, and so can external plugins, under `plugins/<slug>/directives/`):
 
 - `directives/<name>.yaml` describes the directive: its kind, label, and fields.
 - `directives/<name>.html` is a Go `html/template` that renders it.
@@ -129,11 +129,21 @@ Definitions are validated on every build. A broken directive (bad kind, unknown 
 - in the dev server's browser warning panel,
 - via `sarde directives --check`, a fast lint that loads and validates definitions without building; it exits 1 when anything is wrong.
 
-`sarde directives --format json` lists your site's directives merged with the built-in catalog, each entry stamped with `source: "site"` (or `builtin`). Sarde Studio's directive picker reads this and offers custom directives automatically.
+`sarde directives --format json` lists your site's and your plugins' directives merged with the built-in catalog, each entry stamped with a `source` of `builtin`, `site`, or `plugin:<slug>`. Sarde Studio's directive picker reads this and offers custom directives automatically.
+
+## Plugin-shipped directives
+
+External plugins can ship directives in `plugins/<slug>/directives/`, using exactly the same three-file format. They join the overlay chain below theme and site definitions, so the load order is:
+
+```
+plugins  <  theme  <  site        (later wins)
+```
+
+A site or theme directive silently overrides a same-named plugin directive (intentional overriding). When two plugins ship the same directive name, the alphabetically last slug wins and the build warns. A premium plugin's directives stay inactive without a valid license, and a plugin listed in `plugins.disabled` contributes nothing. See [External Plugin Authoring](/advanced/external-plugin-authoring/#contributing-directives).
 
 ## Edge cases
 
-- **Built-in names win.** A `directives/card.yaml` is ignored with a warning; the built-in `:::card` keeps working.
-- **Theme vs site.** A site directive overrides a theme directive of the same name.
+- **Built-in names win.** A `directives/card.yaml` is ignored with a warning; the built-in `:::card` keeps working, whether the definition comes from a plugin, a theme, or the site.
+- **Theme vs site.** A site directive overrides a theme directive of the same name; both override plugin directives.
 - **Unknown names fall through.** `:::something-unregistered` renders as plain paragraph text, matching built-in behavior.
 - **Leaf bodies are escaped.** Raw HTML inside a leaf body renders as text, not markup. Use a container if you need rendered content.

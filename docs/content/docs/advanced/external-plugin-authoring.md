@@ -155,6 +155,29 @@ When two installed plugins ship a template with the same filename, the alphabeti
 template shortcodes/gradebook.html is provided by multiple plugins (grade-sync, quiz-widgets); quiz-widgets wins
 ```
 
+## Contributing directives
+
+A plugin can ship generic `:::` directives by placing the same three-file definitions site authors use (see [Custom Directives](/extensions/custom-directives/)) in a `directives/` folder:
+
+```
+plugins/<slug>/
+  plugin.yaml
+  directives/
+    callout.yaml
+    callout.html
+    callout.css        # optional
+```
+
+No manifest change is needed; the folder's presence is enough. Plugin directives load before theme and site ones, so the host site (or its theme) can override any directive a plugin ships just by defining the same name. Built-in directive names always win and produce a warning. CSS sidecars are bundled into the site stylesheet like site-level ones.
+
+When two installed plugins ship the same directive name, the alphabetically last slug wins and the build warns:
+
+```
+directive callout.yaml is provided by multiple plugins (note-pack, ui-pack); ui-pack wins
+```
+
+For premium plugins, directives follow the license gate: without a valid license the plugin's directives never register. `sarde directives --format json` lists plugin directives with `source: "plugin:<slug>"`, so they appear in Sarde Studio's picker automatically.
+
 ## Developing and testing locally
 
 Develop a plugin directly inside a test site: create `plugins/<slug>/` by hand and run `sarde dev`. The dev server watches `plugins/` and runs a full rebuild on every change, so manifest edits, asset changes, and template changes all show up on save.
@@ -165,7 +188,7 @@ To distribute, zip the plugin directory (a wrapping top-level folder inside the 
 
 The manifest model is deliberately limited to presentation. An external plugin cannot:
 
-- Add Markdown syntax or Goldmark extensions
+- Add bespoke Markdown syntax or Goldmark extensions (generic `:::` directives, covered above, are the supported path)
 - Transform content, inject pages, or read the content model
 - Register dev-server routes
 - Run build-time computation such as image generation or index building

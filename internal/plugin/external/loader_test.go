@@ -49,10 +49,13 @@ func TestLoadAllIndependentPlugins(t *testing.T) {
 
 	mgr := plugin.NewManager()
 	cfg := config.Defaults()
-	tplDirs, warnings := LoadAll(mgr, project, cfg, []string{"sitemap", "search"})
+	tplDirs, dirDirs, warnings := LoadAll(mgr, project, cfg, []string{"sitemap", "search"})
 
 	if len(tplDirs) != 1 || !strings.HasSuffix(tplDirs[0], filepath.Join("good", "templates")) {
 		t.Errorf("expected only good's templates dir, got %v", tplDirs)
+	}
+	if len(dirDirs) != 0 {
+		t.Errorf("expected no directive dirs, got %v", dirDirs)
 	}
 
 	wantWarnings := map[string]bool{"broken": false, "premium": false, "sitemap": false}
@@ -80,9 +83,9 @@ func TestLoadAllDisabledSkipped(t *testing.T) {
 	mgr := plugin.NewManager()
 	cfg := config.Defaults()
 	cfg.Plugins.Disabled = []string{"muted"}
-	tplDirs, warnings := LoadAll(mgr, project, cfg, nil)
-	if len(tplDirs) != 0 || len(warnings) != 0 {
-		t.Errorf("disabled plugin should be silently skipped, got dirs=%v warnings=%v", tplDirs, warnings)
+	tplDirs, dirDirs, warnings := LoadAll(mgr, project, cfg, nil)
+	if len(tplDirs) != 0 || len(dirDirs) != 0 || len(warnings) != 0 {
+		t.Errorf("disabled plugin should be silently skipped, got dirs=%v directiveDirs=%v warnings=%v", tplDirs, dirDirs, warnings)
 	}
 }
 
@@ -105,12 +108,67 @@ func TestLoadAllPremiumWithValidLicense(t *testing.T) {
 	}
 
 	mgr := plugin.NewManager()
-	tplDirs, warnings := LoadAll(mgr, project, config.Defaults(), nil)
-	if len(tplDirs) != 0 {
-		t.Errorf("expected no template dirs, got %v", tplDirs)
+	tplDirs, dirDirs, warnings := LoadAll(mgr, project, config.Defaults(), nil)
+	if len(tplDirs) != 0 || len(dirDirs) != 0 {
+		t.Errorf("expected no template or directive dirs, got %v / %v", tplDirs, dirDirs)
 	}
 	if len(warnings) != 1 || !strings.Contains(warnings[0].Message, "signature") {
 		t.Errorf("expected an invalid-signature warning, got %+v", warnings)
+	}
+}
+
+func TestLoadAllDirectiveDirs(t *testing.T) {
+	project := t.TempDir()
+
+	// A free plugin shipping a directive.
+	withDir := writePluginFixture(t, project, "withdir", freeManifest("withdir"))
+	if err := os.MkdirAll(filepath.Join(withDir, "directives"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(withDir, "directives", "callout.yaml"), []byte("name: callout\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// A premium plugin without a license also shipping a directive: its dir
+	// must not be collected.
+	premDir := writePluginFixture(t, project, "premdir", "name: P\nslug: premdir\nversion: 1.0.0\npremium: true\n")
+	if err := os.MkdirAll(filepath.Join(premDir, "directives"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	mgr := plugin.NewManager()
+	_, dirDirs, warnings := LoadAll(mgr, project, config.Defaults(), nil)
+	if len(dirDirs) != 1 || !strings.HasSuffix(dirDirs[0], filepath.Join("withdir", "directives")) {
+		t.Errorf("expected only withdir's directives dir, got %v", dirDirs)
+	}
+	if len(warnings) != 1 || !strings.Contains(warnings[0].File, "premdir") {
+		t.Errorf("expected exactly the premium warning, got %+v", warnings)
+	}
+}
+
+func TestDirectiveCollisionWarnings(t *testing.T) {
+	project := t.TempDir()
+	for _, slug := range []string{"alpha", "beta"} {
+		dir := writePluginFixture(t, project, slug, freeManifest(slug))
+		if err := os.MkdirAll(filepath.Join(dir, "directives"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, "directives", "callout.yaml"), []byte("name: callout\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	mgr := plugin.NewManager()
+	_, dirDirs, warnings := LoadAll(mgr, project, config.Defaults(), nil)
+	if len(dirDirs) != 2 {
+		t.Fatalf("expected both directive dirs, got %v", dirDirs)
+	}
+	if len(warnings) != 1 {
+		t.Fatalf("expected exactly one collision warning, got %+v", warnings)
+	}
+	msg := warnings[0].Message
+	if !strings.Contains(msg, "callout.yaml") || !strings.Contains(msg, "alpha, beta") || !strings.Contains(msg, "beta wins") {
+		t.Errorf("unexpected collision message: %q", msg)
 	}
 }
 

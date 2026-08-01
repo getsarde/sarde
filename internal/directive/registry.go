@@ -14,7 +14,8 @@ import (
 
 // Registry holds all loaded generic directive definitions. Load order gives
 // overlay precedence: a directory loaded later overwrites same-named
-// directives from earlier directories (theme first, then site). The registry
+// directives from earlier directories (plugins first, then theme, then
+// site). The registry
 // is immutable after loading and safe for concurrent read access.
 type Registry struct {
 	funcMap htmltemplate.FuncMap

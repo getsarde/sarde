@@ -133,11 +133,15 @@ func (b *SiteBuilder) setupAssetPipelineAndShortcodes(s *buildState) error {
 	s.scProcessor = shortcode.NewProcessor(scRegistry)
 	s.shortcodesHash = scRegistry.TemplateHash()
 
-	// Build the generic directive registry (overlay: theme then site, site
-	// wins). Definitions reuse the shortcode FuncMap (icon, i18n, URL
-	// helpers). Bad definitions warn and are skipped; built-in name
-	// collisions warn and are dropped.
+	// Build the generic directive registry (overlay: plugins, then theme,
+	// then site; later wins). Definitions reuse the shortcode FuncMap (icon,
+	// i18n, URL helpers). Bad definitions warn and are skipped; built-in
+	// name collisions warn and are dropped.
 	dirRegistry := directive.NewRegistry(scFuncMap)
+	for _, pluginDirDir := range b.externalPluginDirectiveDirs {
+		source := "plugin:" + filepath.Base(filepath.Dir(pluginDirDir))
+		s.warnings = append(s.warnings, dirRegistry.LoadDir(pluginDirDir, source)...)
+	}
 	if b.config.Theme.Name != "" {
 		themeDirDir := filepath.Join(b.projectDir, consts.DirThemes, b.config.Theme.Name, consts.DirDirectives)
 		s.warnings = append(s.warnings, dirRegistry.LoadDir(themeDirDir, "theme")...)

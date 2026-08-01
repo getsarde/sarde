@@ -119,6 +119,78 @@ func TestRunDirectives_MergesSiteDirectives(t *testing.T) {
 	}
 }
 
+func TestRunDirectives_MergesPluginDirectives(t *testing.T) {
+	dir := t.TempDir()
+	plugDir := filepath.Join(dir, "plugins", "callpack")
+	os.MkdirAll(filepath.Join(plugDir, "directives"), 0o755)
+	os.WriteFile(filepath.Join(plugDir, "plugin.yaml"),
+		[]byte("name: CallPack\nslug: callpack\nversion: 1.0.0\n"), 0o644)
+	os.WriteFile(filepath.Join(plugDir, "directives", "callout.yaml"),
+		[]byte("name: callout\nkind: container\nlabel: Callout\ndescription: A callout\n"), 0o644)
+	os.WriteFile(filepath.Join(plugDir, "directives", "callout.html"),
+		[]byte("<div>{{.Body}}</div>"), 0o644)
+
+	old := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("creating pipe: %v", err)
+	}
+	os.Stdout = w
+	outCh := make(chan []byte)
+	go func() {
+		data, _ := io.ReadAll(r)
+		outCh <- data
+	}()
+
+	cmd := rootCmd
+	cmd.SetArgs([]string{"directives", "--format", "json", dir})
+	execErr := cmd.Execute()
+
+	w.Close()
+	os.Stdout = old
+	out := <-outCh
+	if execErr != nil {
+		t.Fatalf("directives --format json <dir>: %v", execErr)
+	}
+
+	var cat engine.DirectiveCatalog
+	if err := json.Unmarshal(out, &cat); err != nil {
+		t.Fatalf("output is not valid DirectiveCatalog JSON: %v", err)
+	}
+	var found *engine.CatalogDirective
+	for _, c := range cat.Categories {
+		for i := range c.Directives {
+			if c.Directives[i].Name == "callout" {
+				found = &c.Directives[i]
+			}
+		}
+	}
+	if found == nil {
+		t.Fatal("plugin directive callout missing from merged catalog")
+	}
+	if found.Source != "plugin:callpack" {
+		t.Errorf("callout source = %q, want plugin:callpack", found.Source)
+	}
+}
+
+func TestRunDirectives_CheckMalformedPluginDirective(t *testing.T) {
+	dir := t.TempDir()
+	plugDir := filepath.Join(dir, "plugins", "badpack")
+	os.MkdirAll(filepath.Join(plugDir, "directives"), 0o755)
+	os.WriteFile(filepath.Join(plugDir, "plugin.yaml"),
+		[]byte("name: BadPack\nslug: badpack\nversion: 1.0.0\n"), 0o644)
+	os.WriteFile(filepath.Join(plugDir, "directives", "broken.yaml"),
+		[]byte("name: broken\nkind: nonsense\nlabel: B\ndescription: d\n"), 0o644)
+	os.WriteFile(filepath.Join(plugDir, "directives", "broken.html"),
+		[]byte("<div></div>"), 0o644)
+
+	cmd := rootCmd
+	cmd.SetArgs([]string{"directives", "--check", dir})
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("expected --check to fail on a malformed plugin directive")
+	}
+}
+
 func TestRunDirectives_CheckMalformed(t *testing.T) {
 	dir := t.TempDir()
 	dirDir := filepath.Join(dir, "directives")
