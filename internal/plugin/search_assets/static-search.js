@@ -105,14 +105,33 @@
 
   function loadIndex() {
     if (dbPromise) return dbPromise;
+    // Base language subtag ("pt-BR" -> "pt") names the stemmer module the
+    // build emitted for this lane; a missing module (unsupported language)
+    // resolves to null and search falls back to default tokenization.
+    var langBase = (searchLang || "en").toLowerCase().split(/[-_]/)[0];
     dbPromise = Promise.all([
       import(_base + "/assets/vendor/orama/orama.esm.js"),
-      fetch(_base + "/search-index." + (searchLang || "en") + ".json").then(function (r) { return r.json(); })
+      fetch(_base + "/search-index." + (searchLang || "en") + ".json").then(function (r) { return r.json(); }),
+      import(_base + "/assets/vendor/orama/stemmers/" + langBase + ".js").catch(function () { return null; })
     ]).then(function (arr) {
-      var orama = arr[0], docs = arr[1];
-      var db = orama.create({
-        schema: { id: "string", title: "string", url: "string", content: "string", description: "string", section: "enum", tags: "string[]", version: "enum", breadcrumb: "string", kind: "enum", anchor: "string" }
-      });
+      var orama = arr[0], docs = arr[1], langMod = arr[2];
+      var schema = { id: "string", title: "string", url: "string", content: "string", description: "string", section: "enum", tags: "string[]", version: "enum", breadcrumb: "string", kind: "enum", anchor: "string" };
+      var db;
+      if (langMod && langMod.language && langMod.stemmer) {
+        db = orama.create({
+          schema: schema,
+          components: {
+            tokenizer: {
+              language: langMod.language,
+              stemming: true,
+              stemmer: langMod.stemmer,
+              stopWords: langMod.stopwords || undefined
+            }
+          }
+        });
+      } else {
+        db = orama.create({ schema: schema });
+      }
       orama.insertMultiple(db, docs);
 
       var sectionSet = {};
@@ -286,7 +305,14 @@
   // --- Search ---
 
   function buildSearchOpts(term, offset) {
-    var opts = { term: term, properties: ["title", "content", "description", "tags"], limit: PAGE_SIZE, offset: offset, tolerance: 1 };
+    var opts = {
+      term: term,
+      properties: ["title", "content", "description", "tags"],
+      boost: { title: 5, tags: 2.5, description: 2 },
+      limit: PAGE_SIZE,
+      offset: offset,
+      tolerance: 1
+    };
     var where = {};
     if (searchVersion) where.version = { eq: searchVersion };
     if (activeSection) where.section = { eq: activeSection };

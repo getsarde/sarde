@@ -59,6 +59,8 @@ plugins:
 | `max_content_length` | Number | `5000` | Maximum characters of page content stored in the index. Higher values increase index size but improve result relevance for long pages. |
 | `exclude` | List | `[]` | URL glob patterns for pages to exclude from the index. |
 
+Individual pages can opt out with `pagefind: false` in their frontmatter, and a section can opt out all of its descendants via `cascade: { pagefind: false }` in its `_index.md`. See [Search](/guides/search/#excluding-individual-pages) and the [frontmatter reference](/reference/frontmatter/).
+
 The global `search` config section controls whether search is enabled site-wide:
 
 ```yaml
@@ -82,7 +84,7 @@ When a collection uses versioning, each page carries a `version` field in its se
 
 ## Content extraction
 
-Page content is extracted by stripping all HTML tags from the rendered output and collapsing whitespace. The raw HTML is first truncated to 3x `max_content_length` bytes (to limit processing), then tag-stripped, then truncated to the final `max_content_length`. Truncation is rune-safe (it never splits a multi-byte UTF-8 character).
+Page content is extracted by parsing the rendered HTML and collecting its visible text with whitespace collapsed. Regions that render as UI rather than prose are skipped: `script`, `style`, and `svg` elements, Mermaid diagram sources, raw math (KaTeX) sources, and code block line-number gutters. Code text itself stays searchable. HTML entities are decoded, so searching for `R&D` matches pages containing `R&amp;D` markup. The raw HTML is first truncated to 3x `max_content_length` bytes (to limit processing), then extracted, then truncated to the final `max_content_length`. Truncation is rune-safe (it never splits a multi-byte UTF-8 character).
 
 ## Incremental rebuild caching
 

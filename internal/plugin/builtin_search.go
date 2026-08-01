@@ -87,6 +87,12 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any, cache *searchDoc
 		if page.Draft {
 			continue
 		}
+		// Frontmatter opt-out: pagefind: false (cascadable via section
+		// _index.md). The typed field lives on FrontmatterMeta; Params is
+		// where the page builder and cascade surface it.
+		if v, ok := page.Params["pagefind"].(bool); ok && !v {
+			continue
+		}
 		if shouldExclude(page.Permalink, excludePatterns) {
 			continue
 		}
@@ -151,7 +157,7 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any, cache *searchDoc
 	// incremental rebuilds never prune output, so skipping the copy on
 	// incremental rebuilds is safe.
 	if !ctx.Incremental {
-		if err := writeSearchAssets(ctx); err != nil {
+		if err := writeSearchAssets(ctx, byLang); err != nil {
 			return err
 		}
 	}
@@ -165,7 +171,7 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any, cache *searchDoc
 // site against the global seen set.
 func buildSearchDocs(page *engine.Page, url string, maxLen int) []searchDocument {
 	raw := TruncateRuneSafe(string(page.Content), maxLen*3)
-	content := TruncateRuneSafe(StripHTML(raw), maxLen)
+	content := TruncateRuneSafe(ExtractSearchText(raw), maxLen)
 
 	section := ""
 	if page.Collection != nil {
@@ -233,12 +239,16 @@ func buildBreadcrumb(page *engine.Page) string {
 	return strings.Join(parts, " > ")
 }
 
-func writeSearchAssets(ctx *BuildDoneContext) error {
-	return fs.WalkDir(searchAssetsFS, "search_assets", func(path string, d fs.DirEntry, err error) error {
+func writeSearchAssets(ctx *BuildDoneContext, byLang map[string][]searchDocument) error {
+	err := fs.WalkDir(searchAssetsFS, "search_assets", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if d.IsDir() {
+			// Stemmer modules are copied selectively below, per index lane.
+			if path == "search_assets/stemmers" {
+				return fs.SkipDir
+			}
 			return nil
 		}
 		data, err := fs.ReadFile(searchAssetsFS, path)
@@ -257,6 +267,40 @@ func writeSearchAssets(ctx *BuildDoneContext) error {
 		}
 		return ctx.WriteFile(dest, data)
 	})
+	if err != nil {
+		return err
+	}
+
+	// Copy only the stemmer modules matching the emitted index lanes. A
+	// language without a vendored module simply gets none; the client falls
+	// back to default tokenization.
+	copied := make(map[string]bool, len(byLang))
+	for lang := range byLang {
+		base := searchLangBase(lang)
+		if base == "" || copied[base] {
+			continue
+		}
+		data, err := fs.ReadFile(searchAssetsFS, "search_assets/stemmers/"+base+".js")
+		if err != nil {
+			continue
+		}
+		copied[base] = true
+		if err := ctx.WriteFile("assets/vendor/orama/stemmers/"+base+".js", data); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// searchLangBase normalizes a site language code to its base subtag
+// ("pt-BR" and "pt_br" both map to "pt"), matching the client's stemmer
+// module lookup.
+func searchLangBase(lang string) string {
+	lang = strings.ToLower(lang)
+	if i := strings.IndexAny(lang, "-_"); i >= 0 {
+		lang = lang[:i]
+	}
+	return lang
 }
 
 func appendUniqueScript(list []string, item string) []string {

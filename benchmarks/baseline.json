@@ -1,1 +1,40 @@
-{}
+{
+  "site": "/home/runner/work/sarde/sarde/benchmarks/fixtures/sarde",
+  "mode": "cold",
+  "runs": 5,
+  "pageCount": 2041,
+  "wallMsMedian": 35138.727,
+  "wallMsMin": 35101.982,
+  "wallMsMax": 36213.184,
+  "wallMsRuns": [
+    36213.184,
+    35216.45,
+    35138.727,
+    35103.853,
+    35101.982
+  ],
+  "peakRssMbMedian": 931.2265625,
+  "peakRssSupported": true,
+  "pagesPerSec": 58.084062066334965,
+  "phaseMedianMs": {
+    "Assembling site": 4.698,
+    "Asset preparation": 1.012,
+    "Discovering content": 6.855,
+    "Minifying HTML": 0,
+    "Parsing content": 60.73,
+    "Pruning output": 33.902,
+    "Rendering 404 pages": 3.2,
+    "Rendering markdown": 32476.907,
+    "Rendering synthetic pages": 82.127,
+    "Rendering templates": 2240.628,
+    "Running plugins": 64.691,
+    "Template setup": 24.5,
+    "Writing assets": 1.112,
+    "Writing output": 82.248
+  },
+  "goVersion": "go1.25.12",
+  "goos": "linux",
+  "goarch": "amd64",
+  "commit": "5c23c41",
+  "timestamp": "2026-08-01T21:48:39Z"
+}

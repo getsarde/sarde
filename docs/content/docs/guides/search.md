@@ -37,6 +37,10 @@ Search results are scoped automatically:
 - **Multi-language sites**: results are filtered to the current language. A reader on `/fr/docs/...` only sees French pages.
 - **Section filters**: results display the collection and breadcrumb path, making it clear where each result lives.
 
+### Language support
+
+Each language lane gets language-aware tokenization when Sarde ships a stemmer for it: Arabic, Danish, Dutch, English, Finnish, French, German, Italian, Norwegian, Portuguese, Russian, Spanish, Swedish, and Turkish. For these, search applies the language's stemming rules (searching *manger* matches *mangeons*) and filters common stopwords. Regional codes fall back to their base language (`pt-BR` uses the Portuguese stemmer). Languages without a stemmer still work with default tokenization. Only the stemmers for languages your site actually uses are shipped with the built output.
+
 ## Per-heading indexing
 
 Every heading in a page generates a separate search document with a direct anchor link. Searching for a term that appears under a specific heading links directly to that section, not the top of the page.

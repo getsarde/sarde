@@ -309,6 +309,18 @@ On Windows, `build.bat` wraps these commands: `build.bat build`, `build.bat test
 
 For end-to-end build benchmarks (median wall time over a generated ~1,000 page fixture, pages/sec, per-phase timings, peak RSS, and an optional Hugo comparison), see [benchmarks/README.md](benchmarks/README.md).
 
+## Performance
+
+Current baseline (GitHub Actions ubuntu-latest, cold cache, median of 5 runs over the generated ~1,000 file fixture, 2,041 built pages):
+
+| Metric | Value |
+|--------|-------|
+| Median wall time | 35.1 s |
+| Pages/sec | 58 |
+| Peak RSS | 931 MB |
+
+The numbers come from [benchmarks/baseline.json](benchmarks/baseline.json), seeded from CI. Methodology, per-phase timings, and the update procedure are in [benchmarks/README.md](benchmarks/README.md).
+
 ## Tech stack
 
 - **Core**: Go, Goldmark, Cobra, Chroma v2, esbuild (Go API), fsnotify, go:embed

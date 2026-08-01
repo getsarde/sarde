@@ -11,6 +11,105 @@ import (
 	"github.com/getsarde/sarde/internal/engine"
 )
 
+func TestExtractSearchText(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{
+			"plain prose",
+			"<h1>Title</h1><p>Some <strong>bold</strong> text.</p>",
+			"Title Some bold text.",
+		},
+		{
+			"mermaid excluded via not-content",
+			`<div class="sarde-mermaid not-content" role="img" aria-label="Mermaid diagram">graph TD; A--&gt;B;</div><p>Real prose.</p>`,
+			"Real prose.",
+		},
+		{
+			"inline and block math excluded",
+			`<p>Complexity is <span class="sarde-math sarde-math-inline">$O(1)$</span> here.</p><div class="sarde-math sarde-math-block">$$x^2$$</div><p>After.</p>`,
+			"Complexity is here. After.",
+		},
+		{
+			"script and style excluded",
+			`<p>Before</p><script>var x = "</p>";</script><style>.a{color:red}</style><p>After</p>`,
+			"Before After",
+		},
+		{
+			"kazari gutter dropped, code kept",
+			`<pre data-language="go"><div class="kz-code"><div class="kz-line"><span class="kz-gutter"><span class="kz-ln">1</span></span><span>fmt.Println("hi")</span></div></div></pre>`,
+			`fmt.Println("hi")`,
+		},
+		{
+			"kz-line not confused with kz-ln",
+			`<div class="kz-line">searchable code</div>`,
+			"searchable code",
+		},
+		{
+			"entities decoded once",
+			"<p>R&amp;D &lt;tags&gt;</p>",
+			"R&D <tags>",
+		},
+	}
+	for _, tt := range tests {
+		if got := ExtractSearchText(tt.input); got != tt.want {
+			t.Errorf("%s: ExtractSearchText(%q) = %q, want %q", tt.name, tt.input, got, tt.want)
+		}
+	}
+}
+
+func TestSearch_PagefindFrontmatterExcludes(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+
+	ctx := &BuildDoneContext{
+		Config:    config.Defaults(),
+		OutputDir: outDir,
+		Site:      &engine.SiteContext{BaseURL: "https://example.com"},
+		Pages: []*engine.Page{
+			{
+				PageIdentity: engine.PageIdentity{Title: "Public", RelPermalink: "/public/", Permalink: "/public/"},
+				PageContent:  engine.PageContent{Content: template.HTML("<p>indexed</p>")},
+			},
+			{
+				PageIdentity: engine.PageIdentity{Title: "Opted In", RelPermalink: "/opted-in/", Permalink: "/opted-in/"},
+				PageContent:  engine.PageContent{Content: template.HTML("<p>indexed too</p>")},
+				Params:       map[string]any{"pagefind": true},
+			},
+			{
+				PageIdentity: engine.PageIdentity{Title: "Internal Notes", RelPermalink: "/internal/", Permalink: "/internal/"},
+				PageContent:  engine.PageContent{Content: template.HTML("<p>secret</p>")},
+				Params:       map[string]any{"pagefind": false},
+			},
+		},
+	}
+	ctx.SetWarnings(&warnings)
+
+	if err := searchBuildDone(ctx, nil, &searchDocCache{}); err != nil {
+		t.Fatalf("searchBuildDone failed: %v", err)
+	}
+
+	data, err := readTestFile(outDir, "search-index.en.json")
+	if err != nil {
+		t.Fatalf("reading search-index.en.json: %v", err)
+	}
+	var docs []searchDocument
+	if err := json.Unmarshal(data, &docs); err != nil {
+		t.Fatalf("unmarshaling search index: %v", err)
+	}
+
+	if len(docs) != 2 {
+		t.Fatalf("expected 2 documents (pagefind: false excluded), got %d", len(docs))
+	}
+	for _, d := range docs {
+		if d.Title == "Internal Notes" {
+			t.Error("page with pagefind: false must not be indexed")
+		}
+	}
+}
+
 func TestSearch_GeneratesIndex(t *testing.T) {
 	outDir := t.TempDir()
 	var warnings []engine.ValidationWarning
@@ -93,6 +192,53 @@ func TestSearch_BuildDoneWritesVendorAssets(t *testing.T) {
 		if _, err := readTestFile(outDir, rel); err != nil {
 			t.Errorf("missing %s: %v", rel, err)
 		}
+	}
+}
+
+func TestSearch_StemmersCopiedPerLanguageLane(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+	ctx := &BuildDoneContext{
+		Config:    config.Defaults(),
+		OutputDir: outDir,
+		Pages: []*engine.Page{
+			{
+				PageIdentity: engine.PageIdentity{Title: "English", RelPermalink: "/en-page/", Permalink: "/en-page/"},
+				PageContent:  engine.PageContent{Content: template.HTML("<p>hello</p>")},
+			},
+			{
+				PageIdentity: engine.PageIdentity{Title: "Bresil", RelPermalink: "/pt-br/pagina/", Permalink: "/pt-br/pagina/"},
+				PageContent:  engine.PageContent{Content: template.HTML("<p>ola</p>")},
+				PageI18n:     engine.PageI18n{Lang: "pt-BR"},
+			},
+			{
+				PageIdentity: engine.PageIdentity{Title: "Klingon", RelPermalink: "/tlh/page/", Permalink: "/tlh/page/"},
+				PageContent:  engine.PageContent{Content: template.HTML("<p>qapla</p>")},
+				PageI18n:     engine.PageI18n{Lang: "tlh"},
+			},
+		},
+	}
+	ctx.SetWarnings(&warnings)
+
+	if err := searchBuildDone(ctx, nil, &searchDocCache{}); err != nil {
+		t.Fatalf("searchBuildDone: %v", err)
+	}
+
+	// Lanes en and pt-BR have vendored stemmers (en.js, pt.js via base
+	// subtag); tlh has none and must not fail the build.
+	for _, rel := range []string{"assets/vendor/orama/stemmers/en.js", "assets/vendor/orama/stemmers/pt.js"} {
+		if _, err := readTestFile(outDir, rel); err != nil {
+			t.Errorf("missing %s: %v", rel, err)
+		}
+	}
+	for _, rel := range []string{"assets/vendor/orama/stemmers/fr.js", "assets/vendor/orama/stemmers/tlh.js"} {
+		if _, err := readTestFile(outDir, rel); err == nil {
+			t.Errorf("%s must not be copied (language not in any lane)", rel)
+		}
+	}
+	// The generic walk must not dump stemmer modules under assets/js/.
+	if _, err := readTestFile(outDir, "assets/js/stemmers/en.js"); err == nil {
+		t.Error("stemmers must not be copied by the generic asset walk")
 	}
 }
 
@@ -309,9 +455,9 @@ func TestTruncateRuneSafe(t *testing.T) {
 		{"ascii under max", "hello", 10, "hello"},
 		{"ascii exact", "hello", 5, "hello"},
 		{"ascii cut", "hello", 3, "hel"},
-		{"mid 2-byte rune", "ééé", 3, "é"},      // é = 2 bytes; cut at 3 lands mid-rune
-		{"mid 4-byte rune", "😀😀", 6, "😀"},      // 😀 = 4 bytes; cut at 6 lands mid-rune
-		{"boundary 2-byte", "ééé", 4, "éé"},     // cut on a rune boundary keeps both
+		{"mid 2-byte rune", "ééé", 3, "é"},  // é = 2 bytes; cut at 3 lands mid-rune
+		{"mid 4-byte rune", "😀😀", 6, "😀"},   // 😀 = 4 bytes; cut at 6 lands mid-rune
+		{"boundary 2-byte", "ééé", 4, "éé"}, // cut on a rune boundary keeps both
 		{"max zero", "héllo", 0, ""},
 		{"max negative", "héllo", -5, ""},
 		{"empty", "", 5, ""},
