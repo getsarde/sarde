@@ -161,8 +161,9 @@ func ContentHash(content string) string {
 // were honored carry clobbered ids in Headings; entries without refs would
 // replay zero link refs forever, reproducing the coverage undercount; entries
 // from before markdown.hard_wraps became configurable carry <br> for every
-// soft line break).
-const pageCacheSchemaVersion = "6"
+// soft line break; entries from before markdown.asides.style became
+// configurable carry the classic aside icons regardless of style).
+const pageCacheSchemaVersion = "7"
 
 // pageCacheKey builds the content-addressed key for a rendered page. Both the
 // parallel and serial render paths must use this single helper so the key

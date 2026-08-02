@@ -172,6 +172,9 @@ type RendererConfig struct {
 	// HardWraps renders a single newline inside a paragraph as <br>. Off by
 	// default, matching CommonMark, so prose wrapped in the source reflows.
 	HardWraps    bool
+	// AsideStyle selects the aside icon set ("classic" or "galaxy").
+	// Empty behaves as classic.
+	AsideStyle   string
 	KazariEngine *kazari.Engine
 	// DirectiveRegistry holds site/theme generic directives. Nil or empty
 	// no-ops the generic directive extension.
@@ -228,7 +231,7 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) (goldmark.Markdown, string)
 		extension.Footnote,
 		extension.DefinitionList,
 		// Block extensions
-		&aside.Extension{},
+		&aside.Extension{Style: cfg.AsideStyle},
 		&steps.Extension{},
 		&tabs.Extension{},
 		&accordion.Extension{},
@@ -322,13 +325,14 @@ func computeFingerprint(extensions []goldmark.Extender, cfg RendererConfig) stri
 		directiveHash = cfg.DirectiveRegistry.Hash()
 	}
 
-	raw := fmt.Sprintf("bin=%s\x00exts=%s\x00hl=%t\x00hmin=%d\x00hmax=%d\x00hw=%t\x00schemes=%s\x00kazari=%t\x00css=%s\x00directives=%s",
+	raw := fmt.Sprintf("bin=%s\x00exts=%s\x00hl=%t\x00hmin=%d\x00hmax=%d\x00hw=%t\x00aside=%s\x00schemes=%s\x00kazari=%t\x00css=%s\x00directives=%s",
 		execIdentity(),
 		strings.Join(names, "|"),
 		cfg.HeadingLinks,
 		cfg.HeadingMinLevel,
 		cfg.HeadingMaxLevel,
 		cfg.HardWraps,
+		cfg.AsideStyle,
 		strings.Join(schemes, ","),
 		cfg.KazariEngine != nil,
 		kazariCSS,

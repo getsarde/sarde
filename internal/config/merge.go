@@ -307,6 +307,7 @@ func mergeMarkdown(base, over *MarkdownSettings) {
 	mergeStr(&base.Codeblocks.DarkTheme, over.Codeblocks.DarkTheme)
 	mergeStr(&base.Codeblocks.Theme, over.Codeblocks.Theme)
 	mergeStr(&base.Codeblocks.DarkModeSelector, over.Codeblocks.DarkModeSelector)
+	mergeStr(&base.Asides.Style, over.Asides.Style)
 }
 
 func mergePrefetch(base, over *PrefetchSettings) {

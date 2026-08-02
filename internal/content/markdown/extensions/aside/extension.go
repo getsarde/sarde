@@ -8,7 +8,11 @@ import (
 )
 
 // Extension is a goldmark extension that adds aside block support.
-type Extension struct{}
+// Style selects the icon set: "galaxy" swaps note/tip/danger icons to match
+// the galaxy aside style; any other value uses the classic icons.
+type Extension struct {
+	Style string
+}
 
 // Extend implements goldmark.Extender.
 func (e *Extension) Extend(m goldmark.Markdown) {
@@ -19,7 +23,7 @@ func (e *Extension) Extend(m goldmark.Markdown) {
 	)
 	m.Renderer().AddOptions(
 		renderer.WithNodeRenderers(
-			util.Prioritized(NewRenderer(), 500),
+			util.Prioritized(NewRenderer(e.Style), 500),
 		),
 	)
 }

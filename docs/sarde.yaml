@@ -24,6 +24,8 @@ head:
 
 markdown:
   github_alerts: true
+  asides:
+    style: galaxy
   katex: true
   mermaid: true
   triple_colon_callouts: true

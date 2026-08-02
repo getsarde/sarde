@@ -42,6 +42,7 @@ func TestValidate_InvalidEnums(t *testing.T) {
 		{"link_validation.external.method", func(c *SiteConfig) { c.LinkValidation.External.Method = "banana" }, "link_validation.external.method"},
 		{"search.provider", func(c *SiteConfig) { c.Search.Provider = "banana" }, "search.provider"},
 		{"markdown.codeblocks.style", func(c *SiteConfig) { c.Markdown.Codeblocks.Style = "banana" }, "markdown.codeblocks.style"},
+		{"markdown.asides.style", func(c *SiteConfig) { c.Markdown.Asides.Style = "banana" }, "markdown.asides.style"},
 		{"build.last_updated", func(c *SiteConfig) { c.Build.LastUpdated = "banana" }, "build.last_updated"},
 	}
 	for _, tt := range tests {

@@ -272,11 +272,20 @@ type MarkdownSettings struct {
 	HardWraps           *bool               `yaml:"hard_wraps"`
 	TOC                 MarkdownTOCSettings `yaml:"toc"`
 	Codeblocks          CodeblocksSettings  `yaml:"codeblocks"`
+	Asides              AsidesSettings      `yaml:"asides"`
 }
 
 type MarkdownTOCSettings struct {
 	MinHeadingLevel int `yaml:"min_heading_level"`
 	MaxHeadingLevel int `yaml:"max_heading_level"`
+}
+
+// AsidesSettings controls how :::note / :::tip aside blocks are styled.
+// Style selects the visual treatment and its matching icon set: "classic"
+// (the default) or "galaxy". Any other value, including empty, behaves as
+// classic.
+type AsidesSettings struct {
+	Style string `yaml:"style"`
 }
 
 type CodeblocksSettings struct {

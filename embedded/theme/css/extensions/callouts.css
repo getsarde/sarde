@@ -77,6 +77,8 @@
 	/* Note - Blue */
 	.sarde-aside-note {
 	    --sd-aside-accent: var(--sd-aside-note);
+	    --sd-aside-accent-text: var(--sd-aside-note-text, var(--sd-aside-note));
+	    --sd-aside-accent-bg: var(--sd-aside-note-bg);
 	    border-color: var(--sd-aside-note);
 	    background-color: var(--sd-aside-note-bg);
 	}
@@ -86,6 +88,8 @@
 	/* Tip - Green */
 	.sarde-aside-tip {
 	    --sd-aside-accent: var(--sd-aside-tip);
+	    --sd-aside-accent-text: var(--sd-aside-tip-text, var(--sd-aside-tip));
+	    --sd-aside-accent-bg: var(--sd-aside-tip-bg);
 	    border-color: var(--sd-aside-tip);
 	    background-color: var(--sd-aside-tip-bg);
 	}
@@ -95,6 +99,8 @@
 	/* Info - Cyan */
 	.sarde-aside-info {
 	    --sd-aside-accent: var(--sd-aside-info);
+	    --sd-aside-accent-text: var(--sd-aside-info-text, var(--sd-aside-info));
+	    --sd-aside-accent-bg: var(--sd-aside-info-bg);
 	    border-color: var(--sd-aside-info);
 	    background-color: var(--sd-aside-info-bg);
 	}
@@ -104,15 +110,41 @@
 	/* Warning - Amber */
 	.sarde-aside-warning {
 	    --sd-aside-accent: var(--sd-aside-caution);
+	    --sd-aside-accent-text: var(--sd-aside-caution-text, var(--sd-aside-caution));
+	    --sd-aside-accent-bg: var(--sd-aside-caution-bg);
 	    border-color: var(--sd-aside-caution);
 	    background-color: var(--sd-aside-caution-bg);
 	}
 	.sarde-aside-warning .sarde-aside-title,
 	.sarde-aside-warning .sarde-aside-icon { color: var(--sd-aside-caution-text, var(--sd-aside-caution)); }
 
+	/* Caution - Amber (shares tokens with warning) */
+	.sarde-aside-caution {
+	    --sd-aside-accent: var(--sd-aside-caution);
+	    --sd-aside-accent-text: var(--sd-aside-caution-text, var(--sd-aside-caution));
+	    --sd-aside-accent-bg: var(--sd-aside-caution-bg);
+	    border-color: var(--sd-aside-caution);
+	    background-color: var(--sd-aside-caution-bg);
+	}
+	.sarde-aside-caution .sarde-aside-title,
+	.sarde-aside-caution .sarde-aside-icon { color: var(--sd-aside-caution-text, var(--sd-aside-caution)); }
+
+	/* Important - Purple */
+	.sarde-aside-important {
+	    --sd-aside-accent: var(--sd-aside-important);
+	    --sd-aside-accent-text: var(--sd-aside-important-text, var(--sd-aside-important));
+	    --sd-aside-accent-bg: var(--sd-aside-important-bg);
+	    border-color: var(--sd-aside-important);
+	    background-color: var(--sd-aside-important-bg);
+	}
+	.sarde-aside-important .sarde-aside-title,
+	.sarde-aside-important .sarde-aside-icon { color: var(--sd-aside-important-text, var(--sd-aside-important)); }
+
 	/* Danger - Red */
 	.sarde-aside-danger {
 	    --sd-aside-accent: var(--sd-aside-danger);
+	    --sd-aside-accent-text: var(--sd-aside-danger-text, var(--sd-aside-danger));
+	    --sd-aside-accent-bg: var(--sd-aside-danger-bg);
 	    border-color: var(--sd-aside-danger);
 	    background-color: var(--sd-aside-danger-bg);
 	}

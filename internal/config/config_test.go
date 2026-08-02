@@ -52,6 +52,9 @@ func TestDefaults_ReturnsPopulatedConfig(t *testing.T) {
 	if cfg.Markdown.Codeblocks.Style != "class" {
 		t.Errorf("Markdown.Codeblocks.Style = %q, want %q", cfg.Markdown.Codeblocks.Style, "class")
 	}
+	if cfg.Markdown.Asides.Style != "classic" {
+		t.Errorf("Markdown.Asides.Style = %q, want %q", cfg.Markdown.Asides.Style, "classic")
+	}
 	if BoolVal(cfg.Markdown.HardWraps, true) {
 		t.Error("Markdown.HardWraps should be false")
 	}

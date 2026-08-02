@@ -62,6 +62,7 @@ func validateEnums(c *validate.Checker, cfg *SiteConfig) {
 	c.OneOf("search.provider", cfg.Search.Provider, []string{"orama"})
 	c.OneOf("markdown.codeblocks.engine", cfg.Markdown.Codeblocks.Engine, []string{"nuri", "chroma"})
 	c.OneOf("markdown.codeblocks.style", cfg.Markdown.Codeblocks.Style, []string{"class"})
+	c.OneOf("markdown.asides.style", cfg.Markdown.Asides.Style, []string{"classic", "galaxy"})
 	c.OneOf("build.last_updated", string(cfg.Build.LastUpdated), []string{"git", "mtime", "false", "off", "none"})
 }
 

@@ -28,11 +28,45 @@ Arrow keys are ignored when focus is inside a text input, textarea, select eleme
 
 ## Side navigation arrows
 
-By default, the plugin injects chevron arrows fixed to the left and right edges of the viewport. Hovering an arrow shows the target page title as a tooltip. Clicking navigates to that page.
+By default, the plugin injects chevron arrows fixed to the left and right edges of the viewport. Each arrow is a full-height column that tints on hover, so the whole edge of the page is a click target. Hovering an arrow shows the target page title as a tooltip. Clicking navigates to that page.
 
-The side arrows are hidden on viewports narrower than 1280px, where the bottom pagination bar provides the same functionality without competing for screen space.
+The arrows grow with the viewport, since a wider screen has more page margin to spend on them:
 
-Set `show_side_nav: false` to disable the side arrows while keeping keyboard navigation active.
+| Viewport | Column width | Chevron |
+|--------|--------|--------|
+| 1280px | 56px | 28px |
+| 1440px | 72px | 32px |
+| 1600px and above | 90px | 40px |
+
+To keep the arrows off your content, the plugin reserves matching page margin on both sides of the content column whenever a page has previous or next links. The prose column and the table of contents shift inward so the arrows sit in empty space rather than over text. Between 1280px and 1600px this narrows the prose column by up to about 90px; at 1600px and above the page margin is already wide enough and the prose column is unaffected.
+
+The side arrows are hidden on viewports narrower than 1280px, where the bottom pagination bar provides the same functionality without competing for screen space. The reserved margin is released at the same width.
+
+Set `show_side_nav: false` to disable the side arrows while keeping keyboard navigation active. Because the reserved margin is part of the initial page render, disabling the arrows releases that margin once the plugin script runs, which shifts the content column one time on load. The default setting has no such shift.
+
+### Arrow size
+
+`side_nav_size` scales the whole ladder above:
+
+| Value | Scale | Width at 1600px |
+|--------|--------|--------|
+| `small` | 0.8 | 72px |
+| `medium` (default) | 1.0 | 90px |
+| `large` | 1.3 | 117px |
+
+Changing the size never changes the reserved margin, so switching between the three values does not reflow the page.
+
+For a value outside the three presets, override the custom properties in your own CSS:
+
+```css
+:root {
+  --sd-side-nav-width: 6rem;   /* column width before scaling */
+  --sd-side-nav-icon: 2.75rem; /* chevron size before scaling */
+  --sd-side-nav-scale: 1;      /* multiplier applied to both */
+}
+```
+
+`--sd-side-nav-width` also drives the reserved page margin, so raising it keeps the arrows clear of your content.
 
 ## Hint toast
 
@@ -51,12 +85,14 @@ plugins:
     keyboard-nav:
       show_hint: true
       show_side_nav: true
+      side_nav_size: medium
 ```
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `show_hint` | Boolean | `true` | Display a brief keyboard shortcut hint on page load. |
 | `show_side_nav` | Boolean | `true` | Display chevron arrows on the left and right edges of the viewport. |
+| `side_nav_size` | String | `medium` | Size of the side arrows: `small`, `medium`, or `large`. An unrecognized value falls back to `medium`. |
 
 ## Injection rule
 
@@ -65,6 +101,7 @@ This plugin activates on pages with previous or next navigation links (`has_prev
 ## Accessibility
 
 - Side arrows include `aria-label` attributes ("Previous page" / "Next page") and native `title` tooltips with the target page title.
+- Side arrows show a focus ring when reached by keyboard, so tabbing through the page makes them visible.
 - The hint toast uses `role="status"` for screen reader announcements. Below 1024px it is hidden with `display: none`, which also removes it from the accessibility tree, so nothing is announced there.
 - Keyboard navigation respects `prefers-reduced-motion`: transition animations are disabled when the user prefers reduced motion.
 - Side arrows and the hint toast are hidden in print output.

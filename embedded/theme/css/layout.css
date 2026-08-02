@@ -448,7 +448,11 @@
 	  .sarde-toc {
 	    display: block;
 	    position: relative;
-	    width: calc(var(--sd-toc-width) + (100% - var(--sd-content-width) - var(--sd-toc-width) - var(--sd-space-8)) / 2);
+	    /* Floored at the token: below ~1500px the distributed leftover goes
+	       negative and would shrink the column under the fixed-width
+	       .sarde-toc-inner, letting long headings escape it. The main pane
+	       absorbs the difference via flex-shrink. */
+	    width: max(var(--sd-toc-width), calc(var(--sd-toc-width) + (100% - var(--sd-content-width) - var(--sd-toc-width) - var(--sd-space-8)) / 2));
 	  }
 
 	  .sarde-main-pane {
@@ -469,6 +473,10 @@
 	  .sarde-toc-inner {
 	    position: fixed;
 	    top: 0;
+	    /* Fixed positioning detaches this from the .sarde-toc flex item, so an
+	       explicit width is what keeps long headings inside the ToC column
+	       instead of running out toward the viewport edge. */
+	    width: var(--sd-toc-width);
 	    padding-top: calc(var(--sd-nav-height) + var(--sd-space-6));
 	    height: 100vh;
 	    overflow-y: auto;

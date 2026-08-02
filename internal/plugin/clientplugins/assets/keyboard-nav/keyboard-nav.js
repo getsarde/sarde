@@ -1,8 +1,13 @@
 const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["keyboard-nav"]) || {};
 
+// Allowlisted because the value comes from user YAML and lands in an attribute
+// that CSS selectors match on.
+var SIDE_NAV_SIZES = { small: true, medium: true, large: true };
+
 const config = {
     showHint: cfg.show_hint !== false,
     showSideNav: cfg.show_side_nav !== false,
+    sideNavSize: Object.prototype.hasOwnProperty.call(SIDE_NAV_SIZES, cfg.side_nav_size) ? cfg.side_nav_size : 'medium',
 };
 
 var CHEVRON_LEFT = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
@@ -52,6 +57,20 @@ function onKeyDown(e) {
 }
 
 // -- Side Navigation Arrows --
+
+// The stylesheet reserves page margin for the arrows by default, so medium
+// needs no attribute and the common case paints without a reflow. Only the
+// opt-out and the off-default sizes stamp the root.
+function applySideNavSize() {
+    var root = document.documentElement;
+    if (!config.showSideNav) {
+        root.setAttribute('data-sarde-side-nav', 'off');
+        return;
+    }
+    if (config.sideNavSize !== 'medium') {
+        root.setAttribute('data-sarde-side-nav', config.sideNavSize);
+    }
+}
 
 function createSideNav() {
     if (!config.showSideNav) return;
@@ -117,5 +136,6 @@ function showHint() {
 // -- Init --
 
 document.addEventListener('keydown', onKeyDown);
+applySideNavSize();
 createSideNav();
 showHint();

@@ -136,3 +136,19 @@ func TestMergeLogo_ReplacesTitleCascades(t *testing.T) {
 		t.Error("ReplacesTitle = false, want true (nil over must not clobber)")
 	}
 }
+
+func TestMergeMarkdown_AsideStyle(t *testing.T) {
+	base := &MarkdownSettings{Asides: AsidesSettings{Style: "classic"}}
+	over := &MarkdownSettings{Asides: AsidesSettings{Style: "galaxy"}}
+	mergeMarkdown(base, over)
+	if base.Asides.Style != "galaxy" {
+		t.Errorf("Asides.Style = %q, want %q (override must win)", base.Asides.Style, "galaxy")
+	}
+
+	base = &MarkdownSettings{Asides: AsidesSettings{Style: "classic"}}
+	over = &MarkdownSettings{}
+	mergeMarkdown(base, over)
+	if base.Asides.Style != "classic" {
+		t.Errorf("Asides.Style = %q, want %q (empty override must keep base)", base.Asides.Style, "classic")
+	}
+}

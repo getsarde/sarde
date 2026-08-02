@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/getsarde/sarde/internal/content/markdown/icons"
 	"github.com/getsarde/sarde/internal/directive"
 	"github.com/getsarde/sarde/internal/engine"
 )
@@ -319,6 +320,81 @@ func TestRender_Aside(t *testing.T) {
 	}
 	if !strings.Contains(result.HTML, "sarde-aside") {
 		t.Errorf("expected aside element, got: %s", result.HTML)
+	}
+}
+
+func TestRender_AsideIconsPerStyle(t *testing.T) {
+	classic := NewRenderer()
+	galaxy := NewRendererFromConfig(RendererConfig{
+		BlockedHrefSchemes: defaultBlockedHrefSchemes,
+		HeadingLinks:       true,
+		AsideStyle:         "galaxy",
+	})
+
+	// Expected icons per (style, type), compared by SVG path data since
+	// attribute order in the serialized SVG is not stable across calls.
+	// gh-* variants must keep the classic icons in both styles.
+	iconHTML := func(name string) string {
+		svg := icons.GetWithClass(name, "sarde-aside-icon")
+		i := strings.Index(svg, ` d="`)
+		if i < 0 {
+			t.Fatalf("no path data in %s icon: %q", name, svg)
+		}
+		rest := svg[i+len(` d="`):]
+		j := strings.Index(rest, `"`)
+		if j < 0 {
+			t.Fatalf("unterminated path data in %s icon: %q", name, svg)
+		}
+		return rest[:j]
+	}
+	tests := []struct {
+		asideType    string
+		classicIcon  string
+		galaxyIcon   string
+	}{
+		{"note", "book-open", "info"},
+		{"tip", "sparkles", "rocket"},
+		{"danger", "x-circle", "circle-alert"},
+		{"caution", "triangle-alert", "triangle-alert"},
+		{"gh-tip", "sparkles", "sparkles"},
+		{"gh-note", "book-open", "book-open"},
+	}
+	for _, tt := range tests {
+		md := ":::" + tt.asideType + "\nBody.\n:::\n"
+		cRes, err := classic.Render(md)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(cRes.HTML, iconHTML(tt.classicIcon)) {
+			t.Errorf("classic %s: expected %s icon, got: %s", tt.asideType, tt.classicIcon, cRes.HTML)
+		}
+		gRes, err := galaxy.Render(md)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(gRes.HTML, iconHTML(tt.galaxyIcon)) {
+			t.Errorf("galaxy %s: expected %s icon, got: %s", tt.asideType, tt.galaxyIcon, gRes.HTML)
+		}
+	}
+
+	// Explicit icon= must win in both styles.
+	md := ":::tip icon=zap\nBody.\n:::\n"
+	for name, r := range map[string]*Renderer{"classic": classic, "galaxy": galaxy} {
+		res, err := r.Render(md)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(res.HTML, iconHTML("zap")) {
+			t.Errorf("%s: explicit icon= should override the style icon, got: %s", name, res.HTML)
+		}
+	}
+}
+
+func TestFingerprint_AsideStyle(t *testing.T) {
+	classic := NewRendererFromConfig(RendererConfig{HeadingLinks: true})
+	galaxy := NewRendererFromConfig(RendererConfig{HeadingLinks: true, AsideStyle: "galaxy"})
+	if classic.Fingerprint() == galaxy.Fingerprint() {
+		t.Error("renderer fingerprints must differ when only AsideStyle differs, or the page cache serves stale icons")
 	}
 }
 

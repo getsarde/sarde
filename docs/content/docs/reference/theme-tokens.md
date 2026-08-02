@@ -335,8 +335,25 @@ Foreground and background color pairs for each aside type.
 | `aside-caution-bg` | `var(--sd-amber-low)` |
 | `aside-danger` | `var(--sd-red)` |
 | `aside-danger-bg` | `var(--sd-red-low)` |
+| `aside-important` | `var(--sd-purple)` |
+| `aside-important-bg` | `var(--sd-purple-low)` |
 | `aside-success` | `var(--sd-green)` |
 | `aside-success-bg` | `var(--sd-green-low)` |
+
+Each type also has an `aside-{type}-text` token for the title and icon color. These are
+deliberately darker than the base accent so titles keep WCAG AA contrast on the tinted
+backgrounds; dark mode remaps them to the `-high` primitives (e.g. `aside-note-text` becomes
+`var(--sd-blue-high)`).
+
+| Token | Light default |
+|-------|---------------|
+| `aside-note-text` | `oklch(0.48 0.19 231)` |
+| `aside-tip-text` | `oklch(0.48 0.14 155)` |
+| `aside-info-text` | `oklch(0.48 0.13 196)` |
+| `aside-caution-text` | `oklch(0.52 0.13 75)` |
+| `aside-danger-text` | `oklch(0.50 0.19 25)` |
+| `aside-important-text` | `oklch(0.48 0.20 293)` |
+| `aside-success-text` | `oklch(0.48 0.14 155)` |
 
 ## Accent derivation
 

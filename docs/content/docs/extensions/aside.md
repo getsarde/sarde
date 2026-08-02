@@ -115,7 +115,30 @@ Sarde also supports GitHub-style alert types for compatibility with content orig
 | `gh-warning` | `warning` | Warning |
 | `gh-caution` | `caution` | Caution |
 
-GitHub-style variants receive an additional `sarde-aside-github` CSS class for separate styling if needed. They use the same icons as their standard counterparts.
+GitHub-style variants receive an additional `sarde-aside-github` CSS class for separate styling if needed. They use the same icons as their standard counterparts, and they keep their look and icons regardless of the `markdown.asides.style` setting.
+
+## Aside styles
+
+Asides ship with two visual styles, selected in `sarde.yaml`:
+
+```yaml
+markdown:
+  asides:
+    style: galaxy # or "classic" (the default)
+```
+
+- `classic` (default): a flat callout with a 4px accent bar on the start edge, rounded end corners, and a large bold title.
+- `galaxy`: a fully rounded card with a thin translucent ring, a 3px accent edge, a small uppercase title followed by a gradient rule that runs to the far edge, and a faint gradient glow across the top.
+
+The galaxy style also swaps a few default icons to match its look:
+
+| Type | Classic icon | Galaxy icon |
+|------|-------------|-------------|
+| `note` | `book-open` | `info` |
+| `tip` | `sparkles` | `rocket` |
+| `danger` | `x-circle` | `circle-alert` |
+
+All other types keep their classic icons, and an explicit `icon=` parameter always wins in both styles. Title, icon, and link colors in both styles meet WCAG AA contrast on the tinted backgrounds.
 
 ## Nesting content
 

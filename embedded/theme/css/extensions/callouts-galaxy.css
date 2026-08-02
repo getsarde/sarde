@@ -1,0 +1,166 @@
+@layer sarde.variants {
+	/* -- asides: galaxy style -- */
+	/**
+	 * Galaxy aside style, opt-in via markdown.asides.style: galaxy.
+	 * Appended to the bundle by Engine.SetAsideCSS; deliberately NOT part of
+	 * the cssOrder list in internal/template/css.go.
+	 *
+	 * Ported from the Starlight Galaxy theme: rounded card, 1px translucent
+	 * ring, 3px accent edge, uppercase title with a trailing gradient rule,
+	 * and a faint gradient glow across the top.
+	 *
+	 * Rules are scoped to .sarde-aside (minus the GitHub variants) so they
+	 * also reach asides rendered outside the Markdown pipeline, such as the
+	 * LearningObjectives component. Do not rely on .sarde-aside-content
+	 * existing; that component has none.
+	 *
+	 * Never use !important in this file: importance inverts cascade-layer
+	 * priority, so an !important rule here would beat print.css's ink-saving
+	 * background reset in @layer sarde.utils.
+	 *
+	 * Title, icon, and link text use --sd-aside-accent-text (WCAG AA on the
+	 * tinted backgrounds). The raw --sd-aside-accent hue is reserved for
+	 * decoration that carries no text: the edge, ring, glow, and title rule.
+	 */
+
+	:root {
+		--sd-aside-galaxy-ring-mix: 20%;
+	}
+
+	:root[data-theme="dark"] {
+		--sd-aside-galaxy-ring-mix: 28%;
+	}
+
+	.sarde-aside:not(.sarde-aside-github) {
+		position: relative;
+		overflow: hidden;
+		margin: 1.5rem 0;
+		padding: 0.875rem;
+		border: 1px solid color-mix(in oklab, var(--sd-aside-accent) var(--sd-aside-galaxy-ring-mix), transparent);
+		border-radius: 0.75rem;
+		background-color: var(--sd-aside-accent-bg);
+		box-shadow: var(--sd-shadow-sm);
+		transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
+		/* Accent edge: overrides the inline-start side of the ring border
+		   above (later declaration wins the shared longhand). */
+		border-inline-start: 3px solid var(--sd-aside-accent);
+		padding-inline-start: calc(0.875rem + 3px);
+	}
+
+	/* Top glow bar. Symmetric gradient, so no RTL override needed. */
+	.sarde-aside:not(.sarde-aside-github)::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		inset-inline: 0;
+		height: 1px;
+		background: linear-gradient(90deg, transparent 0%, var(--sd-aside-accent) 50%, transparent 100%);
+		opacity: 0.6;
+	}
+
+	/* Cancel the classic translateX hover nudge; layers resolve
+	   per-property, so untouched properties from sarde.components
+	   still apply. */
+	.sarde-aside:not(.sarde-aside-github):hover {
+		box-shadow: var(--sd-shadow-md);
+		transform: none;
+	}
+
+	[dir="rtl"] .sarde-aside:not(.sarde-aside-github):hover {
+		transform: none;
+	}
+
+	.sarde-aside:not(.sarde-aside-github) .sarde-aside-title {
+		gap: 0.75rem;
+		margin-bottom: 1rem;
+		font-size: 0.9rem;
+		font-weight: var(--sd-weight-bold);
+		line-height: 1.4;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--sd-aside-accent-text);
+	}
+
+	/* Trailing gradient rule after the title text. */
+	.sarde-aside:not(.sarde-aside-github) .sarde-aside-title::after {
+		content: "";
+		flex-grow: 1;
+		height: 1px;
+		margin-inline-start: 0.75rem;
+		opacity: 0.3;
+		background: linear-gradient(90deg, var(--sd-aside-accent) 0%, transparent 100%);
+	}
+
+	[dir="rtl"] .sarde-aside:not(.sarde-aside-github) .sarde-aside-title::after {
+		background: linear-gradient(270deg, var(--sd-aside-accent) 0%, transparent 100%);
+	}
+
+	.sarde-aside:not(.sarde-aside-github) .sarde-aside-icon {
+		width: 1.125rem;
+		height: 1.125rem;
+		opacity: 1;
+		color: var(--sd-aside-accent-text);
+	}
+
+	.sarde-aside:not(.sarde-aside-github) a {
+		color: var(--sd-aside-accent-text);
+		text-decoration-line: underline;
+		text-decoration-color: transparent;
+		text-underline-offset: 0.2em;
+		transition: text-decoration-color 0.2s ease;
+	}
+
+	.sarde-aside:not(.sarde-aside-github) a:hover {
+		text-decoration-color: currentColor;
+		text-decoration-thickness: 2px;
+	}
+
+	/* Inline code chip. No .sarde-aside-content ancestor, unlike the classic
+	   rule, so this also reaches component-authored aside markup. */
+	.sarde-aside:not(.sarde-aside-github) code:not(pre code) {
+		background: color-mix(in oklab, var(--sd-aside-accent) var(--sd-aside-code-bg-mix), transparent);
+		border: 1px solid color-mix(in oklab, var(--sd-aside-accent) var(--sd-aside-code-border-mix), transparent);
+		border-radius: var(--sd-radius-md);
+		color: var(--sd-text);
+	}
+
+	@media (max-width: 768px) {
+		.sarde-aside:not(.sarde-aside-github) {
+			margin: 1.25rem 0;
+		}
+
+		.sarde-aside:not(.sarde-aside-github) .sarde-aside-title::after {
+			margin-inline-start: 0.5rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.sarde-aside:not(.sarde-aside-github) {
+			transition: none;
+		}
+	}
+
+	@media (prefers-contrast: high) {
+		.sarde-aside:not(.sarde-aside-github) {
+			border-width: 2px;
+			border-inline-start-width: 4px;
+		}
+	}
+
+	/* print.css (@layer sarde.utils) outranks this layer and already resets
+	   the aside border and background for print; it does not know about the
+	   pseudo-elements added here, so hide those and the shadow only. */
+	@media print {
+		.sarde-aside:not(.sarde-aside-github) {
+			box-shadow: none;
+		}
+
+		.sarde-aside:not(.sarde-aside-github)::before {
+			display: none;
+		}
+
+		.sarde-aside:not(.sarde-aside-github) .sarde-aside-title::after {
+			display: none;
+		}
+	}
+}

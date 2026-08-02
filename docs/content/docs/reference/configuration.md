@@ -239,6 +239,12 @@ Controls which heading levels are *extracted* during the build: ID injection, an
 | `min_heading_level` | int | `2` | Minimum heading level to extract. Range: 1-6. Must be &le; `max_heading_level`. |
 | `max_heading_level` | int | `4` | Maximum heading level to extract. Range: 1-6. |
 
+### `markdown.asides`
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `style` | string | `"classic"` | Visual style for `:::note` / `:::tip` aside blocks. `classic` or `galaxy`. The galaxy style renders asides as rounded cards with an uppercase title and a trailing gradient rule, and swaps the note, tip, and danger icons to match. GitHub-style `gh-*` asides are unaffected. See [Aside](/extensions/aside/#aside-styles). |
+
 ### `markdown.codeblocks`
 
 | Key | Type | Default | Description |

@@ -9,3 +9,12 @@ fields:
     label: "Show Side Navigation Arrows"
     hint: "Display chevron arrows on the left and right edges of the viewport for prev/next navigation"
     default: true
+  side_nav_size:
+    type: select
+    label: "Side Arrow Size"
+    hint: "Size of the left and right edge navigation arrows"
+    default: medium
+    options:
+      - { value: small, label: "Small" }
+      - { value: medium, label: "Medium" }
+      - { value: large, label: "Large" }

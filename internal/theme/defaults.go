@@ -62,16 +62,18 @@ func DefaultDarkTokens() map[string]string {
 		"aside-tip-bg":     "oklch(0.62 0.17 155 / 0.1)",
 		"aside-info-bg":    "oklch(0.52 0.14 196 / 0.1)",
 		"aside-caution-bg": "oklch(0.75 0.16 75 / 0.1)",
-		"aside-danger-bg":  "oklch(0.55 0.20 25 / 0.1)",
-		"aside-success-bg": "oklch(0.62 0.17 155 / 0.1)",
+		"aside-danger-bg":    "oklch(0.55 0.20 25 / 0.1)",
+		"aside-important-bg": "oklch(0.59 0.23 293 / 0.1)",
+		"aside-success-bg":   "oklch(0.62 0.17 155 / 0.1)",
 		// Aside titles/icons: the light-mode title colors are too dark for
 		// dark backgrounds; the -high variants keep 4.5:1 on the tinted bgs.
 		"aside-note-text":    "var(--sd-blue-high)",
 		"aside-tip-text":     "var(--sd-green-high)",
 		"aside-info-text":    "var(--sd-cyan-high)",
 		"aside-caution-text": "var(--sd-amber-high)",
-		"aside-danger-text":  "var(--sd-red-high)",
-		"aside-success-text": "var(--sd-green-high)",
+		"aside-danger-text":    "var(--sd-red-high)",
+		"aside-important-text": "var(--sd-purple-high)",
+		"aside-success-text":   "var(--sd-green-high)",
 		"aside-code-bg-mix":     "16%",
 		"aside-code-border-mix": "35%",
 	}

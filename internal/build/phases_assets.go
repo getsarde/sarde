@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	htmltemplate "html/template"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -195,6 +196,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 			HeadingMinLevel:    b.config.Markdown.TOC.MinHeadingLevel,
 			HeadingMaxLevel:    b.config.Markdown.TOC.MaxHeadingLevel,
 			HardWraps:          config.BoolVal(b.config.Markdown.HardWraps, false),
+			AsideStyle:         b.config.Markdown.Asides.Style,
 			KazariEngine:       b.kazariEngine,
 			DirectiveRegistry:  s.directiveRegistry,
 		})
@@ -234,6 +236,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 					HeadingMinLevel:    b.config.Markdown.TOC.MinHeadingLevel,
 					HeadingMaxLevel:    b.config.Markdown.TOC.MaxHeadingLevel,
 					HardWraps:          config.BoolVal(b.config.Markdown.HardWraps, false),
+					AsideStyle:         b.config.Markdown.Asides.Style,
 					KazariEngine:       b.kazariEngine,
 					DirectiveRegistry:  s.directiveRegistry,
 				})
@@ -579,6 +582,11 @@ func (b *SiteBuilder) wireTemplateEngine(s *buildState) error {
 	b.tmplEngine.SetCodeBlockCSS(b.kazariEngine.CSS())
 	if s.directiveRegistry != nil {
 		b.tmplEngine.SetDirectiveCSS(s.directiveRegistry.CSS())
+	}
+	if b.config.Markdown.Asides.Style == "galaxy" && b.embeddedFS != nil {
+		if css, err := fs.ReadFile(b.embeddedFS, "css/extensions/callouts-galaxy.css"); err == nil {
+			b.tmplEngine.SetAsideCSS(string(css))
+		}
 	}
 
 	resolver := &engine.ThemeResolver{

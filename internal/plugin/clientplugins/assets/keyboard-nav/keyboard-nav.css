@@ -77,39 +77,99 @@
 
 /* ── Side Navigation Arrows ── */
 
+/* Sizes live on :root rather than on the injected .sarde-side-nav wrapper.
+   Custom properties inherit downward only, and .sarde-content-columns is not a
+   descendant of that wrapper, so the margin reservation below could not read
+   them from there. */
+:root {
+    --sd-side-nav-width: 3.5rem;
+    --sd-side-nav-icon: 1.75rem;
+    --sd-side-nav-scale: 1;
+}
+
+:root[data-sarde-side-nav="small"] {
+    --sd-side-nav-scale: 0.8;
+}
+
+:root[data-sarde-side-nav="large"] {
+    --sd-side-nav-scale: 1.3;
+}
+
+@media (min-width: 1440px) {
+    :root {
+        --sd-side-nav-width: 4.5rem;
+        --sd-side-nav-icon: 2rem;
+    }
+}
+
+@media (min-width: 1600px) {
+    :root {
+        --sd-side-nav-width: 5.625rem;
+        --sd-side-nav-icon: 2.5rem;
+    }
+}
+
+/* Reserve page margin so the arrows sit in empty space instead of over the
+   prose or the ToC. The gate is the server-rendered pagination links, not the
+   script-injected .sarde-side-nav, so the reservation is already in the first
+   paint and the content column never reflows when the module script runs.
+   Sizing uses the unscaled width, so small/large change only the arrow itself.
+   This rule is in @layer sarde.plugins, which is declared after sarde.core, so
+   it wins over layout.css on layer order alone. */
+@media (min-width: 1280px) {
+    :root:not([data-sarde-side-nav="off"])
+    body:has(.sarde-pagination-prev, .sarde-pagination-next) .sarde-content-columns {
+        padding-inline: var(--sd-side-nav-width);
+    }
+}
+
 .sarde-side-nav-prev,
 .sarde-side-nav-next {
     position: fixed;
     top: 0;
     bottom: 0;
-    width: 3rem;
+    width: calc(var(--sd-side-nav-width) * var(--sd-side-nav-scale));
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--sd-text-muted, #a1a1aa);
     text-decoration: none;
-    z-index: 10;
+    z-index: var(--sd-z-sticky, 10);
     cursor: pointer;
-    transition: color 0.2s ease, background-color 0.2s ease, inset-inline-start 200ms ease;
+    transition: color var(--sd-transition-normal, 200ms ease),
+                background-color var(--sd-transition-normal, 200ms ease),
+                inset-inline-start var(--sd-transition-normal, 200ms ease);
 }
 
 .sarde-side-nav-prev:hover,
 .sarde-side-nav-next:hover {
     color: var(--sd-text, #e4e4e7);
-    background-color: var(--sd-bg-hover, rgba(127, 127, 127, 0.08));
+    background-color: var(--sd-hover, rgba(127, 127, 127, 0.08));
     text-decoration: none;
+}
+
+.sarde-side-nav-prev:focus-visible,
+.sarde-side-nav-next:focus-visible {
+    outline: 2px solid var(--sd-focus-ring, var(--sd-accent, #6366f1));
+    outline-offset: -4px;
+    color: var(--sd-text, #e4e4e7);
 }
 
 .sarde-side-nav-prev {
     inset-inline-start: 0;
 }
 
-.sarde-layout-docs .sarde-side-nav-prev,
-.sarde-layout-wide .sarde-side-nav-prev {
+/* Keyed off the sidebar itself rather than an enumerated layout list, so the
+   labs layout (same shell as docs) and any future sidebar layout clear it too.
+   The sidebar is only a drawer below 1024px, and the arrows are hidden below
+   1280px, so matching on presence alone is safe. */
+body:has(.sarde-sidebar) .sarde-side-nav-prev {
     inset-inline-start: var(--sd-sidebar-width, 280px);
 }
 
-.sd-sidebar-collapsed .sarde-side-nav-prev {
+/* Qualified with :root and body so this outranks the :has() rule above, which
+   would otherwise win on specificity and pin the arrow at the expanded width. */
+:root.sd-sidebar-collapsed body .sarde-side-nav-prev {
     inset-inline-start: var(--sd-sidebar-collapsed-width, 40px);
 }
 
@@ -119,8 +179,8 @@
 
 .sarde-side-nav-prev svg,
 .sarde-side-nav-next svg {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: calc(var(--sd-side-nav-icon) * var(--sd-side-nav-scale));
+    height: calc(var(--sd-side-nav-icon) * var(--sd-side-nav-scale));
 }
 
 [dir="rtl"] .sarde-side-nav-prev svg,

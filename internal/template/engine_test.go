@@ -278,3 +278,29 @@ func TestEngine_Render_UnknownTemplate(t *testing.T) {
 		t.Error("expected error for unknown template")
 	}
 }
+
+func TestEngine_SetAsideCSS_AppendedToBundle(t *testing.T) {
+	site := &engine.SiteContext{Title: "Test Site", Language: "en"}
+	marker := ".sarde-aside{--galaxy-test-marker:1}"
+
+	// Default: no aside CSS in the bundle.
+	plain := NewEngine()
+	plain.SetSiteContext(site)
+	if err := plain.Load(&engine.ThemeResolver{ProjectDir: t.TempDir(), EmbeddedFS: embeddedTestFS()}, true); err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+	if strings.Contains(plain.CachedCSS(), "galaxy-test-marker") {
+		t.Error("aside CSS should be absent from the bundle by default")
+	}
+
+	// With SetAsideCSS before Load: appended to the bundle.
+	styled := NewEngine()
+	styled.SetSiteContext(site)
+	styled.SetAsideCSS(marker)
+	if err := styled.Load(&engine.ThemeResolver{ProjectDir: t.TempDir(), EmbeddedFS: embeddedTestFS()}, true); err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+	if !strings.Contains(styled.CachedCSS(), "galaxy-test-marker") {
+		t.Errorf("aside CSS set before Load must be appended to the bundle, got: %s", styled.CachedCSS())
+	}
+}

@@ -37,6 +37,7 @@ type Engine struct {
 	tokenCSSURL    string // external token CSS URL (set by builder)
 	codeBlockCSS   string // dynamically generated code block syntax theme CSS
 	directiveCSS   string // concatenated generic directive CSS sidecars
+	asideCSS       string // opt-in aside style overlay (markdown.asides.style)
 	assetResolver  *asset.Resolver
 	assetManifest  *asset.Manifest
 	imageProcessor *asset.ImageProcessor
@@ -85,6 +86,11 @@ func (e *Engine) SetCodeBlockCSS(css string) { e.codeBlockCSS = css }
 // main CSS bundle, same treatment as code block CSS. Must be called before
 // Load().
 func (e *Engine) SetDirectiveCSS(css string) { e.directiveCSS = css }
+
+// SetAsideCSS sets the opt-in aside style overlay CSS (the embedded
+// callouts-galaxy.css when markdown.asides.style is "galaxy"). Appended to
+// the main CSS bundle like code block CSS. Must be called before Load().
+func (e *Engine) SetAsideCSS(css string) { e.asideCSS = css }
 
 // SetTokenCSSURL sets the external URL for the theme token CSS file.
 func (e *Engine) SetTokenCSSURL(url string) { e.tokenCSSURL = url }
@@ -164,6 +170,9 @@ func (e *Engine) Load(resolver *engine.ThemeResolver, devMode bool) error {
 	}
 	if e.directiveCSS != "" {
 		raw += "\n" + e.directiveCSS
+	}
+	if e.asideCSS != "" {
+		raw += "\n" + e.asideCSS
 	}
 	processed, err := asset.TransformCSS(raw, !devMode)
 	if err != nil {

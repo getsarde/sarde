@@ -11,7 +11,7 @@ import (
 	"github.com/getsarde/sarde/internal/content/markdown/icons"
 )
 
-// asideIcons maps aside types to their Lucide icon name.
+// asideIcons maps aside types to their Lucide icon name (classic style).
 var asideIcons = map[string]string{
 	"note":      "book-open",
 	"tip":       "sparkles",
@@ -22,12 +22,25 @@ var asideIcons = map[string]string{
 	"caution":   "triangle-alert",
 }
 
-// asideRenderer renders AsideBlock nodes to HTML.
-type asideRenderer struct{}
+// galaxyAsideIcons holds the galaxy-style icon overrides. Types absent here
+// fall through to the classic asideIcons map. gh-* types never consult this
+// map: the gh- stripped lookup goes straight to asideIcons, so GitHub alerts
+// keep their icons in both styles.
+var galaxyAsideIcons = map[string]string{
+	"note":   "info",
+	"tip":    "rocket",
+	"danger": "circle-alert",
+}
 
-// NewRenderer returns a new aside renderer.
-func NewRenderer() renderer.NodeRenderer {
-	return &asideRenderer{}
+// asideRenderer renders AsideBlock nodes to HTML.
+type asideRenderer struct {
+	galaxy bool
+}
+
+// NewRenderer returns a new aside renderer. style selects the icon set;
+// "galaxy" swaps note/tip/danger, any other value is classic.
+func NewRenderer(style string) renderer.NodeRenderer {
+	return &asideRenderer{galaxy: style == "galaxy"}
 }
 
 // RegisterFuncs registers rendering functions.
@@ -41,6 +54,11 @@ func (r *asideRenderer) renderAside(w util.BufWriter, source []byte, node ast.No
 	var icon string
 	if aside.Icon != "" {
 		icon = icons.GetWithClass(aside.Icon, "sarde-aside-icon")
+	}
+	if icon == "" && r.galaxy {
+		if name, ok := galaxyAsideIcons[aside.AsideType]; ok {
+			icon = icons.GetWithClass(name, "sarde-aside-icon")
+		}
 	}
 	if icon == "" {
 		if name, ok := asideIcons[aside.AsideType]; ok {

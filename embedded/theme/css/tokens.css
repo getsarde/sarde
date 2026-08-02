@@ -227,6 +227,8 @@
 	  --sd-aside-caution-bg: var(--sd-amber-low);
 	  --sd-aside-danger: var(--sd-red);
 	  --sd-aside-danger-bg: var(--sd-red-low);
+	  --sd-aside-important: var(--sd-purple);
+	  --sd-aside-important-bg: var(--sd-purple-low);
 	  --sd-aside-success: var(--sd-green);
 	  --sd-aside-success-bg: var(--sd-green-low);
 	  /* Title/icon text inside asides. Darker than the accent colors above,
@@ -237,6 +239,7 @@
 	  --sd-aside-info-text: oklch(0.48 0.13 196);
 	  --sd-aside-caution-text: oklch(0.52 0.13 75);
 	  --sd-aside-danger-text: oklch(0.50 0.19 25);
+	  --sd-aside-important-text: oklch(0.48 0.20 293);
 	  --sd-aside-success-text: oklch(0.48 0.14 155);
 	  --sd-aside-code-bg-mix: 10%;
 	  --sd-aside-code-border-mix: 25%;
