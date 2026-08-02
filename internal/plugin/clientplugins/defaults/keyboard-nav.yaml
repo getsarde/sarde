@@ -9,6 +9,11 @@ fields:
     label: "Show Side Navigation Arrows"
     hint: "Display chevron arrows on the left and right edges of the viewport for prev/next navigation"
     default: true
+  show_tooltip:
+    type: toggle
+    label: "Show Arrow Tooltip"
+    hint: "Show the target page title and its arrow key beside a side arrow on hover"
+    default: true
   side_nav_size:
     type: select
     label: "Side Arrow Size"

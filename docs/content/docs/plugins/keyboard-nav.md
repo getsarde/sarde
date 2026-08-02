@@ -28,7 +28,7 @@ Arrow keys are ignored when focus is inside a text input, textarea, select eleme
 
 ## Side navigation arrows
 
-By default, the plugin injects chevron arrows fixed to the left and right edges of the viewport. Each arrow is a full-height column that tints on hover, so the whole edge of the page is a click target. Hovering an arrow shows the target page title as a tooltip. Clicking navigates to that page.
+By default, the plugin injects chevron arrows fixed to the left and right edges of the viewport. Each arrow is a full-height column that tints on hover, so the whole edge of the page is a click target. Hovering an arrow (or reaching it with the keyboard) reveals a styled tooltip beside the chevron showing the target page's title and the arrow key that triggers it. The tooltip appears after a short delay, so brushing the edge with the pointer does not flash it, and long titles truncate with an ellipsis. Clicking navigates to that page.
 
 The arrows grow with the viewport, since a wider screen has more page margin to spend on them:
 
@@ -85,6 +85,7 @@ plugins:
     keyboard-nav:
       show_hint: true
       show_side_nav: true
+      show_tooltip: true
       side_nav_size: medium
 ```
 
@@ -92,6 +93,7 @@ plugins:
 |--------|------|---------|-------------|
 | `show_hint` | Boolean | `true` | Display a brief keyboard shortcut hint on page load. |
 | `show_side_nav` | Boolean | `true` | Display chevron arrows on the left and right edges of the viewport. |
+| `show_tooltip` | Boolean | `true` | Show the target page title and its arrow key in a styled tooltip when hovering or focusing a side arrow. When `false`, the arrows fall back to the native browser `title` tooltip. |
 | `side_nav_size` | String | `medium` | Size of the side arrows: `small`, `medium`, or `large`. An unrecognized value falls back to `medium`. |
 
 ## Injection rule
@@ -100,8 +102,9 @@ This plugin activates on pages with previous or next navigation links (`has_prev
 
 ## Accessibility
 
-- Side arrows include `aria-label` attributes ("Previous page" / "Next page") and native `title` tooltips with the target page title.
-- Side arrows show a focus ring when reached by keyboard, so tabbing through the page makes them visible.
+- Side arrows carry `aria-label` attributes combining the localized direction text from the pagination bar with the target page title (for example "Previous: Installation"). The visual tooltip is `aria-hidden`, since it duplicates the label, so screen readers hear the announcement exactly once.
+- The tooltip appears on keyboard focus (`:focus-visible`) as well as hover, and the arrows show a focus ring, so tabbing through the page makes them and their targets visible.
+- The tooltip's fade transition is disabled when the user prefers reduced motion.
 - The hint toast uses `role="status"` for screen reader announcements. Below 1024px it is hidden with `display: none`, which also removes it from the accessibility tree, so nothing is announced there.
 - Keyboard navigation respects `prefers-reduced-motion`: transition animations are disabled when the user prefers reduced motion.
 - Side arrows and the hint toast are hidden in print output.

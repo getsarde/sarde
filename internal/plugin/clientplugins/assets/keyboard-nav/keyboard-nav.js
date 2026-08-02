@@ -7,6 +7,7 @@ var SIDE_NAV_SIZES = { small: true, medium: true, large: true };
 const config = {
     showHint: cfg.show_hint !== false,
     showSideNav: cfg.show_side_nav !== false,
+    showTooltip: cfg.show_tooltip !== false,
     sideNavSize: Object.prototype.hasOwnProperty.call(SIDE_NAV_SIZES, cfg.side_nav_size) ? cfg.side_nav_size : 'medium',
 };
 
@@ -72,6 +73,45 @@ function applySideNavSize() {
     }
 }
 
+// Builds one side arrow from its server-rendered pagination link. The pager's
+// .sarde-pagination-dir text is already localized (t "nav.previous"/"nav.next"),
+// so reusing it here localizes the aria-label for free; the English fallback
+// only covers a pager markup change.
+function buildArrow(srcLink, cls, rel, fallbackDir, keyGlyph, chevron) {
+    var titleEl = srcLink.querySelector('.sarde-pagination-title');
+    var title = titleEl ? titleEl.textContent.trim() : '';
+    var dirEl = srcLink.querySelector('.sarde-pagination-dir');
+    var dir = (dirEl && dirEl.textContent.trim()) || fallbackDir;
+
+    var a = document.createElement('a');
+    a.href = srcLink.href;
+    a.className = cls;
+    a.setAttribute('rel', rel);
+    a.setAttribute('aria-label', title ? dir + ': ' + title : dir);
+    a.innerHTML = chevron;
+
+    if (config.showTooltip) {
+        // The visual tooltip duplicates the aria-label, so hide it from AT.
+        var tip = document.createElement('span');
+        tip.className = 'sarde-side-nav-tooltip';
+        tip.setAttribute('aria-hidden', 'true');
+        var tipTitle = document.createElement('span');
+        tipTitle.className = 'sarde-side-nav-tooltip-title';
+        tipTitle.textContent = title || dir;
+        var tipKey = document.createElement('kbd');
+        tipKey.className = 'sarde-kbd-nav-hint-key';
+        tipKey.textContent = keyGlyph;
+        tip.appendChild(tipTitle);
+        tip.appendChild(tipKey);
+        a.appendChild(tip);
+    } else if (title) {
+        // Custom tooltip disabled: fall back to the native browser tooltip.
+        a.title = title;
+    }
+
+    return a;
+}
+
 function createSideNav() {
     if (!config.showSideNav) return;
 
@@ -84,27 +124,10 @@ function createSideNav() {
     nav.setAttribute('aria-label', 'Page navigation');
 
     if (prevLink) {
-        var prevTitle = prevLink.querySelector('.sarde-pagination-title');
-        var a = document.createElement('a');
-        a.href = prevLink.href;
-        a.className = 'sarde-side-nav-prev';
-        a.setAttribute('rel', 'prev');
-        a.setAttribute('aria-label', 'Previous page');
-        if (prevTitle) a.title = prevTitle.textContent.trim();
-        a.innerHTML = CHEVRON_LEFT;
-        nav.appendChild(a);
+        nav.appendChild(buildArrow(prevLink, 'sarde-side-nav-prev', 'prev', 'Previous page', '←', CHEVRON_LEFT));
     }
-
     if (nextLink) {
-        var nextTitle = nextLink.querySelector('.sarde-pagination-title');
-        var a = document.createElement('a');
-        a.href = nextLink.href;
-        a.className = 'sarde-side-nav-next';
-        a.setAttribute('rel', 'next');
-        a.setAttribute('aria-label', 'Next page');
-        if (nextTitle) a.title = nextTitle.textContent.trim();
-        a.innerHTML = CHEVRON_RIGHT;
-        nav.appendChild(a);
+        nav.appendChild(buildArrow(nextLink, 'sarde-side-nav-next', 'next', 'Next page', '→', CHEVRON_RIGHT));
     }
 
     document.body.appendChild(nav);
