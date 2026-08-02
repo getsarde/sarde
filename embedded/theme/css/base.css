@@ -119,7 +119,9 @@
 	  inset-inline-start: var(--sd-space-4);
 	  padding: var(--sd-space-2) var(--sd-space-4);
 	  background: var(--sd-bg-accent);
-	  color: var(--sd-text-invert);
+	  /* --sd-white, not --sd-text-invert: invert flips to black in dark mode,
+	     while this accent fill stays accent-colored in both themes. */
+	  color: var(--sd-white);
 	  border-radius: var(--sd-radius-sm);
 	  font-weight: var(--sd-weight-semibold);
 	  z-index: 100;

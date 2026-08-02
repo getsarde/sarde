@@ -108,8 +108,11 @@ header:
   links:
   - label: Tags
     url: /tags/  
+  # Header links are emitted verbatim under base_path, with none of the
+  # collection-relative resolution that in-content Markdown links get, so this
+  # has to be the full built path of docs/resources/changelog.md.
   - label: Changelog
-    url: /docs/changelog  
+    url: /docs/resources/changelog/
   search: true
   social: true
   theme_toggle: true

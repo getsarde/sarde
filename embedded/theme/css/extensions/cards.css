@@ -457,7 +457,9 @@
 	/* Primary variant - Gradient with glow */
 	.sarde-link-button-primary {
 	    background: linear-gradient(135deg, var(--sd-blue) 0%, var(--sd-blue-high) 100%);
-	    color: var(--sd-text-invert);
+	    /* --sd-white, not --sd-text-invert: invert flips to black in dark
+	       mode, while this blue gradient is the same in both themes. */
+	    color: var(--sd-white);
 	    box-shadow: 0 2px 8px oklch(0.62 0.20 var(--sd-hue-blue) / 0.25);
 	}
 
@@ -521,7 +523,7 @@
 
 	.sarde-link-button-outline:hover {
 	    background: linear-gradient(135deg, var(--sd-blue) 0%, var(--sd-blue-high) 100%);
-	    color: var(--sd-text-invert);
+	    color: var(--sd-white);
 	    border-color: transparent;
 	    transform: translateY(-2px);
 	    box-shadow: 0 6px 20px oklch(0.62 0.20 var(--sd-hue-blue) / 0.35);

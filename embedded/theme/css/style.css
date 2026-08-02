@@ -190,7 +190,10 @@
 	.sarde-search-button {
 	  padding: var(--sd-space-3) var(--sd-space-6);
 	  background: var(--sd-bg-accent);
-	  color: var(--sd-text-invert);
+	  /* --sd-white, not --sd-text-invert: invert flips to black in dark mode,
+	     while accent fills stay accent-colored in both themes. Same reasoning
+	     applies to every accent-filled control in this file. */
+	  color: var(--sd-white);
 	  border: none;
 	  border-radius: var(--sd-radius-md);
 	  cursor: pointer;
@@ -245,7 +248,7 @@
 	  background: linear-gradient(135deg, var(--sd-bg-accent) 0%, oklch(0.58 0.22 var(--sd-hue-purple)) 50%, oklch(0.52 0.14 var(--sd-hue-cyan)) 100%);
 	  background-size: 200% 200%;
 	  animation: gradientShift 15s ease infinite;
-	  color: var(--sd-text-invert);
+	  color: var(--sd-white);
 	  padding: var(--sd-space-12) 0;
 	  text-align: center;
 	  position: relative;
@@ -368,7 +371,7 @@
 
 	.sarde-btn-primary {
 	  background: var(--sd-bg-accent);
-	  color: var(--sd-text-invert);
+	  color: var(--sd-white);
 	  box-shadow: var(--sd-shadow-accent);
 	}
 
@@ -380,12 +383,12 @@
 
 	.sarde-btn-secondary {
 	  background: transparent;
-	  color: var(--sd-text-invert);
-	  border-color: var(--sd-text-invert);
+	  color: var(--sd-white);
+	  border-color: var(--sd-white);
 	}
 
 	.sarde-btn-secondary:hover {
-	  background: var(--sd-text-invert);
+	  background: var(--sd-white);
 	  color: var(--sd-bg-accent);
 	  transform: translateY(var(--sd-motion-lift));
 	}

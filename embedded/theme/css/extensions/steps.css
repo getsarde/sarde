@@ -79,7 +79,10 @@
 	.sarde-steps > ol > li.active::before,
 	.sarde-steps > ol > li.completed::before {
 	    background: var(--sd-bg-accent);
-	    color: var(--sd-text-invert);
+	    /* --sd-white, not --sd-text-invert: invert flips to black in dark
+	       mode, while this accent fill stays accent-colored in both themes.
+	       Matches the .success/.warning/.danger markers further down. */
+	    color: var(--sd-white);
 	    border-color: var(--sd-bg-accent);
 	}
 
@@ -116,7 +119,10 @@
 	.sarde-step.active::before,
 	.sarde-step.completed::before {
 	    background: var(--sd-bg-accent);
-	    color: var(--sd-text-invert);
+	    /* --sd-white, not --sd-text-invert: invert flips to black in dark
+	       mode, while this accent fill stays accent-colored in both themes.
+	       Matches the .success/.warning/.danger markers further down. */
+	    color: var(--sd-white);
 	    border-color: var(--sd-bg-accent);
 	}
 
@@ -348,7 +354,7 @@
 	    align-items: center;
 	    font-size: var(--sd-text-xs);
 	    font-weight: var(--sd-weight-semibold);
-	    color: var(--sd-text-invert);
+	    color: var(--sd-white);
 	    background: var(--sd-bg-accent);
 	    padding: var(--sd-space-1) var(--sd-space-3);
 	    border-radius: var(--sd-radius-full);

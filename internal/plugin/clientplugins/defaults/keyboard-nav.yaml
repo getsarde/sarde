@@ -9,6 +9,11 @@ fields:
     label: "Show Side Navigation Arrows"
     hint: "Display chevron arrows on the left and right edges of the viewport for prev/next navigation"
     default: true
+  show_compact_nav:
+    type: toggle
+    label: "Show Compact Buttons"
+    hint: "On screens narrower than 1280px, show small floating prev/next buttons at the viewport edges instead of hiding the side navigation"
+    default: true
   show_tooltip:
     type: toggle
     label: "Show Arrow Tooltip"
@@ -23,3 +28,26 @@ fields:
       - { value: small, label: "Small" }
       - { value: medium, label: "Medium" }
       - { value: large, label: "Large" }
+  auto_hide:
+    type: select
+    label: "Auto-Hide"
+    hint: "Fade the side navigation out after a spell of inactivity and bring it back when the user scrolls"
+    default: compact
+    options:
+      - { value: compact, label: "Compact buttons only" }
+      - { value: always, label: "All screen sizes" }
+      - { value: "off", label: "Off" }
+  hide_delay:
+    type: number
+    label: "Hide Delay (ms)"
+    hint: "Milliseconds of inactivity before the side navigation fades out"
+    default: 2000
+    min: 500
+    max: 10000
+  scroll_threshold:
+    type: number
+    label: "Reveal Threshold (px)"
+    hint: "Scroll distance that brings the hidden side navigation back"
+    default: 100
+    min: 0
+    max: 1000

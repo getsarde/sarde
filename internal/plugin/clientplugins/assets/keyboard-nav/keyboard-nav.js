@@ -3,12 +3,19 @@ const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE
 // Allowlisted because the value comes from user YAML and lands in an attribute
 // that CSS selectors match on.
 var SIDE_NAV_SIZES = { small: true, medium: true, large: true };
+var AUTO_HIDE_MODES = { compact: true, always: true, off: true };
 
 const config = {
     showHint: cfg.show_hint !== false,
     showSideNav: cfg.show_side_nav !== false,
     showTooltip: cfg.show_tooltip !== false,
+    showCompactNav: cfg.show_compact_nav !== false,
     sideNavSize: Object.prototype.hasOwnProperty.call(SIDE_NAV_SIZES, cfg.side_nav_size) ? cfg.side_nav_size : 'medium',
+    // A YAML `auto_hide: false` reads naturally, so accept it as "off".
+    autoHide: cfg.auto_hide === false ? 'off'
+        : Object.prototype.hasOwnProperty.call(AUTO_HIDE_MODES, cfg.auto_hide) ? cfg.auto_hide : 'compact',
+    hideDelay: typeof cfg.hide_delay === 'number' && cfg.hide_delay >= 0 ? cfg.hide_delay : 2000,
+    scrollThreshold: typeof cfg.scroll_threshold === 'number' && cfg.scroll_threshold >= 0 ? cfg.scroll_threshold : 100,
 };
 
 var CHEVRON_LEFT = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
@@ -120,7 +127,9 @@ function createSideNav() {
     if (!prevLink && !nextLink) return;
 
     var nav = document.createElement('nav');
-    nav.className = 'sarde-side-nav';
+    // The compact class lets the arrows restyle into small floating buttons
+    // below 1280px; without it the stylesheet hides them there entirely.
+    nav.className = config.showCompactNav ? 'sarde-side-nav sarde-side-nav-compact' : 'sarde-side-nav';
     nav.setAttribute('aria-label', 'Page navigation');
 
     if (prevLink) {
@@ -131,6 +140,83 @@ function createSideNav() {
     }
 
     document.body.appendChild(nav);
+    setupAutoHide(nav);
+}
+
+// -- Auto-Hide --
+
+// Fades the side navigation out after a spell of inactivity and brings it back
+// once the user has scrolled scrollThreshold pixels in either direction.
+// Ported from the scrollBehavior feature of starlight-custom-navigation.
+function setupAutoHide(nav) {
+    if (config.autoHide === 'off') return;
+
+    // Compact mode only auto-hides below the strip breakpoint, where the
+    // buttons float over content; the desktop strips live in reserved margin.
+    var mq = window.matchMedia('(max-width: 1279px)');
+    var timer = null;
+    var lastY = window.scrollY;
+    var traveled = 0;
+    var ticking = false;
+
+    function active() {
+        return config.autoHide === 'always' || mq.matches;
+    }
+
+    function hide() {
+        if (!active()) return;
+        // A page too short to scroll could never reveal the buttons again.
+        if (document.documentElement.scrollHeight - window.innerHeight <= config.scrollThreshold) return;
+        // Don't pull them out from under the pointer or keyboard focus.
+        if (nav.matches(':hover') || nav.contains(document.activeElement)) {
+            arm();
+            return;
+        }
+        nav.classList.add('sarde-side-nav-hidden');
+        traveled = 0;
+    }
+
+    function arm() {
+        clearTimeout(timer);
+        timer = setTimeout(hide, config.hideDelay);
+    }
+
+    function show() {
+        nav.classList.remove('sarde-side-nav-hidden');
+        arm();
+    }
+
+    window.addEventListener('scroll', function () {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function () {
+            ticking = false;
+            var y = window.scrollY;
+            var delta = Math.abs(y - lastY);
+            lastY = y;
+            if (!active()) return;
+            if (nav.classList.contains('sarde-side-nav-hidden')) {
+                traveled += delta;
+                if (traveled >= config.scrollThreshold) show();
+            } else {
+                arm();
+            }
+        });
+    }, { passive: true });
+
+    // Tabbing to a hidden arrow brings the pair back.
+    nav.addEventListener('focusin', show);
+    // Leaving after a hover restarts the countdown the hover was blocking.
+    nav.addEventListener('mouseleave', arm);
+
+    // Crossing up into the strip band while hidden must restore the strips.
+    if (mq.addEventListener) {
+        mq.addEventListener('change', function (e) {
+            if (config.autoHide === 'compact' && !e.matches) show();
+        });
+    }
+
+    arm();
 }
 
 // -- Hint Toast --

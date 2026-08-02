@@ -548,7 +548,10 @@
 	    font-size: var(--sd-text-xs);
 	    font-weight: var(--sd-weight-bold);
 	    background: var(--sd-bg-accent);
-	    color: var(--sd-text-invert);
+	    /* --sd-white, not --sd-text-invert: invert flips to black in dark
+	       mode, while this accent fill stays accent-colored in both themes.
+	       Matches .sarde-annotation-tooltip just below. */
+	    color: var(--sd-white);
 	    border-radius: var(--sd-radius-full);
 	    vertical-align: super;
 	    cursor: help;

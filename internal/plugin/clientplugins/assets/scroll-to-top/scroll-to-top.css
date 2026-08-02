@@ -10,7 +10,10 @@
     border: 1px solid var(--sd-border-accent, var(--sd-blue));
     border-radius: 15%;
     background-color: var(--sd-bg-accent, var(--sd-blue));
-    color: var(--sd-text-invert, #fff);
+    /* --sd-white, not --sd-text-invert: invert flips to black in dark mode,
+       while this accent fill stays accent-colored in both themes. The chevron
+       (stroke: currentColor) and the progress ring both inherit this. */
+    color: var(--sd-white, #fff);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -39,8 +42,10 @@
 }
 
 .sarde-scroll-to-top:active {
-    background-color: var(--sd-blue-high);
-    color: var(--sd-text-invert, #fff);
+    /* Darker shade of the site's own accent; a hardcoded blue flashed the
+       wrong color on every non-blue site. */
+    background-color: color-mix(in oklab, var(--sd-bg-accent, var(--sd-blue)) 85%, black);
+    color: var(--sd-white, #fff);
     transition: background-color 0.1s ease, transform 0.1s ease;
 }
 

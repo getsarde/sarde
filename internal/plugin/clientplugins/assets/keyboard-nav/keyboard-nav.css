@@ -138,7 +138,19 @@
     cursor: pointer;
     transition: color var(--sd-transition-normal, 200ms ease),
                 background-color var(--sd-transition-normal, 200ms ease),
+                opacity var(--sd-transition-normal, 200ms ease),
                 inset-inline-start var(--sd-transition-normal, 200ms ease);
+}
+
+/* ── Auto-Hide ── */
+
+/* Toggled by setupAutoHide in keyboard-nav.js: fade out after inactivity,
+   return on scroll. pointer-events is cut so invisible buttons can never
+   swallow taps; keyboard focus still lands (focusin un-hides the pair). */
+.sarde-side-nav-hidden .sarde-side-nav-prev,
+.sarde-side-nav-hidden .sarde-side-nav-next {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .sarde-side-nav-prev:hover,
@@ -161,16 +173,20 @@
 
 /* Keyed off the sidebar itself rather than an enumerated layout list, so the
    labs layout (same shell as docs) and any future sidebar layout clear it too.
-   The sidebar is only a drawer below 1024px, and the arrows are hidden below
-   1280px, so matching on presence alone is safe. */
-body:has(.sarde-sidebar) .sarde-side-nav-prev {
-    inset-inline-start: var(--sd-sidebar-width, 280px);
-}
+   Gated to the strip band: the compact buttons below 1280px position
+   themselves, and the collapsed-sidebar class can linger on :root after a
+   resize below 1024px, where the sidebar is a drawer. */
+@media (min-width: 1280px) {
+    body:has(.sarde-sidebar) .sarde-side-nav-prev {
+        inset-inline-start: var(--sd-sidebar-width, 280px);
+    }
 
-/* Qualified with :root and body so this outranks the :has() rule above, which
-   would otherwise win on specificity and pin the arrow at the expanded width. */
-:root.sd-sidebar-collapsed body .sarde-side-nav-prev {
-    inset-inline-start: var(--sd-sidebar-collapsed-width, 40px);
+    /* Qualified with :root and body so this outranks the :has() rule above,
+       which would otherwise win on specificity and pin the arrow at the
+       expanded width. */
+    :root.sd-sidebar-collapsed body .sarde-side-nav-prev {
+        inset-inline-start: var(--sd-sidebar-collapsed-width, 40px);
+    }
 }
 
 .sarde-side-nav-next {
@@ -243,6 +259,79 @@ body:has(.sarde-sidebar) .sarde-side-nav-prev {
     .sarde-side-nav-prev,
     .sarde-side-nav-next {
         display: none;
+    }
+
+    /* Desktop-only: on touch-first widths a tap leaves the anchor in a sticky
+       :hover state, pinning the tooltip open over the content. The aria-label
+       keeps the target title available to AT at every width. */
+    .sarde-side-nav-tooltip {
+        display: none;
+    }
+}
+
+/* ── Compact Floating Buttons (below 1280px) ── */
+
+/* Below the strip breakpoint the same anchors restyle into small circular
+   buttons pinned mid-height at the viewport edges, so prev/next stays
+   reachable without scrolling to the bottom pager. The wrapper class is only
+   added when show_compact_nav is enabled, so the display:none above still
+   governs the opt-out. */
+@media (max-width: 1279px) {
+    /* Accent-on-invert coloring, the same token pair as the scroll-to-top
+       button: a surface background disappears against the dark page, and the
+       two floating circles should read as one family anyway. */
+    .sarde-side-nav-compact .sarde-side-nav-prev,
+    .sarde-side-nav-compact .sarde-side-nav-next {
+        display: flex;
+        top: 50%;
+        bottom: auto;
+        transform: translateY(-50%);
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: var(--sd-radius-full, 9999px);
+        background: var(--sd-bg-accent, #6366f1);
+        border: 1px solid var(--sd-border-accent, #6366f1);
+        box-shadow: var(--sd-shadow-md, 0 4px 6px rgba(0, 0, 0, 0.15));
+        /* --sd-white, not --sd-text-invert: invert flips to black in dark
+           mode, and the chevron should stay white on the accent circle in
+           both themes. */
+        color: var(--sd-white, #ffffff);
+    }
+
+    .sarde-side-nav-compact .sarde-side-nav-prev {
+        inset-inline-start: 0.75rem;
+    }
+
+    .sarde-side-nav-compact .sarde-side-nav-next {
+        inset-inline-end: 0.75rem;
+    }
+
+    .sarde-side-nav-compact .sarde-side-nav-prev svg,
+    .sarde-side-nav-compact .sarde-side-nav-next svg {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+
+    /* Hover mirrors the scroll-to-top button. Also restated because the
+       strip-mode :hover rule ties with the compact base rule on specificity
+       but sits earlier in the file, so it would lose the cascade. */
+    .sarde-side-nav-compact .sarde-side-nav-prev:hover,
+    .sarde-side-nav-compact .sarde-side-nav-next:hover {
+        background: var(--sd-bg-accent-subtle, rgba(99, 102, 241, 0.15));
+        color: var(--sd-text-accent, #6366f1);
+    }
+}
+
+/* In the band where the desktop sidebar is still visible, keep the prev
+   button clear of it. Below 1024px the sidebar is an off-canvas drawer, so
+   the plain viewport-edge inset above applies. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+    body:has(.sarde-sidebar) .sarde-side-nav-compact .sarde-side-nav-prev {
+        inset-inline-start: calc(var(--sd-sidebar-width, 280px) + 0.75rem);
+    }
+
+    :root.sd-sidebar-collapsed .sarde-side-nav-compact .sarde-side-nav-prev {
+        inset-inline-start: calc(var(--sd-sidebar-collapsed-width, 40px) + 0.75rem);
     }
 }
 
