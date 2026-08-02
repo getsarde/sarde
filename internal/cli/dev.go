@@ -202,5 +202,9 @@ func runServe(cmd *cobra.Command, args []string) error {
 		ds.Stop()
 	}()
 
+	// Passive update notice before the server blocks; the background refresh
+	// has the whole dev session to finish and persist for the next run.
+	maybeCheckForUpdate(cmd)
+
 	return ds.Start()
 }

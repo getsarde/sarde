@@ -35,6 +35,24 @@ archives:
 checksum:
   name_template: checksums.txt
 
+# Sign the checksums file with the offline ed25519 release key. The sarde
+# binary verifies this signature during `sarde update` (fail-closed), so every
+# release must produce checksums.txt.sig. The private key is supplied via the
+# SARDE_RELEASE_SIGNING_KEY secret in the release workflow.
+signs:
+  - cmd: go
+    args:
+      [
+        "run",
+        "./tools/sarde-release-sign",
+        "-in",
+        "${artifact}",
+        "-out",
+        "${signature}",
+      ]
+    artifacts: checksum
+    signature: "${artifact}.sig"
+
 changelog:
   sort: asc
   use: github

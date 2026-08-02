@@ -41,6 +41,14 @@ func runBuild(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unknown format %q (expected pretty or json)", format)
 	}
 
+	// Start the passive update lookup now so it overlaps with the build and
+	// its result can be shown after the summary. JSON mode stays silent and
+	// makes no network calls.
+	var updateCheck *pendingUpdateCheck
+	if format != "json" {
+		updateCheck = beginUpdateCheck(cmd)
+	}
+
 	projectDir := projectDirFromArgs(args)
 
 	// Resolve config.
@@ -105,6 +113,10 @@ func runBuild(cmd *cobra.Command, args []string) error {
 			}
 		}
 	}
+
+	// Passive update notice; waits briefly for the lookup started at the top
+	// of the run. Nil-safe when the check was skipped or in JSON mode.
+	updateCheck.finishAndNotify()
 
 	return nil
 }

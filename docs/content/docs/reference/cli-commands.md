@@ -184,13 +184,39 @@ sarde update [flags]
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--check` | bool | `false` | Only check for updates without installing. |
+| `--yes`, `-y` | bool | `false` | Skip the confirmation prompt. |
 
 ```
 sarde update
 sarde update --check
+sarde update --yes
 ```
 
-Prompts for confirmation before installing. Detects Homebrew installations and suggests `brew upgrade sarde` instead.
+Shows the release notes and release page, then prompts for confirmation before installing. When stdin is not a terminal (scripts, CI), the prompt cannot be answered, so `sarde update` fails with an error unless `--yes` is passed.
+
+Releases are cryptographically signed. Every downloaded artifact is verified against the release checksums, and the checksums file itself is verified against an ed25519 signature before the binary is replaced. A release that fails verification is never installed.
+
+If the binary was installed through a package manager, `sarde update` does not replace it. Instead it suggests the matching upgrade command:
+
+| Install method | Suggested command |
+|----------------|-------------------|
+| Homebrew | `brew upgrade sarde` |
+| Scoop | `scoop update sarde` |
+| Chocolatey | `choco upgrade sarde` |
+| winget | `winget upgrade sarde` |
+| System package manager (binary under `/usr/bin` or `/usr/lib`) | your distribution's package manager |
+
+### Passive update notice
+
+`sarde build` and `sarde dev` show a one-line notice when a newer release is available. The lookup runs at most once per 24 hours and caches its result in `~/.sarde/update-check.json`. On `build`, the lookup runs alongside the build and the notice appears after the build summary in the same run. On `dev`, the notice appears at startup from the previous lookup's cache while a background refresh updates it for next time. Each release is announced only once.
+
+The notice and the background lookup are skipped entirely when any of these apply:
+
+- the `CI` environment variable is set
+- the `SARDE_NO_UPDATE_CHECK` environment variable is set (permanent opt-out)
+- `--quiet` is passed
+- stderr is not a terminal
+- the binary is a dev build
 
 ## `new`
 
