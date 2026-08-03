@@ -36,6 +36,21 @@
 	  font-size: inherit;
 	}
 
+	/* ── Prose links ── */
+	/* Links inside body text must not rely on color alone (WCAG 1.4.1), so
+	   plain markdown links get a subtle underline. Component links carry a
+	   class and style themselves; not-content and code-block regions opt out. */
+	.sarde-markdown-content a:not([class], :where(.not-content *, .kazari-block *, .kz-group *)) {
+	  text-decoration: underline;
+	  text-decoration-thickness: 1px;
+	  text-underline-offset: 3px;
+	  text-decoration-color: color-mix(in srgb, var(--sd-text-accent) 45%, transparent);
+	}
+
+	.sarde-markdown-content a:not([class], :where(.not-content *, .kazari-block *, .kz-group *)):hover {
+	  text-decoration-color: currentColor;
+	}
+
 	/* ── Lists ── */
 	.sarde-markdown-content li {
 	  overflow-wrap: anywhere;
