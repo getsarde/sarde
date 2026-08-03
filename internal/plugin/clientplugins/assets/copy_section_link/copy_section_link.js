@@ -13,8 +13,12 @@ function showTooltip(anchor) {
 
     const tip = document.createElement('span');
     tip.className = 'sarde-copy-section-tooltip';
-    tip.textContent = config.tooltipText;
+    // role=status makes the confirmation reach screen readers (WCAG 4.1.3).
+    // The text is set after insertion: live regions that enter the DOM
+    // already populated are not reliably announced.
+    tip.setAttribute('role', 'status');
     anchor.appendChild(tip);
+    setTimeout(function () { tip.textContent = config.tooltipText; }, 50);
 
     // Animate in
     requestAnimationFrame(function () {

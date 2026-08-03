@@ -54,7 +54,13 @@ function navigateTo(cls) {
 
 function onKeyDown(e) {
     if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    // Another widget (e.g. the announcements rotator's tablist) already
+    // handled this arrow press; don't also navigate the page away.
+    if (e.defaultPrevented) return;
     if (isTyping()) return;
+    // Focus inside a composite widget that owns its own arrow keys.
+    if (document.activeElement && document.activeElement.closest &&
+        document.activeElement.closest('[role="tablist"], [role="toolbar"], [role="dialog"]')) return;
     if (e.key === 'ArrowLeft') {
         if (getPrevUrl()) { e.preventDefault(); navigateTo('sarde-side-nav-prev'); }
         else if (document.querySelector('.sarde-pagination-prev')) { e.preventDefault(); navigateTo('sarde-pagination-prev'); }

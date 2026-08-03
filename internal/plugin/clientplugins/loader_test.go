@@ -47,8 +47,8 @@ func TestDefaultsExtraction(t *testing.T) {
 	if !ok {
 		t.Fatal("threshold field not in defaults")
 	}
-	if v, ok := threshold.(int); !ok || v != 30 {
-		t.Errorf("threshold = %v (%T), want 30", threshold, threshold)
+	if v, ok := threshold.(int); !ok || v != 300 {
+		t.Errorf("threshold = %v (%T), want 300", threshold, threshold)
 	}
 }
 

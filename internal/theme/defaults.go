@@ -76,5 +76,14 @@ func DefaultDarkTokens() map[string]string {
 		"aside-success-text":   "var(--sd-green-high)",
 		"aside-code-bg-mix":     "16%",
 		"aside-code-border-mix": "35%",
+		// Text-safe accent variants (badges, tags, pill buttons): the dark
+		// light-mode values invert to the -high variants, same as asides.
+		"blue-text":   "var(--sd-blue-high)",
+		"green-text":  "var(--sd-green-high)",
+		"cyan-text":   "var(--sd-cyan-high)",
+		"amber-text":  "var(--sd-amber-high)",
+		"red-text":    "var(--sd-red-high)",
+		"purple-text": "var(--sd-purple-high)",
+		"indigo-text": "var(--sd-indigo-high)",
 	}
 }

@@ -70,9 +70,15 @@
 		font-size: 0.8125rem; font-weight: 600; line-height: 1.4;
 		text-decoration: none; white-space: nowrap;
 		background: color-mix(in srgb, var(--term-color, var(--sd-text-accent)) 12%, transparent);
-		color: var(--term-color, var(--sd-text-accent));
+		/* --term-color is author-supplied with no lightness guarantee, so the
+		   text mixes toward near-black (light) / near-white (dark) to keep it
+		   readable whatever hue the author picked. */
+		color: color-mix(in oklab, var(--term-color, var(--sd-text-accent)) 55%, oklch(0.22 0.01 286));
 		border: 1px solid color-mix(in srgb, var(--term-color, var(--sd-text-accent)) 35%, transparent);
 		transition: background 0.15s, border-color 0.15s, transform 0.15s;
+	}
+	:root[data-theme="dark"] .sarde-page-tag {
+		color: color-mix(in oklab, var(--term-color, var(--sd-text-accent)) 55%, oklch(0.95 0.01 286));
 	}
 	.sarde-page-tag:hover {
 		background: color-mix(in srgb, var(--term-color, var(--sd-text-accent)) 22%, transparent);

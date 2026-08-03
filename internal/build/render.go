@@ -157,6 +157,7 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 
 	lookup := markdown.ImageLookupForPage(page, deps.assetPipeline.ImageProcessor())
 	b.mdRenderer.SetImageLookup(lookup)
+	b.mdRenderer.SetImageLazyLoading(markdown.LazyLoadingEnabled(deps.assetPipeline.ImageProcessor()))
 	b.mdRenderer.SetLinkContext(page)
 
 	result, err := b.mdRenderer.Render(processed)

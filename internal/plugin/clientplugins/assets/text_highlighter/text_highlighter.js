@@ -246,6 +246,9 @@ function createMark(color, hlId) {
     mark.className = 'sarde-text-hl';
     mark.setAttribute('data-color', color);
     mark.setAttribute('data-thl-id', String(hlId));
+    // Focusable so keyboard users can reach a highlight and press
+    // Enter/Space to open the remove popup (mouse users click it).
+    mark.setAttribute('tabindex', '0');
     return mark;
 }
 
@@ -384,7 +387,7 @@ function hideToolbar() {
 
 // ── Remove Popup ─────────────────────────────────────────────
 
-function showRemovePopup(markEl) {
+function showRemovePopup(markEl, focusButton) {
     hideRemovePopup();
 
     removePopup = document.createElement('div');
@@ -394,6 +397,7 @@ function showRemovePopup(markEl) {
     removeBtn.type = 'button';
     removeBtn.className = 'sarde-thl-remove-btn sarde-thl-remove-btn-danger';
     removeBtn.textContent = 'Remove';
+    removeBtn.setAttribute('aria-label', 'Remove highlight');
     removeBtn.addEventListener('click', function () {
         var hlId = parseInt(markEl.getAttribute('data-thl-id') || '-1', 10);
         if (hlId >= 0 && hlId < highlights.length) {
@@ -423,6 +427,8 @@ function showRemovePopup(markEl) {
     removePopup.offsetHeight;
     removePopup.classList.add('is-visible');
     removeVisible = true;
+
+    if (focusButton) removeBtn.focus();
 }
 
 function hideRemovePopup() {
@@ -509,6 +515,34 @@ function onClearAll(e) {
 
 let mouseupTimer = null;
 
+// Shared by mouse and keyboard selection paths: shows the color toolbar
+// when the current selection is highlightable, hides it otherwise.
+function evaluateSelection() {
+    var sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+        hideToolbar();
+        return;
+    }
+
+    var range = sel.getRangeAt(0);
+    var selectedText = sel.toString().trim();
+    if (!selectedText) { hideToolbar(); return; }
+
+    var container = getProseContainer();
+    if (!container || !container.contains(range.commonAncestorContainer)) {
+        hideToolbar();
+        return;
+    }
+
+    // Don't show toolbar for selections inside skip tags
+    if (isInSkipTag(range.startContainer, container)) {
+        hideToolbar();
+        return;
+    }
+
+    showToolbar(range.getBoundingClientRect());
+}
+
 /** @param {MouseEvent} e */
 function onMouseUp(e) {
     // Don't interfere with toolbar/popup clicks
@@ -516,31 +550,20 @@ function onMouseUp(e) {
     if (removePopup && removePopup.contains( (e.target))) return;
 
     clearTimeout(mouseupTimer);
-    mouseupTimer = setTimeout(function () {
-        var sel = window.getSelection();
-        if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
-            hideToolbar();
-            return;
-        }
+    mouseupTimer = setTimeout(evaluateSelection, 10);
+}
 
-        var range = sel.getRangeAt(0);
-        var selectedText = sel.toString().trim();
-        if (!selectedText) { hideToolbar(); return; }
+// Keys that extend or move a text selection via keyboard. After any of
+// them is released the selection is re-evaluated, so Shift+Arrow (and
+// Shift+Home/End etc.) selections surface the toolbar just like a
+// mouse-drag selection does (WCAG 2.1.1).
+var SELECTION_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Shift'];
 
-        var container = getProseContainer();
-        if (!container || !container.contains(range.commonAncestorContainer)) {
-            hideToolbar();
-            return;
-        }
-
-        // Don't show toolbar for selections inside skip tags
-        if (isInSkipTag(range.startContainer, container)) {
-            hideToolbar();
-            return;
-        }
-
-        showToolbar(range.getBoundingClientRect());
-    }, 10);
+/** @param {KeyboardEvent} e */
+function onKeyUp(e) {
+    if (SELECTION_KEYS.indexOf(e.key) === -1) return;
+    clearTimeout(mouseupTimer);
+    mouseupTimer = setTimeout(evaluateSelection, 10);
 }
 
 /** @param {MouseEvent} e */
@@ -570,6 +593,26 @@ function onKeyDown(e) {
     if (e.key === 'Escape') {
         if (toolbarVisible) hideToolbar();
         if (removeVisible) hideRemovePopup();
+        return;
+    }
+
+    // Enter/Space on a focused highlight opens the remove popup with
+    // focus on its Remove button.
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('mark.sarde-text-hl')) {
+        e.preventDefault();
+        showRemovePopup(e.target.closest('mark.sarde-text-hl'), true);
+        return;
+    }
+
+    // With the toolbar visible after a keyboard selection, Tab jumps into
+    // it instead of tabbing off to the end of the document (the toolbar
+    // lives at the end of <body>). Once inside, Tab moves normally.
+    if (e.key === 'Tab' && !e.shiftKey && toolbarVisible && toolbar && !toolbar.contains(document.activeElement)) {
+        var first = toolbar.querySelector('button');
+        if (first) {
+            e.preventDefault();
+            first.focus();
+        }
     }
 }
 
@@ -606,6 +649,7 @@ function init() {
     document.addEventListener('mouseup', onMouseUp);
     document.addEventListener('mousedown', onMouseDown);
     document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keyup', onKeyUp);
 }
 
 init();

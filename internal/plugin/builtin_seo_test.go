@@ -58,10 +58,12 @@ func TestSEO_PopulatesParams(t *testing.T) {
 		t.Errorf("canonical = %v", seo["canonical"])
 	}
 
-	// JSON-LD should be present.
-	jsonLD, ok := seo["json_ld"].(string)
+	// JSON-LD should be present as template.JS so html/template does not
+	// re-encode it inside the <script> block.
+	ld, ok := seo["json_ld"].(template.JS)
+	jsonLD := string(ld)
 	if !ok || jsonLD == "" {
-		t.Error("expected json_ld to be non-empty string")
+		t.Error("expected json_ld to be non-empty template.JS")
 	}
 	if !strings.Contains(jsonLD, "Article") {
 		t.Error("expected Article type in JSON-LD for collection pages")
@@ -98,7 +100,7 @@ func TestSEO_CollectionPageType(t *testing.T) {
 	}
 	seoBeforeRender(ctx, nil)
 
-	jsonLD := page.Params["seo"].(map[string]any)["json_ld"].(string)
+	jsonLD := string(page.Params["seo"].(map[string]any)["json_ld"].(template.JS))
 	if !strings.Contains(jsonLD, "CollectionPage") {
 		t.Errorf("expected CollectionPage in JSON-LD, got: %s", jsonLD)
 	}
@@ -125,7 +127,7 @@ func TestSEO_BreadcrumbList(t *testing.T) {
 	}
 	seoBeforeRender(ctx, nil)
 
-	jsonLD := page.Params["seo"].(map[string]any)["json_ld"].(string)
+	jsonLD := string(page.Params["seo"].(map[string]any)["json_ld"].(template.JS))
 	if !strings.Contains(jsonLD, "BreadcrumbList") {
 		t.Error("expected BreadcrumbList in JSON-LD")
 	}
@@ -147,7 +149,7 @@ func TestSEO_CourseNode(t *testing.T) {
 	}
 	seoBeforeRender(ctx, nil)
 
-	jsonLD := page.Params["seo"].(map[string]any)["json_ld"].(string)
+	jsonLD := string(page.Params["seo"].(map[string]any)["json_ld"].(template.JS))
 	if !strings.Contains(jsonLD, `"@type":"Course"`) {
 		t.Errorf("expected Course node, got: %s", jsonLD)
 	}

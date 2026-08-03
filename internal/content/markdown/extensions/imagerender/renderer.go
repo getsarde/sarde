@@ -21,15 +21,22 @@ type ImageLookupFunc func(imageName string, opts asset.ImageOptions) *asset.Proc
 // The Lookup field can be swapped at runtime without rebuilding the Goldmark instance.
 type Renderer struct {
 	html.Config
-	Lookup    ImageLookupFunc
-	HasImages bool // set true when at least one image is rendered
+	Lookup      ImageLookupFunc
+	HasImages   bool // set true when at least one image is rendered
+	LazyLoading bool // site config; the first image per page is always eager
+	imageIndex  int  // per-page image counter, reset via ResetPage
 }
 
 // NewRenderer creates a Goldmark image node renderer.
 // If lookup is nil, all images render as standard <img> tags.
 // The Lookup can be changed later via direct field assignment.
 func NewRenderer(lookup ImageLookupFunc) *Renderer {
-	return &Renderer{Lookup: lookup}
+	return &Renderer{Lookup: lookup, LazyLoading: true}
+}
+
+// ResetPage zeroes the per-page image counter before each page render.
+func (r *Renderer) ResetPage() {
+	r.imageIndex = 0
 }
 
 // RegisterFuncs registers the renderer for ast.KindImage.
@@ -43,6 +50,10 @@ func (r *Renderer) renderImage(w util.BufWriter, source []byte, node ast.Node, e
 	}
 
 	r.HasImages = true
+	r.imageIndex++
+	// The first image on a page is the likely LCP element; loading it lazily
+	// delays LCP, so it is always eager regardless of the site-wide setting.
+	lazy := r.LazyLoading && r.imageIndex > 1
 
 	n := node.(*ast.Image)
 	dest := string(n.Destination)
@@ -60,7 +71,7 @@ func (r *Renderer) renderImage(w util.BufWriter, source []byte, node ast.Node, e
 				processed.Height,
 				processed.Variants,
 				processed.LQIP,
-				processed.Loading == "lazy",
+				processed.Loading == "lazy" && lazy,
 			)
 			w.WriteString(html)
 			return ast.WalkSkipChildren, nil
@@ -80,8 +91,12 @@ func (r *Renderer) renderImage(w util.BufWriter, source []byte, node ast.Node, e
 		w.WriteByte('"')
 	}
 
-	// Add lazy loading for all images.
-	w.WriteString(` loading="lazy" decoding="async"`)
+	// Lazy-load below-the-fold images, honoring the site-wide setting.
+	if lazy {
+		w.WriteString(` loading="lazy" decoding="async"`)
+	} else {
+		w.WriteString(` decoding="async"`)
+	}
 	w.WriteByte('>')
 
 	return ast.WalkSkipChildren, nil

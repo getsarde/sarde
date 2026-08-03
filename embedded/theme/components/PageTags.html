@@ -11,7 +11,7 @@
     {{- $iconName = $term.Icon -}}
     {{- $color = $term.Color -}}
   {{- end -}}
-  <a class="sarde-page-tag" role="listitem" href="{{ termURL "tags" $tag }}"{{ if $color }} style="--term-color: {{ $color }}"{{ end }}>{{ if $iconName }}{{ icon $iconName "sarde-page-tag-icon" }}{{ end }}<span class="sarde-page-tag-label">{{ $label }}</span></a>
+  <span role="listitem"><a class="sarde-page-tag" href="{{ termURL "tags" $tag }}"{{ if $color }} style="--term-color: {{ $color }}"{{ end }}>{{ if $iconName }}{{ icon $iconName "sarde-page-tag-icon" }}{{ end }}<span class="sarde-page-tag-label">{{ $label }}</span></a></span>
   {{- end }}
 </div>
 {{- end -}}

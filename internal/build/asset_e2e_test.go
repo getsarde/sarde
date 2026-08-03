@@ -33,10 +33,13 @@ Here is a photo:
 ![A sunset](./hero.png)
 
 And some text after the image.
+
+![A second photo](./second.png)
 `)
 
-	// Create a test PNG image (800x600) in the page bundle.
+	// Create test PNG images (800x600) in the page bundle.
 	createTestPNG(t, filepath.Join(dir, "content", "blog", "my-post", "hero.png"), 800, 600)
+	createTestPNG(t, filepath.Join(dir, "content", "blog", "my-post", "second.png"), 800, 600)
 
 	// Also add a non-image resource.
 	writeFixture(t, dir, "content/blog/my-post/notes.txt", "some notes")
@@ -123,8 +126,20 @@ func TestBuild_AssetPipeline_EndToEnd(t *testing.T) {
 	if !strings.Contains(postHTML, "background-image") {
 		t.Error("expected LQIP background-image style")
 	}
-	if !strings.Contains(postHTML, "loading=\"lazy\"") {
-		t.Error("expected lazy loading attribute")
+	// The first image per page is the likely LCP element and loads eagerly;
+	// subsequent images are lazy.
+	firstImg := strings.Index(postHTML, "<picture>")
+	secondImg := strings.Index(postHTML[firstImg+1:], "<picture>")
+	if secondImg == -1 {
+		t.Fatal("expected two <picture> elements")
+	}
+	firstHTML := postHTML[firstImg : firstImg+1+secondImg]
+	secondHTML := postHTML[firstImg+1+secondImg:]
+	if strings.Contains(firstHTML, "loading=\"lazy\"") {
+		t.Error("expected first image to load eagerly (LCP heuristic)")
+	}
+	if !strings.Contains(secondHTML, "loading=\"lazy\"") {
+		t.Error("expected lazy loading attribute on the second image")
 	}
 
 	// ── Processed image files on disk ──

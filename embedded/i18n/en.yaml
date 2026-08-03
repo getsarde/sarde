@@ -18,7 +18,14 @@ nav:
   skip_to_content: "Skip to main content"
   menu: "Menu"
   collapse_sidebar: "Collapse sidebar"
+  expand_sidebar: "Expand sidebar"
   toggle_section: "Toggle {{ .Label }} section"
+  pagination: "Pagination"
+  main_nav: "Main navigation"
+  post_nav: "Post navigation"
+  docs_nav: "Documentation navigation"
+  sidebar: "Sidebar"
+  center_content: "Center content"
   breadcrumb: "Breadcrumb"
   section_nav: "Section navigation"
   page_nav: "Page navigation"
@@ -39,6 +46,17 @@ labs:
 home:
   all_posts: "View all posts"
   get_started: "Get Started"
+  hero_highlights: "Highlights"
+
+banner:
+  note: "Note"
+  tip: "Tip"
+  caution: "Caution"
+  danger: "Danger"
+
+ui:
+  reveal_spoiler: "Reveal spoiler"
+  hide_spoiler: "Hide spoiler"
 
 fallback:
   notice: "This page is not yet available in {{ .Lang }}. Showing the original version."

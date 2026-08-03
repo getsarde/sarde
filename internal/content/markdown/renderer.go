@@ -79,6 +79,13 @@ func (r *Renderer) SetImageLookup(lookup imagerender.ImageLookupFunc) {
 	r.imgRend.Lookup = lookup
 }
 
+// SetImageLazyLoading propagates the site-wide lazy-loading setting to the
+// image renderer so the plain-<img> fallback path honors it too (the first
+// image per page always loads eagerly regardless).
+func (r *Renderer) SetImageLazyLoading(enabled bool) {
+	r.imgRend.LazyLoading = enabled
+}
+
 // SetLinkContext sets the current page for internal link resolution.
 // Must be called before Render() for each page.
 func (r *Renderer) SetLinkContext(page *engine.Page) {
@@ -89,6 +96,15 @@ func (r *Renderer) SetLinkContext(page *engine.Page) {
 // (setting PageIndex, URLResolver, Policy).
 func (r *Renderer) LinkRenderer() *linkrender.Renderer {
 	return r.linkRend
+}
+
+// LazyLoadingEnabled reports the processor's site-wide lazy-loading setting
+// (default true when unset or when there is no processor).
+func LazyLoadingEnabled(processor *asset.ImageProcessor) bool {
+	if processor == nil || processor.Config.LazyLoading == nil {
+		return true
+	}
+	return *processor.Config.LazyLoading
 }
 
 // ImageLookupForPage creates a lookup function for a specific page's resources.
@@ -345,6 +361,7 @@ func computeFingerprint(extensions []goldmark.Extender, cfg RendererConfig) stri
 // ResetFlags zeroes content feature flags before each page render.
 func (r *Renderer) ResetFlags() {
 	r.imgRend.HasImages = false
+	r.imgRend.ResetPage()
 	r.linkCollector.Reset()
 	r.linkRend.Reset()
 }

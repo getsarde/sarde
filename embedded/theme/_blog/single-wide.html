@@ -29,7 +29,7 @@
   </div>
 
   {{ if .Pagination }}
-  <nav class="sarde-post-navigation">
+  <nav class="sarde-post-navigation" aria-label="{{ t "nav.post_nav" }}">
     <div class="sarde-nav-links">
       {{ if .Pagination.Prev }}
       <a class="sarde-nav-link sarde-nav-prev" href="{{ .Pagination.Prev.URL }}">

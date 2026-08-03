@@ -477,9 +477,9 @@
 	.sarde-lightbox-close:hover,
 	.sarde-lightbox-prev:hover,
 	.sarde-lightbox-next:hover { opacity: 1; }
-	.sarde-lightbox-close { top: 1rem; right: 1rem; }
-	.sarde-lightbox-prev { left: 1rem; top: 50%; transform: translateY(-50%); }
-	.sarde-lightbox-next { right: 1rem; top: 50%; transform: translateY(-50%); }
+	.sarde-lightbox-close { top: 1rem; inset-inline-end: 1rem; }
+	.sarde-lightbox-prev { inset-inline-start: 1rem; top: 50%; transform: translateY(-50%); }
+	.sarde-lightbox-next { inset-inline-end: 1rem; top: 50%; transform: translateY(-50%); }
 	.sarde-lightbox-content { text-align: center; max-width: 90vw; max-height: 90vh; }
 	.sarde-lightbox-image { max-width: 90vw; max-height: 80vh; object-fit: contain; }
 	.sarde-lightbox-caption { color: white; margin-top: 0.5rem; font-size: 0.875rem; }
@@ -565,8 +565,8 @@
 	  font-size: 0.75rem;
 	  border-radius: 0.25rem;
 	}
-	.sarde-image-compare-label-before { left: 0.75rem; }
-	.sarde-image-compare-label-after { right: 0.75rem; }
+	.sarde-image-compare-label-before { inset-inline-start: 0.75rem; }
+	.sarde-image-compare-label-after { inset-inline-end: 0.75rem; }
 	.sarde-image-compare-error {
 	  padding: 1rem;
 	  color: var(--sd-red);

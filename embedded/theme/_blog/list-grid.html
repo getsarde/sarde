@@ -17,7 +17,7 @@
       <a href="{{ .Permalink }}">
         {{ if .Image }}<img class="sarde-post-card-image" src="{{ .Image }}" alt="" loading="lazy">{{ end }}
         <div class="sarde-post-card-body">
-          <h3 class="sarde-post-card-title">{{ .Title | markdownify }}</h3>
+          <h2 class="sarde-post-card-title">{{ .Title | markdownify }}</h2>
           <div class="sarde-post-card-meta">
             {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
             {{ if .ReadingTime }}<span class="sarde-meta-sep">&middot;</span><span>{{ tWithData "nav.reading_time" (dict "Minutes" .ReadingTime) }}</span>{{ end }}
@@ -36,7 +36,7 @@
   </div>
 
   {{ if .Paginator }}
-  <nav class="sarde-blog-pagination" aria-label="Pagination">
+  <nav class="sarde-blog-pagination" aria-label="{{ t "nav.pagination" }}">
     {{ if .Paginator.HasPrev }}<a class="sarde-pagination-link" href="{{ .Paginator.PrevURL }}" rel="prev">&larr; {{ t "nav.newer_posts" }}</a>{{ else }}<span></span>{{ end }}
     <span class="sarde-pagination-info">{{ t "blog.page" }} {{ .Paginator.Current }} {{ t "blog.of" }} {{ .Paginator.Total }}</span>
     {{ if .Paginator.HasNext }}<a class="sarde-pagination-link" href="{{ .Paginator.NextURL }}" rel="next">{{ t "nav.older_posts" }} &rarr;</a>{{ else }}<span></span>{{ end }}

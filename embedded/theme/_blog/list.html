@@ -41,7 +41,7 @@
     {{ range $pages }}
     <div class="sarde-post-card">
       <a href="{{ .Permalink }}">
-        <h3 class="sarde-post-card-title">{{ .Title | markdownify }}</h3>
+        <h2 class="sarde-post-card-title">{{ .Title | markdownify }}</h2>
         {{ if .Summary }}<p class="sarde-post-card-excerpt">{{ .Summary | markdownify }}</p>{{ end }}
       </a>
       <div class="sarde-post-card-footer">
@@ -61,7 +61,7 @@
   </div>
 
   {{ if .Paginator }}
-  <nav class="sarde-blog-pagination" aria-label="Pagination">
+  <nav class="sarde-blog-pagination" aria-label="{{ t "nav.pagination" }}">
     {{ if .Paginator.HasPrev }}<a class="sarde-pagination-link" href="{{ .Paginator.PrevURL }}" rel="prev">&larr; {{ t "nav.newer_posts" }}</a>{{ else }}<span></span>{{ end }}
     <span class="sarde-pagination-info">{{ t "blog.page" }} {{ .Paginator.Current }} {{ t "blog.of" }} {{ .Paginator.Total }}</span>
     {{ if .Paginator.HasNext }}<a class="sarde-pagination-link" href="{{ .Paginator.NextURL }}" rel="next">{{ t "nav.older_posts" }} &rarr;</a>{{ else }}<span></span>{{ end }}

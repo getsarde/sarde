@@ -5,7 +5,7 @@
   {{ icon "menu" "sarde-nav-icon-open" "width" "20" "height" "20" }}
   {{ icon "x" "sarde-nav-icon-close" "width" "20" "height" "20" }}
 </button>
-<nav class="sarde-header-nav" id="sarde-global-nav">
+<nav class="sarde-header-nav" id="sarde-global-nav" aria-label="{{ t "nav.main_nav" }}">
   {{ range .GlobalNav.Items }}
   <a href="{{ .URL }}"{{ if .IsActive }} class="is-active" aria-current="page"{{ end }}{{ if .External }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .Label }}{{ if .External }}<span class="sr-only"> {{ t "nav.opens_new_tab" }}</span>{{ end }}</a>
   {{ end }}

@@ -8,7 +8,7 @@
   {{- else }}{{ $iconName = "info" }}
   {{- end -}}
 {{- end -}}
-<aside class="sarde-page-banner sarde-page-banner-{{ $variant }}" aria-label="Page banner">
+<aside class="sarde-page-banner sarde-page-banner-{{ $variant }}" aria-label="{{ t (printf "banner.%s" $variant) }}">
   <p>{{ icon $iconName "sarde-page-banner-icon" }}{{ .PageBanner.Content }}</p>
 </aside>
 {{ end }}

@@ -141,19 +141,23 @@
     return base + mobileTocH + 8;
   }
 
+  function scrollBehavior() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  }
+
   [].forEach.call(desktopLinks, function (link) {
     link.addEventListener('click', function (e) {
       e.preventDefault();
       var id = this.getAttribute('href').replace('#', '');
       if (id === '_top') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: scrollBehavior() });
         history.replaceState(null, '', window.location.pathname);
         setActive('_top');
       } else {
         var el = document.getElementById(id);
         if (el) {
           var rect = el.getBoundingClientRect();
-          window.scrollTo({ top: rect.top + window.scrollY - getNavOffset(), behavior: 'smooth' });
+          window.scrollTo({ top: rect.top + window.scrollY - getNavOffset(), behavior: scrollBehavior() });
         }
         history.replaceState(null, '', '#' + id);
       }

@@ -1,11 +1,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="generator" content="{{ .Site.Generator }}">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1a1a1c">
 {{ if .Site.SitemapEnabled }}<link rel="sitemap" type="application/xml" href="{{ relURL "/sitemap.xml" }}">{{ end }}
-{{ if .Site.Favicon }}<link rel="icon" href="{{ .Site.Favicon }}"{{ if .Site.FaviconType }} type="{{ .Site.FaviconType }}"{{ end }}>{{ end }}
-<script>window.__SARDE__={basePath:"{{ .Site.BasePath }}",lang:"{{ .Lang }}",defaultLang:"{{ .Site.DefaultLang }}",siteId:"{{ .Site.SiteID }}"};</script>
-<title>{{ if .Page }}{{ if .Page.Title }}{{ .Page.Title }} {{ .Site.Config.Site.TitleDelimiter }} {{ end }}{{ end }}{{ .Site.Title }}</title>
+{{ if .Site.Favicon }}<link rel="icon" href="{{ .Site.Favicon }}"{{ if .Site.FaviconType }} type="{{ .Site.FaviconType }}"{{ end }}>{{ else }}<link rel="icon" href="data:,">{{ end }}
+<link rel="preload" href="{{ relURL "/assets/fonts/InterVariable.woff2" }}" as="font" type="font/woff2" crossorigin>
+<script>window.__SARDE__={basePath:"{{ .Site.BasePath }}",lang:"{{ .Lang }}",defaultLang:"{{ .Site.DefaultLang }}",siteId:"{{ .Site.SiteID }}",i18n:{revealSpoiler:"{{ t "ui.reveal_spoiler" }}",hideSpoiler:"{{ t "ui.hide_spoiler" }}",expandSidebar:"{{ t "nav.expand_sidebar" }}",collapseSidebar:"{{ t "nav.collapse_sidebar" }}"}};</script>
+<title>{{ if .Page }}{{ if .Page.Title }}{{ .Page.Title }}{{ if .Paginator }}{{ if gt .Paginator.Current 1 }} {{ t "blog.page" }} {{ .Paginator.Current }}{{ end }}{{ end }} {{ .Site.Config.Site.TitleDelimiter }} {{ end }}{{ end }}{{ .Site.Title }}</title>
 {{ if .Page }}{{ if .Page.Description }}<meta name="description" content="{{ .Page.Description }}">{{ end }}{{ end }}
-{{ partial "seo.html" . }}
+{{ $robots := "" }}{{ if .Page }}{{ if .Page.Params }}{{ with index .Page.Params "robots" }}{{ $robots = . }}{{ end }}{{ end }}{{ end }}{{ if and (eq $robots "") .Paginator }}{{ if gt .Paginator.Current 1 }}{{ $robots = "noindex,follow" }}{{ end }}{{ end }}{{ if ne $robots "" }}<meta name="robots" content="{{ $robots }}">
+{{ end }}{{ if .Paginator }}{{ if .Paginator.HasPrev }}<link rel="prev" href="{{ absURL .Paginator.PrevURL }}">
+{{ end }}{{ if .Paginator.HasNext }}<link rel="next" href="{{ absURL .Paginator.NextURL }}">
+{{ end }}{{ end }}{{ partial "seo.html" . }}
 {{ themeStyles . }}
 {{ range .Styles }}<link rel="stylesheet" href="{{ . }}">
 {{ end }}

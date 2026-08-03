@@ -100,8 +100,6 @@ function createButton() {
     btn.className = 'sarde-focus-mode-btn pos-' + config.buttonPosition;
     btn.setAttribute('aria-label', 'Enter focus mode' + HOTKEY_HINT_ARIA);
     btn.setAttribute('aria-pressed', 'false');
-    btn.setAttribute('role', 'button');
-    btn.setAttribute('tabindex', '0');
     btn.innerHTML = ICON_ENTER + ICON_EXIT;
 
     // Tooltip

@@ -10,18 +10,18 @@
   {{ component "Header" . }}
   {{ if .Page.Headings }}{{ component "MobileTableOfContents" . }}{{ end }}
   {{ if .HasSidebar }}
-  <nav class="sarde-mobile-nav" aria-label="Mobile navigation">
+  <nav class="sarde-mobile-nav" aria-label="{{ t "nav.docs_nav" }}">
     <button class="sarde-menu-toggle" id="sarde-menu-toggle"
             aria-expanded="false" aria-label="{{ t "nav.menu" }}"
             aria-controls="sarde-sidebar" type="button">
       {{ icon "menu" "sarde-menu-icon-open" "width" "20" "height" "20" }}
       {{ icon "x" "sarde-menu-icon-close" "width" "20" "height" "20" }}
     </button>
-    <aside class="sarde-sidebar" id="sarde-sidebar">
+    <aside class="sarde-sidebar" id="sarde-sidebar" aria-label="{{ t "nav.sidebar" }}">
       <button class="sarde-sidebar-toggle" id="sarde-sidebar-toggle"
               aria-expanded="true" aria-label="{{ t "nav.collapse_sidebar" }}" type="button">
-        {{ icon "panel-left-close" "sarde-sidebar-toggle-collapse" "width" "16" "height" "16" }}
-        {{ icon "panel-left-open" "sarde-sidebar-toggle-expand" "width" "16" "height" "16" }}
+        {{ icon "panel-left-close" "sarde-sidebar-toggle-collapse" "width" "20" "height" "20" }}
+        {{ icon "panel-left-open" "sarde-sidebar-toggle-expand" "width" "20" "height" "20" }}
       </button>
       <div class="sarde-sidebar-content">
         {{ component "Sidebar" . }}
@@ -38,7 +38,7 @@
   <div class="sarde-main-frame">
     <div class="sarde-content-columns">
       {{ if .Page.Headings }}
-      <aside class="sarde-toc">
+      <aside class="sarde-toc" aria-label="{{ t "nav.toc_label" }}">
         <div class="sarde-toc-inner">
           {{ component "TableOfContents" . }}
         </div>

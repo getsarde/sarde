@@ -497,7 +497,7 @@
 	.sarde-link-button-ghost,
 	.sarde-link-button-minimal {
 	    background: var(--sd-blue-low);
-	    color: var(--sd-blue);
+	    color: var(--sd-blue-text);
 	    box-shadow: none;
 	}
 
@@ -516,9 +516,17 @@
 	/* Outline variant - Tinted background with border */
 	.sarde-link-button-outline {
 	    background: var(--sd-blue-low);
-	    color: var(--sd-blue);
+	    color: var(--sd-blue-text);
 	    border-color: var(--sd-border-accent);
 	    box-shadow: none;
+	}
+
+	/* Dark mode swaps the fixed pastel fill for a translucent tint so the
+	   auto-remapped -text color (blue-high) sits on a dark background. */
+	:root[data-theme="dark"] .sarde-link-button-ghost,
+	:root[data-theme="dark"] .sarde-link-button-minimal,
+	:root[data-theme="dark"] .sarde-link-button-outline {
+	    background: color-mix(in oklch, var(--sd-blue) 15%, transparent);
 	}
 
 	.sarde-link-button-outline:hover {

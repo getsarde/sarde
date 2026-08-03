@@ -14,7 +14,7 @@
     </div>
     {{ end }}
     <div class="sarde-deck-card-body">
-      <h3 class="sarde-deck-title">{{ .Title | markdownify }}</h3>
+      <h2 class="sarde-deck-title">{{ .Title | markdownify }}</h2>
       {{ if .Description }}<p class="sarde-deck-desc">{{ .Description | markdownify }}</p>{{ end }}
       <div class="sarde-deck-meta">
         {{ $n := slideCount . }}
@@ -45,7 +45,7 @@
     {{ range .Sections }}
     {{ if .Render }}
     <a href="{{ relURL .Permalink }}" class="sarde-deck-course-card">
-      <h3 class="sarde-deck-course-title">{{ .Title | markdownify }}</h3>
+      <h2 class="sarde-deck-course-title">{{ .Title | markdownify }}</h2>
       {{ if and .IndexPage .IndexPage.Description }}
       <p class="sarde-deck-course-desc">{{ .IndexPage.Description | markdownify }}</p>
       {{ end }}

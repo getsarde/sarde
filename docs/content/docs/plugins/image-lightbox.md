@@ -24,6 +24,8 @@ plugins:
 
 Images inside the content area display a zoom-in cursor on hover. Clicking opens the image in a dark overlay with a toolbar for zoom controls and a close button. The image's `alt` text appears as a caption below the image.
 
+Lightboxable images are also keyboard-accessible: they are focusable with ::kbd[Tab], and ::kbd[Enter] or ::kbd[Space] opens the lightbox. While open, focus moves to the close button, ::kbd[Tab] cycles through the toolbar controls, and closing returns focus to the image that opened it.
+
 ### Zoom and pan
 
 | Action | Effect |

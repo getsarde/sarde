@@ -155,13 +155,25 @@ function openPanel() {
     if (!panel) createPanel();
     panelOpen = true;
     if (btn) btn.classList.add('panel-open');
-    if (panel) { panel.offsetHeight; panel.classList.add('is-visible'); }
+    if (panel) {
+        panel.offsetHeight;
+        panel.classList.add('is-visible');
+        // Dialog focus management: move focus to the first control so
+        // keyboard users land inside the panel.
+        const first = panel.querySelector('input, button, select, [tabindex]');
+        if (first) first.focus();
+    }
 }
 
 function closePanel() {
     panelOpen = false;
     if (btn) btn.classList.remove('panel-open');
-    if (panel) panel.classList.remove('is-visible');
+    if (panel) {
+        // Restore focus to the trigger if it was inside the panel, so
+        // closing (Escape, outside click) never drops focus to <body>.
+        if (panel.contains(document.activeElement) && btn) btn.focus();
+        panel.classList.remove('is-visible');
+    }
 }
 
 function formatValue(val, unit) {

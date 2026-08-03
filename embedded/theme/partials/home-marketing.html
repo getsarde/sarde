@@ -30,7 +30,7 @@
     <div class="sarde-catalog-grid">
       {{ range $name, $col := . }}
       <a class="sarde-marketing-collection-card" href="{{ relURL (printf "/%s/" $name) }}">
-        <h3>{{ $col.Title | markdownify }}</h3>
+        <h2>{{ $col.Title | markdownify }}</h2>
         <span class="sarde-marketing-collection-count">{{ len $col.Pages }} entries</span>
       </a>
       {{ end }}

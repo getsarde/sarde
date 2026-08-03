@@ -91,7 +91,8 @@ function showToast(scrollY, percent) {
     jumpBtn.textContent = 'Jump';
     jumpBtn.setAttribute('aria-label', 'Jump to saved position');
     jumpBtn.addEventListener('click', () => {
-        window.scrollTo({ top: scrollY, behavior: 'smooth' });
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: scrollY, behavior: reduceMotion ? 'auto' : 'smooth' });
         dismissToast();
     });
 
@@ -115,7 +116,23 @@ function showToast(scrollY, percent) {
         });
     });
 
-    toastTimeout = setTimeout(dismissToast, config.toastDuration * 1000);
+    // WCAG 2.2.1: the auto-dismiss timer pauses while the user is hovering
+    // or has keyboard focus inside the toast, and restarts when they leave.
+    function startTimer() {
+        if (!toastTimeout) toastTimeout = setTimeout(dismissToast, config.toastDuration * 1000);
+    }
+    function pauseTimer() {
+        if (toastTimeout) {
+            clearTimeout(toastTimeout);
+            toastTimeout = null;
+        }
+    }
+    toast.addEventListener('mouseenter', pauseTimer);
+    toast.addEventListener('focusin', pauseTimer);
+    toast.addEventListener('mouseleave', startTimer);
+    toast.addEventListener('focusout', startTimer);
+
+    startTimer();
 }
 
 function checkSavedPosition() {

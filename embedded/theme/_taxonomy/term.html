@@ -2,7 +2,7 @@
 <div class="sarde-taxonomy-term-container">
   <header class="sarde-taxonomy-term-header">
     <h1 class="sarde-taxonomy-term-title">
-      {{ if .TaxonomyTerm.Icon }}<span class="sarde-term-icon">{{ .TaxonomyTerm.Icon }}</span> {{ end }}{{ .TaxonomyTerm.Label }}
+      {{ if .TaxonomyTerm.Icon }}<span class="sarde-term-icon" aria-hidden="true">{{ .TaxonomyTerm.Icon }}</span> {{ end }}{{ .TaxonomyTerm.Label }}
     </h1>
     {{ if .TaxonomyTerm.Description }}
     <p class="sarde-taxonomy-term-description">{{ .TaxonomyTerm.Description | markdownify }}</p>
@@ -22,7 +22,7 @@
     {{ range $pages }}
     <div class="sarde-post-card">
       <a href="{{ .Permalink }}">
-        <h3 class="sarde-post-card-title">{{ .Title | markdownify }}</h3>
+        <h2 class="sarde-post-card-title">{{ .Title | markdownify }}</h2>
         <div class="sarde-post-card-meta">
           {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
         </div>
@@ -33,7 +33,7 @@
   </div>
 
   {{ if .Paginator }}
-  <nav class="sarde-blog-pagination" aria-label="Pagination">
+  <nav class="sarde-blog-pagination" aria-label="{{ t "nav.pagination" }}">
     {{ if .Paginator.HasPrev }}<a class="sarde-pagination-link" href="{{ .Paginator.PrevURL }}" rel="prev">&larr; {{ t "nav.newer_posts" }}</a>{{ else }}<span></span>{{ end }}
     <span class="sarde-pagination-info">{{ t "blog.page" }} {{ .Paginator.Current }} {{ t "blog.of" }} {{ .Paginator.Total }}</span>
     {{ if .Paginator.HasNext }}<a class="sarde-pagination-link" href="{{ .Paginator.NextURL }}" rel="next">{{ t "nav.older_posts" }} &rarr;</a>{{ else }}<span></span>{{ end }}

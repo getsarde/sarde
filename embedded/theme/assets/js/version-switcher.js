@@ -22,3 +22,15 @@ document.addEventListener('keydown', (e) => {
     });
   }
 });
+
+// Close when keyboard focus leaves the trigger/menu entirely (Tab-away),
+// so aria-expanded never lies while focus is elsewhere on the page.
+document.addEventListener('focusout', (e) => {
+  document.querySelectorAll('[data-sarde-version-switcher-trigger][aria-expanded="true"]').forEach(t => {
+    const menu = t.nextElementSibling;
+    const next = e.relatedTarget;
+    if (next && (t.contains(next) || (menu && menu.contains(next)))) return;
+    t.setAttribute('aria-expanded', 'false');
+    if (menu) menu.hidden = true;
+  });
+});

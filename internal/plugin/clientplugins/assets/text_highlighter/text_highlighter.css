@@ -22,6 +22,16 @@
 .sarde-text-hl[data-color="pink"]   { background-color: hsla(330, 81%, 60%, 0.3); }
 .sarde-text-hl[data-color="orange"] { background-color: hsla(25, 95%, 53%, 0.35); }
 
+/* Dark mode: the light-mode tints composite to murky mid-tones over a dark
+   page and erode contrast for the inherited light text. Mirror the theme's
+   dark <mark> treatment: darker, more opaque fills that keep light text
+   readable (see extensions/inline.css). */
+:root[data-theme="dark"] .sarde-text-hl[data-color="yellow"] { background-color: hsla(48, 80%, 28%, 0.75); }
+:root[data-theme="dark"] .sarde-text-hl[data-color="green"]  { background-color: hsla(142, 60%, 24%, 0.75); }
+:root[data-theme="dark"] .sarde-text-hl[data-color="blue"]   { background-color: hsla(217, 70%, 30%, 0.75); }
+:root[data-theme="dark"] .sarde-text-hl[data-color="pink"]   { background-color: hsla(330, 60%, 30%, 0.75); }
+:root[data-theme="dark"] .sarde-text-hl[data-color="orange"] { background-color: hsla(25, 80%, 28%, 0.75); }
+
 /* ── Floating Toolbar ────────────────────────────────────── */
 
 .sarde-thl-toolbar {
@@ -50,8 +60,9 @@
 /* ── Color Swatch Buttons ────────────────────────────────── */
 
 .sarde-thl-toolbar-color {
-    width: 1.375rem;
-    height: 1.375rem;
+    /* 24px minimum target size (WCAG 2.5.8) */
+    width: 1.5rem;
+    height: 1.5rem;
     padding: 0;
     border: 2px solid transparent;
     border-radius: 50%;
@@ -85,8 +96,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.375rem;
-    height: 1.375rem;
+    width: 1.5rem;
+    height: 1.5rem;
     padding: 0;
     border: none;
     background: transparent;

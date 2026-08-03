@@ -94,6 +94,7 @@ A value that is neither empty nor a recognized date is an error, and the build r
 | `summary` | string | inferred | Page summary. Falls back to `description`, then to the first paragraph truncated to [`content.summary_length`](/reference/configuration#content) words. |
 | `render` | bool | - | Whether to render this page. Treated as `true` when unset. Set to `false` to process the page in the content pipeline without generating an output file. |
 | `pagefind` | bool | - | Include this page in the search index. Treated as `true` when unset. |
+| `robots` | string | - | Value for the page's `<meta name="robots">` tag, e.g. `noindex` or `noindex,nofollow`. When unset, no robots meta is emitted, except on pagination pages beyond page 1, which default to `noindex,follow`. |
 | `show_updated` | bool | - | Show the "last updated" date on this page. Set to `false` to hide it. This gates display only: the timestamp is still resolved, so sitemap `lastmod`, SEO `dateModified`, and feed timestamps stay correct. |
 | `edit_url` | bool or string | - | Controls the "Edit this page" link. `false` hides it. `true` uses the site-wide [`site.edit_url`](/reference/configuration#site). A string provides a custom URL for this page. |
 

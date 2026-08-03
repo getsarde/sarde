@@ -51,7 +51,7 @@ plugins:
 | `show_tooltip` | Boolean | `false` | Display a "Scroll to top" tooltip on hover. |
 | `show_progress_ring` | Boolean | `false` | Show a circular progress indicator around the button. |
 | `border_radius` | Number | `15` | Corner rounding as a percentage. `0` gives a square button, `50` gives a full circle. |
-| `smooth_scroll` | Boolean | `true` | Use smooth scrolling animation when returning to the top. |
+| `smooth_scroll` | Boolean | `true` | Use smooth scrolling animation when returning to the top. Ignored when the reader's system requests reduced motion; the scroll is then instant. |
 | `progress_ring_color` | Color | `""` | Custom color for the progress ring. Empty uses the button's text color. |
 
 ## Injection rule

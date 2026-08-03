@@ -5,6 +5,18 @@
   font-style: normal;
   font-display: swap;
 }
+/* Metrics-matched fallback shown during the Inter swap period. The
+   overrides align Arial's box metrics with Inter's so the swap does not
+   reflow the page (CLS). Values are the published Inter/Arial metric
+   adjustments. */
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial');
+  size-adjust: 107.4%;
+  ascent-override: 90.2%;
+  descent-override: 22.48%;
+  line-gap-override: 0%;
+}
 @font-face {
   font-family: 'JetBrains Mono';
   src: url('../fonts/JetBrainsMono-Variable.woff2') format('woff2');

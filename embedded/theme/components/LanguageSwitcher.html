@@ -1,14 +1,14 @@
 {{ if .AllTranslations }}
 <div class="sarde-lang-switcher" data-sarde-lang-switcher>
-  <button class="sarde-lang-switcher-trigger" data-sarde-lang-switcher-trigger
-    aria-expanded="false" aria-haspopup="true" aria-label="{{ t "nav.language" }}">
+  <button class="sarde-lang-switcher-trigger" type="button" data-sarde-lang-switcher-trigger
+    aria-expanded="false" aria-label="{{ t "nav.language" }}">
     <span class="sarde-lang-switcher-current" lang="{{ .Lang }}" dir="{{ .Dir }}">{{ (index .AllTranslations 0).Name }}</span>
     {{ icon "chevron-down" "sarde-lang-switcher-chevron" "width" "12" "height" "12" }}
   </button>
-  <ul class="sarde-lang-switcher-menu" data-sarde-lang-switcher-menu hidden role="menu">
+  <ul class="sarde-lang-switcher-menu" data-sarde-lang-switcher-menu hidden>
     {{ range .AllTranslations }}
     <li role="none">
-      <a href="{{ .URL }}" role="menuitem" lang="{{ .Lang }}" dir="{{ .Dir }}"
+      <a href="{{ .URL }}" lang="{{ .Lang }}" dir="{{ .Dir }}"
         class="sarde-lang-switcher-option{{ if eq .Lang $.Lang }} is-active{{ end }}{{ if .IsFallback }} is-fallback{{ end }}"
         {{ if eq .Lang $.Lang }}aria-current="true"{{ end }}>
         <span class="sarde-lang-switcher-name">{{ .Name }}</span>

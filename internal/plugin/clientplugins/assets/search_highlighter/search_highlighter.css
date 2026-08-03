@@ -17,6 +17,15 @@
     outline-offset: 1px;
 }
 
+/* Dark mode: darker fills so the inherited light text stays readable
+   (mirrors the theme's dark <mark> treatment). */
+:root[data-theme="dark"] .sarde-search-hl {
+    background-color: var(--search-hl-color-dark, hsla(38, 70%, 26%, 0.8));
+}
+:root[data-theme="dark"] .sarde-search-hl.is-active {
+    background-color: var(--search-hl-active-color-dark, hsla(38, 80%, 34%, 0.9));
+}
+
 /* ── Search Badge (sticky bar at top of content) ─────────── */
 
 .sarde-search-hl-badge {

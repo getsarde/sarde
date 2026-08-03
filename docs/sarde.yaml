@@ -62,6 +62,7 @@ plugins:
     - social_cards
     - scroll_to_top
     - keyboard_nav
+    - reading_progress
   config:
     social_cards:
       # Lebanese Red brand palette from brand/README.md: deep navy tile
@@ -80,6 +81,9 @@ plugins:
       # chevron arrows pinned to the viewport edges.
       show_hint: false
       show_side_nav: true
+    reading_progress:
+      bar_height: 3.5
+      bar_color: "#9122f9"
 
 homepage:
   hero:

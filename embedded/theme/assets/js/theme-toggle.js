@@ -26,7 +26,7 @@
       toggle.querySelectorAll('.sarde-theme-toggle-btn').forEach(function (btn) {
         var active = btn.getAttribute('data-theme') === theme;
         btn.classList.toggle('selected', active);
-        btn.setAttribute('aria-checked', active);
+        btn.setAttribute('aria-pressed', active);
       });
       if (indicator) {
         indicator.classList.toggle('pos-system', theme === 'system');

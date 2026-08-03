@@ -64,6 +64,14 @@ On each page load, the plugin reads saved highlights from `localStorage` and att
 
 The floating toolbar includes a trash icon button that removes all highlights on the current page and clears the `localStorage` entry. Individual highlights can be removed by clicking the highlighted text and selecting "Remove" from the popup.
 
+## Keyboard support
+
+The plugin is fully operable without a mouse:
+
+- Selecting text with the keyboard (::kbd[Shift] plus arrow keys, ::kbd[Home], ::kbd[End]) surfaces the color toolbar just like a mouse-drag selection.
+- With the toolbar visible, ::kbd[Tab] moves focus into it; each color swatch and the clear button are regular buttons activated with ::kbd[Enter].
+- Existing highlights are focusable with ::kbd[Tab]. Pressing ::kbd[Enter] or ::kbd[Space] on a focused highlight opens the remove popup with focus on its "Remove" button.
+
 ## Skipped elements
 
 The plugin does not allow highlighting inside `<script>`, `<style>`, `<code>`, `<pre>`, `<kbd>`, `<textarea>`, `<input>`, or `<svg>` elements. Text inside search-highlighter marks (from the Search Highlighter plugin) is also skipped to avoid conflicts.

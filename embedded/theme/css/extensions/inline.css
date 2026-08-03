@@ -49,21 +49,21 @@
 	/* Primary badge - Indigo */
 	.sarde-badge-primary {
 	    background: color-mix(in oklch, var(--sd-indigo) 15%, transparent);
-	    color: var(--sd-indigo);
+	    color: var(--sd-indigo-text);
 	    border: 1px solid color-mix(in oklch, var(--sd-indigo) 40%, transparent);
 	}
 
 	/* Secondary badge */
 	.sarde-badge-secondary {
 	    background: color-mix(in oklch, currentColor 8%, transparent);
-	    color: var(--sd-gray-5);
+	    color: var(--sd-gray-6);
 	    border: 1px solid color-mix(in oklch, currentColor 20%, transparent);
 	}
 
 	/* Success badge */
 	.sarde-badge-success {
 	    background: color-mix(in oklch, var(--sd-green) 15%, transparent);
-	    color: var(--sd-green);
+	    color: var(--sd-green-text);
 	    border: 1px solid color-mix(in oklch, var(--sd-green) 40%, transparent);
 	}
 
@@ -71,35 +71,35 @@
 	.sarde-badge-warning,
 	.sarde-badge-caution {
 	    background: color-mix(in oklch, var(--sd-amber) 15%, transparent);
-	    color: var(--sd-amber);
+	    color: var(--sd-amber-text);
 	    border: 1px solid color-mix(in oklch, var(--sd-amber) 40%, transparent);
 	}
 
 	/* Danger badge */
 	.sarde-badge-danger {
 	    background: color-mix(in oklch, var(--sd-red) 15%, transparent);
-	    color: var(--sd-red);
+	    color: var(--sd-red-text);
 	    border: 1px solid color-mix(in oklch, var(--sd-red) 40%, transparent);
 	}
 
 	/* Info badge */
 	.sarde-badge-info {
 	    background: color-mix(in oklch, var(--sd-blue) 15%, transparent);
-	    color: var(--sd-blue);
+	    color: var(--sd-blue-text);
 	    border: 1px solid color-mix(in oklch, var(--sd-blue) 40%, transparent);
 	}
 
 	/* Note badge - Cyan/Teal */
 	.sarde-badge-note {
 	    background: color-mix(in oklch, var(--sd-cyan) 15%, transparent);
-	    color: var(--sd-cyan);
+	    color: var(--sd-cyan-text);
 	    border: 1px solid color-mix(in oklch, var(--sd-cyan) 40%, transparent);
 	}
 
 	/* Tip badge */
 	.sarde-badge-tip {
 	    background: color-mix(in oklch, var(--sd-purple) 15%, transparent);
-	    color: var(--sd-purple);
+	    color: var(--sd-purple-text);
 	    border: 1px solid color-mix(in oklch, var(--sd-purple) 40%, transparent);
 	}
 
@@ -115,57 +115,57 @@
 
 	.sarde-badge-outline.sarde-badge-default,
 	.sarde-badge-outline:not([class*="badge-"]) {
-	    color: var(--sd-gray-5);
+	    color: var(--sd-gray-6);
 	    border-color: var(--sd-gray-3);
 	}
 
 	.sarde-badge-outline.sarde-badge-primary {
-	    color: var(--sd-indigo);
+	    color: var(--sd-indigo-text);
 	    background: transparent;
-	    border-color: var(--sd-indigo);
+	    border-color: var(--sd-indigo-text);
 	}
 
 	.sarde-badge-outline.sarde-badge-secondary {
-	    color: var(--sd-gray-5);
+	    color: var(--sd-gray-6);
 	    background: transparent;
 	    border-color: var(--sd-gray-3);
 	}
 
 	.sarde-badge-outline.sarde-badge-success {
-	    color: var(--sd-green);
+	    color: var(--sd-green-text);
 	    background: transparent;
-	    border-color: var(--sd-green);
+	    border-color: var(--sd-green-text);
 	}
 
 	.sarde-badge-outline.sarde-badge-warning,
 	.sarde-badge-outline.sarde-badge-caution {
-	    color: var(--sd-amber);
+	    color: var(--sd-amber-text);
 	    background: transparent;
-	    border-color: var(--sd-amber);
+	    border-color: var(--sd-amber-text);
 	}
 
 	.sarde-badge-outline.sarde-badge-danger {
-	    color: var(--sd-red);
+	    color: var(--sd-red-text);
 	    background: transparent;
-	    border-color: var(--sd-red);
+	    border-color: var(--sd-red-text);
 	}
 
 	.sarde-badge-outline.sarde-badge-info {
-	    color: var(--sd-blue);
+	    color: var(--sd-blue-text);
 	    background: transparent;
-	    border-color: var(--sd-blue);
+	    border-color: var(--sd-blue-text);
 	}
 
 	.sarde-badge-outline.sarde-badge-note {
-	    color: var(--sd-cyan);
+	    color: var(--sd-cyan-text);
 	    background: transparent;
-	    border-color: var(--sd-cyan);
+	    border-color: var(--sd-cyan-text);
 	}
 
 	.sarde-badge-outline.sarde-badge-tip {
-	    color: var(--sd-purple);
+	    color: var(--sd-purple-text);
 	    background: transparent;
-	    border-color: var(--sd-purple);
+	    border-color: var(--sd-purple-text);
 	}
 
 	/* =============================================================================
@@ -360,7 +360,7 @@
 	:root[data-theme="dark"] kbd,
 	:root[data-theme="dark"] .sarde-kbd {
 	    background: var(--sd-gray-8);
-	    border-color: var(--sd-gray-6);
+	    border-color: var(--sd-gray-5);
 	    color: var(--sd-gray-3);
 	}
 
@@ -749,7 +749,7 @@
 
 	.sarde-copy-text.is-copied .sarde-copy-text__icon--check {
 	    display: block;
-	    color: var(--sd-green);
+	    color: var(--sd-green-text);
 	}
 
 	:root[data-theme="dark"] {

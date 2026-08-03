@@ -12,6 +12,9 @@ let lightbox = null;
 let lightboxImg = null;
 let lightboxCaption = null;
 let zoomLevelEl = null;
+let toolbarButtons = [];
+let closeBtnEl = null;
+let lastTrigger = null;
 
 let currentZoom = 1;
 let panX = 0;
@@ -63,6 +66,9 @@ function ensureLightbox() {
     lightbox = document.createElement('div');
     lightbox.className = 'sarde-image-lightbox';
     lightbox.id = 'sarde-image-lightbox';
+    lightbox.setAttribute('role', 'dialog');
+    lightbox.setAttribute('aria-modal', 'true');
+    lightbox.setAttribute('aria-label', 'Image viewer');
     lightbox.style.setProperty('--il-bg-opacity', String(config.bgOpacity));
 
     const toolbar = document.createElement('div');
@@ -104,6 +110,9 @@ function ensureLightbox() {
     toolbar.appendChild(zoomLevelEl);
     toolbar.appendChild(zoomInBtn);
     toolbar.appendChild(closeBtn);
+
+    toolbarButtons = [zoomOutBtn, zoomLevelEl, zoomInBtn, closeBtn];
+    closeBtnEl = closeBtn;
 
     lightboxImg = document.createElement('img');
     lightboxImg.className = 'sarde-image-lightbox-img';
@@ -192,9 +201,10 @@ function ensureLightbox() {
 
 // -- Open / Close --
 
-function openLightbox(src, alt) {
+function openLightbox(src, alt, trigger) {
     ensureLightbox();
     if (!lightbox || !lightboxImg || !lightboxCaption) return;
+    lastTrigger = trigger || null;
     currentZoom = 1; panX = 0; panY = 0; isDragging = false;
     applyTransform();
     lightboxImg.src = src;
@@ -202,12 +212,17 @@ function openLightbox(src, alt) {
     lightboxCaption.textContent = alt;
     lightbox.classList.add('active');
     document.body.style.overflow = 'hidden';
+    if (closeBtnEl) closeBtnEl.focus();
 }
 
 function closeLightbox() {
     if (!lightbox) return;
     lightbox.classList.remove('active');
     document.body.style.overflow = '';
+    if (lastTrigger) {
+        lastTrigger.focus();
+        lastTrigger = null;
+    }
 }
 
 // -- Event Handlers --
@@ -227,18 +242,55 @@ function onClick(e) {
     if (!isLightboxable(img)) return;
     e.preventDefault();
     e.stopPropagation();
-    openLightbox(img.dataset.src || img.src, img.alt || '');
+    openLightbox(img.dataset.src || img.src, img.alt || '', img);
 }
 
 function onKeyDown(e) {
-    if (!lightbox || !lightbox.classList.contains('active')) return;
+    const active = lightbox && lightbox.classList.contains('active');
+
+    if (!active) {
+        // Enter/Space on a focused article image opens the lightbox.
+        if ((e.key === 'Enter' || e.key === ' ') && e.target.tagName === 'IMG' && isLightboxable(e.target)) {
+            e.preventDefault();
+            openLightbox(e.target.dataset.src || e.target.src, e.target.alt || '', e.target);
+        }
+        return;
+    }
+
     if (e.key === 'Escape') { e.preventDefault(); closeLightbox(); }
     else if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn(); }
     else if (e.key === '-') { e.preventDefault(); zoomOut(); }
     else if (e.key === '0') { e.preventDefault(); zoomReset(); }
+    else if (e.key === 'Tab') {
+        // Keep focus cycling inside the modal toolbar while open.
+        const idx = toolbarButtons.indexOf(document.activeElement);
+        e.preventDefault();
+        if (idx === -1) {
+            toolbarButtons[0].focus();
+        } else {
+            const next = (idx + (e.shiftKey ? -1 : 1) + toolbarButtons.length) % toolbarButtons.length;
+            toolbarButtons[next].focus();
+        }
+    }
+}
+
+// Make lightboxable article images reachable and operable by keyboard.
+// The natural-width check in isLightboxable needs the image loaded, so it
+// stays an open-time check; marking here is by structural exclusions only.
+function markImages() {
+    const imgs = document.querySelectorAll('article.sarde-markdown-content img');
+    imgs.forEach(function (img) {
+        if (img.closest('.markdown-gallery')) return;
+        if (img.closest('.sarde-gallery-item')) return;
+        if (img.classList.contains('no-lightbox')) return;
+        img.setAttribute('tabindex', '0');
+        img.setAttribute('role', 'button');
+        if (!img.alt) img.setAttribute('aria-label', 'Open image in lightbox');
+    });
 }
 
 // -- Init --
 
+markImages();
 document.addEventListener('click', onClick);
 document.addEventListener('keydown', onKeyDown);

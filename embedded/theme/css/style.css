@@ -513,7 +513,13 @@
 
 	.sarde-course-level {
 	  background: var(--sd-green-low);
-	  color: var(--sd-green);
+	  color: var(--sd-green-text);
+	}
+
+	/* Dark mode swaps the fixed pastel chip for a translucent tint so the
+	   auto-remapped -text color (green-high) sits on a dark background. */
+	:root[data-theme="dark"] .sarde-course-level {
+	  background: color-mix(in oklch, var(--sd-green) 15%, transparent);
 	}
 
 	.sarde-course-duration {
@@ -572,7 +578,11 @@
 
 	.sarde-language-tag {
 	  background: var(--sd-blue-low);
-	  color: var(--sd-blue);
+	  color: var(--sd-blue-text);
+	}
+
+	:root[data-theme="dark"] .sarde-language-tag {
+	  background: color-mix(in oklch, var(--sd-blue) 15%, transparent);
 	}
 
 	/* Meta info */

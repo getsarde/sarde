@@ -640,7 +640,7 @@
 	  transform: translateY(-2px);
 	}
 
-	.sarde-marketing-collection-card h3 {
+	.sarde-marketing-collection-card h2 {
 	  margin: 0 0 var(--sd-space-1);
 	  font-size: var(--sd-text-lg, 1.125rem);
 	  color: var(--sd-text);

@@ -5,7 +5,7 @@
   {{ range .Section.Sections }}
   {{ if .Render }}
   <a href="{{ relURL .Permalink }}" class="sarde-doc-card sarde-doc-card--category">
-    <h3 class="sarde-doc-card__title">{{ .Title | markdownify }}</h3>
+    <h2 class="sarde-doc-card__title">{{ .Title | markdownify }}</h2>
     {{ if and .IndexPage .IndexPage.Description }}
     <p class="sarde-doc-card__desc">{{ .IndexPage.Description | markdownify }}</p>
     {{ end }}
@@ -15,7 +15,7 @@
   {{ end }}
   {{ range .Section.Pages }}
   <a href="{{ .Permalink }}" class="sarde-doc-card">
-    <h3 class="sarde-doc-card__title">{{ .Title | markdownify }}</h3>
+    <h2 class="sarde-doc-card__title">{{ .Title | markdownify }}</h2>
     {{ if .Description }}
     <p class="sarde-doc-card__desc">{{ .Description | markdownify }}</p>
     {{ end }}

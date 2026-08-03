@@ -18,8 +18,6 @@ btn.className = 'sarde-scroll-to-top pos-' + POSITION;
 btn.style.borderRadius = BORDER_RADIUS;
 if (PROGRESS_RING_COLOR) btn.style.setProperty('--scroll-progress-color', PROGRESS_RING_COLOR);
 btn.setAttribute('aria-label', 'Scroll to top');
-btn.setAttribute('role', 'button');
-btn.setAttribute('tabindex', '0');
 
 // Build inner HTML (hardcoded SVG -- no user data)
 const progressRingHtml = SHOW_PROGRESS_RING
@@ -58,7 +56,9 @@ function hideTooltip() {
 
 function doScrollToTop() {
     hideTooltip();
-    window.scrollTo({ top: 0, behavior: SMOOTH_SCROLL ? 'smooth' : 'auto' });
+    // The OS-level reduced-motion preference wins over the site config.
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: SMOOTH_SCROLL && !reduceMotion ? 'smooth' : 'auto' });
     btn.classList.remove('is-active');
 }
 

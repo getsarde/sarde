@@ -93,7 +93,7 @@
 	  --sd-focus-ring: var(--sd-accent, oklch(0.60 0.22 var(--sd-hue-accent)));
 
 	  /* ── Typography ── */
-	  --sd-font-sans: var(--sd-font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+	  --sd-font-sans: var(--sd-font-sans, 'Inter', 'Inter Fallback', system-ui, -apple-system, sans-serif);
 	  --sd-font-mono: var(--sd-font-mono, 'JetBrains Mono', ui-monospace, monospace);
 
 	  --sd-text-xs: 0.75rem;
@@ -243,6 +243,18 @@
 	  --sd-aside-success-text: oklch(0.48 0.14 155);
 	  --sd-aside-code-bg-mix: 10%;
 	  --sd-aside-code-border-mix: 25%;
+	  /* Text-safe accent variants for small UI text (badges, tags, pill
+	     buttons) on tinted or page backgrounds. The raw accent tokens above
+	     land near 2:1-3:1 there (see the aside text note); these darker
+	     variants clear 4.5:1 in light mode. Dark mode remaps them to the
+	     -high variants in DefaultDarkTokens. */
+	  --sd-blue-text: oklch(0.48 0.19 var(--sd-hue-blue));
+	  --sd-green-text: oklch(0.48 0.14 var(--sd-hue-green));
+	  --sd-cyan-text: oklch(0.48 0.13 var(--sd-hue-cyan));
+	  --sd-amber-text: oklch(0.52 0.13 var(--sd-hue-amber));
+	  --sd-red-text: oklch(0.50 0.19 var(--sd-hue-red));
+	  --sd-purple-text: oklch(0.48 0.20 var(--sd-hue-purple));
+	  --sd-indigo-text: oklch(0.48 0.18 var(--sd-hue-indigo));
 	}
 
 	@media (min-width: 50em) {

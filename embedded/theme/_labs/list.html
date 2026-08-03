@@ -11,7 +11,7 @@
     </div>
     {{ end }}
     <div class="sarde-labs-card__body">
-      <h3 class="sarde-doc-card__title">{{ .Title | markdownify }}</h3>
+      <h2 class="sarde-doc-card__title">{{ .Title | markdownify }}</h2>
       {{ if and .IndexPage .IndexPage.Description }}
       <p class="sarde-doc-card__desc">{{ .IndexPage.Description | markdownify }}</p>
       {{ end }}
@@ -32,7 +32,7 @@
     </div>
     {{ end }}
     <div class="sarde-labs-card__body">
-      <h3 class="sarde-doc-card__title">{{ .Title | markdownify }}</h3>
+      <h2 class="sarde-doc-card__title">{{ .Title | markdownify }}</h2>
       {{ if .Description }}
       <p class="sarde-doc-card__desc">{{ .Description | markdownify }}</p>
       {{ end }}

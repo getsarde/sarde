@@ -29,6 +29,9 @@
 	.text-center { text-align: center; }
 	.text-right { text-align: right; }
 	.text-left { text-align: left; }
+	/* Logical equivalents; prefer these in RTL-capable content. */
+	.text-start { text-align: start; }
+	.text-end { text-align: end; }
 	.w-full { width: 100%; }
 	.relative { position: relative; }
 	.absolute { position: absolute; }

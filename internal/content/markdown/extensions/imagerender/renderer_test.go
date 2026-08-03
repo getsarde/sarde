@@ -151,6 +151,18 @@ func TestRenderImage_FallbackPlainDestination(t *testing.T) {
 
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
+	// First render: the page's first image is always eager (LCP heuristic).
+	if _, err := r.renderImage(w, nil, n, true); err != nil {
+		t.Fatalf("renderImage failed: %v", err)
+	}
+	w.Flush()
+	if strings.Contains(buf.String(), `loading="lazy"`) {
+		t.Errorf("first image on a page should load eagerly:\n%s", buf.String())
+	}
+
+	// Second render on the same page: lazy loading applies.
+	buf.Reset()
+	w = bufio.NewWriter(&buf)
 	if _, err := r.renderImage(w, nil, n, true); err != nil {
 		t.Fatalf("renderImage failed: %v", err)
 	}

@@ -14,9 +14,13 @@
     return document.documentElement.classList.contains(CLASS_COLLAPSED);
   }
 
+  var i18n = (window.__SARDE__ && window.__SARDE__.i18n) || {};
+  var LABEL_EXPAND = i18n.expandSidebar || 'Expand sidebar';
+  var LABEL_COLLAPSE = i18n.collapseSidebar || 'Collapse sidebar';
+
   function setAria(collapsed) {
     btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-    btn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+    btn.setAttribute('aria-label', collapsed ? LABEL_EXPAND : LABEL_COLLAPSE);
   }
 
   function collapse() {

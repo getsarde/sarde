@@ -28,7 +28,7 @@
     <div class="fb-slide__toc-sidebar" id="slide-toc-sidebar">
       <div class="fb-slide__toc-header">
         <h3>Table of Contents</h3>
-        <button id="toggle-toc" class="fb-slide__toc-toggle-btn" aria-label="Toggle table of contents">
+        <button type="button" id="toggle-toc" class="fb-slide__toc-toggle-btn" aria-label="Toggle table of contents">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 12H5m0 0l7 7m-7-7l7-7"></path>
           </svg>
@@ -36,7 +36,7 @@
       </div>
       <div class="fb-slide__search-container">
         <input type="text" id="slide-search-input" class="fb-slide__search-input" placeholder="Search slides..." aria-label="Search slides" />
-        <button id="clear-search" class="fb-slide__clear-search-btn" aria-label="Clear search">
+        <button type="button" id="clear-search" class="fb-slide__clear-search-btn" aria-label="Clear search">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 6L6 18M6 6l12 12"></path>
           </svg>
@@ -64,13 +64,13 @@
           <!-- Primary Navigation Zone (Left) -->
           <div class="fb-slide__nav-zone fb-slide__nav-primary">
             <!-- Bookmark toggle will be inserted here by BookmarkManager -->
-            <button id="prev-slide" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--primary" aria-label="Previous slide" title="Previous slide">
+            <button type="button" id="prev-slide" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--primary" aria-label="Previous slide" title="Previous slide">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 12H5m0 0l7 7m-7-7l7-7"></path>
               </svg>
             </button>
 
-            <button id="show-thumbnails" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--secondary thumbnails-btn" aria-label="Show thumbnails grid" title="Overview">
+            <button type="button" id="show-thumbnails" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--secondary thumbnails-btn" aria-label="Show thumbnails grid" title="Overview">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="7" height="7"></rect>
                 <rect x="14" y="3" width="7" height="7"></rect>
@@ -82,7 +82,7 @@
 
           <!-- Slide Counter (Center) -->
           <div class="fb-slide__counter" id="slide-counter" title="Click to go to Slide:">
-            <input type="number" id="slide-input" class="fb-slide__input" min="1" max="999" value="1" readonly />
+            <input type="number" id="slide-input" class="fb-slide__input" min="1" max="999" value="1" readonly aria-label="Current slide number" />
             <span class="slide-separator"> / </span>
             <span id="total-slides">1</span>
           </div>
@@ -90,12 +90,12 @@
           <!-- Tools Zone (Secondary actions) -->
           <div class="fb-slide__nav-zone fb-slide__nav-tools">
             <div class="fb-slide__font-adjuster fb-slide__compact-font">
-              <button id="slide-decrease-font" class="fb-slide__font-adj-btn" aria-label="Decrease font size" title="Decrease font size (double-click to reset)">
+              <button type="button" id="slide-decrease-font" class="fb-slide__font-adj-btn" aria-label="Decrease font size" title="Decrease font size (double-click to reset)">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M5 12h14"></path>
                 </svg>
               </button>
-              <button id="slide-increase-font" class="fb-slide__font-adj-btn" aria-label="Increase font size" title="Increase font size">
+              <button type="button" id="slide-increase-font" class="fb-slide__font-adj-btn" aria-label="Increase font size" title="Increase font size">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M5 12h14"></path>
                   <path d="M12 5v14"></path>
@@ -104,7 +104,7 @@
             </div>
 
             <div class="fb-slide__theme-selector">
-              <button id="slide-theme-btn" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--tertiary theme-selector-btn" aria-label="Change theme" title="Theme">
+              <button type="button" id="slide-theme-btn" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--tertiary theme-selector-btn" aria-label="Change theme" title="Theme">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
                   <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
@@ -113,8 +113,8 @@
                   <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
                 </svg>
               </button>
-              <div id="slide-theme-dropdown" class="fb-slide__theme-dropdown hidden" role="menu" aria-label="Select theme">
-                <button class="fb-slide__theme-item" data-theme="default" role="menuitem">
+              <div id="slide-theme-dropdown" class="fb-slide__theme-dropdown hidden" aria-label="Select theme">
+                <button type="button" class="fb-slide__theme-item" data-theme="default">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="4"></circle>
                     <path d="M12 2v2"></path><path d="M12 20v2"></path>
@@ -124,30 +124,30 @@
                   </svg>
                   <span class="fb-slide__theme-text">Default</span>
                 </button>
-                <button class="fb-slide__theme-item" data-theme="dracula" role="menuitem">
-                  <span class="fb-slide__theme-emoji">🧛</span>
+                <button type="button" class="fb-slide__theme-item" data-theme="dracula">
+                  <span class="fb-slide__theme-emoji" aria-hidden="true">🧛</span>
                   <span class="fb-slide__theme-text">Dracula</span>
                 </button>
-                <button class="fb-slide__theme-item" data-theme="github" role="menuitem">
-                  <span class="fb-slide__theme-emoji">🐙</span>
+                <button type="button" class="fb-slide__theme-item" data-theme="github">
+                  <span class="fb-slide__theme-emoji" aria-hidden="true">🐙</span>
                   <span class="fb-slide__theme-text">GitHub</span>
                 </button>
-                <button class="fb-slide__theme-item" data-theme="discord" role="menuitem">
-                  <span class="fb-slide__theme-emoji">🎮</span>
+                <button type="button" class="fb-slide__theme-item" data-theme="discord">
+                  <span class="fb-slide__theme-emoji" aria-hidden="true">🎮</span>
                   <span class="fb-slide__theme-text">Discord</span>
                 </button>
-                <button class="fb-slide__theme-item" data-theme="onedark" role="menuitem">
-                  <span class="fb-slide__theme-emoji">⚛️</span>
+                <button type="button" class="fb-slide__theme-item" data-theme="onedark">
+                  <span class="fb-slide__theme-emoji" aria-hidden="true">⚛️</span>
                   <span class="fb-slide__theme-text">One Dark</span>
                 </button>
-                <button class="fb-slide__theme-item" data-theme="ocean" role="menuitem">
-                  <span class="fb-slide__theme-emoji">🌊</span>
+                <button type="button" class="fb-slide__theme-item" data-theme="ocean">
+                  <span class="fb-slide__theme-emoji" aria-hidden="true">🌊</span>
                   <span class="fb-slide__theme-text">Ocean</span>
                 </button>
               </div>
             </div>
 
-            <button id="slide-independent-theme-toggle" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--tertiary" aria-label="Toggle light/dark theme" title="Toggle Theme">
+            <button type="button" id="slide-independent-theme-toggle" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--tertiary" aria-label="Toggle light/dark theme" title="Toggle Theme">
               <svg id="theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="4"></circle>
                 <path d="M12 2v2"></path><path d="M12 20v2"></path>
@@ -160,14 +160,14 @@
               </svg>
             </button>
 
-            <button id="toggle-reading-mode" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--tertiary reading-mode-btn" aria-label="Toggle reading mode" title="Reading mode">
+            <button type="button" id="toggle-reading-mode" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--tertiary reading-mode-btn" aria-label="Toggle reading mode" title="Reading mode">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
               </svg>
             </button>
 
-            <button id="toggle-laser-pointer" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--tertiary laser-pointer-btn" aria-label="Toggle laser pointer (L)" title="Laser pointer (L)">
+            <button type="button" id="toggle-laser-pointer" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--tertiary laser-pointer-btn" aria-label="Toggle laser pointer (L)" title="Laser pointer (L)">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="1" fill="currentColor"></circle>
                 <circle cx="12" cy="12" r="4"></circle>
@@ -178,19 +178,19 @@
 
           <!-- Exit Zone (Right) -->
           <div class="fb-slide__nav-zone fb-slide__nav-exit">
-            <button id="toggle-fullscreen" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--secondary fullscreen-btn" aria-label="Toggle fullscreen" title="Fullscreen">
+            <button type="button" id="toggle-fullscreen" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--secondary fullscreen-btn" aria-label="Toggle fullscreen" title="Fullscreen">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
               </svg>
             </button>
 
-            <button id="next-slide" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--primary" aria-label="Next slide" title="Next slide">
+            <button type="button" id="next-slide" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__nav-btn--primary" aria-label="Next slide" title="Next slide">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M5 12h14m0 0l-7-7m7 7l-7 7"></path>
               </svg>
             </button>
 
-            <button id="close-slideshow" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__close-btn" aria-label="Close slideshow" title="Close">
+            <button type="button" id="close-slideshow" class="fb-slide__nav-btn fb-slide__compact-btn fb-slide__close-btn" aria-label="Close slideshow" title="Close">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 6L6 18"></path>
                 <path d="M6 6l12 12"></path>
@@ -201,20 +201,20 @@
 
         <!-- Mobile layout - compact with dropdown -->
         <div class="fb-slide__nav-mobile">
-          <button id="prev-slide-mobile" class="fb-slide__nav-btn fb-slide__nav-mobile-btn" aria-label="Previous slide">
+          <button type="button" id="prev-slide-mobile" class="fb-slide__nav-btn fb-slide__nav-mobile-btn" aria-label="Previous slide">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19 12H5m0 0l7 7m-7-7l7-7"></path>
             </svg>
           </button>
 
           <div class="fb-slide__counter fb-slide__counter-mobile" id="slide-counter-mobile" title="Click to go to Slide:">
-            <input type="number" id="slide-input-mobile" class="fb-slide__input" min="1" max="999" value="1" readonly />
+            <input type="number" id="slide-input-mobile" class="fb-slide__input" min="1" max="999" value="1" readonly aria-label="Current slide number" />
             <span class="slide-separator"> / </span>
             <span id="total-slides-mobile">1</span>
           </div>
 
           <div class="fb-slide__mobile-dropdown-container">
-            <button id="mobile-menu-toggle" class="fb-slide__nav-btn fb-slide__mobile-menu-btn" aria-label="Open menu" title="More options">
+            <button type="button" id="mobile-menu-toggle" class="fb-slide__nav-btn fb-slide__mobile-menu-btn" aria-label="Open menu" title="More options">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="1"></circle>
                 <circle cx="12" cy="5" r="1"></circle>
@@ -223,20 +223,20 @@
             </button>
 
             <div id="mobile-dropdown-menu" class="fb-slide__mobile-dropdown hidden">
-              <button id="slide-decrease-font-mobile" class="fb-slide__dropdown-item" aria-label="Decrease font size (double-tap to reset)">
+              <button type="button" id="slide-decrease-font-mobile" class="fb-slide__dropdown-item" aria-label="Decrease font size (double-tap to reset)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M5 12h14"></path>
                 </svg>
                 <span class="fb-slide__dropdown-text">Smaller Font</span>
               </button>
-              <button id="slide-increase-font-mobile" class="fb-slide__dropdown-item" aria-label="Increase font size (double-tap to reset)">
+              <button type="button" id="slide-increase-font-mobile" class="fb-slide__dropdown-item" aria-label="Increase font size (double-tap to reset)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M5 12h14"></path>
                   <path d="M12 5v14"></path>
                 </svg>
                 <span class="fb-slide__dropdown-text">Larger Font</span>
               </button>
-              <button id="show-thumbnails-mobile" class="fb-slide__dropdown-item" aria-label="Show thumbnails grid">
+              <button type="button" id="show-thumbnails-mobile" class="fb-slide__dropdown-item" aria-label="Show thumbnails grid">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="7" height="7"></rect>
                   <rect x="14" y="3" width="7" height="7"></rect>
@@ -245,14 +245,14 @@
                 </svg>
                 <span class="fb-slide__dropdown-text">Overview</span>
               </button>
-              <button id="toggle-reading-mode-mobile" class="fb-slide__dropdown-item" aria-label="Toggle reading mode">
+              <button type="button" id="toggle-reading-mode-mobile" class="fb-slide__dropdown-item" aria-label="Toggle reading mode">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                 </svg>
                 <span class="fb-slide__dropdown-text">Reading Mode</span>
               </button>
-              <button id="toggle-laser-pointer-mobile" class="fb-slide__dropdown-item" aria-label="Toggle laser pointer">
+              <button type="button" id="toggle-laser-pointer-mobile" class="fb-slide__dropdown-item" aria-label="Toggle laser pointer">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="1" fill="currentColor"></circle>
                   <circle cx="12" cy="12" r="4"></circle>
@@ -260,7 +260,7 @@
                 </svg>
                 <span class="fb-slide__dropdown-text">Laser Pointer</span>
               </button>
-              <button id="cycle-theme-mobile" class="fb-slide__dropdown-item" aria-label="Change theme">
+              <button type="button" id="cycle-theme-mobile" class="fb-slide__dropdown-item" aria-label="Change theme">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="4"></circle>
                   <path d="M12 2v2"></path>
@@ -274,7 +274,7 @@
                 </svg>
                 <span class="fb-slide__dropdown-text" id="mobile-theme-text">Theme: Dark</span>
               </button>
-              <button id="slide-independent-theme-toggle-mobile" class="fb-slide__dropdown-item" aria-label="Toggle light/dark theme">
+              <button type="button" id="slide-independent-theme-toggle-mobile" class="fb-slide__dropdown-item" aria-label="Toggle light/dark theme">
                 <svg id="theme-icon-light-mobile" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="4"></circle>
                   <path d="M12 2v2"></path>
@@ -291,14 +291,14 @@
                 </svg>
                 <span class="fb-slide__dropdown-text" id="mobile-independent-theme-text">Light/Dark: Light</span>
               </button>
-              <button id="close-slideshow-mobile" class="fb-slide__dropdown-item" aria-label="Close slideshow">
-                <span class="fb-slide__dropdown-icon">&#x2715;</span>
+              <button type="button" id="close-slideshow-mobile" class="fb-slide__dropdown-item" aria-label="Close slideshow">
+                <span class="fb-slide__dropdown-icon" aria-hidden="true">&#x2715;</span>
                 <span class="fb-slide__dropdown-text">Close</span>
               </button>
             </div>
           </div>
 
-          <button id="next-slide-mobile" class="fb-slide__nav-btn fb-slide__nav-mobile-btn" aria-label="Next slide">
+          <button type="button" id="next-slide-mobile" class="fb-slide__nav-btn fb-slide__nav-mobile-btn" aria-label="Next slide">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14m0 0l-7-7m7 7l-7 7"></path>
             </svg>
@@ -309,30 +309,30 @@
   </div>
 
   <!-- Go to slide modal -->
-  <div id="goto-slide-modal" class="fb-slide__goto-modal hidden">
+  <div id="goto-slide-modal" class="fb-slide__goto-modal hidden" role="dialog" aria-modal="true" aria-labelledby="goto-slide-title">
     <div class="fb-slide__goto-modal-content">
-      <h3>Go to Slide:</h3>
-      <input type="number" id="goto-slide-input" class="fb-slide__goto-input" min="1" max="1" placeholder="Enter slide number" />
+      <h3 id="goto-slide-title">Go to Slide:</h3>
+      <input type="number" id="goto-slide-input" class="fb-slide__goto-input" min="1" max="1" placeholder="Enter slide number" aria-label="Slide number" />
       <div class="fb-slide__goto-buttons">
-        <button id="goto-confirm" class="fb-slide__goto-btn fb-slide__goto-confirm">Go</button>
-        <button id="goto-cancel" class="fb-slide__goto-btn fb-slide__goto-cancel">Cancel</button>
+        <button type="button" id="goto-confirm" class="fb-slide__goto-btn fb-slide__goto-confirm">Go</button>
+        <button type="button" id="goto-cancel" class="fb-slide__goto-btn fb-slide__goto-cancel">Cancel</button>
       </div>
     </div>
   </div>
 
   <!-- Search modal -->
-  <div id="slideviewer-search-modal" class="fb-slide__search-modal hidden">
+  <div id="slideviewer-search-modal" class="fb-slide__search-modal hidden" role="dialog" aria-modal="true" aria-labelledby="slideviewer-search-title">
     <div class="fb-slide__search-modal-content">
       <div class="fb-slide__search-modal-header">
         <div class="fb-slide__search-modal-title-section">
-          <h3>Search Slides</h3>
+          <h3 id="slideviewer-search-title">Search Slides</h3>
           <div class="fb-slide__search-keyboard-hints">
             <span class="fb-slide__keyboard-hint"><kbd>&#x2191;</kbd><kbd>&#x2193;</kbd> Navigate</span>
             <span class="fb-slide__keyboard-hint"><kbd>Enter</kbd> Select</span>
             <span class="fb-slide__keyboard-hint"><kbd>Esc</kbd> Close</span>
           </div>
         </div>
-        <button id="slideviewer-search-modal-close" class="fb-slide__search-modal-close" aria-label="Close search">
+        <button type="button" id="slideviewer-search-modal-close" class="fb-slide__search-modal-close" aria-label="Close search">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 6L6 18M6 6l12 12"></path>
           </svg>
@@ -340,7 +340,7 @@
       </div>
       <div class="fb-slide__search-modal-input-container">
         <input type="text" id="slideviewer-search-modal-input" class="fb-slide__search-modal-input" placeholder="Search slides..." aria-label="Search slides" />
-        <button id="slideviewer-search-modal-clear" class="fb-slide__search-modal-clear" aria-label="Clear search">
+        <button type="button" id="slideviewer-search-modal-clear" class="fb-slide__search-modal-clear" aria-label="Clear search">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 6L6 18M6 6l12 12"></path>
           </svg>
@@ -348,7 +348,7 @@
       </div>
       <div class="fb-slide__search-results" id="slideviewer-search-results">
         <div class="fb-slide__search-results-info">
-          <span id="slideviewer-search-results-count">Enter a search keyword to find slides</span>
+          <span id="slideviewer-search-results-count" role="status">Enter a search keyword to find slides</span>
         </div>
         <div class="fb-slide__search-results-list" id="slideviewer-search-results-list">
           <!-- Search results will be inserted here. -->

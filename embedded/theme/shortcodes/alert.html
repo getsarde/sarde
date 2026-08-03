@@ -1,6 +1,6 @@
 {{- $type := or .Params.type "info" -}}
 {{- $title := .Params.title -}}
-<div class="alert alert--{{ $type }}" role="alert">
+<div class="alert alert--{{ $type }}">
 {{- if $title }}
   <div class="alert__title">{{ $title }}</div>
 {{- end }}

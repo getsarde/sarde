@@ -187,14 +187,16 @@
 	/* ── Mobile Sidebar Toggle ── */
 	.sarde-menu-toggle {
 	  position: fixed;
-	  top: calc((var(--sd-nav-height) - 2rem) / 2);
+	  /* 40px box: comfortably above the 24px WCAG floor and near the 44px
+	     platform guidance for the sole entry point to mobile navigation. */
+	  top: calc((var(--sd-nav-height) - 2.5rem) / 2);
 	  inset-inline-end: var(--sd-space-4);
 	  z-index: var(--sd-z-overlay);
 	  border: 0;
 	  border-radius: 50%;
-	  width: 2rem;
-	  height: 2rem;
-	  padding: 0.4rem;
+	  width: 2.5rem;
+	  height: 2.5rem;
+	  padding: 0.65rem;
 	  background-color: var(--sd-bg);
 	  color: var(--sd-text);
 	  border: 1px solid var(--sd-border);
@@ -674,10 +676,10 @@
 	    justify-content: center;
 	    position: absolute;
 	    top: var(--sd-space-4);
-	    inset-inline-end: -14px;
+	    inset-inline-end: -17px;
 	    z-index: 1;
-	    width: 28px;
-	    height: 28px;
+	    width: 34px;
+	    height: 34px;
 	    padding: 0;
 	    border: 1px solid var(--sd-border);
 	    border-radius: var(--sd-radius-full);

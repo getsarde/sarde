@@ -3,6 +3,7 @@ package plugin
 import (
 	"encoding/json"
 	"html"
+	"html/template"
 	"strings"
 	"time"
 
@@ -56,6 +57,15 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 		description = TrimTitlePrefix(RenderedTextFallback(page.Content, RenderedFallbackMaxChars), page.Title)
 	}
 	description = html.UnescapeString(description)
+
+	// Write the computed fallback back onto the page so Head.html's
+	// <meta name="description"> tag sees it too. Without this, pages
+	// lacking a frontmatter description got og:description but no classic
+	// meta description at all. Guarded so an explicit value is never
+	// overwritten.
+	if page.Description == "" && description != "" {
+		page.Description = description
+	}
 
 	// Build image URL.
 	ogImage := page.Image
@@ -143,11 +153,16 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 		seo["twitter_site"] = twitterHandle
 	}
 
-	// JSON-LD structured data.
+	// JSON-LD structured data. Stored as template.JS, not string: inside a
+	// <script> block html/template JSON-encodes a plain string a second time,
+	// which wraps the whole payload in a quoted literal and voids it for
+	// structured-data consumers. template.JS marks it as pre-built script
+	// content, and buildJSONLD's output is json.Marshal-generated with no
+	// user-controlled raw markup.
 	if enableJSONLD {
 		ld := buildJSONLD(page, ctx.RouteData, ctx.Site, baseURL, description)
 		if ld != "" {
-			seo["json_ld"] = ld
+			seo["json_ld"] = template.JS(ld)
 		}
 	}
 

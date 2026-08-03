@@ -1,14 +1,14 @@
 {{ if .Versions }}
 <div class="sarde-version-switcher" data-sarde-version-switcher>
-  <button class="sarde-version-switcher-trigger" data-sarde-version-switcher-trigger
-    aria-expanded="false" aria-haspopup="true" aria-label="{{ t "nav.version" }}">
+  <button class="sarde-version-switcher-trigger" type="button" data-sarde-version-switcher-trigger
+    aria-expanded="false" aria-label="{{ t "nav.version" }}">
     <span class="sarde-version-switcher-current">{{ .VersionLabel }}</span>
     {{ icon "chevron-down" "sarde-version-switcher-chevron" "width" "12" "height" "12" }}
   </button>
-  <ul class="sarde-version-switcher-menu" data-sarde-version-switcher-menu hidden role="menu">
+  <ul class="sarde-version-switcher-menu" data-sarde-version-switcher-menu hidden>
     {{ range .Versions }}
     <li role="none">
-      <a href="{{ relURL .URL }}" role="menuitem"
+      <a href="{{ relURL .URL }}"
         class="sarde-version-switcher-option{{ if .IsCurrent }} is-active{{ end }}{{ if eq .Banner "unmaintained" }} is-unmaintained{{ end }}{{ if eq .Banner "unreleased" }} is-unreleased{{ end }}"
         {{ if .IsCurrent }}aria-current="true"{{ end }}>
         <span class="sarde-version-switcher-label">{{ .Label }}</span>
