@@ -286,9 +286,9 @@ func TestValidate_ImageWidths(t *testing.T) {
 }
 
 func TestValidate_PluginNames(t *testing.T) {
-	known := []string{"search", "seo", "scroll-to-top"}
+	known := []string{"search", "seo", "scroll_to_top"}
 	cfg := Defaults()
-	cfg.Plugins.Enabled = []string{"search", "serach", "seo", "scroll-to-top"}
+	cfg.Plugins.Enabled = []string{"search", "serach", "seo", "scroll_to_top"}
 	errs, _ := Validate(cfg, known)
 	found := false
 	for _, e := range errs {
@@ -301,7 +301,7 @@ func TestValidate_PluginNames(t *testing.T) {
 	}
 	for _, e := range errs {
 		if e.Path == "plugins.enabled[3]" {
-			t.Errorf("scroll-to-top should be valid, but got error: %v", e)
+			t.Errorf("scroll_to_top should be valid, but got error: %v", e)
 		}
 	}
 }

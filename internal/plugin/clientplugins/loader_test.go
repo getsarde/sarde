@@ -39,7 +39,7 @@ func TestAllManifestPluginsHaveDefaults(t *testing.T) {
 }
 
 func TestDefaultsExtraction(t *testing.T) {
-	d := Defaults("scroll-to-top")
+	d := Defaults("scroll_to_top")
 	if d == nil {
 		t.Fatal("scroll-to-top defaults not found")
 	}
@@ -153,7 +153,7 @@ func TestShouldInject_LayoutGating(t *testing.T) {
 
 func TestRegisterAll(t *testing.T) {
 	mgr := plugin.NewManager()
-	RegisterAll(mgr, []string{"scroll-to-top", "focus-mode"}, nil, "")
+	RegisterAll(mgr, []string{"scroll_to_top", "focus_mode"}, nil, "")
 }
 
 // testBundle builds a bundle from the embedded assets for the given slugs.
@@ -162,7 +162,7 @@ func testBundle(slugs ...string) bundle {
 }
 
 func TestBundleURLs(t *testing.T) {
-	b := testBundle("scroll-to-top", "focus-mode")
+	b := testBundle("scroll_to_top", "focus_mode")
 
 	if b.cssURL == "" {
 		t.Error("cssURL is empty")
@@ -185,7 +185,7 @@ func TestBundleURLs(t *testing.T) {
 }
 
 func TestBundleData(t *testing.T) {
-	b := testBundle("scroll-to-top", "focus-mode")
+	b := testBundle("scroll_to_top", "focus_mode")
 
 	if len(b.css) == 0 {
 		t.Error("css is empty")
@@ -198,7 +198,7 @@ func TestBundleData(t *testing.T) {
 // TestBundleOnlyEnabled guards the contract that plugins.enabled governs:
 // a plugin that is not enabled must contribute nothing to the bundle.
 func TestBundleOnlyEnabled(t *testing.T) {
-	b := testBundle("scroll-to-top")
+	b := testBundle("scroll_to_top")
 
 	if strings.Contains(string(b.js), "Navigate between pages") {
 		t.Error("bundle contains keyboard-nav JS, which was not enabled")
@@ -227,8 +227,8 @@ func TestBundleEmptyWhenNothingEnabled(t *testing.T) {
 // TestBundleSlugOrderIndependent ensures the fingerprint depends on which
 // plugins are bundled, not on the order they were passed in.
 func TestBundleSlugOrderIndependent(t *testing.T) {
-	a := testBundle("scroll-to-top", "focus-mode")
-	b := testBundle("focus-mode", "scroll-to-top")
+	a := testBundle("scroll_to_top", "focus_mode")
+	b := testBundle("focus_mode", "scroll_to_top")
 
 	if a.cssURL != b.cssURL || a.jsURL != b.jsURL {
 		t.Errorf("bundle URLs differ by slug order: %q/%q vs %q/%q", a.cssURL, a.jsURL, b.cssURL, b.jsURL)
@@ -239,7 +239,7 @@ func TestBundleSlugOrderIndependent(t *testing.T) {
 // a directory must match the embedded ones, and a bad dir must fall back to
 // embedded rather than producing an empty bundle.
 func TestAssetSourceDir(t *testing.T) {
-	slugs := []string{"scroll-to-top", "focus-mode"}
+	slugs := []string{"scroll_to_top", "focus_mode"}
 	want := testBundle(slugs...)
 
 	fsys, prefix := assetSource("assets")
@@ -255,7 +255,7 @@ func TestAssetSourceDir(t *testing.T) {
 }
 
 func TestBundleHashDeterministic(t *testing.T) {
-	b := testBundle("scroll-to-top", "focus-mode")
+	b := testBundle("scroll_to_top", "focus_mode")
 
 	hash := asset.Fingerprint(b.css)
 	expected := "/assets/plugins/plugins." + hash + ".css"
@@ -271,12 +271,12 @@ func TestBundleHashDeterministic(t *testing.T) {
 }
 
 func TestBundleIsMinified(t *testing.T) {
-	b := testBundle("scroll-to-top", "focus-mode")
+	b := testBundle("scroll_to_top", "focus_mode")
 
-	if strings.Contains(string(b.css), "/* scroll-to-top */") {
+	if strings.Contains(string(b.css), "/* scroll_to_top */") {
 		t.Error("bundled CSS still contains source comments, minification not applied")
 	}
-	if strings.Contains(string(b.js), "/* scroll-to-top */") {
+	if strings.Contains(string(b.js), "/* scroll_to_top */") {
 		t.Error("bundled JS still contains source comments, minification not applied")
 	}
 }
@@ -291,7 +291,7 @@ func TestPluginSlugs(t *testing.T) {
 	for _, s := range slugs {
 		slugSet[s] = true
 	}
-	for _, expected := range []string{"scroll-to-top", "focus-mode", "reading-progress"} {
+	for _, expected := range []string{"scroll_to_top", "focus_mode", "reading_progress"} {
 		if !slugSet[expected] {
 			t.Errorf("missing slug %q", expected)
 		}

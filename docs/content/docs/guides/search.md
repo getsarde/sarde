@@ -94,6 +94,6 @@ pagefind: false
 
 ## Search highlighting
 
-The `search-highlighter` plugin highlights search terms on the target page after a reader clicks a search result. This plugin is separate from the search plugin and must be enabled independently.
+The `search_highlighter` plugin highlights search terms on the target page after a reader clicks a search result. This plugin is separate from the search plugin and must be enabled independently.
 
 See [Plugins](/plugins/search-highlighter) for search highlighter configuration.

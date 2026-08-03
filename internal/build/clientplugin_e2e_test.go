@@ -49,7 +49,7 @@ Final thoughts.
 func TestBuild_ClientPlugins_BundleOutput(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
-	cfg.Plugins.Enabled = []string{"scroll-to-top", "focus-mode", "reading-progress"}
+	cfg.Plugins.Enabled = []string{"scroll_to_top", "focus_mode", "reading_progress"}
 	themeCfg := buildThemeConfig()
 
 	builder := NewSiteBuilder(BuildOptions{
@@ -120,7 +120,7 @@ func readPluginBundle(t *testing.T, distDir string) string {
 func TestBuild_ClientPlugins_DisabledNotBundled(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
-	cfg.Plugins.Enabled = []string{"scroll-to-top"}
+	cfg.Plugins.Enabled = []string{"scroll_to_top"}
 	themeCfg := buildThemeConfig()
 
 	builder := NewSiteBuilder(BuildOptions{
@@ -210,22 +210,22 @@ func containsSubstring(msgs []string, want string) bool {
 // a silent no-op.
 func TestBuild_PluginConfig_IgnoredWarns(t *testing.T) {
 	cfg := config.Defaults()
-	cfg.Plugins.Enabled = []string{"scroll-to-top"}
+	cfg.Plugins.Enabled = []string{"scroll_to_top"}
 	cfg.Plugins.Config = map[string]map[string]any{
-		"keyboard-nav":  {"show_hint": false},
 		"keyboard_nav":  {"show_hint": false},
-		"scroll-to-top": {"showTooltip": true},
+		"keyboard_navv": {"show_hint": false},
+		"scroll_to_top": {"show_tooltip": true},
 	}
 
 	msgs := buildAndCollectWarnings(t, createRichFixtureSite(t), cfg)
 
-	if !containsSubstring(msgs, `plugin "keyboard-nav" is not in plugins.enabled`) {
-		t.Errorf("expected a not-enabled warning for keyboard-nav, warnings: %v", msgs)
+	if !containsSubstring(msgs, `plugin "keyboard_nav" is not in plugins.enabled`) {
+		t.Errorf("expected a not-enabled warning for keyboard_nav, warnings: %v", msgs)
 	}
-	if !containsSubstring(msgs, `unknown plugin "keyboard_nav"`) {
+	if !containsSubstring(msgs, `unknown plugin "keyboard_navv"`) {
 		t.Errorf("expected an unknown-plugin warning for the typo, warnings: %v", msgs)
 	}
-	if containsSubstring(msgs, "scroll-to-top") {
+	if containsSubstring(msgs, "scroll_to_top") {
 		t.Errorf("enabled plugin should not warn, warnings: %v", msgs)
 	}
 }
@@ -234,14 +234,14 @@ func TestBuild_PluginConfig_IgnoredWarns(t *testing.T) {
 // enabled, its config block is live and must not warn.
 func TestBuild_PluginConfig_EnabledNoWarn(t *testing.T) {
 	cfg := config.Defaults()
-	cfg.Plugins.Enabled = []string{"scroll-to-top", "keyboard-nav"}
+	cfg.Plugins.Enabled = []string{"scroll_to_top", "keyboard_nav"}
 	cfg.Plugins.Config = map[string]map[string]any{
-		"keyboard-nav": {"show_hint": false},
+		"keyboard_nav": {"show_hint": false},
 	}
 
 	msgs := buildAndCollectWarnings(t, createRichFixtureSite(t), cfg)
 
-	if containsSubstring(msgs, "keyboard-nav") {
+	if containsSubstring(msgs, "keyboard_nav") {
 		t.Errorf("enabled plugin should not warn, warnings: %v", msgs)
 	}
 }
@@ -249,7 +249,7 @@ func TestBuild_PluginConfig_EnabledNoWarn(t *testing.T) {
 func TestBuild_ClientPlugins_BundleOnEveryPage(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
-	cfg.Plugins.Enabled = []string{"scroll-to-top", "reading-progress", "image-lightbox"}
+	cfg.Plugins.Enabled = []string{"scroll_to_top", "reading_progress", "image_lightbox"}
 	themeCfg := buildThemeConfig()
 
 	builder := NewSiteBuilder(BuildOptions{
@@ -282,8 +282,8 @@ func TestBuild_ClientPlugins_PerPageConfigInjection(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
 	cfg.Plugins.Enabled = []string{
-		"scroll-to-top", "image-lightbox",
-		"focus-mode",
+		"scroll_to_top", "image_lightbox",
+		"focus_mode",
 	}
 	themeCfg := buildThemeConfig()
 
@@ -305,14 +305,14 @@ func TestBuild_ClientPlugins_PerPageConfigInjection(t *testing.T) {
 	guideHTML := readFixture(t, distDir, "docs/guide/index.html")
 
 	// Config for image-lightbox should be injected (has_images → guide has images)
-	if !strings.Contains(guideHTML, `image-lightbox`) {
+	if !strings.Contains(guideHTML, `image_lightbox`) {
 		t.Error("guide page should have image-lightbox config (has images)")
 	}
 
 	// plain.md has no images → config script should NOT be injected
 	plainHTML := readFixture(t, distDir, "docs/plain/index.html")
 
-	if strings.Contains(plainHTML, `image-lightbox`) {
+	if strings.Contains(plainHTML, `image_lightbox`) {
 		t.Error("plain page should NOT have image-lightbox config (no images)")
 	}
 }
@@ -320,9 +320,9 @@ func TestBuild_ClientPlugins_PerPageConfigInjection(t *testing.T) {
 func TestBuild_ClientPlugins_ConfigInjection(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
-	cfg.Plugins.Enabled = []string{"scroll-to-top"}
+	cfg.Plugins.Enabled = []string{"scroll_to_top"}
 	cfg.Plugins.Config = map[string]map[string]any{
-		"scroll-to-top": {"threshold": 50, "showProgressRing": true},
+		"scroll_to_top": {"threshold": 50, "showProgressRing": true},
 	}
 	themeCfg := buildThemeConfig()
 
@@ -344,7 +344,7 @@ func TestBuild_ClientPlugins_ConfigInjection(t *testing.T) {
 	if !strings.Contains(homeHTML, `__SARDE__`) {
 		t.Error("expected plugin config injection in page HTML")
 	}
-	if !strings.Contains(homeHTML, `scroll-to-top`) {
+	if !strings.Contains(homeHTML, `scroll_to_top`) {
 		t.Error("expected scroll-to-top config key in inline script")
 	}
 }
@@ -352,7 +352,7 @@ func TestBuild_ClientPlugins_ConfigInjection(t *testing.T) {
 func TestBuild_ClientPlugins_ModuleScripts(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
-	cfg.Plugins.Enabled = []string{"scroll-to-top"}
+	cfg.Plugins.Enabled = []string{"scroll_to_top"}
 	themeCfg := buildThemeConfig()
 
 	builder := NewSiteBuilder(BuildOptions{
@@ -378,7 +378,7 @@ func TestBuild_ClientPlugins_ModuleScripts(t *testing.T) {
 func TestBuild_ClientPlugins_FingerprintedBundle(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
-	cfg.Plugins.Enabled = []string{"scroll-to-top"}
+	cfg.Plugins.Enabled = []string{"scroll_to_top"}
 	themeCfg := buildThemeConfig()
 
 	builder := NewSiteBuilder(BuildOptions{
@@ -628,11 +628,11 @@ func TestBuild_AllClientPlugins(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
 	cfg.Plugins.Enabled = []string{
-		"scroll-to-top", "copy-section-link", "external-links",
-		"image-lightbox", "keyboard-nav", "focus-mode",
-		"reading-progress", "search-highlighter", "text-highlighter",
-		"reading-position-memory",
-		"reading-preferences",
+		"scroll_to_top", "copy_section_link", "external_links",
+		"image_lightbox", "keyboard_nav", "focus_mode",
+		"reading_progress", "search_highlighter", "text_highlighter",
+		"reading_position_memory",
+		"reading_preferences",
 		"announcements",
 	}
 	cfg.Plugins.Config = map[string]map[string]any{
@@ -700,7 +700,7 @@ func TestBuild_AllClientPlugins(t *testing.T) {
 func TestBuild_ContentFeatureFlags(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()
-	cfg.Plugins.Enabled = []string{"image-lightbox"}
+	cfg.Plugins.Enabled = []string{"image_lightbox"}
 	themeCfg := buildThemeConfig()
 
 	builder := NewSiteBuilder(BuildOptions{
@@ -719,13 +719,157 @@ func TestBuild_ContentFeatureFlags(t *testing.T) {
 
 	// guide.md has images → config script should be injected
 	guideHTML := readFixture(t, distDir, "docs/guide/index.html")
-	if !strings.Contains(guideHTML, `image-lightbox`) {
+	if !strings.Contains(guideHTML, `image_lightbox`) {
 		t.Error("guide page should have image-lightbox config (HasImages=true)")
 	}
 
 	// plain.md has no images → config script should NOT be injected
 	plainHTML := readFixture(t, distDir, "docs/plain/index.html")
-	if strings.Contains(plainHTML, `image-lightbox`) {
+	if strings.Contains(plainHTML, `image_lightbox`) {
 		t.Error("plain page should NOT have image-lightbox config (HasImages=false)")
+	}
+}
+
+// TestBuild_PluginConfig_KeyWarnings covers field-level config checking for an
+// active client plugin: a typo warns as unknown, a legacy camelCase spelling
+// warns as deprecated, and declared keys stay silent.
+func TestBuild_PluginConfig_KeyWarnings(t *testing.T) {
+	cfg := config.Defaults()
+	cfg.Plugins.Enabled = []string{"scroll_to_top"}
+	cfg.Plugins.Config = map[string]map[string]any{
+		"scroll_to_top": {"show_tolltip": true, "showTooltip": true, "threshold": 40},
+	}
+
+	msgs := buildAndCollectWarnings(t, createRichFixtureSite(t), cfg)
+
+	if !containsSubstring(msgs, `unknown config key "show_tolltip"`) {
+		t.Errorf("expected unknown-key warning, warnings: %v", msgs)
+	}
+	if !containsSubstring(msgs, `config key "showTooltip" is deprecated; use "show_tooltip"`) {
+		t.Errorf("expected deprecated-key warning, warnings: %v", msgs)
+	}
+	if containsSubstring(msgs, `"threshold"`) {
+		t.Errorf("declared key should not warn, warnings: %v", msgs)
+	}
+}
+
+// TestWarnPluginConfigKeys_UndeclaredPluginSkipped guards against false
+// positives: plugins without a declared field set (external plugins, Go
+// built-ins) must produce no key warnings at all.
+func TestWarnPluginConfigKeys_UndeclaredPluginSkipped(t *testing.T) {
+	if warns := warnPluginConfigKeys("some_external_plugin", map[string]any{"anything": 1}); len(warns) != 0 {
+		t.Errorf("expected no warnings for a plugin without a declared field set, got %v", warns)
+	}
+	if warns := warnPluginConfigKeys("seo", map[string]any{"anything": 1}); len(warns) != 0 {
+		t.Errorf("expected no warnings for a Go built-in, got %v", warns)
+	}
+}
+
+// TestBuild_LegacyPluginSlugAndKey_EndToEnd proves a legacy kebab slug and a
+// legacy camelCase field key still work through the real config path:
+// sarde.yaml -> config.Resolve (alias normalization) -> build.
+func TestBuild_LegacyPluginSlugAndKey_EndToEnd(t *testing.T) {
+	projDir := createRichFixtureSite(t)
+	writeFixture(t, projDir, "sarde.yaml", `site:
+  title: Legacy
+plugins:
+  enabled:
+    - scroll-to-top
+  config:
+    scroll-to-top:
+      showProgressRing: true
+`)
+
+	cfg, err := config.Resolve(config.ResolveOptions{
+		ConfigPath:   filepath.Join(projDir, "sarde.yaml"),
+		KnownPlugins: KnownPluginNames(projDir),
+	})
+	if err != nil {
+		t.Fatalf("Resolve failed: %v", err)
+	}
+
+	if len(cfg.Plugins.Enabled) != 1 || cfg.Plugins.Enabled[0] != "scroll_to_top" {
+		t.Fatalf("legacy slug not normalized, enabled = %v", cfg.Plugins.Enabled)
+	}
+	if _, ok := cfg.Plugins.Config["scroll_to_top"]; !ok {
+		t.Fatalf("legacy config slug not re-keyed, config = %v", cfg.Plugins.Config)
+	}
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: buildThemeConfig(),
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(projDir, "dist")
+	if bundle := readPluginBundle(t, distDir); !strings.Contains(bundle, "sarde-scroll-to-top") {
+		t.Error("bundle missing scroll_to_top assets when enabled via legacy slug")
+	}
+	homeHTML := readFixture(t, distDir, "index.html")
+	if !strings.Contains(homeHTML, `"show_progress_ring":true`) {
+		t.Error("legacy camelCase key not normalized in injected config")
+	}
+	if strings.Contains(homeHTML, "showProgressRing") {
+		t.Error("legacy camelCase key leaked into injected config")
+	}
+}
+
+// TestBuild_CanonicalSlugAndKey_NoLegacyPath is the counterpart: canonical
+// spellings resolve to the same enabled set and injected config.
+func TestBuild_CanonicalSlugAndKey_NoLegacyPath(t *testing.T) {
+	projDir := createRichFixtureSite(t)
+	writeFixture(t, projDir, "sarde.yaml", `site:
+  title: Canonical
+plugins:
+  enabled:
+    - scroll_to_top
+  config:
+    scroll_to_top:
+      show_progress_ring: true
+`)
+
+	cfg, err := config.Resolve(config.ResolveOptions{
+		ConfigPath:   filepath.Join(projDir, "sarde.yaml"),
+		KnownPlugins: KnownPluginNames(projDir),
+	})
+	if err != nil {
+		t.Fatalf("Resolve failed: %v", err)
+	}
+	if len(cfg.Plugins.Enabled) != 1 || cfg.Plugins.Enabled[0] != "scroll_to_top" {
+		t.Fatalf("canonical slug mangled, enabled = %v", cfg.Plugins.Enabled)
+	}
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: buildThemeConfig(),
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	homeHTML := readFixture(t, filepath.Join(projDir, "dist"), "index.html")
+	if !strings.Contains(homeHTML, `"show_progress_ring":true`) {
+		t.Error("canonical key missing from injected config")
+	}
+}
+
+// TestReservedPluginNames_IncludesLegacyAliases: the reserved set must keep
+// the deprecated kebab spellings claimed, or an external plugin could shadow
+// a legacy slug the config alias layer still resolves.
+func TestReservedPluginNames_IncludesLegacyAliases(t *testing.T) {
+	set := make(map[string]bool)
+	for _, n := range ReservedPluginNames("") {
+		set[n] = true
+	}
+	for _, want := range []string{"scroll_to_top", "scroll-to-top", "keyboard_nav", "keyboard-nav", "content_lint", "content-lint"} {
+		if !set[want] {
+			t.Errorf("reserved set missing %q", want)
+		}
 	}
 }

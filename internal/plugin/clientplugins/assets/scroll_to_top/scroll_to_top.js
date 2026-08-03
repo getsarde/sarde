@@ -1,11 +1,11 @@
-const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["scroll-to-top"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["scroll_to_top"]) || {};
 
 const THRESHOLD = cfg.threshold || 30;
-const SHOW_TOOLTIP = cfg.showTooltip || false;
-const SHOW_PROGRESS_RING = cfg.showProgressRing || false;
-const SMOOTH_SCROLL = cfg.smoothScroll !== false;
-const BORDER_RADIUS = (cfg.borderRadius != null ? cfg.borderRadius : 15) + '%';
-const PROGRESS_RING_COLOR = cfg.progressRingColor || null;
+const SHOW_TOOLTIP = cfg.show_tooltip || false;
+const SHOW_PROGRESS_RING = cfg.show_progress_ring || false;
+const SMOOTH_SCROLL = cfg.smooth_scroll !== false;
+const BORDER_RADIUS = (cfg.border_radius != null ? cfg.border_radius : 15) + '%';
+const PROGRESS_RING_COLOR = cfg.progress_ring_color || null;
 const SVG_PATH = 'M18 15l-6-6-6 6';
 let isKeyboard = false;
 

@@ -1,4 +1,4 @@
-const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["search-highlighter"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["search_highlighter"]) || {};
 
 const config = {
     highlightColor: cfg.highlight_color || '',

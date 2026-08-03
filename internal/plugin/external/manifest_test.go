@@ -209,6 +209,21 @@ func TestEffectivePrefix(t *testing.T) {
 	}
 }
 
+// TestEffectivePrefix_SnakeSlugKebabized: identifiers are snake_case, URLs are
+// kebab-case; the default vendor prefix kebab-izes the slug, while an explicit
+// output.prefix passes through untouched.
+func TestEffectivePrefix_SnakeSlugKebabized(t *testing.T) {
+	m := &Manifest{Slug: "my_widget"}
+	if got := m.EffectivePrefix(); got != "assets/vendor/my-widget/" {
+		t.Errorf("EffectivePrefix() = %q, want assets/vendor/my-widget/", got)
+	}
+
+	m.Output.Prefix = "assets/vendor/my_widget/"
+	if got := m.EffectivePrefix(); got != "assets/vendor/my_widget/" {
+		t.Errorf("explicit output.prefix must pass through untouched, got %q", got)
+	}
+}
+
 func TestIncludeFilter(t *testing.T) {
 	m := &Manifest{Slug: "x"}
 	if m.IncludeFilter() != nil {

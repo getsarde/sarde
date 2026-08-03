@@ -107,6 +107,8 @@ Scripts:      js/grade-sync.js
 Output:       assets/vendor/grade-sync/
 ```
 
+The `Output` path is the plugin's asset prefix. By default it is `assets/vendor/<slug>/`. For a slug containing underscores, the default prefix kebab-izes it: a plugin named `my_widget` serves its assets from `/assets/vendor/my-widget/`, since underscores never appear in emitted URLs. A plugin that hardcodes its own asset path inside its CSS or JavaScript should not rely on that conversion, pin the path explicitly instead with `output.prefix` in `plugin.yaml`.
+
 ### Removing
 
 ```
@@ -131,7 +133,7 @@ To turn a plugin off without uninstalling it, add its slug to `plugins.disabled`
 plugins:
   disabled:
     - cohort-banner
-    - reading-progress
+    - reading_progress
 ```
 
 `plugins.disabled` works for every plugin type: external, built-in server-side, and client-side. Unlike `plugins.enabled`, it never replaces anything; it only turns off the named entries.
@@ -188,7 +190,7 @@ Those capabilities require Go code and the built-in plugin lifecycle hooks. See 
 
 ## Edge cases
 
-- A plugin whose slug matches a built-in plugin name (`sitemap`, `search`, `reading-progress`, and so on) is rejected: `sarde plugin install` fails with an error, and a manually placed directory produces a build warning and is skipped.
+- A plugin whose slug matches a built-in plugin name (`sitemap`, `search`, `reading_progress`, and so on) is rejected: `sarde plugin install` fails with an error, and a manually placed directory produces a build warning and is skipped. The deprecated kebab-case spellings of built-in plugin names (`scroll-to-top`, `keyboard-nav`, and so on) are reserved as well and cannot be used as external plugin slugs.
 - If two installed plugins ship a template with the same filename, the alphabetically last slug wins and the build emits a warning naming both plugins.
 - `sarde dev` watches `plugins/` and runs a full rebuild on any change under it. There is no incremental path for plugin changes.
 - Unknown fields in `plugin.yaml` are rejected rather than ignored, so a misspelled manifest key fails loudly instead of silently doing nothing.

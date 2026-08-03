@@ -1,4 +1,4 @@
-const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["text-highlighter"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["text_highlighter"]) || {};
 
 const config = {
     maxHighlights: cfg.max_highlights_per_page || 50,

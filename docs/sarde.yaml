@@ -60,8 +60,8 @@ plugins:
     - link_validator
     - redirects    
     - social_cards
-    - scroll-to-top
-    - keyboard-nav
+    - scroll_to_top
+    - keyboard_nav
   config:
     social_cards:
       # Lebanese Red brand palette from brand/README.md: deep navy tile
@@ -72,10 +72,10 @@ plugins:
       logo: "sarde"
       logo_size: 96
       watermark: true
-    scroll-to-top:
-      showProgressRing: true
-      showTooltip: true
-    keyboard-nav:
+    scroll_to_top:
+      show_progress_ring: true
+      show_tooltip: true
+    keyboard_nav:
       # Keep arrow-key navigation, drop the on-load hint toast and the
       # chevron arrows pinned to the viewport edges.
       show_hint: false

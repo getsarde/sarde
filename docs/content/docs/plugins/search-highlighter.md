@@ -17,7 +17,7 @@ plugins:
     - seo
     - sitemap
     # ... other default plugins
-    - search-highlighter
+    - search_highlighter
 ```
 
 ## How it works
@@ -36,7 +36,7 @@ After highlighting, the `?q=` parameter is removed from the URL bar without a pa
 ```yaml
 plugins:
   config:
-    search-highlighter:
+    search_highlighter:
       highlight_color: "hsla(38, 80%, 60%, 0.3)"
       active_outline_color: "hsl(38, 85%, 50%)"
       auto_scroll: true

@@ -361,7 +361,7 @@ plugins:
 plugins:
   disabled:
     - social_cards
-    - reading-progress
+    - reading_progress
 ```
 
 ## `taxonomies`

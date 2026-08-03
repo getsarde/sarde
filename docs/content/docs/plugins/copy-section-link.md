@@ -17,7 +17,7 @@ plugins:
     - seo
     - sitemap
     # ... other default plugins
-    - copy-section-link
+    - copy_section_link
 ```
 
 ## How it works
@@ -36,7 +36,7 @@ The plugin uses the Clipboard API (`navigator.clipboard.writeText`). After a suc
 ```yaml
 plugins:
   config:
-    copy-section-link:
+    copy_section_link:
       tooltip_text: "Copied!"
       tooltip_duration: 1000
 ```

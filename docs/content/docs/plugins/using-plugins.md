@@ -28,12 +28,12 @@ plugins:
     - katex
     - mermaid
     - social_cards
-    - reading-progress
-    - scroll-to-top
+    - reading_progress
+    - scroll_to_top
 ```
 
 :::warning
-Setting `plugins.enabled` replaces the default list entirely. If only `reading-progress` is listed, every other plugin (search, seo, sitemap, etc.) is disabled. Always include the default plugins alongside any additions. This applies to built-in and client-side plugins only; [external plugins](/plugins/external-plugins/) are never governed by `plugins.enabled`.
+Setting `plugins.enabled` replaces the default list entirely. If only `reading_progress` is listed, every other plugin (search, seo, sitemap, etc.) is disabled. Always include the default plugins alongside any additions. This applies to built-in and client-side plugins only; [external plugins](/plugins/external-plugins/) are never governed by `plugins.enabled`.
 :::
 
 ### Disabling individual plugins
@@ -63,7 +63,7 @@ plugins:
     rss:
       title: "Course Updates"
       limit: 20
-    scroll-to-top:
+    scroll_to_top:
       threshold: 400
 ```
 
@@ -71,7 +71,9 @@ Each plugin documents its own configuration options. Options not specified fall 
 
 ## Default plugins
 
-Fourteen plugins are enabled by default. Twelve more are available but must be added to `plugins.enabled` to activate.
+Thirteen plugins are enabled by default. Twelve more are available but must be added to `plugins.enabled` to activate.
+
+Plugin slugs are snake_case (`scroll_to_top`, `keyboard_nav`, and so on). Older sites may still reference the former kebab-case spellings, such as `scroll-to-top`. Those still work, but each one emits a deprecation warning at build time and should be migrated to the snake_case form. The same applies to the `scroll_to_top` plugin's config keys, which moved from camelCase (`showTooltip`) to snake_case (`show_tooltip`): the old keys are still accepted, with a build warning, until they are updated.
 
 ### Enabled by default
 
@@ -97,17 +99,17 @@ Fourteen plugins are enabled by default. Twelve more are available but must be a
 
 | Plugin | Type | Purpose |
 |--------|------|---------|
-| [`scroll-to-top`](/plugins/scroll-to-top) | Client | Floating button to scroll back to the top. |
-| [`copy-section-link`](/plugins/copy-section-link) | Client | Click-to-copy anchor links on headings. |
-| [`external-links`](/plugins/external-links) | Client | Marks external links with an icon and opens them in a new tab. |
-| [`image-lightbox`](/plugins/image-lightbox) | Client | Click-to-zoom overlay for images. |
-| [`keyboard-nav`](/plugins/keyboard-nav) | Client | Navigate between pages with arrow keys. |
-| [`focus-mode`](/plugins/focus-mode) | Client | Hides sidebar and TOC for distraction-free reading. |
-| [`reading-progress`](/plugins/reading-progress) | Client | Progress bar showing scroll position. |
-| [`search-highlighter`](/plugins/search-highlighter) | Client | Highlights search terms on the destination page. |
-| [`text-highlighter`](/plugins/text-highlighter) | Client | User-driven text highlighting with persistence. |
-| [`reading-position-memory`](/plugins/reading-position-memory) | Client | Remembers scroll position across visits. |
-| [`reading-preferences`](/plugins/reading-preferences) | Client | Font size and content width controls. |
+| [`scroll_to_top`](/plugins/scroll-to-top) | Client | Floating button to scroll back to the top. |
+| [`copy_section_link`](/plugins/copy-section-link) | Client | Click-to-copy anchor links on headings. |
+| [`external_links`](/plugins/external-links) | Client | Marks external links with an icon and opens them in a new tab. |
+| [`image_lightbox`](/plugins/image-lightbox) | Client | Click-to-zoom overlay for images. |
+| [`keyboard_nav`](/plugins/keyboard-nav) | Client | Navigate between pages with arrow keys. |
+| [`focus_mode`](/plugins/focus-mode) | Client | Hides sidebar and TOC for distraction-free reading. |
+| [`reading_progress`](/plugins/reading-progress) | Client | Progress bar showing scroll position. |
+| [`search_highlighter`](/plugins/search-highlighter) | Client | Highlights search terms on the destination page. |
+| [`text_highlighter`](/plugins/text-highlighter) | Client | User-driven text highlighting with persistence. |
+| [`reading_position_memory`](/plugins/reading-position-memory) | Client | Remembers scroll position across visits. |
+| [`reading_preferences`](/plugins/reading-preferences) | Client | Font size and content width controls. |
 | [`announcements`](/plugins/announcements) | Server | Displays announcement banners with scheduling and i18n. |
 
 ## Server-side vs. client-side
@@ -121,8 +123,8 @@ A plugin that is not enabled contributes nothing to the bundle, so a site never 
 Because `plugins.config` only reaches plugins that are actually active, a config block for a plugin that is not enabled is ignored. The build warns when this happens:
 
 ```
-WARN  plugin  sarde.yaml: plugins.config.keyboard-nav
-      plugin "keyboard-nav" is not in plugins.enabled, configuration ignored
+WARN  plugin  sarde.yaml: plugins.config.keyboard_nav
+      plugin "keyboard_nav" is not in plugins.enabled, configuration ignored
 ```
 
 A config block naming no known plugin (usually a typo) warns as `unknown plugin`. External plugins are exempt from both warnings, since they are enabled by their presence under `plugins/` rather than by `plugins.enabled`.

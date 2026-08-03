@@ -252,12 +252,15 @@ func pluginWarning(file, msg string) engine.ValidationWarning {
 }
 
 // mergeConfig overlays user config on top of plugin-shipped defaults.
+// Deprecated camelCase spellings of snake_case default keys are accepted and
+// re-keyed to the canonical name first.
 func mergeConfig(defaults, userCfg map[string]any) map[string]any {
-	merged := make(map[string]any, len(defaults)+len(userCfg))
+	resolved, _ := cfgutil.ResolveAliases(defaults, userCfg)
+	merged := make(map[string]any, len(defaults)+len(resolved))
 	for k, v := range defaults {
 		merged[k] = v
 	}
-	for k, v := range userCfg {
+	for k, v := range resolved {
 		merged[k] = v
 	}
 	return merged

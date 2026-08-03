@@ -152,11 +152,13 @@ func (m *Manifest) Validate(dirName string) error {
 }
 
 // EffectivePrefix returns the dist-relative output prefix, always without a
-// leading slash and with a trailing slash. Defaults to assets/vendor/{slug}/.
+// leading slash and with a trailing slash. Defaults to assets/vendor/{slug}/
+// with underscores kebab-ized: identifiers are snake_case, URLs are
+// kebab-case, and underscores never appear in an emitted URL.
 func (m *Manifest) EffectivePrefix() string {
 	prefix := m.Output.Prefix
 	if prefix == "" {
-		prefix = "assets/vendor/" + m.Slug + "/"
+		prefix = "assets/vendor/" + strings.ReplaceAll(m.Slug, "_", "-") + "/"
 	}
 	prefix = strings.TrimPrefix(prefix, "/")
 	if !strings.HasSuffix(prefix, "/") {

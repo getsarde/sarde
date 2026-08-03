@@ -32,7 +32,7 @@ func runPluginInstall(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("getting working directory: %w", err)
 	}
 
-	m, err := external.Install(projectDir, args[0], build.KnownPluginNames(""))
+	m, err := external.Install(projectDir, args[0], build.ReservedPluginNames(""))
 	if err != nil {
 		return err
 	}

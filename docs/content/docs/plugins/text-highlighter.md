@@ -17,7 +17,7 @@ plugins:
     - seo
     - sitemap
     # ... other default plugins
-    - text-highlighter
+    - text_highlighter
 ```
 
 ## How it works
@@ -36,7 +36,7 @@ Highlights are stored per page in `localStorage` with surrounding context charac
 ```yaml
 plugins:
   config:
-    text-highlighter:
+    text_highlighter:
       max_highlights_per_page: 50
       context_chars: 40
 ```

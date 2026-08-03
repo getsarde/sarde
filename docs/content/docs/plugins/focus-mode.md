@@ -17,7 +17,7 @@ plugins:
     - seo
     - sitemap
     # ... other default plugins
-    - focus-mode
+    - focus_mode
 ```
 
 ## How it works
@@ -41,7 +41,7 @@ The feature is desktop-only. Below 1024px the sidebar is a slide-in drawer and t
 ```yaml
 plugins:
   config:
-    focus-mode:
+    focus_mode:
       enable_hotkey: true
       show_button: true
       button_position: "bottom-right"

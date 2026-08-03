@@ -2,7 +2,7 @@
 // Hides sidebar and TOC for distraction-free reading.
 // Toggle via floating button or F hotkey. Preference persists via localStorage.
 
-const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["focus-mode"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["focus_mode"]) || {};
 
 const config = {
     enableHotkey: cfg.enable_hotkey !== false,

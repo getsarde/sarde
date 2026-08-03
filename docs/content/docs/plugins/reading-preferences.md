@@ -17,7 +17,7 @@ plugins:
     - seo
     - sitemap
     # ... other default plugins
-    - reading-preferences
+    - reading_preferences
 ```
 
 ## How it works
@@ -46,7 +46,7 @@ Close the panel by clicking outside it, pressing ::kbd[Esc], or clicking the tog
 ```yaml
 plugins:
   config:
-    reading-preferences:
+    reading_preferences:
       min_font_size: 75
       max_font_size: 300
       show_width_control: true

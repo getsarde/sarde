@@ -17,6 +17,7 @@ import (
 	"github.com/getsarde/sarde/internal/outputpath"
 	"github.com/getsarde/sarde/internal/plugin"
 	"github.com/getsarde/sarde/internal/plugin/announcements"
+	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 	"github.com/getsarde/sarde/internal/plugin/clientplugins"
 	"github.com/getsarde/sarde/internal/plugin/external"
 	"github.com/getsarde/sarde/internal/plugin/katex"
@@ -138,6 +139,21 @@ func KnownPluginNames(projectDir string) []string {
 	return names
 }
 
+// ReservedPluginNames returns KnownPluginNames plus the deprecated kebab-case
+// alias of every snake_case name. An external plugin may not claim a legacy
+// spelling: the config alias layer still resolves it to the canonical plugin,
+// and the kebab-ized vendor asset prefix would collide with the snake original.
+func ReservedPluginNames(projectDir string) []string {
+	known := KnownPluginNames(projectDir)
+	names := append([]string(nil), known...)
+	for _, name := range known {
+		if kebab := strings.ReplaceAll(name, "_", "-"); kebab != name {
+			names = append(names, kebab)
+		}
+	}
+	return names
+}
+
 // warnUnusedPluginConfig reports plugins.config entries whose plugin is not
 // active, and whose settings are therefore silently ignored. External plugins
 // are enabled by their presence under plugins/ rather than by plugins.enabled,
@@ -175,6 +191,7 @@ func warnUnusedPluginConfig(cfg *config.SiteConfig, enabled []string, projectDir
 	var warnings []engine.ValidationWarning
 	for _, name := range names {
 		if active[name] {
+			warnings = append(warnings, warnPluginConfigKeys(name, cfg.Plugins.Config[name])...)
 			continue
 		}
 		ref := "sarde.yaml: plugins.config." + name
@@ -191,6 +208,55 @@ func warnUnusedPluginConfig(cfg *config.SiteConfig, enabled []string, projectDir
 			File:    ref,
 			Field:   "plugin",
 			Message: fmt.Sprintf("unknown plugin %q, configuration ignored", name),
+			Level:   "warning",
+		})
+	}
+	return warnings
+}
+
+// warnPluginConfigKeys reports unknown and deprecated field keys in one
+// active plugin's config block. Only plugins with a declared field set are
+// checked (today the client plugins); Go built-ins and external plugins have
+// none and are skipped so they cannot produce false positives.
+func warnPluginConfigKeys(slug string, userCfg map[string]any) []engine.ValidationWarning {
+	fields := clientplugins.FieldNames(slug)
+	if len(fields) == 0 || len(userCfg) == 0 {
+		return nil
+	}
+	declared := make(map[string]bool, len(fields))
+	aliases := make(map[string]string, len(fields))
+	for _, f := range fields {
+		declared[f] = true
+		if a := cfgutil.CamelAlias(f); a != "" {
+			aliases[a] = f
+		}
+	}
+
+	keys := make([]string, 0, len(userCfg))
+	for k := range userCfg {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	ref := "sarde.yaml: plugins.config." + slug
+	var warnings []engine.ValidationWarning
+	for _, k := range keys {
+		if declared[k] {
+			continue
+		}
+		if canonical, ok := aliases[k]; ok {
+			warnings = append(warnings, engine.ValidationWarning{
+				File:    ref,
+				Field:   "plugin",
+				Message: fmt.Sprintf("config key %q is deprecated; use %q", k, canonical),
+				Level:   "warning",
+			})
+			continue
+		}
+		warnings = append(warnings, engine.ValidationWarning{
+			File:    ref,
+			Field:   "plugin",
+			Message: fmt.Sprintf("unknown config key %q, ignored", k),
 			Level:   "warning",
 		})
 	}

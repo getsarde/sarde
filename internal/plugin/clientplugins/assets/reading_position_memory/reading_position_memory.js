@@ -1,7 +1,7 @@
 // Reading Position Memory Plugin
 // Saves scroll position per page to localStorage. Shows a toast to restore on return.
 
-const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["reading-position-memory"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["reading_position_memory"]) || {};
 
 const config = {
     toastDuration: cfg.toast_duration || 8,

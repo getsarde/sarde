@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
+	"strings"
 
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/devlog"
@@ -79,6 +81,11 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 
 	// Layer 5: environment variables
 	applyEnvOverrides(cfg, opts.EnvPrefix)
+
+	// Canonicalize deprecated kebab-case plugin slugs. Must run before the
+	// Validate call below, or legacy spellings would be flagged as unknown
+	// plugins; everything downstream then only ever sees canonical slugs.
+	normalizePluginSlugs(&cfg.Plugins, opts.KnownPlugins)
 
 	// Normalize fields that accept multiple input forms. theme.date_format is
 	// deliberately NOT normalized here: the dateFormat template function needs
@@ -480,6 +487,76 @@ func mergePlugins(base, over *PluginSettings) {
 	}
 	if len(over.Config) > 0 {
 		base.Config = over.Config
+	}
+}
+
+// normalizePluginSlugs rewrites deprecated kebab-case plugin slugs to their
+// canonical snake_case form in Enabled, Disabled, and the Config keys. A kebab
+// spelling is treated as an alias only when its snake form is a known plugin,
+// so hyphenated external plugin slugs are left untouched. When a legacy and a
+// canonical spelling appear together, lists are deduplicated and the canonical
+// config block wins. Each legacy slug produces one deprecation warning.
+func normalizePluginSlugs(p *PluginSettings, knownPlugins []string) {
+	if len(knownPlugins) == 0 {
+		return
+	}
+	known := make(map[string]bool, len(knownPlugins))
+	for _, name := range knownPlugins {
+		known[name] = true
+	}
+	legacySeen := make(map[string]string)
+	canon := func(slug string) string {
+		if !strings.Contains(slug, "-") {
+			return slug
+		}
+		snake := strings.ReplaceAll(slug, "-", "_")
+		if !known[snake] {
+			return slug
+		}
+		legacySeen[slug] = snake
+		return snake
+	}
+
+	canonList := func(list []string) []string {
+		if len(list) == 0 {
+			return list
+		}
+		seen := make(map[string]bool, len(list))
+		kept := list[:0]
+		for _, slug := range list {
+			c := canon(slug)
+			if seen[c] {
+				continue
+			}
+			seen[c] = true
+			kept = append(kept, c)
+		}
+		return kept
+	}
+	p.Enabled = canonList(p.Enabled)
+	p.Disabled = canonList(p.Disabled)
+
+	if len(p.Config) > 0 {
+		rekeyed := make(map[string]map[string]any, len(p.Config))
+		for slug, cfg := range p.Config {
+			c := canon(slug)
+			if c != slug {
+				if _, ok := p.Config[c]; ok {
+					continue // canonical spelling wins
+				}
+			}
+			rekeyed[c] = cfg
+		}
+		p.Config = rekeyed
+	}
+
+	legacy := make([]string, 0, len(legacySeen))
+	for slug := range legacySeen {
+		legacy = append(legacy, slug)
+	}
+	sort.Strings(legacy)
+	for _, slug := range legacy {
+		devlog.Warn("config", "plugin slug %q is deprecated; use %q", slug, legacySeen[slug])
 	}
 }
 

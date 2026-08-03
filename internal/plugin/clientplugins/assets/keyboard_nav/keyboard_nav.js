@@ -1,4 +1,4 @@
-const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["keyboard-nav"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["keyboard_nav"]) || {};
 
 // Allowlisted because the value comes from user YAML and lands in an attribute
 // that CSS selectors match on.

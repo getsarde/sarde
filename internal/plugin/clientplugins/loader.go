@@ -53,6 +53,7 @@ type Manifest struct {
 var (
 	manifest       Manifest
 	pluginDefaults map[string]map[string]any
+	pluginFields   map[string][]string
 )
 
 var initOnce sync.Once
@@ -176,6 +177,7 @@ func minifyJS(data []byte) []byte {
 
 func precomputeDefaults() {
 	pluginDefaults = make(map[string]map[string]any, len(manifest.Plugins))
+	pluginFields = make(map[string][]string, len(manifest.Plugins))
 	for slug := range manifest.Plugins {
 		data, err := fs.ReadFile(defaultsFS, "defaults/"+slug+".yaml")
 		if err != nil {
@@ -186,6 +188,9 @@ func precomputeDefaults() {
 			continue
 		}
 		pluginDefaults[slug] = defaults
+		if fields, err := cfgutil.FieldNames(data); err == nil {
+			pluginFields[slug] = fields
+		}
 	}
 }
 
@@ -284,16 +289,23 @@ func Defaults(slug string) map[string]any {
 	return pluginDefaults[slug]
 }
 
+// FieldNames returns the declared config field names of a plugin, sorted, or
+// nil for a plugin the manifest does not know or that ships no defaults file.
+func FieldNames(slug string) []string {
+	return pluginFields[slug]
+}
+
 func shouldInject(rule string, page *engine.Page, rd *engine.RouteData) bool {
 	return plugin.MatchesInjectRule(rule, page, rd)
 }
 
 func mergeConfig(defaults, userCfg map[string]any) map[string]any {
+	resolved, _ := cfgutil.ResolveAliases(defaults, userCfg)
 	merged := make(map[string]any)
 	for k, v := range defaults {
 		merged[k] = v
 	}
-	for k, v := range userCfg {
+	for k, v := range resolved {
 		merged[k] = v
 	}
 	return merged

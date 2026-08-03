@@ -99,7 +99,7 @@ func (pm *ProjectManager) InstallPlugin(source string) (*PluginInfo, error) {
 		return nil, err
 	}
 
-	m, err := external.Install(projectDir, source, build.KnownPluginNames(""))
+	m, err := external.Install(projectDir, source, build.ReservedPluginNames(""))
 	if err != nil {
 		return nil, err
 	}

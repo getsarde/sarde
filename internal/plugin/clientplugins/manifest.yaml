@@ -1,89 +1,89 @@
 plugins:
-  scroll-to-top:
+  scroll_to_top:
     description: "Floating scroll-to-top button with optional progress ring"
     inject_when: always
     assets:
-      css: scroll-to-top/scroll-to-top.css
-      js: scroll-to-top/scroll-to-top.js
+      css: scroll_to_top/scroll_to_top.css
+      js: scroll_to_top/scroll_to_top.js
     module: true
 
-  copy-section-link:
+  copy_section_link:
     description: "Click heading anchors to copy shareable section links"
     inject_when: has_headings
     assets:
-      css: copy-section-link/copy-section-link.css
-      js: copy-section-link/copy-section-link.js
+      css: copy_section_link/copy_section_link.css
+      js: copy_section_link/copy_section_link.js
     module: true
 
-  external-links:
+  external_links:
     description: "Mark external links with icons and open in new tabs"
     inject_when: always
     assets:
-      css: external-links/external-links.css
-      js: external-links/external-links.js
+      css: external_links/external_links.css
+      js: external_links/external_links.js
     module: true
 
-  image-lightbox:
+  image_lightbox:
     description: "Click images to view full-size in a lightbox overlay"
     inject_when: has_images
     assets:
-      css: image-lightbox/image-lightbox.css
-      js: image-lightbox/image-lightbox.js
+      css: image_lightbox/image_lightbox.css
+      js: image_lightbox/image_lightbox.js
     module: true
 
-  keyboard-nav:
+  keyboard_nav:
     description: "Arrow key navigation between prev/next pages"
     inject_when: has_prev_next
     assets:
-      css: keyboard-nav/keyboard-nav.css
-      js: keyboard-nav/keyboard-nav.js
+      css: keyboard_nav/keyboard_nav.css
+      js: keyboard_nav/keyboard_nav.js
     module: true
 
-  focus-mode:
+  focus_mode:
     description: "Distraction-free reading by hiding sidebar and ToC"
     inject_when: has_sidebar
     assets:
-      css: focus-mode/focus-mode.css
-      js: focus-mode/focus-mode.js
+      css: focus_mode/focus_mode.css
+      js: focus_mode/focus_mode.js
     module: true
 
-  reading-progress:
+  reading_progress:
     description: "Scroll progress bar and reading time estimate"
     inject_when: is_content_page
     assets:
-      css: reading-progress/reading-progress.css
-      js: reading-progress/reading-progress.js
+      css: reading_progress/reading_progress.css
+      js: reading_progress/reading_progress.js
     module: true
 
-  search-highlighter:
+  search_highlighter:
     description: "Highlight search terms from query params in page content"
     inject_when: always
     assets:
-      css: search-highlighter/search-highlighter.css
-      js: search-highlighter/search-highlighter.js
+      css: search_highlighter/search_highlighter.css
+      js: search_highlighter/search_highlighter.js
     module: true
 
-  text-highlighter:
+  text_highlighter:
     description: "Selection-based text highlighting with localStorage persistence"
     inject_when: is_content_page
     assets:
-      css: text-highlighter/text-highlighter.css
-      js: text-highlighter/text-highlighter.js
+      css: text_highlighter/text_highlighter.css
+      js: text_highlighter/text_highlighter.js
     module: true
 
 
-  reading-position-memory:
+  reading_position_memory:
     description: "Remember and offer to restore scroll position per page"
     inject_when: is_content_page
     assets:
-      css: reading-position-memory/reading-position-memory.css
-      js: reading-position-memory/reading-position-memory.js
+      css: reading_position_memory/reading_position_memory.css
+      js: reading_position_memory/reading_position_memory.js
     module: true
 
-  reading-preferences:
+  reading_preferences:
     description: "User-adjustable font size, spacing, and content width"
     inject_when: has_sidebar
     assets:
-      css: reading-preferences/reading-preferences.css
-      js: reading-preferences/reading-preferences.js
+      css: reading_preferences/reading_preferences.css
+      js: reading_preferences/reading_preferences.js
     module: true

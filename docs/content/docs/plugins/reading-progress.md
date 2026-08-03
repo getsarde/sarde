@@ -17,7 +17,7 @@ plugins:
     - seo
     - sitemap
     # ... other default plugins
-    - reading-progress
+    - reading_progress
 ```
 
 ## How it works
@@ -32,7 +32,7 @@ The reading time badge appears below the page title (or description, if present)
 ```yaml
 plugins:
   config:
-    reading-progress:
+    reading_progress:
       bar_height: 3
       bar_color: "#6366f1"
       use_gradient: true

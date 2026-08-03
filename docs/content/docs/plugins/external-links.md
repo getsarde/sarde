@@ -17,7 +17,7 @@ plugins:
     - seo
     - sitemap
     # ... other default plugins
-    - external-links
+    - external_links
 ```
 
 ## How it works
@@ -36,7 +36,7 @@ Links in the header, sidebar, footer, and navigation are not processed. Only lin
 ```yaml
 plugins:
   config:
-    external-links:
+    external_links:
       show_icon: true
       open_in_new_tab: true
       exclude_domains: "github.com, docs.example.com"
@@ -56,7 +56,7 @@ Use `exclude_domains` to prevent specific external hostnames from receiving the 
 ```yaml
 plugins:
   config:
-    external-links:
+    external_links:
       exclude_domains: "github.com, docs.example.com"
 ```
 

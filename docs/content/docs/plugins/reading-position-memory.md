@@ -17,7 +17,7 @@ plugins:
     - seo
     - sitemap
     # ... other default plugins
-    - reading-position-memory
+    - reading_position_memory
 ```
 
 ## How it works
@@ -36,7 +36,7 @@ The toast auto-dismisses after 8 seconds by default. Saved positions expire afte
 ```yaml
 plugins:
   config:
-    reading-position-memory:
+    reading_position_memory:
       toast_duration: 8
       toast_position: "bottom-center"
       scroll_threshold: 5

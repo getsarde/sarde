@@ -8,10 +8,10 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.625rem 0.75rem 0.625rem 1rem;
-    background: var(--sd-bg-surface, #1e1e2e);
-    border: 1px solid var(--sd-border, rgba(255, 255, 255, 0.1));
+    background: var(--sd-bg-surface, #ffffff);
+    border: 1px solid var(--sd-border, rgba(0, 0, 0, 0.1));
     border-radius: var(--sd-radius-lg, 0.75rem);
-    box-shadow: var(--sd-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.25));
+    box-shadow: var(--sd-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.1));
     font-size: 0.8rem;
     font-family: var(--sd-font-system, system-ui, sans-serif);
     opacity: 0;
@@ -44,7 +44,7 @@
 }
 
 .sarde-rpm-toast-message {
-    color: var(--sd-text-muted, #a1a1aa);
+    color: var(--sd-text-muted, #6b7280);
     white-space: nowrap;
 }
 
@@ -84,34 +84,31 @@
     height: 1.5rem;
     padding: 0;
     font-size: 1rem;
-    color: var(--sd-text-muted, #a1a1aa);
+    color: var(--sd-text-muted, #6b7280);
     background: transparent;
     border-radius: var(--sd-radius-sm, 0.25rem);
 }
 
 .sarde-rpm-toast-btn-dismiss:hover {
-    background: var(--sd-bg-muted, rgba(255, 255, 255, 0.08));
-    color: var(--sd-text, #e4e4e7);
-}
-
-/* Light theme */
-:root:not(.dark) .sarde-rpm-toast {
-    background: var(--sd-bg-surface, #ffffff);
-    border-color: var(--sd-border, rgba(0, 0, 0, 0.1));
-    box-shadow: var(--sd-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.1));
-}
-
-:root:not(.dark) .sarde-rpm-toast-message {
-    color: var(--sd-text-muted, #6b7280);
-}
-
-:root:not(.dark) .sarde-rpm-toast-btn-dismiss {
-    color: var(--sd-text-muted, #6b7280);
-}
-
-:root:not(.dark) .sarde-rpm-toast-btn-dismiss:hover {
     background: var(--sd-bg-muted, #f3f4f6);
     color: var(--sd-text, #1f2937);
+}
+
+/* Dark theme */
+:root[data-theme="dark"] {
+    .sarde-rpm-toast {
+        background: var(--sd-bg-surface);
+        border-color: var(--sd-border);
+        box-shadow: var(--sd-shadow-lg);
+    }
+    .sarde-rpm-toast-message,
+    .sarde-rpm-toast-btn-dismiss {
+        color: var(--sd-text-muted);
+    }
+    .sarde-rpm-toast-btn-dismiss:hover {
+        background: var(--sd-bg-muted);
+        color: var(--sd-text);
+    }
 }
 
 /* Mobile */

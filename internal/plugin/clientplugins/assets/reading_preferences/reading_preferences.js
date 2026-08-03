@@ -1,7 +1,7 @@
 // Reading Preferences Plugin
 // Floating control panel for adjusting typography, spacing, and layout.
 
-const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["reading-preferences"]) || {};
+const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["reading_preferences"]) || {};
 
 const config = {
     minFontSize: cfg.min_font_size || 75,

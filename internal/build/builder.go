@@ -92,7 +92,7 @@ func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
 	enabled := filterDisabled(opts.Config.Plugins.Enabled, opts.Config.Plugins.Disabled)
 	mgr.RegisterBuiltins(enabled, opts.Config.Plugins.Config)
 	registerSubpackagePlugins(mgr, enabled, opts.Config.Plugins.Config, opts.PluginAssetsDir)
-	extDirs, extDirectiveDirs, extWarnings := external.LoadAll(mgr, opts.ProjectDir, opts.Config, KnownPluginNames(""))
+	extDirs, extDirectiveDirs, extWarnings := external.LoadAll(mgr, opts.ProjectDir, opts.Config, ReservedPluginNames(""))
 	extWarnings = append(extWarnings, warnUnusedPluginConfig(opts.Config, enabled, opts.ProjectDir)...)
 
 	return &SiteBuilder{

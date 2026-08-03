@@ -17,7 +17,7 @@ plugins:
     - seo
     - sitemap
     # ... other default plugins
-    - image-lightbox
+    - image_lightbox
 ```
 
 ## How it works
@@ -51,7 +51,7 @@ Page scrolling is locked while the lightbox is open and restored on close.
 ```yaml
 plugins:
   config:
-    image-lightbox:
+    image_lightbox:
       background_opacity: 0.92
 ```
 

@@ -17,7 +17,7 @@ plugins:
     - seo
     - sitemap
     # ... other default plugins
-    - keyboard-nav
+    - keyboard_nav
 ```
 
 ## How it works
@@ -61,7 +61,7 @@ The behavior is controlled by three options. `auto_hide` picks where it applies:
 ```yaml
 plugins:
   config:
-    keyboard-nav:
+    keyboard_nav:
       auto_hide: compact
       hide_delay: 2000
       scroll_threshold: 100
@@ -105,7 +105,7 @@ The hint is hidden on viewports narrower than 1024px, where it would advertise k
 ```yaml
 plugins:
   config:
-    keyboard-nav:
+    keyboard_nav:
       show_hint: true
       show_side_nav: true
       show_compact_nav: true
