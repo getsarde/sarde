@@ -15,15 +15,17 @@
     <div class="sarde-post-card sarde-post-card-featured">
       <a href="{{ .Permalink }}">
         <h3 class="sarde-post-card-title">{{ .Title | markdownify }}</h3>
-        <div class="sarde-post-card-meta">
-          {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
-          {{ if .ReadingTime }}<span class="sarde-meta-sep">&middot;</span><span>{{ tWithData "nav.reading_time" (dict "Minutes" .ReadingTime) }}</span>{{ end }}
-        </div>
         {{ if .Summary }}<p class="sarde-post-card-excerpt">{{ .Summary | markdownify }}</p>{{ end }}
       </a>
-      {{ if .Tags }}
-      <div class="sarde-post-card-tags">{{ range .Tags }}<a href="{{ termURL "tags" . }}" class="sarde-post-tag">{{ . }}</a>{{ end }}</div>
-      {{ end }}
+      <div class="sarde-post-card-footer">
+        <div class="sarde-post-card-meta">
+          {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ icon "calendar" "" "width" "14" "height" "14" }} {{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
+          {{ if .ReadingTime }}<span class="sarde-meta-sep">&middot;</span><span>{{ tWithData "nav.reading_time" (dict "Minutes" .ReadingTime) }}</span>{{ end }}
+        </div>
+        {{ if .Tags }}
+        <div class="sarde-post-card-tags">{{ range .Tags }}<a href="{{ termURL "tags" . }}" class="sarde-post-tag">{{ . }}</a>{{ end }}</div>
+        {{ end }}
+      </div>
       {{ with .Extra }}{{ with index . "authors" }}
       <div class="sarde-post-card-authors">{{ range . }}<a href="{{ termURL "authors" . }}" class="sarde-post-author-pill">{{ . }}</a>{{ end }}</div>
       {{ end }}{{ end }}
@@ -40,15 +42,17 @@
     <div class="sarde-post-card">
       <a href="{{ .Permalink }}">
         <h3 class="sarde-post-card-title">{{ .Title | markdownify }}</h3>
-        <div class="sarde-post-card-meta">
-          {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
-          {{ if .ReadingTime }}<span class="sarde-meta-sep">&middot;</span><span>{{ tWithData "nav.reading_time" (dict "Minutes" .ReadingTime) }}</span>{{ end }}
-        </div>
         {{ if .Summary }}<p class="sarde-post-card-excerpt">{{ .Summary | markdownify }}</p>{{ end }}
       </a>
-      {{ if .Tags }}
-      <div class="sarde-post-card-tags">{{ range .Tags }}<a href="{{ termURL "tags" . }}" class="sarde-post-tag">{{ . }}</a>{{ end }}</div>
-      {{ end }}
+      <div class="sarde-post-card-footer">
+        <div class="sarde-post-card-meta">
+          {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ icon "calendar" "" "width" "14" "height" "14" }} {{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
+          {{ if .ReadingTime }}<span class="sarde-meta-sep">&middot;</span><span>{{ tWithData "nav.reading_time" (dict "Minutes" .ReadingTime) }}</span>{{ end }}
+        </div>
+        {{ if .Tags }}
+        <div class="sarde-post-card-tags">{{ range .Tags }}<a href="{{ termURL "tags" . }}" class="sarde-post-tag">{{ . }}</a>{{ end }}</div>
+        {{ end }}
+      </div>
       {{ with .Extra }}{{ with index . "authors" }}
       <div class="sarde-post-card-authors">{{ range . }}<a href="{{ termURL "authors" . }}" class="sarde-post-author-pill">{{ . }}</a>{{ end }}</div>
       {{ end }}{{ end }}

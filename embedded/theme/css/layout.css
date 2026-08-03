@@ -17,6 +17,10 @@
 	  width: 100%;
 	}
 
+	.sarde-layout-default > main:has(.sarde-blog-with-sidebar) {
+	  max-width: 72rem;
+	}
+
 	/* ── Site Header ── */
 	.sarde-header {
 	  grid-area: header;

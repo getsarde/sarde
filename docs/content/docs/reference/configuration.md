@@ -616,6 +616,8 @@ i18n:
 | `command` | string | `""` | Custom deployment command (for `custom` provider). |
 | `redirect_format` | string | `""` | Redirect file format. `html`, `netlify`, `vercel`, or `all`. |
 
+The `github` and `custom` providers are implemented. The `netlify`, `cloudflare`, and `vercel` providers are accepted but not yet implemented: they validate their settings, then exit with an error. Deploy to those platforms with their CLI through the `custom` provider instead; see [Deploying](/start-here/deploying/) for working per-platform commands.
+
 ## `server`
 
 | Key | Type | Default | Description |

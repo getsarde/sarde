@@ -34,6 +34,15 @@ deploy:
   branch: gh-pages
 ```
 
+A project site is served under the repository name (`https://user.github.io/my-site/`), so set the base path to match:
+
+```yaml
+build:
+  base_path: /my-site/
+```
+
+Without it, the deployed site loads with broken styles and links even though the same build works locally. User and organization sites (repositories named `user.github.io`) are served from the root and need no base path.
+
 Build and deploy:
 
 ```sh

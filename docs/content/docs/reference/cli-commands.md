@@ -157,6 +157,8 @@ sarde deploy --provider github
 
 The output directory must exist. If it does not, an error prompts to run `sarde build` first.
 
+Only the `github` and `custom` providers are implemented. The `netlify`, `cloudflare`, and `vercel` values are accepted but exit with a "not yet implemented" error; use the platform CLI through the `custom` provider instead. See [Deploying](/start-here/deploying/) for working per-platform commands.
+
 ## `version`
 
 Print version, Go runtime, and OS/architecture information.

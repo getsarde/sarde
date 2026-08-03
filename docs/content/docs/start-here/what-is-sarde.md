@@ -7,7 +7,7 @@ sidebar:
   order: 1
 ---
 
-Sarde is a static site generator (SSG). It reads a folder of Markdown files and writes a complete, themed website that can be hosted anywhere.
+Sarde is a static site generator (SSG). It reads a folder of Markdown files and writes a complete, themed website that can be hosted anywhere. It is ideal for product or API documentation, course materials, and blogs, or anything that needs clean navigation and search without setup.
 
 There is no frontend project to set up first, and no build tooling to assemble. A site is complete on the first build, with navigation, syntax highlighting, and search already in place. Configuration adjusts those defaults rather than producing them.
 
@@ -44,13 +44,13 @@ Built in 320 ms
 
 - One HTML page per Markdown file, on a responsive theme with light and dark modes
 - A sidebar built from the directory structure, and a table of contents per page
-- A compiled CSS bundle and a small JavaScript bundle
 - Full-text search that runs offline in the browser
+- Internal link validation on every build, and link prefetching on hover
 - Syntax highlighting for code blocks
+- A compiled CSS bundle and a small JavaScript bundle
 - Responsive images converted to WebP, with low-quality placeholders
 - RSS and Atom feeds for date-sorted collections, `sitemap.xml`, and `robots.txt`
 - Social card images for link previews
-- Link prefetching on hover, and internal link validation on every build
 
 Nothing in `dist/` needs Sarde or Go at runtime. The output is plain HTML, CSS, and JavaScript, so it runs on GitHub Pages, Netlify, Cloudflare Pages, Vercel, an object storage bucket, or a directory served by nginx. If Sarde stops being the right tool later, the built site keeps working and the Markdown sources stay readable.
 

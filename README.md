@@ -18,12 +18,12 @@
 </p>
 
 <p align="center">
-  A static site generator written in Go. Drop in Markdown, get a themed site. Conventions handle the structure, so the config file stays a few lines long.
+  A static site generator written in Go. Drop in Markdown, get a themed site. Ideal for product or API documentation, course materials, and blogs; conventions handle the structure, so the config file stays a few lines long.
 </p>
 
 ## Why Sarde
 
-Sarde is a single Go binary with no runtime dependencies, and your directory structure is the site structure. Put files in `content/blog/` and you get a date-sorted blog with RSS. A `content/docs/` directory produces sidebar navigation, versioning, and a table of contents. Both layouts are selected by directory name alone, without additional configuration.
+Sarde is a single Go binary with no runtime dependencies, and your directory structure is the site structure. Put files in `content/docs/` and you get sidebar navigation, versioning, a table of contents, and search. A `content/blog/` directory produces a date-sorted blog with RSS. Both layouts are selected by directory name alone, without additional configuration.
 
 Defaults can be overridden through `sarde.yaml`, CLI flags, or environment variables.
 
@@ -35,17 +35,17 @@ Defaults can be overridden through `sarde.yaml`, CLI flags, or environment varia
 ## Features
 
 **Content**
-- Auto-detected collections: directory names select date-sorted blogs, docs layouts with sidebar and ToC, lab guides, or slide decks (see the table under [Project structure](#project-structure))
-- Frontmatter in YAML, TOML, or JSON
-- Title, date, and sidebar order inferred automatically from filenames, headings, and git history
-- Page bundles (directory with `index.md` + images) with automatic responsive image generation
+- Auto-detected collections: directory names select docs layouts with sidebar and ToC, date-sorted blogs, lab guides, or slide decks (see the table under [Project structure](#project-structure))
 - Versioned docs (Docusaurus-style) with URL shadowing for the latest version
-- i18n with per-language directories, RTL support, and translation fallback
 - Optional `sidebar.yaml` for per-path sidebar overrides, tab overrides, and `collapse_level`
+- i18n with per-language directories, RTL support, and translation fallback
+- Title, date, and sidebar order inferred automatically from filenames, headings, and git history
+- Frontmatter in YAML, TOML, or JSON
+- Page bundles (directory with `index.md` + images) with automatic responsive image generation
 
 **Markdown**
 - 30+ Goldmark extensions: code blocks with syntax highlighting (Kazari + Nuri), KaTeX math, Mermaid diagrams, GitHub-style alerts, callouts, cards, tabs, multi-column layouts, accordions, file trees, timelines, image comparison, keyboard shortcuts, spoilers, and more
-- Syntax highlighting via [Kazari](https://github.com/frostybee/kazari) (Expressive Code-style frames, diff markers, line numbers) powered by [Nuri](https://github.com/frostybee/nuri) (TextMate grammars, 400+ languages)
+- Syntax highlighting via [Kazari](https://github.com/frostybee/kazari) (Expressive Code-style frames, diff markers, line numbers) powered by [Nuri](https://github.com/frostybee/nuri) (TextMate grammars, 257 languages)
 
 **Asset pipeline**
 - CSS/JS bundling via esbuild (Go API, no Node.js)
@@ -84,7 +84,7 @@ Add any of these to `plugins.enabled` to bundle its CSS and JS. Nothing ships to
 - Fenced-block syntax checking (`sarde check-syntax`)
 - Merged configuration inspection with provenance (`sarde effective-config`)
 - Obsidian vault importer (converts wikilinks and callouts)
-- Deploy command for GitHub Pages, Netlify, Cloudflare Pages, and Vercel
+- Deploy command for GitHub Pages, or any custom command (rsync, provider CLIs) via the `custom` provider
 
 ## Installation
 
@@ -348,7 +348,7 @@ cd testsite/general
 
 ## Acknowledgments
 
-Sarde's convention-over-configuration approach and docs collection features are inspired by [Docusaurus](https://docusaurus.io/) and [Starlight](https://starlight.astro.build/). The code block rendering is powered by [Kazari](https://github.com/frostybee/kazari), a Go port of [Expressive Code](https://expressive-code.com/).
+Sarde's docs collection offers feature parity with [Docusaurus](https://docusaurus.io/) and [Starlight](https://starlight.astro.build/), whose conventions inspired it. The code block rendering is powered by [Kazari](https://github.com/frostybee/kazari), a Go port of [Expressive Code](https://expressive-code.com/).
 
 ## License
 

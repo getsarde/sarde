@@ -1,6 +1,6 @@
 site:
   title: "Sarde"
-  description: "Documentation for Sarde, a zero-config static site generator"
+  description: "Documentation for Sarde, a static site generator for documentation, course materials, and blogs"
   url: "https://getsarde.github.io"
   edit_url: "https://github.com/getsarde/sarde/edit/main/docs/content"
   # The Lebanese Red woven mark from brand/icon.svg. The navy tile keeps its
@@ -84,7 +84,7 @@ plugins:
 homepage:
   hero:
     title: "Sarde Documentation"
-    subtitle: "A zero-config, Go-based static site generator that ships as a single binary."
+    subtitle: "Turn a folder of Markdown into a documentation site, a blog, or a course. One Go binary, a few lines of configuration."
     background: gradient
     cta:
       label: "Get Started"

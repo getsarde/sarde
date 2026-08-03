@@ -70,6 +70,8 @@ Each top-level directory inside `content/` is a collection, and Sarde infers how
 | `slides`, `presentations`, `decks` | Date-sorted; deck pages use the presentation layout, the list page is a card gallery |
 | Any other name | Default layout, sorted by title |
 
+The docs family is the most full-featured of these: sidebar navigation, table of contents, versioning, and search are all active by default, with nothing to configure.
+
 These names are a convention, not a requirement. Any directory name works, and an unrecognized name produces a general collection sorted by title. To use a different name with docs behavior, set the collection explicitly in `sarde.yaml` rather than renaming the directory.
 
 `sarde.yaml`

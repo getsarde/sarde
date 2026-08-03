@@ -14,28 +14,36 @@
 	.sarde-header-nav-link:hover { color: var(--sd-text); background: var(--sd-bg-surface); }
 	.sarde-header-nav-link.active { color: var(--sd-text-accent); background: var(--sd-bg-accent-subtle); }
 
-	.sarde-blog-main { flex: 1; padding: 2rem 1.5rem; }
 	.sarde-blog-container { max-width: 48rem; margin: 0 auto; }
 	.sarde-blog-page-title { font-size: 2rem; font-weight: 800; margin: 0 0 0.5rem; }
 	.sarde-blog-page-description { color: var(--sd-text-muted); margin: 0 0 2rem; font-size: 1.125rem; }
 
 	/* Post Cards */
 	.sarde-post-card {
-	  padding: 1.25rem 0; border-bottom: 1px solid var(--sd-border);
+	  padding: 1.25rem 1.5rem;
+	  border: 1px solid var(--sd-border);
+	  border-radius: 0.75rem;
 	}
 	.sarde-post-card a { text-decoration: none; color: inherit; display: block; }
-	.sarde-post-card-title { margin: 0 0 0.375rem; font-size: 1.25rem; font-weight: 600; color: var(--sd-text); }
+	.sarde-post-card-title { margin: 0 0 0.5rem; font-size: 1.25rem; font-weight: 700; color: var(--sd-text); }
 	.sarde-post-card a:hover .sarde-post-card-title { color: var(--sd-text-accent); }
+	.sarde-post-card-excerpt { margin: 0; font-size: 0.9375rem; color: var(--sd-text-muted); line-height: 1.6; }
+	.sarde-post-card-footer {
+	  display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem;
+	  margin-top: 0.75rem;
+	}
 	.sarde-post-card-meta {
 	  display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
-	  font-size: 0.8125rem; color: var(--sd-text-muted); margin-bottom: 0.5rem;
+	  font-size: 0.8125rem; color: var(--sd-text-muted);
 	}
-	.sarde-post-card-excerpt { margin: 0; font-size: 0.9375rem; color: var(--sd-text-muted); line-height: 1.6; }
-	.sarde-post-card-tags { display: flex; gap: 0.375rem; margin-top: 0.5rem; flex-wrap: wrap; }
+	.sarde-post-card-meta time { display: inline-flex; align-items: center; gap: 0.25rem; }
+	.sarde-post-card-meta svg { opacity: 0.6; }
+	.sarde-post-card-tags { display: flex; gap: 0.375rem; flex-wrap: wrap; }
 	.sarde-post-tag {
-	  display: inline-block; padding: 0.125rem 0.5rem; border-radius: 9999px;
-	  font-size: 0.75rem; font-weight: 500; background: var(--sd-bg-surface); color: var(--sd-text-muted);
-	  text-decoration: none; transition: background 0.15s, color 0.15s;
+	  display: inline-block; padding: 0.1875rem 0.625rem; border-radius: 9999px;
+	  font-size: 0.75rem; font-weight: 500;
+	  border: 1px solid var(--sd-border); background: var(--sd-bg-surface); color: var(--sd-text-muted);
+	  text-decoration: none; transition: background 0.15s, color 0.15s, border-color 0.15s;
 	}
 	.sarde-post-tag:hover { background: var(--sd-border); color: var(--sd-text); }
 	.sarde-post-author { color: var(--sd-text); text-decoration: none; font-weight: 500; }
@@ -49,8 +57,8 @@
 	  text-decoration: none; transition: background 0.15s, color 0.15s;
 	}
 	.sarde-post-author-pill:hover { background: var(--sd-border); color: var(--sd-text); }
-	.sarde-post-card.sarde-post-card-featured { background: var(--sd-bg-accent-subtle); margin: 0 -1rem; padding: 1.25rem 1rem; border-radius: 0.5rem; border: none; }
-	.sarde-post-grid { display: grid; gap: 1rem; margin-bottom: 1rem; }
+	.sarde-post-card.sarde-post-card-featured { background: var(--sd-bg-accent-subtle); }
+	.sarde-post-grid { display: grid; gap: 1.25rem; margin-bottom: 1rem; }
 	.sarde-section-heading { font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sd-text-muted); margin: 0 0 1rem; }
 
 	/* Blog Pagination */
@@ -118,9 +126,8 @@
 
 	/* ── Blog + Tag Sidebar Layout ── */
 	.sarde-blog-with-sidebar {
-	  max-width: 72rem;
-	  margin: 0 auto;
-	  padding: 0 var(--sd-space-4);
+	  max-width: none;
+	  width: 100%;
 	}
 
 	@media (min-width: 1024px) {
@@ -133,6 +140,7 @@
 	  .sarde-blog-with-sidebar > .sarde-blog-container-wide {
 	    flex: 1;
 	    min-width: 0;
+	    max-width: none;
 	  }
 
 	  .sarde-blog-with-sidebar > .sarde-tag-sidebar {
@@ -149,6 +157,8 @@
 	    border-top: 1px solid var(--sd-border);
 	    margin-top: var(--sd-space-6);
 	    padding-top: var(--sd-space-6);
+	    max-width: 48rem;
+	    margin-inline: auto;
 	  }
 
 	  .sarde-blog-with-sidebar .sarde-tag-sidebar-list {
