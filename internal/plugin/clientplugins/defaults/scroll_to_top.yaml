@@ -1,11 +1,20 @@
 fields:
   threshold:
     type: number
-    label: "Scroll Threshold (%)"
-    hint: "How far down the page before the button appears"
-    default: 30
-    min: 10
-    max: 99
+    label: "Scroll Threshold (px)"
+    hint: "How many pixels the reader must scroll down before the button appears"
+    default: 300
+    min: 0
+    max: 5000
+  position:
+    type: select
+    label: "Button Position"
+    hint: "Horizontal position of the button at the bottom of the viewport"
+    default: center
+    options:
+      - { value: left, label: "Bottom Left" }
+      - { value: center, label: "Bottom Center" }
+      - { value: right, label: "Bottom Right" }
   show_tooltip:
     type: toggle
     label: "Show Tooltip"

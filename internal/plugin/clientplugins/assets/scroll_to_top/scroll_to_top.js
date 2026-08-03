@@ -1,6 +1,7 @@
 const cfg = (window.__SARDE__ && window.__SARDE__.pluginConfig && window.__SARDE__.pluginConfig["scroll_to_top"]) || {};
 
-const THRESHOLD = cfg.threshold || 30;
+const THRESHOLD = cfg.threshold != null && cfg.threshold >= 0 ? cfg.threshold : 300;
+const POSITION = cfg.position || 'center';
 const SHOW_TOOLTIP = cfg.show_tooltip || false;
 const SHOW_PROGRESS_RING = cfg.show_progress_ring || false;
 const SMOOTH_SCROLL = cfg.smooth_scroll !== false;
@@ -9,9 +10,11 @@ const PROGRESS_RING_COLOR = cfg.progress_ring_color || null;
 const SVG_PATH = 'M18 15l-6-6-6 6';
 let isKeyboard = false;
 
+const footer = document.querySelector('.sarde-footer');
+
 // Create button
 const btn = document.createElement('button');
-btn.className = 'sarde-scroll-to-top';
+btn.className = 'sarde-scroll-to-top pos-' + POSITION;
 btn.style.borderRadius = BORDER_RADIUS;
 if (PROGRESS_RING_COLOR) btn.style.setProperty('--scroll-progress-color', PROGRESS_RING_COLOR);
 btn.setAttribute('aria-label', 'Scroll to top');
@@ -59,27 +62,28 @@ function doScrollToTop() {
     btn.classList.remove('is-active');
 }
 
-// Throttle for scroll performance (~60fps)
-function throttle(fn, limit) {
-    let inThrottle;
-    return function () {
-        if (!inThrottle) {
-            fn();
-            inThrottle = true;
-            setTimeout(function () { inThrottle = false; }, limit);
-        }
-    };
+// Coalesce scroll events into one update per frame. A plain leading-edge
+// throttle drops the trailing event of a burst, which left the button in a
+// stale state after inertial scrolls (the final position was never processed).
+let scrollScheduled = false;
+function scheduleScroll() {
+    if (scrollScheduled) return;
+    scrollScheduled = true;
+    requestAnimationFrame(function () {
+        scrollScheduled = false;
+        onScroll();
+    });
 }
 
-// Show/hide based on scroll percentage
+// Show/hide based on scroll position (pixels) + footer proximity
 function onScroll() {
     const scrollPos = window.scrollY;
     const viewportHeight = window.innerHeight;
     const pageHeight = document.documentElement.scrollHeight;
-    const scrollPct = scrollPos / (pageHeight - viewportHeight);
 
     // Update progress ring
     if (SHOW_PROGRESS_RING) {
+        const scrollPct = scrollPos / (pageHeight - viewportHeight);
         const circle = btn.querySelector('.sarde-scroll-progress-circle');
         if (circle) {
             const progress = Math.min(Math.max(scrollPct * 100, 0), 100);
@@ -88,16 +92,21 @@ function onScroll() {
         }
     }
 
-    const thresholdVal = THRESHOLD >= 10 && THRESHOLD <= 99 ? THRESHOLD : 30;
-    if (scrollPct > thresholdVal / 100) {
-        btn.classList.add('visible');
-    } else {
-        btn.classList.remove('visible');
-    }
+    const pastThreshold = scrollPos > THRESHOLD;
+    // Footer-hide only applies when the page leaves a usable window between
+    // "past threshold" and "footer in view". On tall viewports a short page
+    // brings the footer into view before the threshold is ever crossed, and
+    // hiding there would suppress the button for the whole page.
+    const footerEnterScroll = footer
+        ? footer.getBoundingClientRect().top + scrollPos - viewportHeight
+        : Infinity;
+    const atFooter = footerEnterScroll > THRESHOLD + 100 && scrollPos >= footerEnterScroll;
+    const shouldShow = pastThreshold && !atFooter;
+
+    btn.classList.toggle('visible', shouldShow);
 }
 
-const throttledScroll = throttle(onScroll, 16);
-window.addEventListener('scroll', throttledScroll, { passive: true });
+window.addEventListener('scroll', scheduleScroll, { passive: true });
 onScroll();
 
 // Click

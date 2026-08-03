@@ -32,7 +32,7 @@
 
     toggle.setAttribute('aria-expanded', 'true');
     sidebar.classList.add('is-open');
-    sidebar.removeAttribute('aria-hidden');
+    sidebar.removeAttribute('inert');
     document.body.classList.add('sarde-sidebar-open');
 
     if (backdrop) {
@@ -57,7 +57,7 @@
     toggle.setAttribute('aria-expanded', 'false');
     sidebar.classList.remove('is-open');
     if (!mq.matches) {
-      sidebar.setAttribute('aria-hidden', 'true');
+      sidebar.setAttribute('inert', '');
     }
     document.body.classList.remove('sarde-sidebar-open');
 
@@ -84,7 +84,7 @@
     setInert(false);
     toggle.setAttribute('aria-expanded', 'false');
     sidebar.classList.remove('is-open');
-    sidebar.removeAttribute('aria-hidden');
+    sidebar.removeAttribute('inert');
     document.body.classList.remove('sarde-sidebar-open');
     if (backdrop) {
       backdrop.classList.remove('is-visible');
@@ -94,7 +94,7 @@
 
   // Initialize
   if (!mq.matches) {
-    sidebar.setAttribute('aria-hidden', 'true');
+    sidebar.setAttribute('inert', '');
   }
   if (backdrop) {
     backdrop.style.display = 'none';
@@ -130,7 +130,7 @@
     if (e.matches) {
       reset();
     } else if (!isOpen) {
-      sidebar.setAttribute('aria-hidden', 'true');
+      sidebar.setAttribute('inert', '');
     }
   }
 

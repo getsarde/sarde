@@ -2,7 +2,7 @@
 .sarde-scroll-to-top {
     position: fixed;
     bottom: 40px;
-    inset-inline-end: 35px;
+    left: 50%;
     z-index: 102;
     width: 47px;
     height: 47px;
@@ -10,9 +10,6 @@
     border: 1px solid var(--sd-border-accent, var(--sd-blue));
     border-radius: 15%;
     background-color: var(--sd-bg-accent, var(--sd-blue));
-    /* --sd-white, not --sd-text-invert: invert flips to black in dark mode,
-       while this accent fill stays accent-colored in both themes. The chevron
-       (stroke: currentColor) and the progress ring both inherit this. */
     color: var(--sd-white, #fff);
     cursor: pointer;
     display: flex;
@@ -20,8 +17,7 @@
     justify-content: center;
     opacity: 0;
     visibility: hidden;
-    transform: scale(0);
-    transform-origin: center;
+    transform: translate(-50%, 8px);
     transition: opacity 0.3s ease, visibility 0.3s ease, background-color 0.3s ease, transform 0.3s ease, color 0.3s ease;
     box-shadow: var(--sd-shadow-md, 0 4px 6px -1px rgba(0,0,0,0.08));
     -webkit-tap-highlight-color: transparent;
@@ -31,7 +27,26 @@
 .sarde-scroll-to-top.visible {
     opacity: 1;
     visibility: visible;
-    transform: scale(1);
+    transform: translate(-50%, 0);
+}
+
+/* Position variants */
+.sarde-scroll-to-top.pos-left {
+    left: auto;
+    inset-inline-start: 35px;
+    transform: translateY(8px);
+}
+.sarde-scroll-to-top.pos-left.visible {
+    transform: translateY(0);
+}
+
+.sarde-scroll-to-top.pos-right {
+    left: auto;
+    inset-inline-end: 35px;
+    transform: translateY(8px);
+}
+.sarde-scroll-to-top.pos-right.visible {
+    transform: translateY(0);
 }
 
 .sarde-scroll-to-top:hover {
@@ -42,8 +57,6 @@
 }
 
 .sarde-scroll-to-top:active {
-    /* Darker shade of the site's own accent; a hardcoded blue flashed the
-       wrong color on every non-blue site. */
     background-color: color-mix(in oklab, var(--sd-bg-accent, var(--sd-blue)) 85%, black);
     color: var(--sd-white, #fff);
     transition: background-color 0.1s ease, transform 0.1s ease;
@@ -137,14 +150,28 @@
 @media (max-width: 768px) {
     .sarde-scroll-to-top {
         bottom: 1.25rem;
-        inset-inline-end: 1.25rem;
         width: 40px;
         height: 40px;
     }
 
-    .sarde-scroll-to-top svg {
+    .sarde-scroll-to-top.pos-left {
+        inset-inline-start: 1.25rem;
+    }
+
+    .sarde-scroll-to-top.pos-right {
+        inset-inline-end: 1.25rem;
+    }
+
+    .sarde-scroll-to-top svg:not(.sarde-scroll-progress-ring) {
         width: 28px;
         height: 28px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sarde-scroll-to-top {
+        transition: opacity 0.3s ease, visibility 0.3s ease,
+                    background-color 0.3s ease, color 0.3s ease;
     }
 }
 

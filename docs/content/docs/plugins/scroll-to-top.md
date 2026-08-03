@@ -22,7 +22,9 @@ plugins:
 
 ## How it works
 
-The button appears in the bottom-right corner after the reader scrolls past the configured threshold (default: 30% of the page). Clicking it scrolls smoothly back to the top.
+The button appears centered at the bottom of the viewport after the reader scrolls past the configured threshold (default: 300 pixels from the top). It automatically hides when the reader scrolls near the page footer so it never overlaps footer content. Clicking the button scrolls smoothly back to the top.
+
+The horizontal position is configurable: `center` (default), `left`, or `right`.
 
 When `show_progress_ring` is enabled, a circular SVG ring around the button fills as the reader scrolls, providing a visual indicator of scroll position.
 
@@ -35,7 +37,8 @@ When `show_progress_ring` is enabled, a circular SVG ring around the button fill
 plugins:
   config:
     scroll_to_top:
-      threshold: 30
+      threshold: 300
+      position: center
       show_progress_ring: true
       smooth_scroll: true
       border_radius: 15
@@ -43,7 +46,8 @@ plugins:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `threshold` | Number | `30` | Scroll percentage before the button appears. Effective range: 10 to 99. |
+| `threshold` | Number | `300` | Scroll distance in pixels before the button appears. |
+| `position` | Select | `center` | Horizontal position of the button: `left`, `center`, or `right`. |
 | `show_tooltip` | Boolean | `false` | Display a "Scroll to top" tooltip on hover. |
 | `show_progress_ring` | Boolean | `false` | Show a circular progress indicator around the button. |
 | `border_radius` | Number | `15` | Corner rounding as a percentage. `0` gives a square button, `50` gives a full circle. |
@@ -56,10 +60,11 @@ This plugin activates on every page (`always`).
 
 ## Edge cases
 
-- Threshold values outside the range 10 to 99 fall back to the default of 30. Setting `threshold: 0` also falls back to 30.
+- Negative threshold values fall back to the default of 300px. `threshold: 0` is valid and shows the button as soon as any scrolling occurs.
+- The button automatically hides when the page footer (`.sarde-footer`) comes into view, so it never overlaps footer content. On pages or themes without a footer element, this check is skipped and the button stays visible past the threshold.
 - The `border_radius` value is applied as a CSS percentage, not pixels. A value of 15 produces a rounded square (the default).
 - The button is automatically hidden when the browser zoom exceeds 300% to avoid layout issues.
-- On mobile (below 768px), the button shrinks to 40×40 pixels and repositions closer to the corner.
+- On mobile (below 768px), the button shrinks to 40x40 pixels.
 - The button supports keyboard activation (::kbd[Enter]) and displays a visible focus ring when navigated via ::kbd[Tab].
 - The button is hidden in print output.
 - Touch devices use tap events with a visual active state.
