@@ -130,9 +130,14 @@ func TestHomepageHeroOptionalFields_Unmarshal(t *testing.T) {
 homepage:
   hero:
     eyebrow: Go HTTP Router
+    cta:
+      label: Get Started
+      url: /docs/
+      icon: rocket
     secondary_cta:
       label: GitHub
       url: https://github.com/example/velox
+      icon: star
     stats:
       - value: "0"
         label: heap allocations
@@ -153,8 +158,11 @@ homepage:
 	if hero.Eyebrow != "Go HTTP Router" {
 		t.Errorf("Eyebrow = %q, want Go HTTP Router", hero.Eyebrow)
 	}
-	if hero.SecondaryCTA == nil || hero.SecondaryCTA.Label != "GitHub" || hero.SecondaryCTA.URL != "https://github.com/example/velox" {
-		t.Fatalf("SecondaryCTA = %#v, want GitHub link", hero.SecondaryCTA)
+	if hero.CTA == nil || hero.CTA.Label != "Get Started" || hero.CTA.URL != "/docs/" || hero.CTA.Icon != "rocket" {
+		t.Fatalf("CTA = %#v, want Get Started with rocket icon", hero.CTA)
+	}
+	if hero.SecondaryCTA == nil || hero.SecondaryCTA.Label != "GitHub" || hero.SecondaryCTA.URL != "https://github.com/example/velox" || hero.SecondaryCTA.Icon != "star" {
+		t.Fatalf("SecondaryCTA = %#v, want GitHub link with star icon", hero.SecondaryCTA)
 	}
 	if len(hero.Stats) != 1 || hero.Stats[0].Value != "0" || hero.Stats[0].Label != "heap allocations" {
 		t.Fatalf("Stats = %#v, want one heap allocations stat", hero.Stats)

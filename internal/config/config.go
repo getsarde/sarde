@@ -640,6 +640,7 @@ type HeroSettings struct {
 type HeroCTA struct {
 	Label string `yaml:"label"`
 	URL   string `yaml:"url"`
+	Icon  string `yaml:"icon"`
 }
 
 type HeroStat struct {

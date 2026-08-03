@@ -94,6 +94,7 @@
 	  min-height: 2.75rem;
 	  align-items: center;
 	  justify-content: center;
+	  gap: 0.375em;
 	  padding: var(--sd-space-3) var(--sd-space-5);
 	  background: var(--sd-text-accent);
 	  color: var(--sd-bg);
@@ -112,6 +113,12 @@
 	  color: var(--sd-bg);
 	  transform: translateY(-1px);
 	  text-decoration: none;
+	}
+
+	.sarde-hero-cta-icon {
+	  width: 1.25em;
+	  height: 1.25em;
+	  flex-shrink: 0;
 	}
 
 	.sarde-hero-cta-secondary {

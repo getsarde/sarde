@@ -488,12 +488,14 @@ func mapHomepageSettings(s *config.HomepageSettings) *engine.HomepageData {
 		d.Hero.CTA = &engine.HeroCTAData{
 			Label: s.Hero.CTA.Label,
 			URL:   s.Hero.CTA.URL,
+			Icon:  s.Hero.CTA.Icon,
 		}
 	}
 	if s.Hero.SecondaryCTA != nil {
 		d.Hero.SecondaryCTA = &engine.HeroCTAData{
 			Label: s.Hero.SecondaryCTA.Label,
 			URL:   s.Hero.SecondaryCTA.URL,
+			Icon:  s.Hero.SecondaryCTA.Icon,
 		}
 	}
 	if len(s.Hero.Stats) > 0 {

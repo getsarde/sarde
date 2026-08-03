@@ -539,6 +539,12 @@
   text-decoration: none;
 }
 
+.sarde-hero-cta-icon {
+  width: 1.25em;
+  height: 1.25em;
+  flex-shrink: 0;
+}
+
 .starter-hero-panel {
   display: flex;
   flex-direction: column;

@@ -113,6 +113,7 @@ type HeroData struct {
 type HeroCTAData struct {
 	Label string
 	URL   string
+	Icon  string
 }
 
 // HeroStatData holds a short proof point for the homepage hero.

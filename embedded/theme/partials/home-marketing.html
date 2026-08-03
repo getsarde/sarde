@@ -8,7 +8,7 @@
     {{ end }}
     {{ if and .Homepage .Homepage.Hero.CTA }}
     <div class="sarde-hero-actions">
-      <a href="{{ relURL .Homepage.Hero.CTA.URL }}" class="sarde-hero-cta">{{ .Homepage.Hero.CTA.Label }}</a>
+      <a href="{{ relURL .Homepage.Hero.CTA.URL }}" class="sarde-hero-cta">{{ .Homepage.Hero.CTA.Label }}{{ if .Homepage.Hero.CTA.Icon }}{{ icon .Homepage.Hero.CTA.Icon "sarde-hero-cta-icon" }}{{ end }}</a>
     </div>
     {{ end }}
   </div>

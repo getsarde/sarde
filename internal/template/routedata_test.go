@@ -107,10 +107,12 @@ func TestBuildRouteData_HomePageHeroOptionalFields(t *testing.T) {
 				CTA: &config.HeroCTA{
 					Label: "Get Started",
 					URL:   "/docs/",
+					Icon:  "rocket",
 				},
 				SecondaryCTA: &config.HeroCTA{
 					Label: "GitHub",
 					URL:   "https://github.com/example/velox",
+					Icon:  "star",
 				},
 				Stats: []config.HeroStat{
 					{Value: "0", Label: "heap allocations"},
@@ -134,11 +136,11 @@ func TestBuildRouteData_HomePageHeroOptionalFields(t *testing.T) {
 	if hero.Eyebrow != "Go HTTP Router" || hero.Title != "Velox" {
 		t.Fatalf("Hero = %#v, want mapped eyebrow and title", hero)
 	}
-	if hero.CTA == nil || hero.CTA.Label != "Get Started" {
-		t.Fatalf("CTA = %#v, want primary CTA", hero.CTA)
+	if hero.CTA == nil || hero.CTA.Label != "Get Started" || hero.CTA.Icon != "rocket" {
+		t.Fatalf("CTA = %#v, want primary CTA with rocket icon", hero.CTA)
 	}
-	if hero.SecondaryCTA == nil || hero.SecondaryCTA.Label != "GitHub" {
-		t.Fatalf("SecondaryCTA = %#v, want GitHub CTA", hero.SecondaryCTA)
+	if hero.SecondaryCTA == nil || hero.SecondaryCTA.Label != "GitHub" || hero.SecondaryCTA.Icon != "star" {
+		t.Fatalf("SecondaryCTA = %#v, want GitHub CTA with star icon", hero.SecondaryCTA)
 	}
 	if len(hero.Stats) != 2 || hero.Stats[1].Value != "<1us" {
 		t.Fatalf("Stats = %#v, want mapped stats", hero.Stats)
