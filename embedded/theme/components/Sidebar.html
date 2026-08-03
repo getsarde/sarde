@@ -5,28 +5,54 @@
   <ul class="sarde-sidebar-tree">
   {{ range .Sidebar.Root.Children }}
     {{ if .Children }}
+    {{ $open := or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }}
     <li>
-      <details data-sd-idx="{{ .GroupIndex }}"{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}{{ if .HasActive }} class="has-active"{{ end }}>
-        <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ else }}{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ .Label }}</span>{{ end }}{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}<span class="sarde-sidebar-chevron"></span></summary>
-        <ul>
+      <div class="sarde-sidebar-group{{ if .HasActive }} has-active{{ end }}" data-sd-idx="{{ .GroupIndex }}">
+        {{ if .URL }}
+        <div class="sarde-sidebar-group-row">
+          <a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>
+          {{- if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end -}}
+          <button class="sarde-sidebar-chevron" type="button" aria-expanded="{{ if $open }}true{{ else }}false{{ end }}" aria-controls="sd-grp-{{ .GroupIndex }}" aria-label="{{ tWithData "nav.toggle_section" (dict "Label" .Label) }}"></button>
+        </div>
+        {{ else }}
+        <button class="sarde-sidebar-group-row" type="button" aria-expanded="{{ if $open }}true{{ else }}false{{ end }}" aria-controls="sd-grp-{{ .GroupIndex }}">
+          {{- if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ .Label }}</span>
+          {{- if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end -}}
+          <span class="sarde-sidebar-chevron"></span>
+        </button>
+        {{ end }}
+        <ul id="sd-grp-{{ .GroupIndex }}"{{ if not $open }} hidden{{ end }}>
         {{ range .Children }}
           {{ if .Children }}
+          {{ $open := or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }}
           <li>
-            <details data-sd-idx="{{ .GroupIndex }}"{{ if or .IsActive .IsOpen .DefaultOpen (not $.SidebarCollapsedByDefault) }} open{{ end }}{{ if .HasActive }} class="has-active"{{ end }}>
-              <summary>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ else }}{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ .Label }}</span>{{ end }}{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}<span class="sarde-sidebar-chevron"></span></summary>
-              <ul>
+            <div class="sarde-sidebar-group{{ if .HasActive }} has-active{{ end }}" data-sd-idx="{{ .GroupIndex }}">
+              {{ if .URL }}
+              <div class="sarde-sidebar-group-row">
+                <a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>
+                {{- if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end -}}
+                <button class="sarde-sidebar-chevron" type="button" aria-expanded="{{ if $open }}true{{ else }}false{{ end }}" aria-controls="sd-grp-{{ .GroupIndex }}" aria-label="{{ tWithData "nav.toggle_section" (dict "Label" .Label) }}"></button>
+              </div>
+              {{ else }}
+              <button class="sarde-sidebar-group-row" type="button" aria-expanded="{{ if $open }}true{{ else }}false{{ end }}" aria-controls="sd-grp-{{ .GroupIndex }}">
+                {{- if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ .Label }}</span>
+                {{- if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end -}}
+                <span class="sarde-sidebar-chevron"></span>
+              </button>
+              {{ end }}
+              <ul id="sd-grp-{{ .GroupIndex }}"{{ if not $open }} hidden{{ end }}>
               {{ range .Children }}
                 <li>{{ if .URL }}<a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ else }}<span{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ .Label }}</span>{{ end }}{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}</li>
               {{ end }}
               </ul>
-            </details>
+            </div>
           </li>
           {{ else }}
           <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}</li>
           {{ end }}
         {{ end }}
         </ul>
-      </details>
+      </div>
     </li>
     {{ else }}
     <li><a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ .Label }}</a>{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}</li>
@@ -34,5 +60,5 @@
   {{ end }}
   </ul>
 </nav>
-<script>(function(){var nav=document.querySelector('.sarde-sidebar-nav');if(!nav)return;nav.querySelectorAll('summary a').forEach(function(a){a.addEventListener('click',function(e){e.stopPropagation()})});var st=window.__sdsbr;var h=nav.getAttribute('data-sd-hash');if(st&&h&&st.hash===h&&Array.isArray(st.open)){var gs=nav.querySelectorAll('details[data-sd-idx]');for(var i=0;i<gs.length;i++){if(gs[i].classList.contains('has-active'))continue;var idx=parseInt(gs[i].getAttribute('data-sd-idx'),10);if(idx>=0&&idx<st.open.length&&typeof st.open[idx]==='boolean'){gs[i].open=st.open[idx]}}if(typeof st.scroll==='number'){nav.scrollTop=st.scroll}}delete window.__sdsbr})()</script>
+<script>(function(){var nav=document.querySelector('.sarde-sidebar-nav');if(!nav)return;var st=window.__sdsbr;var h=nav.getAttribute('data-sd-hash');if(st&&h&&st.hash===h&&Array.isArray(st.open)){var gs=nav.querySelectorAll('[data-sd-idx]');for(var i=0;i<gs.length;i++){if(gs[i].classList.contains('has-active'))continue;var idx=parseInt(gs[i].getAttribute('data-sd-idx'),10);if(idx>=0&&idx<st.open.length&&typeof st.open[idx]==='boolean'){var btn=gs[i].querySelector('button[aria-expanded]');var list=btn&&document.getElementById(btn.getAttribute('aria-controls'));if(btn&&list){btn.setAttribute('aria-expanded',st.open[idx]?'true':'false');if(st.open[idx]){list.removeAttribute('hidden')}else{list.setAttribute('hidden','')}}}}if(typeof st.scroll==='number'){nav.scrollTop=st.scroll}}delete window.__sdsbr})()</script>
 {{ end }}

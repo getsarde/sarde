@@ -18,6 +18,7 @@ nav:
   skip_to_content: "Skip to main content"
   menu: "Menu"
   collapse_sidebar: "Collapse sidebar"
+  toggle_section: "Toggle {{ .Label }} section"
   breadcrumb: "Breadcrumb"
   section_nav: "Section navigation"
   page_nav: "Page navigation"
