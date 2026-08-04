@@ -48,13 +48,13 @@
 
 	@media (max-width: 1279px) {
 	  html {
-	    scroll-padding-top: calc(var(--sd-nav-height) + var(--sd-mobile-toc-height) + var(--sd-space-2));
+	    scroll-padding-top: calc(var(--sd-nav-height) + var(--sd-mobile-toc-height) + var(--sd-space-4));
 	  }
 	}
 
 	@media (min-width: 1280px) {
 	  html {
-	    scroll-padding-top: calc(var(--sd-nav-height) + var(--sd-space-2));
+	    scroll-padding-top: calc(var(--sd-nav-height) + var(--sd-space-4));
 	  }
 	}
 

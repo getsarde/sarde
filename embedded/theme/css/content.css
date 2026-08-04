@@ -21,7 +21,6 @@
 	  line-height: var(--sd-line-height-headings);
 	  text-rendering: optimizeLegibility;
 	  color: var(--sd-text-high);
-	  scroll-margin-top: calc(var(--sd-nav-height) + var(--sd-space-4));
 	  position: relative;
 	}
 

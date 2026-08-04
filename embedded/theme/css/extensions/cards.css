@@ -289,11 +289,12 @@
 	    display: flex;
 	    align-items: center;
 	    justify-content: center;
+	    width: 2.5rem;
+	    height: 2.5rem;
 	    flex-shrink: 0;
-	    padding: 0.5rem;
-	    border-radius: var(--sd-radius-lg);
-	    background: var(--sd-bg-surface);
-	    color: var(--sd-text-muted);
+	    border-radius: 25%;
+	    background: var(--sd-bg-accent-subtle);
+	    color: var(--sd-text-accent);
 	    transition: color var(--sd-transition-fast), background var(--sd-transition-fast);
 	}
 
@@ -304,8 +305,7 @@
 	}
 
 	.sarde-link-card:hover .sarde-link-card-icon {
-	    background: var(--sd-bg-accent-subtle);
-	    color: var(--sd-text-accent);
+	    background: color-mix(in oklch, var(--sd-bg-accent-subtle) 80%, var(--sd-bg-accent));
 	}
 
 	.sarde-link-card-content {
@@ -331,6 +331,7 @@
 	    color: var(--sd-text-muted);
 	    line-height: var(--sd-line-height);
 	}
+
 
 	.sarde-link-card-arrow {
 	    flex-shrink: 0;

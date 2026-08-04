@@ -1,15 +1,13 @@
----
-title: Changelog
-description: "Notable changes to Sarde, grouped by release, covering fixes, improvements, and new features"
-sidebar:
-  order: 1
----
+# Changelog
 
-Notable changes to Sarde, grouped by release. Bug fixes, new features, and breaking changes are listed separately within each release.
+All notable changes to Sarde are documented in this file.
 
-## Unreleased
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 1.2.0 - 2026-08-04
+## [Unreleased]
+
+## [1.2.0] - 2026-08-04
 
 ### Breaking
 
@@ -59,11 +57,11 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 - The first image on each page is loaded eagerly; subsequent images honor the lazy-loading setting.
 - The `scroll_to_top` plugin uses `requestAnimationFrame`-coalesced scroll updates and hides automatically near the page footer.
 
-## 1.1.0 - 2026-07-29
+## [1.1.0] - 2026-07-29
 
 ### Breaking
 
-- **The `last-updated` client plugin has been removed.** If your `sarde.yaml` lists `last-updated` under `plugins.enabled`, **delete that line** or the build will fail with `config validation failed: plugins.enabled[N]`. The date is now rendered by the theme itself on docs, labs, blog, and default layouts, with no plugin and no JavaScript required. The plugin's `date_format` option lives on as [`theme.date_format`](/reference/configuration#date-format). Relative time ("3 days ago") is no longer available; the date is always absolute.
+- **The `last-updated` client plugin has been removed.** If your `sarde.yaml` lists `last-updated` under `plugins.enabled`, delete that line or the build will fail. The date is now rendered by the theme itself on docs, labs, blog, and default layouts, with no plugin and no JavaScript required. The plugin's `date_format` option lives on as `theme.date_format`. Relative time ("3 days ago") is no longer available; the date is always absolute.
 
 ### Added
 
@@ -77,41 +75,24 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Fixed
 
-- "Edit this page" links now render on docs pages. `site.edit_url` was previously honored only by blog and default layouts, so a docs site could configure it correctly and see links on blog posts alone. Sites that do not set `site.edit_url` are unaffected.
+- "Edit this page" links now render on docs pages. `site.edit_url` was previously honored only by blog and default layouts.
 - `show_updated: false` was ignored on pages that set `updated:` explicitly in frontmatter.
 - Sarde now warns once when `build.last_updated: git` cannot be used (git missing, not a repository, or a shallow clone) instead of silently falling back to file modification times.
-- The "Made with Sarde" footer credit linked to a domain that does not resolve. It now points to the documentation site. Because the footer template is compiled into the binary, sites built with 1.0.0 or 1.0.1 keep the old link until you upgrade and rebuild.
+- The "Made with Sarde" footer credit linked to a domain that does not resolve. It now points to the documentation site.
 
-## 1.0.1 - 2026-07-25
+## [1.0.1] - 2026-07-25
 
 ### Fixed
 
 - Added `linux/arm64` binaries, which were missing from the 1.0.0 release. ARM Linux servers and CI runners can now install with the standard script.
 
-## 1.0.0 - 2026-07-24
+## [1.0.0] - 2026-07-24
 
 The first stable release. Everything below has accumulated since the 0.1.x previews.
 
 ### Breaking
 
 - The `static/` project directory is renamed to `public/`. Files placed in `public/` are copied as-is to the output directory, exactly as `static/` worked before. Rename your project's `static/` directory to `public/` before your next build.
-
-### Fixed
-
-- Frontmatter date fields (`date`, `updated`, `publish_date`, `expiry_date`) may now be left empty. An empty value means "not set" instead of aborting the build, which is what an editor writes when a date field is cleared.
-- Frontmatter parse errors now name the file they came from, instead of reporting a bare parse failure with no location.
-- Page cache now re-validates link targets on every build, even for cached pages. Warm builds report the same link coverage as cold builds, and renaming a linked page is detected without editing the source file.
-- Custom heading IDs (`## Heading {#custom-id}`) are now preserved. Previously, all heading IDs were overwritten with auto-generated slugs, causing links to custom anchors to be falsely reported as broken.
-- The `site.heading_links` config option is now functional. It controls whether clickable anchor links appear next to headings. Heading IDs are always assigned (required by the TOC, search, and link validation), but the visible anchor element is now toggled by this setting.
-- Content lint rules no longer trigger false positives inside fenced code blocks or inline code spans. Example syntax shown in documentation (e.g., `![](...)` in a code block) is skipped.
-- Content lint line numbers now match the source file on disk. Previously, line numbers were offset by the frontmatter block's height.
-- The `same_site_policy` link validation option works correctly on incremental rebuilds.
-
-### Improved
-
-- Multi-language sites reuse taxonomy structures on body-only incremental rebuilds, skipping redundant taxonomy and data file processing per language.
-- WebSocket hub uses ping/pong keepalive (30-second interval) to detect stale connections.
-- Unchanged headings are reused during incremental rebuilds, and link validation is scoped to changed pages only.
 
 ### Added
 
@@ -128,3 +109,26 @@ The first stable release. Everything below has accumulated since the 0.1.x previ
 - Mobile sidebar drawer.
 - 11 client-side plugins: scroll to top, copy section link, external links, image lightbox, focus mode, keyboard nav, reading progress, reading preferences, reading position memory, search highlighter, and text highlighter.
 - 25 Markdown extensions: aside, accordion, badges, cards, columns, details, figure, file tree, gallery, image compare, link buttons, link card, math, mermaid, steps, tabs, terminal, timeline, video, annotation, copy text, highlight, icon, kbd, and spoiler.
+
+### Fixed
+
+- Frontmatter date fields (`date`, `updated`, `publish_date`, `expiry_date`) may now be left empty. An empty value means "not set" instead of aborting the build.
+- Frontmatter parse errors now name the file they came from.
+- Page cache now re-validates link targets on every build, even for cached pages.
+- Custom heading IDs (`## Heading {#custom-id}`) are now preserved instead of being overwritten with auto-generated slugs.
+- The `site.heading_links` config option is now functional. Heading IDs are always assigned (required by the TOC, search, and link validation), but the visible anchor element is toggled by this setting.
+- Content lint rules no longer trigger false positives inside fenced code blocks or inline code spans.
+- Content lint line numbers now match the source file on disk instead of being offset by the frontmatter block's height.
+- The `same_site_policy` link validation option works correctly on incremental rebuilds.
+
+### Improved
+
+- Multi-language sites reuse taxonomy structures on body-only incremental rebuilds, skipping redundant taxonomy and data file processing per language.
+- WebSocket hub uses ping/pong keepalive (30-second interval) to detect stale connections.
+- Unchanged headings are reused during incremental rebuilds, and link validation is scoped to changed pages only.
+
+[Unreleased]: https://github.com/frostybee/sarde/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/frostybee/sarde/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/frostybee/sarde/compare/v1.0.1...v1.1.0
+[1.0.1]: https://github.com/frostybee/sarde/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/frostybee/sarde/releases/tag/v1.0.0
