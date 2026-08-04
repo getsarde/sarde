@@ -93,7 +93,7 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any, cache *searchDoc
 		if v, ok := page.Params["pagefind"].(bool); ok && !v {
 			continue
 		}
-		if shouldExclude(page.Permalink, excludePatterns) {
+		if ShouldExcludePath(page.Permalink, excludePatterns) {
 			continue
 		}
 		url := page.URL()

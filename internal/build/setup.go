@@ -23,6 +23,7 @@ import (
 	"github.com/getsarde/sarde/internal/plugin/katex"
 	"github.com/getsarde/sarde/internal/plugin/mermaid"
 	"github.com/getsarde/sarde/internal/plugin/socialcards"
+	"github.com/getsarde/sarde/internal/plugin/telescope"
 	"github.com/getsarde/sarde/internal/workers"
 )
 
@@ -40,6 +41,8 @@ func registerSubpackagePlugins(mgr *plugin.Manager, enabled []string, configs ma
 		case "mermaid":
 			mgr.Register(mermaid.New(configs[name]))
 		case "announcements":
+			// Registered in Build() after stringTable is available (needs i18n).
+		case "telescope":
 			// Registered in Build() after stringTable is available (needs i18n).
 		case "social_cards":
 			mgr.Register(socialcards.New(configs[name]))
@@ -122,7 +125,7 @@ func buildResolverRegistries(collections map[string]*engine.Collection) ([]strin
 
 // subpackagePluginNames lists Go subpackage plugins registered via
 // registerSubpackagePlugins (not in plugin.BuiltinNames()).
-var subpackagePluginNames = []string{"katex", "mermaid", "announcements", "social_cards"}
+var subpackagePluginNames = []string{"katex", "mermaid", "announcements", "social_cards", "telescope"}
 
 // KnownPluginNames returns the union of all valid plugin names from the
 // Go-side registry, subpackage plugins, client-side manifest, and external
@@ -220,6 +223,9 @@ func warnUnusedPluginConfig(cfg *config.SiteConfig, enabled []string, projectDir
 // none and are skipped so they cannot produce false positives.
 func warnPluginConfigKeys(slug string, userCfg map[string]any) []engine.ValidationWarning {
 	fields := clientplugins.FieldNames(slug)
+	if len(fields) == 0 && slug == "telescope" {
+		fields = telescope.FieldNames()
+	}
 	if len(fields) == 0 || len(userCfg) == 0 {
 		return nil
 	}
@@ -315,13 +321,18 @@ func (b *SiteBuilder) phaseInitialize(s *buildState) error {
 
 	if !b.built {
 		for _, name := range filterDisabled(b.config.Plugins.Enabled, b.config.Plugins.Disabled) {
-			if name == "announcements" {
+			switch name {
+			case "announcements":
 				b.pluginMgr.Register(announcements.New(
 					b.config.Plugins.Config[name],
 					stringTable,
 					b.tmplEngine.CurrentLangPtr(),
 				))
-				break
+			case "telescope":
+				b.pluginMgr.Register(telescope.New(
+					b.config.Plugins.Config[name],
+					stringTable,
+				))
 			}
 		}
 		if err := b.pluginMgr.RunConfigSetup(b.config); err != nil {

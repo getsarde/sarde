@@ -676,10 +676,11 @@
 	    justify-content: center;
 	    position: absolute;
 	    top: var(--sd-space-4);
-	    inset-inline-end: -17px;
+	    /* Half the width, so the control straddles the sidebar edge. */
+	    inset-inline-end: -22px;
 	    z-index: 1;
-	    width: 34px;
-	    height: 34px;
+	    width: 44px;
+	    height: 44px;
 	    padding: 0;
 	    border: 1px solid var(--sd-border);
 	    border-radius: var(--sd-radius-full);
@@ -689,21 +690,23 @@
 	    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 	  }
 
+	  /* Accent on hover only. The resting state stays neutral because this
+	     control is permanent chrome beside the content column; an accent fill
+	     at rest would compete with the page. --sd-bg-accent-subtle is an alpha
+	     wash over the current background, so one rule serves both themes. */
 	  .sarde-sidebar-toggle:hover {
-	    color: var(--sd-text);
-	    background: var(--sd-bg-surface);
+	    color: var(--sd-text-accent);
+	    background: var(--sd-bg-accent-subtle);
+	    border-color: var(--sd-border-accent);
 	  }
 
-	  :root[data-theme="dark"] {
-	    .sarde-sidebar-toggle {
-	      background: var(--sd-gray-7);
-	      border-color: var(--sd-gray-5);
-	      color: var(--sd-gray-3);
-	    }
-	    .sarde-sidebar-toggle:hover {
-	      background: var(--sd-gray-6);
-	      color: var(--sd-gray-1);
-	    }
+	  /* :where() keeps the theme scope specificity-neutral. Without it this
+	     selector scores higher than .sarde-sidebar-toggle:hover and the resting
+	     fill would silently beat the hover state in dark mode. */
+	  :where(:root[data-theme="dark"]) .sarde-sidebar-toggle {
+	    background: var(--sd-gray-7);
+	    border-color: var(--sd-gray-5);
+	    color: var(--sd-gray-3);
 	  }
 
 	  .sarde-sidebar-toggle:focus-visible {

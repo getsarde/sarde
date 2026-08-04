@@ -21,8 +21,8 @@ func TestShouldExclude(t *testing.T) {
 		{"/docs/guide/", []string{"/blog/*"}, false},
 	}
 	for _, tt := range tests {
-		if got := shouldExclude(tt.urlPath, tt.patterns); got != tt.want {
-			t.Errorf("shouldExclude(%q, %v) = %v, want %v", tt.urlPath, tt.patterns, got, tt.want)
+		if got := ShouldExcludePath(tt.urlPath, tt.patterns); got != tt.want {
+			t.Errorf("ShouldExcludePath(%q, %v) = %v, want %v", tt.urlPath, tt.patterns, got, tt.want)
 		}
 	}
 }

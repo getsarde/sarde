@@ -119,7 +119,7 @@ func validateLink(ctx *BuildDoneContext, page *engine.Page,
 		return false
 	}
 
-	if shouldExclude(href, excludePatterns) {
+	if ShouldExcludePath(href, excludePatterns) {
 		return false
 	}
 

@@ -7,7 +7,7 @@ sidebar:
 ---
 
 Plugins add behavior to the build process or the generated site. Sarde ships
-with 26 built-in plugins, and sites can install external plugins into their
+with 27 built-in plugins, and sites can install external plugins into their
 `plugins/` directory.
 
 Read [Using Plugins](/plugins/using-plugins/) for enable/disable configuration,
@@ -19,7 +19,8 @@ plugins distributed outside the Sarde binary, and
 **Server-side plugins** run during `sarde build` and produce files or inject
 metadata: [Search](/plugins/search), [SEO](/plugins/seo),
 [Sitemap](/plugins/sitemap), [Feeds](/plugins/feeds),
-[Social Cards](/plugins/social-cards), [SlideViewer](/plugins/slideviewer),
+[Social Cards](/plugins/social-cards), [Telescope](/plugins/telescope),
+[SlideViewer](/plugins/slideviewer),
 [Link Validator](/plugins/link-validator),
 and [Content Lint](/plugins/content-lint).
 

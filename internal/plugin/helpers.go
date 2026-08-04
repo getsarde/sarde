@@ -21,10 +21,12 @@ func feedEnabledCollections(cfg map[string]any, collections map[string]*engine.C
 	return names
 }
 
-// shouldExclude checks if a URL path matches any exclude pattern.
+// ShouldExcludePath checks if a URL path matches any exclude pattern.
 // Uses path.Match (slash-separated glob semantics on every platform);
 // filepath.Match would make patterns behave differently on Windows.
-func shouldExclude(urlPath string, patterns []string) bool {
+// Exported for subpackage plugins (e.g. telescope) that share the same
+// exclude-pattern semantics.
+func ShouldExcludePath(urlPath string, patterns []string) bool {
 	for _, pattern := range patterns {
 		if matched, _ := path.Match(pattern, urlPath); matched {
 			return true

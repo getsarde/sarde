@@ -111,6 +111,7 @@ Plugin slugs are snake_case (`scroll_to_top`, `keyboard_nav`, and so on). Older 
 | [`reading_position_memory`](/plugins/reading-position-memory) | Client | Remembers scroll position across visits. |
 | [`reading_preferences`](/plugins/reading-preferences) | Client | Font size and content width controls. |
 | [`announcements`](/plugins/announcements) | Server | Displays announcement banners with scheduling and i18n. |
+| [`telescope`](/plugins/telescope) | Server | Ctrl+/ command palette for fuzzy page navigation with pins and history. |
 
 ## Server-side vs. client-side
 
