@@ -23,18 +23,18 @@ Completed
 
 ## Badge types
 
-| Type | Color | Default icon | Use for |
-|------|-------|-------------|---------|
-| `default` | Gray | `info` | Neutral labels. |
-| `primary` | Accent | `circle-check` | Primary actions or status. |
-| `secondary` | Muted | `circle-minus` | De-emphasized labels. |
-| `success` | Green | `circle-check` | Completed, passed, active. |
-| `warning` | Amber | `triangle-alert` | Needs attention. |
-| `caution` | Amber | `triangle-alert` | Proceed carefully. |
-| `danger` | Red | `circle-x` | Failed, removed, breaking. |
-| `info` | Blue | `info` | Informational labels. |
-| `note` | Blue | `pencil` | Editorial notes. |
-| `tip` | Green | `sparkles` | Recommendations. |
+| Type | Example | Color | Default icon | Use for |
+|------|---------|-------|-------------|---------|
+| `default` | <span class="sarde-badge sarde-badge-default">:icon[info]Default</span> | Gray | `info` | Neutral labels. |
+| `primary` | <span class="sarde-badge sarde-badge-primary">:icon[circle-check]Primary</span> | Accent | `circle-check` | Primary actions or status. |
+| `secondary` | <span class="sarde-badge sarde-badge-secondary">:icon[circle-minus]Secondary</span> | Muted | `circle-minus` | De-emphasized labels. |
+| `success` | <span class="sarde-badge sarde-badge-success">:icon[circle-check]Success</span> | Green | `circle-check` | Completed, passed, active. |
+| `warning` | <span class="sarde-badge sarde-badge-warning">:icon[triangle-alert]Warning</span> | Amber | `triangle-alert` | Needs attention. |
+| `caution` | <span class="sarde-badge sarde-badge-caution">:icon[triangle-alert]Caution</span> | Amber | `triangle-alert` | Proceed carefully. |
+| `danger` | <span class="sarde-badge sarde-badge-danger">:icon[circle-x]Danger</span> | Red | `circle-x` | Failed, removed, breaking. |
+| `info` | <span class="sarde-badge sarde-badge-info">:icon[info]Info</span> | Blue | `info` | Informational labels. |
+| `note` | <span class="sarde-badge sarde-badge-note">:icon[pencil]Note</span> | Blue | `pencil` | Editorial notes. |
+| `tip` | <span class="sarde-badge sarde-badge-tip">:icon[sparkles]Tip</span> | Green | `sparkles` | Recommendations. |
 
 Set the type as the first parameter:
 
