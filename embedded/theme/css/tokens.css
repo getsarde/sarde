@@ -93,8 +93,12 @@
 	  --sd-focus-ring: var(--sd-accent, oklch(0.60 0.22 var(--sd-hue-accent)));
 
 	  /* ── Typography ── */
-	  --sd-font-sans: var(--sd-font-sans, 'Inter', 'Inter Fallback', system-ui, -apple-system, sans-serif);
-	  --sd-font-mono: var(--sd-font-mono, 'JetBrains Mono', ui-monospace, monospace);
+	  /* Fallbacks only: the unlayered :root block generated from theme.yaml
+	     token resolution always defines both and wins over this layer. A
+	     same-name var() self-reference here would be a cycle and invalidate
+	     the property instead of falling back, so keep these as literals. */
+	  --sd-font-sans: 'Inter', 'Inter Fallback', system-ui, -apple-system, sans-serif;
+	  --sd-font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
 	  --sd-text-xs: 0.75rem;
 	  --sd-text-sm: 0.875rem;

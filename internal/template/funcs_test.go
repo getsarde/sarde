@@ -608,3 +608,38 @@ func createTestPNGForTemplate(t *testing.T, dir, name string, width, height int)
 	png.Encode(f, img)
 	return p
 }
+
+// ── fontUsed tests ──
+
+func TestFontUsed(t *testing.T) {
+	fm := nilFuncMap()
+	fontUsed := fm["fontUsed"].(func(any, string) bool)
+
+	rd := &engine.RouteData{Theme: &engine.ThemeConfig{
+		Tokens: map[string]string{
+			"font-sans": "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+			"font-mono": "'JetBrains Mono', ui-monospace, monospace",
+		},
+	}}
+	if fontUsed(rd, "Inter") {
+		t.Error("fontUsed = true for system-font stack, want false")
+	}
+	if !fontUsed(rd, "JetBrains Mono") {
+		t.Error("fontUsed = false for JetBrains Mono in font-mono, want true")
+	}
+
+	rd.Theme.Tokens["font-sans"] = "'Inter', system-ui, sans-serif"
+	if !fontUsed(rd, "Inter") {
+		t.Error("fontUsed = false when font-sans references Inter, want true")
+	}
+	if !fontUsed(rd, "inter") {
+		t.Error("fontUsed should match case-insensitively")
+	}
+
+	if fontUsed(nil, "Inter") {
+		t.Error("fontUsed = true for nil data, want false")
+	}
+	if fontUsed(&engine.RouteData{}, "Inter") {
+		t.Error("fontUsed = true for RouteData without theme, want false")
+	}
+}

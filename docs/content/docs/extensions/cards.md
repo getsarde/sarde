@@ -1,11 +1,11 @@
 ---
-title: Cards
-description: "Display content in bordered, elevated containers, arranged in a responsive grid"
+title: Card
+description: "Display content in a bordered, elevated container with an optional title and icon"
 sidebar:
   order: 13
 ---
 
-Cards display content in bordered, elevated containers with optional titles and icons. Use `:::card-grid` to arrange multiple cards in a responsive column layout.
+Cards display content in bordered, elevated containers with optional titles and icons. Use them to visually group related information.
 
 ## Basic syntax
 
@@ -59,64 +59,6 @@ The exam schedule has changed. Check the calendar for new dates.
 | `highlighted` | Accent-colored emphasis. |
 | `subtle` | Reduced visual weight. |
 
-## Card grid
-
-Wrap cards in `:::card-grid` for a responsive multi-column layout:
-
-````
-::::card-grid(cols=3)
-:::card[Biology]
-Study of living organisms and their interactions.
-:::
-:::card[Chemistry]
-Study of matter, its properties, and reactions.
-:::
-:::card[Physics]
-Study of energy, motion, and fundamental forces.
-:::
-::::
-````
-
-::::card-grid(cols=3)
-:::card[Biology]
-Study of living organisms and their interactions.
-:::
-:::card[Chemistry]
-Study of matter, its properties, and reactions.
-:::
-:::card[Physics]
-Study of energy, motion, and fundamental forces.
-:::
-::::
-
-→ Three cards appear side by side in a three-column grid. On smaller screens, the grid collapses to fewer columns.
-
-## Card grid options
-
-| Option | Syntax | Default | Description |
-|--------|--------|---------|-------------|
-| `cols` | `cols=2`, `cols=3`, `cols=4` | (auto) | Number of columns. Valid values: 2, 3, or 4. |
-| `stagger` | `stagger` | `false` | Offset even-numbered cards vertically for a staggered look. Forces 2 columns. |
-
-````
-:::card-grid(stagger)
-:::card[Week 1]
-Introduction and orientation.
-:::
-:::card[Week 2]
-Core concepts and first assignment.
-:::
-:::card[Week 3]
-Lab work and group projects.
-:::
-:::card[Week 4]
-Review and final assessment.
-:::
-:::
-````
-
-→ Cards appear in two columns with alternating vertical offsets.
-
 ## Options
 
 | Option | Syntax | Default | Description |
@@ -128,6 +70,4 @@ Review and final assessment.
 ## Edge cases
 
 - A card with no title and no icon renders without a header section. Only the body content appears.
-- The `cols` value is clamped to 2-4. Values outside this range are ignored.
-- When `stagger` is set, the column count is forced to 2 regardless of any `cols` value.
 - Cards can contain any Markdown content, including code blocks, lists, images, and nested extensions.

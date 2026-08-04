@@ -5,7 +5,7 @@
 	 * Appended to the bundle by Engine.SetAsideCSS; deliberately NOT part of
 	 * the cssOrder list in internal/template/css.go.
 	 *
-	 * Ported from the Starlight Galaxy theme: rounded card, 1px translucent
+	 * Galaxy aside style: rounded card, 1px translucent
 	 * ring, 3px accent edge, uppercase title with a trailing gradient rule,
 	 * and a faint gradient glow across the top.
 	 *

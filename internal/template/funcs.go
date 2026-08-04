@@ -125,6 +125,21 @@ func (e *Engine) buildFuncMap(
 		},
 
 		// ── Theme Styles ──
+		"fontUsed": func(data any, family string) bool {
+			rd, ok := data.(*engine.RouteData)
+			if !ok || rd == nil || rd.Theme == nil {
+				return false
+			}
+			needle := strings.ToLower(family)
+			for _, tokens := range []map[string]string{rd.Theme.Tokens, rd.Theme.DarkTokens} {
+				for _, key := range []string{"font-sans", "font-mono"} {
+					if strings.Contains(strings.ToLower(tokens[key]), needle) {
+						return true
+					}
+				}
+			}
+			return false
+		},
 		"themeStyles": func(data any) htmltemplate.HTML {
 			rd, ok := data.(*engine.RouteData)
 			if !ok || rd == nil {

@@ -19,15 +19,27 @@ theme:
 | Preset | Accent | Font | Character |
 |--------|--------|------|-----------|
 | `default` | `#6366f1` (indigo) | Inter / JetBrains Mono | Modern, clean |
-| `ocean` | `#0ea5e9` (sky blue) | System fonts | Bright, fresh |
-| `forest` | `#16a34a` (green) | System fonts | Nature, organic |
-| `rose` | `#e11d48` (rose) | System fonts | Bold, warm |
-| `clean` | `#0f766e` (teal) | Plus Jakarta Sans | Large border radius |
-| `minimal` | `#18181b` (near-black) | System UI | Tight, compact |
-| `docs` | `#2563eb` (blue) | System fonts | GitHub-style docs |
-| `academic` | `#1e40af` (dark blue) | Merriweather (serif) | Scholarly, formal |
+| `ocean` | `#0ea5e9` (sky blue) | Inter / JetBrains Mono | Bright, fresh |
+| `forest` | `#16a34a` (green) | Inter / JetBrains Mono | Nature, organic |
+| `rose` | `#e11d48` (rose) | Inter / JetBrains Mono | Bold, warm |
+| `clean` | `#0f766e` (teal) | Plus Jakarta Sans / Fira Code | Large border radius |
+| `minimal` | `#18181b` (near-black) | System fonts / JetBrains Mono | Tight, compact |
+| `docs` | `#2563eb` (blue) | System fonts / JetBrains Mono | Technical documentation |
+| `academic` | `#1e40af` (dark blue) | Merriweather (serif) / JetBrains Mono | Scholarly, formal |
 
 Without a preset, Sarde uses the default theme tokens compiled into the binary.
+
+### Preset typography
+
+The color-only presets (`ocean`, `forest`, `rose`) keep the base theme's bundled Inter and JetBrains Mono fonts. The full-look presets (`clean`, `minimal`, `docs`, `academic`) set their own `font-sans` stack as part of their visual identity. In particular, `docs` uses a native system-font stack, so pages render with zero font download.
+
+Sarde only emits the Inter font preload when the resolved font tokens actually reference Inter. If you use a full-look preset but want Inter back, one shortcut field restores it, since user config wins over preset tokens:
+
+```yaml
+theme:
+  preset: "docs"
+  font_family: "'Inter', system-ui, -apple-system, sans-serif"
+```
 
 ## Overriding tokens
 

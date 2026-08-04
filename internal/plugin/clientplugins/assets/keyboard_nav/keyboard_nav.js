@@ -153,7 +153,7 @@ function createSideNav() {
 
 // Fades the side navigation out after a spell of inactivity and brings it back
 // once the user has scrolled scrollThreshold pixels in either direction.
-// Ported from the scrollBehavior feature of starlight-custom-navigation.
+// Fades the side nav after inactivity, restores it on scroll.
 function setupAutoHide(nav) {
     if (config.autoHide === 'off') return;
 

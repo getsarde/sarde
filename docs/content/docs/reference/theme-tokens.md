@@ -161,6 +161,8 @@ Additional hue angles and color scales for cyan and indigo.
 | `font-sans` | `'Inter', system-ui, -apple-system, sans-serif` |
 | `font-mono` | `'JetBrains Mono', ui-monospace, monospace` |
 
+Inter and JetBrains Mono are bundled with the theme and served locally. The Inter preload tag is only emitted when the resolved `font-sans` or `font-mono` value actually references Inter, so presets that use system fonts (such as `docs`) ship pages with no font download.
+
 ### Size scale
 
 | Token | Default |
