@@ -63,6 +63,7 @@ plugins:
     - scroll_to_top
     - keyboard_nav
     - reading_progress
+    - telescope
   config:
     social_cards:
       # Lebanese Red brand palette from brand/README.md: deep navy tile

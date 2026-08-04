@@ -42,6 +42,25 @@
 		outline: var(--sd-focus-ring-width, 2px) solid var(--sd-focus-ring, var(--tel-accent));
 		outline-offset: 2px;
 	}
+
+	/* Divider from the theme's search trigger, drawn only when one precedes us.
+	   The extra margin doubles the header's 0.5rem flex gap, and the line is
+	   absolutely positioned at the midpoint of that 1rem gap. Sitting outside
+	   the button's border box keeps it clear of the hover background. */
+	.sarde-search-trigger + .sarde-telescope-trigger {
+		position: relative;
+		margin-inline-start: var(--sd-space-2, 0.5rem);
+	}
+	.sarde-search-trigger + .sarde-telescope-trigger::before {
+		content: "";
+		position: absolute;
+		inset-inline-start: calc(var(--sd-space-2, 0.5rem) * -1);
+		top: 50%;
+		transform: translateY(-50%);
+		width: 1px;
+		height: 1.25rem;
+		background: var(--tel-border);
+	}
 	.sarde-telescope-shortcut {
 		display: none;
 		align-items: center;

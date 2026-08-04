@@ -231,7 +231,11 @@
 	  cursor: pointer;
 	  transition: background var(--sd-transition-fast), color var(--sd-transition-fast);
 	}
-	.sarde-search-trigger:hover { background: var(--sd-hover); color: var(--sd-text); }
+	/* Accent wash on hover, matching the telescope trigger beside it. The label
+	   needs its own rule because .sarde-search-trigger-text sets a color that
+	   would otherwise outrank the inherited one. */
+	.sarde-search-trigger:hover { background: var(--sd-bg-accent-subtle); color: var(--sd-text-accent); }
+	.sarde-search-trigger:hover .sarde-search-trigger-text { color: var(--sd-text-accent); }
 	.sarde-search-trigger .sarde-search-kbd { display: flex; align-items: center; gap: 0.125rem; font-size: var(--sd-text-xs); margin-inline-start: 0.5rem; }
 	.sarde-search-trigger .sarde-search-kbd kbd {
 	  font-size: var(--sd-text-xs);
@@ -529,9 +533,13 @@
 		.sarde-search-preview-tag mark,
 		.sarde-search-preview-breadcrumb mark { background: oklch(0.45 0.10 67); color: oklch(0.97 0.07 102); }
 		.sarde-search-compact-badge { background: var(--sd-hover); }
-		.sarde-search-trigger { background: var(--sd-gray-8); }
 		.sarde-search-trigger .sarde-search-kbd kbd { background: var(--sd-gray-9); }
 	}
+
+	/* Lives outside the dark block, wrapped in :where(), so the theme scope stays
+	   specificity-neutral. Nested it would score (0,3,0) and the resting fill
+	   would beat .sarde-search-trigger:hover, killing the hover in dark mode. */
+	:where(:root[data-theme="dark"]) .sarde-search-trigger { background: var(--sd-gray-8); }
 
 	/* Mobile — full mode degrades to simple layout */
 	@media (max-width: 767px) {
