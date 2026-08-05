@@ -105,14 +105,15 @@
 	.sarde-aside:not(.sarde-aside-github) a {
 		color: var(--sd-aside-accent-text);
 		text-decoration-line: underline;
-		text-decoration-color: transparent;
-		text-underline-offset: 0.2em;
+		text-decoration-thickness: 1px;
+		text-decoration-color: var(--sd-aside-accent-text);
+		text-underline-offset: 3px;
 		transition: text-decoration-color 0.2s ease;
 	}
 
 	.sarde-aside:not(.sarde-aside-github) a:hover {
+		color: var(--sd-text-high);
 		text-decoration-color: currentColor;
-		text-decoration-thickness: 2px;
 	}
 
 	/* Inline code chip. No .sarde-aside-content ancestor, unlike the classic

@@ -47,6 +47,21 @@
 	}
 
 	.sarde-markdown-content a:not([class], :where(.not-content *, .kazari-block *, .kz-group *)):hover {
+	  color: var(--sd-text-high);
+	  text-decoration-color: currentColor;
+	}
+
+	/* Re-entry: extensions that wrap with not-content but whose inner panels
+	   hold rendered markdown (tabs, details, steps, columns). */
+	.sarde-markdown-content :is(.sarde-tab-panel, .sarde-details-content, .sarde-step-content, .sarde-column) a:not([class], :where(.kazari-block *, .kz-group *)) {
+	  text-decoration: underline;
+	  text-decoration-thickness: 1px;
+	  text-underline-offset: 3px;
+	  text-decoration-color: color-mix(in srgb, var(--sd-text-accent) 45%, transparent);
+	}
+
+	.sarde-markdown-content :is(.sarde-tab-panel, .sarde-details-content, .sarde-step-content, .sarde-column) a:not([class], :where(.kazari-block *, .kz-group *)):hover {
+	  color: var(--sd-text-high);
 	  text-decoration-color: currentColor;
 	}
 

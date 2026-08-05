@@ -392,8 +392,12 @@
 
 	.sarde-toc-nav a.active {
 	  color: var(--sd-text-accent);
-	  border-inline-start-color: var(--sd-text-accent);
+	  border-inline-start: 2px solid var(--sd-text-accent);
 	  font-weight: var(--sd-weight-medium);
+	}
+
+	:root[data-theme="dark"] .sarde-toc-nav a.active {
+	  color: color-mix(in oklch, var(--sd-text-accent) 70%, white);
 	}
 
 	.sarde-toc-nav .sarde-toc-level-3 a {
