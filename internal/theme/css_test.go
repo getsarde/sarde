@@ -118,6 +118,9 @@ func TestGenerateLightDarkCSS_ColorScheme(t *testing.T) {
 	if !strings.Contains(css, "color-scheme: light dark;") {
 		t.Error("expected color-scheme: light dark on :root")
 	}
+	if !strings.Contains(css, ":root[data-theme=\"light\"] {\n  color-scheme: light;\n}") {
+		t.Error(`expected color-scheme: light on :root[data-theme="light"]`)
+	}
 	if !strings.Contains(css, ":root[data-theme=\"dark\"] {\n  color-scheme: dark;\n}") {
 		t.Error(`expected color-scheme: dark on :root[data-theme="dark"]`)
 	}

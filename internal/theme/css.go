@@ -72,6 +72,9 @@ func GenerateLightDarkCSS(lightTokens, darkTokens map[string]string) string {
 	}
 
 	sb.WriteString("}\n")
+	sb.WriteString(":root[data-theme=\"light\"] {\n")
+	sb.WriteString("  color-scheme: light;\n")
+	sb.WriteString("}\n")
 	sb.WriteString(":root[data-theme=\"dark\"] {\n")
 	sb.WriteString("  color-scheme: dark;\n")
 	sb.WriteString("}\n")

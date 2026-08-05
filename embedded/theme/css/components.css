@@ -383,7 +383,7 @@
 	}
 
 	:root[data-theme="dark"] .sarde-toc-nav a {
-	  color: oklch(0.80 0.01 286);
+	  color: var(--sd-text-muted);
 	}
 
 	.sarde-toc-nav a:hover {
@@ -972,22 +972,15 @@
 
 	/* Fallback Notice */
 	.sarde-fallback-notice {
-	  background: var(--sd-amber-low, #fef3c7);
-	  color: var(--sd-gray-7, #1e293b);
-	  border: 1px solid var(--sd-amber, #f59e0b);
+	  background: var(--sd-aside-caution-bg);
+	  color: var(--sd-amber-text);
+	  border: 1px solid var(--sd-amber);
 	  border-radius: var(--sd-radius);
 	  padding: var(--sd-space-3) var(--sd-space-4);
 	  margin-bottom: var(--sd-space-4);
 	  font-size: var(--sd-text-sm);
 	}
 	.sarde-fallback-notice p { margin: 0; }
-	:root[data-theme="dark"] {
-	  .sarde-fallback-notice {
-	    background: oklch(0.26 0.06 75);
-	    color: oklch(0.91 0.09 75);
-	    border-color: oklch(0.48 0.11 75);
-	  }
-	}
 
 	/* Version Switcher */
 	.sarde-version-switcher {
@@ -1100,27 +1093,14 @@
 	.sarde-version-banner a { font-weight: var(--sd-weight-medium); text-decoration: underline; }
 
 	.sarde-version-banner.is-unmaintained {
-	  background: var(--sd-amber-low, #fef3c7);
-	  color: var(--sd-gray-7, #1e293b);
-	  border: 1px solid var(--sd-amber, #f59e0b);
+	  background: var(--sd-aside-caution-bg);
+	  color: var(--sd-amber-text);
+	  border: 1px solid var(--sd-amber);
 	}
 	.sarde-version-banner.is-unreleased {
-	  background: var(--sd-blue-low, #dbeafe);
-	  color: var(--sd-gray-7, #1e293b);
-	  border: 1px solid var(--sd-blue, #3b82f6);
-	}
-
-	:root[data-theme="dark"] {
-	  .sarde-version-banner.is-unmaintained {
-	    background: oklch(0.26 0.06 75);
-	    color: oklch(0.91 0.09 75);
-	    border-color: oklch(0.48 0.11 75);
-	  }
-	  .sarde-version-banner.is-unreleased {
-	    background: oklch(0.26 0.06 230);
-	    color: oklch(0.91 0.09 230);
-	    border-color: oklch(0.48 0.11 230);
-	  }
+	  background: var(--sd-aside-note-bg);
+	  color: var(--sd-blue-text);
+	  border: 1px solid var(--sd-blue);
 	}
 
 	/* Page Banner (per-page frontmatter) */
@@ -1144,47 +1124,24 @@
 	}
 
 	.sarde-page-banner-note {
-	  background: var(--sd-blue-low, #dbeafe);
-	  color: var(--sd-gray-7, #1e293b);
-	  border-color: var(--sd-blue, #3b82f6);
+	  background: var(--sd-aside-note-bg);
+	  color: var(--sd-blue-text);
+	  border-color: var(--sd-blue);
 	}
 	.sarde-page-banner-tip {
-	  background: var(--sd-green-low, #dcfce7);
-	  color: var(--sd-gray-7, #1e293b);
-	  border-color: var(--sd-green, #22c55e);
+	  background: var(--sd-aside-tip-bg);
+	  color: var(--sd-green-text);
+	  border-color: var(--sd-green);
 	}
 	.sarde-page-banner-caution {
-	  background: var(--sd-amber-low, #fef3c7);
-	  color: var(--sd-gray-7, #1e293b);
-	  border-color: var(--sd-amber, #f59e0b);
+	  background: var(--sd-aside-caution-bg);
+	  color: var(--sd-amber-text);
+	  border-color: var(--sd-amber);
 	}
 	.sarde-page-banner-danger {
-	  background: var(--sd-red-low, #fee2e2);
-	  color: var(--sd-gray-7, #1e293b);
-	  border-color: var(--sd-red, #ef4444);
-	}
-
-	:root[data-theme="dark"] {
-	  .sarde-page-banner-note {
-	    background: oklch(0.26 0.06 230);
-	    color: oklch(0.91 0.09 230);
-	    border-color: oklch(0.48 0.11 230);
-	  }
-	  .sarde-page-banner-tip {
-	    background: oklch(0.25 0.06 155);
-	    color: oklch(0.91 0.09 155);
-	    border-color: oklch(0.44 0.11 155);
-	  }
-	  .sarde-page-banner-caution {
-	    background: oklch(0.26 0.06 75);
-	    color: oklch(0.91 0.09 75);
-	    border-color: oklch(0.48 0.11 75);
-	  }
-	  .sarde-page-banner-danger {
-	    background: oklch(0.26 0.06 25);
-	    color: oklch(0.91 0.09 25);
-	    border-color: oklch(0.48 0.11 25);
-	  }
+	  background: var(--sd-aside-danger-bg);
+	  color: var(--sd-red-text);
+	  border-color: var(--sd-red);
 	}
 
 	/* ── Section Index Icon ── */
