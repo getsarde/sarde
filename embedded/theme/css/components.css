@@ -970,6 +970,28 @@
 	.sarde-lang-switcher-option.is-active { background: var(--sd-active); font-weight: var(--sd-weight-medium); }
 	.sarde-lang-switcher-option.is-fallback { opacity: 0.5; }
 
+	/* Draft Banner */
+	.sarde-draft-banner {
+	  background: var(--sd-aside-caution-bg);
+	  color: var(--sd-amber-text);
+	  border: 1px solid var(--sd-amber);
+	  border-radius: var(--sd-radius);
+	  padding: var(--sd-space-3) var(--sd-space-4);
+	  margin-bottom: var(--sd-space-4);
+	  font-size: var(--sd-text-sm);
+	}
+	.sarde-draft-banner p {
+	  margin: 0;
+	  display: flex;
+	  align-items: center;
+	  gap: var(--sd-space-2);
+	}
+	.sarde-draft-banner-icon {
+	  width: 1.25rem;
+	  height: 1.25rem;
+	  flex-shrink: 0;
+	}
+
 	/* Fallback Notice */
 	.sarde-fallback-notice {
 	  background: var(--sd-aside-caution-bg);

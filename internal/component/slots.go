@@ -20,6 +20,7 @@ const (
 	SlotFooter                = "Footer"
 	SlotEditLink              = "EditLink"
 	SlotLastUpdated           = "LastUpdated"
+	SlotDraftBanner           = "DraftBanner"
 	SlotFallbackNotice        = "FallbackNotice"
 	SlotDocsTabSwitcher       = "DocsTabSwitcher"
 	SlotVersionSwitcher       = "VersionSwitcher"
@@ -36,7 +37,7 @@ func AllSlots() []string {
 		SlotSearch, SlotThemeToggle, SlotSidebar, SlotTableOfContents,
 		SlotMobileTableOfContents, SlotBreadcrumbs, SlotPagination,
 		SlotPageTitle, SlotContentPanel, SlotFooter, SlotEditLink,
-		SlotLastUpdated, SlotFallbackNotice, SlotDocsTabSwitcher,
+		SlotLastUpdated, SlotDraftBanner, SlotFallbackNotice, SlotDocsTabSwitcher,
 		SlotVersionSwitcher, SlotVersionBanner,
 		SlotLabBadge, SlotLearningObjectives, SlotLabProgress,
 	}

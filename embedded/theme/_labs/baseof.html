@@ -48,6 +48,7 @@
           {{ announcementBanner }}
           <div class="sarde-content-panel sarde-content-panel--header">
             {{ if .Breadcrumbs }}{{ component "Breadcrumbs" . }}{{ end }}
+            {{ component "DraftBanner" . }}
             {{ component "PageBanner" . }}
             {{ component "LabBadge" . }}
             {{ component "PageTitle" . }}

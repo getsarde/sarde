@@ -58,6 +58,9 @@ ui:
   reveal_spoiler: "Reveal spoiler"
   hide_spoiler: "Hide spoiler"
 
+draft:
+  notice: "This page is a draft and will not be included in production builds."
+
 fallback:
   notice: "This page is not yet available in {{ .Lang }}. Showing the original version."
 

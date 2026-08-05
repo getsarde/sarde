@@ -135,7 +135,7 @@ func TestRegistry_LoadOverridesFromDir_NonexistentDir(t *testing.T) {
 
 func TestAllSlots(t *testing.T) {
 	slots := AllSlots()
-	if len(slots) != 24 {
-		t.Errorf("expected 24 slots, got %d", len(slots))
+	if len(slots) != 25 {
+		t.Errorf("expected 25 slots, got %d", len(slots))
 	}
 }

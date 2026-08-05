@@ -124,13 +124,14 @@ These are Go embedded structs, but `html/template` promotes embedded fields auto
 
 ## Component reference
 
-All 30 built-in components, alphabetically.
+All 31 built-in components, alphabetically.
 
 | Name | Purpose | Key data | Called by |
 |------|---------|----------|----------|
 | Breadcrumbs | Breadcrumb trail with home icon | `.Breadcrumbs` | `_docs/baseof.html` |
 | CenterToggle | Centered/wide content width toggle | Static | Header |
 | ContentPanel | Content area wrapper | `.Page.Content` | *Not called by default* |
+| DraftBanner | Draft page notice with pencil icon | `.Page.Draft` | All three baseof templates |
 | DocsTabSwitcher | Mobile docs tab dropdown | `.IsTabbed`, `.DocsTabs`, `.ActiveTab` | Sidebar |
 | EditLink | "Edit this page" link | `.Page.Params`, `.Site.EditURL` | `_docs/baseof.html`, blog singles, `_default/single.html` |
 | FallbackNotice | i18n fallback content notice | `.Page.IsFallback` | Both baseof templates |
@@ -184,6 +185,7 @@ VersionSwitcher           (in sidebar footer)
 LanguageSwitcher          (in sidebar footer)
 TableOfContents           (if page has headings)
 Breadcrumbs               (if breadcrumbs exist)
+DraftBanner
 FallbackNotice
 VersionBanner
 PageBanner
@@ -196,7 +198,7 @@ Footer
 Scripts
 ```
 
-The default layout (`_default/baseof.html`) is leaner: Head, Header, FallbackNotice, PageBanner, content block, Footer, Scripts. It does not call Breadcrumbs, PageTitle, PageTags, Sidebar, or any ToC component.
+The default layout (`_default/baseof.html`) is leaner: Head, Header, DraftBanner, FallbackNotice, PageBanner, content block, Footer, Scripts. It does not call Breadcrumbs, PageTitle, PageTags, Sidebar, or any ToC component.
 
 ## Component details
 

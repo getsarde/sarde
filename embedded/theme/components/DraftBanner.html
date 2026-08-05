@@ -1,0 +1,5 @@
+{{ if .Page }}{{ if .Page.Draft }}
+<div class="sarde-draft-banner" role="status">
+  <p>{{ icon "pencil-line" "sarde-draft-banner-icon" }}{{ t "draft.notice" }}</p>
+</div>
+{{ end }}{{ end }}
