@@ -597,13 +597,6 @@
 
         const matches = searchQuery.trim() ? getMatchesForPage(page) : undefined;
 
-        if (page.collection) {
-            const collectionSpan = document.createElement('span');
-            collectionSpan.className = 'sarde-telescope-result-collection';
-            collectionSpan.textContent = page.collection;
-            contentRow.appendChild(collectionSpan);
-        }
-
         const titleDiv = document.createElement('div');
         titleDiv.className = 'sarde-telescope-result-title';
         titleDiv.innerHTML = highlightMatches(page.title || '', matches, 'title');
@@ -614,6 +607,13 @@
             descDiv.className = 'sarde-telescope-result-description';
             descDiv.innerHTML = highlightMatches(page.description, matches, 'description');
             contentRow.appendChild(descDiv);
+        }
+
+        if (page.collection) {
+            const collectionSpan = document.createElement('span');
+            collectionSpan.className = 'sarde-telescope-result-collection';
+            collectionSpan.textContent = page.collection;
+            contentRow.appendChild(collectionSpan);
         }
 
         if (page.tags && page.tags.length > 0) {
