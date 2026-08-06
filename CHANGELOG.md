@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-06
+
+### Added
+
+- **Theme CSS hot-swap in dev mode.** Editing a theme stylesheet (under `themes/<name>/css/` or the `--theme-dev` source tree) now reassembles the CSS bundle in place instead of running a full site rebuild. Typical refresh time is 2-7ms instead of ~1.3s. The browser restyles via the existing CSS swap mechanism without a page reload.
+- **Draft banner.** Pages with `draft: true` now display a visual banner in dev mode so draft status is immediately visible in the browser.
+- **Prose link underline in extensions.** Links inside tabs, details/accordion, steps, and columns now receive the same underline and hover styling as regular prose links. Previously the `not-content` wrapper on these extensions excluded them.
+- **Aside link underline.** Links inside galaxy-style asides now show a visible underline at rest and shift to `--sd-text-high` on hover, matching Starlight's aside link treatment.
+- **Hero CTA hover effects.** The primary call-to-action button gains an accent glow, a brightness shift that works in both light and dark themes, and a press state on click.
+
+### Changed
+
+- **Kazari updated to v1.2.0.**
+- Active TOC link border thickened from 1px to 2px for better visibility.
+- Active TOC link text in dark mode is now brighter (mixed 70% accent with white) so it stands out from the muted neighbors.
+
+### Fixed
+
+- **`color-scheme: light` override** added so `light-dark()` CSS functions resolve correctly when the OS prefers dark mode.
+- **Hardcoded dark-mode OKLCH values** in banners and TOC links replaced with theme tokens so custom accent palettes apply everywhere.
+- **Telescope collection badge** moved after the description for better scannability.
+
+### Docs
+
+- Added a dedicated "Updating Sarde" page covering `sarde update`, signed releases, package manager detection, and passive update notices.
+- Rewrote the "Getting Started" opening, dev server, build, and scaffold sections with warmer lead-ins for the educator audience.
+- Documented the theme CSS fast path in the dev server reference page.
+
 ## [1.2.0] - 2026-08-04
 
 ### Breaking
