@@ -602,3 +602,24 @@ func (b *SiteBuilder) wireTemplateEngine(s *buildState) error {
 	s.recordTiming("Template setup")
 	return nil
 }
+
+// RefreshThemeCSS reassembles the theme CSS bundle from disk and rewrites it
+// in the output directory, without running the build pipeline. Used by the
+// dev server's theme-CSS fast path; requires a prior successful Build so the
+// output directory and bundle filename are known.
+func (b *SiteBuilder) RefreshThemeCSS() error {
+	if b.lastOutputDir == "" {
+		return fmt.Errorf("no build output yet")
+	}
+	// The aside overlay is read from the theme FS at builder construction and
+	// is not part of the css/ load order, so re-read it here to pick up edits.
+	if b.config.Markdown.Asides.Style == "galaxy" && b.embeddedFS != nil {
+		if css, err := fs.ReadFile(b.embeddedFS, "css/extensions/callouts-galaxy.css"); err == nil {
+			b.tmplEngine.SetAsideCSS(string(css))
+		}
+	}
+	if err := b.tmplEngine.RefreshCSS(b.devMode); err != nil {
+		return err
+	}
+	return WriteEmbeddedCSS(b.lastOutputDir, b.tmplEngine.CachedCSS(), filepath.Base(b.tmplEngine.CSSURL()), nil)
+}

@@ -1,34 +1,34 @@
 ---
-title: Oi Desktop Quickstart
-description: "Create, edit, and preview Sarde content visually with the Oi Desktop app"
+title: Sarde Studio Quickstart
+description: "Create, edit, and preview Sarde content visually with the Sarde Studio desktop app"
 draft: true
 sidebar:
   order: 5
 ---
 
-Oi Desktop is a visual editor for Sarde sites. It wraps the Sarde engine in a native desktop application so content can be created, edited, and previewed without opening a terminal. Available for macOS, Windows, and Linux.
+Sarde Studio is a visual editor for Sarde sites. It wraps the Sarde engine in a native desktop application so content can be created, edited, and previewed without opening a terminal. Available for macOS, Windows, and Linux.
 
 Prefer the command line? See [Getting Started](/start-here/getting-started) for the CLI workflow.
 
 ## Download and install
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/getsarde/oi-desktop/releases):
+Download the latest release for your platform from [GitHub Releases](https://github.com/getsarde/sarde-studio/releases):
 
 | Platform | File |
 |----------|------|
-| macOS | `Oi-Desktop-x.x.x.dmg` |
-| Windows | `Oi-Desktop-x.x.x.msi` |
-| Linux | `Oi-Desktop-x.x.x.AppImage` or `.deb` |
+| macOS | `Sarde-Studio-x.x.x.dmg` |
+| Windows | `Sarde-Studio-x.x.x.msi` |
+| Linux | `Sarde-Studio-x.x.x.AppImage` or `.deb` |
 
 On macOS, drag the app to the Applications folder. On Windows, run the installer and follow the prompts. On Linux, make the AppImage executable (`chmod +x`) and run it, or install the `.deb` package.
 
-Oi Desktop bundles the Sarde engine. No separate installation is required.
+Sarde Studio bundles the Sarde engine. No separate installation is required.
 
 ## Create a project
 
-Launch Oi Desktop. The welcome screen displays three options: create a new project, open an existing project, or reopen a recent project.
+Launch Sarde Studio. The welcome screen displays three options: create a new project, open an existing project, or reopen a recent project.
 
-<!-- SCREENSHOT: oi-welcome-screen — welcome screen with Create, Open, and Recent sections -->
+<!-- SCREENSHOT: studio-welcome-screen — welcome screen with Create, Open, and Recent sections -->
 
 To create a new site, click **Create New Project**. The project wizard asks for:
 
@@ -36,9 +36,9 @@ To create a new site, click **Create New Project**. The project wizard asks for:
 2. A site title and description
 3. A directory where the project files are stored
 
-→ Oi Desktop scaffolds the project and opens the workspace.
+Sarde Studio scaffolds the project and opens the workspace.
 
-<!-- SCREENSHOT: oi-project-wizard — project creation wizard showing theme mode selection -->
+<!-- SCREENSHOT: studio-project-wizard — project creation wizard showing theme mode selection -->
 
 To open an existing Sarde project, click **Open Existing** and select a folder containing a `sarde.yaml` file.
 
@@ -52,11 +52,11 @@ The workspace has three panels:
 
 All panels are resizable and collapsible.
 
-<!-- SCREENSHOT: oi-workspace-overview — three-panel workspace with sidebar, editor, and preview -->
+<!-- SCREENSHOT: studio-workspace-overview — three-panel workspace with sidebar, editor, and preview -->
 
 ## Create a page
 
-Right-click a collection folder in the sidebar (for example, `docs/`) and select **New Page**. Enter a title. Oi Desktop creates the file with frontmatter pre-filled:
+Right-click a collection folder in the sidebar (for example, `docs/`) and select **New Page**. Enter a title. Sarde Studio creates the file with frontmatter pre-filled:
 
 ```yaml
 ---
@@ -66,7 +66,7 @@ title: Photosynthesis Overview
 
 The new page appears in the sidebar and opens in the editor.
 
-→ The sidebar updates to show the new page sorted within its collection.
+The sidebar updates to show the new page sorted within its collection.
 
 ## Edit content
 
@@ -91,9 +91,9 @@ This process requires both water and carbon dioxide.
 
 Save with **Ctrl+S** (Windows/Linux) or **Cmd+S** (macOS). The preview panel updates automatically.
 
-→ The preview shows the rendered page with the note aside styled as a blue callout.
+The preview shows the rendered page with the note aside styled as a blue callout.
 
-<!-- SCREENSHOT: oi-editor-preview — editor with Markdown source on the left and rendered preview on the right -->
+<!-- SCREENSHOT: studio-editor-preview — editor with Markdown source on the left and rendered preview on the right -->
 
 ## Edit frontmatter
 
@@ -110,9 +110,9 @@ draft: false
 
 Toggle **Raw YAML** to switch between the form view and a YAML text editor. Changes sync between both views.
 
-→ The frontmatter form shows each field with its label, type-appropriate input widget, and validation indicators.
+The frontmatter form shows each field with its label, type-appropriate input widget, and validation indicators.
 
-<!-- SCREENSHOT: oi-frontmatter-form — visual frontmatter editor with title, tags, and draft fields -->
+<!-- SCREENSHOT: studio-frontmatter-form — visual frontmatter editor with title, tags, and draft fields -->
 
 ## Preview the site
 
@@ -140,7 +140,7 @@ The command palette provides quick access to all actions. Type to filter, then p
 
 ## Build and deploy
 
-To build the site for production, open the command palette (**Ctrl/Cmd+Shift+P**) and run **Build Site**. Oi Desktop runs `sarde build` and displays progress, warnings, and errors in the activity log panel at the bottom of the workspace.
+To build the site for production, open the command palette (**Ctrl/Cmd+Shift+P**) and run **Build Site**. Sarde Studio runs `sarde build` and displays progress, warnings, and errors in the activity log panel at the bottom of the workspace.
 
 The output is written to the `dist/` directory, ready for deployment. See [Deploying](/start-here/deploying) for platform-specific deployment steps.
 

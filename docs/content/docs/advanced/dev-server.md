@@ -40,10 +40,11 @@ Each changed file is classified into one of six kinds:
 | Kind | Trigger | Behavior |
 |------|---------|----------|
 | Config | `sarde.yaml`, `theme.yaml`, `nav.yaml`, `sidebar.yaml` | Fresh builder, full build |
-| Template | Files under `layouts/` or `themes/` | Fresh builder, full build |
+| Template | Files under `layouts/` or `themes/` (except theme CSS) | Fresh builder, full build |
 | Plugin | Files under `plugins/` | Fresh builder, full build |
 | Content | Files under `content/` | Incremental rebuild, reuses existing builder |
 | CSS | `.css` files under `public/` | Hot-swap, no rebuild |
+| Theme CSS | `.css` files under `themes/<name>/css/` (or the theme dev source tree) | Bundle reassembled in place, no rebuild |
 | Static | Everything else (`assets/`, `data/`, other files) | Full build, reuses existing builder |
 
 ## CSS hot-swap
@@ -52,11 +53,20 @@ When all changes in a batch are CSS files under `public/`, no rebuild runs. Each
 
 CSS files under `assets/` are excluded from hot-swap because they may be bundled or fingerprinted through esbuild. Changes to those files trigger a full rebuild instead.
 
+## Theme CSS fast path
+
+Theme stylesheets (`themes/<name>/css/`, or the theme source tree when the server runs with `--theme-dev`) feed the single `sarde.css` bundle, so a CSS edit cannot change page HTML, links, or search content. When all changes in a batch are theme CSS files, the server reassembles the bundle from disk, rewrites it in the output directory, and broadcasts the same CSS swap message as the `public/` hot-swap path. No pages are rebuilt, and the link checker and search index do not rerun.
+
+If the refresh fails (for example, no build has completed yet), the server falls back to a full rebuild on a fresh builder. Non-CSS theme files (templates, JS) keep the template behavior above.
+
 ## Batch merging
 
-When a batch contains mixed change kinds, the highest-priority kind wins: config (5) > template and plugin (4) > content (3) > static (2) > CSS (1).
+When a batch contains mixed change kinds, the highest-priority kind wins: config (5) > template and plugin (4) > content (3) > static (2) > CSS and theme CSS (1).
 
-One exception: if a batch mixes content changes with any non-content kind, the result is escalated to a full build (static kind). The incremental content path would miss the accompanying static/CSS files.
+Two exceptions:
+
+- If a batch mixes content changes with any non-content kind, the result is escalated to a full build (static kind). The incremental content path would miss the accompanying static/CSS files.
+- If a batch mixes theme CSS with content or static changes, it escalates to a template change (fresh builder). A full build on a reused builder would keep the stale CSS bundle, since the template engine assembles CSS only once per builder.
 
 Content file paths across the batch are deduped and unioned. The earliest detection timestamp is preserved for end-to-end timing.
 

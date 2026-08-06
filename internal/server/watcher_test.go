@@ -31,6 +31,39 @@ func TestClassifyChange(t *testing.T) {
 		{"plugin manifest", "/project/plugins/slideviewer/plugin.yaml", ChangePlugin},
 		{"plugin asset", "/project/plugins/slideviewer/assets/css/x.css", ChangePlugin},
 		{"plugin template", "/project/plugins/slideviewer/templates/partials/p.html", ChangePlugin},
+		{"theme css", "/project/themes/default/css/components.css", ChangeThemeCSS},
+		{"theme extension css", "/project/themes/default/css/extensions/cards.css", ChangeThemeCSS},
+		{"theme template stays template", "/project/themes/default/templates/base.html", ChangeTemplate},
+		{"css dir itself stays template", "/project/themes/default/css", ChangeTemplate},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := w.classifyChange(filepath.FromSlash(tt.path))
+			if got != tt.want {
+				t.Errorf("classifyChange(%q) = %q, want %q", tt.path, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestClassifyChange_ExternalDirCSSKind(t *testing.T) {
+	themeDir := filepath.FromSlash("/repo/embedded/theme")
+	pluginDir := filepath.FromSlash("/repo/internal/plugin/clientplugins/assets")
+	w := &Watcher{projectDir: filepath.FromSlash("/project")}
+	w.AddExternalDir(themeDir, ChangeTemplate, ChangeThemeCSS)
+	w.AddExternalDir(pluginDir, ChangeTemplate, "")
+
+	tests := []struct {
+		name string
+		path string
+		want ChangeKind
+	}{
+		{"theme dev css", "/repo/embedded/theme/css/components.css", ChangeThemeCSS},
+		{"theme dev nested css", "/repo/embedded/theme/css/extensions/cards.css", ChangeThemeCSS},
+		{"theme dev template", "/repo/embedded/theme/templates/base.html", ChangeTemplate},
+		{"theme dev css dir", "/repo/embedded/theme/css", ChangeTemplate},
+		{"plugin dev css keeps template kind", "/repo/internal/plugin/clientplugins/assets/scroll_to_top/scroll_to_top.css", ChangeTemplate},
 	}
 
 	for _, tt := range tests {
@@ -216,6 +249,42 @@ func TestMergeChanges_ContentPlusStaticEscalatesToStatic(t *testing.T) {
 
 	if got.Kind != ChangeStatic {
 		t.Fatalf("Kind = %q, want %q (escalated full build)", got.Kind, ChangeStatic)
+	}
+}
+
+func TestMergeChanges_ThemeCSSOnlyStaysThemeCSS(t *testing.T) {
+	got := mergeChanges([]FileChange{
+		{Path: "/repo/embedded/theme/css/components.css", Kind: ChangeThemeCSS},
+		{Path: "/repo/embedded/theme/css/content.css", Kind: ChangeThemeCSS},
+	})
+
+	if got.Kind != ChangeThemeCSS {
+		t.Fatalf("Kind = %q, want %q (fast path)", got.Kind, ChangeThemeCSS)
+	}
+}
+
+func TestMergeChanges_ContentPlusThemeCSSEscalatesToTemplate(t *testing.T) {
+	// A full build on the reused builder keeps the stale CSS bundle (the
+	// template engine assembles CSS only on first Load), so theme CSS mixed
+	// with content work needs a fresh builder.
+	got := mergeChanges([]FileChange{
+		{Path: "/project/content/blog/post.md", Kind: ChangeContent},
+		{Path: "/repo/embedded/theme/css/components.css", Kind: ChangeThemeCSS},
+	})
+
+	if got.Kind != ChangeTemplate {
+		t.Fatalf("Kind = %q, want %q (fresh builder)", got.Kind, ChangeTemplate)
+	}
+}
+
+func TestMergeChanges_TemplatePlusThemeCSSStaysTemplate(t *testing.T) {
+	got := mergeChanges([]FileChange{
+		{Path: "/repo/embedded/theme/templates/base.html", Kind: ChangeTemplate},
+		{Path: "/repo/embedded/theme/css/components.css", Kind: ChangeThemeCSS},
+	})
+
+	if got.Kind != ChangeTemplate {
+		t.Fatalf("Kind = %q, want %q", got.Kind, ChangeTemplate)
 	}
 }
 

@@ -21,6 +21,7 @@ const (
 	ChangeContent  ChangeKind = "content"
 	ChangeTemplate ChangeKind = "template"
 	ChangeCSS      ChangeKind = "css"
+	ChangeThemeCSS ChangeKind = "theme-css"
 	ChangeConfig   ChangeKind = "config"
 	ChangeStatic   ChangeKind = "static"
 	ChangePlugin   ChangeKind = "plugin"
@@ -35,10 +36,13 @@ type FileChange struct {
 }
 
 // externalWatch represents a directory outside the project tree that should
-// be watched, with all changes classified as the given kind.
+// be watched, with all changes classified as the given kind. When cssKind is
+// non-empty, .css files under the directory are classified as cssKind instead,
+// enabling the theme CSS hot-swap fast path.
 type externalWatch struct {
-	dir  string
-	kind ChangeKind
+	dir     string
+	kind    ChangeKind
+	cssKind ChangeKind
 }
 
 // Watcher monitors project directories for changes and triggers a callback.
@@ -78,14 +82,15 @@ func NewWatcher(projectDir, outputDir string, debounce time.Duration, onChange f
 }
 
 // AddExternalDir registers a directory outside the project tree to watch.
-// All changes under it are classified with the given kind. Must be called
-// before Start().
-func (w *Watcher) AddExternalDir(dir string, kind ChangeKind) {
+// All changes under it are classified with the given kind, except .css files,
+// which are classified as cssKind when it is non-empty (pass "" to treat CSS
+// the same as everything else). Must be called before Start().
+func (w *Watcher) AddExternalDir(dir string, kind, cssKind ChangeKind) {
 	abs, err := filepath.Abs(dir)
 	if err != nil {
 		abs = dir
 	}
-	w.externalDirs = append(w.externalDirs, externalWatch{dir: abs, kind: kind})
+	w.externalDirs = append(w.externalDirs, externalWatch{dir: abs, kind: kind, cssKind: cssKind})
 }
 
 // Start begins watching project directories for changes.
@@ -174,6 +179,17 @@ func (w *Watcher) loop() {
 				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
 					w.addRecursive(event.Name)
 					w.enqueueDirFiles(event.Name)
+				}
+			}
+
+			// Writes to a directory (emitted alongside writes to files inside
+			// it) carry no information of their own and would misclassify the
+			// batch (e.g. a CSS-only save escalating to a template rebuild
+			// via its parent dir). Remove/Rename targets fail the stat and
+			// pass through.
+			if event.Op&fsnotify.Write != 0 && event.Op&(fsnotify.Remove|fsnotify.Rename) == 0 {
+				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+					continue
 				}
 			}
 
@@ -354,10 +370,15 @@ func (w *Watcher) shouldIgnoreDir(path string) bool {
 }
 
 func (w *Watcher) classifyChange(path string) ChangeKind {
+	fext := strings.ToLower(filepath.Ext(path))
+
 	// Check external watched directories first (e.g. --theme-dev source tree).
 	absPath, _ := filepath.Abs(path)
 	for _, ext := range w.externalDirs {
 		if isUnderDir(absPath, ext.dir) {
+			if fext == ".css" && ext.cssKind != "" {
+				return ext.cssKind
+			}
 			return ext.kind
 		}
 	}
@@ -377,9 +398,14 @@ func (w *Watcher) classifyChange(path string) ChangeKind {
 
 	// CSS files in public/ can be hot-swapped directly. CSS under assets/
 	// may be bundled/fingerprinted, so it must go through a rebuild.
-	fext := strings.ToLower(filepath.Ext(path))
 	if fext == ".css" && strings.HasPrefix(rel, consts.DirPublic+"/") {
 		return ChangeCSS
+	}
+
+	// Theme CSS (themes/<name>/css/*.css) feeds the sarde.css bundle, which
+	// can be reassembled without a new builder; hot-swap it like public CSS.
+	if fext == ".css" && isThemeCSSPath(rel) {
+		return ChangeThemeCSS
 	}
 
 	// Templates and themes.
@@ -406,6 +432,18 @@ func (w *Watcher) classifyChange(path string) ChangeKind {
 	}
 
 	return ChangeStatic
+}
+
+// isThemeCSSPath reports whether the slash-form project-relative path sits
+// under a theme's css/ directory (themes/<name>/css/...).
+func isThemeCSSPath(rel string) bool {
+	rest, ok := strings.CutPrefix(rel, consts.DirThemes+"/")
+	if !ok {
+		return false
+	}
+	// rest is "<name>/css/..."; require a theme name segment then css/.
+	name, sub, found := strings.Cut(rest, "/")
+	return found && name != "" && strings.HasPrefix(sub, "css/")
 }
 
 func isUnderDir(path, dir string) bool {

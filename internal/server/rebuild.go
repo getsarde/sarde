@@ -18,6 +18,7 @@ type RebuildResult struct {
 	PhaseTimings []engine.PhaseTiming
 	LogMessages  []engine.BuildLogEntry
 	Error        error
+	CSSOnly      bool // theme CSS fast path: no pages were rebuilt
 }
 
 // Rebuilder wraps SiteBuilder for dev-mode rebuilds.
@@ -96,6 +97,25 @@ func (r *Rebuilder) executeBuild(change FileChange) *RebuildResult {
 	switch change.Kind {
 	case ChangeConfig, ChangeTemplate, ChangePlugin:
 		devlog.Log("build", "Full rebuild (%s change): new builder", change.Kind)
+		r.builder = r.builderFactory()
+
+	case ChangeThemeCSS:
+		// Theme CSS feeds only the sarde.css bundle: reassemble and rewrite
+		// it in place instead of rebuilding the site. Falls back to a full
+		// build on a fresh builder if the refresh fails or no build has
+		// happened yet (a reused builder would keep the stale bundle, since
+		// the template engine only assembles CSS on first Load).
+		if r.builder != nil {
+			if err := r.builder.RefreshThemeCSS(); err == nil {
+				return &RebuildResult{
+					Success:  true,
+					Duration: time.Since(start),
+					CSSOnly:  true,
+				}
+			} else {
+				devlog.Warn("build", "Theme CSS fast path failed, falling back to full build: %v", err)
+			}
+		}
 		r.builder = r.builderFactory()
 
 	case ChangeContent:
@@ -187,7 +207,7 @@ func ToReloadMessage(change FileChange, result *RebuildResult, projectDir string
 		return msg
 	}
 
-	if change.Kind == ChangeCSS {
+	if change.Kind == ChangeCSS || (change.Kind == ChangeThemeCSS && result.CSSOnly) {
 		return ReloadMessage{
 			Type:      ReloadCSS,
 			Path:      change.Path,

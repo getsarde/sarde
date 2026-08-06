@@ -158,25 +158,9 @@ func (e *Engine) Load(resolver *engine.ThemeResolver, devMode bool) error {
 	}
 
 	// Load CSS bundle: prefer external theme CSS over embedded.
-	var raw string
-	if resolver.ThemeName != "" {
-		raw = loadThemeCSS(resolver.ProjectDir, resolver.ThemeName)
-	}
-	if raw == "" {
-		raw = loadEmbeddedCSS(resolver.EmbeddedFS)
-	}
-	if e.codeBlockCSS != "" {
-		raw += "\n" + e.codeBlockCSS
-	}
-	if e.directiveCSS != "" {
-		raw += "\n" + e.directiveCSS
-	}
-	if e.asideCSS != "" {
-		raw += "\n" + e.asideCSS
-	}
-	processed, err := asset.TransformCSS(raw, !devMode)
+	processed, err := e.assembleCSS(devMode)
 	if err != nil {
-		return fmt.Errorf("minifying embedded CSS: %w", err)
+		return err
 	}
 	e.cachedCSS = processed
 	hash := asset.Fingerprint([]byte(processed))
@@ -251,6 +235,52 @@ func (e *Engine) Load(resolver *engine.ThemeResolver, devMode bool) error {
 // re-parses all templates, components, and partials from disk.
 func (e *Engine) ForceReload() {
 	e.loaded = false
+}
+
+// assembleCSS reads and concatenates the full CSS bundle (theme or embedded
+// files plus the code block, directive, and aside overlays), minified when
+// !devMode.
+func (e *Engine) assembleCSS(devMode bool) (string, error) {
+	var raw string
+	if e.resolver.ThemeName != "" {
+		raw = loadThemeCSS(e.resolver.ProjectDir, e.resolver.ThemeName)
+	}
+	if raw == "" {
+		raw = loadEmbeddedCSS(e.resolver.EmbeddedFS)
+	}
+	if e.codeBlockCSS != "" {
+		raw += "\n" + e.codeBlockCSS
+	}
+	if e.directiveCSS != "" {
+		raw += "\n" + e.directiveCSS
+	}
+	if e.asideCSS != "" {
+		raw += "\n" + e.asideCSS
+	}
+	processed, err := asset.TransformCSS(raw, !devMode)
+	if err != nil {
+		return "", fmt.Errorf("minifying embedded CSS: %w", err)
+	}
+	return processed, nil
+}
+
+// RefreshCSS reassembles the CSS bundle from the current theme sources and
+// updates the cached copy in place. The bundle URL is intentionally left
+// unchanged: rendered pages reference the existing fingerprinted filename,
+// and the dev-server CSS fast path overwrites that file with the refreshed
+// content. Dev-mode only; production builds always construct a fresh engine.
+func (e *Engine) RefreshCSS(devMode bool) error {
+	if e.resolver == nil {
+		return fmt.Errorf("RefreshCSS called before Load")
+	}
+	processed, err := e.assembleCSS(devMode)
+	if err != nil {
+		return err
+	}
+	e.mu.Lock()
+	e.cachedCSS = processed
+	e.mu.Unlock()
+	return nil
 }
 
 // Render renders a page using its

@@ -99,6 +99,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 	var themeFS = embedded.ThemeFS()
 	var pluginAssetsDir string
 	var themeDevWatchDirs []string
+	var pluginDevWatchDirs []string
 
 	if themeDevDir != "" {
 		if !filepath.IsAbs(themeDevDir) {
@@ -117,7 +118,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 		candidate := filepath.Join(repoRoot, "internal", "plugin", "clientplugins", "assets")
 		if _, statErr := os.Stat(candidate); statErr == nil {
 			pluginAssetsDir = candidate
-			themeDevWatchDirs = append(themeDevWatchDirs, pluginAssetsDir)
+			pluginDevWatchDirs = append(pluginDevWatchDirs, pluginAssetsDir)
 			devlog.Log("sarde", "Plugin dev mode: %s", pluginAssetsDir)
 		}
 	}
@@ -190,6 +191,7 @@ func runServe(cmd *cobra.Command, args []string) error {
 		BasePath:       cfg.Build.BasePath,
 		BuilderFactory: builderFactory,
 		ThemeDevDirs:   themeDevWatchDirs,
+		PluginDevDirs:  pluginDevWatchDirs,
 		Verbose:        verbose,
 	})
 

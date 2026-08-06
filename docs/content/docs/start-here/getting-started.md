@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-This page goes from nothing to a working site. By the end, Sarde is installed, a scaffolded site is running in the browser with live reload, a first page is in the sidebar, and a production build sits in `dist/` ready to host.
+This guide covers installing Sarde and creating a first website with it. No step assumes prior experience with build tools. By the end, a themed site is running in the browser and updating itself on every save, a first page sits in the sidebar, and a production build waits in `dist/`, ready to put on the web.
 
 ## Install Sarde
 
@@ -57,12 +57,14 @@ sarde version
 → The terminal prints:
 
 ```text
-sarde v1.0.0
+sarde 1.0.0
 Go: go1.25.0
 OS/Arch: linux/amd64
 ```
 
 ## Create a site
+
+One command produces a complete, working site: configuration, a homepage, a sample blog post, and a sample docs page. There is nothing to assemble before seeing results; writing can start from a site that already works.
 
 ```sh
 sarde new site my-site
@@ -99,6 +101,8 @@ The `sarde.yaml` file controls the site title, theme preset, homepage hero, and 
 
 ## Start the dev server
 
+The dev server is a private preview of the site, running only on this machine; nobody else can see it. It watches the project's files, and every time a file is saved it rebuilds the affected pages and refreshes the browser on its own. Leave it running in the terminal while writing.
+
 ```sh
 sarde dev
 ```
@@ -111,13 +115,17 @@ sarde dev
 ┃ Network  use --host 0.0.0.0 to expose
 ```
 
-Open `http://localhost:4727` in a browser to see the site. The dev server watches for file changes and reloads the browser automatically. CSS changes hot-swap without a full page reload.
+Open `http://localhost:4727` in a browser.
+
+→ A finished-looking site appears: a homepage with a hero section, a navigation bar linking to the sample blog and docs pages, working search, and a dark mode toggle. All of it comes from the scaffold; no configuration was involved.
+
+From here on, the loop is: edit a file, save, glance at the browser. The page refreshes automatically, and CSS changes appear without even a page reload.
 
 [Draft, scheduled, and expired content](/guides/writing-content/#drafts-scheduled-and-expiring-content) is included by default in dev mode. Use `--no-drafts` to exclude it.
 
 ## Add content
 
-Create a new docs page:
+Time to add a page of your own. `sarde new` creates the file in the right folder with the metadata already filled in:
 
 ```sh
 sarde new docs "My First Page"
@@ -160,7 +168,9 @@ Sarde auto-detects the collection type from the directory name. Content in `docs
 
 ## Build the site
 
-Remove the `draft: true` line from the new page, then produce the publishable site:
+Building is the step that turns the project into something publishable. The dev server renders pages on demand for one viewer; a build writes every page out ahead of time as plain files, so a web host can serve them to anyone without running Sarde at all.
+
+Remove the `draft: true` line from the new page, then build:
 
 ```sh
 sarde build

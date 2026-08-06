@@ -2,6 +2,8 @@ package template
 
 import (
 	"html/template"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -302,5 +304,53 @@ func TestEngine_SetAsideCSS_AppendedToBundle(t *testing.T) {
 	}
 	if !strings.Contains(styled.CachedCSS(), "galaxy-test-marker") {
 		t.Errorf("aside CSS set before Load must be appended to the bundle, got: %s", styled.CachedCSS())
+	}
+}
+
+func TestEngine_RefreshCSS_PicksUpChangesKeepsURL(t *testing.T) {
+	projectDir := t.TempDir()
+	cssDir := filepath.Join(projectDir, "themes", "custom", "css")
+	if err := os.MkdirAll(cssDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	cssFile := filepath.Join(cssDir, "tokens.css")
+	if err := os.WriteFile(cssFile, []byte(":root{--marker:one}"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	eng := NewEngine()
+	eng.SetSiteContext(&engine.SiteContext{Title: "Test Site", Language: "en"})
+	resolver := &engine.ThemeResolver{
+		ProjectDir: projectDir,
+		ThemeName:  "custom",
+		EmbeddedFS: embeddedTestFS(),
+	}
+	if err := eng.Load(resolver, true); err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+	if !strings.Contains(eng.CachedCSS(), "--marker:one") {
+		t.Fatalf("initial bundle missing theme CSS, got: %s", eng.CachedCSS())
+	}
+	urlBefore := eng.CSSURL()
+
+	if err := os.WriteFile(cssFile, []byte(":root{--marker:two}"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := eng.RefreshCSS(true); err != nil {
+		t.Fatalf("RefreshCSS failed: %v", err)
+	}
+
+	if !strings.Contains(eng.CachedCSS(), "--marker:two") {
+		t.Errorf("refreshed bundle missing updated theme CSS, got: %s", eng.CachedCSS())
+	}
+	if eng.CSSURL() != urlBefore {
+		t.Errorf("CSSURL changed on refresh: %q -> %q (rendered pages reference the old name)", urlBefore, eng.CSSURL())
+	}
+}
+
+func TestEngine_RefreshCSS_BeforeLoadFails(t *testing.T) {
+	eng := NewEngine()
+	if err := eng.RefreshCSS(true); err == nil {
+		t.Error("RefreshCSS before Load must fail")
 	}
 }

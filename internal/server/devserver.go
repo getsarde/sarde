@@ -40,7 +40,8 @@ type Options struct {
 	Version        string
 	BasePath       string // normalized: "/docs/" or "/"
 	BuilderFactory func() *build.SiteBuilder
-	ThemeDevDirs   []string // external dirs to watch as ChangeTemplate (for --theme-dev)
+	ThemeDevDirs   []string // theme source dirs to watch as ChangeTemplate, with CSS fast path (for --theme-dev)
+	PluginDevDirs  []string // plugin asset dirs to watch as ChangeTemplate, no CSS fast path (plugin CSS is bundled per-plugin)
 	Verbose        bool     // print per-phase rebuild timings and plugin log messages
 }
 
@@ -95,7 +96,10 @@ func New(opts Options) *DevServer {
 
 	ds.watcher = NewWatcher(opts.ProjectDir, opts.OutputDir, 150*time.Millisecond, ds.onFileChange)
 	for _, dir := range opts.ThemeDevDirs {
-		ds.watcher.AddExternalDir(dir, ChangeTemplate)
+		ds.watcher.AddExternalDir(dir, ChangeTemplate, ChangeThemeCSS)
+	}
+	for _, dir := range opts.PluginDevDirs {
+		ds.watcher.AddExternalDir(dir, ChangeTemplate, "")
 	}
 	ds.ready = make(chan int, 1)
 	// Constructing the server here (single write before any goroutine exists)
@@ -263,17 +267,34 @@ func (ds *DevServer) onFileChange(changes []FileChange) {
 	// Merge the batch into a single change to decide how to handle it.
 	representative := mergeChanges(changes)
 
-	// All CSS → hot-swap each without rebuilding. The hot-swap path skips the
-	// rebuild that copies public/ into the output dir, and fileHandler serves
-	// only from the output dir, so sync each changed file there first or the
-	// browser's re-fetch would read the stale copy.
-	if representative.Kind == ChangeCSS {
+	// All CSS → hot-swap without rebuilding. Public CSS files are copied to
+	// the output dir one by one (fileHandler serves only from the output dir,
+	// so the browser's re-fetch would otherwise read a stale copy). Theme CSS
+	// goes through the Rebuilder's ChangeThemeCSS fast path, which reassembles
+	// the sarde.css bundle in place; its ReloadCSS broadcast happens via
+	// handleRebuildResult. A css-tier representative implies the whole batch
+	// is css-tier (anything higher would have won the priority merge).
+	if representative.Kind == ChangeCSS || representative.Kind == ChangeThemeCSS {
+		var themeChange *FileChange
 		for _, c := range changes {
+			if c.Kind == ChangeThemeCSS {
+				if themeChange == nil {
+					tc := c
+					themeChange = &tc
+				}
+				continue
+			}
 			if err := ds.syncPublicFile(c.Path); err != nil {
 				devlog.Warn("watch", "CSS hot-swap: could not sync %s to output dir: %v", c.Path, err)
 			}
 			rel, _ := filepath.Rel(ds.projectDir, c.Path)
 			ds.hub.Broadcast(ReloadMessage{Type: ReloadCSS, Path: filepath.ToSlash(rel)})
+		}
+		if themeChange != nil {
+			executed, result := ds.rebuilder.Rebuild(*themeChange)
+			if result != nil {
+				ds.handleRebuildResult(executed, result)
+			}
 		}
 		return
 	}
@@ -314,6 +335,8 @@ func (ds *DevServer) syncPublicFile(path string) error {
 func (ds *DevServer) handleRebuildResult(change FileChange, result *RebuildResult) {
 	if result.Error != nil {
 		devlog.Error("build", "Rebuild failed: %v", result.Error)
+	} else if result.CSSOnly {
+		devlog.Log("build", "Theme CSS refreshed in %s (fast path)", result.Duration.Round(time.Millisecond))
 	} else {
 		devlog.Log("build", "Rebuilt %d pages in %s", result.PageCount, result.Duration)
 		if ds.verbose {
@@ -373,6 +396,7 @@ var changePriority = map[ChangeKind]int{
 	ChangeContent:  3,
 	ChangeStatic:   2,
 	ChangeCSS:      1,
+	ChangeThemeCSS: 1,
 }
 
 // mergeChanges reduces a batch of changes to a single change that drives
@@ -424,6 +448,18 @@ func mergeChanges(changes []FileChange) FileChange {
 
 	if best.Kind == ChangeContent && hasNonContent {
 		best.Kind = ChangeStatic
+	}
+
+	// Theme CSS mixed with content/static work: a full build on the reused
+	// builder would keep the stale CSS bundle (the template engine assembles
+	// CSS only on first Load), so escalate to a fresh builder.
+	if best.Kind == ChangeContent || best.Kind == ChangeStatic {
+		for _, c := range changes {
+			if c.Kind == ChangeThemeCSS {
+				best.Kind = ChangeTemplate
+				break
+			}
+		}
 	}
 
 	best.Paths = contentPaths

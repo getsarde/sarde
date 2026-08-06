@@ -177,7 +177,7 @@ OS/Arch: linux/amd64
 
 ## `update`
 
-Check for and install the latest version from GitHub Releases.
+Check for and install the latest version from GitHub Releases. For the full update workflow, see [Updating Sarde](/docs/start-here/updating-sarde/).
 
 ```
 sarde update [flags]
