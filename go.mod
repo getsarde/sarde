@@ -11,7 +11,7 @@ require (
 	github.com/frostybee/edict v0.1.0
 	github.com/frostybee/go-swarm-icons v0.1.0
 	github.com/frostybee/go-swarm-icons/lucide v0.1.0
-	github.com/frostybee/kazari v1.1.0
+	github.com/frostybee/kazari v1.2.0
 	github.com/frostybee/nuri v1.0.1
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gen2brain/avif v0.4.4
@@ -23,10 +23,10 @@ require (
 	github.com/tdewolff/minify/v2 v2.24.13
 	github.com/yuin/goldmark v1.8.2
 	golang.org/x/image v0.40.0
-	golang.org/x/net v0.52.0
-	golang.org/x/sync v0.20.0
-	golang.org/x/sys v0.46.0
-	golang.org/x/term v0.44.0
+	golang.org/x/net v0.57.0
+	golang.org/x/sync v0.22.0
+	golang.org/x/sys v0.47.0
+	golang.org/x/term v0.45.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -48,8 +48,8 @@ require (
 	github.com/tetratelabs/wazero v1.12.0 // indirect
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	gitlab.com/gitlab-org/api/client-go v1.9.1 // indirect
-	golang.org/x/crypto v0.49.0 // indirect
+	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/oauth2 v0.34.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 )
