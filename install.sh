@@ -35,7 +35,11 @@ detect_platform() {
 }
 
 get_latest_version() {
-  curl -sSf "https://api.github.com/repos/${REPO}/releases/latest" |
+  AUTH_HEADER=""
+  if [ -n "${GITHUB_TOKEN:-}" ]; then
+    AUTH_HEADER="Authorization: token ${GITHUB_TOKEN}"
+  fi
+  curl -sSf ${AUTH_HEADER:+-H "$AUTH_HEADER"} "https://api.github.com/repos/${REPO}/releases/latest" |
     grep '"tag_name"' |
     sed -E 's/.*"tag_name": *"([^"]+)".*/\1/'
 }
