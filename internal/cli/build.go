@@ -24,6 +24,10 @@ var buildCmd = &cobra.Command{
 	Short: "Build the static site",
 	Long:  "Build the static site from content/ to the output directory.",
 	RunE:  runBuild,
+	// A build failure (bad config, broken theme) is not a usage mistake —
+	// don't drown the actual error in the flags listing. Cobra still prints
+	// "Error: <msg>" to stderr (main.go itself never prints).
+	SilenceUsage: true,
 }
 
 func init() {
@@ -40,7 +44,17 @@ func runBuild(cmd *cobra.Command, args []string) error {
 	if format != "pretty" && format != "json" {
 		return fmt.Errorf("unknown format %q (expected pretty or json)", format)
 	}
+	// One boundary for machine-readable failure: every error path inside the
+	// build (config validation, theme load, lock, build proper) surfaces here
+	// and becomes an {"error": ...} envelope on stdout in json mode.
+	err := runBuildWithFormat(cmd, args, format)
+	if err != nil && format == "json" {
+		return emitJSONError("build_failed", err)
+	}
+	return err
+}
 
+func runBuildWithFormat(cmd *cobra.Command, args []string, format string) error {
 	// Start the passive update lookup now so it overlaps with the build and
 	// its result can be shown after the summary. JSON mode stays silent and
 	// makes no network calls.
@@ -88,9 +102,6 @@ func runBuild(cmd *cobra.Command, args []string) error {
 
 	result, err := builder.Build()
 	if err != nil {
-		if format == "json" {
-			return printJSONError(fmt.Errorf("build failed: %w", err))
-		}
 		return fmt.Errorf("build failed: %w", err)
 	}
 

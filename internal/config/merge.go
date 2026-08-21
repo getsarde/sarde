@@ -11,6 +11,18 @@ import (
 	"github.com/getsarde/sarde/internal/validate"
 )
 
+// ValidationError carries the structured validation failures so machine
+// consumers (`--format json`, Sarde Studio) can present them individually.
+// Its Error() string is identical to the previous flattened form, so pretty
+// (terminal) output is unchanged.
+type ValidationError struct {
+	Errors []validate.Error
+}
+
+func (e *ValidationError) Error() string {
+	return fmt.Sprintf("config validation failed:\n%s", validate.FormatErrors(e.Errors))
+}
+
 // ResolveOptions provides inputs for the 5-layer config cascade.
 type ResolveOptions struct {
 	ConfigPath   string         // path to sarde.yaml (default: "sarde.yaml")
@@ -105,7 +117,7 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 		devlog.Warn("config", "%s", w.Error())
 	}
 	if len(errs) > 0 {
-		return nil, fmt.Errorf("config validation failed:\n%s", validate.FormatErrors(errs))
+		return nil, &ValidationError{Errors: errs}
 	}
 
 	return cfg, nil

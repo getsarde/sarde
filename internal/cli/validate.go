@@ -13,15 +13,31 @@ var validateCmd = &cobra.Command{
 	Short: "Validate site config and content without building",
 	Long:  "Validate site configuration and content files. Runs discovery, parsing, schema validation, and optional content linting without rendering or writing output.",
 	RunE:  runValidate,
+	// A validation failure is not a usage mistake — don't drown the actual
+	// error in the flags listing.
+	SilenceUsage: true,
 }
 
 func init() {
 	validateCmd.Flags().Bool("lint", true, "Run content lint rules after validation")
 	validateCmd.Flags().Bool("strict", false, "Exit with code 1 if any warnings exist")
+	validateCmd.Flags().String("format", "pretty", "Error output format: pretty, json")
 	rootCmd.AddCommand(validateCmd)
 }
 
 func runValidate(cmd *cobra.Command, args []string) error {
+	format, _ := cmd.Flags().GetString("format")
+	if format != "pretty" && format != "json" {
+		return fmt.Errorf("unknown format %q (expected pretty or json)", format)
+	}
+	err := validateProject(cmd, args)
+	if err != nil && format == "json" {
+		return emitJSONError("validate_failed", err)
+	}
+	return err
+}
+
+func validateProject(cmd *cobra.Command, args []string) error {
 	projectDir := projectDirFromArgs(args)
 
 	cfg, themeCfg, err := resolveAll(cmd, projectDir)

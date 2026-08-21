@@ -38,7 +38,7 @@ sarde build [flags] [project-dir]
 | `--base-path` | string | `""` | Override the URL base path (for subdirectory hosting). |
 | `--content` | string | `""` | Override the content directory path. |
 | `--strict-i18n` | bool | `false` | Warn on missing translation keys per language. |
-| `--format` | string | `pretty` | Output format: `pretty` or `json`. With `json`, the build result (page counts, duration, per-phase timings, warnings) is printed to stdout as a single JSON object and the human-readable summary is suppressed. |
+| `--format` | string | `pretty` | Output format: `pretty` or `json`. With `json`, the build result (page counts, duration, per-phase timings, warnings) is printed to stdout as a single JSON object and the human-readable summary is suppressed. Failures are also machine-readable — see [JSON error envelope](#json-error-envelope). |
 
 ```
 sarde build
@@ -47,6 +47,30 @@ sarde build /path/to/project
 ```
 
 A build lock prevents concurrent `sarde build` or `sarde dev` processes from writing to the same output directory. The second process exits with `another sarde process (pid N, ...) is already writing to output directory`. See [Troubleshooting](/resources/troubleshooting#another-sarde-process-is-already-writing) if no such process is running.
+
+### JSON error envelope
+
+With `--format json` (on `build`, `dev`, and `validate`), a fatal error is emitted to stdout as a single JSON document before the process exits non-zero:
+
+```json
+{"error": {
+  "kind": "config_validation",
+  "message": "config validation failed",
+  "details": [
+    {
+      "path": "plugins.enabled[0]",
+      "value": "serch",
+      "message": "must be one of: sitemap, rss, ...",
+      "allowed": ["sitemap", "rss", "..."]
+    }
+  ]
+}}
+```
+
+- `kind` — `config_validation` for configuration validation failures (carries per-field `details`), otherwise `build_failed` / `dev_failed` / `validate_failed` with `message` only.
+- `details[].allowed` — present when the failed check was an enumeration, so tooling can offer suggestions.
+
+Human-readable error text still goes to stderr in both formats. This envelope is consumed by Sarde Studio; the field names are stable.
 
 ## `dev`
 
@@ -66,6 +90,7 @@ sarde dev [flags] [project-dir]
 | `--watch-stdin` | bool | `false` | Exit when stdin closes (for child-process mode). |
 | `--theme-dev` | string | `""` | Path to a theme source directory for live-reload during framework development. |
 | `--check-syntax` | bool | `false` | Enable syntax checking for unclosed fenced blocks during rebuilds. |
+| `--format` | string | `pretty` | Error output format: `pretty` or `json`. With `json`, a fatal startup error (bad config, port bind) is emitted as a [JSON error envelope](#json-error-envelope) on stdout before exiting. Normal server logs are unaffected. |
 
 ```
 sarde dev
@@ -131,6 +156,7 @@ sarde validate [flags] [project-dir]
 |------|------|---------|-------------|
 | `--lint` | bool | `true` | Run content lint rules after validation. Pass `--lint=false` to disable. |
 | `--strict` | bool | `false` | Exit with code 1 if any warnings exist. |
+| `--format` | string | `pretty` | Error output format: `pretty` or `json`. With `json`, a fatal error is emitted as a [JSON error envelope](#json-error-envelope) on stdout before exiting. Success output is unaffected. |
 
 ```
 sarde validate

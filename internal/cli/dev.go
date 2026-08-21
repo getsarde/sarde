@@ -24,6 +24,9 @@ var devCmd = &cobra.Command{
 	Short: "Start development server with live reload",
 	Long:  "Build the site and start a local dev server. Watches for changes and reloads the browser automatically.",
 	RunE:  runServe,
+	// A startup failure (bad config, port in use) is not a usage mistake —
+	// don't drown the actual error in the flags listing.
+	SilenceUsage: true,
 }
 
 func init() {
@@ -35,10 +38,26 @@ func init() {
 	devCmd.Flags().Bool("watch-stdin", false, "Exit when stdin closes (sidecar/child-process mode)")
 	devCmd.Flags().String("theme-dev", "", "Path to embedded/theme/ source dir for live-reload (framework dev only)")
 	devCmd.Flags().Bool("check-syntax", false, "Enable syntax checking for unclosed fenced blocks during rebuilds")
+	devCmd.Flags().String("format", "pretty", "Error output format: pretty, json")
 	rootCmd.AddCommand(devCmd)
 }
 
 func runServe(cmd *cobra.Command, args []string) error {
+	format, _ := cmd.Flags().GetString("format")
+	if format != "pretty" && format != "json" {
+		return fmt.Errorf("unknown format %q (expected pretty or json)", format)
+	}
+	// In json mode a fatal startup error (config validation, port bind, …)
+	// is emitted as an {"error": ...} envelope on stdout — the same machine
+	// channel as the {"ready": ...} handshake — before exiting non-zero.
+	err := serveProject(cmd, args)
+	if err != nil && format == "json" {
+		return emitJSONError("dev_failed", err)
+	}
+	return err
+}
+
+func serveProject(cmd *cobra.Command, args []string) error {
 	projectDir := projectDirFromArgs(args)
 
 	cfg, themeCfg, err := resolveAll(cmd, projectDir)

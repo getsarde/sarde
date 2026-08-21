@@ -6,11 +6,14 @@ import (
 	"strings"
 )
 
-// Error describes a single validation failure.
+// Error describes a single validation failure. The json tags define the
+// machine-readable shape emitted by `--format json` error envelopes (consumed
+// by Sarde Studio); keep them stable.
 type Error struct {
-	Path    string // dotted field path, e.g. "collections.docs.layout"
-	Value   string // the invalid value (stringified for display)
-	Message string // human-readable explanation with valid options
+	Path    string   `json:"path"`              // dotted field path, e.g. "collections.docs.layout"
+	Value   string   `json:"value,omitempty"`   // the invalid value (stringified for display)
+	Message string   `json:"message"`           // human-readable explanation with valid options
+	Allowed []string `json:"allowed,omitempty"` // valid values when the check was an enumeration
 }
 
 func (e Error) Error() string {
@@ -40,6 +43,7 @@ func (c *Checker) OneOf(path, value string, allowed []string) {
 		Path:    path,
 		Value:   value,
 		Message: fmt.Sprintf("must be one of: %s", strings.Join(allowed, ", ")),
+		Allowed: allowed,
 	})
 }
 
