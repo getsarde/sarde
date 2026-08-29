@@ -2,7 +2,7 @@
 title: Template Functions
 description: "Reference for the custom string, math, date, and data functions registered into Sarde's template engine"
 sidebar:
-  order: 5
+  order: 7
 ---
 
 Sarde registers custom functions into Go's `html/template` engine. Call them with standard template syntax: `{{ funcName arg1 arg2 }}` or pipe an argument with `{{ arg1 | funcName }}`.

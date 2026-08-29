@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Docs
+
+- Added a Template API page that maps what a template receives, the base shell contract, and where components, partials, and functions are documented, and a Route Data reference listing every field available as the dot context with the conditions under which each is populated. A test in `internal/engine` fails when a struct field is added without a docs entry.
+
 ## [1.4.0] - 2026-08-28
 
 ### Added

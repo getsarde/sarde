@@ -2,7 +2,7 @@
 title: Shortcodes
 description: "Reference for shortcode syntax, parameters, and the built-in alert shortcode"
 sidebar:
-  order: 6
+  order: 8
 ---
 
 Shortcodes are reusable content snippets invoked from Markdown files and backed by Go templates. They use double-brace angle-bracket delimiters, distinct from [extensions](/extensions/using-extensions) (`:::` Markdown syntax) and [components](/reference/ui-components) (`{{ component }}` in layout templates).

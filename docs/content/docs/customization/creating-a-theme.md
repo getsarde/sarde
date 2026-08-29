@@ -85,7 +85,7 @@ themes/magazine/layouts/_blog/single.html
 
 → Every blog post renders with a full-width cover image, a subtitle, the date, and reading time above the body.
 
-The `{{ define "content" }}` block fills the base shell (`baseof.html`), which supplies the header, footer, and scripts. Templates in `_blog/` apply to every blog-type collection (`blog`, `posts`, `articles`, `news`). See [Layouts and Templates](/customization/layouts-and-templates/) for the lookup order and the `RouteData` fields available as `.`.
+The `{{ define "content" }}` block fills the base shell (`baseof.html`), which supplies the header, footer, and scripts. Templates in `_blog/` apply to every blog-type collection (`blog`, `posts`, `articles`, `news`). See [Layouts and Templates](/customization/layouts-and-templates/) for the lookup order and [Route Data](/reference/route-data/) for the fields available as `.`.
 
 To start from the embedded template instead of a blank file, eject it and edit the copy:
 

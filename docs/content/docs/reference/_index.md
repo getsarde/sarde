@@ -22,5 +22,9 @@ Complete reference for every configurable surface of Sarde.
   and built-in shortcodes.
 - [Theme Tokens](/reference/theme-tokens/) documents the `--sd-*` CSS custom
   property system and the four-layer token cascade.
+- [Template API](/reference/template-api/) explains what a template receives,
+  how the base shell is filled, and where each part of the surface is documented.
+- [Route Data](/reference/route-data/) lists every field available to templates
+  as the dot context and when each one is populated.
 - [UI Components](/reference/ui-components/) lists the named template
   components and their configuration.

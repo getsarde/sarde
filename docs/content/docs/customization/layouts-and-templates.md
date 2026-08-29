@@ -132,7 +132,7 @@ Create a custom template by placing a file in `layouts/` that defines the `"cont
 
 → A magazine-style layout with a large header image, title, and subtitle above the post body.
 
-Templates receive a `RouteData` object as their context (`.`), which includes `.Page`, `.Site`, `.Sidebar`, `.Breadcrumbs`, `.Translations`, and other layout data.
+Templates receive a `RouteData` object as their context (`.`), which includes `.Page`, `.Site`, `.Sidebar`, `.Breadcrumbs`, `.Translations`, and other layout data. See [Route Data](/reference/route-data/) for every field and [Template API](/reference/template-api/) for how the pieces fit together.
 
 Assign the template to a post in frontmatter. The `template` field is a path relative to the layouts directory, without `.html`:
 

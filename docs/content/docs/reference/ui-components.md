@@ -2,7 +2,7 @@
 title: UI Components
 description: "Reference for named template components that render layout chrome, and how their three-layer overlay resolves"
 sidebar:
-  order: 7
+  order: 9
 ---
 
 Components are named template slots that render layout chrome (headers, sidebars, footers, toggles). Call them from layout templates with `{{ component "Name" . }}`. They are distinct from [shortcodes](/reference/shortcodes) (invoked from Markdown content) and [extensions](/extensions/using-extensions) (`:::` Markdown syntax).
@@ -37,7 +37,7 @@ Components resolve through three layers. Each layer fully replaces same-named co
 
 | Priority | Layer | Directory |
 |----------|-------|-----------|
-| 1 (lowest) | Embedded | Compiled into the binary (27 default components) |
+| 1 (lowest) | Embedded | Compiled into the binary (31 default components) |
 | 2 | Theme | `themes/<name>/layouts/components/` |
 | 3 (highest) | Project | `layouts/components/` |
 
@@ -47,80 +47,9 @@ Filenames are case-sensitive and use PascalCase: `Header.html`, not `header.html
 Overriding a component that calls sub-components (like Header) means those sub-component calls are lost unless the override re-calls them. For example, overriding `Header.html` without including `{{ component "Search" . }}` removes the search trigger from the header entirely.
 :::
 
-## RouteData
+## Route data
 
-Every component receives the current `RouteData` as `.`. Fields are organized into embedded sub-structs in Go, but templates address all fields by flat name.
-
-### Page and site
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `.Page` | `*Page` | Current page (Title, Slug, Content, Tags, Headings, etc.) |
-| `.Collection` | `*Collection` | Collection this page belongs to (nil for standalone pages) |
-| `.Site` | `*SiteContext` | Site-wide context (Title, BaseURL, Config, Collections, etc.) |
-| `.Theme` | `*ThemeConfig` | Active theme (name, tokens, StyleTag) |
-| `.Layout` | `LayoutType` | Layout type (default, docs, splash, wide, full, centered, split, presentation) |
-| `.Template` | `string` | Resolved template name |
-
-### Navigation
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `.GlobalNav` | `*GlobalNav` | Top navigation items from `header.links` config |
-| `.Sidebar` | `*NavTree` | Docs sidebar navigation tree |
-| `.SidebarType` | `string` | Sidebar strategy (none, auto, manual) |
-| `.Breadcrumbs` | `[]BreadcrumbItem` | Breadcrumb trail items |
-| `.Pagination` | `*PaginationLinks` | Prev/next page links |
-| `.Paginator` | `*Paginator` | Numbered pagination for section list pages |
-| `.HasSidebar` | `bool` | Whether the layout includes a sidebar |
-| `.SidebarCollapsedByDefault` | `bool` | Whether sidebar sections start collapsed |
-| `.Section` | `*Section` | Current section (for `_index.md` pages) |
-| `.IsSection` | `bool` | Whether the current page is a section index |
-
-### i18n
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `.Lang` | `string` | Current rendering language code |
-| `.Dir` | `string` | Text direction (`ltr` or `rtl`) |
-| `.Translations` | `[]TranslationLink` | Same-page translations |
-| `.AllTranslations` | `[]TranslationLink` | All available language links (feeds LanguageSwitcher) |
-
-### Versioning
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `.Version` | `string` | Current version ID |
-| `.VersionLabel` | `string` | Current version display label |
-| `.Versions` | `[]VersionLink` | All version links (feeds VersionSwitcher) |
-| `.IsLatest` | `bool` | Whether the current version is the latest |
-| `.VersionBanner` | `string` | Version notice type: `""`, `"unmaintained"`, or `"unreleased"` |
-
-### Tabs and assets
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `.IsTabbed` | `bool` | Whether the collection uses tabs |
-| `.DocsTabs` | `[]*DocsTab` | Tab definitions (Title, Slug, Icon, Permalink) |
-| `.ActiveTab` | `*DocsTab` | Currently active tab |
-| `.Scripts` | `[]string` | Deferred external script URLs |
-| `.Styles` | `[]string` | External stylesheet URLs |
-| `.InlineScripts` | `[]template.JS` | Raw inline script content |
-| `.ModuleScripts` | `[]string` | ES module script URLs |
-
-### Extras
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `.Homepage` | `*HomepageData` | Homepage template data (hero, catalog, etc.) |
-| `.Taxonomy` | `*Taxonomy` | Current taxonomy (on taxonomy list pages) |
-| `.TaxonomyTerm` | `*TaxonomyTerm` | Current term (on term pages) |
-| `.TermEntries` | `[]*TermEntry` | Term page entries |
-| `.PageBanner` | `*PageBanner` | Frontmatter-driven page banner (Content, Variant, Icon) |
-
-:::note
-These are Go embedded structs, but `html/template` promotes embedded fields automatically. Always use the flat name (`.GlobalNav`, `.Version`), not the struct prefix (`.RouteNav.GlobalNav`).
-:::
+Every component receives the current route data as `.`, the same value page templates get. The `Key data` column below names the fields each component reads; every field is documented in [Route Data](/reference/route-data/).
 
 ## Component reference
 
