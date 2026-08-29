@@ -9,17 +9,32 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ## Unreleased
 
+## 1.4.0 - 2026-08-28
+
 ### Added
 
-- **Selective `sarde theme eject`.** Pass paths to copy only those files or directories (`sarde theme eject layouts/_blog/single.html css/blog.css`); everything else keeps falling back to the embedded theme. `--name <slug>` writes into `themes/<slug>/` and sets the theme's `slug`, and `--list` prints every ejectable path. `theme.yaml` is copied whenever the destination has none.
+- **`sarde plugins` command** prints the plugin catalog: every plugin accepted in `plugins.enabled`, covering built-in server and client plugins plus external plugins found under the project's `plugins/` directory, with descriptions, default state, and configurable fields. `--format json` emits the catalog for tooling. Metadata only: `plugins.disabled` and premium license checks are not applied, since builds enforce both.
+- **Selective `sarde theme eject`** accepts paths to copy only those files or directories (`sarde theme eject layouts/_blog/single.html css/blog.css`); everything else keeps falling back to the embedded theme, including fixes in later releases. `--name <slug>` writes into `themes/<slug>/` and sets the theme's `slug`, and `--list` prints every ejectable path. `theme.yaml` is copied whenever the destination has none.
+- **JSON error envelope** for `build`, `dev`, and `validate` with `--format json`: a fatal error is emitted to stdout as a single JSON document carrying a `kind`, a `message`, and per-field `details` for configuration validation failures, including the allowed values for enumeration checks. Human-readable error text still goes to stderr in both formats.
+- **Ambiguous link detection** reports a bare `name.md` link, which never resolves by design, as an `ambiguous_link` finding with fix advice instead of a generic broken target.
+- **Link source positions** are now included in link validation findings: the 1-based line and column of the link in its source file, in both the pretty and JSON reports.
+- **Typed plugin field blueprints** publish plugin configuration fields with their type, label, hint, default, numeric range, and select options, so catalogs and settings interfaces can render them without re-parsing the YAML.
 
 ### Changed
 
-- **Theme stylesheets fall back per file.** Each of the 24 stylesheets in a theme's `css/` directory is read from the theme when present and from the embedded theme otherwise. A partial `css/` directory no longer drops the missing stylesheets.
+- **Theme stylesheets fall back per file** instead of all-or-nothing. Each of the 24 stylesheets Sarde looks for is read from the theme's `css/` directory when present and from the embedded theme otherwise. A partial `css/` directory no longer drops the stylesheets it omits, so a theme can ship only the ones it changes.
+- Server plugin defaults moved to per-plugin blueprint files, so `sarde plugins` and the build resolve the same field list.
+- Page cache schema version bumped to carry link positions. The first build after upgrading re-renders every page.
 
 ### Fixed
 
-- **`sarde theme eject` now places every template directory under `layouts/`.** The `_taxonomy`, `_labs`, `_presentation`, `_slides`, and `shortcodes` directories were written at the theme root, where the template and shortcode lookups never read them, so the ejected copies had no effect. Eject also no longer leaves empty `_default/`, `_docs/`, `_blog/`, `components/`, and `partials/` directories at the theme root.
+- **`sarde theme eject` now places every template directory under `layouts/`**: the `_taxonomy`, `_labs`, `_presentation`, `_slides`, and `shortcodes` directories were written at the theme root, where the template and shortcode lookups never read them, so the ejected copies had no effect. Eject also no longer leaves empty `_default/`, `_docs/`, `_blog/`, `components/`, and `partials/` directories at the theme root.
+- **Install script authenticates GitHub API calls**, so installs no longer fail against the unauthenticated rate limit.
+
+### Docs
+
+- Added a Customization section covering layouts and templates, using themes, creating a preset, and creating a theme, including the blog-layout template lookup chain and template naming conventions.
+- Completed the theme token reference: the text-safe hue variants, the aside code mix ratios, inline code text, and the `accent-text` derivation were previously undocumented.
 
 ## 1.3.0 - 2026-08-06
 

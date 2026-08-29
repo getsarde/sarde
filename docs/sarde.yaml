@@ -55,9 +55,7 @@ plugins:
   - keyboard_nav
   - reading_progress
   - telescope
-  - scroll_to_top
   - focus_mode
-  - reading_progress
   config:
     social_cards:
       bg_color: '#111827'
@@ -75,15 +73,8 @@ plugins:
     reading_progress:
       bar_height: 3.5
       bar_color: '#9122f9'
-    scroll_to_top:
-      showTooltip: false
-      progressRingColor: '#17f207'
-      showProgressRing: true
     focus_mode:
       button_position: bottom-left
-    reading_progress:
-      bar_color: '#caf202'
-      use_gradient: false
 homepage:
   hero:
     title: Sarde Documentation
