@@ -53,7 +53,7 @@ Custom template overrides. Sarde ships a complete embedded theme, so this direct
 3. Theme layouts (if using an external theme)
 4. Embedded default layouts
 
-See [Layouts & Templates](/guides/layouts-and-templates) for details on template resolution and available layout types.
+See [Layouts & Templates](/customization/layouts-and-templates) for details on template resolution and available layout types.
 
 ### `assets/`
 

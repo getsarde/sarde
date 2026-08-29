@@ -38,6 +38,9 @@ func writePrettyReport(sb *strings.Builder, findings []Finding, cov CoverageSumm
 			if dimStr != "" {
 				line += "  " + devlog.Dim(dimStr)
 			}
+			if hint := d.finding.Type.Hint(); hint != "" {
+				line += "  " + devlog.Dim("("+hint+")")
+			}
 
 			sb.WriteString(line)
 			sb.WriteByte('\n')

@@ -100,6 +100,15 @@ func TestCheckHref_BrokenRelative(t *testing.T) {
 	}
 }
 
+func TestCheckHref_BareMarkdownIsAmbiguous(t *testing.T) {
+	source, _, idx, resolver, ctx := checkFixture(t)
+
+	result := CheckHref("missing.md", source, ctx, idx, resolver, "")
+	if result.Status != links.StatusAmbiguous {
+		t.Errorf("bare name.md should be StatusAmbiguous, got %v", result.Status)
+	}
+}
+
 func TestCheckHref_FragmentTracked(t *testing.T) {
 	source, _, idx, resolver, ctx := checkFixture(t)
 

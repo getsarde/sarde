@@ -46,6 +46,9 @@ func CheckHref(href string, page *engine.Page, ctx ResolveContext,
 		if dest.Kind == LinkContentRoot && !hasMarkdownExtension(dest.Raw) {
 			return checkSiteAbsolute(dest.Raw, page, resolver, idx)
 		}
+		if dest.Kind == LinkAmbiguous {
+			return CheckResult{Status: links.StatusAmbiguous}
+		}
 		return CheckResult{Status: links.StatusBrokenTarget}
 	}
 

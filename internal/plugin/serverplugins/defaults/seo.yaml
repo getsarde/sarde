@@ -1,0 +1,29 @@
+fields:
+  twitter_handle:
+    type: text
+    label: "Twitter Handle"
+    hint: "Site account for twitter:site, with or without @"
+    default: ""
+  twitter_card:
+    type: select
+    label: "Twitter Card Type"
+    hint: "Card layout used when a page is shared"
+    default: summary_large_image
+    options:
+      - { value: summary, label: "Summary" }
+      - { value: summary_large_image, label: "Summary with large image" }
+  default_image:
+    type: text
+    label: "Default Image"
+    hint: "Fallback og:image path when a page sets none"
+    default: ""
+  json_ld:
+    type: toggle
+    label: "JSON-LD Structured Data"
+    hint: "Emit schema.org JSON-LD for pages"
+    default: true
+  auto_description:
+    type: toggle
+    label: "Auto Description"
+    hint: "Derive a meta description from content when frontmatter has none"
+    default: true

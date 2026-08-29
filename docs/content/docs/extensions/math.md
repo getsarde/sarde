@@ -15,6 +15,8 @@ Wrap an expression in single `$` delimiters to render it inline with the surroun
 The quadratic formula is $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$ where $a \neq 0$.
 ```
 
+The quadratic formula is $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$ where $a \neq 0$.
+
 → The formula renders inline as typeset math, matching the line height of the surrounding paragraph.
 
 ## Display math
@@ -26,6 +28,10 @@ $$
 E = mc^2
 $$
 ```
+
+$$
+E = mc^2
+$$
 
 → The equation appears centered on its own line in a larger font.
 

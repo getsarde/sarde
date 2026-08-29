@@ -80,6 +80,19 @@ token = response.json()["token"]
 :::
 ````
 
+:::details[Implementation notes]
+The authentication flow uses three steps:
+
+1. Client sends credentials to `/auth/login`
+2. Server validates and returns a JWT
+3. Client includes the token in subsequent requests
+
+```python
+response = requests.post("/auth/login", json={"user": "admin", "pass": "secret"})
+token = response.json()["token"]
+```
+:::
+
 → The collapsed section contains formatted text, a numbered list, and a syntax-highlighted code block.
 
 ## Using with accordion

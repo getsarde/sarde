@@ -37,6 +37,13 @@ link_validation:
 | `on_relative_links` | string | `"warn"` | Policy for relative links (`./` or `../`). |
 | `on_local_links` | string | `"warn"` | Policy for `localhost` / `127.0.0.1` URLs. |
 | `on_unverified_internal` | string | `"warn"` | Policy for extension-less internal links that did not resolve in the current lane. |
+
+A bare `name.md` destination (no `./`, `../` or content-root path) is never
+resolved — Sarde refuses to guess whether it means a sibling page or a
+content-root file — and is reported as `ambiguous_link` under the `on_broken`
+policy, with the fix in the finding's `hint`: write `./name.md` for a sibling
+or `docs/name.md` from the content root. Every finding carries the 1-based
+`line`/`col` of the link in the source file.
 | `check_anchors` | bool | `true` | Verify that `#fragment` targets exist as heading IDs on the target page. |
 | `check_images` | bool | `true` | Validate image `src` paths. |
 | `same_site_policy` | string | `"ignore"` | Policy for links to the site's own absolute URL. |

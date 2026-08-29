@@ -158,6 +158,15 @@ The setup script handles dependency installation automatically.
 ::::
 ````
 
+## Options
+
+| Option | Syntax | Default | Description |
+|--------|--------|---------|-------------|
+| Type | `:::note`, `:::tip`, `:::info`, `:::warning`, `:::caution`, `:::important`, `:::danger` (or a `gh-` prefixed variant) | — | Selects the color, icon, and default title. Set as the directive name. |
+| Title | `:::note[Custom title]` | The type's default title | Overrides the label shown in the aside header. |
+| `icon` | `icon=name` or `icon="name"` | The type's default icon | Lucide icon name displayed in the header. Wins over the type's default icon in both visual styles. |
+| `markdown.asides.style` (site-wide, `sarde.yaml`) | `style: galaxy` or `style: classic` | `classic` | Selects the visual style applied to every aside on the site. Does not affect GitHub-style variants. |
+
 ## Edge cases
 
 - An unrecognized type name (e.g., `:::custom`) is silently ignored. The content renders as a plain paragraph.

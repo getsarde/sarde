@@ -13,6 +13,7 @@ import (
 
 const (
 	errInvalidLink  = "invalid link"
+	errAmbiguous    = "ambiguous link (" + links.AmbiguousHint + ")"
 	errInvalidHash  = "invalid hash"
 	errLocalLink    = "local link"
 	errSameSite     = "same site"
@@ -152,6 +153,10 @@ func validateLink(ctx *BuildDoneContext, page *engine.Page,
 
 	case links.StatusExternal:
 		return false
+
+	case links.StatusAmbiguous:
+		addLinkWarning(ctx, page.FilePath, href, errAmbiguous)
+		return true
 
 	default:
 		addLinkWarning(ctx, page.FilePath, href, errInvalidLink)

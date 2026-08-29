@@ -16,13 +16,15 @@ import (
 	"github.com/getsarde/sarde/internal/i18n"
 	"github.com/getsarde/sarde/internal/plugin"
 	"github.com/getsarde/sarde/internal/plugin/cfgutil"
+	"github.com/getsarde/sarde/internal/plugin/serverplugins"
 )
 
 //go:embed all:assets
 var assetsFS embed.FS
 
-//go:embed defaults.yaml
-var defaultsData []byte
+// defaultsData is the field blueprint, owned by serverplugins/defaults/telescope.yaml
+// so `sarde plugins` and the build resolve the same list.
+var defaultsData = serverplugins.RawFields("telescope")
 
 const (
 	pluginPrefix  = "assets/plugins/telescope/"

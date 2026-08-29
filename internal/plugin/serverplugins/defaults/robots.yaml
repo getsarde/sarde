@@ -1,0 +1,6 @@
+fields:
+  sitemap:
+    type: toggle
+    label: "Reference Sitemap"
+    hint: "Add a Sitemap line pointing at sitemap.xml"
+    default: true

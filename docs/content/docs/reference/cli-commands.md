@@ -38,7 +38,7 @@ sarde build [flags] [project-dir]
 | `--base-path` | string | `""` | Override the URL base path (for subdirectory hosting). |
 | `--content` | string | `""` | Override the content directory path. |
 | `--strict-i18n` | bool | `false` | Warn on missing translation keys per language. |
-| `--format` | string | `pretty` | Output format: `pretty` or `json`. With `json`, the build result (page counts, duration, per-phase timings, warnings) is printed to stdout as a single JSON object and the human-readable summary is suppressed. Failures are also machine-readable — see [JSON error envelope](#json-error-envelope). |
+| `--format` | string | `pretty` | Output format: `pretty` or `json`. With `json`, the build result (page counts, duration, per-phase timings, warnings) is printed to stdout as a single JSON object and the human-readable summary is suppressed. Failures are also machine-readable. See [JSON error envelope](#json-error-envelope). |
 
 ```
 sarde build
@@ -120,6 +120,7 @@ sarde check-links [flags] [project-dir]
 ```
 sarde check-links
 sarde check-links --external --report github-actions
+sarde check-links --report json   # findings on stderr; a *failure* is an {"error": {kind, message}} envelope on stdout
 ```
 
 Aliased as `sarde check` for backward compatibility.
@@ -350,16 +351,26 @@ Manage themes.
 
 ### `theme eject`
 
-Copy the embedded default theme to `themes/default/` for customization.
+Copy files from the embedded default theme into `themes/<name>/` for customization. With no paths, the whole theme is copied. With paths, only those files or directories are copied; everything else keeps falling back to the embedded theme.
 
 ```
 sarde theme eject
-sarde theme eject --force
+sarde theme eject layouts/_blog/single.html
+sarde theme eject layouts/components css/blog.css
+sarde theme eject --name magazine layouts/_blog
+sarde theme eject --list
+sarde theme eject --force layouts/_blog/single.html
 ```
+
+Paths use the ejected layout: template directories (`_default`, `_docs`, `_blog`, `_slides`, `_presentation`, `_labs`, `_taxonomy`, `components`, `partials`, `shortcodes`) live under `layouts/`; `css/`, `assets/`, and `theme.yaml` sit at the theme root. The embedded form (`_blog/single.html`) is accepted as well.
+
+`assets` can only be ejected as a whole directory, because a theme `assets/` directory replaces the embedded fonts, vendor scripts, and JS entirely. `theme.yaml` is copied whenever the destination has none, so the bundled presets stay selectable; with `--name`, its `slug` is set to the name.
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--force` | bool | `false` | Overwrite an existing `themes/default/` directory. |
+| `--name` | string | `default` | Destination directory under `themes/`. |
+| `--force` | bool | `false` | Overwrite the requested files. Without paths, overwrite the whole `themes/<name>/` directory. |
+| `--list` | bool | `false` | Print every ejectable path and exit. |
 
 ### `theme list`
 

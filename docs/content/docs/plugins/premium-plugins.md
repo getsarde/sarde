@@ -80,7 +80,7 @@ quiz-widgets         jane@school.edu                2026-06-30   license expired
 
 `sarde plugin info <slug>` shows the exact verification problem for a premium plugin, plus its purchase URL.
 
-## What's in a license file
+## What a license file contains
 
 A license is a JSON file:
 

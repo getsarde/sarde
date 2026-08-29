@@ -1,0 +1,21 @@
+# `items` (the announcement list) is an array of objects and is deliberately
+# not declared: it is authored in sarde.yaml directly.
+fields:
+  display_mode:
+    type: select
+    label: "Display Mode"
+    default: stack
+    options:
+      - { value: stack, label: "Stack" }
+      - { value: first, label: "First only" }
+      - { value: rotate, label: "Rotate" }
+  rotate_interval:
+    type: number
+    label: "Rotate Interval (ms)"
+    default: 5000
+    min: 500
+    max: 60000
+  show_rotate_indicator:
+    type: toggle
+    label: "Show Rotate Indicator"
+    default: true

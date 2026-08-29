@@ -49,6 +49,20 @@ Three
 :::
 ````
 
+:::columns(cols="3")
+:::column
+One
+:::
+:::column
+Two
+:::
+:::column
+Three
+:::
+:::
+
+→ Three columns of equal width appear side by side.
+
 ## Rich content
 
 Each `:::column` accepts any Markdown, including headings, lists, code blocks, and other block extensions.
@@ -69,6 +83,23 @@ Each `:::column` accepts any Markdown, including headings, lists, code blocks, a
 :::
 :::
 ````
+
+:::columns
+:::column
+## Option A
+
+- Fast setup
+- Fewer dependencies
+:::
+:::column
+## Option B
+
+- More flexible
+- Steeper learning curve
+:::
+:::
+
+→ Each column renders its Markdown content independently, including the heading and list inside it.
 
 ## Options
 

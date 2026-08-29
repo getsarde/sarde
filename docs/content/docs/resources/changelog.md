@@ -9,6 +9,18 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ## Unreleased
 
+### Added
+
+- **Selective `sarde theme eject`.** Pass paths to copy only those files or directories (`sarde theme eject layouts/_blog/single.html css/blog.css`); everything else keeps falling back to the embedded theme. `--name <slug>` writes into `themes/<slug>/` and sets the theme's `slug`, and `--list` prints every ejectable path. `theme.yaml` is copied whenever the destination has none.
+
+### Changed
+
+- **Theme stylesheets fall back per file.** Each of the 24 stylesheets in a theme's `css/` directory is read from the theme when present and from the embedded theme otherwise. A partial `css/` directory no longer drops the missing stylesheets.
+
+### Fixed
+
+- **`sarde theme eject` now places every template directory under `layouts/`.** The `_taxonomy`, `_labs`, `_presentation`, `_slides`, and `shortcodes` directories were written at the theme root, where the template and shortcode lookups never read them, so the ejected copies had no effect. Eject also no longer leaves empty `_default/`, `_docs/`, `_blog/`, `components/`, and `partials/` directories at the theme root.
+
 ## 1.3.0 - 2026-08-06
 
 ### Added

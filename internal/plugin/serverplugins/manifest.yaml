@@ -1,0 +1,87 @@
+# Built-in server-side plugins (Go implementations). Field specs for each
+# live in defaults/<name>.yaml using the same blueprint shape as
+# clientplugins/defaults. Consumed by `sarde plugins --format json`.
+#
+# group: content | quality | rendering
+# config_key: top-level sarde.yaml key when the plugin is configured outside
+#             plugins.config (those plugins declare no fields here).
+plugins:
+  sitemap:
+    label: "Sitemap"
+    description: "Generate sitemap.xml"
+    group: content
+    default_enabled: true
+  robots:
+    label: "Robots.txt"
+    description: "Generate robots.txt with sitemap reference"
+    group: content
+    default_enabled: true
+  rss:
+    label: "RSS Feed"
+    description: "Generate RSS feed per collection"
+    group: content
+    default_enabled: true
+  atom:
+    label: "Atom Feed"
+    description: "Generate Atom feed per collection"
+    group: content
+    default_enabled: true
+  seo:
+    label: "SEO"
+    description: "Open Graph, Twitter cards, and JSON-LD structured data"
+    group: content
+    default_enabled: true
+  search:
+    label: "Search Index"
+    description: "Build offline search index (Orama)"
+    group: content
+    default_enabled: true
+  redirects:
+    label: "Redirects"
+    description: "Generate redirect pages from aliases and config"
+    group: content
+    default_enabled: true
+    config_key: redirects
+  link_validator:
+    label: "Link Validator"
+    description: "Check for broken links during incremental builds"
+    group: quality
+    default_enabled: true
+    config_key: link_validation
+  content_lint:
+    label: "Content Lint"
+    description: "Lint content for heading structure, alt text, and more"
+    group: quality
+    default_enabled: true
+    config_key: content_lint
+  llms_txt:
+    label: "llms.txt"
+    description: "Generate llms.txt for AI-readable site content"
+    group: quality
+    default_enabled: true
+    config_key: llms_txt
+  katex:
+    label: "KaTeX"
+    description: "Render math expressions with KaTeX"
+    group: rendering
+    default_enabled: true
+  mermaid:
+    label: "Mermaid"
+    description: "Render diagrams with Mermaid"
+    group: rendering
+    default_enabled: true
+  social_cards:
+    label: "Social Cards"
+    description: "Auto-generate Open Graph images"
+    group: rendering
+    default_enabled: true
+  announcements:
+    label: "Announcements"
+    description: "Display announcement banners with scheduling"
+    group: rendering
+    default_enabled: false
+  telescope:
+    label: "Telescope"
+    description: "Command palette for fuzzy page search and quick navigation"
+    group: rendering
+    default_enabled: false

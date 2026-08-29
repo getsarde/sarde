@@ -47,6 +47,12 @@ Write a standard Markdown ordered list inside `:::steps`. CSS handles the number
 :::
 ````
 
+:::steps
+1. Clone the repository from GitHub.
+2. Install the required dependencies with `npm install`.
+3. Run `sarde dev` to start the local development server.
+:::
+
 → The ordered list renders as styled steps with numbering and a connecting line.
 
 The extension auto-detects which mode to use. If the block contains `##` or `###` headings, it uses heading mode. If no headings are found, the block renders its content directly (ordered-list mode relies on CSS for step styling).

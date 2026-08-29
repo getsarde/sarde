@@ -57,6 +57,8 @@ When `use_gradient` is `true`, the bar displays a three-stop gradient derived fr
 
 This plugin activates on content pages (`is_content_page`). Home pages, section listing pages, and taxonomy pages do not receive the plugin config.
 
+The `lesson_pages_only` option controls this gate directly; it is not a second, independent filter. Set it to `false` to inject the progress bar and reading time badge on every page, including home, listing, and taxonomy pages.
+
 ## Edge cases
 
 - On pages shorter than the viewport, the progress bar stays at 0% width.

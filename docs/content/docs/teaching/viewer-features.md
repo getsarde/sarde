@@ -98,6 +98,7 @@ Press `?` to show the full keyboard shortcuts modal.
 | `Page Up/Down` | Previous / Next slide |
 | `Home` / `End` | First / Last slide |
 | `G` | Go to slide number |
+| `O` | Show slide overview |
 | `/` | Open search |
 | `F` | Toggle fullscreen |
 | `L` | Toggle laser pointer |
@@ -105,6 +106,7 @@ Press `?` to show the full keyboard shortcuts modal.
 | `B` | Toggle bookmark on current slide |
 | `Shift+B` | Toggle bookmark panel |
 | `T` | Cycle theme |
+| `+` / `-` | Increase / Decrease slide text size |
 | `?` | Show keyboard shortcuts |
 | `Escape` | Close viewer / Close open modal |
 

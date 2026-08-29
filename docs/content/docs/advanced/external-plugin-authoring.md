@@ -168,7 +168,7 @@ plugins/<slug>/
     callout.css        # optional
 ```
 
-No manifest change is needed; the folder's presence is enough. Plugin directives load before theme and site ones, so the host site (or its theme) can override any directive a plugin ships just by defining the same name. Built-in directive names always win and produce a warning. CSS sidecars are bundled into the site stylesheet like site-level ones.
+No manifest change is needed; the folder's presence is enough. Plugin directives load before theme and site ones, so the host site (or its theme) can override any directive a plugin ships by defining the same name. Built-in directive names always win and produce a warning. CSS sidecars are bundled into the site stylesheet like site-level ones.
 
 When two installed plugins ship the same directive name, the alphabetically last slug wins and the build warns:
 
@@ -184,7 +184,7 @@ Develop a plugin directly inside a test site: create `plugins/<slug>/` by hand a
 
 To distribute, zip the plugin directory (a wrapping top-level folder inside the zip is fine) or push it to a GitHub repository. Consumers install it with the commands described in [External Plugins](/plugins/external-plugins/#installing-a-plugin).
 
-## What external plugins can't do
+## What external plugins cannot do
 
 The manifest model is deliberately limited to presentation. An external plugin cannot:
 

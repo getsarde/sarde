@@ -1,0 +1,115 @@
+fields:
+  skip_if_image:
+    type: toggle
+    label: "Skip if page has an image"
+    hint: "Do not generate a card when frontmatter already sets seo.og_image"
+    default: true
+  collections:
+    type: list
+    label: "Collections"
+    hint: "Only generate cards for these collections (empty means all)"
+    default: []
+  format:
+    type: select
+    label: "Image Format"
+    default: png
+    options:
+      - { value: png, label: "PNG" }
+      - { value: jpeg, label: "JPEG" }
+  quality:
+    type: number
+    label: "JPEG Quality"
+    default: 90
+    min: 1
+    max: 100
+  cache:
+    type: toggle
+    label: "Cache Cards"
+    hint: "Reuse rendered cards between builds"
+    default: true
+  text_color:
+    type: color
+    label: "Text Color"
+    default: "#ffffff"
+  bg_color:
+    type: color
+    label: "Background Color"
+    hint: "Leave empty to derive from the theme accent"
+    default: ""
+  accent_color:
+    type: color
+    label: "Accent Color"
+    hint: "Leave empty to derive from the theme accent"
+    default: ""
+  accent_color_2:
+    type: color
+    label: "Second Accent Color"
+    hint: "Optional second gradient stop"
+    default: ""
+  bg_gradient:
+    type: list
+    label: "Background Gradient"
+    hint: "Hex colors, first to last stop"
+    default: []
+  bg_image:
+    type: text
+    label: "Background Image"
+    hint: "Project-relative image path"
+    default: ""
+  bg_image_fit:
+    type: select
+    label: "Background Fit"
+    default: cover
+    options:
+      - { value: cover, label: "Cover" }
+      - { value: contain, label: "Contain" }
+  bg_image_opacity:
+    type: number
+    label: "Background Opacity"
+    default: 1
+    min: 0
+    max: 1
+  logo:
+    type: select
+    label: "Logo"
+    hint: "Site logo by default; the Sarde mark, or none"
+    default: ""
+    options:
+      - { value: "", label: "Site logo" }
+      - { value: sarde, label: "Sarde mark" }
+      - { value: none, label: "None" }
+  logo_size:
+    type: number
+    label: "Logo Size (px)"
+    default: 64
+    min: 16
+    max: 400
+  watermark:
+    type: toggle
+    label: "Watermark"
+    hint: "Draw the logo as a faint watermark"
+    default: false
+  watermark_image:
+    type: text
+    label: "Watermark Image"
+    hint: "Project-relative image overriding the logo watermark"
+    default: ""
+  watermark_opacity:
+    type: number
+    label: "Watermark Opacity"
+    default: 0.07
+    min: 0
+    max: 1
+  fonts:
+    type: object
+    label: "Fonts"
+    hint: "Paths to TTF/OTF files"
+    fields:
+      regular:
+        type: text
+        label: "Regular"
+        default: ""
+      bold:
+        type: text
+        label: "Bold"
+        default: ""

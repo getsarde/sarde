@@ -17,6 +17,8 @@ type PendingAnchorCheck struct {
 	Dim             DimKey
 	Kind            LinkKind
 	Resolved        string
+	// Line/Col of the link in SourceFile (1-based); 0 when unknown.
+	Line, Col int
 }
 
 // AnchorLookup is the interface ValidateAnchors needs from PageIndex.
@@ -50,6 +52,8 @@ func ValidateAnchors(
 			TargetPage: check.TargetPage,
 			Fragment:   check.Fragment,
 			Status:     status,
+			Line:       check.Line,
+			Col:        check.Col,
 		})
 	}
 	return broken

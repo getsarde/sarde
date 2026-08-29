@@ -177,7 +177,7 @@ plugins:
 
 This is the same mechanism the [SlideViewer](/plugins/slideviewer) plugin (itself distributed as an external plugin) uses for its `always` option.
 
-## What external plugins can't do
+## What external plugins cannot do
 
 External plugins handle presentation: assets, templates, and configuration. They cannot:
 

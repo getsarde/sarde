@@ -2,7 +2,7 @@
 title: Layouts and Templates
 description: "Understand page layout types, template lookup order, components, and partials"
 sidebar:
-  order: 15
+  order: 1
 ---
 
 Layouts control the page chrome: whether a sidebar, table of contents, or full-width content area appears. Set the layout per page in frontmatter or per collection in `sarde.yaml`. Templates render the HTML for each layout using Go's `html/template` engine.
@@ -20,7 +20,7 @@ Sarde ships eight layout types. Each determines which structural elements appear
 | `full` | no | no | Full width | Custom pages, dashboards |
 | `centered` | no | no | Narrow | About pages, legal pages |
 | `split` | no | no | Two equal columns | Comparison pages |
-| `presentation` | no | no | Full width | Presentation-style pages |
+| `presentation` | no | no | Full width | Full-screen slide decks. See [Presentation Layout](/teaching/presentation-layout/) |
 
 Set the layout in frontmatter:
 
@@ -66,7 +66,22 @@ Docs-layout pages insert `_docs/` layers between the collection and default laye
 7. Embedded `_docs/single.html`
 8. Embedded `_default/single.html`
 
-Blog-layout pages follow the same pattern with `_blog/` layers.
+### Blog-layout pages (8 layers)
+
+Blog-layout pages follow the same pattern, inserting `_blog/` type layers:
+
+1. `layouts/<collection>/single.html` (user, collection-specific)
+2. `themes/<theme>/layouts/<collection>/single.html` (theme, collection-specific)
+3. `layouts/_blog/single.html` (user, blog-type)
+4. `themes/<theme>/layouts/_blog/single.html` (theme, blog-type)
+5. `layouts/_default/single.html` (user, default)
+6. `themes/<theme>/layouts/_default/single.html` (theme, default)
+7. Embedded `_blog/single.html`
+8. Embedded `_default/single.html`
+
+The `_blog/` type directory activates for any collection named `blog`, `posts`, `articles`, or `news`. Collection-name directories (e.g. `layouts/posts/`) target only that specific collection.
+
+See [Blog and Taxonomies](/guides/blog-and-taxonomies/) for the shipped blog template variants.
 
 ## Partials
 
@@ -96,33 +111,51 @@ Override a component by placing a file at `layouts/components/<Name>.html`. See 
 
 ## Custom templates
 
-Create a custom template by placing a file in `layouts/`. For example, to create a custom single-page template for a `workshops` collection:
-
-`layouts/workshops/single.html`
+Create a custom template by placing a file in `layouts/` that defines the `"content"` block. For example, a magazine-style blog post variant at `layouts/_blog/single-magazine.html`:
 
 ```go
 {{ define "content" }}
-<article class="workshop">
-  <h1>{{ .Page.Title }}</h1>
-  <div class="workshop-meta">
-    Duration: {{ .Page.Params.duration }}
+<article class="blog-magazine">
+  <header class="magazine-header">
+    {{ if .Page.Image }}
+      <img src="{{ .Page.Image }}" alt="{{ .Page.Title }}">
+    {{ end }}
+    <h1>{{ .Page.Title }}</h1>
+    <p class="magazine-subtitle">{{ .Page.Description }}</p>
+  </header>
+  <div class="magazine-body">
+    {{ .Page.Content }}
   </div>
-  {{ .Page.Content }}
 </article>
 {{ end }}
 ```
 
+→ A magazine-style layout with a large header image, title, and subtitle above the post body.
+
 Templates receive a `RouteData` object as their context (`.`), which includes `.Page`, `.Site`, `.Sidebar`, `.Breadcrumbs`, `.Translations`, and other layout data.
 
-Assign a custom template to a page in frontmatter:
+Assign the template to a post in frontmatter. The `template` field is a path relative to the layouts directory, without `.html`:
 
 ```yaml
 ---
-title: Advanced Workshop
-template: "workshops/featured"
+title: "Introduction to Photosynthesis"
+template: blog/single-magazine
 ---
 ```
 
-The `template` field accepts a path relative to the layouts directory (without `.html`).
+Placing the file in `_blog/` makes it available to all blog-type collections (`blog`, `posts`, `articles`, `news`). To target only a collection named `posts`, place it in `layouts/posts/single-magazine.html` instead.
+
+## Template naming conventions
+
+Template variant files use a hyphenated suffix: `{kind}-{variant}.html`.
+
+| Pattern | Example | Meaning |
+|---------|---------|---------|
+| `single.html` | `_blog/single.html` | Default single-page template for the type |
+| `single-{variant}.html` | `_blog/single-cover.html` | Named variant of the single-page template |
+| `list.html` | `_blog/list.html` | Default list template for the type |
+| `list-{variant}.html` | `_blog/list-grid.html` | Named variant of the list template |
+
+Underscore-prefixed directories (`_blog/`, `_docs/`, `_default/`) are shared type directories; non-prefixed directories (`blog/`, `posts/`) are collection-specific and take priority. The `template` frontmatter field omits the `.html` extension; the engine appends it during resolution.
 
 See [Template Functions](/reference/template-functions) for all available functions, and [UI Components](/reference/ui-components) for the component registry.

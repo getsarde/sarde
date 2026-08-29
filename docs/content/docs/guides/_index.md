@@ -52,7 +52,7 @@ Use these when changing the appearance or output behavior:
   dark mode, and CSS layer order.
 - [Branding](/guides/branding/) covers the site logo, light and dark variants,
   and the favicon.
-- [Layouts and Templates](/guides/layouts-and-templates/) explains layout
+- [Layouts and Templates](/customization/layouts-and-templates/) explains layout
   selection, template lookup, components, and partials.
 - [Images and Assets](/guides/images-and-assets/) covers responsive images,
   static files, bundled CSS, and bundled JavaScript.

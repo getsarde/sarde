@@ -528,3 +528,49 @@ func TestFindingTypeString(t *testing.T) {
 		}
 	}
 }
+
+func TestGenerateReport_AmbiguousLink(t *testing.T) {
+	graph := NewLinkGraph()
+	graph.Record(LinkRef{
+		FromFile: "content/docs/guide.md",
+		RawDest:  "beta.md",
+		Line:     6,
+		Col:      3,
+		Dim:      DimKey{Collection: "docs", Lang: "en"},
+		Status:   StatusAmbiguous,
+	})
+
+	result := GenerateReport(ReportInput{
+		Graph:    graph,
+		Coverage: CoverageSummary{TotalLinks: 1, TotalLanes: 1},
+		Config:   LinkCheckConfig{OnBroken: "warn", ReportFormat: "json"},
+	})
+	if result.HasErrors {
+		t.Error("warn policy must not flag errors")
+	}
+	if len(result.Findings) != 1 || result.Findings[0].Type != FindingAmbiguousLink || result.Findings[0].Policy != "warn" {
+		t.Fatalf("unexpected findings: %+v", result.Findings)
+	}
+	for _, want := range []string{`"type": "ambiguous_link"`, `"line": 6`, `"col": 3`, `"hint": "` + AmbiguousHint + `"`, `"broken_targets": 1`} {
+		if !strings.Contains(result.Output, want) {
+			t.Errorf("json report missing %s:\n%s", want, result.Output)
+		}
+	}
+
+	pretty := GenerateReport(ReportInput{
+		Graph:    graph,
+		Coverage: CoverageSummary{TotalLinks: 1, TotalLanes: 1},
+		Config:   LinkCheckConfig{OnBroken: "error", ReportFormat: "pretty"},
+	})
+	if !pretty.HasErrors {
+		t.Error("error policy (shared with broken targets) must flag errors")
+	}
+	if !strings.Contains(pretty.Output, "ambiguous link") || !strings.Contains(pretty.Output, AmbiguousHint) {
+		t.Errorf("pretty report lacks label/hint:\n%s", pretty.Output)
+	}
+
+	ignored := GenerateReport(ReportInput{Graph: graph, Config: LinkCheckConfig{OnBroken: "ignore"}})
+	if len(ignored.Findings) != 0 {
+		t.Errorf("on_broken: ignore must drop ambiguous links too")
+	}
+}

@@ -80,7 +80,7 @@ embedded/
 - Follow standard Go conventions (`gofmt`, `go vet`).
 - Keep functions focused. Prefer small, testable functions over large methods.
 - Add tests for new functionality. Bug fixes should include a regression test.
-- Update `my-docs/official/changelog.md` with an entry describing the change.
+- Update `my-docs/official/changelog.md` with an entry describing the change. This is the internal, per-change development log, distinct from the root `CHANGELOG.md` and the published [Changelog](/resources/changelog/) page, which are kept in sync with each other and are updated by maintainers when preparing a release.
 
 ### Commit messages
 

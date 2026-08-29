@@ -72,6 +72,8 @@ type CachedLinkRef struct {
 	TargetRelPermalink string           `json:"target_rel_permalink,omitempty"`
 	Fragment           string           `json:"fragment,omitempty"`
 	Status             links.LinkStatus `json:"status"`
+	Line               int              `json:"line,omitempty"`
+	Col                int              `json:"col,omitempty"`
 }
 
 // NewPageCache creates a PageCache with the default capacity.
@@ -163,7 +165,7 @@ func ContentHash(content string) string {
 // from before markdown.hard_wraps became configurable carry <br> for every
 // soft line break; entries from before markdown.asides.style became
 // configurable carry the classic aside icons regardless of style).
-const pageCacheSchemaVersion = "7"
+const pageCacheSchemaVersion = "8"
 
 // pageCacheKey builds the content-addressed key for a rendered page. Both the
 // parallel and serial render paths must use this single helper so the key

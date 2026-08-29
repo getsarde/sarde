@@ -1,0 +1,13 @@
+fields:
+  max_content_length:
+    type: number
+    label: "Max Content Length"
+    hint: "Characters of body text indexed per page"
+    default: 5000
+    min: 100
+    max: 100000
+  exclude:
+    type: list
+    label: "Excluded Paths"
+    hint: "Glob patterns matched against page URLs to leave out of the index"
+    default: []

@@ -36,6 +36,7 @@ var assetsFS embed.FS
 
 // ManifestEntry defines a single client-side plugin in the manifest.
 type ManifestEntry struct {
+	Label       string `yaml:"label"`
 	Description string `yaml:"description"`
 	InjectWhen  string `yaml:"inject_when"`
 	Assets      struct {
@@ -54,6 +55,7 @@ var (
 	manifest       Manifest
 	pluginDefaults map[string]map[string]any
 	pluginFields   map[string][]string
+	pluginSpecs    map[string][]cfgutil.Field
 )
 
 var initOnce sync.Once
@@ -178,6 +180,7 @@ func minifyJS(data []byte) []byte {
 func precomputeDefaults() {
 	pluginDefaults = make(map[string]map[string]any, len(manifest.Plugins))
 	pluginFields = make(map[string][]string, len(manifest.Plugins))
+	pluginSpecs = make(map[string][]cfgutil.Field, len(manifest.Plugins))
 	for slug := range manifest.Plugins {
 		data, err := fs.ReadFile(defaultsFS, "defaults/"+slug+".yaml")
 		if err != nil {
@@ -191,7 +194,26 @@ func precomputeDefaults() {
 		if fields, err := cfgutil.FieldNames(data); err == nil {
 			pluginFields[slug] = fields
 		}
+		if specs, err := cfgutil.ParseFields(data); err == nil {
+			pluginSpecs[slug] = specs
+		}
 	}
+}
+
+// Fields returns a plugin's typed config field specs (sorted by name), or nil
+// for a plugin the manifest does not know or that ships no defaults file.
+func Fields(slug string) []cfgutil.Field {
+	return pluginSpecs[slug]
+}
+
+// Label returns the manifest display name of a plugin, or "".
+func Label(slug string) string {
+	return manifest.Plugins[slug].Label
+}
+
+// Description returns the manifest description of a plugin, or "".
+func Description(slug string) string {
+	return manifest.Plugins[slug].Description
 }
 
 // RegisterAll registers a single "clientplugins" meta-plugin that injects the

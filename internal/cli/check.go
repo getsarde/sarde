@@ -14,6 +14,9 @@ var checkLinksCmd = &cobra.Command{
 	Short:   "Check links without building",
 	Long:    "Run link validation (internal and optionally external) without rendering templates or writing output.\n\nAliased as 'check' for backward compatibility.",
 	RunE:    runCheck,
+	// A check failure (bad config, missing project) is not a usage mistake —
+	// same reasoning as build/validate.
+	SilenceUsage: true,
 }
 
 func init() {
@@ -26,6 +29,18 @@ func init() {
 }
 
 func runCheck(cmd *cobra.Command, args []string) error {
+	report, _ := cmd.Flags().GetString("report")
+	// The findings report goes to stderr in every format; in json mode a
+	// *failure* (as opposed to findings) becomes an {"error": ...} envelope
+	// on stdout, like build/dev/validate.
+	err := runCheckWithReport(cmd, args, report)
+	if err != nil && report == "json" {
+		return emitJSONError("check_failed", err)
+	}
+	return err
+}
+
+func runCheckWithReport(cmd *cobra.Command, args []string, report string) error {
 	projectDir := projectDirFromArgs(args)
 
 	cfg, themeCfg, err := resolveAll(cmd, projectDir)
@@ -39,7 +54,6 @@ func runCheck(cmd *cobra.Command, args []string) error {
 
 	strict, _ := cmd.Flags().GetBool("strict")
 	external, _ := cmd.Flags().GetBool("external")
-	report, _ := cmd.Flags().GetString("report")
 
 	result, err := builder.Check(build.CheckOptions{
 		External:     external,

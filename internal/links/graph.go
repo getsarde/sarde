@@ -16,6 +16,7 @@ const (
 	StatusExternal                         // external URL, unchecked by internal resolver
 	StatusExternalBroken                   // external URL probed and returned non-2xx/3xx
 	StatusUnverified                       // internal page-like link that didn't resolve in-lane (cross-lane or typo)
+	StatusAmbiguous                        // bare `name.md` (no ./ or content-root prefix): never resolved by design
 )
 
 // DimKey identifies the content dimension a link was resolved in.
@@ -91,7 +92,7 @@ func (g *LinkGraph) BrokenRefs() []LinkRef {
 	defer g.mu.Unlock()
 	var broken []LinkRef
 	for _, ref := range g.refs {
-		if ref.Status == StatusBrokenTarget || ref.Status == StatusBrokenAnchor {
+		if ref.Status == StatusBrokenTarget || ref.Status == StatusBrokenAnchor || ref.Status == StatusAmbiguous {
 			broken = append(broken, ref)
 		}
 	}

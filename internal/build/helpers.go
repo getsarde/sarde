@@ -86,6 +86,8 @@ func toCachedRefs(recorded []links.LinkRef) []CachedLinkRef {
 			TargetRelPermalink: targetRel,
 			Fragment:           r.Fragment,
 			Status:             r.Status,
+			Line:               r.Line,
+			Col:                r.Col,
 		}
 	}
 	return out
@@ -119,6 +121,8 @@ func replayCachedRefs(cached []CachedLinkRef, page *engine.Page, idx *content.Pa
 			TargetPage: targetPage,
 			Fragment:   c.Fragment,
 			Status:     c.Status,
+			Line:       c.Line,
+			Col:        c.Col,
 		}
 	}
 	return out
@@ -173,6 +177,10 @@ func refStale(ref CachedLinkRef, page *engine.Page, idx *content.PageIndex, reso
 		})
 		// Now resolves, but the cached HTML still bakes href="#".
 		return result.Found
+
+	case links.StatusAmbiguous:
+		// Never resolves by design; the cached href="#" stays right.
+		return false
 
 	case links.StatusUnverified:
 		// Unverified refs arise from resolveSiteAbsolute, reached either

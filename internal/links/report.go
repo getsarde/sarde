@@ -19,6 +19,7 @@ const (
 	FindingSameSite
 	FindingExternalBroken
 	FindingUnverifiedInternal
+	FindingAmbiguousLink
 )
 
 func (ft FindingType) String() string {
@@ -37,9 +38,24 @@ func (ft FindingType) String() string {
 		return "external_broken"
 	case FindingUnverifiedInternal:
 		return "unverified_internal"
+	case FindingAmbiguousLink:
+		return "ambiguous_link"
 	default:
 		return "unknown"
 	}
+}
+
+// AmbiguousHint is the fix advice attached to ambiguous_link findings: a bare
+// `name.md` is never resolved (see linkrender.ClassifyDest); the author must
+// say whether it is relative to the page or to the content root.
+const AmbiguousHint = "write ./name.md for a sibling page or a content-root path like docs/name.md"
+
+// Hint returns fix advice for finding types that have one, else "".
+func (ft FindingType) Hint() string {
+	if ft == FindingAmbiguousLink {
+		return AmbiguousHint
+	}
+	return ""
 }
 
 func (ft FindingType) Label() string {
@@ -58,6 +74,8 @@ func (ft FindingType) Label() string {
 		return "external broken"
 	case FindingUnverifiedInternal:
 		return "unverified internal"
+	case FindingAmbiguousLink:
+		return "ambiguous link"
 	default:
 		return "unknown"
 	}
@@ -151,6 +169,16 @@ func classifyRefs(refs []LinkRef, cfg LinkCheckConfig, siteURL string) []Finding
 				Type: FindingBrokenTarget, Ref: ref, Policy: cfg.OnBroken,
 			})
 
+		case StatusAmbiguous:
+			// A broken link with a known fix: shares the broken-target policy
+			// rather than adding a config key.
+			if cfg.OnBroken == "ignore" {
+				continue
+			}
+			findings = append(findings, Finding{
+				Type: FindingAmbiguousLink, Ref: ref, Policy: cfg.OnBroken,
+			})
+
 		case StatusBrokenAnchor:
 			if cfg.OnBrokenAnchor == "ignore" {
 				continue
@@ -240,7 +268,7 @@ func buildSummaryLine(cov CoverageSummary, findings []Finding) string {
 	var brokenTargets, brokenAnchors, externalBroken, warnCount int
 	for _, f := range findings {
 		switch f.Type {
-		case FindingBrokenTarget:
+		case FindingBrokenTarget, FindingAmbiguousLink:
 			brokenTargets++
 		case FindingBrokenAnchor:
 			brokenAnchors++

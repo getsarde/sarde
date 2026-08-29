@@ -92,7 +92,7 @@ The `logo` option resolves in this order:
 3. Any other non-empty value: an image path under the project's `public/` directory, the same convention as `site.logo` (e.g. `logo: "/images/mark.png"`).
 4. Empty (the default): fall back to the site's own `site.logo`. The dark variant is preferred since cards have dark backgrounds by default, then the light variant.
 
-A missing or unreadable logo file never fails the build; the card simply renders without a logo.
+A missing or unreadable logo file never fails the build; the card renders without a logo.
 
 ### Supported image formats
 

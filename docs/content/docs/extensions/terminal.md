@@ -19,6 +19,14 @@ $ sarde dev
 :::
 ````
 
+:::terminal
+$ npm install sarde
+added 1 package in 1.2s
+
+$ sarde dev
+✓ Server running at http://localhost:4727
+:::
+
 → A dark terminal window appears with red/yellow/green dots in the header, a "Terminal" title, and styled command/output lines.
 
 <!-- SCREENSHOT: terminal-basic — a macOS-style terminal window with commands and output -->

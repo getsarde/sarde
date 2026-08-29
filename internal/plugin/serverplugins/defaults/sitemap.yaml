@@ -1,0 +1,24 @@
+fields:
+  changefreq:
+    type: select
+    label: "Change Frequency"
+    hint: "Hint to crawlers about how often pages change"
+    default: weekly
+    options:
+      - { value: always, label: "Always" }
+      - { value: hourly, label: "Hourly" }
+      - { value: daily, label: "Daily" }
+      - { value: weekly, label: "Weekly" }
+      - { value: monthly, label: "Monthly" }
+      - { value: yearly, label: "Yearly" }
+      - { value: never, label: "Never" }
+  priority:
+    type: text
+    label: "Priority"
+    hint: "Default priority value, 0.0 to 1.0"
+    default: "0.5"
+  exclude:
+    type: list
+    label: "Excluded Paths"
+    hint: "Glob patterns matched against page URLs to leave out of the sitemap"
+    default: []

@@ -1,27 +1,20 @@
 site:
-  title: "Sarde"
-  description: "Documentation for Sarde, a static site generator for documentation, course materials, and blogs"
-  url: "https://getsarde.github.io"
-  edit_url: "https://github.com/getsarde/sarde/edit/main/docs/content"
-  # The Lebanese Red woven mark from brand/icon.svg. The navy tile keeps its
-  # edges in both themes. The favicon is brand/favicon.ico, copied to
-  # public/favicon.ico; declared explicitly rather than relying on
-  # auto-detection, matching the Kazari docs setup.
-  logo: "/images/sarde-icon.svg"
-  favicon: "/favicon.ico"
-
+  title: Sarde
+  description: Documentation for Sarde, a static site generator for documentation, course materials, and blogs
+  url: https://getsarde.github.io
+  edit_url: https://github.com/getsarde/sarde/edit/main/docs/content
+  logo: /images/sarde-icon.svg
+  favicon: /favicon.ico
 build:
-  # Project site at https://getsarde.github.io/sarde/
   base_path: /sarde/
-
 theme:
-  name: "default"
-  preset: "docs"
-
+  name: default
+  preset: docs
+  overrides: {}
+  dark_overrides: {}
 head:
   custom_css:
   - css/custom.css
-
 markdown:
   github_alerts: true
   asides:
@@ -33,12 +26,11 @@ markdown:
   unsafe: false
   codeblocks:
     engine: nuri
-    light_theme: "github-light"
-    dark_theme: "github-dark-default"
-
+    light_theme: github-light
+    dark_theme: github-dark-default
 collections:
   docs:
-    sort: "order"
+    sort: order
     tabs: false
     sidebar:
       collapsible: true
@@ -47,77 +39,76 @@ toc:
   enabled: false
   max_level: 4
   min_level: 2
-
 plugins:
   enabled:
-    - search
-    - seo
-    - sitemap
-    - robots
-    - rss
-    - atom
-    - content_lint
-    - link_validator
-    - redirects    
-    - social_cards
-    - scroll_to_top
-    - keyboard_nav
-    - reading_progress
-    - telescope
+  - search
+  - seo
+  - sitemap
+  - robots
+  - rss
+  - atom
+  - content_lint
+  - link_validator
+  - redirects
+  - social_cards
+  - scroll_to_top
+  - keyboard_nav
+  - reading_progress
+  - telescope
+  - scroll_to_top
+  - focus_mode
+  - reading_progress
   config:
     social_cards:
-      # Lebanese Red brand palette from brand/README.md: deep navy tile
-      # background, red ribbon accent, warm ivory text.
-      bg_color: "#111827"
-      accent_color: "#E43D3D"
-      text_color: "#F4F1EA"
-      logo: "sarde"
+      bg_color: '#111827'
+      accent_color: '#E43D3D'
+      text_color: '#F4F1EA'
+      logo: sarde
       logo_size: 96
       watermark: true
     scroll_to_top:
       show_progress_ring: true
       show_tooltip: true
     keyboard_nav:
-      # Keep arrow-key navigation, drop the on-load hint toast and the
-      # chevron arrows pinned to the viewport edges.
       show_hint: false
       show_side_nav: true
     reading_progress:
       bar_height: 3.5
-      bar_color: "#9122f9"
-
+      bar_color: '#9122f9'
+    scroll_to_top:
+      showTooltip: false
+      progressRingColor: '#17f207'
+      showProgressRing: true
+    focus_mode:
+      button_position: bottom-left
+    reading_progress:
+      bar_color: '#caf202'
+      use_gradient: false
 homepage:
   hero:
-    title: "Sarde Documentation"
-    subtitle: "Turn a folder of Markdown into a documentation site, a blog, or a course. One Go binary, a few lines of configuration."
+    title: Sarde Documentation
+    subtitle: Turn a folder of Markdown into a documentation site, a blog, or a course. One Go binary, a few lines of configuration.
     background: gradient
     cta:
-      label: "Get Started"
-      url: "/docs/start-here/getting-started"
+      label: Get Started
+      url: /docs/start-here/getting-started
       icon: rocket
     secondary_cta:
-      label: "Star on GitHub"
-      url: "https://github.com/getsarde/sarde"
+      label: Star on GitHub
+      url: https://github.com/getsarde/sarde
       icon: star
-    # The brand mark doubles as the hero art: its self-contained navy tile
-    # reads correctly on both the light and dark gradient backgrounds, so
-    # both variants point at the same file.
     image:
       light: /images/sarde-icon.svg
       dark: /images/sarde-icon.svg
-      alt: "The Sarde woven ribbon mark on a navy tile"
+      alt: The Sarde woven ribbon mark on a navy tile
 social:
 - icon: github
   label: GitHub
   url: https://github.com/getsarde/sarde
-
 header:
   links:
   - label: Tags
-    url: /tags/  
-  # Header links are emitted verbatim under base_path, with none of the
-  # collection-relative resolution that in-content Markdown links get, so this
-  # has to be the full built path of docs/resources/changelog.md.
+    url: /tags/
   - label: Changelog
     url: /docs/resources/changelog/
   search: true

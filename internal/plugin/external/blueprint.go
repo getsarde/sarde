@@ -12,19 +12,12 @@ import (
 )
 
 // BlueprintField describes one configurable field declared in blueprint.yaml.
-// Consumed by the desktop app for a future plugin settings UI.
-type BlueprintField struct {
-	Name    string   `json:"name"`
-	Type    string   `json:"type"`
-	Label   string   `json:"label"`
-	Hint    string   `json:"hint"`
-	Default any      `json:"default"`
-	Min     *float64 `json:"min,omitempty"`
-	Max     *float64 `json:"max,omitempty"`
-}
+// It is the shared blueprint field shape, so `sarde plugins` and the desktop
+// app see external and built-in plugins identically.
+type BlueprintField = cfgutil.Field
 
-// LoadBlueprint parses {dir}/blueprint.yaml into field metadata. A missing
-// file yields (nil, nil).
+// LoadBlueprint parses {dir}/blueprint.yaml into field metadata sorted by
+// name. A missing file yields (nil, nil).
 func LoadBlueprint(dir string) ([]BlueprintField, error) {
 	data, err := os.ReadFile(filepath.Join(dir, consts.FilePluginBlueprint))
 	if err != nil {
@@ -33,25 +26,9 @@ func LoadBlueprint(dir string) ([]BlueprintField, error) {
 		}
 		return nil, err
 	}
-	var doc struct {
-		Fields map[string]struct {
-			Type    string   `yaml:"type"`
-			Label   string   `yaml:"label"`
-			Hint    string   `yaml:"hint"`
-			Default any      `yaml:"default"`
-			Min     *float64 `yaml:"min"`
-			Max     *float64 `yaml:"max"`
-		} `yaml:"fields"`
-	}
-	if err := yaml.Unmarshal(data, &doc); err != nil {
+	fields, err := cfgutil.ParseFields(data)
+	if err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", consts.FilePluginBlueprint, err)
-	}
-	fields := make([]BlueprintField, 0, len(doc.Fields))
-	for name, f := range doc.Fields {
-		fields = append(fields, BlueprintField{
-			Name: name, Type: f.Type, Label: f.Label, Hint: f.Hint,
-			Default: f.Default, Min: f.Min, Max: f.Max,
-		})
 	}
 	return fields, nil
 }

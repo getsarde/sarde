@@ -74,7 +74,7 @@ func ComputeCoverage(graph *LinkGraph, pages []*engine.Page, expectedLanes []Dim
 		}
 		ls.links++
 		switch ref.Status {
-		case StatusBrokenTarget, StatusBrokenAnchor:
+		case StatusBrokenTarget, StatusBrokenAnchor, StatusAmbiguous:
 			ls.broken++
 		case StatusExternal:
 			ls.external++

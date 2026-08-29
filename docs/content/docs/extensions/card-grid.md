@@ -84,6 +84,21 @@ Review and final assessment.
 ::::
 ````
 
+::::card-grid(stagger)
+:::card[Week 1]
+Introduction and orientation.
+:::
+:::card[Week 2]
+Core concepts and first assignment.
+:::
+:::card[Week 3]
+Lab work and group projects.
+:::
+:::card[Week 4]
+Review and final assessment.
+:::
+::::
+
 → Cards appear in two columns with alternating vertical offsets.
 
 ## Options

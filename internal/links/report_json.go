@@ -28,6 +28,8 @@ type jsonFinding struct {
 	Dim      jsonDim `json:"dim"`
 	Type     string  `json:"type"`
 	Policy   string  `json:"policy"`
+	// Hint is fix advice for finding types that carry one (ambiguous_link).
+	Hint string `json:"hint,omitempty"`
 }
 
 type jsonDim struct {
@@ -42,7 +44,7 @@ func writeJSONReport(sb *strings.Builder, findings []Finding, cov CoverageSummar
 
 	for _, f := range findings {
 		switch f.Type {
-		case FindingBrokenTarget:
+		case FindingBrokenTarget, FindingAmbiguousLink:
 			brokenTargets++
 		case FindingBrokenAnchor:
 			brokenAnchors++
@@ -64,6 +66,7 @@ func writeJSONReport(sb *strings.Builder, findings []Finding, cov CoverageSummar
 			},
 			Type:   f.Type.String(),
 			Policy: f.Policy,
+			Hint:   f.Type.Hint(),
 		})
 	}
 

@@ -27,7 +27,7 @@ theme:
 | `docs` | `#2563eb` (blue) | System fonts / JetBrains Mono | Technical documentation |
 | `academic` | `#1e40af` (dark blue) | Merriweather (serif) / JetBrains Mono | Scholarly, formal |
 
-Without a preset, Sarde uses the default theme tokens compiled into the binary.
+Without a preset, Sarde uses the default theme tokens compiled into the binary. To define your own, see [Creating a Preset](/customization/creating-a-preset/).
 
 ### Preset typography
 
@@ -160,29 +160,30 @@ Rules in `sarde.user` beat every Sarde layer, including plugin styles, without `
 
 ## Theme eject
 
-To customize templates, components, or CSS beyond token overrides, eject the embedded theme:
+To customize a template, component, or stylesheet beyond token overrides, eject that file and edit the copy:
 
 ```sh
-sarde theme eject
+sarde theme eject layouts/components/Header.html
+sarde theme eject css/components.css
 ```
 
-Result: Copies the full embedded theme (templates, CSS, JS, components, partials, `theme.yaml`) to `themes/default/`. All files in `themes/default/` override their embedded counterparts.
+Result: The files land in `themes/default/` (with a `theme.yaml` if none exists) and override their embedded counterparts. Everything not ejected keeps coming from the embedded theme, including fixes in later Sarde releases.
 
-After ejecting, edit any file in `themes/default/`. The template overlay resolution ensures ejected files take precedence over the compiled-in defaults.
+Run `sarde theme eject --list` to see every ejectable path, or `sarde theme eject` with no paths to copy the whole theme. See [`theme eject`](/reference/cli-commands/#theme-eject) for all options.
 
 :::note
-Ejecting creates a snapshot of the current embedded theme. Future Sarde updates do not automatically update ejected files. Merge changes manually after upgrading.
+An ejected file is a snapshot. Sarde updates do not touch it, so eject only what you change, and merge upstream changes by hand after upgrading.
 :::
 
 ### The theme `css/` directory
 
-A theme's stylesheets live in `themes/<name>/css/`. When that directory exists and contains at least one of the stylesheets Sarde looks for, it **replaces** the embedded CSS bundle rather than merging with it.
+A theme's stylesheets live in `themes/<name>/css/`. Each of the 24 stylesheets Sarde looks for is read from the theme when present and from the embedded theme otherwise, so a theme can ship a single edited stylesheet. Files outside that set are ignored.
 
 :::caution
-Replacement is all or nothing. A `css/` directory holding only `components.css` ships that one file and drops `tokens.css`, `base.css`, `layout.css`, and the rest, leaving the site nearly unstyled. Eject the full theme and edit what you need, rather than creating a partial `css/` directory by hand.
+`assets/` does not work this way. A theme `assets/` directory replaces the embedded fonts, vendor scripts, and JS entirely; eject it whole with `sarde theme eject assets`.
 :::
 
-To change a few rules, prefer `head.custom_css` or the `sarde.user` layer above. Reach for a theme `css/` directory only when replacing the stylesheet set wholesale.
+To change a few rules, prefer `head.custom_css` or the `sarde.user` layer above.
 
 ## Content width toggle
 

@@ -33,6 +33,26 @@ pnpm add sarde
 :::
 ````
 
+:::tabs
+== npm
+
+```bash
+npm install sarde
+```
+
+== yarn
+
+```bash
+yarn add sarde
+```
+
+== pnpm
+
+```bash
+pnpm add sarde
+```
+:::
+
 → Three tabs appear ("npm", "yarn", "pnpm"). Clicking a tab shows its panel and hides the others. The first tab is active by default.
 
 <!-- SCREENSHOT: tabs-basic — three package manager tabs with npm selected -->
@@ -91,10 +111,10 @@ Non-active panels have the `hidden` attribute and are removed from the tab order
 
 ## Options
 
-| Feature | Syntax | Description |
-|---------|--------|-------------|
-| Tab label | `== Label text` | Starts a new tab. The text after `==` becomes the tab button label. |
-| Tab icon | `== Label (icon="name")` | Lucide icon displayed in the tab button. |
+| Option | Syntax | Default | Description |
+|--------|--------|---------|-------------|
+| Tab label | `== Label text` | — | Starts a new tab. The text after `==` becomes the tab button label. |
+| Tab icon | `== Label (icon="name")` | — | Lucide icon displayed in the tab button. |
 
 ## Edge cases
 

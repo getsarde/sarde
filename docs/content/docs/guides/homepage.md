@@ -115,31 +115,31 @@ Result: A row of stat tiles appears next to the hero text.
 
 ### Catalog
 
-Displays collection cards (docs, blog, courses) as a grid. Each card links to the collection root. Body content from `_index.md` renders above the grid.
+Displays collection cards (docs, blog, courses) as a grid. Each card links to the collection root. Body content from `_index.md` renders above the grid. This template has no template-specific configuration keys; the grid is populated automatically from the collections defined in `sarde.yaml`.
 
 ### Minimal
 
-A single-column page that renders body content from `_index.md` below an optional hero. Good for sites that need a custom landing page built in Markdown.
+A single-column page that renders body content from `_index.md` below an optional hero. Good for sites that need a custom landing page built in Markdown. The optional hero reuses the same `homepage.hero` keys documented under [Hero fields](#hero-fields). Omit the `hero` key entirely to render body content only.
 
 ### Dashboard
 
-Renders stat tiles and collection summaries in a dashboard layout. Suitable for project portals or internal documentation hubs.
+Renders stat tiles and collection summaries in a dashboard layout. Suitable for project portals or internal documentation hubs. This template has no template-specific configuration keys; stat tiles and collection summaries are generated from the site's existing collections.
 
 ### Portfolio
 
-Full-width sections with alternating layouts. Body content from `_index.md` renders inline. The hero, CTA buttons, and content sections flow as a single scrollable page.
+Full-width sections with alternating layouts. Body content from `_index.md` renders inline. The hero, CTA buttons, and content sections flow as a single scrollable page. The hero section reuses the same `homepage.hero` keys documented under [Hero fields](#hero-fields).
 
 ### Landing
 
-A marketing-style landing page with full-width sections. Body content renders in a centered container between the hero and footer. No sidebar.
+A marketing-style landing page with full-width sections. Body content renders in a centered container between the hero and footer. No sidebar. The hero section reuses the same `homepage.hero` keys documented under [Hero fields](#hero-fields).
 
 ### Marketing
 
-Feature grids, social proof sections, and CTA blocks. Similar to landing but with more structured sections for product pages.
+Feature grids, social proof sections, and CTA blocks. Similar to landing but with more structured sections for product pages. This template has no template-specific configuration keys beyond `homepage.template`; sections are generated from body content and the site's collections.
 
 ### Blog
 
-Displays recent blog posts below the hero. Pulls from the first blog-type collection found. Suitable for blog-first sites.
+Displays recent blog posts below the hero. Pulls from the first blog-type collection found. Suitable for blog-first sites. This template has no template-specific configuration keys beyond `homepage.template`; the hero section reuses the same `homepage.hero` keys documented under [Hero fields](#hero-fields).
 
 ## Body content
 

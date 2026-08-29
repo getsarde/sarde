@@ -241,13 +241,7 @@ func (e *Engine) ForceReload() {
 // files plus the code block, directive, and aside overlays), minified when
 // !devMode.
 func (e *Engine) assembleCSS(devMode bool) (string, error) {
-	var raw string
-	if e.resolver.ThemeName != "" {
-		raw = loadThemeCSS(e.resolver.ProjectDir, e.resolver.ThemeName)
-	}
-	if raw == "" {
-		raw = loadEmbeddedCSS(e.resolver.EmbeddedFS)
-	}
+	raw := assembleThemeCSS(e.resolver.EmbeddedFS, e.resolver.ProjectDir, e.resolver.ThemeName)
 	if e.codeBlockCSS != "" {
 		raw += "\n" + e.codeBlockCSS
 	}

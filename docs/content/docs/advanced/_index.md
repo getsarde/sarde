@@ -2,7 +2,7 @@
 title: Advanced
 description: "Asset pipeline, build internals, plugin authoring, and the dev server."
 sidebar:
-  order: 7
+  order: 8
   icon: cpu
 ---
 

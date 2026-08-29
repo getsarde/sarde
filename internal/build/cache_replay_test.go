@@ -121,6 +121,8 @@ func TestCachedRefsRoundTrip(t *testing.T) {
 		Resolved:   "/docs/guide/auth/",
 		TargetPage: target,
 		Status:     links.StatusOK,
+		Line:       7,
+		Col:        12,
 	}}
 	cached := toCachedRefs(recorded)
 	if len(cached) != 1 {
@@ -137,6 +139,9 @@ func TestCachedRefsRoundTrip(t *testing.T) {
 	r := replayed[0]
 	if r.FromPage != current || r.FromFile != current.FilePath {
 		t.Errorf("page-derived fields not rebuilt live: FromFile = %q", r.FromFile)
+	}
+	if r.Line != 7 || r.Col != 12 {
+		t.Errorf("source position lost through the cache: line=%d col=%d", r.Line, r.Col)
 	}
 	if r.Dim != (links.DimKey{Collection: "docs", Lang: "en"}) {
 		t.Errorf("Dim = %+v, want docs/en", r.Dim)

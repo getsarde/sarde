@@ -129,14 +129,14 @@ The syntax is `icon:<name> <filename>`. The icon name and filename are separated
 
 ## Options
 
-| Feature | Syntax | Description |
-|---------|--------|-------------|
-| Folder | Trailing `/` or nested children | Renders with folder icon. |
-| File | No trailing `/` and no children | Renders with file icon. |
-| Highlight | `**name**` | Accent-colored highlight on the entry. |
-| Comment | `name #comment text` | Muted annotation text beside the entry. |
-| Placeholder | `...` | Indicates omitted content. |
-| Custom icon | `icon:name filename` | Overrides the default icon. |
+| Option | Syntax | Default | Description |
+|--------|--------|---------|-------------|
+| Folder | Trailing `/` or nested children | — | Renders with folder icon. |
+| File | No trailing `/` and no children | — | Renders with file icon. |
+| Highlight | `**name**` | — | Accent-colored highlight on the entry. |
+| Comment | `name #comment text` | — | Muted annotation text beside the entry. |
+| Placeholder | `...` | — | Indicates omitted content. |
+| Custom icon | `icon:name filename` | (folder or file icon) | Overrides the default icon. |
 
 ## Edge cases
 

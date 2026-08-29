@@ -1,5 +1,6 @@
 plugins:
   scroll_to_top:
+    label: "Scroll to Top"
     description: "Floating scroll-to-top button with optional progress ring"
     inject_when: always
     assets:
@@ -8,6 +9,7 @@ plugins:
     module: true
 
   copy_section_link:
+    label: "Copy Section Link"
     description: "Click heading anchors to copy shareable section links"
     inject_when: has_headings
     assets:
@@ -16,6 +18,7 @@ plugins:
     module: true
 
   external_links:
+    label: "External Links"
     description: "Mark external links with icons and open in new tabs"
     inject_when: always
     assets:
@@ -24,6 +27,7 @@ plugins:
     module: true
 
   image_lightbox:
+    label: "Image Lightbox"
     description: "Click images to view full-size in a lightbox overlay"
     inject_when: has_images
     assets:
@@ -32,6 +36,7 @@ plugins:
     module: true
 
   keyboard_nav:
+    label: "Keyboard Navigation"
     description: "Arrow key navigation between prev/next pages"
     inject_when: has_prev_next
     assets:
@@ -40,6 +45,7 @@ plugins:
     module: true
 
   focus_mode:
+    label: "Focus Mode"
     description: "Distraction-free reading by hiding sidebar and ToC"
     inject_when: has_sidebar
     assets:
@@ -48,6 +54,7 @@ plugins:
     module: true
 
   reading_progress:
+    label: "Reading Progress"
     description: "Scroll progress bar and reading time estimate"
     inject_when: is_content_page
     assets:
@@ -56,6 +63,7 @@ plugins:
     module: true
 
   search_highlighter:
+    label: "Search Highlighter"
     description: "Highlight search terms from query params in page content"
     inject_when: always
     assets:
@@ -64,6 +72,7 @@ plugins:
     module: true
 
   text_highlighter:
+    label: "Text Highlighter"
     description: "Selection-based text highlighting with localStorage persistence"
     inject_when: is_content_page
     assets:
@@ -73,6 +82,7 @@ plugins:
 
 
   reading_position_memory:
+    label: "Reading Position"
     description: "Remember and offer to restore scroll position per page"
     inject_when: is_content_page
     assets:
@@ -81,6 +91,7 @@ plugins:
     module: true
 
   reading_preferences:
+    label: "Reading Preferences"
     description: "User-adjustable font size, spacing, and content width"
     inject_when: has_sidebar
     assets:

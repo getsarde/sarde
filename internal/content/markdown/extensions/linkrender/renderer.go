@@ -36,6 +36,15 @@ type Renderer struct {
 	// so the build layer can persist the page's resolution snapshot in the page
 	// cache and replay it on cache hits.
 	RecordedRefs []links.LinkRef
+
+	// posLine/posCol is the 1-based source position of the link currently
+	// being rendered (set by renderLink around ResolveHref); 0 when the caller
+	// has no position (shortcodes, cards, cache replay).
+	posLine, posCol int
+	// lineStarts caches the byte offset of every line start of the source
+	// being rendered, so a position lookup is a binary search per link.
+	lineStartsSrc []byte
+	lineStarts    []int
 }
 
 // NewRenderer creates a link renderer with no page context.
@@ -116,7 +125,13 @@ func (r *Renderer) ResolveHref(href string) (resolvedURL string) {
 		if dest.Kind == LinkContentRoot && !hasMarkdownExtension(dest.Raw) {
 			return r.resolveSiteAbsolute(dest.Raw)
 		}
-		r.recordLinkRef(dest, nil, "", links.StatusBrokenTarget)
+		status := links.StatusBrokenTarget
+		if dest.Kind == LinkAmbiguous {
+			// Bare `name.md` is never resolved by design (ClassifyDest); report
+			// it distinctly so the fix (./name.md) is obvious.
+			status = links.StatusAmbiguous
+		}
+		r.recordLinkRef(dest, nil, "", status)
 		return "#"
 	}
 
@@ -258,6 +273,8 @@ func (r *Renderer) appendPendingAnchor(dest ParsedDest, targetPage *engine.Page,
 		},
 		Kind:     mapLinkKind(dest.Kind),
 		Resolved: result.URL,
+		Line:     r.posLine,
+		Col:      r.posCol,
 	})
 }
 
@@ -270,7 +287,9 @@ func (r *Renderer) renderLink(w util.BufWriter, source []byte, node ast.Node, en
 	n := node.(*ast.Link)
 	href := string(n.Destination)
 
+	r.posLine, r.posCol = r.linkPosition(source, n)
 	resolved := r.ResolveHref(href)
+	r.posLine, r.posCol = 0, 0
 
 	r.writeOpenTag(w, resolved, n)
 	return ast.WalkContinue, nil
@@ -299,6 +318,8 @@ func (r *Renderer) recordLinkRef(dest ParsedDest, targetPage *engine.Page, resol
 		TargetPage: targetPage,
 		Fragment:   dest.Fragment,
 		Status:     status,
+		Line:       r.posLine,
+		Col:        r.posCol,
 	}
 	r.LinkGraph.Record(ref)
 	r.RecordedRefs = append(r.RecordedRefs, ref)
@@ -335,4 +356,63 @@ func (r *Renderer) writeOpenTag(w util.BufWriter, href string, n *ast.Link) {
 	}
 
 	w.WriteByte('>')
+}
+
+// linkPosition returns the 1-based line and column of a link's opening `[`.
+// Inline nodes carry no line segments (ast.Link.Lines panics), so the offset
+// comes from the label's first text segment (or, for an empty label, the end
+// of the preceding text), falling back to the enclosing block's first line.
+// (0, 0) when nothing is known.
+func (r *Renderer) linkPosition(source []byte, n *ast.Link) (line, col int) {
+	offset := -1
+	if txt, ok := n.FirstChild().(*ast.Text); ok {
+		offset = txt.Segment.Start
+		if offset > 0 && offset <= len(source) && source[offset-1] == '[' {
+			offset--
+		}
+	} else if prev, ok := n.PreviousSibling().(*ast.Text); ok && prev.Segment.Stop < len(source) && source[prev.Segment.Stop] == '[' {
+		offset = prev.Segment.Stop
+	} else {
+		for p := n.Parent(); p != nil; p = p.Parent() {
+			if p.Type() == ast.TypeBlock {
+				if lines := p.Lines(); lines != nil && lines.Len() > 0 {
+					offset = lines.At(0).Start
+				}
+				break
+			}
+		}
+	}
+	if offset < 0 || offset > len(source) {
+		return 0, 0
+	}
+	line, col = r.offsetToLineCol(source, offset)
+	// The renderer sees the body only; report file lines (same convention as
+	// content_lint and the syntax checker).
+	if r.CurrentPage != nil {
+		line += r.CurrentPage.FrontmatterLines
+	}
+	return line, col
+}
+
+func (r *Renderer) offsetToLineCol(source []byte, offset int) (line, col int) {
+	if len(r.lineStartsSrc) != len(source) || (len(source) > 0 && &r.lineStartsSrc[0] != &source[0]) {
+		starts := []int{0}
+		for i, b := range source {
+			if b == '\n' {
+				starts = append(starts, i+1)
+			}
+		}
+		r.lineStartsSrc, r.lineStarts = source, starts
+	}
+	// Last line start <= offset.
+	lo, hi := 0, len(r.lineStarts)-1
+	for lo < hi {
+		mid := (lo + hi + 1) / 2
+		if r.lineStarts[mid] <= offset {
+			lo = mid
+		} else {
+			hi = mid - 1
+		}
+	}
+	return lo + 1, offset - r.lineStarts[lo] + 1
 }

@@ -1,0 +1,6 @@
+fields:
+  always:
+    type: toggle
+    label: "Load on All Pages"
+    hint: "Inject the renderer on every page instead of only where it is used"
+    default: false

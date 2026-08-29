@@ -9,8 +9,9 @@ import (
 	"github.com/getsarde/sarde/internal/consts"
 )
 
-// cssOrder defines the load order for theme CSS files.
-// Both loadEmbeddedCSS and loadThemeCSS use this order.
+// cssOrder defines the load order for theme CSS files. A theme may ship any
+// subset of these under themes/<name>/css/; the rest come from the embedded
+// theme. Files outside this list are ignored.
 var cssOrder = []string{
 	"css/tokens.css",
 	"css/base.css",
@@ -40,49 +41,46 @@ var cssOrder = []string{
 
 const cssLayerPrefix = "@layer sarde.base, sarde.reset, sarde.core, sarde.content, sarde.components, sarde.variants, sarde.utils, sarde.plugins, sarde.user;\n"
 
-// loadThemeCSS reads and concatenates CSS files from an external theme's css/ directory.
-// Returns "" if the theme has no css/ directory, allowing fallback to embedded CSS.
-func loadThemeCSS(projectDir, themeName string) string {
-	cssDir := filepath.Join(projectDir, consts.DirThemes, themeName, "css")
-	info, err := os.Stat(cssDir)
-	if err != nil || !info.IsDir() {
-		return ""
-	}
-
+// assembleThemeCSS concatenates every stylesheet in cssOrder, taking each one
+// from themes/<themeName>/ when it exists there and from the embedded theme
+// otherwise. A theme therefore only needs to ship the stylesheets it changes.
+// Returns "" when no stylesheet could be read from either source.
+func assembleThemeCSS(efs fs.FS, projectDir, themeName string) string {
 	var sb strings.Builder
 	sb.WriteString(cssLayerPrefix)
-	found := false
+	wrote := false
 	for _, name := range cssOrder {
-		data, err := os.ReadFile(filepath.Join(projectDir, consts.DirThemes, themeName, name))
-		if err != nil {
+		if data, ok := readThemeCSS(projectDir, themeName, name); ok {
+			sb.Write(data)
+			sb.WriteByte('\n')
+			wrote = true
 			continue
 		}
-		sb.Write(data)
-		sb.WriteByte('\n')
-		found = true
-	}
-	if !found {
-		return ""
-	}
-	return sb.String()
-}
-
-// loadEmbeddedCSS reads and concatenates all CSS files from the embedded FS.
-// Each Engine instance caches the result in e.cachedCSS during Load().
-func loadEmbeddedCSS(efs fs.FS) string {
-	if efs == nil {
-		return ""
-	}
-
-	var sb strings.Builder
-	sb.WriteString(cssLayerPrefix)
-	for _, name := range cssOrder {
+		if efs == nil {
+			continue
+		}
 		data, err := fs.ReadFile(efs, name)
 		if err != nil {
 			continue
 		}
 		sb.Write(data)
 		sb.WriteByte('\n')
+		wrote = true
+	}
+	if !wrote {
+		return ""
 	}
 	return sb.String()
+}
+
+// readThemeCSS reads one cssOrder entry from the active theme directory.
+func readThemeCSS(projectDir, themeName, name string) ([]byte, bool) {
+	if themeName == "" {
+		return nil, false
+	}
+	data, err := os.ReadFile(filepath.Join(projectDir, consts.DirThemes, themeName, filepath.FromSlash(name)))
+	if err != nil {
+		return nil, false
+	}
+	return data, true
 }

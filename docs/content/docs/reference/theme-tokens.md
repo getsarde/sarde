@@ -111,6 +111,22 @@ Additional hue angles and color scales for cyan and indigo.
 | `indigo-low` | `oklch(0.95 0.04 var(--sd-hue-indigo))` |
 | `indigo-high` | `oklch(0.72 0.20 var(--sd-hue-indigo))` |
 
+### Text-safe variants
+
+Each hue has a `-text` variant for badges, tags, and pill buttons: darker than the base color so
+text keeps WCAG AA contrast on tinted backgrounds. Dark mode remaps them to the `-high` primitives
+(e.g. `blue-text` becomes `var(--sd-blue-high)`).
+
+| Token | Light default |
+|-------|---------------|
+| `blue-text` | `oklch(0.48 0.19 var(--sd-hue-blue))` |
+| `green-text` | `oklch(0.48 0.14 var(--sd-hue-green))` |
+| `cyan-text` | `oklch(0.48 0.13 var(--sd-hue-cyan))` |
+| `amber-text` | `oklch(0.52 0.13 var(--sd-hue-amber))` |
+| `red-text` | `oklch(0.50 0.19 var(--sd-hue-red))` |
+| `purple-text` | `oklch(0.48 0.20 var(--sd-hue-purple))` |
+| `indigo-text` | `oklch(0.48 0.18 var(--sd-hue-indigo))` |
+
 ## Semantic tokens
 
 ### Text
@@ -126,6 +142,7 @@ Additional hue angles and color scales for cyan and indigo.
 | `text-success` | `var(--sd-green)` | Success state text |
 | `text-warning` | `var(--sd-amber)` | Warning state text |
 | `text-danger` | `var(--sd-red)` | Error state text |
+| `text-inline-code` | `color-mix(in oklab, var(--sd-text-accent) 60%, var(--sd-text))` | Inline code text |
 
 ### Backgrounds
 
@@ -357,15 +374,24 @@ backgrounds; dark mode remaps them to the `-high` primitives (e.g. `aside-note-t
 | `aside-important-text` | `oklch(0.48 0.20 293)` |
 | `aside-success-text` | `oklch(0.48 0.14 155)` |
 
+Code blocks inside an aside blend the aside color into their background and border. Two
+percentage tokens control how much. Dark mode raises them to `16%` and `35%`.
+
+| Token | Light default | Description |
+|-------|---------------|-------------|
+| `aside-code-bg-mix` | `10%` | Share of the aside color mixed into the code background |
+| `aside-code-border-mix` | `25%` | Share of the aside color mixed into the code border |
+
 ## Accent derivation
 
-Setting [`theme.accent_color`](/reference/configuration#theme) or `theme.overrides.accent` triggers automatic derivation of three variant tokens. If any variant is already set explicitly, that variant is kept as-is.
+Setting [`theme.accent_color`](/reference/configuration#theme) or `theme.overrides.accent` triggers automatic derivation of four variant tokens. If any variant is already set explicitly, that variant is kept as-is.
 
 | Derived token | Purpose |
 |---------------|---------|
 | `accent-hover` | Slightly darker accent for hover states |
 | `accent-high` | Lighter accent for dark-mode emphasis |
 | `accent-low` | Accent at 10% opacity for subtle backgrounds |
+| `accent-text` | Accent for text on light surfaces, with lightness capped so it meets WCAG AA |
 
 The derivation formulas depend on the color format of the `accent` value.
 
@@ -380,6 +406,7 @@ For hex colors (`#RGB` or `#RRGGBB`), derivation converts to HSL, adjusts lightn
 | `accent-hover` | Lightness - 0.10 (10% darker) |
 | `accent-high` | Lightness + 0.20 (20% lighter) |
 | `accent-low` | `rgba(r, g, b, 0.1)` |
+| `accent-text` | Converted to OKLCH, then L capped at `min(L - 0.05, 0.48)` |
 
 == OKLCH
 
@@ -390,10 +417,11 @@ For OKLCH colors (`oklch(L C H)`), derivation adjusts the lightness component di
 | `accent-hover` | L - 0.08 |
 | `accent-high` | L + 0.12 |
 | `accent-low` | `oklch(L C H / 0.1)` |
+| `accent-text` | L capped at `min(L - 0.05, 0.48)` |
 
 :::
 
-Accent values in other formats (named colors, `hsl()`, CSS variables) skip derivation gracefully. Set `accent-hover`, `accent-high`, and `accent-low` manually in that case.
+Accent values in other formats (named colors, `hsl()`, CSS variables) skip derivation gracefully. Set `accent-hover`, `accent-high`, `accent-low`, and `accent-text` manually in that case.
 
 :::note
 Accent derivation runs on light-mode tokens only. Dark-mode accent variants come from CSS `var()` fallback chains in the stylesheet, not from Go-level derivation. To customize dark-mode accent variants, set them explicitly in `theme.dark_overrides`.
@@ -408,7 +436,7 @@ theme:
   preset: ocean
 ```
 
-Palette presets override the accent color and gray scale (gray-1 through gray-7) to tint the entire UI. Full-look presets change colors, typography, and border radius together.
+A preset is a `tokens` map and an optional `dark_tokens` map, and both accept any token name on this page. Palette presets override the accent color and gray scale (gray-1 through gray-7) to tint the entire UI. Full-look presets change colors, typography, and border radius together.
 
 | Preset | Type | Accent hue | Custom grays | Font | Radius |
 |--------|------|------------|--------------|------|--------|
@@ -420,4 +448,4 @@ Palette presets override the accent color and gray scale (gray-1 through gray-7)
 | `docs` | Full-look | 264 (indigo) | Default | System sans-serif | `0.375rem` |
 | `academic` | Full-look | 264 (deep indigo) | Default | Merriweather (serif) | `0.25rem` |
 
-Inspect a preset's tokens with [`sarde theme info`](/reference/cli-commands#theme).
+Inspect a preset's tokens with [`sarde theme info`](/reference/cli-commands#theme). To define your own, see [Creating a Preset](/customization/creating-a-preset/).
