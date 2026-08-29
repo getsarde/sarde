@@ -68,7 +68,7 @@ Defaults can be overridden through `sarde.yaml`, CLI flags, or environment varia
 
 Add any of these to `plugins.enabled` to bundle its CSS and JS. Nothing ships to the browser unless it is listed, and each one is injected only on pages that need it.
 
-`scroll-to-top`, `copy-section-link`, `external-links`, `image-lightbox`, `keyboard-nav`, `focus-mode`, `reading-progress`, `search-highlighter`, `text-highlighter`, `reading-position-memory`, `reading-preferences`
+`scroll_to_top`, `copy_section_link`, `external_links`, `image_lightbox`, `keyboard_nav`, `focus_mode`, `reading_progress`, `search_highlighter`, `text_highlighter`, `reading_position_memory`, `reading_preferences`
 
 **External plugins**
 - Install third-party plugins into `plugins/{slug}/` with `sarde plugin install`, from a zip, directory, URL, or GitHub repo
@@ -235,7 +235,7 @@ plugins:
     - search
     - seo
     - link_validator
-    - scroll-to-top     # client-side plugins are opt-in
+    - scroll_to_top     # client-side plugins are opt-in
   # `disabled` turns off individual plugins without replacing the list above.
   disabled:
     - social_cards
