@@ -6,6 +6,7 @@ import (
 
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/i18n"
 )
 
 // ---------------------------------------------------------------------------
@@ -17,6 +18,15 @@ type Manager struct {
 	plugins       []*Plugin
 	store         *SharedStore
 	templateFuncs map[string]any
+	strings       *i18n.StringTable
+}
+
+// SetStringTable installs the site's resolved UI string table so BeforeRender
+// hooks can translate through BeforeRenderContext.T. The table is loaded per
+// build (after the manager is created), so this is called on every build and
+// may replace an earlier table.
+func (m *Manager) SetStringTable(st *i18n.StringTable) {
+	m.strings = st
 }
 
 // NewManager creates an empty plugin manager.
@@ -103,6 +113,7 @@ func (m *Manager) RunBeforeRender(cfg *config.SiteConfig, page *engine.Page, rd 
 			Site:         site,
 			Resolver:     resolver,
 			PluginConfig: m.pluginConfig(p.Name, cfg),
+			strings:      m.strings,
 			store:        m.store,
 		}
 		if err := p.Hooks.BeforeRender(ctx); err != nil {

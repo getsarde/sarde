@@ -9,6 +9,8 @@ Sarde has two ways to include assets in your site: co-located page bundles (with
 
 ## Placing assets
 
+Assets live in one of two places: next to the page that uses them, or in `public/` for files shared across the site. The location decides the path style and whether Sarde optimizes the image.
+
 ### Page bundles (co-located assets)
 
 A [page bundle](/guides/content-and-collections#page-bundles) is a directory with an `index.md` file and sibling non-Markdown files. The sibling files become assets of that page.

@@ -83,7 +83,12 @@ description: "Building web applications with Go."
 
 ## Gallery customization
 
-Override the gallery template by placing a file at `layouts/_slides/list.html` or `layouts/slides/list.html`. The underscore-prefixed path follows the same convention as `_default` and `_docs` in the template lookup chain: it applies to every collection detected as a slides collection. The non-prefixed path is collection-specific and applies only to the collection named `slides`, taking precedence over the underscore-prefixed override when both exist. See [Template overlay resolution](/customization/layouts-and-templates/#template-overlay-resolution) for the full lookup order. The default template renders:
+To replace the gallery template, add one of these files:
+
+- `layouts/_slides/list.html` applies to every collection detected as a slides collection.
+- `layouts/slides/list.html` applies only to the collection named `slides`, and wins when both files exist.
+
+[Template overlay resolution](/customization/layouts-and-templates/#template-overlay-resolution) gives the full lookup order. The default template renders:
 
 - **Course cards**: title, description, deck count
 - **Deck cards**: thumbnail (or gradient placeholder), title, description, slide count badge, date, tags, author pills

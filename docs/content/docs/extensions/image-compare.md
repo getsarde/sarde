@@ -20,7 +20,7 @@ Place two Markdown images inside an `:::image-compare` block. The first image is
 
 → Both images overlap in the same container. A vertical slider divides them at the 50% mark. Dragging the slider reveals more of one image and less of the other.
 
-<!-- SCREENSHOT: image-compare-slider — a before/after comparison with the slider at center -->
+<!-- SCREENSHOT: image-compare-slider: a before/after comparison with the slider at center -->
 
 ## Label
 

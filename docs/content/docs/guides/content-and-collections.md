@@ -200,7 +200,7 @@ Reference bundle assets with relative paths in the Markdown:
 ![Cover image](cover.jpg)
 ```
 
-Page bundles keep content and its assets together, making pages self-contained and portable.
+Moving or renaming the bundle directory moves the page and its assets together.
 
 ## Content at the root
 

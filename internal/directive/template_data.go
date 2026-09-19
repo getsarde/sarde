@@ -10,8 +10,9 @@ import htmltemplate "html/template"
 // TemplateData is the pipeline value every generic directive template
 // executes against.
 type TemplateData struct {
-	Name  string             // directive name
-	Label string             // bracket label or ""
-	Attrs map[string]string  // attrutil.Parse of the opening fence; missing keys read ""
-	Body  htmltemplate.HTML  // container: rendered children HTML; leaf: escaped raw text
+	Name   string            // directive name
+	Label  string            // bracket label or ""
+	Attrs  map[string]string // attrutil.Parse of the opening fence; missing keys read ""
+	Body   htmltemplate.HTML // container: rendered children HTML; leaf: escaped raw text
+	Source string            // container: raw Markdown between the fences (html/template escapes it); leaf: ""
 }

@@ -9,23 +9,19 @@ Annotations attach hoverable, keyboard-accessible tooltips to terms inline witho
 
 ## Basic syntax
 
-```markdown
+::::example
 The ::annotation[hydration](The process of attaching event handlers to server-rendered HTML) step runs once on page load.
-```
-
-The ::annotation[hydration](The process of attaching event handlers to server-rendered HTML) step runs once on page load.
+::::
 
 → The word "hydration" appears with a dotted underline and a help cursor. Hovering or focusing it reveals a tooltip with the explanation.
 
-<!-- SCREENSHOT: annotation-tooltip-hover — an annotation with the tooltip visible on hover -->
+<!-- SCREENSHOT: annotation-tooltip-hover: an annotation with the tooltip visible on hover -->
 
 Labels can contain code-like tokens:
 
-```markdown
+::::example
 The function ::annotation[render()](Triggers a full re-render of the component tree, reconciling virtual DOM nodes) is called on every state change.
-```
-
-The function ::annotation[render()](Triggers a full re-render of the component tree, reconciling virtual DOM nodes) is called on every state change.
+::::
 
 → The label "render()" appears with the same dotted underline and tooltip behavior.
 
@@ -41,23 +37,19 @@ Three styles control the visual appearance of the annotated term. Set the style 
 
 ### Highlight
 
-```markdown
+::::example
 The ::annotation[virtual DOM](style="highlight" An in-memory representation of the real DOM tree, used for efficient diffing and minimal updates) pattern enables fast UI updates.
-```
-
-The ::annotation[virtual DOM](style="highlight" An in-memory representation of the real DOM tree, used for efficient diffing and minimal updates) pattern enables fast UI updates.
+::::
 
 → "virtual DOM" appears with a tinted accent background instead of an underline.
 
-<!-- SCREENSHOT: annotation-highlight — an annotation with the highlight style applied -->
+<!-- SCREENSHOT: annotation-highlight: an annotation with the highlight style applied -->
 
 ### Plain
 
-```markdown
+::::example
 Check the ::annotation[SSR](style="plain" Server-Side Rendering generates HTML on the server instead of the client) configuration for production deployments.
-```
-
-Check the ::annotation[SSR](style="plain" Server-Side Rendering generates HTML on the server instead of the client) configuration for production deployments.
+::::
 
 → "SSR" appears visually identical to surrounding text. The help cursor on hover is the only indicator.
 

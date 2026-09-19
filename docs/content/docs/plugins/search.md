@@ -56,8 +56,8 @@ plugins:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `max_content_length` | Number | `5000` | Maximum characters of page content stored in the index. Higher values increase index size but improve result relevance for long pages. |
-| `exclude` | List | `[]` | URL glob patterns for pages to exclude from the index. |
+| `max_content_length` | int | `5000` | Maximum characters of page content stored in the index. Higher values increase index size but improve result relevance for long pages. |
+| `exclude` | string[] | `[]` | URL glob patterns for pages to exclude from the index. |
 
 Individual pages can opt out with `pagefind: false` in their frontmatter, and a section can opt out all of its descendants via `cascade: { pagefind: false }` in its `_index.md`. See [Search](/guides/search/#excluding-individual-pages) and the [frontmatter reference](/reference/frontmatter/).
 
@@ -71,8 +71,40 @@ search:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `search.enabled` | Boolean | `true` | Enable or disable search site-wide. |
-| `search.provider` | String | `"orama"` | Search provider. Currently only `"orama"` is supported. |
+| `search.enabled` | Boolean | `true` | Enable or disable search site-wide. `false` unregisters the plugin: no index, no runtime script, no header button, no modal. |
+| `search.provider` | String | `"orama"` | Search provider. Only `"orama"` is accepted; any other value fails validation. |
+
+To hide the header button only, set `header.search: false`. The index, the runtime and the modal are still built, so a custom `[data-search-trigger]` element can open search.
+
+## UI strings
+
+The modal's server-rendered labels and its runtime strings all resolve through the `search.*` i18n keys. The runtime strings are injected per page language as `window.__SARDE__.pluginConfig.search.strings`, and the script keeps an English fallback for each key, so a missing translation never breaks the UI.
+
+| Key | Default | Notes |
+|-----|---------|-------|
+| `search.recent` | Recent | Recent searches header |
+| `search.clear` | Clear | Clears recent searches |
+| `search.type_to_search` | Type to start searching | Empty initial state |
+| `search.min_length` | Type at least {min} characters | `{min}` is the minimum query length |
+| `search.filter_all` | All | First section filter chip |
+| `search.try_all_sections` | Try searching in all sections | Empty state action when a section filter is active |
+| `search.results_count_one` | {count} result for '{term}' | Results header, singular |
+| `search.results_count_other` | {count} results for '{term}' | Results header, plural |
+| `search.full_search` | Full Search | Mode toggle label |
+| `search.switch_full_search` | Switch to Full Search | Mode toggle accessible label |
+| `search.simple_search` | Simple Search | Mode toggle label in full mode |
+| `search.switch_simple_search` | Switch to Simple Search | Mode toggle accessible label in full mode |
+| `search.fuzzy_match` | Fuzzy match | Tooltip on the `~` badge |
+| `search.preview` | Preview | Preview pane header |
+| `search.open_page` | Open page | Preview pane link label |
+| `search.matches_in_page_one` | {count} match in this page | Preview match count, singular |
+| `search.matches_in_page_other` | {count} matches in this page | Preview match count, plural |
+| `search.matching_sections` | Matching sections | Preview heading list label |
+| `search.no_preview` | No preview available | Preview empty state |
+| `search.group_other` | Other | Group header for pages without a collection |
+| `search.loading` | Loading results | Accessible label on the loading spinner |
+
+Plural keys are selected with the page language's plural rules; languages whose rules produce other categories fall back to `_other`. The server-rendered keys (`search.results`, `search.no_results`, `search.close`, `search.tip_typos`, `search.tip_keywords`, `search.kbd_navigate`, `search.kbd_select`, `search.kbd_close`) are listed with the other UI strings in the [internationalization guide](/guides/internationalization/).
 
 ## Multi-language support
 
@@ -98,6 +130,12 @@ Remove `search` from the enabled list, or set the global config:
 search:
   enabled: false
 ```
+
+Both forms have the same effect: the plugin is not registered, so nothing search-related is emitted. The global switch additionally hides the header button and the modal markup, and does not warn about an unused `plugins.config.search` block.
+
+## Search highlighting
+
+When the [`search_highlighter`](/plugins/search-highlighter/) client plugin is enabled, the search runtime appends `?q=<query>` to every result link, before any `#anchor`, so the target page can highlight the matching terms. Without the plugin, links stay unchanged.
 
 ## Edge cases
 

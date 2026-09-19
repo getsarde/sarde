@@ -1,18 +1,20 @@
 ---
 title: Link Buttons
 description: "Render styled anchor links that look like buttons, with multiple color variants"
+aliases:
+  - /extensions/link-button-group/
 sidebar:
   order: 19
 ---
 
-Link buttons render styled anchor elements that look like buttons. Each button requires an `href` attribute.
+Link buttons look like buttons and behave like normal links. Each button requires an `href` attribute.
 
 ## Basic syntax
 
-````
-:::link-button[Get Started](href="/docs/getting-started/")
+::::example
+:::link-button[Get Started](href="/start-here/getting-started/")
 :::
-````
+::::
 
 → A primary-colored button appears with the text "Get Started" linking to the getting-started page.
 
@@ -20,7 +22,7 @@ Link buttons render styled anchor elements that look like buttons. Each button r
 
 Set the `variant` attribute to change the button style:
 
-````
+::::example
 :::link-button[Primary](href="/docs/" variant="primary")
 :::
 :::link-button[Secondary](href="/docs/" variant="secondary")
@@ -31,7 +33,7 @@ Set the `variant` attribute to change the button style:
 :::
 :::link-button[Minimal](href="/docs/" variant="minimal")
 :::
-````
+::::
 
 | Variant | Description |
 |---------|-------------|
@@ -45,10 +47,10 @@ Set the `variant` attribute to change the button style:
 
 Add an icon with the `icon` attribute. Control placement with `iconPlacement`:
 
-````
+::::example
 :::link-button[View on GitHub](href="https://github.com/example" icon="github" iconPlacement="start")
 :::
-````
+::::
 
 → A GitHub icon appears before the button text.
 
@@ -59,21 +61,21 @@ Add an icon with the `icon` attribute. Control placement with `iconPlacement`:
 
 An icon-only button (no label text) receives a compact square layout:
 
-````
+::::example
 :::link-button(href="https://github.com/example" icon="github")
 :::
-````
+::::
 
 ## Size
 
 Set `size` to `sm` or `lg`:
 
-````
+::::example
 :::link-button[Small](href="/docs/" size="sm")
 :::
 :::link-button[Large](href="/docs/" size="lg")
 :::
-````
+::::
 
 ## Layout and state
 
@@ -85,26 +87,28 @@ External URLs (`http://` or `https://`) automatically open in a new tab. Overrid
 
 Wrap multiple link buttons in `:::link-button-group` for horizontal alignment:
 
-````
+:::::example
 ::::link-button-group
-:::link-button[Get Started](href="/docs/getting-started/" variant="primary")
+:::link-button[Get Started](href="/start-here/getting-started/" variant="primary")
 :::
-:::link-button[View Demo](href="/demo/" variant="outline")
+:::link-button[Kitchen Sink](href="/extensions/kitchen-sink/" variant="outline")
 :::
 ::::
-````
+:::::
 
 → Two buttons appear side by side with consistent spacing.
+
+`:::link-button-group` takes no attributes. Each nested `:::link-button` block controls its own style and content. Four colons on the outer group and three on each button is a readability convention: both fences accept three or more colons. When a nested button has no `href`, Sarde drops that button and renders the group around the remaining buttons.
 
 ## Body text as label
 
 When no label is provided in square brackets, body text between the fences becomes the button label:
 
-````
+::::example
 :::link-button(href="/docs/")
 Read the documentation
 :::
-````
+::::
 
 If both a bracket label and body text are present, the bracket label takes precedence.
 

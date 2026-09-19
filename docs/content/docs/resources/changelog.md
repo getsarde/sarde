@@ -9,6 +9,17 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ## Unreleased
 
+### Fixed
+
+- **`search.enabled: false` now disables search:** the documented switch was never read: the index was still built, the runtime script still injected, and the header button still rendered. It now unregisters the search plugin and hides the button and modal, without warning about an unused `plugins.config.search` block. The undocumented `search.provider: "disabled"` value the template used to honor is gone; `provider` accepts only `orama`. `header.search: false`, also previously inert, now hides the header button while keeping the index and modal.
+- **Search results reach the highlighter:** result links never carried the `?q=` parameter that the `search_highlighter` plugin reads, so highlighting never triggered from search. Links now append `?q=<query>` before any `#anchor` whenever the highlighter plugin is enabled, and stay clean otherwise.
+- **Search modal strings are translatable:** twenty-one runtime labels ("Recent", "Type to start searching", the result count, the full-search preview labels, and others) were hard-coded English and two of them overwrote labels the template had already translated. They now resolve through new `search.*` i18n keys with `_one`/`_other` plural forms and `{count}`, `{term}`, `{min}` placeholders, injected per page language, with English fallbacks in the script. The loading spinner gained an accessible label.
+- **Client plugin config no longer clobbers other plugins:** the inline `window.__SARDE__.pluginConfig` script assigned the object wholesale; it now merges, and every injected plugin gets an entry even with an empty config, so `pluginConfig[slug]` reliably signals that a plugin is active on the page.
+
+### Added
+
+- **Plugin translation capability**: `BeforeRenderContext.T(lang, key)` resolves UI strings through the site's i18n layers for any plugin's per-page hook.
+
 ### Docs
 
 - Added a Template API page that maps what a template receives, the base shell contract, and where components, partials, and functions are documented, and a Route Data reference listing every field available as the dot context with the conditions under which each is populated. A test in `internal/engine` fails when a struct field is added without a docs entry.
@@ -44,11 +55,11 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Added
 
-- **Theme CSS hot-swap in dev mode.** Editing a theme stylesheet (under `themes/<name>/css/` or the `--theme-dev` source tree) now reassembles the CSS bundle in place instead of running a full site rebuild. Typical refresh time is 2-7ms instead of ~1.3s. The browser restyles via the existing CSS swap mechanism without a page reload.
-- **Draft banner.** Pages with `draft: true` now display a visual banner in dev mode so draft status is immediately visible in the browser.
-- **Prose link underline in extensions.** Links inside tabs, details/accordion, steps, and columns now receive the same underline and hover styling as regular prose links. Previously the `not-content` wrapper on these extensions excluded them.
-- **Aside link underline.** Links inside galaxy-style asides now show a visible underline at rest and shift to high-contrast text on hover, matching Starlight's aside link treatment.
-- **Hero CTA hover effects.** The primary call-to-action button gains an accent glow, a brightness shift that works in both light and dark themes, and a press state on click.
+- **Theme CSS hot-swap in dev mode:** editing a theme stylesheet (under `themes/<name>/css/` or the `--theme-dev` source tree) now reassembles the CSS bundle in place instead of running a full site rebuild. Typical refresh time is 2-7ms instead of ~1.3s. The browser restyles via the existing CSS swap mechanism without a page reload.
+- **Draft banner:** pages with `draft: true` now display a visual banner in dev mode so draft status is immediately visible in the browser.
+- **Prose link underline in extensions:** links inside tabs, details/accordion, steps, and columns now receive the same underline and hover styling as regular prose links. Previously the `not-content` wrapper on these extensions excluded them.
+- **Aside link underline:** links inside galaxy-style asides now show a visible underline at rest and shift to high-contrast text on hover, matching Starlight's aside link treatment.
+- **Hero CTA hover effects:** the primary call-to-action button gains an accent glow, a brightness shift that works in both light and dark themes, and a press state on click.
 
 ### Changed
 
@@ -72,28 +83,28 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Breaking
 
-- **`scroll_to_top` threshold is now pixels instead of a percentage.** The default changed from `30` (meaning 30% of total scroll) to `300` (meaning 300 pixels from the top). Sites with a custom `threshold` value will see different behavior. A new `position` option (`left`, `center`, `right`) controls button placement, defaulting to center.
-- **Plugin slugs and config keys standardized to snake_case.** All 11 client plugin slugs changed from kebab-case to snake_case (e.g. `scroll-to-top` to `scroll_to_top`). Legacy kebab-case spellings in `plugins.enabled`, `plugins.disabled`, and `plugins.config` are accepted as deprecated aliases with a build-time warning. The `scroll_to_top` plugin's config field keys also moved from camelCase to snake_case (e.g. `showTooltip` to `show_tooltip`); old spellings are similarly aliased. Update your `sarde.yaml` to the new names to silence the warnings.
+- **`scroll_to_top` threshold is now pixels instead of a percentage:** the default changed from `30` (meaning 30% of total scroll) to `300` (meaning 300 pixels from the top). Sites with a custom `threshold` value will see different behavior. A new `position` option (`left`, `center`, `right`) controls button placement, defaulting to center.
+- **Plugin slugs and config keys standardized to snake_case:** all 11 client plugin slugs changed from kebab-case to snake_case (e.g. `scroll-to-top` to `scroll_to_top`). Legacy kebab-case spellings in `plugins.enabled`, `plugins.disabled`, and `plugins.config` are accepted as deprecated aliases with a build-time warning. The `scroll_to_top` plugin's config field keys also moved from camelCase to snake_case (e.g. `showTooltip` to `show_tooltip`); old spellings are similarly aliased. Update your `sarde.yaml` to the new names to silence the warnings.
 
 ### Added
 
 - **Telescope command-palette plugin** for fuzzy page navigation. Opens with a keyboard shortcut and lets readers search and jump to any page instantly. Enable it with `telescope` in `plugins.enabled`.
-- **Custom `:::` directives.** Sites and themes can define new Markdown `:::` block directives with a YAML schema, an HTML template, and an optional CSS sidecar placed in a `directives/` directory. `sarde new directive <name>` scaffolds the starter files. `sarde directives --check` validates definitions. The dev server live-reloads directive changes.
-- **Plugin-shipped directives.** External plugins can now include `:::` directives by placing definitions in `plugins/<slug>/directives/`.
-- **Social card redesign.** Cards now use a bottom-anchored editorial layout with a background gradient, corner logo mark, and optional watermark. New config options: `logo`, `watermark`, `watermark_opacity`, `accent_color_2`, `bg_image`, `bg_gradient`, `logo_size`, and custom `fonts`. Per-page `og_card` frontmatter overrides colors and toggles. A disk cache under `.cache/social_cards/` makes repeat builds near-instant.
-- **Site logo in the header.** `site.logo` now renders an image before the site title, with separate light and dark variants. `replaces_title: true` hides the text and shows only the logo. Raster logos get `width`/`height` attributes to prevent layout shift.
-- **Signed releases.** Release archives are now signed with ed25519. `sarde update` verifies the signature chain before applying an update.
-- **Passive update notices.** `sarde build` and `sarde dev` print a one-line notice when a newer release is available. Suppressed in CI, with `--quiet`, and when stderr is not a terminal. Set `SARDE_NO_UPDATE_CHECK=1` to disable.
-- **`sarde update` improvements.** The update command now detects package-manager installs (Homebrew, Scoop, Chocolatey, winget) and prints the matching upgrade command instead of self-replacing. Release notes are shown before the confirmation prompt. A `--yes` flag supports non-interactive use. Permission errors print actionable advice.
-- **Benchmark harness.** New `sarde-bench` tool measures build performance with median wall time, pages/sec, and per-phase breakdowns. `sarde build --format json` emits machine-readable build results.
-- **Hero CTA icons.** Hero call-to-action buttons accept an optional `icon` field that renders a Lucide icon after the label.
-- **Keyboard navigation enhancements.** Side navigation arrows are now mdBook-sized with reserved page margin so they never overlap content. A styled tooltip shows the target page title and keyboard shortcut on hover and focus. Below 1280px, the arrows restyle as compact floating buttons. Buttons auto-hide after inactivity and reappear on scroll. New options: `side_nav_size`, `show_tooltip`, `show_compact_nav`, `auto_hide`, `hide_delay`, `scroll_threshold`.
-- **Galaxy aside style.** Set `markdown.asides.style: galaxy` for a rounded-card look with accent ring, gradient glow, and softer hover. The `caution` and `important` aside variants now render with proper accent colors (amber and purple) instead of being unstyled.
-- **Inline code chips.** Inline code now renders with an accent-tinted text color and a subtle border. Inside asides, the chip tints to match the aside accent.
-- **`fontUsed` template function.** Conditionally preloads a font file only when the current page layout actually uses it.
-- **Blog list card restyle.** Blog list pages use updated card styling with a wider layout for sidebar pages.
-- **Sidebar hover accent.** Sidebar links change to the accent text color on hover.
-- **Docs preset accent.** The docs theme preset now uses Starlight's default accent palette, with a dark-mode variant.
+- **Custom `:::` directives:** sites and themes can define new Markdown `:::` block directives with a YAML schema, an HTML template, and an optional CSS sidecar placed in a `directives/` directory. `sarde new directive <name>` scaffolds the starter files. `sarde directives --check` validates definitions. The dev server live-reloads directive changes.
+- **Plugin-shipped directives:** external plugins can now include `:::` directives by placing definitions in `plugins/<slug>/directives/`.
+- **Social card redesign:** cards now use a bottom-anchored editorial layout with a background gradient, corner logo mark, and optional watermark. New config options: `logo`, `watermark`, `watermark_opacity`, `accent_color_2`, `bg_image`, `bg_gradient`, `logo_size`, and custom `fonts`. Per-page `og_card` frontmatter overrides colors and toggles. A disk cache under `.cache/social_cards/` makes repeat builds near-instant.
+- **Site logo in the header:** `site.logo` now renders an image before the site title, with separate light and dark variants. `replaces_title: true` hides the text and shows only the logo. Raster logos get `width`/`height` attributes to prevent layout shift.
+- **Signed releases:** release archives are now signed with ed25519. `sarde update` verifies the signature chain before applying an update.
+- **Passive update notices:** `sarde build` and `sarde dev` print a one-line notice when a newer release is available. Suppressed in CI, with `--quiet`, and when stderr is not a terminal. Set `SARDE_NO_UPDATE_CHECK=1` to disable.
+- **`sarde update` improvements:** the update command now detects package-manager installs (Homebrew, Scoop, Chocolatey, winget) and prints the matching upgrade command instead of self-replacing. Release notes are shown before the confirmation prompt. A `--yes` flag supports non-interactive use. Permission errors print actionable advice.
+- **Benchmark harness:** new `sarde-bench` tool measures build performance with median wall time, pages/sec, and per-phase breakdowns. `sarde build --format json` emits machine-readable build results.
+- **Hero CTA icons:** hero call-to-action buttons accept an optional `icon` field that renders a Lucide icon after the label.
+- **Keyboard navigation enhancements:** side navigation arrows are now mdBook-sized with reserved page margin so they never overlap content. A styled tooltip shows the target page title and keyboard shortcut on hover and focus. Below 1280px, the arrows restyle as compact floating buttons. Buttons auto-hide after inactivity and reappear on scroll. New options: `side_nav_size`, `show_tooltip`, `show_compact_nav`, `auto_hide`, `hide_delay`, `scroll_threshold`.
+- **Galaxy aside style:** set `markdown.asides.style: galaxy` for a rounded-card look with accent ring, gradient glow, and softer hover. The `caution` and `important` aside variants now render with proper accent colors (amber and purple) instead of being unstyled.
+- **Inline code chips:** inline code now renders with an accent-tinted text color and a subtle border. Inside asides, the chip tints to match the aside accent.
+- **`fontUsed` template function:** conditionally preloads a font file only when the current page layout actually uses it.
+- **Blog list card restyle:** blog list pages use updated card styling with a wider layout for sidebar pages.
+- **Sidebar hover accent:** sidebar links change to the accent text color on hover.
+- **Docs preset accent:** the docs theme preset now uses Starlight's default accent palette, with a dark-mode variant.
 
 ### Changed
 
@@ -103,12 +114,12 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Fixed
 
-- **SEO.** JSON-LD is now rendered as raw script content instead of being double-encoded. Added a description fallback for pages without one, self-referencing hreflang links, and pagination indexing hints.
-- **Accessibility.** The image lightbox and text highlighter are now operable by keyboard. ARIA roles are corrected and expanded state stays in sync across interactive components. Missing focus indicators are restored. Copy confirmations are announced to screen readers. The reading-position toast is pausable. `prefers-reduced-motion` is respected in JavaScript-driven scrolling.
-- **Theme contrast.** All accent-colored text, subtle text, aside titles, and code block line numbers now meet WCAG AA contrast ratios. The `<meta charset>` tag is emitted as the first element in `<head>`. Accent-fill foregrounds stay white in dark mode instead of flipping to black. Inline icons flow with text and honor explicit sizes. Long ToC headings stay inside the column on narrow desktop widths. List card titles are promoted to `h2` to avoid skipped heading levels. Missing labs tokens are defined so progress and badge styles render. Logical properties are used for lightbox, image-compare, and theme-toggle positioning. Mobile and icon-only controls meet the minimum touch target size.
-- **Search.** The `pagefind: false` frontmatter opt-out is now honored. Documented field boosts (title 5x, tags 2.5x, description 2x) are applied. Per-language stemming and stopwords are active for 14 languages. Mermaid diagrams, KaTeX math, and code-block line numbers are excluded from the search index.
-- **Summaries.** Raw `:::` directive syntax no longer leaks into auto-generated descriptions, social card text, SEO meta tags, or RSS/Atom feeds. Pages built entirely from directives fall back to rendered-text extraction.
-- **Font tokens.** Removed a self-referencing `var()` cycle in font token fallbacks that caused the browser to ignore the declaration.
+- **SEO:** JSON-LD is now rendered as raw script content instead of being double-encoded. Added a description fallback for pages without one, self-referencing hreflang links, and pagination indexing hints.
+- **Accessibility:** the image lightbox and text highlighter are now operable by keyboard. ARIA roles are corrected and expanded state stays in sync across interactive components. Missing focus indicators are restored. Copy confirmations are announced to screen readers. The reading-position toast is pausable. `prefers-reduced-motion` is respected in JavaScript-driven scrolling.
+- **Theme contrast:** all accent-colored text, subtle text, aside titles, and code block line numbers now meet WCAG AA contrast ratios. The `<meta charset>` tag is emitted as the first element in `<head>`. Accent-fill foregrounds stay white in dark mode instead of flipping to black. Inline icons flow with text and honor explicit sizes. Long ToC headings stay inside the column on narrow desktop widths. List card titles are promoted to `h2` to avoid skipped heading levels. Missing labs tokens are defined so progress and badge styles render. Logical properties are used for lightbox, image-compare, and theme-toggle positioning. Mobile and icon-only controls meet the minimum touch target size.
+- **Search:** the `pagefind: false` frontmatter opt-out is now honored. Documented field boosts (title 5x, tags 2.5x, description 2x) are applied. Per-language stemming and stopwords are active for 14 languages. Mermaid diagrams, KaTeX math, and code-block line numbers are excluded from the search index.
+- **Summaries:** raw `:::` directive syntax no longer leaks into auto-generated descriptions, social card text, SEO meta tags, or RSS/Atom feeds. Pages built entirely from directives fall back to rendered-text extraction.
+- **Font tokens:** removed a self-referencing `var()` cycle in font token fallbacks that caused the browser to ignore the declaration.
 - **Sidebar collapse toggle** enlarged and its hover state made visible in both light and dark themes.
 - **Search trigger** uses the accent hover color and applies correctly in dark mode.
 
@@ -122,7 +133,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Breaking
 
-- **The `last-updated` client plugin has been removed.** If your `sarde.yaml` lists `last-updated` under `plugins.enabled`, **delete that line** or the build will fail with `config validation failed: plugins.enabled[N]`. The date is now rendered by the theme itself on docs, labs, blog, and default layouts, with no plugin and no JavaScript required. The plugin's `date_format` option lives on as [`theme.date_format`](/reference/configuration#date-format). Relative time ("3 days ago") is no longer available; the date is always absolute.
+- **The `last-updated` client plugin has been removed:** if your `sarde.yaml` lists `last-updated` under `plugins.enabled`, **delete that line** or the build will fail with `config validation failed: plugins.enabled[N]`. The date is now rendered by the theme itself on docs, labs, blog, and default layouts, with no plugin and no JavaScript required. The plugin's `date_format` option lives on as [`theme.date_format`](/reference/configuration#date-format). Relative time ("3 days ago") is no longer available; the date is always absolute.
 
 ### Added
 

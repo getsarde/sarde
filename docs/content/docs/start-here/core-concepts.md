@@ -123,4 +123,4 @@ See [Themes and Styling](/guides/themes-and-styling/) to customize the look.
 
 `sarde build` writes the publishable site to `dist/`. Drafts, future-dated pages, and expired pages are excluded, and broken internal links fail the build.
 
-That difference matters when a page appears locally but not in production: the usual cause is `draft: true` in its frontmatter.
+When a page appears locally but not in production, check its frontmatter for `draft: true`.

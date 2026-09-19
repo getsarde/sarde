@@ -36,8 +36,9 @@ func (p *badgeParser) Open(parent ast.Node, reader text.Reader, pc parser.Contex
 		attrs := attrutil.Parse(raw)
 		if v, ok := attrs["type"]; ok {
 			badgeType = v
-		} else if !strings.Contains(raw, "=") {
-			badgeType = strings.TrimSpace(raw)
+		} else if first := strings.Fields(raw); len(first) > 0 && !strings.Contains(first[0], "=") {
+			// A leading bare word is the type, with or without attributes after it.
+			badgeType = first[0]
 		}
 		icon = attrs["icon"]
 		if attrs["style"] == "outline" {

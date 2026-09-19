@@ -33,25 +33,19 @@ Run `sarde dev` and open `http://localhost:4727` in a browser.
 
 → Three numbered steps appear with a vertical line connecting them. Each step shows its number, title, and body content below.
 
-<!-- SCREENSHOT: steps-heading-mode — three numbered steps with vertical progress line -->
+<!-- SCREENSHOT: steps-heading-mode: three numbered steps with vertical progress line -->
 
 ## Ordered-list mode
 
 Write a standard Markdown ordered list inside `:::steps`. CSS handles the numbering and step styling:
 
-````
+::::example
 :::steps
 1. Clone the repository from GitHub.
 2. Install the required dependencies with `npm install`.
 3. Run `sarde dev` to start the local development server.
 :::
-````
-
-:::steps
-1. Clone the repository from GitHub.
-2. Install the required dependencies with `npm install`.
-3. Run `sarde dev` to start the local development server.
-:::
+::::
 
 → The ordered list renders as styled steps with numbering and a connecting line.
 

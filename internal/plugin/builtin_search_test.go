@@ -5,10 +5,13 @@ import (
 	"html/template"
 	"strings"
 	"testing"
+	"testing/fstest"
 	"unicode/utf8"
 
+	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/i18n"
 )
 
 func TestExtractSearchText(t *testing.T) {
@@ -380,6 +383,92 @@ func TestSearch_BeforeRenderAppendsScripts(t *testing.T) {
 	}
 	if len(rd.Scripts) != 1 {
 		t.Fatalf("expected 1 script appended, got %d: %v", len(rd.Scripts), rd.Scripts)
+	}
+	if len(rd.InlineScripts) != 1 {
+		t.Fatalf("expected 1 inline strings script, got %d", len(rd.InlineScripts))
+	}
+	script := string(rd.InlineScripts[0])
+	// Merge form: must not clobber pluginConfig entries from other plugins.
+	if !strings.Contains(script, "window.__SARDE__.pluginConfig=window.__SARDE__.pluginConfig||{}") {
+		t.Errorf("strings script should merge into pluginConfig, got: %s", script)
+	}
+	if !strings.Contains(script, "window.__SARDE__.pluginConfig.search=") {
+		t.Errorf("strings script should assign pluginConfig.search, got: %s", script)
+	}
+	// Without a string table the raw key comes through; the client treats a
+	// "search."-prefixed value as unresolved and falls back to English.
+	if !strings.Contains(script, `"recent":"search.recent"`) {
+		t.Errorf("expected raw key fallback for recent, got: %s", script)
+	}
+}
+
+func TestSearch_BeforeRenderResolvesStringsPerLanguage(t *testing.T) {
+	fsys := fstest.MapFS{
+		"en.yaml": &fstest.MapFile{Data: []byte("search:\n  recent: \"Recent\"\n  clear: \"Clear\"\n")},
+		"fr.yaml": &fstest.MapFile{Data: []byte("search:\n  recent: \"Récents\"\n")},
+	}
+	st, err := i18n.LoadStrings(fsys, t.TempDir(), "", "en")
+	if err != nil {
+		t.Fatalf("LoadStrings: %v", err)
+	}
+	mgr := NewManager()
+	mgr.SetStringTable(st)
+	mgr.Register(newSearchPlugin(nil))
+	cfg := config.Defaults()
+
+	render := func(lang string) string {
+		rd := &engine.RouteData{}
+		page := &engine.Page{PageIdentity: engine.PageIdentity{Title: "X"}, PageI18n: engine.PageI18n{Lang: lang}}
+		if err := mgr.RunBeforeRender(cfg, page, rd, nil, nil); err != nil {
+			t.Fatalf("RunBeforeRender(%s): %v", lang, err)
+		}
+		if len(rd.InlineScripts) != 1 {
+			t.Fatalf("expected 1 inline script for %s, got %d", lang, len(rd.InlineScripts))
+		}
+		return string(rd.InlineScripts[0])
+	}
+
+	en := render("en")
+	if !strings.Contains(en, `"recent":"Recent"`) || !strings.Contains(en, `"clear":"Clear"`) {
+		t.Errorf("en script missing resolved strings: %s", en)
+	}
+	fr := render("fr")
+	if !strings.Contains(fr, `"recent":"Récents"`) {
+		t.Errorf("fr script should use the fr translation: %s", fr)
+	}
+	// Missing fr key falls back to the default language.
+	if !strings.Contains(fr, `"clear":"Clear"`) {
+		t.Errorf("fr script should fall back to en for clear: %s", fr)
+	}
+	// Per-language memoization: a second render reuses the same script.
+	if again := render("fr"); again != fr {
+		t.Error("expected memoized script for repeated language")
+	}
+}
+
+// TestSearch_StringKeysExistInEmbeddedI18n is the drift guard: every key the
+// runtime expects must have an English value in embedded/i18n/en.yaml.
+func TestSearch_StringKeysExistInEmbeddedI18n(t *testing.T) {
+	st, err := i18n.LoadStrings(embedded.I18nFS(), "", "", "en")
+	if err != nil {
+		t.Fatalf("LoadStrings: %v", err)
+	}
+	for _, key := range searchStringKeys {
+		full := "search." + key
+		if got := st.Resolve("en", full); got == full || got == "" {
+			t.Errorf("embedded/i18n/en.yaml is missing %q (used by static-search.js)", full)
+		}
+	}
+	// Placeholder contract: the client substitutes these names verbatim.
+	for key, want := range map[string]string{
+		"min_length":            "{min}",
+		"results_count_one":     "{count}",
+		"results_count_other":   "{term}",
+		"matches_in_page_other": "{count}",
+	} {
+		if got := st.Resolve("en", "search."+key); !strings.Contains(got, want) {
+			t.Errorf("search.%s should contain %s placeholder, got %q", key, want, got)
+		}
 	}
 }
 

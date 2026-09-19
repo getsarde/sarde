@@ -9,10 +9,10 @@ Link cards render a clickable card-style link with a title, optional description
 
 ## Basic syntax
 
-````
+::::example
 :::link-card[Sarde Documentation](href="/docs/")
 :::
-````
+::::
 
 → A bordered card appears with "Sarde Documentation" as the title and a right-arrow indicator.
 
@@ -20,20 +20,20 @@ Link cards render a clickable card-style link with a title, optional description
 
 Add a description using the `description` attribute or body text:
 
-````
-:::link-card[Getting Started](href="/docs/getting-started/" description="Install Sarde and create a site in under five minutes.")
+::::example
+:::link-card[Getting Started](href="/start-here/getting-started/" description="Install Sarde and create a site in under five minutes.")
 :::
-````
+::::
 
 → The card shows the title on top and the description below it in muted text.
 
 Body text between the fences also works as the description:
 
-````
-:::link-card[Getting Started](href="/docs/getting-started/")
+::::example
+:::link-card[Getting Started](href="/start-here/getting-started/")
 Install Sarde and create a site in under five minutes.
 :::
-````
+::::
 
 If both an attribute and body text are present, the body text overrides the attribute.
 
@@ -41,10 +41,10 @@ If both an attribute and body text are present, the body text overrides the attr
 
 Add a Lucide icon to the card with the `icon` attribute:
 
-````
+::::example
 :::link-card[API Reference](href="/docs/reference/" icon="book-open")
 :::
-````
+::::
 
 → A book-open icon appears to the left of the card title.
 
@@ -52,10 +52,10 @@ Add a Lucide icon to the card with the `icon` attribute:
 
 Add a thumbnail image with the `image` attribute:
 
-````
-:::link-card[Course Overview](href="/courses/intro/" image="/images/course-thumb.jpg")
+::::example
+:::link-card[Teaching](href="/teaching/" image="/images/sarde-icon.svg")
 :::
-````
+::::
 
 → A thumbnail image appears on the left side of the card. When both `icon` and `image` are set, the image takes precedence.
 
@@ -63,10 +63,10 @@ Add a thumbnail image with the `image` attribute:
 
 External URLs automatically open in a new tab. The domain name appears at the bottom of the card:
 
-````
+::::example
 :::link-card[GitHub Repository](href="https://github.com/getsarde/sarde")
 :::
-````
+::::
 
 → The card shows "GitHub Repository" as the title and "github.com" as the domain label. The `www.` prefix is stripped from the domain display.
 
@@ -74,19 +74,19 @@ External cards also rotate the arrow indicator 45 degrees so it points up and to
 
 Override the new-tab behavior with `new-tab="false"`:
 
-````
+::::example
 :::link-card[Partner Site](href="https://example.com" new-tab="false")
 :::
-````
+::::
 
 ## Auto title
 
 When no title is provided in square brackets, the domain name from the URL is used as the title:
 
-````
+::::example
 :::link-card(href="https://github.com/getsarde/sarde")
 :::
-````
+::::
 
 → The card title displays "github.com".
 

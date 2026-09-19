@@ -67,8 +67,8 @@ With `--format json` (on `build`, `dev`, and `validate`), a fatal error is emitt
 }}
 ```
 
-- `kind` — `config_validation` for configuration validation failures (carries per-field `details`), otherwise `build_failed` / `dev_failed` / `validate_failed` with `message` only.
-- `details[].allowed` — present when the failed check was an enumeration, so tooling can offer suggestions.
+- `kind`: `config_validation` for configuration validation failures (carries per-field `details`), otherwise `build_failed` / `dev_failed` / `validate_failed` with `message` only.
+- `details[].allowed`: present when the failed check was an enumeration, so tooling can offer suggestions.
 
 Human-readable error text still goes to stderr in both formats. This envelope is consumed by Sarde Studio; the field names are stable.
 

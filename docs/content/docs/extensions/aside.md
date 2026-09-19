@@ -9,15 +9,11 @@ Asides add colored callout blocks (notes, tips, cautions, and dangers) that stan
 
 ## Basic syntax
 
-````
+::::example
 :::note
 Photosynthesis requires both water and carbon dioxide.
 :::
-````
-
-:::note
-Photosynthesis requires both water and carbon dioxide.
-:::
+::::
 
 → A blue callout box appears with a "Note" label and a book-open icon.
 
@@ -35,39 +31,27 @@ Set the type as the directive name:
 | `important` | Purple | `flag` | Key information the reader must not miss. |
 | `danger` | Red | `x-circle` | Breaking changes, data loss, or destructive actions. |
 
-````
+::::example
 :::tip
 Use descriptive variable names to make code self-documenting.
 :::
-````
-
-:::tip
-Use descriptive variable names to make code self-documenting.
-:::
+::::
 
 → A green callout box appears with a "Tip" label and a sparkles icon.
 
-````
+::::example
 :::danger
 Dropping a database table cannot be undone. Back up your data first.
 :::
-````
-
-:::danger
-Dropping a database table cannot be undone. Back up your data first.
-:::
+::::
 
 → A red callout box appears with a "Danger" label and an x-circle icon.
 
-````
+::::example
 :::warning
 Changing the URL slug breaks existing bookmarks and external links.
 :::
-````
-
-:::warning
-Changing the URL slug breaks existing bookmarks and external links.
-:::
+::::
 
 → An amber callout box appears with a "Warning" label and a flame icon.
 
@@ -75,15 +59,11 @@ Changing the URL slug breaks existing bookmarks and external links.
 
 Override the default title with square brackets after the type name:
 
-````
+::::example
 :::note[Before you begin]
 Make sure Node.js 18 or later is installed.
 :::
-````
-
-:::note[Before you begin]
-Make sure Node.js 18 or later is installed.
-:::
+::::
 
 → The aside displays "Before you begin" instead of the default "Note" title.
 
@@ -91,15 +71,11 @@ Make sure Node.js 18 or later is installed.
 
 Override the default icon with the `icon` parameter. The value is a Lucide icon name:
 
-````
+::::example
 :::tip[Performance] icon=zap
 Enable parallel builds for faster compilation on multi-core machines.
 :::
-````
-
-:::tip[Performance] icon=zap
-Enable parallel builds for faster compilation on multi-core machines.
-:::
+::::
 
 → The tip displays a zap (lightning) icon instead of the default sparkles icon.
 

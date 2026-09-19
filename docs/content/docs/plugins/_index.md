@@ -7,7 +7,7 @@ sidebar:
 ---
 
 Plugins add behavior to the build process or the generated site. Sarde ships
-with 27 built-in plugins, and sites can install external plugins into their
+with 26 built-in plugins, and sites can install external plugins into their
 `plugins/` directory.
 
 Read [Using Plugins](/plugins/using-plugins/) for enable/disable configuration,

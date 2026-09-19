@@ -2,7 +2,9 @@
   {{ component "SiteTitle" . }}
   {{ component "GlobalNav" . }}
   <div class="sarde-header-actions">
+    {{ if boolVal .Site.Config.Header.Search true }}
     {{ component "Search" . }}
+    {{ end }}
     {{ component "VersionSwitcher" . }}
     {{ component "LanguageSwitcher" . }}
     {{ if boolVal .Site.Config.Header.Social true }}

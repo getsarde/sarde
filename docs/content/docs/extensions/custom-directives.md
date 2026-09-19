@@ -82,6 +82,14 @@ Your template executes against this pipeline value:
 | `.Label` | The `[bracket]` label, or empty. |
 | `.Attrs` | A map of the opening-fence attributes; missing keys read as empty strings. |
 | `.Body` | Container: the rendered body HTML. Leaf: the escaped raw text. |
+| `.Source` | Container: the raw Markdown between the fences, as plain text that the template escapes. Leaf: empty. |
+
+Use `.Source` next to `.Body` to show Markdown beside its rendered result. This template prints both:
+
+```html
+<pre><code>{{ .Source }}</code></pre>
+<div>{{ .Body }}</div>
+```
 
 Templates also get the shortcode helper functions (icons, i18n strings, URL helpers).
 
@@ -143,7 +151,7 @@ A site or theme directive silently overrides a same-named plugin directive (inte
 
 ## Edge cases
 
-- **Built-in names win.** A `directives/card.yaml` is ignored with a warning; the built-in `:::card` keeps working, whether the definition comes from a plugin, a theme, or the site.
-- **Theme vs site.** A site directive overrides a theme directive of the same name; both override plugin directives.
-- **Unknown names fall through.** `:::something-unregistered` renders as plain paragraph text, matching built-in behavior.
-- **Leaf bodies are escaped.** Raw HTML inside a leaf body renders as text, not markup. Use a container if you need rendered content.
+- **Built-in names win:** a `directives/card.yaml` is ignored with a warning; the built-in `:::card` keeps working, whether the definition comes from a plugin, a theme, or the site.
+- **Theme vs site:** a site directive overrides a theme directive of the same name; both override plugin directives.
+- **Unknown names fall through:** `:::something-unregistered` renders as plain paragraph text, matching built-in behavior.
+- **Leaf bodies are escaped:** raw HTML inside a leaf body renders as text, not markup. Use a container if you need rendered content.

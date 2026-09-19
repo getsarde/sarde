@@ -9,15 +9,11 @@ Details creates a collapsible section that readers can expand and collapse. It r
 
 ## Basic syntax
 
-````
+::::example
 :::details[What are mitochondria?]
 Mitochondria are membrane-bound organelles found in eukaryotic cells. They generate most of the cell's supply of adenosine triphosphate (ATP), the molecule used as energy currency.
 :::
-````
-
-:::details[What are mitochondria?]
-Mitochondria are membrane-bound organelles found in eukaryotic cells. They generate most of the cell's supply of adenosine triphosphate (ATP), the molecule used as energy currency.
-:::
+::::
 
 → A collapsed section appears with "What are mitochondria?" as the clickable summary. Clicking it reveals the content below.
 
@@ -25,21 +21,14 @@ Mitochondria are membrane-bound organelles found in eukaryotic cells. They gener
 
 Add the `open` flag to expand the section on page load:
 
-````
+::::example
 :::details[Course syllabus] open
 - Week 1: Introduction to molecular biology
 - Week 2: DNA structure and replication
 - Week 3: Gene expression and regulation
 - Week 4: Genetic engineering techniques
 :::
-````
-
-:::details[Course syllabus] open
-- Week 1: Introduction to molecular biology
-- Week 2: DNA structure and replication
-- Week 3: Gene expression and regulation
-- Week 4: Genetic engineering techniques
-:::
+::::
 
 → The section appears expanded when the page loads. Readers can still collapse it by clicking the summary.
 
@@ -49,15 +38,11 @@ The `open` flag can also be written in parentheses: `:::details(open)[Course syl
 
 Omitting the summary text produces a default label of "Details":
 
-````
+::::example
 :::details
 Additional technical notes that most readers can skip.
 :::
-````
-
-:::details
-Additional technical notes that most readers can skip.
-:::
+::::
 
 → A collapsed section appears with "Details" as the summary text.
 
@@ -65,7 +50,7 @@ Additional technical notes that most readers can skip.
 
 Details sections support any Markdown content, including headings, code blocks, lists, and nested extensions:
 
-````
+::::example
 :::details[Implementation notes]
 The authentication flow uses three steps:
 
@@ -78,20 +63,7 @@ response = requests.post("/auth/login", json={"user": "admin", "pass": "secret"}
 token = response.json()["token"]
 ```
 :::
-````
-
-:::details[Implementation notes]
-The authentication flow uses three steps:
-
-1. Client sends credentials to `/auth/login`
-2. Server validates and returns a JWT
-3. Client includes the token in subsequent requests
-
-```python
-response = requests.post("/auth/login", json={"user": "admin", "pass": "secret"})
-token = response.json()["token"]
-```
-:::
+::::
 
 → The collapsed section contains formatted text, a numbered list, and a syntax-highlighted code block.
 

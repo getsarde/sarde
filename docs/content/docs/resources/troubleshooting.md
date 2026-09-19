@@ -5,7 +5,7 @@ sidebar:
   order: 5
 ---
 
-Common errors and how to resolve them. Errors are grouped by where they occur: build, configuration, dev server, link checking, and themes.
+Find an error by the text Sarde prints. Entries are grouped by where the error occurs: build, configuration, dev server, link checking, and themes. After applying a fix, run the failing command again: the error no longer appears when the fix worked. For configuration errors, `sarde validate` checks `sarde.yaml` without building the site.
 
 ## Build errors
 
@@ -123,7 +123,7 @@ Sarde takes a lock on the output directory so two builds cannot interleave write
 
 **Fix:** Stop the process named in the message. It is usually a `sarde dev` left running in another terminal or an editor's integrated preview.
 
-If that process is gone, for example after a crash or a hard kill, the lock file outlived it. Delete the lock file named in the message and run the command again. A variant of the message reads `(lock metadata unreadable)` when the lock file exists but cannot be parsed, and the fix is the same.
+If that process is gone, for example after a crash or a hard kill, the lock file outlived it. Confirm that no process with the reported pid is running, then delete the lock file named in the message. Deleting the lock while that process is still writing lets two builds write into the same `dist/`. A variant of the message reads `(lock metadata unreadable)` when the lock file exists but cannot be parsed, and the fix is the same.
 
 To run two builds at once on purpose, give each its own output directory:
 

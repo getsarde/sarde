@@ -9,21 +9,17 @@ Keyboard keys render as styled keycaps that visually match physical keyboard but
 
 ## Basic syntax
 
-```markdown
+::::example
 Press ::kbd[Ctrl+S] to save the document.
-```
-
-Press ::kbd[Ctrl+S] to save the document.
+::::
 
 → Two keycaps appear ("Ctrl" and "S") joined by a `+` separator.
 
 A single key renders without a separator:
 
-```markdown
+::::example
 Press ::kbd[Esc] to close the dialog.
-```
-
-Press ::kbd[Esc] to close the dialog.
+::::
 
 → A single "Esc" keycap appears inline with the text.
 
@@ -31,21 +27,17 @@ Press ::kbd[Esc] to close the dialog.
 
 The `+` character splits keys into individual keycaps. Three or more keys work the same way:
 
-```markdown
+::::example
 Open the command palette with ::kbd[Ctrl+Shift+P].
-```
-
-Open the command palette with ::kbd[Ctrl+Shift+P].
+::::
 
 → Three keycaps appear joined by separators.
 
 Unicode symbols work directly as key labels:
 
-```markdown
+::::example
 On macOS, use ::kbd[⌘+K] instead.
-```
-
-On macOS, use ::kbd[⌘+K] instead.
+::::
 
 → The command symbol renders inside a keycap alongside "K".
 
@@ -53,15 +45,11 @@ On macOS, use ::kbd[⌘+K] instead.
 
 Set `size="sm"` or `size="lg"` in parentheses after the closing bracket:
 
-```markdown
+::::example
 ::kbd[Ctrl+S](size="sm") Small
 ::kbd[Ctrl+S] Default
 ::kbd[Ctrl+S](size="lg") Large
-```
-
-::kbd[Ctrl+S](size="sm") Small
-::kbd[Ctrl+S] Default
-::kbd[Ctrl+S](size="lg") Large
+::::
 
 → The same key combination renders at three different sizes.
 
@@ -69,21 +57,17 @@ Set `size="sm"` or `size="lg"` in parentheses after the closing bracket:
 
 Add `wide` for keys that are physically wider on a keyboard (Space, Enter, Backspace, Tab):
 
-```markdown
+::::example
 ::kbd[Space](wide) ::kbd[Enter](wide) ::kbd[Backspace](wide)
-```
-
-::kbd[Space](wide) ::kbd[Enter](wide) ::kbd[Backspace](wide)
+::::
 
 → Each keycap renders with a wider minimum width.
 
 Combine `size` and `wide` in the same attribute block:
 
-```markdown
+::::example
 ::kbd[Space](size="lg" wide)
-```
-
-::kbd[Space](size="lg" wide)
+::::
 
 → A large, wide Space keycap.
 

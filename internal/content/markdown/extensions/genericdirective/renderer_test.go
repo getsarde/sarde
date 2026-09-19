@@ -67,3 +67,17 @@ func TestRenderer_TemplateExecError(t *testing.T) {
 		t.Errorf("error must name the directive: %v", err)
 	}
 }
+
+func TestRenderer_ContainerSource(t *testing.T) {
+	// The nested :::pullquote fences must survive in Source, and the raw
+	// Markdown must reach the template escaped, next to the rendered body.
+	md := "::::example\n:::pullquote\n\nPress **Ctrl** & <b>go</b>.\n\n:::\n::::\n"
+	out := render(t, testRegistry(t), md)
+	want := "<pre class=\"src\">:::pullquote\n\nPress **Ctrl** &amp; &lt;b&gt;go&lt;/b&gt;.\n\n:::</pre>"
+	if !strings.Contains(out, want) {
+		t.Fatalf("escaped source missing:\n%s", out)
+	}
+	if !strings.Contains(out, `<div class="out"><blockquote class="pullquote"`) || !strings.Contains(out, "<strong>Ctrl</strong>") {
+		t.Errorf("rendered body missing:\n%s", out)
+	}
+}

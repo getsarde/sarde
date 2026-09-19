@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-A theme is a directory containing templates, stylesheets, and a `theme.yaml` manifest. Install one with `sarde theme add` or place it manually under `themes/`.
+A theme changes a site's templates and stylesheets in one step. It is a directory containing templates, stylesheets, and a `theme.yaml` manifest. Install one with `sarde theme add` or place it manually under `themes/`.
 
 ## Installing a theme
 

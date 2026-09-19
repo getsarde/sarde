@@ -26,7 +26,7 @@ Final exams and course evaluations.
 
 → A vertical timeline appears with a connecting line. Each entry shows its title in a marker beside the line, with the body content to the right.
 
-<!-- SCREENSHOT: timeline-separator — a three-entry vertical timeline with dates as markers -->
+<!-- SCREENSHOT: timeline-separator: a three-entry vertical timeline with dates as markers -->
 
 ## Heading syntax
 

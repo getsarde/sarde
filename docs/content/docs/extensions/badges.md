@@ -1,6 +1,8 @@
 ---
 title: Badges
 description: "Display short colored pill labels with optional icons for status, versions, or categories"
+aliases:
+  - /extensions/badge-group/
 sidebar:
   order: 12
 ---
@@ -9,15 +11,11 @@ Badges display short labels with colored backgrounds and optional icons. Use the
 
 ## Basic syntax
 
-````
+::::example
 :::badge(success)
 Completed
 :::
-````
-
-:::badge(success)
-Completed
-:::
+::::
 
 → A green pill-shaped label appears with a checkmark icon and the text "Completed".
 
@@ -38,15 +36,11 @@ Completed
 
 Set the type as the first parameter:
 
-````
+::::example
 :::badge(danger)
 Deprecated
 :::
-````
-
-:::badge(danger)
-Deprecated
-:::
+::::
 
 → A red badge appears with an x-circle icon and the text "Deprecated".
 
@@ -54,15 +48,11 @@ Deprecated
 
 Override the default icon with the `icon` parameter:
 
-````
+::::example
 :::badge(primary icon="rocket")
 Launching
 :::
-````
-
-:::badge(primary icon="rocket")
-Launching
-:::
+::::
 
 → The badge displays a rocket icon instead of the default circle-check.
 
@@ -70,15 +60,11 @@ Launching
 
 Add `style="outline"` for a bordered variant with a transparent background:
 
-````
+::::example
 :::badge(info style="outline")
 v3.2.0
 :::
-````
-
-:::badge(info style="outline")
-v3.2.0
-:::
+::::
 
 → A bordered blue badge appears with transparent fill and blue text.
 
@@ -88,15 +74,11 @@ Set `size="sm"` or `size="lg"` to adjust the badge size. The default is the stan
 
 Add `no-icon="true"` to hide the icon entirely:
 
-````
+::::example
 :::badge(warning no-icon="true")
 Beta
 :::
-````
-
-:::badge(warning no-icon="true")
-Beta
-:::
+::::
 
 → An amber badge appears with text only, no icon.
 
@@ -104,7 +86,7 @@ Beta
 
 Wrap multiple badges in a `:::badge-group` to display them in a horizontal row:
 
-````
+::::example
 :::badge-group
 :::badge(success)
 Passed
@@ -116,21 +98,11 @@ Failed
 Skipped
 :::
 :::
-````
-
-:::badge-group
-:::badge(success)
-Passed
-:::
-:::badge(danger)
-Failed
-:::
-:::badge(info)
-Skipped
-:::
-:::
+::::
 
 → Three badges appear in a horizontal row with consistent spacing.
+
+`:::badge-group` takes no attributes. Each nested `:::badge` block controls its own style and content. The group accepts any block content, though it is intended for `:::badge` children.
 
 ## Options
 

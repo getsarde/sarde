@@ -22,7 +22,7 @@ plugins:
 
 ## How it works
 
-When a reader clicks a search result, Sarde appends the query as a `?q=` parameter. The plugin reads that parameter, splits it into terms, and highlights every occurrence in the page's content area. Single-character terms are ignored.
+When this plugin is enabled, the search modal appends the query as a `?q=` parameter to every result link, placed before any `#heading` anchor. The plugin reads that parameter, splits it into terms, and highlights every occurrence in the page's content area. Single-character terms are ignored. When the plugin is disabled, result links carry no query parameter.
 
 A sticky badge appears above the content with the total match count (e.g., "3 matches"). The badge includes previous/next buttons to cycle through matches and a dismiss button to clear all highlights. Navigating to a match scrolls it smoothly into view and outlines it as the active match.
 

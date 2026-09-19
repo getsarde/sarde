@@ -1,0 +1,4 @@
+name: example
+kind: container
+label: "Example"
+description: "Shows Markdown source above its rendered result"

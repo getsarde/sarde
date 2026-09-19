@@ -9,21 +9,17 @@ Copy text turns a snippet into a one-click clipboard copy, styled like inline co
 
 ## Basic syntax
 
-```markdown
+::::example
 Install the package with ::copy[npm install sarde] and configure the dev server.
-```
-
-Install the package with ::copy[npm install sarde] and configure the dev server.
+::::
 
 → "npm install sarde" appears in a monospace pill with a clipboard icon button. Clicking the button copies the text.
 
 Multiple copy snippets can appear in the same line:
 
-```markdown
+::::example
 Use ::copy[--port 8080] and ::copy[--host 0.0.0.0] flags together.
-```
-
-Use ::copy[--port 8080] and ::copy[--host 0.0.0.0] flags together.
+::::
 
 → Each snippet renders independently with its own copy button.
 
@@ -31,21 +27,17 @@ Use ::copy[--port 8080] and ::copy[--host 0.0.0.0] flags together.
 
 Place a copy snippet on its own line for file paths, commands, or configuration values:
 
-```markdown
+::::example
 ::copy[~/.config/sarde/config.yaml]
-```
-
-::copy[~/.config/sarde/config.yaml]
+::::
 
 → The path appears as a standalone copyable pill.
 
 Backslashes and special characters pass through literally:
 
-```markdown
+::::example
 ::copy[C:\Users\You\AppData\Local\sarde\config.yaml]
-```
-
-::copy[C:\Users\You\AppData\Local\sarde\config.yaml]
+::::
 
 → The Windows path renders verbatim with no escape processing.
 
@@ -53,17 +45,12 @@ Backslashes and special characters pass through literally:
 
 Copy snippets work inside table cells, which suits reference tables of endpoints, keys, or connection strings:
 
-```markdown
+::::example
 | Setting | Value |
 |---------|-------|
 | Host | ::copy[localhost:4727] |
 | Token | ::copy[abc123] |
-```
-
-| Setting | Value |
-|---------|-------|
-| Host | ::copy[localhost:4727] |
-| Token | ::copy[abc123] |
+::::
 
 → Each cell holds its own copy button.
 
@@ -78,7 +65,7 @@ Clicking the copy button triggers a brief visual confirmation. The clipboard ico
 | Default | Clipboard | Until clicked. |
 | Copied | Green checkmark | 1.5 seconds, then reverts to default. |
 
-<!-- SCREENSHOT: copy-text-copied-state — the copy-text widget showing the green checkmark after a click -->
+<!-- SCREENSHOT: copy-text-copied-state: the copy-text widget showing the green checkmark after a click -->
 
 The copy operation uses the Clipboard API (`navigator.clipboard.writeText`). No tooltip or toast message appears.
 

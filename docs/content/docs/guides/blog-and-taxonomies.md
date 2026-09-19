@@ -157,7 +157,7 @@ Term metadata controls how tags appear in the sidebar tag cloud and on tag chips
 
 ### Slug collisions
 
-Terms are keyed by slug, so two terms that slugify to the same string become one. Sarde warns rather than failing, in both cases the build can hit:
+Terms are keyed by slug, so two terms that slugify to the same string become one. Sarde warns instead of failing the build. Two warnings are possible:
 
 ```
 taxonomy "tags": terms "Lab Work" and "lab work" collide on slug "lab-work"

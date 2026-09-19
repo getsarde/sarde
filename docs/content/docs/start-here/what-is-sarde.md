@@ -58,7 +58,7 @@ Nothing in `dist/` needs Sarde or Go at runtime. The output is plain HTML, CSS, 
 
 Sarde is a single compiled executable. Installing it puts one file on the `PATH`.
 
-There is no `node_modules` directory, no lockfile, and no dependency install before the first build. A project checked out two years from now builds with the same binary and produces the same output. A continuous integration job needs one step to install Sarde, then `sarde build`.
+There is no `node_modules` directory, no lockfile, and no dependency install before the first build. A continuous integration job needs one step to install Sarde, then `sarde build`.
 
 ## Content in plain files
 
@@ -79,7 +79,7 @@ Plants convert light energy into chemical energy through a series of reactions
 in the chloroplast.
 ```
 
-That file opens in any text editor. It diffs cleanly in review, merges like source code, and carries its history in Git. Moving the content elsewhere needs no export step, because it was never held in a proprietary store.
+That file opens in any text editor. It diffs cleanly in review, merges like source code, and carries its history in Git. Moving the content to another tool needs no export step, because the Markdown files are the only copy.
 
 ## Convention-based defaults
 

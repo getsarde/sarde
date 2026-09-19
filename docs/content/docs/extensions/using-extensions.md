@@ -11,15 +11,11 @@ Extensions add custom syntax to Markdown. Sarde includes block extensions (aside
 
 Block extensions use a `:::` fenced directive. The directive name follows the opening colons:
 
-````
+::::example
 :::note
 Mitochondria are the powerhouse of the cell.
 :::
-````
-
-:::note
-Mitochondria are the powerhouse of the cell.
-:::
+::::
 
 → A blue callout box appears with a "Note" label and an info icon.
 
@@ -129,12 +125,8 @@ These are always enabled and require no configuration.
 
 ## Extension list
 
-Each extension is documented on its own page. Block extensions handle multi-line containers. Inline extensions handle text-level markers.
-
-**Block extensions:** [Aside](/extensions/aside), [Accordion](/extensions/accordion), [Badges](/extensions/badges) (group), [Cards](/extensions/cards), Code Group, [Columns](/extensions/columns), [Details](/extensions/details), [Figure](/extensions/figure), [File Tree](/extensions/file-tree), [Gallery](/extensions/gallery), [Image Compare](/extensions/image-compare), [Link Buttons](/extensions/link-buttons) (group), [Link Card](/extensions/link-card), [Math](/extensions/math) (display), [Mermaid](/extensions/mermaid), [Steps](/extensions/steps), [Tabs](/extensions/tabs), [Terminal](/extensions/terminal), [Timeline](/extensions/timeline), [Video](/extensions/video).
-
-**Inline extensions:** [Annotation](/extensions/annotation), [Copy Text](/extensions/copy-text), [Highlight](/extensions/highlight), [Icon](/extensions/icon), [Kbd](/extensions/kbd), [Spoiler](/extensions/spoiler).
+Each extension has its own page. The [Extensions](/extensions/) index groups them by purpose.
 
 ## Custom directives
 
-You can add your own `:::` directives without touching Go: drop a YAML schema, an HTML template, and optional CSS into a `directives/` folder at your site root. See [Custom Directives](/extensions/custom-directives/).
+Add custom `:::` directives without writing Go: drop a YAML schema, an HTML template, and optional CSS into a `directives/` folder at your site root. See [Custom Directives](/extensions/custom-directives/).

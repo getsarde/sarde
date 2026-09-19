@@ -348,9 +348,9 @@ func TestRender_AsideIconsPerStyle(t *testing.T) {
 		return rest[:j]
 	}
 	tests := []struct {
-		asideType    string
-		classicIcon  string
-		galaxyIcon   string
+		asideType   string
+		classicIcon string
+		galaxyIcon  string
 	}{
 		{"note", "book-open", "info"},
 		{"tip", "sparkles", "rocket"},
@@ -425,6 +425,24 @@ func TestRender_Badge(t *testing.T) {
 	}
 	if !strings.Contains(result.HTML, "sarde-badge-icon") {
 		t.Errorf("expected inline Lucide SVG icon in badge, got: %s", result.HTML)
+	}
+}
+
+func TestRender_BadgePositionalTypeWithAttrs(t *testing.T) {
+	r := NewRenderer()
+	for md, want := range map[string]string{
+		":::badge(primary)\nNew\n:::\n":                       "sarde-badge-primary",
+		":::badge(primary icon=\"rocket\")\nLaunching\n:::\n": "sarde-badge-primary",
+		":::badge(info style=\"outline\")\nv3.2.0\n:::\n":     "sarde-badge-info",
+		":::badge(icon=\"rocket\")\nLaunching\n:::\n":         "sarde-badge-default",
+	} {
+		result, err := r.Render(md)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(result.HTML, want) {
+			t.Errorf("%q: expected class %s, got: %s", md, want, result.HTML)
+		}
 	}
 }
 

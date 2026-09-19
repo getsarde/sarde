@@ -9,7 +9,7 @@ Columns split content into a side-by-side grid. Use it to place related blocks, 
 
 ## Basic syntax
 
-````
+::::example
 :::columns
 :::column
 Left column content.
@@ -18,16 +18,7 @@ Left column content.
 Right column content.
 :::
 :::
-````
-
-:::columns
-:::column
-Left column content.
-:::
-:::column
-Right column content.
-:::
-:::
+::::
 
 → Two columns of equal width appear side by side.
 
@@ -35,7 +26,7 @@ Right column content.
 
 Set the number of columns with `cols`. The value must be a quoted string and ranges from 1 to 4. The default is 2.
 
-````
+::::example
 :::columns(cols="3")
 :::column
 One
@@ -47,19 +38,7 @@ Two
 Three
 :::
 :::
-````
-
-:::columns(cols="3")
-:::column
-One
-:::
-:::column
-Two
-:::
-:::column
-Three
-:::
-:::
+::::
 
 → Three columns of equal width appear side by side.
 
@@ -67,7 +46,7 @@ Three
 
 Each `:::column` accepts any Markdown, including headings, lists, code blocks, and other block extensions.
 
-````
+::::example
 :::columns
 :::column
 ## Option A
@@ -82,22 +61,7 @@ Each `:::column` accepts any Markdown, including headings, lists, code blocks, a
 - Steeper learning curve
 :::
 :::
-````
-
-:::columns
-:::column
-## Option A
-
-- Fast setup
-- Fewer dependencies
-:::
-:::column
-## Option B
-
-- More flexible
-- Steeper learning curve
-:::
-:::
+::::
 
 → Each column renders its Markdown content independently, including the heading and list inside it.
 

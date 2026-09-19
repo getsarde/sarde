@@ -41,6 +41,9 @@ func TestValidate_InvalidEnums(t *testing.T) {
 		{"images.placeholder", func(c *SiteConfig) { c.Images.Placeholder = "banana" }, "images.placeholder"},
 		{"link_validation.external.method", func(c *SiteConfig) { c.LinkValidation.External.Method = "banana" }, "link_validation.external.method"},
 		{"search.provider", func(c *SiteConfig) { c.Search.Provider = "banana" }, "search.provider"},
+		// "disabled" was once honored by the Search template but never by
+		// validation; search.enabled is the single switch.
+		{"search.provider disabled", func(c *SiteConfig) { c.Search.Provider = "disabled" }, "search.provider"},
 		{"markdown.codeblocks.style", func(c *SiteConfig) { c.Markdown.Codeblocks.Style = "banana" }, "markdown.codeblocks.style"},
 		{"markdown.asides.style", func(c *SiteConfig) { c.Markdown.Asides.Style = "banana" }, "markdown.asides.style"},
 		{"build.last_updated", func(c *SiteConfig) { c.Build.LastUpdated = "banana" }, "build.last_updated"},

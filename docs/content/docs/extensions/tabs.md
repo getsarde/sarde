@@ -11,7 +11,7 @@ Tabs let readers switch between related content panels without leaving the page.
 
 Use `== Label` lines to define tab boundaries inside a `:::tabs` block:
 
-````
+::::example
 :::tabs
 == npm
 
@@ -31,31 +31,11 @@ yarn add sarde
 pnpm add sarde
 ```
 :::
-````
-
-:::tabs
-== npm
-
-```bash
-npm install sarde
-```
-
-== yarn
-
-```bash
-yarn add sarde
-```
-
-== pnpm
-
-```bash
-pnpm add sarde
-```
-:::
+::::
 
 → Three tabs appear ("npm", "yarn", "pnpm"). Clicking a tab shows its panel and hides the others. The first tab is active by default.
 
-<!-- SCREENSHOT: tabs-basic — three package manager tabs with npm selected -->
+<!-- SCREENSHOT: tabs-basic: three package manager tabs with npm selected -->
 
 ## Tab icons
 

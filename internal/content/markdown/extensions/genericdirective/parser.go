@@ -30,7 +30,7 @@ func NewParser(registry *directive.Registry) parser.BlockParser {
 func (p *directiveParser) Trigger() []byte { return []byte{':'} }
 
 func (p *directiveParser) Open(parent ast.Node, reader text.Reader, pc parser.Context) (ast.Node, parser.State) {
-	line, _ := reader.PeekLine()
+	line, seg := reader.PeekLine()
 	lineStr := strings.TrimSpace(string(line))
 	matches := openingRegex.FindStringSubmatch(lineStr)
 	if matches == nil {
@@ -52,6 +52,7 @@ func (p *directiveParser) Open(parent ast.Node, reader text.Reader, pc parser.Co
 		// Consume the fence so the framework's same-line child-open retry
 		// (triggered by HasChildren) finds nothing left on this line.
 		reader.Advance(len(line))
+		node.SourceStart = seg.Stop
 		return node, parser.HasChildren
 	}
 	// Leaf: leave the fence line to the framework, which advances past it
@@ -71,7 +72,7 @@ func (p *directiveParser) Continue(node ast.Node, reader text.Reader, pc parser.
 // continueContainer mirrors the card parser's nested-depth bookkeeping,
 // parameterized on the node's name.
 func (p *directiveParser) continueContainer(n *Node, reader text.Reader, pc parser.Context) parser.State {
-	line, _ := reader.PeekLine()
+	line, seg := reader.PeekLine()
 	trimmed := strings.TrimSpace(string(line))
 	depth := blockutil.GetDepth(pc, n)
 	if strings.HasPrefix(trimmed, ":::") {
@@ -85,10 +86,12 @@ func (p *directiveParser) continueContainer(n *Node, reader text.Reader, pc pars
 				return parser.Continue | parser.HasChildren
 			}
 			if m[1] == n.Name {
+				n.SourceStop = seg.Start
 				reader.AdvanceToEOL()
 				return parser.Close
 			}
 			if m[1] == "" && !blockutil.HasInnerOpenBlocks(pc, n) {
+				n.SourceStop = seg.Start
 				reader.AdvanceToEOL()
 				return parser.Close
 			}

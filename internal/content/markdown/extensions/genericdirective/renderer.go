@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	htmltemplate "html/template"
+	"strings"
 
 	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 	"github.com/getsarde/sarde/internal/directive"
@@ -53,10 +54,11 @@ func (r *directiveRenderer) render(w util.BufWriter, source []byte, node ast.Nod
 	}
 
 	data := directive.TemplateData{
-		Name:  n.Name,
-		Label: n.Label,
-		Attrs: n.Attrs,
-		Body:  htmltemplate.HTML(body),
+		Name:   n.Name,
+		Label:  n.Label,
+		Attrs:  n.Attrs,
+		Body:   htmltemplate.HTML(body),
+		Source: containerSource(n, source),
 	}
 	var out bytes.Buffer
 	if err := def.Template.Execute(&out, data); err != nil {
@@ -64,4 +66,17 @@ func (r *directiveRenderer) render(w util.BufWriter, source []byte, node ast.Nod
 	}
 	_, _ = w.Write(out.Bytes())
 	return ast.WalkSkipChildren, nil
+}
+
+// containerSource returns the raw Markdown between a container directive's
+// fences. An unclosed fence runs to the end of the document.
+func containerSource(n *Node, source []byte) string {
+	start, stop := n.SourceStart, n.SourceStop
+	if stop == 0 || stop > len(source) {
+		stop = len(source)
+	}
+	if start <= 0 || start > stop {
+		return ""
+	}
+	return strings.Trim(strings.ReplaceAll(string(source[start:stop]), "\r\n", "\n"), "\n")
 }

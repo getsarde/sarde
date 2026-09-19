@@ -5,7 +5,7 @@ sidebar:
   order: 15
 ---
 
-Figures wrap images (or other content) in an HTML `<figure>` element with an optional `<figcaption>`. Use them when an image needs a visible caption below it.
+Figures display an image, or other content, with a visible caption below it. The output is an HTML `<figure>` element with an optional `<figcaption>`.
 
 ## Basic syntax
 
@@ -17,7 +17,7 @@ Figures wrap images (or other content) in an HTML `<figure>` element with an opt
 
 → The image appears inside a `<figure>` element with "Diagram of the water cycle" as the caption below it.
 
-<!-- SCREENSHOT: figure-with-caption — an image wrapped in a figure with a caption -->
+<!-- SCREENSHOT: figure-with-caption: an image wrapped in a figure with a caption -->
 
 ## Without a caption
 

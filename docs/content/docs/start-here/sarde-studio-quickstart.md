@@ -28,7 +28,7 @@ Sarde Studio bundles the Sarde engine. No separate installation is required.
 
 Launch Sarde Studio. The welcome screen displays three options: create a new project, open an existing project, or reopen a recent project.
 
-<!-- SCREENSHOT: studio-welcome-screen — welcome screen with Create, Open, and Recent sections -->
+<!-- SCREENSHOT: studio-welcome-screen: welcome screen with Create, Open, and Recent sections -->
 
 To create a new site, click **Create New Project**. The project wizard asks for:
 
@@ -38,7 +38,7 @@ To create a new site, click **Create New Project**. The project wizard asks for:
 
 Sarde Studio scaffolds the project and opens the workspace.
 
-<!-- SCREENSHOT: studio-project-wizard — project creation wizard showing theme mode selection -->
+<!-- SCREENSHOT: studio-project-wizard: project creation wizard showing theme mode selection -->
 
 To open an existing Sarde project, click **Open Existing** and select a folder containing a `sarde.yaml` file.
 
@@ -52,7 +52,7 @@ The workspace has three panels:
 
 All panels are resizable and collapsible.
 
-<!-- SCREENSHOT: studio-workspace-overview — three-panel workspace with sidebar, editor, and preview -->
+<!-- SCREENSHOT: studio-workspace-overview: three-panel workspace with sidebar, editor, and preview -->
 
 ## Create a page
 
@@ -93,7 +93,7 @@ Save with **Ctrl+S** (Windows/Linux) or **Cmd+S** (macOS). The preview panel upd
 
 The preview shows the rendered page with the note aside styled as a blue callout.
 
-<!-- SCREENSHOT: studio-editor-preview — editor with Markdown source on the left and rendered preview on the right -->
+<!-- SCREENSHOT: studio-editor-preview: editor with Markdown source on the left and rendered preview on the right -->
 
 ## Edit frontmatter
 
@@ -112,7 +112,7 @@ Toggle **Raw YAML** to switch between the form view and a YAML text editor. Chan
 
 The frontmatter form shows each field with its label, type-appropriate input widget, and validation indicators.
 
-<!-- SCREENSHOT: studio-frontmatter-form — visual frontmatter editor with title, tags, and draft fields -->
+<!-- SCREENSHOT: studio-frontmatter-form: visual frontmatter editor with title, tags, and draft fields -->
 
 ## Preview the site
 
@@ -136,7 +136,7 @@ Press **Ctrl+Shift+F** (Windows/Linux) or **Cmd+Shift+F** (macOS) to search acro
 | Ctrl/Cmd+W | Close current tab |
 | Ctrl/Cmd+B | Toggle sidebar |
 
-The command palette provides quick access to all actions. Type to filter, then press Enter to execute.
+The command palette lists every action. Type to filter, then press Enter to execute.
 
 ## Build and deploy
 

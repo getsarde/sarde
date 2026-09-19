@@ -5,7 +5,7 @@ sidebar:
   order: 4
 ---
 
-Sarde resolves Markdown links to source files at build time. Write paths to `.md` files in your content; the engine rewrites them to final URLs that include the base path, language prefix, and version segment automatically.
+Link to another page by the path to its `.md` file. At build time, Sarde rewrites each link to the final URL, including the base path, language prefix, and version segment.
 
 ## Syntax reference
 
@@ -201,10 +201,10 @@ These go through the same resolution pipeline.
 
 ## Gotchas
 
-**Bare names are rejected.** Always use `./` for relative links. `auth.md` without a prefix is ambiguous and will error. Write `./auth.md` instead.
+**Bare names are rejected:** always use `./` for relative links. `auth.md` without a prefix is ambiguous and will error. Write `./auth.md` instead.
 
-**Numeric prefixes are stripped.** Files named `01-introduction.md`, `02-installation.md` produce slugs `introduction`, `installation`. When linking, use the original filename: `./02-installation.md` resolves correctly to `/guide/installation/`.
+**Numeric prefixes are stripped:** files named `01-introduction.md`, `02-installation.md` produce slugs `introduction`, `installation`. When linking, use the original filename: `./02-installation.md` resolves correctly to `/guide/installation/`.
 
-**Content-root `/` means collection root.** A leading `/` in a link means "from this collection's root," not from the site root. `/guide/auth` from a `docs` page resolves within the `docs` collection.
+**Content-root `/` means collection root:** a leading `/` in a link means "from this collection's root," not from the site root. `/guide/auth` from a `docs` page resolves within the `docs` collection.
 
-**Link validation.** Sarde validates every internal link at build time. Broken targets and anchors fail the build by default. See [Link Validation and Linting](/guides/link-validation-and-linting) for configuration options and policy settings.
+**Link validation:** Sarde validates every internal link at build time. Broken targets and anchors fail the build by default. See [Link Validation and Linting](/guides/link-validation-and-linting) for configuration options and policy settings.

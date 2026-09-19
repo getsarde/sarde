@@ -54,7 +54,7 @@ Errors in individual expressions are silently swallowed (`throwOnError: false`).
 
 ## Relationship to the Math extension
 
-The Math extension (documented in the Extensions section) handles the Markdown parsing: converting `$` and `$$` syntax into HTML nodes. The KaTeX plugin handles the runtime: shipping the KaTeX library and rendering those nodes into formatted equations in the browser. Both are needed for math to display.
+The [Math extension](/extensions/math/) handles the Markdown parsing: converting `$` and `$$` syntax into HTML nodes. The KaTeX plugin handles the runtime: shipping the KaTeX library and rendering those nodes into formatted equations in the browser. Both are needed for math to display.
 
 ## Disabling KaTeX
 

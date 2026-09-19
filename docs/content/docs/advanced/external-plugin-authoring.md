@@ -33,6 +33,8 @@ grade-sync/
 
 Only `plugin.yaml` is required. The directory name must exactly equal the manifest's `slug`; installation enforces this, and a manually placed mismatch is skipped with a build warning.
 
+A malformed manifest, a reserved slug, or a failed license check skips only that plugin. The rest of the build continues.
+
 ## The plugin.yaml manifest
 
 A complete manifest for a premium plugin:
@@ -62,7 +64,7 @@ output:
 | Field | Required | Description |
 |-------|----------|-------------|
 | `name` | Yes | Display name shown in `sarde plugin list` and install output. |
-| `slug` | Yes | Unique identifier. Lowercase letters, digits, `-` and `_`; must start and end with a letter or digit. Must equal the directory name. |
+| `slug` | Yes | Unique identifier. Lowercase letters, digits, `-` and `_`; must start and end with a letter or digit. Must equal the directory name. A slug that matches a built-in plugin name is rejected at install time, and skipped with a warning when placed on disk directly. |
 | `version` | Yes | Plugin version, dotted numeric (`2.1.0`). Checked against a license's `max_version`. |
 | `description` | No | One-line summary. |
 | `author` | No | Author name. |
@@ -100,6 +102,8 @@ Three asset lists control what is injected, all holding paths relative to the pl
 
 Leaving `when` empty while listing any assets implies `always`. Site owners can override the condition per site with `plugins.config.<slug>.always: true`; see [External Plugins](/plugins/external-plugins/#forcing-injection).
 
+Asset paths in `inject` and `output` reject backslashes, absolute paths, and any `..` segment. A manifest that fails these checks does not load at all.
+
 ## Copying assets to the build output
 
 The `output` block controls the copy from the plugin's `assets/` tree into the built site:
@@ -107,7 +111,7 @@ The `output` block controls the copy from the plugin's `assets/` tree into the b
 | Key | Default | Description |
 |-----|---------|-------------|
 | `prefix` | `assets/vendor/<slug>/` | Destination directory inside the build output. |
-| `include` | entire `assets/` tree | Allowlist of paths to copy. Entries ending in `/` match a directory and everything below it; other entries match one file. |
+| `include` | entire `assets/` tree | Allowlist of paths to copy. Entries ending in `/` match a directory and everything below it; other entries match one file. Entries are matched against forward-slash paths relative to `assets/` on every operating system. |
 
 An asset at `assets/css/grade-sync.css` ends up at `dist/assets/vendor/grade-sync/css/grade-sync.css` and is referenced as `/assets/vendor/grade-sync/css/grade-sync.css`. Sites hosted under a subdirectory get the base path prepended automatically; injected URLs never need manual prefixing.
 
@@ -135,7 +139,7 @@ fields:
     default: "Next cohort starts {date}. Enroll now."
 ```
 
-`config.yaml` is a flat map of default values. `blueprint.yaml` adds field metadata (`type`, `label`, `hint`, `default`, and `min`/`max` for numbers) consumed by the Sarde desktop app for a future plugin settings UI; its `default` values also act as a base layer of configuration.
+`config.yaml` is a flat map of default values. `blueprint.yaml` adds field metadata (`type`, `label`, `hint`, `default`, and `min`/`max` for numbers), and its `default` values act as a base layer of configuration.
 
 The effective value of an option resolves as: `blueprint.yaml` defaults, overridden by `config.yaml`, overridden by the site's `plugins.config.<slug>` in `sarde.yaml`. See [`plugins` configuration](/reference/configuration#plugins).
 
@@ -207,10 +211,3 @@ purchase_url: https://example.com/buy/grade-sync
 With `premium: true`, the plugin stays inactive on any site that lacks a valid license file, and Sarde's warnings point buyers at `purchase_url`. The whole license mechanism (file format, verification, install commands, CI usage) is described in [Premium Plugins](/plugins/premium-plugins/).
 
 Sarde has no built-in marketplace: distribution, payment, and license issuing are the author's own responsibility.
-
-## Edge cases
-
-- A slug matching any built-in plugin name is rejected at install time and skipped with a warning when placed on disk directly.
-- Asset paths in `inject` and `output` reject backslashes, absolute paths, and any `..` segment. A manifest failing these checks fails to load as a whole, not just for the offending field.
-- One plugin's malformed manifest, reserved slug, or failed license check never blocks the rest of the build; only that plugin is skipped.
-- `include` entries are matched against forward-slash paths relative to `assets/`, regardless of the operating system the site builds on.

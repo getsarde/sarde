@@ -125,7 +125,7 @@ Global table of contents *display* settings. These control which extracted headi
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `search` | bool | `true` | Show the search button in the header. |
+| `search` | bool | `true` | Show the search button in the header. The index and modal are still built; use `search.enabled` to remove search entirely. |
 | `theme_toggle` | bool | `true` | Show the light/dark mode toggle. |
 | `social` | bool | `true` | Show social links in the header. |
 | `links` | list | `[]` | Navigation links in the header. |
@@ -214,9 +214,9 @@ Sarde resolves commit times with a single pass over git history for the whole co
 
 Three caveats are worth knowing:
 
-- **Shallow clones lose history.** With `fetch-depth: 1`, pages whose last change predates the shallow boundary fall back to `mtime`. Use `fetch-depth: 0`. Sarde emits a build warning when it detects a shallow clone.
-- **Commit time is a proxy for content change.** A formatting sweep or lint pass bumps the date on every file it touches, even when nothing reader-visible changed. Set `updated` in [frontmatter](/reference/frontmatter#core-fields) to state the real date explicitly.
-- **Uncommitted edits keep their last committed date.** During `sarde dev` a page's timestamp does not move until you commit, which is correct but can look like a bug while writing.
+- **Shallow clones lose history:** with `fetch-depth: 1`, pages whose last change predates the shallow boundary fall back to `mtime`. Use `fetch-depth: 0`. Sarde emits a build warning when it detects a shallow clone.
+- **Commit time is a proxy for content change:** a formatting sweep or lint pass bumps the date on every file it touches, even when nothing reader-visible changed. Set `updated` in [frontmatter](/reference/frontmatter#core-fields) to state the real date explicitly.
+- **Uncommitted edits keep their last committed date:** during `sarde dev` a page's timestamp does not move until you commit, which is correct but can look like a bug while writing.
 
 Outside a git repository, or when git is unavailable, Sarde falls back to `mtime` and emits one build warning explaining the consequence.
 
@@ -280,8 +280,8 @@ Controls which heading levels are *extracted* during the build: ID injection, an
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `enabled` | bool | `true` | Enable site search. |
-| `provider` | string | `"orama"` | Search engine provider. Only `orama` is supported. |
+| `enabled` | bool | `true` | Enable site search. `false` removes the header button, the modal, the runtime script and the index. |
+| `provider` | string | `"orama"` | Search engine provider. Only `orama` is accepted. |
 
 ## `icons`
 
@@ -448,7 +448,7 @@ Each entry in `versions`:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `id` | string | - | Unique version identifier (e.g., `"v2"`). **Required.** Must be unique across all versions. |
+| `id` | string | - | Unique version identifier (e.g., `"v2"`). **Required:** must be unique across all versions. |
 | `label` | string | - | Display label (e.g., `"Version 2.0"`). |
 | `path` | string | - | Content directory path. Defaults to the `id` value. |
 | `banner` | string | `"none"` | Version banner type. `none`, `unmaintained`, or `unreleased`. |

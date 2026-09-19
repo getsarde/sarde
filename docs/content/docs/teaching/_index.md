@@ -1,6 +1,8 @@
 ---
 title: Teaching
 description: "Build slide decks, courses, labs, and presentations with Sarde"
+aliases:
+  - /guides/slides-and-presentations/
 sidebar:
   order: 3
   icon: graduation-cap

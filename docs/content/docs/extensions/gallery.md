@@ -22,7 +22,7 @@ Place standard Markdown images inside a `:::gallery` block:
 
 → A grid of image thumbnails appears. Each image shows a zoom icon overlay on hover. Clicking an image opens the lightbox.
 
-<!-- SCREENSHOT: gallery-grid — four images in a responsive grid layout -->
+<!-- SCREENSHOT: gallery-grid: four images in a responsive grid layout -->
 
 ## Gallery label
 
@@ -48,7 +48,7 @@ Clicking any image opens a full-screen lightbox overlay with:
 - Previous and next navigation buttons
 - A close button
 
-<!-- SCREENSHOT: gallery-lightbox — the lightbox overlay showing an image with caption and navigation -->
+<!-- SCREENSHOT: gallery-lightbox: the lightbox overlay showing an image with caption and navigation -->
 
 ## Keyboard navigation
 

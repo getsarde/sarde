@@ -9,7 +9,7 @@ File trees render directory structures with folder/file icons, indentation lines
 
 ## Basic syntax
 
-````
+::::example
 :::file-tree
 - content/
   - docs/
@@ -21,23 +21,11 @@ File trees render directory structures with folder/file icons, indentation lines
 - sarde.yaml
 - package.json
 :::
-````
-
-:::file-tree
-- content/
-  - docs/
-    - getting-started.md
-    - guides/
-      - auth.md
-  - blog/
-    - first-post.md
-- sarde.yaml
-- package.json
-:::
+::::
 
 → A styled directory tree appears with folder icons for directories and file icons for files. Indentation lines connect parent and child entries.
 
-<!-- SCREENSHOT: file-tree-basic — a directory tree with folders and files -->
+<!-- SCREENSHOT: file-tree-basic: a directory tree with folders and files -->
 
 ## Folders vs files
 
@@ -47,7 +35,7 @@ Entries ending with `/` are treated as folders and receive a folder icon. Entrie
 
 Bold an entry with `**` to highlight it:
 
-````
+::::example
 :::file-tree
 - content/
   - docs/
@@ -55,15 +43,7 @@ Bold an entry with `**` to highlight it:
     - guides/
 - sarde.yaml
 :::
-````
-
-:::file-tree
-- content/
-  - docs/
-    - **getting-started.md**
-    - guides/
-- sarde.yaml
-:::
+::::
 
 → The "getting-started.md" entry appears with an accent-colored highlight, drawing attention to it.
 
@@ -71,7 +51,7 @@ Bold an entry with `**` to highlight it:
 
 Add a comment after ` #` (space then hash) to display muted annotation text beside an entry:
 
-````
+::::example
 :::file-tree
 - content/ #required
   - docs/
@@ -80,16 +60,7 @@ Add a comment after ` #` (space then hash) to display muted annotation text besi
       - auth.md #new page
 - sarde.yaml #site configuration
 :::
-````
-
-:::file-tree
-- content/ #required
-  - docs/
-    - _index.md #collection root
-    - guides/
-      - auth.md #new page
-- sarde.yaml #site configuration
-:::
+::::
 
 → Each annotated entry shows its comment in muted text to the right of the filename.
 

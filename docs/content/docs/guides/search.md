@@ -53,6 +53,8 @@ For example, searching "photosynthesis" might return:
 
 ## Configuration
 
+Search needs no configuration. These settings turn it off, translate its labels, and control which pages reach the index.
+
 ### Enable or disable search
 
 Search is enabled by default. Disable it in `sarde.yaml`:
@@ -62,9 +64,31 @@ search:
   enabled: false
 ```
 
-### Plugin options
+This removes the header button, the search modal, the runtime script, and the index files from the build. Any `plugins.config.search` block is kept without a warning, so toggling search off and on leaves the rest of the config untouched.
 
-Configure the search index via the search plugin config:
+To hide only the header button while keeping the index and modal (for example to open search from a custom `[data-search-trigger]` element), use `header.search` instead:
+
+```yaml
+header:
+  search: false
+```
+
+### Translating the search UI
+
+Every label in the search modal, including the runtime strings such as "Recent", "Type to start searching", the result count, and the full-search preview labels, resolves through the [UI strings](/guides/internationalization/#translation-strings) cascade under the `search.*` keys. Override any of them in your project `i18n/<lang>.yaml`:
+
+```yaml
+search:
+  recent: "Récents"
+  results_count_one: "{count} résultat pour '{term}'"
+  results_count_other: "{count} résultats pour '{term}'"
+```
+
+Keys ending in `_one` and `_other` are plural forms picked from the page language's plural rules. Keep the `{count}`, `{term}`, and `{min}` placeholders in translations. The full key list is in the [search plugin reference](/plugins/search/#ui-strings).
+
+### Index size and excluded URLs
+
+Limit how much of each page is indexed, or keep whole URL patterns out of the index, in the search plugin config:
 
 ```yaml
 plugins:
@@ -76,10 +100,7 @@ plugins:
         - "/drafts/*"
 ```
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `max_content_length` | int | `5000` | Maximum characters of body content indexed per page |
-| `exclude` | string[] | `[]` | Glob patterns for page URLs to exclude from the index |
+The [search plugin options](/plugins/search/#configuration) list each key with its type and default.
 
 ### Excluding individual pages
 
@@ -94,6 +115,6 @@ pagefind: false
 
 ## Search highlighting
 
-The `search_highlighter` plugin highlights search terms on the target page after a reader clicks a search result. This plugin is separate from the search plugin and must be enabled independently.
+The `search_highlighter` plugin highlights search terms on the target page after a reader clicks a search result. This plugin is separate from the search plugin and must be enabled independently. When it is enabled, result links carry the query as a `?q=` parameter (placed before any `#heading` anchor); when it is not, result links stay clean.
 
 See [Plugins](/plugins/search-highlighter) for search highlighter configuration.

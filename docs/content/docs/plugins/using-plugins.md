@@ -71,7 +71,7 @@ Each plugin documents its own configuration options. Options not specified fall 
 
 ## Default plugins
 
-Thirteen plugins are enabled by default. Twelve more are available but must be added to `plugins.enabled` to activate.
+Thirteen plugins are enabled by default. Thirteen more are available but must be added to `plugins.enabled` to activate.
 
 Plugin slugs are snake_case (`scroll_to_top`, `keyboard_nav`, and so on). Older sites may still reference the former kebab-case spellings, such as `scroll-to-top`. Those still work, but each one emits a deprecation warning at build time and should be migrated to the snake_case form. The same applies to the `scroll_to_top` plugin's config keys, which moved from camelCase (`showTooltip`) to snake_case (`show_tooltip`): the old keys are still accepted, with a build warning, until they are updated.
 

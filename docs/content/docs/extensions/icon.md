@@ -9,11 +9,9 @@ Icons render inline SVG glyphs that match the surrounding text size and color. T
 
 ## Basic syntax
 
-```markdown
+::::example
 Press the :icon[settings] button to open preferences.
-```
-
-Press the :icon[settings] button to open preferences.
+::::
 
 → A small gear icon appears inline, sized to match the text.
 
@@ -21,11 +19,9 @@ Press the :icon[settings] button to open preferences.
 
 Bare names resolve against the default set (Lucide). Prefix a name with the set identifier to use a different set:
 
-```markdown
+::::example
 :icon[tabler:home] :icon[simple-icons:react] :icon[brands:github]
-```
-
-:icon[tabler:home] :icon[simple-icons:react] :icon[brands:github]
+::::
 
 → Each icon renders from its respective set. `brands:` is an alias for `simple-icons:`.
 
@@ -35,25 +31,19 @@ Additional icon sets must be loaded before use. See the [Icons guide](/docs/guid
 
 The default size is `1em`, matching the surrounding text. Apply a CSS class for fixed sizes:
 
-```markdown
+::::example
 :icon[heart class="sarde-icon-sm"] Small
 :icon[heart] Default
 :icon[heart class="sarde-icon-lg"] Large
-```
-
-:icon[heart class="sarde-icon-sm"] Small
-:icon[heart] Default
-:icon[heart class="sarde-icon-lg"] Large
+::::
 
 → Three hearts render at `1rem`, `1em`, and `2rem` respectively.
 
 Set an explicit pixel width with the `width` attribute. Height auto-derives from the icon's aspect ratio:
 
-```markdown
+::::example
 :icon[heart width="32"]
-```
-
-:icon[heart width="32"]
+::::
 
 → The heart renders at 32 pixels wide.
 
@@ -61,13 +51,10 @@ Set an explicit pixel width with the `width` attribute. Height auto-derives from
 
 Lucide icons use `stroke="currentColor"`, so they inherit the text color of their container. Override inline with `style`:
 
-```markdown
+::::example
 :icon[circle-check style="color: green"] Passed
 :icon[circle-x style="color: red"] Failed
-```
-
-:icon[circle-check style="color: green"] Passed
-:icon[circle-x style="color: red"] Failed
+::::
 
 → The checkmark appears green and the x-circle appears red.
 
@@ -77,23 +64,18 @@ Icons inside colored extensions (asides, badges) automatically pick up the conta
 
 Rotate an icon by a given number of degrees:
 
-```markdown
+::::example
 :icon[arrow-right rotate="90"] Points down
 :icon[arrow-right rotate="180"] Points left
-```
-
-:icon[arrow-right rotate="90"] Points down
-:icon[arrow-right rotate="180"] Points left
+::::
 
 → The arrow rotates to point in the specified direction.
 
 Flip an icon horizontally, vertically, or both:
 
-```markdown
+::::example
 :icon[arrow-right flip="horizontal"] Flipped
-```
-
-:icon[arrow-right flip="horizontal"] Flipped
+::::
 
 → The arrow mirrors to point left. Valid values: `horizontal`, `vertical`, `both`.
 
@@ -101,11 +83,9 @@ Flip an icon horizontally, vertically, or both:
 
 Icons are decorative by default (`aria-hidden="true"`). Add a `title` to make an icon meaningful to assistive technology:
 
-```markdown
+::::example
 :icon[triangle-alert title="Warning"]
-```
-
-:icon[triangle-alert title="Warning"]
+::::
 
 → The icon receives a `<title>` element and `role="img"`, making it visible to screen readers.
 

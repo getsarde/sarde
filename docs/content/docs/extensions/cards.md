@@ -9,15 +9,11 @@ Cards display content in bordered, elevated containers with optional titles and 
 
 ## Basic syntax
 
-````
+::::example
 :::card[Lesson Overview]
 This module covers the fundamentals of plant biology, including cell structure, photosynthesis, and reproduction.
 :::
-````
-
-:::card[Lesson Overview]
-This module covers the fundamentals of plant biology, including cell structure, photosynthesis, and reproduction.
-:::
+::::
 
 → A bordered container appears with "Lesson Overview" as the header and the paragraph below it.
 
@@ -25,15 +21,11 @@ This module covers the fundamentals of plant biology, including cell structure, 
 
 Add an icon to the card header with the `icon` attribute:
 
-````
+::::example
 :::card[Getting Started](icon="rocket")
 Install the CLI, create a project, and run the dev server.
 :::
-````
-
-:::card[Getting Started](icon="rocket")
-Install the CLI, create a project, and run the dev server.
-:::
+::::
 
 → A rocket icon appears beside the title in the card header.
 
@@ -41,15 +33,11 @@ Install the CLI, create a project, and run the dev server.
 
 Set the `variant` attribute to change the card's visual style:
 
-````
+::::example
 :::card[Important Update](variant="highlighted")
 The exam schedule has changed. Check the calendar for new dates.
 :::
-````
-
-:::card[Important Update](variant="highlighted")
-The exam schedule has changed. Check the calendar for new dates.
-:::
+::::
 
 → The card appears with an accent-colored border or background, making it stand out.
 

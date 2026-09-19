@@ -45,15 +45,17 @@ plugins:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `id` | String | `"default"` | Unique identifier. Used for dismiss state in `localStorage`. |
+| `id` | String | `"default"` | Unique identifier. Used for dismiss state in `localStorage`. Changing an `id` resets the dismissed state for that banner. |
 | `message` | String | `""` | Banner text. Can be a literal string or an i18n key (see below). |
-| `type` | String | `"info"` | Banner style. One of `info`, `warning`, `success`, `danger`. |
+| `type` | String | `"info"` | Banner style. One of `info`, `warning`, `success`, `danger`. Any other value falls back to `info`. |
 | `active` | Boolean | `true` | Whether this announcement is active. Set to `false` to hide without removing. |
 | `dismissible` | Boolean | `true` | Show a dismiss button (×). Dismissed state persists in `localStorage`. |
 | `start_date` | String | `""` | ISO 8601 date string. Banner is hidden before this date. |
 | `end_date` | String | `""` | ISO 8601 date string. Banner is hidden after this date. |
 | `show_on` | List | `["/**"]` | Glob patterns for pages where the banner appears. Defaults to all pages. |
 | `hide_on` | List | `[]` | Glob patterns for pages where the banner is suppressed. Takes precedence over `show_on`. |
+
+When every item is inactive or dismissed, the plugin renders no banner container.
 
 ## Banner types
 
@@ -64,7 +66,7 @@ plugins:
 | `success` | Green |
 | `danger` | Red |
 
-All four types support light and dark mode with distinct color palettes.
+All four types support light and dark mode with distinct color palettes. Banners are hidden in print output.
 
 ## Display modes
 
@@ -109,6 +111,8 @@ plugins:
 
 → Two banners rotate every 4 seconds with dot navigation below.
 
+Rotation pauses while a banner is hovered or focused, and when the reader has `prefers-reduced-motion` enabled. The dot indicators accept arrow keys, ::kbd[Home], and ::kbd[End].
+
 ## Date scheduling
 
 Limit an announcement to a time window using `start_date` and `end_date`. Both are optional and use ISO 8601 format. Date checks happen client-side on each page load.
@@ -118,7 +122,7 @@ Limit an announcement to a time window using `start_date` and `end_date`. Both a
   message: "No office hours December 23 through January 2."
   type: info
   start_date: "2025-12-20"
-  end_date: "2025-01-03"
+  end_date: "2026-01-03"
 ```
 
 ## Page targeting
@@ -178,12 +182,3 @@ The plugin registers an `announcementBanner` template function. Call it in a lay
 ```
 
 The default theme already calls this function in the base layout. Override placement by ejecting the base template and moving the call.
-
-## Edge cases
-
-- Invalid `type` values fall back to `info`.
-- If all items have `active: false` or all are dismissed, no container element is rendered.
-- In rotate mode, the rotation pauses on hover and focus (WCAG 2.2.2 compliance). It also pauses when `prefers-reduced-motion` is active.
-- Dot indicators support keyboard navigation with arrow keys, ::kbd[Home], and ::kbd[End].
-- Banners are hidden in print output.
-- Dismissal state is stored per announcement `id` in `localStorage`. Changing an `id` resets the dismissed state for that banner.

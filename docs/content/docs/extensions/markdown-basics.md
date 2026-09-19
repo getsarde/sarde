@@ -28,7 +28,7 @@ A paragraph is one or more consecutive lines of text, separated by one or more b
 
 Here is a second paragraph. Notice how a blank line separates them. Paragraphs can span multiple lines in the source and still render as a single block of text.
 
-That last point matters when wrapping prose at a fixed width: a single newline inside a paragraph is a soft break and renders as a space, so the text reflows to the reader's screen width. Only a blank line starts a new paragraph.
+A single newline inside a paragraph is a soft break and renders as a space, so the text reflows to the reader's screen width. Only a blank line starts a new paragraph.
 
 To force a line break inside a paragraph, end the line with two spaces or a backslash:
 
@@ -41,7 +41,7 @@ To make every newline break the line instead, set [`markdown.hard_wraps`](/refer
 
 ---
 
-## Inline Text Formatting
+## Inline text formatting
 
 The following inline formatting options are available:
 
@@ -54,7 +54,7 @@ The following inline formatting options are available:
 
 ---
 
-## Horizontal Rule
+## Horizontal rule
 
 Three or more dashes produce a horizontal rule:
 
@@ -70,7 +70,7 @@ Three or more dashes produce a horizontal rule:
 
 ---
 
-## Unordered Lists
+## Unordered lists
 
 - Item one
 - Item two
@@ -81,7 +81,7 @@ Three or more dashes produce a horizontal rule:
 
 ---
 
-## Ordered Lists
+## Ordered lists
 
 1. First item
 2. Second item
@@ -91,7 +91,7 @@ Three or more dashes produce a horizontal rule:
 
 ---
 
-## Task Lists
+## Task lists
 
 - [x] Write the markdown basics page
 - [x] Add all standard formatting
@@ -135,7 +135,7 @@ Tables support alignment:
 
 ---
 
-## Code Blocks
+## Code blocks
 
 Inline code: `const x = 42`
 
@@ -233,7 +233,7 @@ Here is a sentence with a footnote[^1], and here is another[^2].
 
 ---
 
-## Definition Lists
+## Definition lists
 
 Sarde
 : A zero-config, Go-based static site generator.

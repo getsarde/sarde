@@ -112,7 +112,6 @@ Wide tables scroll horizontally within the slide.
 When content serves as both a documentation page and a slide deck:
 
 - Use `##` for slide titles. These work as section headings in docs mode and slide titles in presentation mode.
-- Keep bullet points concise. Each point should be readable on a projected screen.
 - Place `---` separators at natural break points that also make sense as section dividers in the docs view.
 - Use code blocks freely. Syntax highlighting works identically in both modes.
 - Avoid deeply nested content (4+ indent levels). It reads well in docs but overflows on slides.

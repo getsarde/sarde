@@ -19,16 +19,16 @@ its way. If something you rely on is absent and not listed here, check the
 Most fields map one to one (see the [Migration Guide](/resources/migration-guide/) for
 the full tables). The ones that change behavior, not just names:
 
-- **`weight` is `sidebar.order`.** Sarde groups all sidebar-related fields under a
+- **`weight` is `sidebar.order`:** Sarde groups all sidebar-related fields under a
   `sidebar` key (`order`, `label`, `hidden`, `badge`) instead of Hugo's top-level
   `weight`. A leftover top-level `weight` is reported as an unknown key by
   `sarde validate` rather than silently ignored.
-- **Missing fields are inferred, not defaulted to empty.** Title falls back to the
+- **Missing fields are inferred, not defaulted to empty:** title falls back to the
   first H1, then the filename; date falls back to the git commit date, then file
   mtime; sidebar order falls back to a numeric filename prefix (`01-intro.md`). Hugo
   leaves missing fields empty. If a migrated page shows an unexpected title or date,
   inference is usually why.
-- **Starlight's TOC keys are flattened.** `tableOfContents.minHeadingLevel` and
+- **Starlight's TOC keys are flattened:** `tableOfContents.minHeadingLevel` and
   `maxHeadingLevel` become `toc.min_level` and `toc.max_level`; `template: splash`
   becomes `layout: splash`.
 
@@ -52,12 +52,12 @@ nesting rules.
 
 ## Collections and taxonomy behavior
 
-- **Collections are detected by directory name, not declared.** `content/blog/` is a
+- **Collections are detected by directory name, not declared:** `content/blog/` is a
   blog, `content/docs/` is a docs collection with sidebar and versioning support,
   with no `archetypes/` or content-type configuration. An unrecognized directory name
   becomes a generic collection; behavior for it can be set explicitly under
   `collections:` in `sarde.yaml`.
-- **Taxonomies work out of the box.** `tags`, `categories`, and `authors` generate
+- **Taxonomies work out of the box:** `tags`, `categories`, and `authors` generate
   term and list pages without the explicit `taxonomies:` declaration Hugo requires.
   Custom taxonomies are configured in `sarde.yaml` when you need more. See
   [Blog and Taxonomies](/guides/blog-and-taxonomies/).
@@ -70,15 +70,15 @@ nesting rules.
 Sarde's translation linking is directory-based and convention-driven. Four Hugo
 behaviors intentionally have no equivalent:
 
-- **No `translationKey`.** Translations are linked by matching relative path:
+- **No `translationKey`:** translations are linked by matching relative path:
   `content/guide.md` pairs with `content/fr/guide.md`. There is no frontmatter key to
   link differently-named files across languages, so translated files must keep the
   same relative path and name.
-- **No filename-based language detection.** Hugo's `guide.fr.md` suffix convention is
+- **No filename-based language detection:** Hugo's `guide.fr.md` suffix convention is
   not recognized; languages are separated by directory only.
-- **No pluralization sub-keys.** UI strings resolve to a single string per key.
+- **No pluralization sub-keys:** UI strings resolve to a single string per key.
   Hugo's go-i18n `one`/`other` plural forms have no equivalent.
-- **No per-language config overrides.** A language entry carries its name, direction,
+- **No per-language config overrides:** a language entry carries its name, direction,
   and weight. Hugo's per-language `title`, `baseURL`, and `params` overrides have no
   equivalent.
 
@@ -91,15 +91,15 @@ framework rather than left to themes. See
 
 Keys and subsystems a Hugo user may go looking for that are intentionally absent:
 
-- **No Sass, PostCSS, or Tailwind pipeline.** The asset pipeline is esbuild (CSS/JS
+- **No Sass, PostCSS, or Tailwind pipeline:** the asset pipeline is esbuild (CSS/JS
   bundling, minification, fingerprinting) plus image processing. Preprocess
   externally if you need a CSS toolchain.
-- **No archetypes.** Scaffolding is command-based: `sarde new <collection> <title>`.
-- **No content adapters or remote content.** All content comes from Markdown files in
+- **No archetypes:** scaffolding is command-based: `sarde new <collection> <title>`.
+- **No content adapters or remote content:** all content comes from Markdown files in
   `content/`; nothing is fetched at build time.
-- **No custom output formats.** Sarde emits HTML (plus feeds, sitemap, and search
+- **No custom output formats:** Sarde emits HTML (plus feeds, sitemap, and search
   index via plugins). There is no JSON/AMP/calendar output layer.
-- **Markdown only.** No AsciiDoc, Org Mode, or Pandoc input formats.
+- **Markdown only:** no AsciiDoc, Org Mode, or Pandoc input formats.
 
 ## What this page does not cover
 

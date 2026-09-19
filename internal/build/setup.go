@@ -197,6 +197,11 @@ func warnUnusedPluginConfig(cfg *config.SiteConfig, enabled []string, projectDir
 			warnings = append(warnings, warnPluginConfigKeys(name, cfg.Plugins.Config[name])...)
 			continue
 		}
+		// Search turned off by the site-level switch is deliberate, not a
+		// forgotten plugins.enabled entry; keeping its config is fine.
+		if name == "search" && !config.BoolVal(cfg.Search.Enabled, true) {
+			continue
+		}
 		ref := "sarde.yaml: plugins.config." + name
 		if known[name] {
 			warnings = append(warnings, engine.ValidationWarning{
@@ -270,6 +275,18 @@ func warnPluginConfigKeys(slug string, userCfg map[string]any) []engine.Validati
 }
 
 // filterDisabled returns enabled minus any names present in disabled.
+// effectivePluginDisabled returns plugins.disabled extended with plugins that
+// a site-level switch turns off. `search.enabled: false` is the documented
+// way to remove site search, so it must unregister the search plugin (no
+// index, no runtime script) in addition to hiding the header button.
+func effectivePluginDisabled(cfg *config.SiteConfig) []string {
+	disabled := cfg.Plugins.Disabled
+	if !config.BoolVal(cfg.Search.Enabled, true) {
+		disabled = append(append([]string(nil), disabled...), "search")
+	}
+	return disabled
+}
+
 func filterDisabled(enabled, disabled []string) []string {
 	if len(disabled) == 0 {
 		return enabled
@@ -308,6 +325,9 @@ func (b *SiteBuilder) phaseInitialize(s *buildState) error {
 		stringTable.SetStrict(true)
 	}
 	s.stringTable = stringTable
+	// Installed on every build (not only the first) so plugins translating in
+	// BeforeRender pick up string changes on incremental rebuilds too.
+	b.pluginMgr.SetStringTable(stringTable)
 
 	if s.isMultiLang {
 		langCodes := make(map[string]bool)
@@ -320,7 +340,7 @@ func (b *SiteBuilder) phaseInitialize(s *buildState) error {
 	b.scanner.VersionIDs = buildScannerVersionIDs(b.config.Collections)
 
 	if !b.built {
-		for _, name := range filterDisabled(b.config.Plugins.Enabled, b.config.Plugins.Disabled) {
+		for _, name := range filterDisabled(b.config.Plugins.Enabled, effectivePluginDisabled(b.config)) {
 			switch name {
 			case "announcements":
 				b.pluginMgr.Register(announcements.New(

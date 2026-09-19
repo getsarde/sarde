@@ -4,6 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/fs"
 	"strings"
 	"sync"
@@ -19,8 +20,49 @@ var searchRuntimeScripts = []string{
 	"/assets/js/static-search.js",
 }
 
+// searchStringKeys lists the i18n keys (minus the "search." prefix) resolved
+// into pluginConfig.search.strings for the modal runtime. static-search.js
+// keeps an English fallback for each, so a missing key degrades gracefully.
+var searchStringKeys = []string{
+	"recent", "clear", "type_to_search", "min_length", "filter_all",
+	"try_all_sections", "results_count_one", "results_count_other",
+	"full_search", "switch_full_search", "simple_search", "switch_simple_search",
+	"fuzzy_match", "preview", "open_page", "matches_in_page_one",
+	"matches_in_page_other", "matching_sections", "no_preview", "group_other",
+	"loading",
+}
+
 func newSearchPlugin(cfg map[string]any) *Plugin {
 	cache := &searchDocCache{}
+
+	// The strings script is identical for every page of a language, so it is
+	// serialized once per language. BeforeRender runs from parallel render
+	// workers, hence the mutex.
+	var mu sync.Mutex
+	scriptByLang := make(map[string]template.JS)
+
+	stringsScript := func(ctx *BeforeRenderContext, lang string) template.JS {
+		mu.Lock()
+		defer mu.Unlock()
+		if s, ok := scriptByLang[lang]; ok {
+			return s
+		}
+		strs := make(map[string]string, len(searchStringKeys))
+		for _, key := range searchStringKeys {
+			strs[key] = ctx.T(lang, "search."+key)
+		}
+		jsonBytes, _ := json.Marshal(map[string]any{"strings": strs})
+		// Merge form: other plugins (clientplugins, telescope) share
+		// window.__SARDE__.pluginConfig and must not be clobbered.
+		s := template.JS(
+			`window.__SARDE__=window.__SARDE__||{};` +
+				`window.__SARDE__.pluginConfig=window.__SARDE__.pluginConfig||{};` +
+				`window.__SARDE__.pluginConfig.search=` + string(jsonBytes) + `;`,
+		)
+		scriptByLang[lang] = s
+		return s
+	}
+
 	return &Plugin{
 		Name: "search",
 		Hooks: PluginHooks{
@@ -28,6 +70,11 @@ func newSearchPlugin(cfg map[string]any) *Plugin {
 				for _, s := range searchRuntimeScripts {
 					ctx.RouteData.Scripts = appendUniqueScript(ctx.RouteData.Scripts, s)
 				}
+				lang := ""
+				if ctx.Page != nil {
+					lang = ctx.Page.Lang
+				}
+				ctx.RouteData.InlineScripts = append(ctx.RouteData.InlineScripts, stringsScript(ctx, lang))
 				return nil
 			},
 			BuildDone: func(ctx *BuildDoneContext) error {

@@ -5,7 +5,7 @@ sidebar:
   order: 3
 ---
 
-A preset is a named set of token values inside a theme. A site switches to it with one line in `sarde.yaml`, which makes presets the lightest way to offer a site several looks without touching templates or CSS.
+A preset gives a theme an alternative look that a site selects with one line in `sarde.yaml`, without changes to templates or CSS. It is a named set of token values inside the theme.
 
 ## Where presets live
 

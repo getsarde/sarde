@@ -28,7 +28,7 @@ The copied URL is an absolute path: `https://yoursite.com/docs/page/#section-hea
 
 The plugin uses the Clipboard API (`navigator.clipboard.writeText`). After a successful copy, a tooltip showing "Link copied!" appears above the anchor for 1.5 seconds, then fades out.
 
-<!-- SCREENSHOT: copy-section-link-tooltip — the "Link copied!" tooltip above a heading anchor -->
+<!-- SCREENSHOT: copy-section-link-tooltip: the "Link copied!" tooltip above a heading anchor -->
 
 ## Configuration
 

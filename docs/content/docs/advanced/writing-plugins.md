@@ -103,7 +103,7 @@ func newRobotsPlugin(cfg map[string]any) *Plugin {
 
 ## Registration
 
-Built-in plugins are registered as factory functions keyed by name. Plugins that need embedded vendor assets (KaTeX, Mermaid, announcements, social cards) live in their own subpackages and are wired in separately to avoid import cycles.
+Built-in plugins are registered as factory functions keyed by name. Plugins that need embedded vendor assets (KaTeX, Mermaid, announcements, social cards) live in their own subpackages and are registered separately.
 
 Enable a plugin by adding its name to `plugins.enabled` in `sarde.yaml`. Per-plugin configuration lives under `plugins.config.<name>`, and is available in every hook's context as `PluginConfig`.
 
@@ -119,17 +119,7 @@ All enabled client-side plugins are concatenated into a single fingerprinted CSS
 
 ### `inject_when` rules
 
-| Rule | Injects on |
-|------|-----------|
-| `always` | Every page |
-| `has_sidebar` | Pages with sidebar navigation |
-| `has_toc` | Pages with a table of contents and headings |
-| `has_headings` | Pages with any headings |
-| `has_code_blocks` | Pages with code blocks |
-| `has_images` | Pages with images |
-| `has_prev_next` | Pages with prev/next navigation |
-| `is_content_page` | Regular content pages, not section indexes |
-| `has_updated` | Pages with a last-updated date |
+`inject_when` accepts the page-condition rules that external plugins use for `inject.when`: `always`, `has_sidebar`, `has_toc`, `has_headings`, `has_code_blocks`, `has_images`, `has_prev_next`, `is_content_page`, and `has_updated`. [Conditional asset injection](/advanced/external-plugin-authoring/#conditional-asset-injection) describes the pages each rule matches.
 
 ## Opting markup out of prose styles
 

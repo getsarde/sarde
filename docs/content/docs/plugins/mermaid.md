@@ -9,7 +9,7 @@ Ships Mermaid runtime assets and injects them into pages that contain diagram ma
 
 ## How it works
 
-The Mermaid extension converts fenced code blocks with the `sarde-mermaid` language into `<div class="sarde-mermaid">` elements during the build. The Mermaid plugin scans each page's rendered HTML for this class. When found, it appends the Mermaid scripts to the page's asset list. Pages without diagrams receive no Mermaid assets.
+The Mermaid extension converts fenced code blocks with the `mermaid` language (or the legacy `sarde-mermaid` spelling) into `<div class="sarde-mermaid">` elements during the build. The Mermaid plugin scans each page's rendered HTML for this class. When found, it appends the Mermaid scripts to the page's asset list. Pages without diagrams receive no Mermaid assets.
 
 The runtime assets are copied to `assets/vendor/mermaid/` in the build output:
 
@@ -34,7 +34,7 @@ Set `always: true` when diagrams are injected dynamically via client-side JavaSc
 
 ## Detection
 
-The plugin checks each page's rendered HTML for the string `class="sarde-mermaid"`. This class is added by Sarde's Mermaid extension when it transforms `sarde-mermaid` fenced code blocks. No detection runs when `always: true` is set.
+The plugin checks each page's rendered HTML for the string `class="sarde-mermaid"`. This class is added by Sarde's Mermaid extension when it transforms `mermaid` fenced code blocks. No detection runs when `always: true` is set.
 
 ## Initialization
 
@@ -52,7 +52,7 @@ The init script reads `document.documentElement.getAttribute("data-theme")` at r
 
 ## Relationship to the Mermaid extension
 
-The Mermaid extension (documented in the Extensions section) handles the Markdown parsing: converting `sarde-mermaid` fenced code blocks into placeholder `<div>` elements. The Mermaid plugin handles the runtime: shipping the Mermaid library and rendering those placeholders into SVG diagrams in the browser. Both are needed for diagrams to display.
+The [Mermaid extension](/extensions/mermaid/) handles the Markdown parsing: converting `mermaid` fenced code blocks into placeholder `<div>` elements. The Mermaid plugin handles the runtime: shipping the Mermaid library and rendering those placeholders into SVG diagrams in the browser. Both are needed for diagrams to display.
 
 ## Disabling Mermaid
 
@@ -75,7 +75,7 @@ plugins:
     # mermaid removed
 ```
 
-Fenced code blocks with the `sarde-mermaid` language are still transformed by the extension, but the rendered output shows the raw diagram source without Mermaid rendering.
+Fenced code blocks with the `mermaid` language are still transformed by the extension, but the rendered output shows the raw diagram source without Mermaid rendering.
 
 ## Edge cases
 

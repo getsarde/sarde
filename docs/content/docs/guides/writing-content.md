@@ -103,26 +103,14 @@ A date in frontmatter takes precedence over the filename date.
 
 ## Page bundles
 
-A page bundle is a directory containing an `index.md` file alongside related assets (images, PDFs, data files). The assets become part of the page and can be referenced with relative paths.
-
-```text
-content/blog/
-  cell-biology/
-    index.md                  # Page bundle
-    mitosis-diagram.png       # Bundle asset
-    data.csv                  # Bundle asset
-```
-
-Reference assets with relative paths in the Markdown:
+To keep a page's images and downloads next to its Markdown, make the page a [page bundle](/guides/content-and-collections#page-bundles): a directory that contains an `index.md` file and the asset files. Reference each asset by its filename:
 
 ```markdown
 ![Mitosis diagram](mitosis-diagram.png)
 ```
 
-Page bundles keep a page and its assets together, making content portable. Moving the directory moves everything.
-
 :::note
-`index.md` (without underscore) creates a page bundle. `_index.md` (with underscore) creates a section index. These are different things.
+`index.md` (without underscore) creates a page bundle. `_index.md` (with underscore) creates a section index.
 :::
 
 ## Drafts, scheduled, and expiring content

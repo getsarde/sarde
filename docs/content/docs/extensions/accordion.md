@@ -9,7 +9,7 @@ Accordions group multiple collapsible sections so that opening one closes the ot
 
 ## Basic syntax
 
-````
+::::example
 :::accordion
 :::details[What is photosynthesis?]
 Photosynthesis is the process by which plants convert light energy into chemical energy stored in glucose.
@@ -21,29 +21,17 @@ Chlorophyll absorbs red and blue light wavelengths and reflects green, giving pl
 Cellular respiration breaks down glucose to release energy in the form of ATP.
 :::
 :::
-````
-
-:::accordion
-:::details[What is photosynthesis?]
-Photosynthesis is the process by which plants convert light energy into chemical energy stored in glucose.
-:::
-:::details[Why is chlorophyll green?]
-Chlorophyll absorbs red and blue light wavelengths and reflects green, giving plants their color.
-:::
-:::details[What is cellular respiration?]
-Cellular respiration breaks down glucose to release energy in the form of ATP.
-:::
-:::
+::::
 
 → Three collapsible panels appear in a vertical group. Opening one panel closes any other open panel in the same accordion.
 
-<!-- SCREENSHOT: accordion-basic — three collapsible panels in an accordion group -->
+<!-- SCREENSHOT: accordion-basic: three collapsible panels in an accordion group -->
 
 ## Independent mode
 
 By default, opening one panel closes the others. Add the `independent` flag to allow multiple panels to remain open at the same time:
 
-````
+::::example
 :::accordion(independent)
 :::details[Prerequisites]
 Install Go 1.21 or later and a text editor.
@@ -52,16 +40,7 @@ Install Go 1.21 or later and a text editor.
 A Git client and a terminal multiplexer are helpful but not required.
 :::
 :::
-````
-
-:::accordion(independent)
-:::details[Prerequisites]
-Install Go 1.21 or later and a text editor.
-:::
-:::details[Optional tools]
-A Git client and a terminal multiplexer are helpful but not required.
-:::
-:::
+::::
 
 → Both panels can be opened simultaneously. Each panel toggles independently.
 

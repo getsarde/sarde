@@ -9,21 +9,17 @@ Highlighted text draws attention to key words or phrases with a colored backgrou
 
 ## Basic syntax
 
-```markdown
+::::example
 Photosynthesis converts ==light energy== into chemical energy stored in glucose.
-```
-
-Photosynthesis converts ==light energy== into chemical energy stored in glucose.
+::::
 
 → "light energy" appears with a yellow background highlight.
 
 Multiple highlights can appear in the same sentence:
 
-```markdown
+::::example
 The ==most important== part of any routing algorithm is ==path normalization==.
-```
-
-The ==most important== part of any routing algorithm is ==path normalization==.
+::::
 
 → Each phrase receives an independent highlight background.
 
@@ -31,25 +27,19 @@ The ==most important== part of any routing algorithm is ==path normalization==.
 
 Highlights work alongside other inline extensions in the same sentence:
 
-```markdown
+::::example
 The ==recommended== command is ::copy[sarde build --minify].
-```
-
-The ==recommended== command is ::copy[sarde build --minify].
+::::
 
 → "recommended" is highlighted while the command renders as a copyable snippet.
 
 Highlights also work inside block extensions such as asides:
 
-````
+::::example
 :::tip
 You can use ==highlighted text== and `inline code` inside callout blocks.
 :::
-````
-
-:::tip
-You can use ==highlighted text== and `inline code` inside callout blocks.
-:::
+::::
 
 → The highlighted phrase renders with the yellow background inside the green tip callout.
 

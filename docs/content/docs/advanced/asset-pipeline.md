@@ -66,7 +66,7 @@ Processed image variants are cached in `.cache/images/` under the project root. 
 
 On subsequent builds, cached variants are copied directly to the output directory without re-processing. Delete `.cache/images/` to force a full rebuild of all image variants.
 
-Cache writes are atomic (temp file plus rename) and guarded by a per-destination-path lock, since content-addressed filenames mean two concurrent builds of the same image would otherwise race on the same output path.
+Cache writes are atomic, so two concurrent builds of the same image cannot corrupt the cached file.
 
 ## AVIF support
 

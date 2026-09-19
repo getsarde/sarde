@@ -5,17 +5,15 @@ sidebar:
   order: 21
 ---
 
-Math expressions render LaTeX notation using KaTeX. Inline expressions use single dollar signs. Display (block) expressions use double dollar signs.
+Math expressions display typeset formulas, either inline with the text or as centered equation blocks. Write them in LaTeX notation, which KaTeX renders. Inline expressions use single dollar signs. Display (block) expressions use double dollar signs.
 
 ## Inline math
 
 Wrap an expression in single `$` delimiters to render it inline with the surrounding text:
 
-```markdown
+::::example
 The quadratic formula is $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$ where $a \neq 0$.
-```
-
-The quadratic formula is $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$ where $a \neq 0$.
+::::
 
 → The formula renders inline as typeset math, matching the line height of the surrounding paragraph.
 
@@ -23,15 +21,11 @@ The quadratic formula is $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$ where $a \neq 
 
 Wrap an expression in double `$$` delimiters on their own lines for a centered, full-width block:
 
-```markdown
+::::example
 $$
 E = mc^2
 $$
-```
-
-$$
-E = mc^2
-$$
+::::
 
 → The equation appears centered on its own line in a larger font.
 

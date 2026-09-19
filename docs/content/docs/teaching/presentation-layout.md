@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-The `presentation` layout renders a page with no site chrome (no header, footer, or sidebar) and activates the SlideViewer runtime. It works on any page in any collection.
+The `presentation` layout displays a page as a full-screen slide deck with no header, footer, or sidebar. The SlideViewer plugin drives the deck. It works on any page in any collection.
 
 ```yaml
 ---

@@ -265,16 +265,27 @@ func RegisterAll(mgr *plugin.Manager, enabled []string, configs map[string]map[s
 					rd.ModuleScripts = cfgutil.AppendUnique(rd.ModuleScripts, b.jsURL)
 				}
 
+				// Every plugin injected on this page gets an entry, even with
+				// an empty config, so `pluginConfig[slug]` presence is a
+				// reliable "enabled here" signal for other scripts (the search
+				// runtime uses it to decide whether to link with ?q= for the
+				// search_highlighter). The merge form preserves entries other
+				// plugins (telescope, search) added under their own slug.
 				merged := make(map[string]any)
 				for _, pc := range activePlugins {
-					if len(pc.config) > 0 && shouldInject(pc.entry.InjectWhen, ctx.Page, ctx.RouteData) {
-						merged[pc.slug] = pc.config
+					if shouldInject(pc.entry.InjectWhen, ctx.Page, ctx.RouteData) {
+						cfg := pc.config
+						if cfg == nil {
+							cfg = map[string]any{}
+						}
+						merged[pc.slug] = cfg
 					}
 				}
 				if len(merged) > 0 {
 					jsonBytes, _ := json.Marshal(merged)
 					rd.InlineScripts = append(rd.InlineScripts, template.JS(
-						`window.__SARDE__=window.__SARDE__||{};window.__SARDE__.pluginConfig=`+string(jsonBytes)+`;`,
+						`window.__SARDE__=window.__SARDE__||{};`+
+							`window.__SARDE__.pluginConfig=Object.assign(window.__SARDE__.pluginConfig||{},`+string(jsonBytes)+`);`,
 					))
 				}
 				return nil

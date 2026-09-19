@@ -8,6 +8,7 @@ import (
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/i18n"
 	"github.com/getsarde/sarde/internal/outputpath"
 )
 
@@ -110,7 +111,20 @@ type BeforeRenderContext struct {
 	Site         *engine.SiteContext
 	Resolver     *engine.URLResolver
 	PluginConfig map[string]any
+	strings      *i18n.StringTable
 	store        *SharedStore
+}
+
+// T resolves a UI string for the given language through the site's i18n
+// layers (embedded, theme, project), falling back to the default language and
+// finally to the key itself, matching the `t` template function. An empty
+// lang resolves in the default language. Returns the key when no string
+// table is installed.
+func (c *BeforeRenderContext) T(lang, key string) string {
+	if c.strings == nil {
+		return key
+	}
+	return c.strings.Resolve(lang, key)
 }
 
 // ResolveURL returns a root-relative URL with basePath, lang, and version applied.

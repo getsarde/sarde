@@ -30,6 +30,89 @@
   var panel = modal ? modal.querySelector(".sarde-search-modal-panel") : null;
   var previewEl = document.getElementById("sarde-search-preview");
   var modeToggleBtn = document.getElementById("sarde-search-mode-toggle");
+  var MIN_TERM_LENGTH = 2;
+  // This script is deferred, so every inline plugin config script has run.
+  var pluginConfig = (window.__SARDE__ && window.__SARDE__.pluginConfig) || {};
+  var searchCfg = pluginConfig.search || {};
+
+  // --- i18n ---
+  // The search plugin injects pluginConfig.search.strings per page language,
+  // resolved through the site's i18n layers. Missing or unresolved keys (a
+  // raw "search.*" key) fall back to English.
+  var FALLBACK = {
+    recent: "Recent",
+    clear: "Clear",
+    type_to_search: "Type to start searching",
+    min_length: "Type at least {min} characters",
+    filter_all: "All",
+    try_all_sections: "Try searching in all sections",
+    results_count_one: "{count} result for '{term}'",
+    results_count_other: "{count} results for '{term}'",
+    full_search: "Full Search",
+    switch_full_search: "Switch to Full Search",
+    simple_search: "Simple Search",
+    switch_simple_search: "Switch to Simple Search",
+    fuzzy_match: "Fuzzy match",
+    preview: "Preview",
+    open_page: "Open page",
+    matches_in_page_one: "{count} match in this page",
+    matches_in_page_other: "{count} matches in this page",
+    matching_sections: "Matching sections",
+    no_preview: "No preview available",
+    group_other: "Other",
+    loading: "Loading results"
+  };
+
+  function hasString(key) {
+    var v = searchCfg.strings && searchCfg.strings[key];
+    return typeof v === "string" && v !== "" && v.indexOf("search.") !== 0;
+  }
+
+  function str(key) {
+    if (hasString(key)) return searchCfg.strings[key];
+    return FALLBACK[key] || key;
+  }
+
+  function fmt(key, vars) {
+    return str(key).replace(/\{(\w+)\}/g, function (m, name) {
+      return Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : m;
+    });
+  }
+
+  // plural picks "<base>_one" or "<base>_other" from the page language's
+  // plural rules; locales whose rule yields another category (few, many,
+  // zero) fall back to "_other".
+  function plural(base, count, vars) {
+    var form = count === 1 ? "one" : "other";
+    try {
+      if (window.Intl && Intl.PluralRules) {
+        form = new Intl.PluralRules(document.documentElement.lang || undefined).select(count);
+      }
+    } catch (e) {}
+    var key = base + "_" + form;
+    if (!hasString(key) && !FALLBACK[key]) key = base + "_other";
+    return fmt(key, vars);
+  }
+
+  // --- Result links ---
+  // When the search_highlighter client plugin is active on this page (its
+  // slug is present in pluginConfig), result links carry the query as ?q=
+  // so the target page highlights the matches. The query is inserted before
+  // any #fragment so it lands in location.search rather than the hash.
+  function highlighterOn() {
+    return !!pluginConfig.search_highlighter;
+  }
+
+  function withQuery(url, term) {
+    if (!url || !highlighterOn()) return url;
+    var q = (term || "").trim();
+    if (!q) return url;
+    var hashAt = url.indexOf("#");
+    var base = hashAt >= 0 ? url.slice(0, hashAt) : url;
+    var hash = hashAt >= 0 ? url.slice(hashAt) : "";
+    if (/[?&]q=/.test(base)) return url;
+    return base + (base.indexOf("?") >= 0 ? "&" : "?") + "q=" + encodeURIComponent(q) + hash;
+  }
 
   var SEARCH_ICON = '<svg viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21l-4.3-4.3"/></g></svg>';
   var HISTORY_ICON = '<svg viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9a9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5m4-1v5l4 2"/></g></svg>';
@@ -71,12 +154,12 @@
       var header = document.createElement("div");
       header.className = "sarde-search-recent-header";
       var label = document.createElement("span");
-      label.textContent = "Recent";
+      label.textContent = str("recent");
       header.appendChild(label);
       var clearBtn = document.createElement("button");
       clearBtn.type = "button";
       clearBtn.className = "sarde-search-recent-clear";
-      clearBtn.textContent = "Clear";
+      clearBtn.textContent = str("clear");
       clearBtn.addEventListener("click", function () { clearRecentSearches(); });
       header.appendChild(clearBtn);
       initial.appendChild(header);
@@ -96,7 +179,7 @@
     } else {
       var fallback = document.createElement("div");
       fallback.className = "sarde-search-initial-fallback";
-      fallback.innerHTML = SEARCH_ICON + "<p>Type to start searching</p>";
+      fallback.innerHTML = SEARCH_ICON + "<p>" + escapeHTML(str("type_to_search")) + "</p>";
       initial.appendChild(fallback);
     }
   }
@@ -155,7 +238,7 @@
     allChip.type = "button";
     allChip.className = "sarde-search-filter-chip is-active";
     allChip.setAttribute("data-section", "");
-    allChip.textContent = "All";
+    allChip.textContent = str("filter_all");
     allChip.addEventListener("click", function () { setActiveSection(""); });
     filtersEl.appendChild(allChip);
 
@@ -325,7 +408,7 @@
     clearChildren(initial);
     var msg = document.createElement("div");
     msg.className = "sarde-search-initial-fallback";
-    msg.innerHTML = SEARCH_ICON + "<p>Type at least 2 characters</p>";
+    msg.innerHTML = SEARCH_ICON + "<p>" + escapeHTML(fmt("min_length", { min: MIN_TERM_LENGTH })) + "</p>";
     initial.appendChild(msg);
     initial.hidden = false;
   }
@@ -343,7 +426,7 @@
       currentOffset = 0;
       return;
     }
-    if (term.length < 2) {
+    if (term.length < MIN_TERM_LENGTH) {
       clearChildren(results);
       results.hidden = true;
       hideEmpty();
@@ -427,7 +510,7 @@
       var action = document.createElement("button");
       action.type = "button";
       action.className = "sarde-search-empty-action";
-      action.textContent = "Try searching in all sections";
+      action.textContent = str("try_all_sections");
       action.addEventListener("click", function () { setActiveSection(""); });
       emptyTips.parentNode.insertBefore(action, emptyTips.nextSibling);
     }
@@ -521,14 +604,14 @@
 
     var header = document.createElement("li");
     header.className = "sarde-search-results-header";
-    header.textContent = totalCount + " result" + (totalCount !== 1 ? "s" : "") + " for '" + term + "'";
+    header.textContent = plural("results_count", totalCount, { count: totalCount, term: term });
     results.appendChild(header);
 
     var groups = {};
     var groupOrder = [];
     hits.forEach(function (h) {
       var d = h.document || h;
-      var groupKey = d.section || "other";
+      var groupKey = d.section || str("group_other");
       if (!groups[groupKey]) {
         groups[groupKey] = [];
         groupOrder.push(groupKey);
@@ -553,7 +636,7 @@
     var li = document.createElement("li");
     var a = document.createElement("a");
     a.className = "sarde-search-result";
-    a.href = d.url || "#";
+    a.href = withQuery(d.url, term) || "#";
 
     var icon = document.createElement("span");
     icon.className = "sarde-search-result-icon";
@@ -601,7 +684,7 @@
     var groupOrder = [];
     hits.forEach(function (h) {
       var d = h.document || h;
-      var groupKey = d.section || "other";
+      var groupKey = d.section || str("group_other");
       if (!groups[groupKey]) {
         groups[groupKey] = [];
         groupOrder.push(groupKey);
@@ -647,6 +730,8 @@
   function showSpinner(container) {
     var li = document.createElement("li");
     li.className = "sarde-search-loading";
+    li.setAttribute("role", "status");
+    li.setAttribute("aria-label", str("loading"));
     li.innerHTML = '<div class="sarde-search-spinner"></div>';
     container.appendChild(li);
     return li;
@@ -668,8 +753,8 @@
     var iconEl = modeToggleBtn.querySelector("svg");
     var labelEl = modeToggleBtn.querySelector(".sarde-search-mode-label");
     if (iconEl) iconEl.outerHTML = COLUMNS_ICON;
-    if (labelEl) labelEl.textContent = "Full Search";
-    modeToggleBtn.setAttribute("aria-label", "Switch to Full Search");
+    if (labelEl) labelEl.textContent = str("full_search");
+    modeToggleBtn.setAttribute("aria-label", str("switch_full_search"));
   }
 
   function setFullMode(enabled) {
@@ -681,8 +766,8 @@
       var labelEl = modeToggleBtn.querySelector(".sarde-search-mode-label");
       if (enabled) {
         if (iconEl) iconEl.outerHTML = LIST_ICON;
-        if (labelEl) labelEl.textContent = "Simple Search";
-        modeToggleBtn.setAttribute("aria-label", "Switch to Simple Search");
+        if (labelEl) labelEl.textContent = str("simple_search");
+        modeToggleBtn.setAttribute("aria-label", str("switch_simple_search"));
       } else {
         resetToggleButton();
       }
@@ -723,7 +808,7 @@
 
     var header = document.createElement("li");
     header.className = "sarde-search-results-header";
-    header.textContent = totalCount + " result" + (totalCount !== 1 ? "s" : "") + " for '" + term + "'";
+    header.textContent = plural("results_count", totalCount, { count: totalCount, term: term });
     results.appendChild(header);
 
     hits.forEach(function (h) {
@@ -736,7 +821,7 @@
     var li = document.createElement("li");
     var a = document.createElement("a");
     a.className = "sarde-search-result is-compact";
-    a.href = d.url || "#";
+    a.href = withQuery(d.url, term) || "#";
     a.addEventListener("click", function (e) {
       if (isFullMode) {
         e.preventDefault();
@@ -767,7 +852,7 @@
       var fuzzBadge = document.createElement("span");
       fuzzBadge.className = "sarde-search-compact-badge sarde-search-compact-badge--fuzzy";
       fuzzBadge.textContent = "~";
-      fuzzBadge.title = "Fuzzy match";
+      fuzzBadge.title = str("fuzzy_match");
       titleRow.appendChild(fuzzBadge);
     }
     contentDiv.appendChild(titleRow);
@@ -809,20 +894,20 @@
     var headerEl = document.createElement("div");
     headerEl.className = "sarde-search-preview-header";
     var headerLabel = document.createElement("span");
-    headerLabel.textContent = "Preview";
+    headerLabel.textContent = str("preview");
     headerEl.appendChild(headerLabel);
     if (doc.url) {
+      var openHref = withQuery(doc.url, lastTerm);
       var openLink = document.createElement("a");
       openLink.className = "sarde-search-preview-open";
-      openLink.href = doc.url;
+      openLink.href = openHref;
       openLink.innerHTML = ARROW_ICON;
-      openLink.setAttribute("aria-label", "Open page");
-      openLink.title = "Open page";
+      openLink.setAttribute("aria-label", str("open_page"));
+      openLink.title = str("open_page");
       openLink.addEventListener("click", function (e) {
         e.preventDefault();
-        var href = doc.url;
         close();
-        window.location.href = href;
+        window.location.href = openHref;
       });
       headerEl.appendChild(openLink);
     }
@@ -864,7 +949,7 @@
     if (mc > 0) {
       var mcEl = document.createElement("div");
       mcEl.className = "sarde-search-preview-match-count";
-      mcEl.textContent = mc + " match" + (mc !== 1 ? "es" : "") + " in this page";
+      mcEl.textContent = plural("matches_in_page", mc, { count: mc });
       previewEl.appendChild(mcEl);
     }
 
@@ -881,18 +966,18 @@
       hdSection.className = "sarde-search-preview-headings";
       var hdLabel = document.createElement("div");
       hdLabel.className = "sarde-search-preview-headings-label";
-      hdLabel.textContent = "Matching sections";
+      hdLabel.textContent = str("matching_sections");
       hdSection.appendChild(hdLabel);
       headings.forEach(function (hd) {
+        var hdHref = withQuery(hd.url, lastTerm);
         var link = document.createElement("a");
         link.className = "sarde-search-preview-heading";
-        link.href = hd.url;
+        link.href = hdHref;
         link.innerHTML = HASH_ICON + "<span>" + highlight(hd.title || "", lastTerm) + "</span>";
         link.addEventListener("click", function (e) {
           e.preventDefault();
-          var href = hd.url;
           close();
-          window.location.href = href;
+          window.location.href = hdHref;
         });
         hdSection.appendChild(link);
       });
@@ -933,7 +1018,7 @@
     } else {
       var emptyEl = document.createElement("div");
       emptyEl.className = "sarde-search-preview-empty";
-      emptyEl.textContent = "No preview available";
+      emptyEl.textContent = str("no_preview");
       previewEl.appendChild(emptyEl);
     }
   }

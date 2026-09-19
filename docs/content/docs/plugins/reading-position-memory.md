@@ -26,7 +26,7 @@ As the reader scrolls, the plugin saves the scroll position to `localStorage` (d
 
 The toast shows: "Continue where you left off? (42%)" with two actions: **Jump** scrolls smoothly to the saved position (instantly when the reader's system requests reduced motion), and **Dismiss** (×) closes the toast.
 
-<!-- SCREENSHOT: reading-position-memory-toast — the "Continue where you left off?" toast with Jump and Dismiss buttons -->
+<!-- SCREENSHOT: reading-position-memory-toast: the "Continue where you left off?" toast with Jump and Dismiss buttons -->
 
 The toast auto-dismisses after 8 seconds by default. The timer pauses while the pointer hovers over the toast or keyboard focus is inside it, and restarts when both leave. Saved positions expire after 30 days.
 

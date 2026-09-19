@@ -23,7 +23,7 @@ graph TD
 
 → A flowchart appears with boxes and arrows showing the decision flow.
 
-<!-- SCREENSHOT: mermaid-flowchart — a simple flowchart with start, decision, and outcome nodes -->
+<!-- SCREENSHOT: mermaid-flowchart: a simple flowchart with start, decision, and outcome nodes -->
 
 ## Supported diagram types
 
@@ -51,7 +51,7 @@ For the full list of diagram types and syntax, see the [Mermaid documentation](h
 
 ## How it works
 
-The Mermaid extension uses an AST transformer (not a block parser). During Markdown parsing, it finds fenced code blocks with the `mermaid` or `sarde-mermaid` language identifier and replaces them with a `MermaidBlock` node. The renderer outputs a `<div class="sarde-mermaid">` containing the escaped diagram source.
+Each `mermaid` code block becomes an SVG diagram in the browser. During the build, the Mermaid extension replaces fenced code blocks that use the `mermaid` or `sarde-mermaid` language identifier with a `<div class="sarde-mermaid">` containing the escaped diagram source.
 
 The Mermaid plugin then detects `class="sarde-mermaid"` in the rendered HTML and injects the Mermaid runtime scripts. The client-side library parses the diagram source and replaces the text with an SVG.
 

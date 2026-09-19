@@ -1,6 +1,6 @@
 ---
 title: Dev Server
-description: "Dev server internals, WebSocket live reload, CSS hot-swap, and draft content handling."
+description: "Dev server internals, WebSocket live reload, and CSS hot-swap."
 sidebar:
   order: 5
 ---

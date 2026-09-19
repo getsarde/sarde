@@ -75,6 +75,27 @@ search:
   kbd_close: "to close"
   full_search: "Full Search"
   switch_full_search: "Switch to Full Search"
+  # Runtime strings resolved into the search modal script. {count}, {term}
+  # and {min} are substituted client-side; keep them verbatim in translations.
+  recent: "Recent"
+  clear: "Clear"
+  type_to_search: "Type to start searching"
+  min_length: "Type at least {min} characters"
+  filter_all: "All"
+  try_all_sections: "Try searching in all sections"
+  results_count_one: "{count} result for '{term}'"
+  results_count_other: "{count} results for '{term}'"
+  simple_search: "Simple Search"
+  switch_simple_search: "Switch to Simple Search"
+  fuzzy_match: "Fuzzy match"
+  preview: "Preview"
+  open_page: "Open page"
+  matches_in_page_one: "{count} match in this page"
+  matches_in_page_other: "{count} matches in this page"
+  matching_sections: "Matching sections"
+  no_preview: "No preview available"
+  group_other: "Other"
+  loading: "Loading results"
 
 theme:
   selection: "Theme selection"

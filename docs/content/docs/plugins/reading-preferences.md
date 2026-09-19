@@ -36,7 +36,7 @@ A floating button with a typography icon appears in the bottom-right corner. Cli
 
 Changes apply immediately to the content area. Preferences are saved to `localStorage` and restored on subsequent visits.
 
-<!-- SCREENSHOT: reading-preferences-panel — the reading preferences panel open with font and spacing controls -->
+<!-- SCREENSHOT: reading-preferences-panel: the reading preferences panel open with font and spacing controls -->
 
 Close the panel by clicking outside it, pressing ::kbd[Esc], or clicking the toggle button again.
 

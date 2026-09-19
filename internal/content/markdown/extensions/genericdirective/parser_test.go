@@ -21,6 +21,8 @@ func testRegistry(t *testing.T) *directive.Registry {
 	files := map[string]string{
 		"pullquote.yaml": "name: pullquote\nkind: container\nlabel: Pull Quote\ndescription: d\nfields:\n  - { name: author, label: Author, type: string }\n",
 		"pullquote.html": `<blockquote class="pullquote" data-label="{{.Label}}" data-author="{{.Attrs.author}}">{{.Body}}</blockquote>`,
+		"example.yaml":   "name: example\nkind: container\nlabel: Example\ndescription: d\n",
+		"example.html":   `<pre class="src">{{.Source}}</pre><div class="out">{{.Body}}</div>`,
 		"rawbox.yaml":    "name: rawbox\nkind: leaf\nlabel: Raw Box\ndescription: d\n",
 		"rawbox.html":    `<pre class="rawbox">{{.Body}}</pre>`,
 	}

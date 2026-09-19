@@ -17,6 +17,8 @@ Sarde includes a built-in Obsidian vault importer that converts notes to Sarde-c
 sarde import obsidian /path/to/vault
 ```
 
+The importer reads the vault and leaves it unchanged. It writes into `content/<collection>/` and overwrites files that already exist there with the same name, so commit or back up that directory before importing into an existing collection.
+
 The importer handles:
 
 | Obsidian syntax | Sarde output |

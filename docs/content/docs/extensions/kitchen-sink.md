@@ -449,15 +449,15 @@ Third of three columns.
 ### Steps
 
 :::steps
-1. **Install Sarde.** Download the binary or install via your package manager.
+1. **Install Sarde:** download the binary or install via your package manager.
 
-2. **Create a project.** Run `sarde new my-site` to scaffold a new project.
+2. **Create a project:** run `sarde new my-site` to scaffold a new project.
 
-3. **Add content.** Drop Markdown files into the `content/` directory.
+3. **Add content:** drop Markdown files into the `content/` directory.
 
-4. **Start the dev server.** Run `sarde dev` and open `http://localhost:4727`.
+4. **Start the dev server:** run `sarde dev` and open `http://localhost:4727`.
 
-5. **Build for production.** Run `sarde build` to generate the static site in `dist/`.
+5. **Build for production:** run `sarde build` to generate the static site in `dist/`.
 :::
 
 #### Steps with Headings

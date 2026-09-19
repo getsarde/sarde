@@ -33,7 +33,7 @@ Focus mode persists across page loads via `localStorage`. Returning visitors lan
 
 The feature is desktop-only. Below 1024px the sidebar is a slide-in drawer and the table of contents is a collapsible bar at the top, so there is nothing for focus mode to collapse. The toggle button is hidden at those widths and focus mode has no effect on the layout.
 
-<!-- SCREENSHOT: focus-mode-active — the page with sidebar and TOC hidden, content centered -->
+<!-- SCREENSHOT: focus-mode-active: the page with sidebar and TOC hidden, content centered -->
 
 ## Configuration
 

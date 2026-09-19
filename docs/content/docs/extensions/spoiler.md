@@ -9,23 +9,19 @@ Spoilers hide text behind a blur until the reader hovers, focuses, or clicks to 
 
 ## Basic syntax
 
-```markdown
+::::example
 The secret ingredient is ||a pinch of concurrency||.
-```
-
-The secret ingredient is ||a pinch of concurrency||.
+::::
 
 → The text appears blurred with a gray background. Hovering or clicking reveals the content.
 
-<!-- SCREENSHOT: spoiler-blurred — a spoiler in its default blurred state -->
+<!-- SCREENSHOT: spoiler-blurred: a spoiler in its default blurred state -->
 
 Multiple spoilers can appear in the same sentence:
 
-```markdown
+::::example
 The answer is ||42|| and the password is ||swordfish||.
-```
-
-The answer is ||42|| and the password is ||swordfish||.
+::::
 
 → Each spoiler blurs and reveals independently.
 
@@ -41,21 +37,17 @@ Three interactions reveal a spoiler:
 
 Hover and focus work through CSS alone. The persistent click toggle requires JavaScript and adds a `revealed` class to the element.
 
-<!-- SCREENSHOT: spoiler-revealed — a spoiler after being clicked to reveal -->
+<!-- SCREENSHOT: spoiler-revealed: a spoiler after being clicked to reveal -->
 
 ## Inside other extensions
 
 Spoilers work inside block extensions such as asides:
 
-````
+::::example
 :::tip
 The answer is ||hidden behind a spoiler||.
 :::
-````
-
-:::tip
-The answer is ||hidden behind a spoiler||.
-:::
+::::
 
 → The spoiler renders with the blur effect inside the green tip callout.
 
