@@ -15,6 +15,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 - **Search results reach the highlighter:** result links never carried the `?q=` parameter that the `search_highlighter` plugin reads, so highlighting never triggered from search. Links now append `?q=<query>` before any `#anchor` whenever the highlighter plugin is enabled, and stay clean otherwise.
 - **Search modal strings are translatable:** twenty-one runtime labels ("Recent", "Type to start searching", the result count, the full-search preview labels, and others) were hard-coded English and two of them overwrote labels the template had already translated. They now resolve through new `search.*` i18n keys with `_one`/`_other` plural forms and `{count}`, `{term}`, `{min}` placeholders, injected per page language, with English fallbacks in the script. The loading spinner gained an accessible label.
 - **Client plugin config no longer clobbers other plugins:** the inline `window.__SARDE__.pluginConfig` script assigned the object wholesale; it now merges, and every injected plugin gets an entry even with an empty config, so `pluginConfig[slug]` reliably signals that a plugin is active on the page.
+- **Mobile sidebar drawer recovers from the back/forward cache:** a docs or lab page cached with the drawer open came back with the header and content still inert. The drawer now resets to a closed, interactive state on restore, and backdrop cleanup no longer leaves a stray `transitionend` listener after each close.
 
 ### Added
 

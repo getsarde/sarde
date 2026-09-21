@@ -14,7 +14,14 @@
   if (!toggle || !sidebar) return;
 
   var isOpen = false;
+  var hideTimer = null;
   var mq = window.matchMedia('(min-width: ' + BREAKPOINT + 'px)');
+
+  // Runs after the close fade; a no-op if the drawer was reopened meanwhile.
+  function hideBackdrop() {
+    if (isOpen || !backdrop) return;
+    backdrop.style.display = 'none';
+  }
 
   function setInert(flag) {
     var els = [mainFrame, header, mobileToc, skipLink];
@@ -36,6 +43,7 @@
     document.body.classList.add('sarde-sidebar-open');
 
     if (backdrop) {
+      clearTimeout(hideTimer);
       backdrop.style.display = 'block';
       backdrop.offsetHeight;
       backdrop.classList.add('is-visible');
@@ -63,28 +71,27 @@
 
     if (backdrop) {
       backdrop.classList.remove('is-visible');
-      var hidden = false;
-      function hide() {
-        if (hidden || isOpen) return;
-        hidden = true;
-        backdrop.style.display = 'none';
-      }
-      backdrop.addEventListener('transitionend', function handler() {
-        hide();
-        backdrop.removeEventListener('transitionend', handler);
-      });
-      setTimeout(hide, 350);
+      // Fallback for when the fade never fires transitionend.
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(hideBackdrop, 350);
     }
 
     toggle.focus();
   }
 
+  // Idempotent: returns the page to a closed, interactive state from any
+  // starting point. Never moves focus.
   function reset() {
     isOpen = false;
+    clearTimeout(hideTimer);
     setInert(false);
     toggle.setAttribute('aria-expanded', 'false');
     sidebar.classList.remove('is-open');
-    sidebar.removeAttribute('inert');
+    if (mq.matches) {
+      sidebar.removeAttribute('inert');
+    } else {
+      sidebar.setAttribute('inert', '');
+    }
     document.body.classList.remove('sarde-sidebar-open');
     if (backdrop) {
       backdrop.classList.remove('is-visible');
@@ -93,12 +100,16 @@
   }
 
   // Initialize
-  if (!mq.matches) {
-    sidebar.setAttribute('inert', '');
-  }
+  reset();
   if (backdrop) {
-    backdrop.style.display = 'none';
+    backdrop.addEventListener('transitionend', hideBackdrop);
   }
+
+  // A page restored from the back/forward cache with the drawer open would
+  // come back with the header and content still inert.
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) reset();
+  });
 
   // Hamburger toggle
   toggle.addEventListener('click', function () {
@@ -127,11 +138,7 @@
 
   // Resize: reset when crossing to desktop
   function onBreakpoint(e) {
-    if (e.matches) {
-      reset();
-    } else if (!isOpen) {
-      sidebar.setAttribute('inert', '');
-    }
+    if (e.matches || !isOpen) reset();
   }
 
   if (mq.addEventListener) {
