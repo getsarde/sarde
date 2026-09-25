@@ -609,7 +609,7 @@ i18n:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `provider` | string | `""` | Deployment provider. `github`, `netlify`, `cloudflare`, `vercel`, or `custom`. |
-| `branch` | string | `""` | GitHub Pages deployment branch (e.g., `"gh-pages"`). |
+| `branch` | string | `"gh-pages"` | Branch the `github` provider pushes the built site to. |
 | `site_id` | string | `""` | Netlify site ID. |
 | `project_name` | string | `""` | Cloudflare Pages project name. |
 | `project_id` | string | `""` | Vercel project ID. |

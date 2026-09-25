@@ -34,6 +34,10 @@ func (d *GitHubPagesDeployer) Deploy(distDir string) error {
 		return fmt.Errorf("copying dist files: %w", err)
 	}
 
+	if err := writeNoJekyll(tmpDir); err != nil {
+		return fmt.Errorf("writing .nojekyll: %w", err)
+	}
+
 	// Initialize git repo, commit, and push.
 	if err := gitRun(tmpDir, "init"); err != nil {
 		return fmt.Errorf("git init: %w", err)
@@ -52,6 +56,17 @@ func (d *GitHubPagesDeployer) Deploy(distDir string) error {
 	}
 
 	return nil
+}
+
+// writeNoJekyll creates an empty .nojekyll file in dir unless one exists.
+// Branch-based GitHub Pages runs Jekyll over the pushed files, and Jekyll
+// drops every file and directory whose name starts with an underscore.
+func writeNoJekyll(dir string) error {
+	path := filepath.Join(dir, ".nojekyll")
+	if _, err := os.Stat(path); err == nil {
+		return nil
+	}
+	return os.WriteFile(path, nil, 0o644)
 }
 
 // deployCommands returns the git commands to run after `git init`, in order.

@@ -1,6 +1,8 @@
 package deploy
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -34,6 +36,35 @@ func TestDeployCommands_WithoutIdentity(t *testing.T) {
 	}
 	if !strings.HasSuffix(commit, "commit -m deploy site") {
 		t.Errorf("commit subcommand malformed: %v", cmds[1])
+	}
+}
+
+func TestWriteNoJekyll(t *testing.T) {
+	dir := t.TempDir()
+	if err := writeNoJekyll(dir); err != nil {
+		t.Fatalf("writeNoJekyll: %v", err)
+	}
+	info, err := os.Stat(filepath.Join(dir, ".nojekyll"))
+	if err != nil {
+		t.Fatalf(".nojekyll not created: %v", err)
+	}
+	if info.Size() != 0 {
+		t.Errorf(".nojekyll size = %d, want 0", info.Size())
+	}
+}
+
+func TestWriteNoJekyll_KeepsExisting(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, ".nojekyll")
+	if err := os.WriteFile(path, []byte("user"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeNoJekyll(dir); err != nil {
+		t.Fatalf("writeNoJekyll: %v", err)
+	}
+	got, _ := os.ReadFile(path)
+	if string(got) != "user" {
+		t.Errorf(".nojekyll content = %q, want existing file left untouched", got)
 	}
 }
 
