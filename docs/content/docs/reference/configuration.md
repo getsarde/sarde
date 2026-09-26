@@ -610,13 +610,25 @@ i18n:
 |-----|------|---------|-------------|
 | `provider` | string | `""` | Deployment provider. `github`, `netlify`, `cloudflare`, `vercel`, or `custom`. |
 | `branch` | string | `"gh-pages"` | Branch the `github` provider pushes the built site to. |
+| `cname` | string | `""` | Custom domain the `github` provider writes to the published `CNAME` file, such as `docs.example.com`. A bare domain: no scheme, path or port. |
 | `site_id` | string | `""` | Netlify site ID. |
 | `project_name` | string | `""` | Cloudflare Pages project name. |
-| `project_id` | string | `""` | Vercel project ID. |
+| `account_id` | string | `""` | Cloudflare account ID. The `CLOUDFLARE_ACCOUNT_ID` environment variable overrides it. |
+| `project_id` | string | `""` | Vercel project ID or name. |
+| `team_id` | string | `""` | Vercel team ID (`team_...`) for a project owned by a team. The `VERCEL_ORG_ID` environment variable overrides it. |
 | `command` | string | `""` | Custom deployment command (for `custom` provider). |
 | `redirect_format` | string | `""` | Redirect file format. `html`, `netlify`, `vercel`, or `all`. |
 
-The `github` and `custom` providers are implemented. The `netlify`, `cloudflare`, and `vercel` providers are accepted but not yet implemented: they validate their settings, then exit with an error. Deploy to those platforms with their CLI through the `custom` provider instead; see [Deploying](/start-here/deploying/) for working per-platform commands.
+API tokens are never read from `sarde.yaml`. Each provider takes its token from an environment variable:
+
+| Provider | Token variable |
+| --- | --- |
+| `netlify` | `NETLIFY_AUTH_TOKEN` |
+| `cloudflare` | `CLOUDFLARE_API_TOKEN` |
+| `vercel` | `VERCEL_TOKEN` |
+| `github` | None: uses the git credentials configured for the `origin` remote |
+
+See [Deploying](/start-here/deploying/) for each platform.
 
 ## `server`
 

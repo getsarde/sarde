@@ -14,8 +14,12 @@ import (
 // --format json is in effect, wrapped as {"error": {...}}. Consumed by Sarde
 // Studio's sidecar bridge; keep the field names stable.
 type errorEnvelope struct {
-	Kind    string           `json:"kind"`
-	Message string           `json:"message"`
+	Kind    string `json:"kind"`
+	Message string `json:"message"`
+	// Code is an optional machine-readable class within a kind (deploy
+	// errors use auth, not_found, rate_limited, limit, network, canceled,
+	// config, provider). Consumers must tolerate it being absent.
+	Code    string           `json:"code,omitempty"`
 	Details []validate.Error `json:"details,omitempty"`
 }
 
@@ -24,12 +28,18 @@ type errorEnvelope struct {
 // validation failures are detected via errors.As and carry structured
 // per-field details; any other error is kind/message only.
 func emitJSONError(kind string, err error) error {
-	writeJSONError(os.Stdout, kind, err)
+	writeJSONError(os.Stdout, kind, "", err)
 	return err
 }
 
-func writeJSONError(w io.Writer, kind string, err error) {
-	env := errorEnvelope{Kind: kind, Message: err.Error()}
+// emitJSONErrorCode is emitJSONError with a code inside the envelope.
+func emitJSONErrorCode(kind, code string, err error) error {
+	writeJSONError(os.Stdout, kind, code, err)
+	return err
+}
+
+func writeJSONError(w io.Writer, kind, code string, err error) {
+	env := errorEnvelope{Kind: kind, Message: err.Error(), Code: code}
 	var ve *config.ValidationError
 	if errors.As(err, &ve) {
 		env.Kind = "config_validation"

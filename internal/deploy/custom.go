@@ -1,38 +1,40 @@
 package deploy
 
 import (
+	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 )
 
-// CustomDeployer executes a user-provided shell command for deployment.
+// CustomDeployer runs a user-provided shell command with DIST_DIR set to the
+// absolute output directory.
 type CustomDeployer struct {
 	Command string
+	opts    Options
 }
 
 func (d *CustomDeployer) Name() string { return "custom" }
 
-func (d *CustomDeployer) Deploy(distDir string) error {
-	absDir, err := filepath.Abs(distDir)
+func (d *CustomDeployer) Deploy(ctx context.Context, distDir string, rep Reporter) (*Result, error) {
+	rep = orNop(rep)
+	absDir, err := filepath.Abs(plainDir(distDir))
 	if err != nil {
-		absDir = distDir
+		absDir = plainDir(distDir)
 	}
 
-	var cmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd", "/C", d.Command)
-	} else {
-		cmd = exec.Command("sh", "-c", d.Command)
+	cmd := shellCommand(ctx, d.Command)
+	if d.opts.ProjectDir != "" {
+		cmd.Dir = plainDir(d.opts.ProjectDir)
 	}
 	cmd.Env = append(os.Environ(), "DIST_DIR="+absDir)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("deploy command failed: %w", err)
+	rep.Step(StepUpload, "Running the deploy command")
+	if err := runForwarding(cmd, rep); err != nil {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+		return nil, fmt.Errorf("deploy command failed: %w", err)
 	}
-	return nil
+	return &Result{Provider: d.Name()}, nil
 }

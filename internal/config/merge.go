@@ -421,9 +421,12 @@ func mergeAnalytics(base, over *AnalyticsSettings) {
 func mergeDeploy(base, over *DeployConfig) {
 	mergeStr(&base.Provider, over.Provider)
 	mergeStr(&base.Branch, over.Branch)
+	mergeStr(&base.CNAME, over.CNAME)
 	mergeStr(&base.SiteID, over.SiteID)
+	mergeStr(&base.AccountID, over.AccountID)
 	mergeStr(&base.ProjectName, over.ProjectName)
 	mergeStr(&base.ProjectID, over.ProjectID)
+	mergeStr(&base.TeamID, over.TeamID)
 	mergeStr(&base.Command, over.Command)
 	mergeStr(&base.RedirectFormat, over.RedirectFormat)
 }

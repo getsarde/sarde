@@ -143,42 +143,110 @@ sarde deploy
 
 ```text
 Deploying with github-pages...
-Deploy complete.
+  Collecting files
+  Pushing 42 files to git@github.com:you/site.git (gh-pages)
+Deploy complete (6s).
 ```
 
-The deployer copies `dist/` into a temporary git repository, adds an empty `.nojekyll` file, commits, and force-pushes the commit to the `gh-pages` branch of the `origin` remote. Each deploy replaces the branch contents and history. The `.nojekyll` file stops GitHub Pages from running Jekyll, which would drop any file or directory whose name starts with an underscore.
+The deployer copies `dist/` into a temporary git repository, adds an empty `.nojekyll` file, commits, and force-pushes the commit to the `gh-pages` branch of the `origin` remote. Each deploy replaces the branch contents and history. The `.nojekyll` file stops GitHub Pages from running Jekyll, which would drop any file or directory whose name starts with an underscore. The build's lock file (`.sarde.lock`) is never published.
 
 After the first deploy, open **Settings > Pages** in the repository, set **Source** to **Deploy from a branch**, and select `gh-pages`.
 
+#### Custom domain
+
+GitHub Pages reads the custom domain from a `CNAME` file on the published branch. Because every deploy replaces the branch, set the domain in `sarde.yaml` so each deploy writes the file:
+
+```yaml title="sarde.yaml"
+deploy:
+  provider: github
+  cname: docs.example.com
+```
+
+Without `cname`, a `CNAME` file already in the output (for example one placed in `static/`) is kept as is.
+
 :::note
-The `github` provider requires a git remote named `origin` that you can push to. If git has no user identity configured, the deploy commit uses the name `sarde-deploy`.
+The `github` provider requires a git remote named `origin` that you can push to, using the git credentials already configured on your machine. If git has no user identity configured, the deploy commit uses the name `sarde-deploy`.
 :::
 
 See [`deploy`](/reference/cli-commands#deploy) in CLI Commands for all flags, and [`deploy`](/reference/configuration#deploy) in Configuration for all options.
 
+## Deploy tokens
+
+Netlify, Cloudflare Pages and Vercel deploys use an API token that Sarde reads from an environment variable. Tokens never go in `sarde.yaml`, because that file is usually committed.
+
+| Provider | Token variable | Other settings |
+| --- | --- | --- |
+| Netlify | `NETLIFY_AUTH_TOKEN` | `site_id` |
+| Cloudflare Pages | `CLOUDFLARE_API_TOKEN` | `project_name`, `account_id` (or `CLOUDFLARE_ACCOUNT_ID`) |
+| Vercel | `VERCEL_TOKEN` | `project_id`, `team_id` for team projects (or `VERCEL_ORG_ID`) |
+
+Check a token before the first deploy. `--check` looks up the configured site or project and uploads nothing:
+
+```sh
+sarde deploy --check
+```
+
+→ The terminal prints:
+
+```text
+Credentials OK: netlify can deploy to docs (https://docs.example.com)
+```
+
+In CI, store the token as a repository secret and expose it to the deploy step as the variable above.
+
+Sarde uploads only the files the provider does not already have, so a redeploy after a small change sends a few files, not the whole site.
+
+:::caution
+The Netlify, Cloudflare Pages and Vercel deployers talk to each provider's API directly and are new in this release. If a deploy fails for your site, the provider CLI commands in each section below still work, wrapped in a [`custom` provider](#custom-deployment). Please report the error message so the deployer can be fixed.
+:::
+
 ## Netlify
 
-Build the site, then deploy using the Netlify CLI:
+Create a personal access token under **User settings > Applications > Personal access tokens** and find the site ID under **Site configuration > General > Site details** (**Site ID**).
+
+```yaml title="sarde.yaml"
+deploy:
+  provider: netlify
+  site_id: 3f2a1b4c-5d6e-7f80-9a1b-2c3d4e5f6a7b
+```
+
+```sh
+export NETLIFY_AUTH_TOKEN=your-token
+sarde build
+sarde deploy
+```
+
+The deploy goes to production. If the site has auto publishing locked in the Netlify dashboard, Netlify keeps serving the previous deploy and `sarde deploy` prints a warning; publish the new deploy from the dashboard.
+
+Netlify reads the `_redirects` file the build writes for configured redirects and page aliases. Sarde also writes an HTML redirect page at each old path, and on Netlify that page takes precedence over the `_redirects` rule, so visitors are redirected by the page rather than by a 301 response.
+
+Without `sarde deploy`, the Netlify CLI works too:
 
 ```sh
 sarde build
 npx netlify deploy --prod --dir dist
 ```
 
-To generate a Netlify-compatible `_redirects` file for any configured redirects or page aliases, set the redirect format in `sarde.yaml`:
-
-```yaml
-deploy:
-  redirect_format: netlify
-```
-
-:::tip
-Wrap the Netlify CLI in a [`custom` provider](#custom-deployment) to deploy with `sarde deploy` instead of running two separate commands.
-:::
-
 ## Cloudflare Pages
 
-Build the site, then deploy using Wrangler:
+Create an API token with the **Cloudflare Pages: Edit** permission under **My Profile > API Tokens**. The account ID is shown on the account home page. The project must already exist; create it once in the dashboard under **Workers & Pages > Create > Pages > Direct Upload**.
+
+```yaml title="sarde.yaml"
+deploy:
+  provider: cloudflare
+  project_name: my-site
+  account_id: 0123456789abcdef0123456789abcdef
+```
+
+```sh
+export CLOUDFLARE_API_TOKEN=your-token
+sarde build
+sarde deploy
+```
+
+The deploy goes to the project's production branch. The build's `_redirects` file, and a `_headers` file if you add one under `static/`, are sent with the deployment. Pages Functions (a `_worker.js` in the output) are not supported by `sarde deploy`; use Wrangler for those sites.
+
+Without `sarde deploy`, Wrangler works too:
 
 ```sh
 sarde build
@@ -189,14 +257,31 @@ Alternatively, connect the Git repository in the Cloudflare dashboard. Set the b
 
 ## Vercel
 
-Build the site, then deploy using the Vercel CLI:
+Create a token under **Account Settings > Tokens**. The project ID is under **Project Settings > General** (**Project ID**); the project name works too. For a project owned by a team, also set the team ID (`team_...`) from **Team Settings > General**.
+
+```yaml title="sarde.yaml"
+deploy:
+  provider: vercel
+  project_id: prj_AbCdEf123456
+  team_id: team_AbCdEf123456
+```
+
+```sh
+export VERCEL_TOKEN=your-token
+sarde build
+sarde deploy
+```
+
+Sarde uploads the site as prebuilt output, so Vercel serves the files as they are and never runs a build of its own. Redirects from the build's `vercel.json` become Vercel routes, and a `404.html` in the output is served for missing pages. The printed URL is the production domain.
+
+Without `sarde deploy`, the Vercel CLI works too:
 
 ```sh
 sarde build
 npx vercel deploy --prod dist
 ```
 
-To generate a Vercel-compatible `vercel.json` with redirect rules, set the redirect format:
+To generate only a Vercel-compatible `vercel.json`, set the redirect format:
 
 ```yaml
 deploy:
@@ -207,7 +292,7 @@ Alternatively, connect the Git repository in the Vercel dashboard. Set the build
 
 ## Custom deployment
 
-The `custom` provider runs any shell command with the `DIST_DIR` environment variable set to the absolute path of the output directory.
+The `custom` provider runs any shell command with the `DIST_DIR` environment variable set to the absolute path of the output directory. The command runs in the site root.
 
 ```yaml
 deploy:

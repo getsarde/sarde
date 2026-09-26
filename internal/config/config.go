@@ -472,12 +472,18 @@ type AnalyticsSettings struct {
 // Deployment
 // ---------------------------------------------------------------------------
 
+// DeployConfig holds the non-secret deploy settings. Provider tokens are
+// never read from sarde.yaml: each API deployer takes its token from an
+// environment variable (see internal/deploy).
 type DeployConfig struct {
 	Provider       string `yaml:"provider"`        // github, netlify, cloudflare, vercel, custom
 	Branch         string `yaml:"branch"`          // GitHub Pages branch (default: gh-pages)
-	SiteID         string `yaml:"site_id"`         // Netlify site ID
+	CNAME          string `yaml:"cname"`           // GitHub Pages custom domain, written to CNAME (e.g. docs.example.com)
+	SiteID         string `yaml:"site_id"`         // Netlify site API ID
+	AccountID      string `yaml:"account_id"`      // Cloudflare account ID (CLOUDFLARE_ACCOUNT_ID overrides)
 	ProjectName    string `yaml:"project_name"`    // Cloudflare Pages project name
-	ProjectID      string `yaml:"project_id"`      // Vercel project ID
+	ProjectID      string `yaml:"project_id"`      // Vercel project ID or name
+	TeamID         string `yaml:"team_id"`         // Vercel team ID for team-owned projects (VERCEL_ORG_ID overrides)
 	Command        string `yaml:"command"`         // Custom deploy command
 	RedirectFormat string `yaml:"redirect_format"` // html, netlify, vercel, all (default: all)
 }

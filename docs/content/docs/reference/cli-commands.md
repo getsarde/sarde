@@ -176,15 +176,51 @@ sarde deploy [flags] [project-dir]
 |------|------|---------|-------------|
 | `--provider` | string | `""` | Override the deploy provider. `github`, `netlify`, `cloudflare`, `vercel`, or `custom`. |
 | `--output`, `-o` | string | `""` | Override the output directory. |
+| `--check` | bool | `false` | Verify the credentials and access to the configured site or project, then exit without uploading. Not available for `custom`. |
+| `--format` | string | `pretty` | Output format: `pretty` or `json`. |
 
 ```
 sarde build
 sarde deploy --provider github
 ```
 
-The output directory must exist. If it does not, an error prompts to run `sarde build` first.
+The output directory must exist. If it does not, an error prompts to run `sarde build` first. `--check` does not need it.
 
-Only the `github` and `custom` providers are implemented. The `netlify`, `cloudflare`, and `vercel` values are accepted but exit with a "not yet implemented" error; use the platform CLI through the `custom` provider instead. See [Deploying](/start-here/deploying/) for working per-platform commands.
+Provider tokens come from environment variables: `NETLIFY_AUTH_TOKEN`, `CLOUDFLARE_API_TOKEN` and `VERCEL_TOKEN`. `CLOUDFLARE_ACCOUNT_ID` and `VERCEL_ORG_ID` override `deploy.account_id` and `deploy.team_id`. See [Deploying](/start-here/deploying/) for each platform.
+
+The command exits with status 0 on success and 1 on any failure.
+
+### JSON output
+
+With `--format json`, stdout carries one JSON object per line and nothing else; diagnostics go to stderr. Every event has `"v": 1` and an `event` field:
+
+| Event | Fields | Sent |
+| --- | --- | --- |
+| `start` | `provider` | Once, before the deploy begins |
+| `step` | `step`, `message` | At each phase: `collect`, `hash`, `prepare`, `upload`, `finalize`, `wait` |
+| `progress` | `step`, `done`, `total`, `bytes`, `bytes_total` | During hashing and upload, at most every 100 ms, always at completion |
+| `log` | `level` (`info` or `warn`), `message` | Warnings, and output of the `github` and `custom` providers |
+| `result` | `ok`, `provider`, `url`, `deploy_url`, `deploy_id`, `admin_url`, `files_total`, `files_uploaded`, `bytes_uploaded`, `duration_ms` | Last line of a successful deploy |
+| `check` | `ok`, `provider`, `target_id`, `target`, `url`, `account` | Last line of a successful `--check` |
+
+`url` is the live production address, and `deploy_url` the permalink of this particular deploy. A failure ends with the error envelope shared by the other commands, with kind `deploy_failed` (or `deploy_check_failed`) and a `code`:
+
+```json
+{"error":{"kind":"deploy_failed","message":"netlify: GET /sites/{site_id} returned HTTP 401: Access Denied","code":"auth"}}
+```
+
+| Code | Meaning |
+| --- | --- |
+| `auth` | The token is missing permissions, rejected or expired |
+| `not_found` | The site or project does not exist, or the token cannot see it |
+| `rate_limited` | The provider kept throttling after several retries |
+| `limit` | The site exceeds a provider limit (file count or file size) |
+| `network` | The provider could not be reached |
+| `canceled` | The deploy was interrupted |
+| `config` | A required setting or environment variable is missing |
+| `provider` | Any other provider error |
+
+Fields may be added to events in later releases; a renamed or removed field raises `v`.
 
 ## `version`
 

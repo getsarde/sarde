@@ -395,3 +395,57 @@ func TestLoadFileStrict_ValidFile(t *testing.T) {
 		t.Errorf("Site.Title = %q, want %q", cfg.Site.Title, "Test")
 	}
 }
+
+func TestValidate_DeployCNAME(t *testing.T) {
+	good := []string{"docs.example.com", "example.com", "a-b.c-d.io", "WWW.Example.COM"}
+	bad := []string{"https://docs.example.com", "docs.example.com/path", "docs.example.com:443",
+		"localhost", "-bad.example.com", "*.example.com", "docs..example.com"}
+	for _, v := range good {
+		cfg := Defaults()
+		cfg.Deploy.CNAME = v
+		errs, _ := Validate(cfg, nil)
+		for _, e := range errs {
+			if e.Path == "deploy.cname" {
+				t.Errorf("cname %q rejected: %v", v, e)
+			}
+		}
+	}
+	for _, v := range bad {
+		cfg := Defaults()
+		cfg.Deploy.CNAME = v
+		errs, _ := Validate(cfg, nil)
+		found := false
+		for _, e := range errs {
+			if e.Path == "deploy.cname" {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("cname %q accepted, want an error", v)
+		}
+	}
+}
+
+func TestValidate_DeployCNAMEWarnsForOtherProviders(t *testing.T) {
+	cfg := Defaults()
+	cfg.Deploy.Provider = "netlify"
+	cfg.Deploy.CNAME = "docs.example.com"
+	_, warns := Validate(cfg, nil)
+	found := false
+	for _, w := range warns {
+		if w.Path == "deploy.cname" {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("expected a deploy.cname warning for a non-github provider")
+	}
+}
+
+func TestMergeDeploy_NewFields(t *testing.T) {
+	base := DeployConfig{Provider: "github"}
+	mergeDeploy(&base, &DeployConfig{CNAME: "docs.example.com", AccountID: "acct", TeamID: "team_1"})
+	if base.CNAME != "docs.example.com" || base.AccountID != "acct" || base.TeamID != "team_1" {
+		t.Errorf("merge dropped a field: %+v", base)
+	}
+}

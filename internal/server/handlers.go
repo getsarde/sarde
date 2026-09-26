@@ -399,28 +399,37 @@ func (s *APIServer) handleDeploy(w http.ResponseWriter, r *http.Request) {
 		deployCfg.Provider = req.Provider
 	}
 
-	deployer, err := deploy.NewDeployer(deployCfg)
+	projectDir := s.pm.ProjectDir()
+	deployer, err := deploy.NewDeployer(deployCfg, deploy.Options{ProjectDir: projectDir})
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "DEPLOY_CONFIG_ERROR", err.Error())
 		return
 	}
 
-	outputDir := cfg.Build.Output
-	projectDir := s.pm.ProjectDir()
-	outputDir, err = outputpath.ResolveOutputDir(projectDir, outputDir)
+	outputDir, err := outputpath.ResolveOutputDir(projectDir, cfg.Build.Output)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "OUTPUT_CONFIG_ERROR", err.Error())
 		return
 	}
 
-	if err := deployer.Deploy(outputDir); err != nil {
-		writeError(w, http.StatusInternalServerError, "DEPLOY_FAILED", err.Error())
+	res, err := deployer.Deploy(r.Context(), outputDir, deploy.NopReporter{})
+	if err != nil {
+		switch deploy.ErrorCode(err) {
+		case deploy.CodeAuth:
+			writeError(w, http.StatusUnauthorized, "DEPLOY_AUTH_FAILED", err.Error())
+		case deploy.CodeConfig:
+			writeError(w, http.StatusBadRequest, "DEPLOY_CONFIG_ERROR", err.Error())
+		default:
+			writeError(w, http.StatusInternalServerError, "DEPLOY_FAILED", err.Error())
+		}
 		return
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{
-		"status":   "deployed",
-		"provider": deployer.Name(),
+		"status":    "deployed",
+		"provider":  deployer.Name(),
+		"url":       res.URL,
+		"deploy_id": res.DeployID,
 	})
 }
 

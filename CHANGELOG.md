@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Netlify, Cloudflare Pages and Vercel deploys:** `sarde deploy` now publishes to all three through their APIs, with no provider CLI needed. Tokens come from `NETLIFY_AUTH_TOKEN`, `CLOUDFLARE_API_TOKEN` and `VERCEL_TOKEN`, never from `sarde.yaml`. Only files the provider does not already have are uploaded, uploads retry on rate limits, and the command prints the live URL. New `deploy.account_id` (Cloudflare) and `deploy.team_id` (Vercel) settings; `CLOUDFLARE_ACCOUNT_ID` and `VERCEL_ORG_ID` override them. See [Deploying](/start-here/deploying/).
+- **`sarde deploy --check`** verifies the token and access to the configured site or project without uploading anything.
+- **`sarde deploy --format json`** streams newline-delimited progress events (steps, upload progress, the result with the live URL and deploy ID) for tools such as Sarde Studio. Failures end with the shared error envelope, which now carries an optional `code` (`auth`, `not_found`, `rate_limited`, `limit`, `network`, `canceled`, `config`, `provider`).
+- **GitHub Pages custom domain:** `deploy.cname` writes the `CNAME` file on every deploy, so a force-push no longer drops a custom domain.
+
+### Fixed
+
+- **Deploys no longer publish `.sarde.lock`:** the GitHub Pages deployer copied the build's lock file into the published branch. Every deployer now skips it.
+- **Custom deploy commands on Windows run as typed:** a command that quoted a path, such as `echo done > "C:\My Site\log.txt"`, failed with "The filename, directory name, or volume label syntax is incorrect", because the quotes were escaped for a program other than `cmd.exe`. The command now reaches `cmd.exe` unchanged, and a site path in Windows' `\\?\` form no longer makes the command run in `C:\Windows`.
+- **GitHub Pages deploys read the remote from the site root:** the deployer looked up the `origin` remote in the process working directory, so `sarde deploy path/to/site` run from elsewhere pushed to the wrong repository or failed. Git and custom-command output no longer write straight to stdout.
+
+### Changed
+
+- **Deploy dependency:** `github.com/zeebo/blake3` (and its dependency `github.com/klauspost/cpuid/v2`) for the Cloudflare Pages asset hash.
+
+
+### Added
+
 - **Custom directive templates receive `.Source`:** container directives get the raw Markdown between their fences alongside the rendered `.Body`, so a directive can show Markdown next to its result. See [Custom Directives](/extensions/custom-directives/#template-data).
 
 ### Fixed

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/validate"
@@ -39,6 +40,10 @@ func validateRequired(c *validate.Checker, cfg *SiteConfig) {
 func validateRecommended(w *validate.Checker, cfg *SiteConfig) {
 	w.Required("site.url", cfg.Site.URL)
 	w.Required("site.description", cfg.Site.Description)
+	if cfg.Deploy.CNAME != "" && cfg.Deploy.Provider != "" && cfg.Deploy.Provider != "github" {
+		w.Check("deploy.cname", cfg.Deploy.CNAME, false,
+			"deploy.cname only applies to the github provider; other hosts set custom domains in their dashboard")
+	}
 }
 
 // --- Enum checks ---
@@ -92,6 +97,37 @@ func validateInterdependencies(c *validate.Checker, cfg *SiteConfig) {
 		"code and image are both set",
 		cfg.Homepage.Hero.Code == nil || cfg.Homepage.Hero.Image == nil,
 		"homepage.hero.code and homepage.hero.image are mutually exclusive; remove one")
+	c.Check("deploy.cname", cfg.Deploy.CNAME,
+		cfg.Deploy.CNAME == "" || IsBareHostname(cfg.Deploy.CNAME),
+		"deploy.cname must be a bare domain such as docs.example.com (no scheme, path or port)")
+}
+
+// IsBareHostname reports whether s is a plain DNS name with at least two
+// labels: letters, digits and hyphens only, each label 1 to 63 characters,
+// no leading or trailing hyphen. A scheme, path, port or wildcard fails.
+func IsBareHostname(s string) bool {
+	if len(s) == 0 || len(s) > 253 {
+		return false
+	}
+	labels := strings.Split(s, ".")
+	if len(labels) < 2 {
+		return false
+	}
+	for _, label := range labels {
+		if len(label) == 0 || len(label) > 63 {
+			return false
+		}
+		if label[0] == '-' || label[len(label)-1] == '-' {
+			return false
+		}
+		for _, r := range label {
+			isAlnum := (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')
+			if !isAlnum && r != '-' {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 // --- Per-collection, per-taxonomy, per-language checks ---

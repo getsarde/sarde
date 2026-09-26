@@ -1,6 +1,8 @@
 package deploy
 
 import (
+	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -27,7 +29,7 @@ func TestNewDeployer_ValidProviders(t *testing.T) {
 		if tt.provider == "custom" {
 			cfg.Command = "echo deploy"
 		}
-		d, err := NewDeployer(cfg)
+		d, err := NewDeployer(cfg, Options{})
 		if err != nil {
 			t.Errorf("NewDeployer(%q) error: %v", tt.provider, err)
 			continue
@@ -39,28 +41,28 @@ func TestNewDeployer_ValidProviders(t *testing.T) {
 }
 
 func TestNewDeployer_EmptyProvider(t *testing.T) {
-	_, err := NewDeployer(config.DeployConfig{})
+	_, err := NewDeployer(config.DeployConfig{}, Options{})
 	if err == nil {
 		t.Error("expected error for empty provider")
 	}
 }
 
 func TestNewDeployer_UnknownProvider(t *testing.T) {
-	_, err := NewDeployer(config.DeployConfig{Provider: "unknown"})
+	_, err := NewDeployer(config.DeployConfig{Provider: "unknown"}, Options{})
 	if err == nil {
 		t.Error("expected error for unknown provider")
 	}
 }
 
 func TestNewDeployer_CustomRequiresCommand(t *testing.T) {
-	_, err := NewDeployer(config.DeployConfig{Provider: "custom"})
+	_, err := NewDeployer(config.DeployConfig{Provider: "custom"}, Options{})
 	if err == nil {
 		t.Error("expected error for custom without command")
 	}
 }
 
 func TestNewDeployer_GitHubDefaultBranch(t *testing.T) {
-	d, err := NewDeployer(config.DeployConfig{Provider: "github"})
+	d, err := NewDeployer(config.DeployConfig{Provider: "github"}, Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,8 +90,13 @@ func TestCustomDeployer_Execute(t *testing.T) {
 	}
 
 	d := &CustomDeployer{Command: command}
-	if err := d.Deploy(distDir); err != nil {
+	rep := &recordingReporter{}
+	res, err := d.Deploy(context.Background(), distDir, rep)
+	if err != nil {
 		t.Fatalf("Deploy() error: %v", err)
+	}
+	if res.Provider != "custom" {
+		t.Errorf("result provider = %q", res.Provider)
 	}
 
 	data, err := os.ReadFile(outFile)
@@ -102,40 +109,64 @@ func TestCustomDeployer_Execute(t *testing.T) {
 	}
 }
 
-func TestNetlifyDeployer_RequiresToken(t *testing.T) {
-	os.Unsetenv("NETLIFY_AUTH_TOKEN")
-	d := &NetlifyDeployer{SiteID: "test-site"}
-	err := d.Deploy("/tmp/dist")
-	if err == nil {
-		t.Error("expected error without NETLIFY_AUTH_TOKEN")
+// A custom command that quotes a path with a space must reach the shell as
+// typed, from a verbatim (`\\?\`) project directory. On Windows, Go's default
+// quoting escaped the inner quotes for cmd.exe ("The filename, directory
+// name, or volume label syntax is incorrect"), and cmd.exe refused the
+// verbatim working directory; both found by Sarde Studio's E2E deploy test.
+func TestCustomDeployer_QuotedPathWithSpace(t *testing.T) {
+	distDir := t.TempDir()
+	outDir := filepath.Join(t.TempDir(), "has space")
+	if err := os.MkdirAll(outDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	outFile := filepath.Join(outDir, "result.txt")
+	projectDir := t.TempDir()
+	var command string
+	if runtime.GOOS == "windows" {
+		command = `echo %DIST_DIR%> "` + outFile + `"`
+		projectDir = `\\?\` + projectDir
+	} else {
+		command = `echo "$DIST_DIR" > "` + outFile + `"`
+	}
+	d := &CustomDeployer{Command: command, opts: Options{ProjectDir: projectDir}}
+	if _, err := d.Deploy(context.Background(), distDir, &recordingReporter{}); err != nil {
+		t.Fatalf("Deploy: %v", err)
+	}
+	data, err := os.ReadFile(outFile)
+	if err != nil {
+		t.Fatalf("the command did not write %s: %v", outFile, err)
+	}
+	if !strings.Contains(string(data), filepath.Base(distDir)) {
+		t.Errorf("DIST_DIR not passed, got %q", data)
 	}
 }
 
-func TestNetlifyDeployer_RequiresSiteID(t *testing.T) {
-	t.Setenv("NETLIFY_AUTH_TOKEN", "test-token")
-	d := &NetlifyDeployer{SiteID: ""}
-	err := d.Deploy("/tmp/dist")
-	if err == nil {
-		t.Error("expected error without site_id")
+func TestAPIDeployers_RequireCredentials(t *testing.T) {
+	dist := writeDist(t, map[string]string{"index.html": "x"})
+	cases := []struct {
+		name string
+		d    Deployer
+		want string
+	}{
+		{"netlify token", &NetlifyDeployer{SiteID: "site", opts: Options{Getenv: fakeEnv(nil)}}, "NETLIFY_AUTH_TOKEN"},
+		{"netlify site", &NetlifyDeployer{opts: Options{Getenv: fakeEnv(map[string]string{"NETLIFY_AUTH_TOKEN": "t"})}}, "deploy.site_id"},
+		{"vercel token", &VercelDeployer{ProjectID: "p", opts: Options{Getenv: fakeEnv(nil)}}, "VERCEL_TOKEN"},
+		{"vercel project", &VercelDeployer{opts: Options{Getenv: fakeEnv(map[string]string{"VERCEL_TOKEN": "t"})}}, "deploy.project_id"},
+		{"cloudflare token", &CloudflareDeployer{ProjectName: "p", AccountID: "a", opts: Options{Getenv: fakeEnv(nil)}}, "CLOUDFLARE_API_TOKEN"},
+		{"cloudflare account", &CloudflareDeployer{ProjectName: "p", opts: Options{Getenv: fakeEnv(map[string]string{"CLOUDFLARE_API_TOKEN": "t"})}}, "account_id"},
+		{"cloudflare project", &CloudflareDeployer{AccountID: "a", opts: Options{Getenv: fakeEnv(map[string]string{"CLOUDFLARE_API_TOKEN": "t"})}}, "deploy.project_name"},
 	}
-}
-
-func TestCloudflareDeployer_RequiresEnv(t *testing.T) {
-	os.Unsetenv("CLOUDFLARE_API_TOKEN")
-	os.Unsetenv("CLOUDFLARE_ACCOUNT_ID")
-	d := &CloudflareDeployer{ProjectName: "my-project"}
-	err := d.Deploy("/tmp/dist")
-	if err == nil {
-		t.Error("expected error without CLOUDFLARE_API_TOKEN")
-	}
-}
-
-func TestVercelDeployer_RequiresEnv(t *testing.T) {
-	os.Unsetenv("VERCEL_TOKEN")
-	d := &VercelDeployer{ProjectID: "my-project"}
-	err := d.Deploy("/tmp/dist")
-	if err == nil {
-		t.Error("expected error without VERCEL_TOKEN")
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := tc.d.Deploy(context.Background(), dist, nil)
+			if err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("err = %v, want mention of %s", err, tc.want)
+			}
+			if ErrorCode(err) != CodeConfig {
+				t.Errorf("ErrorCode = %q, want config", ErrorCode(err))
+			}
+		})
 	}
 }
 
@@ -148,44 +179,22 @@ func TestMaskToken(t *testing.T) {
 	}
 }
 
-func TestCopyDir(t *testing.T) {
-	src := t.TempDir()
-	os.MkdirAll(filepath.Join(src, "sub"), 0o755)
-	os.WriteFile(filepath.Join(src, "a.txt"), []byte("hello"), 0o644)
-	os.WriteFile(filepath.Join(src, "sub", "b.txt"), []byte("world"), 0o644)
-
-	dst := t.TempDir()
-	if err := copyDir(src, dst); err != nil {
-		t.Fatal(err)
+func TestErrorCode(t *testing.T) {
+	cases := map[string]error{
+		CodeAuth:        &APIError{Status: 401},
+		CodeNotFound:    &APIError{Status: 404},
+		CodeRateLimited: &APIError{Status: 429},
+		CodeProvider:    &APIError{Status: 500},
+		CodeCanceled:    context.Canceled,
+		CodeConfig:      configErrorf("x"),
+		CodeLimit:       limitErrorf("x"),
 	}
-
-	data, _ := os.ReadFile(filepath.Join(dst, "a.txt"))
-	if string(data) != "hello" {
-		t.Errorf("a.txt = %q", data)
-	}
-	data, _ = os.ReadFile(filepath.Join(dst, "sub", "b.txt"))
-	if string(data) != "world" {
-		t.Errorf("sub/b.txt = %q", data)
-	}
-}
-
-// The unimplemented API deployers must report an error (not nil), so a CI
-// pipeline running `sarde deploy` fails loudly instead of exiting 0 without
-// having deployed anything.
-func TestUnimplementedDeployers_ReturnError(t *testing.T) {
-	t.Setenv("NETLIFY_AUTH_TOKEN", "test-token")
-	t.Setenv("VERCEL_TOKEN", "test-token")
-	t.Setenv("CLOUDFLARE_API_TOKEN", "test-token")
-	t.Setenv("CLOUDFLARE_ACCOUNT_ID", "test-account")
-
-	deployers := []Deployer{
-		&NetlifyDeployer{SiteID: "site"},
-		&VercelDeployer{ProjectID: "proj"},
-		&CloudflareDeployer{ProjectName: "proj"},
-	}
-	for _, d := range deployers {
-		if err := d.Deploy("/tmp/dist"); err == nil {
-			t.Errorf("%s.Deploy returned nil; unimplemented deployers must error", d.Name())
+	for want, err := range cases {
+		if got := ErrorCode(fmt.Errorf("wrapped: %w", err)); got != want {
+			t.Errorf("ErrorCode(%v) = %q, want %q", err, got, want)
 		}
+	}
+	if ErrorCode(nil) != "" {
+		t.Error("ErrorCode(nil) should be empty")
 	}
 }

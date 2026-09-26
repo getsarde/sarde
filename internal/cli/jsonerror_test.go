@@ -37,7 +37,7 @@ func TestWriteJSONErrorValidation(t *testing.T) {
 	wrapped := fmt.Errorf("resolving config: %w", verr)
 
 	var buf bytes.Buffer
-	writeJSONError(&buf, "build_failed", wrapped)
+	writeJSONError(&buf, "build_failed", "", wrapped)
 	env := decodeEnvelope(t, &buf)
 
 	if env["kind"] != "config_validation" {
@@ -59,7 +59,7 @@ func TestWriteJSONErrorValidation(t *testing.T) {
 
 func TestWriteJSONErrorGeneric(t *testing.T) {
 	var buf bytes.Buffer
-	writeJSONError(&buf, "dev_failed", fmt.Errorf("port 4727 already in use"))
+	writeJSONError(&buf, "dev_failed", "", fmt.Errorf("port 4727 already in use"))
 	env := decodeEnvelope(t, &buf)
 
 	if env["kind"] != "dev_failed" {
