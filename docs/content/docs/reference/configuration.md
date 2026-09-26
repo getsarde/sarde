@@ -90,6 +90,8 @@ social:
 | `accent_color` | string | `""` | Accent color (hex). Sets `--sd-accent` and auto-derives hover/high/low variants. |
 | `font_family` | string | `""` | Base font family CSS value. |
 | `font_mono` | string | `""` | Monospace font family CSS value. |
+| `font_heading` | string | `""` | Font family CSS value for `h1` to `h6`. Sets the `font-heading` token. Headings use `font_family` when unset. |
+| `font_scale` | number | `1` | Multiplier for the `text-xs` to `text-5xl` size scale, from `0.5` to `2`. Sets the `text-scale` token. |
 | `code_light` | string | `""` | Syntax highlighting theme for light mode. |
 | `code_dark` | string | `""` | Syntax highlighting theme for dark mode. |
 | `date_format` | string | `"short"` | Display format for the "last updated" date. See below. |

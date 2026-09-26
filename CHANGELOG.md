@@ -13,12 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`sarde deploy --check`** verifies the token and access to the configured site or project without uploading anything.
 - **`sarde deploy --format json`** streams newline-delimited progress events (steps, upload progress, the result with the live URL and deploy ID) for tools such as Sarde Studio. Failures end with the shared error envelope, which now carries an optional `code` (`auth`, `not_found`, `rate_limited`, `limit`, `network`, `canceled`, `config`, `provider`).
 - **GitHub Pages custom domain:** `deploy.cname` writes the `CNAME` file on every deploy, so a force-push no longer drops a custom domain.
+- **Heading font:** `theme.font_heading` (or the new `font-heading` token) sets the font for `h1` to `h6`. Headings follow `theme.font_family` until it is set. See [Theme Tokens](/reference/theme-tokens/#fonts).
+- **Font size scale:** `theme.font_scale` (or the new `text-scale` token) multiplies the whole `text-xs` to `text-5xl` scale, so body text and headings grow or shrink together. Accepts `0.5` to `2`; a value outside that range is a config error.
+- **Plugin requirements in the catalog:** `sarde plugins --format json` gives each plugin a `requires` list of plugin ids it needs enabled. `social_cards` requires `seo` and `search_highlighter` requires `search`. The field is omitted when empty, and the catalog version is unchanged.
 
 ### Fixed
 
 - **Deploys no longer publish `.sarde.lock`:** the GitHub Pages deployer copied the build's lock file into the published branch. Every deployer now skips it.
 - **Custom deploy commands on Windows run as typed:** a command that quoted a path, such as `echo done > "C:\My Site\log.txt"`, failed with "The filename, directory name, or volume label syntax is incorrect", because the quotes were escaped for a program other than `cmd.exe`. The command now reaches `cmd.exe` unchanged, and a site path in Windows' `\\?\` form no longer makes the command run in `C:\Windows`.
 - **GitHub Pages deploys read the remote from the site root:** the deployer looked up the `origin` remote in the process working directory, so `sarde deploy path/to/site` run from elsewhere pushed to the wrong repository or failed. Git and custom-command output no longer write straight to stdout.
+- **`robots.txt` no longer points at a missing sitemap:** the robots plugin wrote a `Sitemap:` line even when the sitemap plugin was off. The line now appears only when the sitemap plugin runs.
 
 ### Changed
 

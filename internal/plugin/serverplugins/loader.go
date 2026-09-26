@@ -33,6 +33,9 @@ type ManifestEntry struct {
 	Group          string `yaml:"group"`
 	DefaultEnabled bool   `yaml:"default_enabled"`
 	ConfigKey      string `yaml:"config_key"`
+	// Requires lists plugin ids this plugin needs enabled to work fully.
+	// Informational: the build does not enforce it; Studio warns on toggle.
+	Requires []string `yaml:"requires"`
 }
 
 type manifest struct {

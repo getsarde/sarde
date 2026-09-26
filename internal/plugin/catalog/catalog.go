@@ -28,7 +28,8 @@ const (
 )
 
 // Entry describes one plugin. Keep field names stable: Sarde Studio decodes
-// them.
+// them. Requires lists the ids of plugins this one needs enabled; it is
+// additive (omitted when empty), so it did not change the catalog Version.
 type Entry struct {
 	ID             string          `json:"id"`
 	Label          string          `json:"label"`
@@ -37,6 +38,7 @@ type Entry struct {
 	Description    string          `json:"description"`
 	DefaultEnabled bool            `json:"defaultEnabled"`
 	ConfigKey      string          `json:"configKey,omitempty"`
+	Requires       []string        `json:"requires,omitempty"`
 	Fields         []cfgutil.Field `json:"fields"`
 }
 
@@ -56,7 +58,7 @@ func Build(projectDir string) Catalog {
 		e, _ := serverplugins.Entry(slug)
 		entries = append(entries, Entry{
 			ID: slug, Label: e.Label, Kind: KindServer, Group: e.Group, Description: e.Description,
-			DefaultEnabled: e.DefaultEnabled, ConfigKey: e.ConfigKey,
+			DefaultEnabled: e.DefaultEnabled, ConfigKey: e.ConfigKey, Requires: e.Requires,
 			Fields: nonNil(serverplugins.Fields(slug)),
 		})
 	}
@@ -66,6 +68,7 @@ func Build(projectDir string) Catalog {
 		entries = append(entries, Entry{
 			ID: slug, Label: clientplugins.Label(slug), Kind: KindClient, Group: KindClient,
 			Description: clientplugins.Description(slug),
+			Requires:    clientplugins.Requires(slug),
 			Fields:      nonNil(clientplugins.Fields(slug)),
 		})
 	}

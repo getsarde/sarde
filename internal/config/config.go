@@ -146,6 +146,8 @@ type ThemeSettings struct {
 	AccentColor   string            `yaml:"accent_color"`
 	FontFamily    string            `yaml:"font_family"`
 	FontMono      string            `yaml:"font_mono"`
+	FontHeading   string            `yaml:"font_heading"`
+	FontScale     float64           `yaml:"font_scale"`
 	CodeLight     string            `yaml:"code_light"`
 	CodeDark      string            `yaml:"code_dark"`
 

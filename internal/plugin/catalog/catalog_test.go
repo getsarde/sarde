@@ -73,3 +73,30 @@ func TestBuild_IncludesExternalPlugins(t *testing.T) {
 		t.Errorf("blueprint options not carried: %+v", found.Fields)
 	}
 }
+
+func TestBuild_RequiresResolveToCatalogEntries(t *testing.T) {
+	cat := Build("")
+	byID := map[string]Entry{}
+	for _, e := range cat.Plugins {
+		byID[e.ID] = e
+	}
+	for _, e := range cat.Plugins {
+		for _, dep := range e.Requires {
+			if dep == e.ID {
+				t.Errorf("%s requires itself", e.ID)
+			}
+			if _, ok := byID[dep]; !ok {
+				t.Errorf("%s requires unknown plugin %q", e.ID, dep)
+			}
+		}
+	}
+	for id, want := range map[string]string{"social_cards": "seo", "search_highlighter": "search"} {
+		got := byID[id].Requires
+		if len(got) != 1 || got[0] != want {
+			t.Errorf("%s requires = %v, want [%s]", id, got, want)
+		}
+	}
+	if byID["sitemap"].Requires != nil {
+		t.Errorf("sitemap requires = %v, want none", byID["sitemap"].Requires)
+	}
+}

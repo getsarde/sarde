@@ -636,6 +636,12 @@ func TestFontUsed(t *testing.T) {
 		t.Error("fontUsed should match case-insensitively")
 	}
 
+	rd.Theme.Tokens["font-sans"] = "system-ui, sans-serif"
+	rd.Theme.Tokens["font-heading"] = "'Inter', system-ui, sans-serif"
+	if !fontUsed(rd, "Inter") {
+		t.Error("fontUsed = false when only font-heading references Inter, want true")
+	}
+
 	if fontUsed(nil, "Inter") {
 		t.Error("fontUsed = true for nil data, want false")
 	}

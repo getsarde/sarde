@@ -132,7 +132,7 @@ func (e *Engine) buildFuncMap(
 			}
 			needle := strings.ToLower(family)
 			for _, tokens := range []map[string]string{rd.Theme.Tokens, rd.Theme.DarkTokens} {
-				for _, key := range []string{"font-sans", "font-mono"} {
+				for _, key := range []string{"font-sans", "font-mono", "font-heading"} {
 					if strings.Contains(strings.ToLower(tokens[key]), needle) {
 						return true
 					}

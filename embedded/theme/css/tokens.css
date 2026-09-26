@@ -99,16 +99,21 @@
 	     the property instead of falling back, so keep these as literals. */
 	  --sd-font-sans: 'Inter', 'Inter Fallback', system-ui, -apple-system, sans-serif;
 	  --sd-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+	  /* Headings follow the body font unless theme.font_heading sets this. */
+	  --sd-font-heading: var(--sd-font-sans);
 
-	  --sd-text-xs: 0.75rem;
-	  --sd-text-sm: 0.875rem;
-	  --sd-text-base: 1rem;
-	  --sd-text-lg: 1.125rem;
-	  --sd-text-xl: 1.25rem;
-	  --sd-text-2xl: 1.5rem;
-	  --sd-text-3xl: 1.875rem;
-	  --sd-text-4xl: 2.25rem;
-	  --sd-text-5xl: 2.625rem;
+	  /* Multiplies every step below (theme.font_scale). An explicit text-*
+	     override replaces its step and is not multiplied. */
+	  --sd-text-scale: 1;
+	  --sd-text-xs: calc(0.75rem * var(--sd-text-scale));
+	  --sd-text-sm: calc(0.875rem * var(--sd-text-scale));
+	  --sd-text-base: calc(1rem * var(--sd-text-scale));
+	  --sd-text-lg: calc(1.125rem * var(--sd-text-scale));
+	  --sd-text-xl: calc(1.25rem * var(--sd-text-scale));
+	  --sd-text-2xl: calc(1.5rem * var(--sd-text-scale));
+	  --sd-text-3xl: calc(1.875rem * var(--sd-text-scale));
+	  --sd-text-4xl: calc(2.25rem * var(--sd-text-scale));
+	  --sd-text-5xl: calc(2.625rem * var(--sd-text-scale));
 
 	  --sd-text-h1: var(--sd-text-4xl);
 	  --sd-text-h2: var(--sd-text-3xl);

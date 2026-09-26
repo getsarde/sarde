@@ -39,6 +39,23 @@ func TestRunPlugins_JSON(t *testing.T) {
 	if len(cat.Plugins) < 25 {
 		t.Fatalf("expected >= 25 plugins, got %d", len(cat.Plugins))
 	}
+	var raw struct {
+		Plugins []map[string]json.RawMessage `json:"plugins"`
+	}
+	if err := json.Unmarshal(out, &raw); err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range raw.Plugins {
+		var id string
+		_ = json.Unmarshal(p["id"], &id)
+		_, has := p["requires"]
+		if id == "social_cards" && !has {
+			t.Errorf("social_cards: requires missing from JSON")
+		}
+		if id == "sitemap" && has {
+			t.Errorf("sitemap: empty requires must be omitted, got %s", p["requires"])
+		}
+	}
 }
 
 func TestRunPlugins_Pretty(t *testing.T) {

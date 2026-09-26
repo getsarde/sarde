@@ -75,6 +75,8 @@ theme:
   primary_color: "#1a1a2e"
   font_family: "'Fira Sans', sans-serif"
   font_mono: "'Fira Code', monospace"
+  font_heading: "'Fraunces', Georgia, serif"
+  font_scale: 1.1
   code_light: "github-light"
   code_dark: "github-dark"
 ```
@@ -82,11 +84,17 @@ theme:
 | Field | Maps to |
 |-------|---------|
 | `accent_color` | `accent` token + auto-derived variants |
-| `primary_color` | `primary` token |
+| `primary_color` | `accent` token, used only when `accent_color` is not set |
 | `font_family` | `font-sans` token |
 | `font_mono` | `font-mono` token |
+| `font_heading` | `font-heading` token (headings `h1` to `h6`) |
+| `font_scale` | `text-scale` token, a multiplier from `0.5` to `2` for the text size scale |
 | `code_light` | Kazari light theme |
 | `code_dark` | Kazari dark theme |
+
+An explicit `theme.overrides` entry for the same token wins over its shortcut field.
+
+A font family only renders when the visitor has it. Sarde bundles Inter and JetBrains Mono; for any other web font, load it yourself with `head.custom_css` (an `@font-face` or `@import` rule) or a `head.tags` link.
 
 ## Accent color derivation
 

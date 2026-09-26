@@ -167,7 +167,7 @@ func (pm *ProjectManager) resolveConfig(projectDir string) (*config.SiteConfig, 
 	}
 
 	// Fold theme shortcut fields into overrides before token resolution.
-	foldThemeShortcuts(cfg)
+	config.FoldThemeShortcuts(&cfg.Theme)
 
 	// Validate token names in overrides.
 	known := theme.KnownTokens()
@@ -205,28 +205,6 @@ func (pm *ProjectManager) resolveConfig(projectDir string) (*config.SiteConfig, 
 	}
 
 	return cfg, themeCfg, nil
-}
-
-func foldThemeShortcuts(cfg *config.SiteConfig) {
-	accentVal := cfg.Theme.AccentColor
-	if accentVal == "" {
-		accentVal = cfg.Theme.PrimaryColor
-	}
-	shortcuts := map[string]string{
-		"accent":    accentVal,
-		"font-sans": cfg.Theme.FontFamily,
-		"font-mono": cfg.Theme.FontMono,
-	}
-	if cfg.Theme.Overrides == nil {
-		cfg.Theme.Overrides = make(map[string]string)
-	}
-	for token, val := range shortcuts {
-		if val != "" {
-			if _, exists := cfg.Theme.Overrides[token]; !exists {
-				cfg.Theme.Overrides[token] = val
-			}
-		}
-	}
 }
 
 func darkOverrides(cfg *config.SiteConfig) map[string]string {

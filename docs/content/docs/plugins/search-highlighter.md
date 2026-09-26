@@ -24,6 +24,8 @@ plugins:
 
 When this plugin is enabled, the search modal appends the query as a `?q=` parameter to every result link, placed before any `#heading` anchor. The plugin reads that parameter, splits it into terms, and highlights every occurrence in the page's content area. Single-character terms are ignored. When the plugin is disabled, result links carry no query parameter.
 
+The plugin requires the `search` plugin: without the search modal, no link ever carries `?q=`.
+
 A sticky badge appears above the content with the total match count (e.g., "3 matches"). The badge includes previous/next buttons to cycle through matches and a dismiss button to clear all highlights. Navigating to a match scrolls it smoothly into view and outlines it as the active match.
 
 After highlighting, the `?q=` parameter is removed from the URL bar without a page reload.

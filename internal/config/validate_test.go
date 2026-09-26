@@ -80,6 +80,9 @@ func TestValidate_InvalidRanges(t *testing.T) {
 		{"summary_length negative", func(c *SiteConfig) { c.Content.SummaryLength = -1 }, "content.summary_length"},
 		{"prefetch.delay negative", func(c *SiteConfig) { c.Prefetch.Delay = IntPtr(-1) }, "prefetch.delay"},
 		{"heading_max_length zero", func(c *SiteConfig) { c.ContentLint.Rules.HeadingMaxLength = -1 }, "content_lint.rules.heading_max_length"},
+		{"font_scale too small", func(c *SiteConfig) { c.Theme.FontScale = 0.3 }, "theme.font_scale"},
+		{"font_scale too large", func(c *SiteConfig) { c.Theme.FontScale = 3 }, "theme.font_scale"},
+		{"font_scale negative", func(c *SiteConfig) { c.Theme.FontScale = -1 }, "theme.font_scale"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -447,5 +450,18 @@ func TestMergeDeploy_NewFields(t *testing.T) {
 	mergeDeploy(&base, &DeployConfig{CNAME: "docs.example.com", AccountID: "acct", TeamID: "team_1"})
 	if base.CNAME != "docs.example.com" || base.AccountID != "acct" || base.TeamID != "team_1" {
 		t.Errorf("merge dropped a field: %+v", base)
+	}
+}
+
+func TestValidate_FontScaleInRange(t *testing.T) {
+	for _, scale := range []float64{0, MinFontScale, 1.25, MaxFontScale} {
+		cfg := Defaults()
+		cfg.Theme.FontScale = scale
+		errs, _ := Validate(cfg, nil)
+		for _, e := range errs {
+			if e.Path == "theme.font_scale" {
+				t.Errorf("font_scale %v rejected: %v", scale, e)
+			}
+		}
 	}
 }

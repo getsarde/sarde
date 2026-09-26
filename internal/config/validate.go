@@ -85,6 +85,11 @@ func validateRanges(c *validate.Checker, cfg *SiteConfig) {
 	c.IntMin("content.summary_length", cfg.Content.SummaryLength, 1)
 	c.IntMin("prefetch.delay", IntVal(cfg.Prefetch.Delay, 0), 0)
 	c.IntMin("content_lint.rules.heading_max_length", cfg.ContentLint.Rules.HeadingMaxLength, 1)
+	if scale := cfg.Theme.FontScale; scale != 0 {
+		c.Check("theme.font_scale", strconv.FormatFloat(scale, 'f', -1, 64),
+			scale >= MinFontScale && scale <= MaxFontScale,
+			fmt.Sprintf("must be between %g and %g", MinFontScale, MaxFontScale))
+	}
 }
 
 // --- Cross-field constraints ---

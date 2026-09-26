@@ -44,6 +44,9 @@ type ManifestEntry struct {
 		JS  string `yaml:"js"`
 	} `yaml:"assets"`
 	Module bool `yaml:"module"`
+	// Requires lists plugin ids (server or client) this plugin needs enabled.
+	// Informational: the build does not enforce it; Studio warns on toggle.
+	Requires []string `yaml:"requires"`
 }
 
 // Manifest holds all client plugin definitions.
@@ -214,6 +217,11 @@ func Label(slug string) string {
 // Description returns the manifest description of a plugin, or "".
 func Description(slug string) string {
 	return manifest.Plugins[slug].Description
+}
+
+// Requires returns the plugin ids a plugin declares it needs, or nil.
+func Requires(slug string) []string {
+	return manifest.Plugins[slug].Requires
 }
 
 // RegisterAll registers a single "clientplugins" meta-plugin that injects the

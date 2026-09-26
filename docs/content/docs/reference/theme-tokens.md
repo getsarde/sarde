@@ -29,7 +29,7 @@ Tokens resolve through four layers. Each layer overrides the one before it. Empt
 | 4 (highest) | User overrides | `sarde.yaml` `theme.overrides` / `theme.dark_overrides` |
 
 :::note
-Dark tokens resolve independently through the same four layers using `dark_tokens` / `dark_overrides` at each level. The light and dark cascades never mix.
+Dark tokens resolve through the same four layers using `dark_tokens` / `dark_overrides` at each level. When `theme.dark_overrides` is empty, the dark cascade uses `theme.overrides` as its user layer instead.
 :::
 
 ## Primitives
@@ -177,22 +177,30 @@ text keeps WCAG AA contrast on tinted backgrounds. Dark mode remaps them to the 
 |-------|---------|
 | `font-sans` | `'Inter', system-ui, -apple-system, sans-serif` |
 | `font-mono` | `'JetBrains Mono', ui-monospace, monospace` |
+| `font-heading` | `var(--sd-font-sans)` |
 
-Inter and JetBrains Mono are bundled with the theme and served locally. The Inter preload tag is only emitted when the resolved `font-sans` or `font-mono` value actually references Inter, so presets that use system fonts (such as `docs`) ship pages with no font download.
+Headings (`h1` to `h6`) use `font-heading`, which follows `font-sans` until you set it. The `theme.font_heading` shortcut sets it.
+
+Inter and JetBrains Mono are bundled with the theme and served locally. The Inter preload tag is only emitted when the resolved `font-sans`, `font-mono` or `font-heading` value references Inter, so presets that use system fonts (such as `docs`) ship pages with no font download.
 
 ### Size scale
 
+Each step is its base size multiplied by `text-scale`.
+
 | Token | Default |
 |-------|---------|
-| `text-xs` | `0.75rem` |
-| `text-sm` | `0.875rem` |
-| `text-base` | `1rem` |
-| `text-lg` | `1.125rem` |
-| `text-xl` | `1.25rem` |
-| `text-2xl` | `1.5rem` |
-| `text-3xl` | `1.875rem` |
-| `text-4xl` | `2.25rem` |
-| `text-5xl` | `2.625rem` |
+| `text-scale` | `1` |
+| `text-xs` | `0.75rem` × `text-scale` |
+| `text-sm` | `0.875rem` × `text-scale` |
+| `text-base` | `1rem` × `text-scale` |
+| `text-lg` | `1.125rem` × `text-scale` |
+| `text-xl` | `1.25rem` × `text-scale` |
+| `text-2xl` | `1.5rem` × `text-scale` |
+| `text-3xl` | `1.875rem` × `text-scale` |
+| `text-4xl` | `2.25rem` × `text-scale` |
+| `text-5xl` | `2.625rem` × `text-scale` |
+
+Set `theme.font_scale` (or the `text-scale` token) to make body text and headings larger or smaller together: `1.1` makes every step 10% larger. A step you override directly, such as `text-base: 1.0625rem`, replaces the scaled value and is not multiplied. Interface text with fixed sizes, such as navigation and badges, does not follow the scale.
 
 ### Heading aliases
 

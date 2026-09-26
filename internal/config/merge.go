@@ -252,6 +252,10 @@ func mergeTheme(base, over *ThemeSettings) {
 	mergeStr(&base.AccentColor, over.AccentColor)
 	mergeStr(&base.FontFamily, over.FontFamily)
 	mergeStr(&base.FontMono, over.FontMono)
+	mergeStr(&base.FontHeading, over.FontHeading)
+	if over.FontScale != 0 {
+		base.FontScale = over.FontScale
+	}
 	mergeStr(&base.CodeLight, over.CodeLight)
 	mergeStr(&base.CodeDark, over.CodeDark)
 	mergeStr(&base.DateFormat, over.DateFormat)

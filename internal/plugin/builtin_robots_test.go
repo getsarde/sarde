@@ -63,3 +63,34 @@ func TestRobots_NoSitemap(t *testing.T) {
 		t.Error("should not include Sitemap when disabled")
 	}
 }
+
+func TestRobots_NoSitemapLineWhenSitemapPluginOff(t *testing.T) {
+	for name, setup := range map[string]func(*config.SiteConfig){
+		"not enabled": func(c *config.SiteConfig) { c.Plugins.Enabled = []string{"robots"} },
+		"disabled":    func(c *config.SiteConfig) { c.Plugins.Disabled = []string{"sitemap"} },
+	} {
+		t.Run(name, func(t *testing.T) {
+			outDir := t.TempDir()
+			var warnings []engine.ValidationWarning
+			cfg := config.Defaults()
+			setup(cfg)
+			ctx := &BuildDoneContext{
+				Config:    cfg,
+				OutputDir: outDir,
+				Site:      &engine.SiteContext{BaseURL: "https://example.com"},
+			}
+			ctx.SetWarnings(&warnings)
+
+			if err := robotsBuildDone(ctx, nil); err != nil {
+				t.Fatalf("robotsBuildDone failed: %v", err)
+			}
+			data, err := readTestFile(outDir, "robots.txt")
+			if err != nil {
+				t.Fatalf("reading robots.txt: %v", err)
+			}
+			if strings.Contains(string(data), "Sitemap:") {
+				t.Errorf("robots.txt references a sitemap that is not built:\n%s", data)
+			}
+		})
+	}
+}

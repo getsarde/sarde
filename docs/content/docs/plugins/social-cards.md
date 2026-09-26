@@ -13,6 +13,8 @@ During `BeforeRender`, the plugin checks each page. If the page qualifies (no ex
 
 Cards are not generated during `sarde dev` (dev mode). The SEO params are still set, but the image files are only written during `sarde build`.
 
+The plugin requires the `seo` plugin. Social cards only set `og:image` and `twitter:image`; the title, description and card type tags come from `seo`, so without it a page shares an image with no text.
+
 ## Card layout
 
 Cards use an editorial layout: branding at the top, a large title block anchored to the bottom, and generous negative space in between. Each card contains:

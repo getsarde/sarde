@@ -2,8 +2,11 @@ package plugin
 
 import (
 	"fmt"
-	"github.com/getsarde/sarde/internal/plugin/cfgutil"
+	"slices"
 	"strings"
+
+	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 )
 
 func newRobotsPlugin(cfg map[string]any) *Plugin {
@@ -18,7 +21,8 @@ func newRobotsPlugin(cfg map[string]any) *Plugin {
 }
 
 func robotsBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
-	includeSitemap := cfgutil.Bool(cfg, "sitemap", true)
+	// Point at sitemap.xml only when the sitemap plugin actually writes it.
+	includeSitemap := cfgutil.Bool(cfg, "sitemap", true) && sitemapEnabled(ctx.Config)
 
 	var sb strings.Builder
 	sb.WriteString("User-agent: *\n")
@@ -33,4 +37,13 @@ func robotsBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 	}
 	ctx.Log("Generated robots.txt")
 	return nil
+}
+
+// sitemapEnabled reports whether the sitemap plugin runs in this build:
+// listed in plugins.enabled and not in plugins.disabled.
+func sitemapEnabled(cfg *config.SiteConfig) bool {
+	if cfg == nil {
+		return true
+	}
+	return slices.Contains(cfg.Plugins.Enabled, "sitemap") && !slices.Contains(cfg.Plugins.Disabled, "sitemap")
 }

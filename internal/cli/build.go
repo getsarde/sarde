@@ -277,29 +277,11 @@ func projectDirFromArgs(args []string) string {
 	return dir
 }
 
-// foldThemeShortcuts maps convenience theme config fields (accent_color, etc.)
-// into the Overrides map so they flow through the token resolution cascade.
-// Explicit Overrides entries take precedence over shortcuts.
+// foldThemeShortcuts folds the theme shortcut fields into Overrides (see
+// config.FoldThemeShortcuts) and applies code_light / code_dark as the
+// codeblock themes when those are not set explicitly.
 func foldThemeShortcuts(cfg *config.SiteConfig) {
-	accentVal := cfg.Theme.AccentColor
-	if accentVal == "" {
-		accentVal = cfg.Theme.PrimaryColor
-	}
-	shortcuts := map[string]string{
-		"accent":    accentVal,
-		"font-sans": cfg.Theme.FontFamily,
-		"font-mono": cfg.Theme.FontMono,
-	}
-	if cfg.Theme.Overrides == nil {
-		cfg.Theme.Overrides = make(map[string]string)
-	}
-	for token, val := range shortcuts {
-		if val != "" {
-			if _, exists := cfg.Theme.Overrides[token]; !exists {
-				cfg.Theme.Overrides[token] = val
-			}
-		}
-	}
+	config.FoldThemeShortcuts(&cfg.Theme)
 	if cfg.Theme.CodeLight != "" && cfg.Markdown.Codeblocks.LightTheme == "" {
 		cfg.Markdown.Codeblocks.LightTheme = cfg.Theme.CodeLight
 	}

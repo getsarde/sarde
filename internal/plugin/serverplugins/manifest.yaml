@@ -75,6 +75,9 @@ plugins:
     description: "Auto-generate Open Graph images"
     group: rendering
     default_enabled: true
+    # Cards only set og:image; the rest of the Open Graph and Twitter tags
+    # come from the seo plugin.
+    requires: [seo]
   announcements:
     label: "Announcements"
     description: "Display announcement banners with scheduling"

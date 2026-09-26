@@ -66,6 +66,9 @@ plugins:
     label: "Search Highlighter"
     description: "Highlight search terms from query params in page content"
     inject_when: always
+    # The search modal adds the ?q= term to result links only when this
+    # plugin is on; without search nothing ever triggers it.
+    requires: [search]
     assets:
       css: search_highlighter/search_highlighter.css
       js: search_highlighter/search_highlighter.js
