@@ -142,7 +142,7 @@ The command palette lists every action. Type to filter, then press Enter to exec
 
 To build the site for production, open the command palette (**Ctrl/Cmd+Shift+P**) and run **Build Site**. Sarde Studio runs `sarde build` and displays progress, warnings, and errors in the activity log panel at the bottom of the workspace.
 
-The output is written to the `dist/` directory, ready for deployment. See [Deploying](/start-here/deploying) for platform-specific deployment steps.
+The output is written to the `dist/` directory, ready for deployment. See [Deployment](/deployment/) for platform-specific deployment steps.
 
 ## Next steps
 

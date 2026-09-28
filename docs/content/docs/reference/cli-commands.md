@@ -186,7 +186,7 @@ sarde deploy --provider github
 
 The output directory must exist. If it does not, an error prompts to run `sarde build` first. `--check` does not need it.
 
-Provider tokens come from environment variables: `NETLIFY_AUTH_TOKEN`, `CLOUDFLARE_API_TOKEN` and `VERCEL_TOKEN`. `CLOUDFLARE_ACCOUNT_ID` and `VERCEL_ORG_ID` override `deploy.account_id` and `deploy.team_id`. See [Deploying](/start-here/deploying/) for each platform.
+Provider tokens come from environment variables: `NETLIFY_AUTH_TOKEN`, `CLOUDFLARE_API_TOKEN` and `VERCEL_TOKEN`. `CLOUDFLARE_ACCOUNT_ID` and `VERCEL_ORG_ID` override `deploy.account_id` and `deploy.team_id`. See [Deployment](/deployment/) for each platform.
 
 The command exits with status 0 on success and 1 on any failure.
 

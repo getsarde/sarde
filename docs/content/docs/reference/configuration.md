@@ -630,7 +630,7 @@ API tokens are never read from `sarde.yaml`. Each provider takes its token from 
 | `vercel` | `VERCEL_TOKEN` |
 | `github` | None: uses the git credentials configured for the `origin` remote |
 
-See [Deploying](/start-here/deploying/) for each platform.
+See [Deployment](/deployment/) for each platform.
 
 ## `server`
 

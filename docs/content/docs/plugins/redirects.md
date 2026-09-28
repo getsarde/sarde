@@ -66,7 +66,7 @@ A `_redirects` file is generated at the site root with one line per redirect:
 
 All redirects use status code 301 (permanent).
 
-Netlify serves an existing file in place of a `_redirects` rule for the same path. Because the plugin always writes an HTML page at each source path, Netlify visitors are redirected by that page rather than by a 301 response.
+Netlify serves an existing file in place of a `_redirects` rule for the same path. Because the plugin always writes an HTML page at each source path, Netlify visitors are redirected by that page rather than by a 301 response. See [Netlify](/deployment/netlify/#redirects).
 
 ### Vercel `vercel.json`
 
@@ -83,6 +83,8 @@ A `vercel.json` file is generated at the site root:
   ]
 }
 ```
+
+Vercel reads this file when `sarde deploy` or the Vercel CLI uploads `dist/`, but not when Vercel builds the site from Git. See [Vercel](/deployment/vercel/#redirects).
 
 ## Controlling output formats
 
