@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Deploys no longer publish `.sarde.lock`:** the GitHub Pages deployer copied the build's lock file into the published branch. Every deployer now skips it.
 - **Custom deploy commands on Windows run as typed:** a command that quoted a path, such as `echo done > "C:\My Site\log.txt"`, failed with "The filename, directory name, or volume label syntax is incorrect", because the quotes were escaped for a program other than `cmd.exe`. The command now reaches `cmd.exe` unchanged, and a site path in Windows' `\\?\` form no longer makes the command run in `C:\Windows`.
 - **GitHub Pages deploys read the remote from the site root:** the deployer looked up the `origin` remote in the process working directory, so `sarde deploy path/to/site` run from elsewhere pushed to the wrong repository or failed. Git and custom-command output no longer write straight to stdout.
+- **GitHub Pages deploys keep files that start with an underscore:** the branch GitHub Pages serves had no `.nojekyll` file, so Jekyll ran over the published site and dropped any file or directory whose name starts with `_`. The `github` deployer now adds an empty `.nojekyll` file on every deploy.
 - **`robots.txt` no longer points at a missing sitemap:** the robots plugin wrote a `Sitemap:` line even when the sitemap plugin was off. The line now appears only when the sitemap plugin runs.
 
 ### Changed

@@ -61,7 +61,7 @@ Defaults can be overridden through `sarde.yaml`, CLI flags, or environment varia
 - `link_validator` for internal/external broken link detection
 - `content_lint` for heading structure, image alt text, and frontmatter validation
 - `katex`, `mermaid` for math and diagram asset injection
-- `redirects` for redirect stubs (HTML or Netlify `_redirects`)
+- `redirects` for redirect stubs (HTML, Netlify/Cloudflare `_redirects`, Vercel `vercel.json`)
 - `llms_txt` for LLM-friendly site index
 
 **Client-side plugins** (11 available, all opt-in)
@@ -84,7 +84,7 @@ Add any of these to `plugins.enabled` to bundle its CSS and JS. Nothing ships to
 - Fenced-block syntax checking (`sarde check-syntax`)
 - Merged configuration inspection with provenance (`sarde effective-config`)
 - Obsidian vault importer (converts wikilinks and callouts)
-- Deploy command for GitHub Pages, or any custom command (rsync, provider CLIs) via the `custom` provider
+- Deploy command for GitHub Pages, Netlify, Cloudflare Pages and Vercel, or any custom command (rsync, provider CLIs) via the `custom` provider
 
 ## Installation
 

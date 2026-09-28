@@ -148,6 +148,8 @@ Deploying with github-pages...
 Deploy complete (6s).
 ```
 
+Output from git itself appears indented under the `Pushing` line.
+
 The deployer copies `dist/` into a temporary git repository, adds an empty `.nojekyll` file, commits, and force-pushes the commit to the `gh-pages` branch of the `origin` remote. Each deploy replaces the branch contents and history. The `.nojekyll` file stops GitHub Pages from running Jekyll, which would drop any file or directory whose name starts with an underscore. The build's lock file (`.sarde.lock`) is never published.
 
 After the first deploy, open **Settings > Pages** in the repository, set **Source** to **Deploy from a branch**, and select `gh-pages`.
@@ -167,6 +169,8 @@ Without `cname`, a `CNAME` file already in the output (for example one placed in
 :::note
 The `github` provider requires a git remote named `origin` that you can push to, using the git credentials already configured on your machine. If git has no user identity configured, the deploy commit uses the name `sarde-deploy`.
 :::
+
+To confirm the remote is reachable before the first deploy, run `sarde deploy --check`. It reads the remote with `git ls-remote` and pushes nothing. It does not prove write access.
 
 See [`deploy`](/reference/cli-commands#deploy) in CLI Commands for all flags, and [`deploy`](/reference/configuration#deploy) in Configuration for all options.
 
@@ -218,6 +222,8 @@ sarde deploy
 
 The deploy goes to production. If the site has auto publishing locked in the Netlify dashboard, Netlify keeps serving the previous deploy and `sarde deploy` prints a warning; publish the new deploy from the dashboard.
 
+`sarde deploy` stops with an error if a file name in the output contains `#` or `?`, which Netlify cannot serve.
+
 Netlify reads the `_redirects` file the build writes for configured redirects and page aliases. Sarde also writes an HTML redirect page at each old path, and on Netlify that page takes precedence over the `_redirects` rule, so visitors are redirected by the page rather than by a 301 response.
 
 Without `sarde deploy`, the Netlify CLI works too:
@@ -244,7 +250,9 @@ sarde build
 sarde deploy
 ```
 
-The deploy goes to the project's production branch. The build's `_redirects` file, and a `_headers` file if you add one under `static/`, are sent with the deployment. Pages Functions (a `_worker.js` in the output) are not supported by `sarde deploy`; use Wrangler for those sites.
+The deploy goes to the project's production branch. The build's `_redirects` file, and a `_headers` file if you add one under `static/`, are sent with the deployment. Pages Functions (a `_worker.js` in the output) are not supported by `sarde deploy`; use Wrangler for those sites. A `_routes.json` file only applies to Functions, so it is skipped with a warning.
+
+Cloudflare Pages accepts files up to 25 MiB and a limited number of files per deployment (20,000 unless your plan allows more). `sarde deploy` checks both limits before uploading and stops with an error that names the file or the count.
 
 Without `sarde deploy`, Wrangler works too:
 
@@ -272,7 +280,9 @@ sarde build
 sarde deploy
 ```
 
-Sarde uploads the site as prebuilt output, so Vercel serves the files as they are and never runs a build of its own. Redirects from the build's `vercel.json` become Vercel routes, and a `404.html` in the output is served for missing pages. The printed URL is the production domain.
+Sarde uploads the site as prebuilt output, so Vercel serves the files as they are and never runs a build of its own. Redirects from the build's `vercel.json` become Vercel routes that answer with status 308 (permanent), and a `404.html` in the output is served for missing pages. The printed URL is the production domain.
+
+A deployment holds at most 15,000 files. `sarde deploy` stops with an error before uploading a larger site.
 
 Without `sarde deploy`, the Vercel CLI works too:
 
@@ -292,7 +302,7 @@ Alternatively, connect the Git repository in the Vercel dashboard. Set the build
 
 ## Custom deployment
 
-The `custom` provider runs any shell command with the `DIST_DIR` environment variable set to the absolute path of the output directory. The command runs in the site root.
+The `custom` provider runs any shell command with the `DIST_DIR` environment variable set to the absolute path of the output directory. The command runs in the site root, through `sh` on macOS and Linux and through `cmd.exe` on Windows.
 
 ```yaml
 deploy:
@@ -311,4 +321,12 @@ This also works as a wrapper for provider CLIs:
 deploy:
   provider: custom
   command: "npx netlify deploy --prod --dir $DIST_DIR"
+```
+
+On Windows, `cmd.exe` expands `%DIST_DIR%`, not `$DIST_DIR`, so write the command for that shell:
+
+```yaml
+deploy:
+  provider: custom
+  command: "npx netlify deploy --prod --dir %DIST_DIR%"
 ```
