@@ -36,7 +36,7 @@ Built in 320 ms
   Output: /path/to/my-site/dist
 ```
 
-The `dist/` directory contains the complete site: HTML pages, CSS, JavaScript, images, feeds, sitemap, and search index. Change the directory with `--output` or [`build.output`](/reference/configuration#build) in `sarde.yaml`.
+The `dist/` directory contains the complete site: HTML pages, CSS, JavaScript, images, feeds, sitemap, and search index. Change the directory with `--output` or [`build.output`](/reference/configuration/build-and-output/#build) in `sarde.yaml`.
 
 ## Deployment methods
 
@@ -81,4 +81,4 @@ On later deploys, Sarde uploads only the files the host does not already have, s
 The Netlify, Cloudflare Pages and Vercel deployers talk to each provider's API directly and are new in this release. If a deploy fails for your site, the host's own CLI still works, either directly or wrapped in a [`custom` provider](/deployment/other-hosts/). Please report the error message so the deployer can be fixed.
 :::
 
-See [`deploy`](/reference/cli-commands#deploy) in CLI Commands for all flags and the `--format json` event stream, and [`deploy`](/reference/configuration#deploy) in Configuration for all options.
+See [`deploy`](/reference/cli-commands#deploy) in CLI Commands for all flags and the `--format json` event stream, and [`deploy`](/reference/configuration/deploy-and-redirects/#deploy) in Configuration for all options.

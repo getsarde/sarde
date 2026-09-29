@@ -209,3 +209,29 @@ func TestExtractSummary_SkipsHTMLBlocks(t *testing.T) {
 		t.Errorf("extractSummary = %q, want %q", got, want)
 	}
 }
+
+func TestTransform_DescriptionInferred(t *testing.T) {
+	tests := []struct {
+		name        string
+		raw         string
+		description string
+		want        bool
+	}{
+		{"inferred from first paragraph", "# Title\n\nOpening sentence.\n", "", true},
+		{"set in frontmatter", "# Title\n\nOpening sentence.\n", "Written by the author.", false},
+		{"no prose to infer from", "# Title\n\n```go\nfmt.Println()\n```\n", "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			page := &engine.Page{
+				PageContent: engine.PageContent{RawContent: tt.raw},
+				PageMeta:    engine.PageMeta{Description: tt.description},
+			}
+			tr := &Transformer{SummaryLength: 70}
+			tr.Transform(page)
+			if page.DescriptionInferred != tt.want {
+				t.Errorf("DescriptionInferred = %v, want %v (Description %q)", page.DescriptionInferred, tt.want, page.Description)
+			}
+		})
+	}
+}

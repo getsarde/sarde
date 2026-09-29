@@ -38,7 +38,7 @@ Vercel clones the repository, installs Sarde, and builds on every push. Vercel's
 
 → Vercel builds and publishes the site. Every later push to the production branch redeploys, and other branches get preview deployments.
 
-Sarde reads each page's last-updated date from git history. If Vercel's clone is shallow, pages whose last change is older than the clone fall back to the build time. See [Last-updated strategy](/reference/configuration#last-updated-strategy).
+Sarde reads each page's last-updated date from git history. If Vercel's clone is shallow, pages whose last change is older than the clone fall back to the build time. See [Last-updated strategy](/reference/configuration/build-and-output/#last-updated-strategy).
 
 :::caution
 With Git deploys, Vercel reads redirects only from the `vercel.json` at the project root, not the one the build writes into `dist/`. The HTML redirect pages still send visitors to the new URL. See [Redirects](#redirects).

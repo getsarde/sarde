@@ -36,7 +36,7 @@ Netlify clones the repository, installs Sarde, and builds on every push. Netlify
 
 → Netlify builds and publishes the site. Every later push to the production branch redeploys, and pull requests get deploy previews.
 
-Sarde reads each page's last-updated date from git history. If Netlify's clone is shallow, pages whose last change is older than the clone fall back to the build time. See [Last-updated strategy](/reference/configuration#last-updated-strategy).
+Sarde reads each page's last-updated date from git history. If Netlify's clone is shallow, pages whose last change is older than the clone fall back to the build time. See [Last-updated strategy](/reference/configuration/build-and-output/#last-updated-strategy).
 
 ## Deploy with `sarde deploy`
 

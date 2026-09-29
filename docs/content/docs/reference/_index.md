@@ -10,7 +10,8 @@ sidebar:
 
 Complete reference for every configurable surface of Sarde.
 
-- [Configuration](/reference/configuration/) covers all `sarde.yaml` keys
+- [Configuration](/reference/configuration/) covers all `sarde.yaml` keys,
+  grouped by topic, with [complete examples](/reference/configuration/examples/)
   and the five-layer config cascade.
 - [Frontmatter](/reference/frontmatter/) lists every frontmatter field with
   types, defaults, and auto-inference rules.

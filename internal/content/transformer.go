@@ -34,6 +34,7 @@ func (t *Transformer) Transform(page *engine.Page) error {
 	// Auto-description: if frontmatter omitted description, derive from first paragraph.
 	if page.Description == "" && page.RawContent != "" {
 		page.Description = extractDescription(page.RawContent, 160)
+		page.DescriptionInferred = page.Description != ""
 	}
 
 	// Summary: description → first paragraph → truncated content

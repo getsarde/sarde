@@ -115,4 +115,4 @@ Both the logo and the favicon are read from `public/`, which Sarde copies to the
 
 A configured file missing from `public/` logs a build warning and leaves the rest of the build untouched.
 
-See [Project Structure](/guides/project-structure#public) for what else belongs in `public/`, and [Configuration](/reference/configuration#site) for every `site` key.
+See [Project Structure](/guides/project-structure#public) for what else belongs in `public/`, and [Configuration](/reference/configuration/site-and-branding/#site) for every `site` key.

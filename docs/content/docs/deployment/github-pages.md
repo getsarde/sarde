@@ -75,7 +75,7 @@ The official [`getsarde/action`](https://github.com/getsarde/action) installs Sa
            uses: actions/deploy-pages@v5
    ```
 
-   `fetch-depth: 0` checks out the full git history. Sarde reads each page's last-updated date from its most recent commit, and in a shallow clone pages whose last change is older than the clone fall back to the checkout time. See [Last-updated strategy](/reference/configuration#last-updated-strategy).
+   `fetch-depth: 0` checks out the full git history. Sarde reads each page's last-updated date from its most recent commit, and in a shallow clone pages whose last change is older than the clone fall back to the checkout time. See [Last-updated strategy](/reference/configuration/build-and-output/#last-updated-strategy).
 
 3. Commit the workflow and push to `main`.
 

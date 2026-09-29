@@ -37,7 +37,7 @@ First line
 second line, on its own row.
 ```
 
-To make every newline break the line instead, set [`markdown.hard_wraps`](/reference/configuration#markdown) to `true`.
+To make every newline break the line instead, set [`markdown.hard_wraps`](/reference/configuration/content/#markdown) to `true`.
 
 ---
 

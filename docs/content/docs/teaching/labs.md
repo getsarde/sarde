@@ -83,7 +83,7 @@ Prev/next stops at the lab boundary. The last step of one lab has no Next link i
 Every page in a lab renders two indicators, both filled in automatically:
 
 - A **lab badge** above the title reading `Lab 1`, numbered by the lab's position among its siblings.
-- A **progress bar** reading `Step 2 of 3`.
+- A **progress bar** reading `Step 2 of 3`, between the badge and the title.
 
 The step count includes the Overview page. A lab with an `_index.md` and two steps reports three steps, and the Overview is step 1.
 

@@ -58,6 +58,12 @@ type PageMeta struct {
 	Description string
 	Image       string
 
+	// DescriptionInferred reports whether Description was derived from the
+	// first prose paragraph rather than set in frontmatter. The page header
+	// skips an inferred description, since the same text opens the body;
+	// meta tags, search, and listings still use it.
+	DescriptionInferred bool
+
 	// DateExplicit reports whether Date came from an explicit source (a
 	// frontmatter "date" key or a YYYY-MM-DD filename prefix) rather than
 	// being inferred from file modification time. Consumers that display

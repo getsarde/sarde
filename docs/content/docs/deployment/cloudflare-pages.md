@@ -36,7 +36,7 @@ Cloudflare clones the repository, installs Sarde, and builds on every push. The 
 
 → Cloudflare builds and publishes the site. Every later push to the production branch redeploys, and other branches get preview deployments.
 
-Sarde reads each page's last-updated date from git history. If Cloudflare's clone is shallow, pages whose last change is older than the clone fall back to the build time. See [Last-updated strategy](/reference/configuration#last-updated-strategy).
+Sarde reads each page's last-updated date from git history. If Cloudflare's clone is shallow, pages whose last change is older than the clone fall back to the build time. See [Last-updated strategy](/reference/configuration/build-and-output/#last-updated-strategy).
 
 ## Deploy with `sarde deploy`
 

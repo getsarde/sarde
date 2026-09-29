@@ -34,7 +34,7 @@ sarde build [flags] [project-dir]
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--output`, `-o` | string | `""` | Override the output directory. Defaults to [`build.output`](/reference/configuration#build). |
+| `--output`, `-o` | string | `""` | Override the output directory. Defaults to [`build.output`](/reference/configuration/build-and-output/#build). |
 | `--base-path` | string | `""` | Override the URL base path (for subdirectory hosting). |
 | `--content` | string | `""` | Override the content directory path. |
 | `--strict-i18n` | bool | `false` | Warn on missing translation keys per language. |
@@ -82,7 +82,7 @@ sarde dev [flags] [project-dir]
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--port`, `-p` | int | `0` | Server port. Defaults to [`server.port`](/reference/configuration#server) or 4727. |
+| `--port`, `-p` | int | `0` | Server port. Defaults to [`server.port`](/reference/configuration/build-and-output/#server) or 4727. |
 | `--host` | string | `""` | Host to bind to. Defaults to `127.0.0.1`. Use `0.0.0.0` for LAN access. |
 | `--no-drafts` | bool | `false` | Exclude draft content. By default, drafts are included in dev mode. |
 | `--base-path` | string | `""` | Override the URL base path. |
@@ -491,7 +491,7 @@ sarde icons add mdi --dest icons/sets
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--dest`, `-d` | string | `""` | Destination directory. Defaults to [`icons.sets_dir`](/reference/configuration#icons) or `icon-sets`. |
+| `--dest`, `-d` | string | `""` | Destination directory. Defaults to [`icons.sets_dir`](/reference/configuration/theme-and-appearance/#icons) or `icon-sets`. |
 
 After downloading, reference icons as `:icon[prefix:name]` in content.
 
@@ -773,4 +773,4 @@ Outputs JSON with `html` and `headings` fields.
 
 ## Environment variables
 
-Environment variables override all other configuration layers. See the [Environment variables](/reference/configuration#environment-variables) section of the Configuration Reference for the full list of supported `SARDE_*` variables.
+Environment variables override all other configuration layers. See the [Environment variables](/reference/configuration/environment-variables/) section of the Configuration Reference for the full list of supported `SARDE_*` variables.

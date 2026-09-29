@@ -187,4 +187,4 @@ collections:
     feed: false
 ```
 
-See [Configuration](/reference/configuration#taxonomies) for all taxonomy settings, and [Frontmatter](/reference/frontmatter#taxonomy-fields) for per-page taxonomy fields.
+See [Configuration](/reference/configuration/content/#taxonomies) for all taxonomy settings, and [Frontmatter](/reference/frontmatter#taxonomy-fields) for per-page taxonomy fields.

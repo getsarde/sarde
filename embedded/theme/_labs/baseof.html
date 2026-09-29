@@ -51,6 +51,7 @@
             {{ component "DraftBanner" . }}
             {{ component "PageBanner" . }}
             {{ component "LabBadge" . }}
+            {{ component "LabProgress" . }}
             {{ component "PageTitle" . }}
             {{ component "LearningObjectives" . }}
           </div>
@@ -58,7 +59,6 @@
             <article class="sarde-markdown-content">
               {{ block "content" . }}{{ .Page.Content }}{{ end }}
             </article>
-            {{ component "LabProgress" . }}
             <div class="sarde-page-meta">
               {{ component "LastUpdated" . }}
             </div>

@@ -174,8 +174,8 @@ markdown:
     max_heading_level: 6
 ```
 
-Headings outside this range get no ID, no anchor link, and no TOC entry. See [Configuration](/reference/configuration#markdown-toc) for details.
+Headings outside this range get no ID, no anchor link, and no TOC entry. See [Configuration](/reference/configuration/content/#markdown-toc) for details.
 
 :::tip
-This setting controls heading *extraction* (which headings get IDs and become link targets). A separate [`toc.min_level` / `toc.max_level`](/reference/configuration#toc) setting controls which extracted headings appear in the table of contents sidebar. Set both if you want h5/h6 headings in your TOC.
+This setting controls heading *extraction* (which headings get IDs and become link targets). A separate [`toc.min_level` / `toc.max_level`](/reference/configuration/theme-and-appearance/#toc) setting controls which extracted headings appear in the table of contents sidebar. Set both if you want h5/h6 headings in your TOC.
 :::

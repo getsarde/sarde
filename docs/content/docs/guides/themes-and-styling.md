@@ -201,4 +201,4 @@ The button appears only on the docs layout and only at viewports of 1280px or wi
 
 To remove it, override the `Header` component and drop the `CenterToggle` call. To restyle it, target `.sarde-center-toggle`.
 
-See [Theme Tokens](/reference/theme-tokens) for the complete token reference, and [Configuration](/reference/configuration#theme) for all theme settings.
+See [Theme Tokens](/reference/theme-tokens) for the complete token reference, and [Configuration](/reference/configuration/theme-and-appearance/#theme) for all theme settings.

@@ -117,7 +117,7 @@ The `resize_image` `params` string uses `&`-separated key=value pairs.
 {{ resize_image $img "width=800&quality=85&format=webp" }}
 ```
 
-See [`images`](/reference/configuration#images) for global image processing settings.
+See [`images`](/reference/configuration/build-and-output/#images) for global image processing settings.
 
 ## Navigation
 
@@ -167,7 +167,7 @@ The first variadic argument is a CSS class. Additional arguments are attribute k
 {{ icon "arrow-up" "my-icon" "rotate" "90" "title" "Up" }}
 ```
 
-See [`icons`](/reference/configuration#icons) for icon set configuration.
+See [`icons`](/reference/configuration/theme-and-appearance/#icons) for icon set configuration.
 
 ## Params and HTML helpers
 

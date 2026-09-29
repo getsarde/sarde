@@ -141,7 +141,7 @@ fields:
 
 `config.yaml` is a flat map of default values. `blueprint.yaml` adds field metadata (`type`, `label`, `hint`, `default`, and `min`/`max` for numbers), and its `default` values act as a base layer of configuration.
 
-The effective value of an option resolves as: `blueprint.yaml` defaults, overridden by `config.yaml`, overridden by the site's `plugins.config.<slug>` in `sarde.yaml`. See [`plugins` configuration](/reference/configuration#plugins).
+The effective value of an option resolves as: `blueprint.yaml` defaults, overridden by `config.yaml`, overridden by the site's `plugins.config.<slug>` in `sarde.yaml`. See [`plugins` configuration](/reference/configuration/plugins-and-checks/#plugins).
 
 ## Contributing templates
 

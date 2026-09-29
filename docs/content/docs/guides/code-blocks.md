@@ -246,5 +246,5 @@ defaults:
   frame: auto
 ```
 
-See [Configuration](/reference/configuration#markdown) for
+See [Configuration](/reference/configuration/content/#markdown) for
 `markdown.codeblocks` settings.

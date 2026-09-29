@@ -5,7 +5,7 @@ sidebar:
   order: 4
 ---
 
-Sarde uses CSS custom properties (prefixed `--sd-*`) called tokens to control every visual aspect of the generated site. Override any token in [`theme.overrides`](/reference/configuration#theme) or [`theme.dark_overrides`](/reference/configuration#theme) in `sarde.yaml`.
+Sarde uses CSS custom properties (prefixed `--sd-*`) called tokens to control every visual aspect of the generated site. Override any token in [`theme.overrides`](/reference/configuration/theme-and-appearance/#theme) or [`theme.dark_overrides`](/reference/configuration/theme-and-appearance/#theme) in `sarde.yaml`.
 
 ```yaml
 theme:
@@ -392,7 +392,7 @@ percentage tokens control how much. Dark mode raises them to `16%` and `35%`.
 
 ## Accent derivation
 
-Setting [`theme.accent_color`](/reference/configuration#theme) or `theme.overrides.accent` triggers automatic derivation of four variant tokens. If any variant is already set explicitly, that variant is kept as-is.
+Setting [`theme.accent_color`](/reference/configuration/theme-and-appearance/#theme) or `theme.overrides.accent` triggers automatic derivation of four variant tokens. If any variant is already set explicitly, that variant is kept as-is.
 
 | Derived token | Purpose |
 |---------------|---------|
@@ -437,7 +437,7 @@ Accent derivation runs on light-mode tokens only. Dark-mode accent variants come
 
 ## Presets
 
-Seven built-in presets provide ready-made visual identities. Set one with [`theme.preset`](/reference/configuration#theme) in `sarde.yaml`.
+Seven built-in presets provide ready-made visual identities. Set one with [`theme.preset`](/reference/configuration/theme-and-appearance/#theme) in `sarde.yaml`.
 
 ```yaml
 theme:

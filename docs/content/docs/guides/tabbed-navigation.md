@@ -117,4 +117,4 @@ Tabs compose with both [versioning](/guides/versioning) and [internationalizatio
 - With `tabs: true`, a top-level section without an `_index.md` still becomes a tab. Its label is the directory name and it has no icon or description.
 - The switcher only appears on tabbed collections. Other collections on the same site keep the regular sidebar.
 
-See [Navigation and Sidebar](/guides/navigation-and-sidebar) for sidebar behavior inside a tab, and [Configuration](/reference/configuration#collections) for the `tabs` collection setting.
+See [Navigation and Sidebar](/guides/navigation-and-sidebar) for sidebar behavior inside a tab, and [Configuration](/reference/configuration/content/#collections) for the `tabs` collection setting.

@@ -177,6 +177,7 @@ Internal, not for templates: `ContentDigest` and `FrontmatterDigest` are hashes 
 |-------|------|-------------|
 | `.Page.Draft` | `bool` | True for `draft: true` pages |
 | `.Page.Description` | `string` | Page description |
+| `.Page.DescriptionInferred` | `bool` | True when `Description` was derived from the first prose paragraph rather than set in frontmatter. The page header skips an inferred description because the body already opens with it |
 | `.Page.Image` | `string` | Cover image from the `image` frontmatter field |
 | `.Page.DateExplicit` | `bool` | True when `Date` came from frontmatter or a `YYYY-MM-DD` filename prefix rather than file modification time. Check it before presenting a date as editorial content |
 
@@ -284,14 +285,14 @@ Sidebar presentation settings for this page. This is not the navigation tree; th
 
 | Path | Configuration section |
 |------|-----------------------|
-| `.Site.Config.Site` | [`site`](/reference/configuration/#site) |
-| `.Site.Config.Social` | [`social`](/reference/configuration/#social) |
-| `.Site.Config.Header` | [`header`](/reference/configuration/#header) |
-| `.Site.Config.Footer` | [`footer`](/reference/configuration/#footer) |
-| `.Site.Config.Theme` | [`theme`](/reference/configuration/#theme) |
-| `.Site.Config.Search` | [`search`](/reference/configuration/#search) |
-| `.Site.Config.Analytics` | [`analytics`](/reference/configuration/#analytics) |
-| `.Site.Config.Homepage` | [`homepage`](/reference/configuration/#homepage) |
+| `.Site.Config.Site` | [`site`](/reference/configuration/site-and-branding/#site) |
+| `.Site.Config.Social` | [`social`](/reference/configuration/site-and-branding/#social) |
+| `.Site.Config.Header` | [`header`](/reference/configuration/site-and-branding/#header) |
+| `.Site.Config.Footer` | [`footer`](/reference/configuration/site-and-branding/#footer) |
+| `.Site.Config.Theme` | [`theme`](/reference/configuration/theme-and-appearance/#theme) |
+| `.Site.Config.Search` | [`search`](/reference/configuration/build-and-output/#search) |
+| `.Site.Config.Analytics` | [`analytics`](/reference/configuration/build-and-output/#analytics) |
+| `.Site.Config.Homepage` | [`homepage`](/reference/configuration/site-and-branding/#homepage) |
 
 Every other top-level key in [Configuration](/reference/configuration/) is reachable the same way, by its section name in PascalCase.
 

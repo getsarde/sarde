@@ -2,10 +2,15 @@ package component
 
 import (
 	htmltemplate "html/template"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"testing/fstest"
+
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 func testFuncMap() htmltemplate.FuncMap {
@@ -137,5 +142,46 @@ func TestAllSlots(t *testing.T) {
 	slots := AllSlots()
 	if len(slots) != 25 {
 		t.Errorf("expected 25 slots, got %d", len(slots))
+	}
+}
+
+// TestEmbeddedPageTitle_HidesInferredDescription checks that the shipped
+// PageTitle component shows an author-written description but skips one
+// inferred from the first paragraph, which the body already renders.
+func TestEmbeddedPageTitle_HidesInferredDescription(t *testing.T) {
+	src, err := fs.ReadFile(embedded.ThemeFS(), "components/PageTitle.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	funcs := testFuncMap()
+	funcs["markdownify"] = func(s string) htmltemplate.HTML { return htmltemplate.HTML(s) }
+	funcs["icon"] = func(string) htmltemplate.HTML { return "" }
+	r, err := NewRegistry(fstest.MapFS{"components/PageTitle.html": {Data: src}}, funcs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name     string
+		inferred bool
+		want     bool
+	}{
+		{"explicit", false, true},
+		{"inferred", true, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			page := &engine.Page{
+				PageIdentity: engine.PageIdentity{Title: "Title"},
+				PageMeta:     engine.PageMeta{Description: "Opening sentence.", DescriptionInferred: tt.inferred},
+			}
+			html, err := r.RenderComponent("PageTitle", map[string]any{"Page": page})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := strings.Contains(string(html), "sarde-page-description"); got != tt.want {
+				t.Errorf("description shown = %v, want %v; html: %s", got, tt.want, html)
+			}
+		})
 	}
 }

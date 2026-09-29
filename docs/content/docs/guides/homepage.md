@@ -157,4 +157,4 @@ title: Welcome
 - Offline search
 ```
 
-See [Configuration](/reference/configuration#homepage) for all homepage settings.
+See [Configuration](/reference/configuration/site-and-branding/#homepage) for all homepage settings.

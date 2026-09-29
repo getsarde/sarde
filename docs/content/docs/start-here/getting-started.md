@@ -97,7 +97,7 @@ my-site/
   .gitignore
 ```
 
-The `sarde.yaml` file controls the site title, theme preset, homepage hero, and all other settings; see [Configuration](/reference/configuration/) for the full reference. The `kazari.config.yaml` file controls syntax highlighting, covered in [Code Blocks](/guides/code-blocks/).
+The `sarde.yaml` file controls the site title, theme preset, homepage hero, and all other settings. [Configuration Examples](/reference/configuration/examples/) has complete files to start from, and [Configuration](/reference/configuration/) documents every key. The `kazari.config.yaml` file controls syntax highlighting, covered in [Code Blocks](/guides/code-blocks/).
 
 ## Start the dev server
 

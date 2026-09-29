@@ -112,4 +112,4 @@ The LLMs.txt plugin generates a machine-readable manifest at `/llms.txt` for AI 
 
 See [Plugins > LLMs.txt](/plugins/llms-txt) for configuration.
 
-See [Configuration](/reference/configuration#plugins) for enabling/disabling plugins, and individual plugin pages under [Plugins](/plugins/using-plugins) for detailed options.
+See [Configuration](/reference/configuration/plugins-and-checks/#plugins) for enabling/disabling plugins, and individual plugin pages under [Plugins](/plugins/using-plugins) for detailed options.

@@ -69,7 +69,7 @@ All 31 built-in components, alphabetically.
 | Head | `<head>` content (meta, styles, scripts) | `.Site.*`, `.Page.*`, `.Styles` | Both baseof templates |
 | Header | Header chrome, composes 8 sub-components | Multiple | Both baseof templates |
 | LabBadge | "Lab N" eyebrow chip above the title | `.LabNumber`, `.LabStepLabel` | `_labs/baseof.html` |
-| LabProgress | Step progress bar reading "Step X of Y" | `.LabStepIndex`, `.LabStepTotal` | `_labs/baseof.html` |
+| LabProgress | Step progress bar reading "Step X of Y", shown in the page header below the lab badge | `.LabStepIndex`, `.LabStepTotal` | `_labs/baseof.html` |
 | LanguageSwitcher | Language dropdown | `.AllTranslations`, `.Lang` | Header |
 | LastUpdated | "Last updated" byline | `.Page.Updated`, `theme.date_format` | docs, labs, blog singles, `_default/single.html` |
 | LearningObjectives | Callout listing a lab's objectives | `.LearningObjectives` | `_labs/baseof.html` |
@@ -133,11 +133,11 @@ The default layout (`_default/baseof.html`) is leaner: Head, Header, DraftBanner
 
 ### Head
 
-Renders `<head>` content: viewport and generator meta tags, sitemap link (if [`search`](/reference/configuration#search) enables it), favicon, an inline `window.__SARDE__` config object, the `<title>` tag, meta description, SEO tags via `partial "seo.html"`, theme styles via [`themeStyles`](/reference/template-functions#templates), per-page stylesheets from `.Styles`, and per-page head tags from [`frontmatter head`](/reference/frontmatter#head). The `<meta charset="utf-8">` declaration is not part of this component: each `baseof.html` emits it as the first element inside `<head>` so it stays within the first 1024 bytes of the document. A custom `baseof.html` must declare it itself.
+Renders `<head>` content: viewport and generator meta tags, sitemap link (if [`search`](/reference/configuration/build-and-output/#search) enables it), favicon, an inline `window.__SARDE__` config object, the `<title>` tag, meta description, SEO tags via `partial "seo.html"`, theme styles via [`themeStyles`](/reference/template-functions#templates), per-page stylesheets from `.Styles`, and per-page head tags from [`frontmatter head`](/reference/frontmatter#head). The `<meta charset="utf-8">` declaration is not part of this component: each `baseof.html` emits it as the first element inside `<head>` so it stays within the first 1024 bytes of the document. A custom `baseof.html` must declare it itself.
 
 ### Header
 
-Composes eight sub-components: SiteTitle, GlobalNav, Search, VersionSwitcher, LanguageSwitcher, Social, CenterToggle, ThemeToggle. Social is gated by [`header.social`](/reference/configuration#header) (default `true`). Override `Header.html` to reorganize or remove any of these elements.
+Composes eight sub-components: SiteTitle, GlobalNav, Search, VersionSwitcher, LanguageSwitcher, Social, CenterToggle, ThemeToggle. Social is gated by [`header.social`](/reference/configuration/site-and-branding/#header) (default `true`). Override `Header.html` to reorganize or remove any of these elements.
 
 ### Sidebar
 
@@ -145,11 +145,11 @@ Renders the docs navigation tree up to 3 levels deep using collapsible `<details
 
 ### Footer
 
-Renders navigation links from [`footer.links`](/reference/configuration#footer), a Social component (if [`social`](/reference/configuration#social) is configured), a copyright line with the site title and current year, optional custom text from [`footer.text`](/reference/configuration#footer), and a "Made with Sarde" credit (controlled by [`footer.credits`](/reference/configuration#footer), default `true`).
+Renders navigation links from [`footer.links`](/reference/configuration/site-and-branding/#footer), a Social component (if [`social`](/reference/configuration/site-and-branding/#social) is configured), a copyright line with the site title and current year, optional custom text from [`footer.text`](/reference/configuration/site-and-branding/#footer), and a "Made with Sarde" credit (controlled by [`footer.credits`](/reference/configuration/site-and-branding/#footer), default `true`).
 
 ### Search
 
-Hidden entirely when [`search.provider`](/reference/configuration#search) is `"disabled"`. Renders a trigger button with a keyboard hint (Ctrl/Cmd+K) and a `<dialog>` modal containing the search input, results list, filters, and a full-search mode toggle. Scopes results by `.Version` and `.Lang` via `data-*` attributes read by the client-side Orama search script.
+Hidden entirely when [`search.provider`](/reference/configuration/build-and-output/#search) is `"disabled"`. Renders a trigger button with a keyboard hint (Ctrl/Cmd+K) and a `<dialog>` modal containing the search input, results list, filters, and a full-search mode toggle. Scopes results by `.Version` and `.Lang` via `data-*` attributes read by the client-side Orama search script.
 
 ### PageBanner
 
@@ -157,11 +157,11 @@ Renders when `.PageBanner` is set via [`frontmatter banner`](/reference/frontmat
 
 ### PageTags
 
-Renders tag chips when [`showPageTags`](/reference/template-functions#content) returns true (page override, then [`taxonomies.tags.show_tags`](/reference/configuration#taxonomies) config, then `true`). Each tag links to its term page via [`termURL`](/reference/template-functions#content) and displays the label, icon, and color from its [`TaxonomyTerm`](/reference/frontmatter#taxonomy-fields) definition.
+Renders tag chips when [`showPageTags`](/reference/template-functions#content) returns true (page override, then [`taxonomies.tags.show_tags`](/reference/configuration/content/#taxonomies) config, then `true`). Each tag links to its term page via [`termURL`](/reference/template-functions#content) and displays the label, icon, and color from its [`TaxonomyTerm`](/reference/frontmatter#taxonomy-fields) definition.
 
 ### EditLink
 
-Resolves the "Edit this page" URL in order: a custom string from `edit_url` in [page frontmatter](/reference/frontmatter#meta-fields), or [`site.edit_url`](/reference/configuration#site) joined with the page's relative path. Set `edit_url: false` in frontmatter to disable the link for a specific page.
+Resolves the "Edit this page" URL in order: a custom string from `edit_url` in [page frontmatter](/reference/frontmatter#meta-fields), or [`site.edit_url`](/reference/configuration/site-and-branding/#site) joined with the page's relative path. Set `edit_url: false` in frontmatter to disable the link for a specific page.
 
 Renders `<a class="sarde-edit-link edit-link">` containing an inline pencil icon followed by the label. The legacy `edit-link` class is kept alongside the new one so existing custom CSS keeps working.
 
@@ -175,7 +175,7 @@ Both consume `.Page.Headings` and render anchor links for each heading. Both inc
 
 ### VersionSwitcher and VersionBanner
 
-VersionSwitcher renders a dropdown of all versions from `.Versions` with the current version label, hidden when `.Versions` is empty (non-versioned collections). VersionBanner shows an "unmaintained" or "unreleased" notice when `.VersionBanner` is set, with a link to the latest version. See [`collections versioning`](/reference/configuration#taxonomies) for configuration.
+VersionSwitcher renders a dropdown of all versions from `.Versions` with the current version label, hidden when `.Versions` is empty (non-versioned collections). VersionBanner shows an "unmaintained" or "unreleased" notice when `.VersionBanner` is set, with a link to the latest version. See [`collections versioning`](/reference/configuration/content/#taxonomies) for configuration.
 
 ### LanguageSwitcher
 
@@ -189,7 +189,7 @@ Called from the docs, labs, blog single, and default single layouts, inside the 
 
 The date is rendered at build time, so it is present without JavaScript and the page does not shift on load.
 
-The display format comes from [`theme.date_format`](/reference/configuration#theme), which accepts `short`, `long`, `iso`, or any Go layout string. The `short` and `long` presets are locale-aware: each page renders the date in its own language (CLDR data for about 30 common languages, English fallback otherwise), while custom Go layouts always render English. The `datetime` attribute is always ISO 8601 regardless, so the markup stays machine-readable. The timestamp itself is resolved by [`build.last_updated`](/reference/configuration#last-updated-strategy).
+The display format comes from [`theme.date_format`](/reference/configuration/theme-and-appearance/#theme), which accepts `short`, `long`, `iso`, or any Go layout string. The `short` and `long` presets are locale-aware: each page renders the date in its own language (CLDR data for about 30 common languages, English fallback otherwise), while custom Go layouts always render English. The `datetime` attribute is always ISO 8601 regardless, so the markup stays machine-readable. The timestamp itself is resolved by [`build.last_updated`](/reference/configuration/build-and-output/#last-updated-strategy).
 
 ### Page meta row
 

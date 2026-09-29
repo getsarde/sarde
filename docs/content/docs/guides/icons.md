@@ -157,4 +157,4 @@ On a section's `_index.md` this gives the section index page a heading icon matc
 
 A page-level `icon` field is separate and does not touch the sidebar. See [Frontmatter](/reference/frontmatter#sidebar-fields).
 
-See [CLI Commands](/reference/cli-commands#icons) for `sarde icons` usage, and [Configuration](/reference/configuration#icons) for all icon settings.
+See [CLI Commands](/reference/cli-commands#icons) for `sarde icons` usage, and [Configuration](/reference/configuration/theme-and-appearance/#icons) for all icon settings.

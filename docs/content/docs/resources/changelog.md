@@ -30,6 +30,8 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 ### Changed
 
 - **Deploy dependency:** `github.com/zeebo/blake3` (and its dependency `github.com/klauspost/cpuid/v2`) for the Cloudflare Pages asset hash.
+- **Inferred descriptions no longer appear under the page title:** a page without a `description` in frontmatter used to show its first paragraph under the title and again as the start of the body. The header now shows only descriptions you write; the inferred one is still used for meta tags, search, social cards, and listings. To show text under the title, set `description` in frontmatter. Templates can check the new `.Page.DescriptionInferred` field.
+- **Lab progress bar moved to the top:** the "Step X of Y" bar on lab pages now sits between the lab badge and the page title instead of below the content, and is no longer repeated at the bottom.
 
 
 ### Fixed
@@ -157,7 +159,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Breaking
 
-- **The `last-updated` client plugin has been removed:** if your `sarde.yaml` lists `last-updated` under `plugins.enabled`, **delete that line** or the build will fail with `config validation failed: plugins.enabled[N]`. The date is now rendered by the theme itself on docs, labs, blog, and default layouts, with no plugin and no JavaScript required. The plugin's `date_format` option lives on as [`theme.date_format`](/reference/configuration#date-format). Relative time ("3 days ago") is no longer available; the date is always absolute.
+- **The `last-updated` client plugin has been removed:** if your `sarde.yaml` lists `last-updated` under `plugins.enabled`, **delete that line** or the build will fail with `config validation failed: plugins.enabled[N]`. The date is now rendered by the theme itself on docs, labs, blog, and default layouts, with no plugin and no JavaScript required. The plugin's `date_format` option lives on as [`theme.date_format`](/reference/configuration/theme-and-appearance/#date-format). Relative time ("3 days ago") is no longer available; the date is always absolute.
 
 ### Added
 

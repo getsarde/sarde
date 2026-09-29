@@ -59,7 +59,7 @@ If the opening brace is never balanced, the file is treated as content with no f
 | `title` | string | inferred | Page title. Inferred from the first `# H1` heading or the filename if not set. **Required** (after inference). |
 | `slug` | string | inferred | URL slug for the page. Inferred from the filename with numeric prefixes stripped. |
 | `date` | date | inferred | Publication date. Inferred from a `YYYY-MM-DD` filename prefix or the file modification time. |
-| `updated` | date | inferred | Last modification date. Inferred from the file's last git commit, or its modification time, per [`build.last_updated`](/reference/configuration#last-updated-strategy). Set it explicitly when a commit date would misrepresent the change (a formatting sweep, for example). |
+| `updated` | date | inferred | Last modification date. Inferred from the file's last git commit, or its modification time, per [`build.last_updated`](/reference/configuration/build-and-output/#last-updated-strategy). Set it explicitly when a commit date would misrepresent the change (a formatting sweep, for example). |
 | `publish_date` | date | - | Future publication date. Pages with a future `publish_date` are excluded unless `build.future` is enabled. |
 | `expiry_date` | date | - | Expiration date. Pages past this date are excluded unless `build.expired` is enabled. |
 | `aliases` | list of string | `[]` | Alternative URL paths that redirect to this page. |
@@ -89,14 +89,14 @@ A value that is neither empty nor a recognized date is an error, and the build r
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `draft` | bool | `false` | Mark the page as a draft. Drafts are excluded from builds unless `build.drafts` is enabled. |
-| `description` | string | inferred | Page description for meta tags and feeds. Auto-derived from the first prose paragraph (truncated to 160 characters) if not set; code fences and directive blocks, including nested ones, are skipped. |
+| `description` | string | inferred | Page description for meta tags and feeds. Auto-derived from the first prose paragraph (truncated to 160 characters) if not set; code fences and directive blocks, including nested ones, are skipped. An inferred description is used for meta tags, search, and listings, but is not shown under the page title. |
 | `image` | string | - | Featured image path for social cards and Open Graph tags. |
-| `summary` | string | inferred | Page summary. Falls back to `description`, then to the first paragraph truncated to [`content.summary_length`](/reference/configuration#content) words. |
+| `summary` | string | inferred | Page summary. Falls back to `description`, then to the first paragraph truncated to [`content.summary_length`](/reference/configuration/content/#content) words. |
 | `render` | bool | - | Whether to render this page. Treated as `true` when unset. Set to `false` to process the page in the content pipeline without generating an output file. |
 | `pagefind` | bool | - | Include this page in the search index. Treated as `true` when unset. |
 | `robots` | string | - | Value for the page's `<meta name="robots">` tag, e.g. `noindex` or `noindex,nofollow`. When unset, no robots meta is emitted, except on pagination pages beyond page 1, which default to `noindex,follow`. |
 | `show_updated` | bool | - | Show the "last updated" date on this page. Set to `false` to hide it. This gates display only: the timestamp is still resolved, so sitemap `lastmod`, SEO `dateModified`, and feed timestamps stay correct. |
-| `edit_url` | bool or string | - | Controls the "Edit this page" link. `false` hides it. `true` uses the site-wide [`site.edit_url`](/reference/configuration#site). A string provides a custom URL for this page. |
+| `edit_url` | bool or string | - | Controls the "Edit this page" link. `false` hides it. `true` uses the site-wide [`site.edit_url`](/reference/configuration/site-and-branding/#site). A string provides a custom URL for this page. |
 
 ## Sidebar fields
 
@@ -163,7 +163,7 @@ toc:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `enabled` | bool | - | Show or hide the table of contents. Inherits from the site-level [`toc.enabled`](/reference/configuration#toc) setting. |
+| `enabled` | bool | - | Show or hide the table of contents. Inherits from the site-level [`toc.enabled`](/reference/configuration/theme-and-appearance/#toc) setting. |
 | `min_level` | int | - | Minimum heading level to include. Range: 1-6. Must be &le; `max_level`. |
 | `max_level` | int | - | Maximum heading level to include. Range: 1-6. |
 
@@ -351,10 +351,10 @@ Sarde fills in missing frontmatter fields automatically. Frontmatter values alwa
 | `title` | Frontmatter, then first `# H1` heading in content, then filename title-cased |
 | `slug` | Frontmatter, then date-prefix remainder, then numeric-prefix remainder, then parent directory name (for `_index.md`), then filename slugified |
 | `date` | Frontmatter, then `YYYY-MM-DD` filename prefix, then file modification time |
-| `updated` | Frontmatter, then git commit date or file modification time (per [`build.last_updated`](/reference/configuration#build) strategy) |
+| `updated` | Frontmatter, then git commit date or file modification time (per [`build.last_updated`](/reference/configuration/build-and-output/#build) strategy) |
 | `sidebar.order` | Frontmatter, then numeric filename prefix |
 | `description` | Frontmatter, then first prose paragraph of content (truncated to 160 characters; code fences and directive blocks are skipped) |
-| `summary` | Frontmatter, then `description`, then first prose paragraph (truncated to [`content.summary_length`](/reference/configuration#content) words; same skipping) |
+| `summary` | Frontmatter, then `description`, then first prose paragraph (truncated to [`content.summary_length`](/reference/configuration/content/#content) words; same skipping) |
 
 ### Filename patterns
 
