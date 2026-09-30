@@ -14,8 +14,37 @@ import (
 // The tree respects transparent sections (hoisted), non-rendering sections
 // (group label only), hidden pages, and weight-based sorting.
 func BuildNavTree(collection *engine.Collection) *engine.NavTree {
-	if collection == nil {
+	root, _ := buildNavRoot(collection)
+	if root == nil {
 		return nil
+	}
+	sortNodesRecursive(root)
+	return finishNavTree(root)
+}
+
+// BuildTabNavTree builds the sidebar for one docs tab. The tab collection's
+// tree would otherwise open with a single group for the tab's own directory,
+// repeating the tab switcher, so that group is unwrapped: its children move up
+// one level and its index page becomes an "Overview" entry that always comes
+// first. A tree of any other shape is returned as BuildNavTree builds it.
+func BuildTabNavTree(collection *engine.Collection, tabSlug string) *engine.NavTree {
+	root, ctx := buildNavRoot(collection)
+	if root == nil {
+		return nil
+	}
+	overview := unwrapTabGroup(root, tabSlug, ctx)
+	sortNodesRecursive(root)
+	if overview != nil {
+		overview.Parent = root
+		root.Children = append([]*engine.NavNode{overview}, root.Children...)
+	}
+	return finishNavTree(root)
+}
+
+// buildNavRoot builds the unsorted node tree for a collection.
+func buildNavRoot(collection *engine.Collection) (*engine.NavNode, sidebarCtx) {
+	if collection == nil {
+		return nil, sidebarCtx{}
 	}
 
 	maxDepth := 4
@@ -60,9 +89,11 @@ func BuildNavTree(collection *engine.Collection) *engine.NavTree {
 		}
 	}
 
-	// Sort all levels.
-	sortNodesRecursive(root)
+	return root, ctx
+}
 
+// finishNavTree flattens a sorted node tree and computes its metadata.
+func finishNavTree(root *engine.NavNode) *engine.NavTree {
 	// Flatten to ordered list (DFS, leaf pages only).
 	flat := flattenTree(root)
 	for i, node := range flat {
@@ -81,6 +112,54 @@ func BuildNavTree(collection *engine.Collection) *engine.NavTree {
 		TotalPages: len(flat),
 		MaxDepth:   md,
 		Hash:       hash,
+	}
+}
+
+// unwrapTabGroup replaces root's children with those of its single tab group
+// and returns the Overview entry for the group's index page (nil when the
+// group has no rendered index page). It does nothing unless root has exactly
+// one child, a group whose slug is tabSlug.
+func unwrapTabGroup(root *engine.NavNode, tabSlug string, ctx sidebarCtx) *engine.NavNode {
+	if len(root.Children) != 1 {
+		return nil
+	}
+	group := root.Children[0]
+	if group.Slug != tabSlug || len(group.Children) == 0 {
+		return nil
+	}
+
+	root.Children = group.Children
+	for _, child := range root.Children {
+		child.Parent = root
+		shiftDepth(child, -1)
+	}
+
+	if group.URL == "" || group.Page == nil {
+		return nil
+	}
+	// pageToNode applies sidebar.hidden and sidebar.yaml overrides keyed on
+	// the tab's path, so a hidden index page gets no Overview entry.
+	overview := pageToNode(group.Page, 1, ctx)
+	if overview == nil {
+		return nil
+	}
+	// Keep a label the author set with sidebar.label or a sidebar.yaml
+	// override; otherwise the label would repeat the tab title. The badge
+	// describes the whole tab, which the tab switcher already shows.
+	ov := lookupOverride(ctx, collectionRelPath(group.URL, ctx.collName))
+	if group.Page.Sidebar.Label == "" && (ov == nil || ov.Label == "") {
+		overview.Label = "Overview"
+		overview.LabelKey = "nav.overview"
+	}
+	overview.Badge = engine.Badge{}
+	return overview
+}
+
+// shiftDepth adds delta to the depth of node and all its descendants.
+func shiftDepth(node *engine.NavNode, delta int) {
+	node.Depth += delta
+	for _, child := range node.Children {
+		shiftDepth(child, delta)
 	}
 }
 

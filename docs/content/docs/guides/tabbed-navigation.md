@@ -15,6 +15,24 @@ Result: Selecting a tab navigates to that section's index page, and the sidebar 
 
 <!-- SCREENSHOT: docs-tab-switcher - the tab switcher open above the sidebar, listing tabs with icons and descriptions -->
 
+## The sidebar inside a tab
+
+The sidebar does not repeat the tab as a group, since the switcher already names it. The tab's pages and subsections start at the top level, led by an **Overview** entry that links to the tab's `_index.md`:
+
+```text
+Overview              <- guide/_index.md
+Installation
+Configuration
+Advanced          ⌄
+   Caching
+```
+
+- **Rename the entry** with `sidebar.label` in the tab's `_index.md`, for example `label: Introduction`. The default label is translated through the `nav.overview` UI string.
+- **Remove the entry** with `sidebar.hidden: true` in the tab's `_index.md`. A tab without an `_index.md` has no Overview entry.
+- **Icon:** the entry uses the tab's `sidebar.icon`. The tab's `sidebar.badge` is not shown on it.
+- **Order:** Overview always comes first. `sidebar.order` on the tab's `_index.md` still sets the tab's position in the switcher.
+- A tab with its own [`nav.yaml`](#per-tab-nav-yaml) keeps exactly the tree that file describes.
+
 Prev/next links follow the sidebar order within the active tab. Readers never cross from the last page of one tab to the first page of the next.
 
 ## Auto-detection

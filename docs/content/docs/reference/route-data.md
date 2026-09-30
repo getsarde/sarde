@@ -446,6 +446,7 @@ Internal, not for templates: `Hash` is a cache key.
 | Field | Type | Description |
 |-------|------|-------------|
 | `Label` | `string` | Link text |
+| `LabelKey` | `string` | i18n key to translate in place of `Label`, when set. The generated Overview entries of tabbed and labs sidebars use `nav.overview` and `labs.overview`; `Label` holds the English fallback. Render with `{{ if .LabelKey }}{{ t .LabelKey }}{{ else }}{{ .Label }}{{ end }}` |
 | `URL` | `string` | Link target |
 | `Slug` | `string` | Node slug |
 | `Order` | `int` | Sort order |

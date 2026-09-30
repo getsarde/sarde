@@ -74,6 +74,7 @@ func cloneNode(node *engine.NavNode, parent *engine.NavNode) *engine.NavNode {
 
 	clone := &engine.NavNode{
 		Label:       node.Label,
+		LabelKey:    node.LabelKey,
 		URL:         node.URL,
 		Slug:        node.Slug,
 		Order:       node.Order,

@@ -121,7 +121,7 @@ Override any of these. Anything left out falls back to the default language.
 
 | Group | Keys |
 |-------|------|
-| `nav` | `previous`, `next`, `newer`, `older`, `newer_posts`, `older_posts`, `toc`, `toc_label`, `toc_overview`, `search`, `draft`, `reading_time`, `language`, `version`, `version_latest`, `back_to_top`, `skip_to_content`, `menu`, `collapse_sidebar`, `breadcrumb`, `section_nav`, `page_nav`, `footer`, `opens_new_tab` |
+| `nav` | `previous`, `next`, `newer`, `older`, `newer_posts`, `older_posts`, `toc`, `toc_label`, `toc_overview`, `overview`, `search`, `draft`, `reading_time`, `language`, `version`, `version_latest`, `back_to_top`, `skip_to_content`, `menu`, `collapse_sidebar`, `breadcrumb`, `section_nav`, `page_nav`, `footer`, `opens_new_tab` |
 | `search` | `results`, `no_results`, `close`, `tip_typos`, `tip_keywords`, `kbd_navigate`, `kbd_select`, `kbd_close`, `full_search`, `switch_full_search` |
 | `theme` | `selection`, `light`, `system`, `dark` |
 | `taxonomy` | `post`, `posts`, `tags`, `authors` |

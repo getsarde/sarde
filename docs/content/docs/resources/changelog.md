@@ -22,6 +22,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Fixed
 
+- **The labs Overview entry is translatable:** the first sidebar entry of a lab was hardcoded English. It now uses the `labs.overview` UI string. Templates can read the new `NavNode.LabelKey` field for generated entries like this one.
 - **Deploys no longer publish `.sarde.lock`:** the GitHub Pages deployer copied the build's lock file into the published branch. Every deployer now skips it.
 - **Custom deploy commands on Windows run as typed:** a command that quoted a path, such as `echo done > "C:\My Site\log.txt"`, failed with "The filename, directory name, or volume label syntax is incorrect", because the quotes were escaped for a program other than `cmd.exe`. The command now reaches `cmd.exe` unchanged, and a site path in Windows' `\\?\` form no longer makes the command run in `C:\Windows`.
 - **GitHub Pages deploys read the remote from the site root:** the deployer looked up the `origin` remote in the process working directory, so `sarde deploy path/to/site` run from elsewhere pushed to the wrong repository or failed. Git and custom-command output no longer write straight to stdout.
@@ -30,6 +31,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Changed
 
+- **Tabbed sidebars lead with an Overview entry:** the sidebar inside a docs tab no longer wraps every page in a group named after the tab, which the tab switcher already shows. The tab's pages start at the top level, and its `_index.md` becomes an **Overview** entry at the top. Rename it with `sidebar.label` or hide it with `sidebar.hidden` in the tab's `_index.md`. Tabs with their own `nav.yaml` are unchanged. See [Tabbed Navigation](/guides/tabbed-navigation/#the-sidebar-inside-a-tab).
 - **Docs tab switcher redesign:** the tab dropdown at the top of the sidebar is now a tinted card with a tile showing the tab's icon (or its initials), the collection title as a small label, and up/down chevrons. Menu entries use the same tiles, and the sidebar collapse button sits further out so it no longer covers the switcher. Sites that override `DocsTabSwitcher` keep their own markup.
 - **Deploy dependency:** `github.com/zeebo/blake3` (and its dependency `github.com/klauspost/cpuid/v2`) for the Cloudflare Pages asset hash.
 - **Inferred descriptions no longer appear under the page title:** a page without a `description` in frontmatter used to show its first paragraph under the title and again as the start of the body. The header now shows only descriptions you write; the inferred one is still used for meta tags, search, social cards, and listings. To show text under the title, set `description` in frontmatter. Templates can check the new `.Page.DescriptionInferred` field.

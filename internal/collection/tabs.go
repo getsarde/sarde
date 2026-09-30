@@ -291,7 +291,7 @@ func buildTabNavTree(tabCol *engine.Collection, colName, tabSlug, contentDir str
 		}
 		// Fall through to auto-generation on error
 	}
-	return navigation.BuildNavTree(tabCol)
+	return navigation.BuildTabNavTree(tabCol, tabSlug)
 }
 
 // topLevelSections returns sections that are direct children of the root section,

@@ -16,6 +16,7 @@ type NavTree struct {
 // NavNode is a single entry in the sidebar navigation tree.
 type NavNode struct {
 	Label       string
+	LabelKey    string // i18n key templates translate in place of Label, when set
 	URL         string
 	Slug        string
 	Order       int

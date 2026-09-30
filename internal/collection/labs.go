@@ -68,9 +68,9 @@ func buildLabScopedTree(collName string, cfg *engine.CollectionConfig, lab *engi
 	}
 
 	labCol := &engine.Collection{
-		Name:   collName,
-		Config: &engine.CollectionConfig{Sidebar: sidebarCfg},
-		Pages:  collectLabPages(lab),
+		Name:     collName,
+		Config:   &engine.CollectionConfig{Sidebar: sidebarCfg},
+		Pages:    collectLabPages(lab),
 		Sections: []*engine.Section{&fakeRoot},
 	}
 	tree := navigation.BuildNavTree(labCol)
@@ -80,12 +80,13 @@ func buildLabScopedTree(collName string, cfg *engine.CollectionConfig, lab *engi
 
 	if lab.IndexPage != nil {
 		overview := &engine.NavNode{
-			Label: "Overview",
-			URL:   lab.Permalink,
-			Slug:  lab.Slug,
-			Depth: 1,
-			Page:  lab.IndexPage,
-			Order: -1,
+			Label:    "Overview",
+			LabelKey: "labs.overview",
+			URL:      lab.Permalink,
+			Slug:     lab.Slug,
+			Depth:    1,
+			Page:     lab.IndexPage,
+			Order:    -1,
 		}
 		overview.Parent = tree.Root
 		tree.Root.Children = append([]*engine.NavNode{overview}, tree.Root.Children...)
