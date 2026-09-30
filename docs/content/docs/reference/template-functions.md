@@ -23,6 +23,7 @@ Sarde registers custom functions into Go's `html/template` engine. Call them wit
 | `lower` | `lower(s string) string` | Lowercases a string |
 | `title` | `title(s string) string` | Title-cases each word |
 | `truncate` | `truncate(s string, n int) string` | Truncates to `n` runes, appending `...` when truncated. Returns a hard cut when `n < 3`. |
+| `initials` | `initials(s string) string` | Up to two uppercase letters for a monogram: the first letter of the first two words, or the first two letters of a single word. HTML tags and words without letters are skipped. `initials "Go Essentials"` gives `GE`. |
 | `slugify` | `slugify(s string) string` | Converts to a URL-safe slug. `urlize` is an alias. |
 | `replace` | `replace(s, old, new string) string` | Replaces all occurrences of a substring |
 | `split` | `split(s, sep string) []string` | Splits a string by separator |

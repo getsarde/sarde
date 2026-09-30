@@ -11,6 +11,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Added
 
+- **`initials` template function:** returns up to two uppercase letters from a string, for monogram tiles. `initials "Go Essentials"` gives `GE`. See [Template Functions](/reference/template-functions/).
 - **Netlify, Cloudflare Pages and Vercel deploys:** `sarde deploy` now publishes to all three through their APIs, with no provider CLI needed. Tokens come from `NETLIFY_AUTH_TOKEN`, `CLOUDFLARE_API_TOKEN` and `VERCEL_TOKEN`, never from `sarde.yaml`. Only files the provider does not already have are uploaded, uploads retry on rate limits, and the command prints the live URL. New `deploy.account_id` (Cloudflare) and `deploy.team_id` (Vercel) settings; `CLOUDFLARE_ACCOUNT_ID` and `VERCEL_ORG_ID` override them. See [Deploying](/start-here/deploying/).
 - **`sarde deploy --check`** verifies the token and access to the configured site or project without uploading anything.
 - **`sarde deploy --format json`** streams newline-delimited progress events (steps, upload progress, the result with the live URL and deploy ID) for tools such as Sarde Studio. Failures end with the shared error envelope, which now carries an optional `code` (`auth`, `not_found`, `rate_limited`, `limit`, `network`, `canceled`, `config`, `provider`).
@@ -29,6 +30,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Changed
 
+- **Docs tab switcher redesign:** the tab dropdown at the top of the sidebar is now a tinted card with a tile showing the tab's icon (or its initials), the collection title as a small label, and up/down chevrons. Menu entries use the same tiles, and the sidebar collapse button sits further out so it no longer covers the switcher. Sites that override `DocsTabSwitcher` keep their own markup.
 - **Deploy dependency:** `github.com/zeebo/blake3` (and its dependency `github.com/klauspost/cpuid/v2`) for the Cloudflare Pages asset hash.
 - **Inferred descriptions no longer appear under the page title:** a page without a `description` in frontmatter used to show its first paragraph under the title and again as the start of the body. The header now shows only descriptions you write; the inferred one is still used for meta tags, search, social cards, and listings. To show text under the title, set `description` in frontmatter. Templates can check the new `.Page.DescriptionInferred` field.
 - **Lab progress bar moved to the top:** the "Step X of Y" bar on lab pages now sits between the lab badge and the page title instead of below the content, and is no longer repeated at the bottom.

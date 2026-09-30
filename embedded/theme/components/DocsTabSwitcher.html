@@ -3,19 +3,22 @@
   <button class="sarde-tab-trigger" type="button" data-sarde-tab-trigger aria-expanded="false" aria-controls="sarde-tab-menu">
     {{ if .ActiveTab }}
     <span class="sarde-tab-active-label">
-      {{ if .ActiveTab.Icon }}{{ icon .ActiveTab.Icon "sarde-tab-icon" }}{{ end }}
-      <span>{{ .ActiveTab.Title | markdownify }}</span>
+      <span class="sarde-tab-tile" aria-hidden="true">{{ if .ActiveTab.Icon }}{{ icon .ActiveTab.Icon "sarde-tab-icon" }}{{ else }}{{ initials .ActiveTab.Title }}{{ end }}</span>
+      <span class="sarde-tab-active-text">
+        {{ with .Collection }}{{ if .Title }}<span class="sarde-tab-eyebrow">{{ .Title }}</span>{{ end }}{{ end }}
+        <span class="sarde-tab-active-title">{{ .ActiveTab.Title | markdownify }}</span>
+      </span>
     </span>
     {{ else }}
     <span>Select section</span>
     {{ end }}
-    {{ icon "chevron-down" "sarde-tab-chevron" }}
+    {{ icon "chevrons-up-down" "sarde-tab-chevron" }}
   </button>
   <ul class="sarde-tab-menu" id="sarde-tab-menu" data-sarde-tab-menu hidden>
     {{ range .DocsTabs }}
     <li role="none">
       <a href="{{ relURL .Permalink }}" class="sarde-tab-option{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} is-active{{ end }}"{{ if and $.ActiveTab (eq .Slug $.ActiveTab.Slug) }} aria-current="page"{{ end }}>
-        {{ if .Icon }}{{ icon .Icon "sarde-tab-icon" }}{{ end }}
+        <span class="sarde-tab-tile" aria-hidden="true">{{ if .Icon }}{{ icon .Icon "sarde-tab-icon" }}{{ else }}{{ initials .Title }}{{ end }}</span>
         <span class="sarde-tab-option-text">
           <span class="sarde-tab-option-title">{{ .Title | markdownify }}</span>
           {{ if .Description }}<span class="sarde-tab-option-desc">{{ .Description | markdownify }}</span>{{ end }}

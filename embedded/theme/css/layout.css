@@ -436,9 +436,11 @@
 	  }
 	}
 
+	/* space-10 clears the sidebar toggle, which reaches 34px past the
+	   sidebar edge from this breakpoint up. */
 	@media (min-width: 1024px) {
 	  .sarde-main-pane {
-	    padding-inline-start: var(--sd-space-8);
+	    padding-inline-start: var(--sd-space-10);
 	  }
 	}
 
@@ -676,8 +678,10 @@
 	    justify-content: center;
 	    position: absolute;
 	    top: var(--sd-space-4);
-	    /* Half the width, so the control straddles the sidebar edge. */
-	    inset-inline-end: -22px;
+	    /* Straddles the sidebar edge, but reaches only 10px into the sidebar:
+	       less than the sidebar content's 16px padding, so it never covers the
+	       tab switcher or the first nav row. */
+	    inset-inline-end: -34px;
 	    z-index: 1;
 	    width: 44px;
 	    height: 44px;

@@ -6,6 +6,7 @@ import (
 	htmltemplate "html/template"
 	"strings"
 	"sync"
+	"unicode"
 
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/content/markdown/icons"
@@ -135,4 +136,37 @@ func fnHighlight(code, lang string) htmltemplate.HTML {
 	// Stub: wraps code in <pre><code>. Full Chroma syntax highlighting is not yet implemented.
 	escaped := htmltemplate.HTMLEscapeString(code)
 	return htmltemplate.HTML(fmt.Sprintf(`<pre><code class="language-%s">%s</code></pre>`, htmltemplate.HTMLEscapeString(lang), escaped))
+}
+
+// fnInitials returns up to two uppercase letters for a monogram: the first
+// letter of each of the first two words, or the first two letters of a
+// single word. Words without a letter (numbers, punctuation) are skipped, and
+// HTML tags are stripped first, so "Go Essentials" gives "GE" and
+// "Reference" gives "RE".
+func fnInitials(s string) string {
+	var firsts [][]rune
+	for _, w := range strings.Fields(fnPlainify(s)) {
+		var letters []rune
+		for _, r := range w {
+			if unicode.IsLetter(r) {
+				letters = append(letters, r)
+			}
+		}
+		if len(letters) > 0 {
+			firsts = append(firsts, letters)
+		}
+	}
+	var out []rune
+	switch {
+	case len(firsts) == 0:
+		return ""
+	case len(firsts) == 1:
+		out = firsts[0]
+		if len(out) > 2 {
+			out = out[:2]
+		}
+	default:
+		out = []rune{firsts[0][0], firsts[1][0]}
+	}
+	return strings.ToUpper(string(out))
 }

@@ -61,7 +61,7 @@ All 31 built-in components, alphabetically.
 | CenterToggle | Centered/wide content width toggle | Static | Header |
 | ContentPanel | Content area wrapper | `.Page.Content` | *Not called by default* |
 | DraftBanner | Draft page notice with pencil icon | `.Page.Draft` | All three baseof templates |
-| DocsTabSwitcher | Mobile docs tab dropdown | `.IsTabbed`, `.DocsTabs`, `.ActiveTab` | Sidebar |
+| DocsTabSwitcher | Docs tab switcher card at the top of the sidebar | `.IsTabbed`, `.DocsTabs`, `.ActiveTab`, `.Collection.Title` | Sidebar |
 | EditLink | "Edit this page" link | `.Page.Params`, `.Site.EditURL` | `_docs/baseof.html`, blog singles, `_default/single.html` |
 | FallbackNotice | i18n fallback content notice | `.Page.IsFallback` | Both baseof templates |
 | Footer | Site footer with links and credits | `.Site.Config.Footer.*` | Both baseof templates |

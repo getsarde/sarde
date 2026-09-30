@@ -41,6 +41,7 @@ func (e *Engine) buildFuncMap(
 		"lower":       strings.ToLower,
 		"title":       fnTitle,
 		"truncate":    fnTruncate,
+		"initials":    fnInitials,
 		"slugify":     content.Slugify,
 		"replace":     strings.ReplaceAll,
 		"split":       strings.Split,

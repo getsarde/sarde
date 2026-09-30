@@ -9,7 +9,7 @@ Tabbed navigation splits a large docs collection into top-level areas. A tab swi
 
 ## How tabs work
 
-Each top-level section of the collection becomes a tab. The switcher is a dropdown at the top of the sidebar showing the active tab's icon and title. Opening it lists every tab with its icon, title, and description.
+Each top-level section of the collection becomes a tab. The switcher is a card at the top of the sidebar: a tile with the tab's icon, or its initials when it has no icon, the collection title as a small label, and the active tab's title. Opening it lists every tab with its tile, title, and description.
 
 Result: Selecting a tab navigates to that section's index page, and the sidebar shows only that section's navigation tree.
 
@@ -88,7 +88,7 @@ sidebar:
 |-------|----------|
 | `title` | Tab label in the switcher. Falls back to the directory name when no `_index.md` exists. |
 | `description` | Secondary line under the label in the switcher dropdown. |
-| `icon` | Icon shown next to the label. This is the page-level `icon` field, not `sidebar.icon`. |
+| `icon` | Icon shown in the tab's tile, in place of the initials of its title. This is the page-level `icon` field, not `sidebar.icon`. |
 | `sidebar.order` | Tab position. Lower values appear first; ties sort alphabetically by title. |
 
 ## Per-tab `nav.yaml`

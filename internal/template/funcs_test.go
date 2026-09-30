@@ -649,3 +649,26 @@ func TestFontUsed(t *testing.T) {
 		t.Error("fontUsed = true for RouteData without theme, want false")
 	}
 }
+
+func TestFnInitials(t *testing.T) {
+	tests := []struct {
+		s    string
+		want string
+	}{
+		{"Go Essentials", "GE"},
+		{"Reference", "RE"},
+		{"API v2", "AV"},
+		{"web fundamentals and more", "WF"},
+		{"2024 Roadmap", "RO"},
+		{"<code>CLI</code> Guide", "CG"},
+		{"Éléments de base", "ÉD"},
+		{"X", "X"},
+		{"", ""},
+		{"123 !!", ""},
+	}
+	for _, tt := range tests {
+		if got := fnInitials(tt.s); got != tt.want {
+			t.Errorf("fnInitials(%q) = %q, want %q", tt.s, got, tt.want)
+		}
+	}
+}
