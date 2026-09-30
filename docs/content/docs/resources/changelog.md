@@ -22,6 +22,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Fixed
 
+- **Section badges show in the sidebar:** a `sidebar.badge` set in a section's `_index.md` never appeared on the section's group row, because only page entries copied the badge. Groups now show it, and a `sidebar.yaml` badge override still takes precedence.
 - **The labs Overview entry is translatable:** the first sidebar entry of a lab was hardcoded English. It now uses the `labs.overview` UI string. Templates can read the new `NavNode.LabelKey` field for generated entries like this one.
 - **Deploys no longer publish `.sarde.lock`:** the GitHub Pages deployer copied the build's lock file into the published branch. Every deployer now skips it.
 - **Custom deploy commands on Windows run as typed:** a command that quoted a path, such as `echo done > "C:\My Site\log.txt"`, failed with "The filename, directory name, or volume label syntax is incorrect", because the quotes were escaped for a program other than `cmd.exe`. The command now reaches `cmd.exe` unchanged, and a site path in Windows' `\\?\` form no longer makes the command run in `C:\Windows`.

@@ -107,7 +107,7 @@ Nested under the `sidebar` key.
 | `order` | int | inferred | Sort order in the sidebar. Inferred from a numeric filename prefix (e.g., `03-setup.md` sets order to 3). Lower values appear first. |
 | `label` | string | - | Override the display label in the sidebar. Defaults to the page title. |
 | `hidden` | bool | `false` | Hide this page from the sidebar. The page is still accessible via its URL. |
-| `badge` | string or object | - | Badge displayed next to the sidebar entry. See [badge formats](#sidebar-badge) below. |
+| `badge` | string or object | - | Badge displayed next to the sidebar entry. In a section's `_index.md`, it shows on the section's group row. See [badge formats](#sidebar-badge) below. |
 | `icon` | string | - | Icon displayed next to the sidebar entry. |
 | `attrs` | map | - | Custom HTML attributes added to the sidebar link element. |
 

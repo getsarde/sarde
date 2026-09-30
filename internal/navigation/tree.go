@@ -196,10 +196,11 @@ func buildNodeFromSection(sec *engine.Section, depth int, maxDepth int, ctx side
 		}
 	}
 
-	// Copy sidebar attrs, icon, and DefaultOpen from section index page.
+	// Copy sidebar attrs, icon, badge, and DefaultOpen from section index page.
 	if sec.IndexPage != nil {
 		group.Attrs = cloneStringMap(sec.IndexPage.Sidebar.Attrs)
 		group.Icon = sec.IndexPage.Sidebar.Icon
+		group.Badge = sec.IndexPage.Sidebar.Badge
 		if group.Attrs != nil && group.Attrs["open"] == "true" {
 			group.DefaultOpen = true
 		}

@@ -301,3 +301,45 @@ func labels(nodes []*engine.NavNode) []string {
 	}
 	return out
 }
+
+// withGuidesBadge sets a sidebar.badge on the Guides section's _index.md.
+func withGuidesBadge(col *engine.Collection, badge engine.Badge) *engine.Collection {
+	for _, sec := range col.Sections {
+		if sec.Slug == "guides" {
+			sec.IndexPage.Sidebar.Badge = badge
+		}
+	}
+	return col
+}
+
+// A sidebar.badge in a section's _index.md shows on the section's group row,
+// the same way a page's badge shows on its link.
+func TestBuildNavTree_SectionBadgeFromIndexPage(t *testing.T) {
+	col := withGuidesBadge(overridesCollection(&engine.SidebarConfig{MaxDepth: 4}),
+		engine.Badge{Text: "Assignment", Variant: engine.BadgeVariantNote})
+
+	group := findChild(BuildNavTree(col).Root, "Guides")
+	if group == nil {
+		t.Fatal("expected Guides group")
+	}
+	if group.Badge.Text != "Assignment" || group.Badge.Variant != engine.BadgeVariantNote {
+		t.Errorf("Badge = %+v, want the index page's Assignment badge", group.Badge)
+	}
+}
+
+func TestBuildNavTree_SectionBadgeOverrideWinsOverIndexPage(t *testing.T) {
+	col := withGuidesBadge(overridesCollection(&engine.SidebarConfig{
+		MaxDepth: 4,
+		Overrides: map[string]*engine.SidebarOverride{
+			"guides": {Badge: engine.Badge{Text: "New"}},
+		},
+	}), engine.Badge{Text: "Assignment"})
+
+	group := findChild(BuildNavTree(col).Root, "Guides")
+	if group == nil {
+		t.Fatal("expected Guides group")
+	}
+	if group.Badge.Text != "New" {
+		t.Errorf("Badge = %+v, want the sidebar.yaml override", group.Badge)
+	}
+}
