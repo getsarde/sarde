@@ -41,21 +41,43 @@ labs/
 
 == Course, lab, and step
 
-Three levels. Each directory under `labs/` is a course containing labs.
+Three levels. Each directory under `labs/` is a course, each directory inside a course is a lab, and the files inside a lab are its steps.
 
 ```
 labs/
-  web101/
+  _index.md                # landing page: one card per course
+  web-fundamentals/
+    _index.md              # course page: one card per lab
+    build-a-webpage/
+      _index.md            # Lab 1: overview and learning objectives
+      scaffold.md          # step, sidebar.order: 1
+      add-styles.md        # step, sidebar.order: 2
+      deploy.md            # step, sidebar.order: 3
+    hello-world/
+      _index.md            # Lab 2: a single-page lab
+  go-essentials/
     _index.md
-    lab-a/
-      _index.md
-      01-step.md
-    lab-b/
-      _index.md
+    cli-todo-app/
+      _index.md            # Lab 1 again: numbering restarts per course
+      project-setup.md
+      add-commands.md
+      testing.md
 ```
+
+`sarde new site my-academy --template course` creates a working copy of this layout. See [`new site`](/reference/cli-commands/#course-template).
 :::
 
-Both work with no configuration. Lab numbering restarts inside each course, so `web101` and `web201` both begin at Lab 1.
+Both work with no configuration. Lab numbering restarts inside each course, so `web-fundamentals` and `go-essentials` both begin at Lab 1.
+
+## Step and lab order
+
+Steps follow `sidebar.order` in their frontmatter, lowest first. A numeric filename prefix works too: `01-install.md` sorts as `sidebar.order: 1`, and the prefix is dropped from the URL (`/labs/getting-started/install/`). When a file has both, the frontmatter value wins.
+
+Labs inside a course, and courses inside `labs/`, are ordered the same way, by `sidebar.order` on their `_index.md`, then by title. A lab's number follows that order, so reordering labs renumbers them.
+
+## Single-page labs
+
+A lab directory that contains only an `_index.md` is a complete lab. It gets its lab badge, a `Step 1 of 1` progress bar, and a sidebar with just the Overview entry. Use it for short exercises that fit on one page, such as `hello-world` in the example above.
 
 ## Layouts
 
@@ -74,7 +96,7 @@ Cards on a landing page show a count taken from what the directory holds: `2 lab
 
 ## Per-lab sidebar
 
-Inside a lab, the sidebar lists only that lab. Other labs in the collection do not appear. The first entry is always **Overview**, linking to the lab's `_index.md`, followed by the steps in `sidebar.order`.
+Inside a lab, the sidebar lists only that lab. Other labs in the collection do not appear. The first entry is always **Overview**, linking to the lab's `_index.md`, followed by the steps in `sidebar.order`. The Overview label is the `labs.overview` [translation string](/guides/internationalization/#translation-strings), so it follows the page language.
 
 Prev/next stops at the lab boundary. The last step of one lab has no Next link into the following lab, so a reader finishing a lab returns to the landing page rather than falling into unrelated material.
 
