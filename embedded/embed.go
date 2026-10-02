@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"sort"
 )
 
 // DefaultsYAML contains the embedded default site configuration.
@@ -37,6 +38,12 @@ var ScaffoldHeroLight []byte
 //go:embed scaffold/hero-dark.svg
 var ScaffoldHeroDark []byte
 
+// templatesFS contains the site templates for sarde new site --template,
+// one directory per template name.
+//
+//go:embed all:templates
+var templatesFS embed.FS
+
 // I18nFS returns the embedded i18n filesystem rooted at "i18n/".
 func I18nFS() fs.FS {
 	sub, _ := fs.Sub(i18nFS, "i18n")
@@ -66,3 +73,32 @@ func ThemeDirFS(dir string) (fs.FS, error) {
 	return os.DirFS(dir), nil
 }
 
+// SiteTemplate returns the files of the named site template, rooted at the
+// template's directory, and false when no such template exists.
+func SiteTemplate(name string) (fs.FS, bool) {
+	if name == "" || !fs.ValidPath(name) {
+		return nil, false
+	}
+	info, err := fs.Stat(templatesFS, "templates/"+name)
+	if err != nil || !info.IsDir() {
+		return nil, false
+	}
+	sub, err := fs.Sub(templatesFS, "templates/"+name)
+	if err != nil {
+		return nil, false
+	}
+	return sub, true
+}
+
+// SiteTemplateNames returns the names of the embedded site templates, sorted.
+func SiteTemplateNames() []string {
+	entries, _ := fs.ReadDir(templatesFS, "templates")
+	var names []string
+	for _, e := range entries {
+		if e.IsDir() {
+			names = append(names, e.Name())
+		}
+	}
+	sort.Strings(names)
+	return names
+}

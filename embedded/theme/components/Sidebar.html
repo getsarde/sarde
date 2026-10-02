@@ -10,14 +10,12 @@
       <div class="sarde-sidebar-group{{ if .HasActive }} has-active{{ end }}" data-sd-idx="{{ .GroupIndex }}">
         {{ if .URL }}
         <div class="sarde-sidebar-group-row">
-          <a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ if .LabelKey }}{{ t .LabelKey }}{{ else }}{{ .Label }}{{ end }}</a>
-          {{- if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end -}}
+          <a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span class="sarde-sidebar-label">{{ if .LabelKey }}{{ t .LabelKey }}{{ else }}{{ .Label }}{{ end }}{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}</span></a>
           <button class="sarde-sidebar-chevron" type="button" aria-expanded="{{ if $open }}true{{ else }}false{{ end }}" aria-controls="sd-grp-{{ .GroupIndex }}" aria-label="{{ tWithData "nav.toggle_section" (dict "Label" .Label) }}"></button>
         </div>
         {{ else }}
         <button class="sarde-sidebar-group-row" type="button" aria-expanded="{{ if $open }}true{{ else }}false{{ end }}" aria-controls="sd-grp-{{ .GroupIndex }}">
-          {{- if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ .Label }}</span>
-          {{- if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end -}}
+          {{- if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span class="sarde-sidebar-label"{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ .Label }}{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}</span>
           <span class="sarde-sidebar-chevron"></span>
         </button>
         {{ end }}
@@ -29,14 +27,12 @@
             <div class="sarde-sidebar-group{{ if .HasActive }} has-active{{ end }}" data-sd-idx="{{ .GroupIndex }}">
               {{ if .URL }}
               <div class="sarde-sidebar-group-row">
-                <a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}{{ if .LabelKey }}{{ t .LabelKey }}{{ else }}{{ .Label }}{{ end }}</a>
-                {{- if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end -}}
+                <a href="{{ .URL }}"{{ if .IsActive }} aria-current="page" class="active"{{ end }}{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span class="sarde-sidebar-label">{{ if .LabelKey }}{{ t .LabelKey }}{{ else }}{{ .Label }}{{ end }}{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}</span></a>
                 <button class="sarde-sidebar-chevron" type="button" aria-expanded="{{ if $open }}true{{ else }}false{{ end }}" aria-controls="sd-grp-{{ .GroupIndex }}" aria-label="{{ tWithData "nav.toggle_section" (dict "Label" .Label) }}"></button>
               </div>
               {{ else }}
               <button class="sarde-sidebar-group-row" type="button" aria-expanded="{{ if $open }}true{{ else }}false{{ end }}" aria-controls="sd-grp-{{ .GroupIndex }}">
-                {{- if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ .Label }}</span>
-                {{- if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end -}}
+                {{- if .Icon }}{{ icon .Icon "sarde-sidebar-icon" }}{{ end }}<span class="sarde-sidebar-label"{{ if .Description }} title="{{ .Description }}"{{ end }}>{{ .Label }}{{ if not .Badge.IsEmpty }} <span class="sarde-badge {{ .Badge.CSSClass }}">{{ .Badge.Text }}</span>{{ end }}</span>
                 <span class="sarde-sidebar-chevron"></span>
               </button>
               {{ end }}

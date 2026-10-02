@@ -1,0 +1,11 @@
+---
+title: Assignments
+description: Practice what you learned in Go Essentials.
+sidebar:
+  order: 3
+  badge:
+    text: Assignment
+    variant: note
+---
+
+Complete the assignments below to practice what you learned.

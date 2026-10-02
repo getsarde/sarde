@@ -24,3 +24,13 @@ as full-screen slide viewers, organizes decks into SlideShare-style galleries, a
   presentations inside docs or courses collections with sidebar integration.
 - [Labs](/teaching/labs/) covers the `labs` collection type, per-lab sidebars,
   step progress, and learning objectives.
+
+## Start from the course template
+
+To start with a working course site rather than an empty project, create it from the course template:
+
+```bash
+sarde new site my-academy --template course
+```
+
+The site has two sample courses with lessons and assignments, hands-on labs grouped by course, and an announcements page. Replace the sample content with your own; [`new site`](/reference/cli-commands/#course-template) lists what the template creates.

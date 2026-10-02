@@ -329,6 +329,40 @@ mysite/
       hero-dark.svg
 ```
 
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--template`, `-t` | string | `""` | Start from a site template instead of the default starter files. Available: `course`. |
+
+#### Course template
+
+`--template course` creates a course site: courses with lessons and assignments, hands-on labs grouped by course, an announcements page, and a homepage. The sample pages use Markdown extensions such as tabs, steps, and collapsible panels. The same site is published as the [course-template](https://github.com/getsarde/course-template) repository.
+
+```
+sarde new site my-academy --template course
+```
+
+```
+my-academy/
+  sarde.yaml
+  kazari.config.yaml
+  .gitignore
+  content/
+    _index.md
+    announcements.md
+    courses/
+      go-essentials/          # one course: _index.md, lessons, assignments/
+      web-fundamentals/
+    labs/
+      go-essentials/          # labs grouped by course, one directory per lab
+      web-fundamentals/
+  public/
+    images/
+      hero-light.svg
+      hero-dark.svg
+```
+
+An unknown template name stops with `unknown template "<name>"; available templates: course`, and nothing is written. Like the default scaffold, `new site` refuses to run where a `sarde.yaml` already exists.
+
 ### `new course <name>`
 
 Scaffold a new course directory under `content/courses/`.

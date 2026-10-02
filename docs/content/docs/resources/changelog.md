@@ -11,6 +11,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Added
 
+- **Course site template:** `sarde new site my-academy --template course` (or `-t course`) creates a course site with two sample courses (lessons and assignments), hands-on labs grouped by course, and an announcements page. An unknown template name fails before anything is written. See [CLI Commands](/reference/cli-commands/#course-template).
 - **`initials` template function:** returns up to two uppercase letters from a string, for monogram tiles. `initials "Go Essentials"` gives `GE`. See [Template Functions](/reference/template-functions/).
 - **Netlify, Cloudflare Pages and Vercel deploys:** `sarde deploy` now publishes to all three through their APIs, with no provider CLI needed. Tokens come from `NETLIFY_AUTH_TOKEN`, `CLOUDFLARE_API_TOKEN` and `VERCEL_TOKEN`, never from `sarde.yaml`. Only files the provider does not already have are uploaded, uploads retry on rate limits, and the command prints the live URL. New `deploy.account_id` (Cloudflare) and `deploy.team_id` (Vercel) settings; `CLOUDFLARE_ACCOUNT_ID` and `VERCEL_ORG_ID` override them. See [Deploying](/start-here/deploying/).
 - **`sarde deploy --check`** verifies the token and access to the configured site or project without uploading anything.
@@ -22,7 +23,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Fixed
 
-- **Section badges show in the sidebar:** a `sidebar.badge` set in a section's `_index.md` never appeared on the section's group row, because only page entries copied the badge. Groups now show it, and a `sidebar.yaml` badge override still takes precedence.
+- **Section badges show in the sidebar:** a `sidebar.badge` set in a section's `_index.md` never appeared on the section's group row, because only page entries copied the badge. Groups now show it, and a `sidebar.yaml` badge override still takes precedence. Sidebar badges also use a compact, normal-case style and wrap under a long label instead of overlapping it; badges in page content are unchanged.
 - **The labs Overview entry is translatable:** the first sidebar entry of a lab was hardcoded English. It now uses the `labs.overview` UI string. Templates can read the new `NavNode.LabelKey` field for generated entries like this one.
 - **Deploys no longer publish `.sarde.lock`:** the GitHub Pages deployer copied the build's lock file into the published branch. Every deployer now skips it.
 - **Custom deploy commands on Windows run as typed:** a command that quoted a path, such as `echo done > "C:\My Site\log.txt"`, failed with "The filename, directory name, or volume label syntax is incorrect", because the quotes were escaped for a program other than `cmd.exe`. The command now reaches `cmd.exe` unchanged, and a site path in Windows' `\\?\` form no longer makes the command run in `C:\Windows`.

@@ -1,10 +1,13 @@
 package cli
 
 import (
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/getsarde/sarde/embedded"
 )
 
 func TestRunNewCourse(t *testing.T) {
@@ -214,4 +217,97 @@ func TestRunNewDirective_AlreadyExists(t *testing.T) {
 	if err := cmd.Execute(); err == nil {
 		t.Fatal("expected error when directive already exists")
 	}
+}
+
+// runNewSiteIn runs "sarde new site <name>" with the given --template value in
+// a fresh temp dir and returns the site directory. --template is always passed
+// explicitly because rootCmd keeps flag values between Execute calls.
+func runNewSiteIn(t *testing.T, template string) (string, error) {
+	t.Helper()
+	dir := t.TempDir()
+	origWd, _ := os.Getwd()
+	os.Chdir(dir)
+	defer os.Chdir(origWd)
+
+	rootCmd.SetArgs([]string{"new", "site", "site", "--template=" + template, "--quiet"})
+	err := rootCmd.Execute()
+	return filepath.Join(dir, "site"), err
+}
+
+func assertExists(t *testing.T, dir string, rels ...string) {
+	t.Helper()
+	for _, rel := range rels {
+		if _, err := os.Stat(filepath.Join(dir, filepath.FromSlash(rel))); err != nil {
+			t.Errorf("%s: %v", rel, err)
+		}
+	}
+}
+
+func assertMissing(t *testing.T, dir string, rels ...string) {
+	t.Helper()
+	for _, rel := range rels {
+		if _, err := os.Stat(filepath.Join(dir, filepath.FromSlash(rel))); err == nil {
+			t.Errorf("%s should not exist", rel)
+		}
+	}
+}
+
+func TestRunNewSite_Default(t *testing.T) {
+	site, err := runNewSiteIn(t, "")
+	if err != nil {
+		t.Fatalf("new site failed: %v", err)
+	}
+	assertExists(t, site, "sarde.yaml", "kazari.config.yaml", ".gitignore",
+		"content/_index.md", "content/blog/hello-world.md", "content/docs/getting-started.md",
+		"public/images/hero-light.svg", "public/images/hero-dark.svg")
+	assertMissing(t, site, "content/courses")
+}
+
+func TestRunNewSite_CourseTemplate(t *testing.T) {
+	site, err := runNewSiteIn(t, "course")
+	if err != nil {
+		t.Fatalf("new site --template course failed: %v", err)
+	}
+
+	tmpl, ok := embedded.SiteTemplate("course")
+	if !ok {
+		t.Fatal("course template not embedded")
+	}
+	count := 0
+	err = fs.WalkDir(tmpl, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		count++
+		want, _ := fs.ReadFile(tmpl, path)
+		got, readErr := os.ReadFile(filepath.Join(site, filepath.FromSlash(path)))
+		if readErr != nil {
+			t.Errorf("%s: %v", path, readErr)
+		} else if string(got) != string(want) {
+			t.Errorf("%s differs from the embedded template", path)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count < 20 {
+		t.Errorf("course template has %d files, want the full site", count)
+	}
+
+	assertExists(t, site, "kazari.config.yaml", ".gitignore",
+		"public/images/hero-light.svg", "public/images/hero-dark.svg",
+		"content/courses/go-essentials/_index.md", "content/labs/web-fundamentals/hello-world/_index.md")
+	assertMissing(t, site, "content/blog")
+}
+
+func TestRunNewSite_InvalidTemplate(t *testing.T) {
+	site, err := runNewSiteIn(t, "bogus")
+	if err == nil {
+		t.Fatal("expected an error for an unknown template")
+	}
+	if !strings.Contains(err.Error(), `unknown template "bogus"`) || !strings.Contains(err.Error(), "course") {
+		t.Errorf("error = %q, want the unknown name and the available templates", err)
+	}
+	assertMissing(t, site, "sarde.yaml")
 }

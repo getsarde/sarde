@@ -2,8 +2,10 @@ package cli
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/consts"
@@ -13,9 +15,16 @@ import (
 var newSiteCmd = &cobra.Command{
 	Use:   "site [path]",
 	Short: "Create a new Sarde site",
-	Long:  "Scaffold a new Sarde site with starter files, example content, and a discoverable config.",
-	Args:  cobra.MaximumNArgs(1),
-	RunE:  runNewSite,
+	Long: "Scaffold a new Sarde site with starter files, example content, and a discoverable config.\n\n" +
+		"Use --template to start from a ready-made site instead. The course template creates\n" +
+		"courses with lessons and assignments, hands-on labs, and an announcements page:\n\n" +
+		"  sarde new site my-academy --template course",
+	Args: cobra.MaximumNArgs(1),
+	RunE: runNewSite,
+}
+
+func init() {
+	newSiteCmd.Flags().StringP("template", "t", "", "start from a site template (available: "+strings.Join(embedded.SiteTemplateNames(), ", ")+")")
 }
 
 func runNewSite(cmd *cobra.Command, args []string) error {
@@ -33,31 +42,54 @@ func runNewSite(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s already exists in %s", consts.FileSiteConfig, absDir)
 	}
 
-	dirs := []string{
-		filepath.Join(absDir, consts.DirContent),
-		filepath.Join(absDir, consts.DirContent, "blog"),
-		filepath.Join(absDir, consts.DirContent, "docs"),
-		filepath.Join(absDir, consts.DirPublic),
-		filepath.Join(absDir, consts.DirPublic, "images"),
-	}
-	for _, d := range dirs {
-		if err := os.MkdirAll(d, 0o755); err != nil {
-			return fmt.Errorf("creating directory %s: %w", d, err)
+	// Resolve the template before writing anything, so an unknown name
+	// leaves the target directory untouched.
+	tmplName, _ := cmd.Flags().GetString("template")
+	var tmplFS fs.FS
+	if tmplName != "" {
+		var ok bool
+		if tmplFS, ok = embedded.SiteTemplate(tmplName); !ok {
+			return fmt.Errorf("unknown template %q; available templates: %s",
+				tmplName, strings.Join(embedded.SiteTemplateNames(), ", "))
 		}
 	}
 
+	if err := os.MkdirAll(filepath.Join(absDir, consts.DirPublic, "images"), 0o755); err != nil {
+		return fmt.Errorf("creating directory: %w", err)
+	}
+
+	// Files every scaffold gets, whichever content it starts from.
 	files := map[string]string{
-		consts.FileSiteConfig:                                          siteYAMLContent,
-		"kazari.config.yaml":                                           kazariConfigContent,
-		filepath.Join(consts.DirContent, "_index.md"):                  indexMDContent,
-		filepath.Join(consts.DirContent, "blog", "_index.md"):          blogIndexContent,
-		filepath.Join(consts.DirContent, "blog", "hello-world.md"):     blogPostContent,
-		filepath.Join(consts.DirContent, "docs", "_index.md"):          docsIndexContent,
-		filepath.Join(consts.DirContent, "docs", "getting-started.md"): docsPageContent,
-		filepath.Join(consts.DirPublic, "images", "hero-light.svg"):    string(embedded.ScaffoldHeroLight),
-		filepath.Join(consts.DirPublic, "images", "hero-dark.svg"):     string(embedded.ScaffoldHeroDark),
-		filepath.Join(consts.DirPublic, ".gitkeep"):                    "",
-		".gitignore": "dist/\n.cache/\n.sarde/\n",
+		"kazari.config.yaml": kazariConfigContent,
+		".gitignore":         gitignoreContent,
+		filepath.Join(consts.DirPublic, "images", "hero-light.svg"): string(embedded.ScaffoldHeroLight),
+		filepath.Join(consts.DirPublic, "images", "hero-dark.svg"):  string(embedded.ScaffoldHeroDark),
+	}
+
+	if tmplFS != nil {
+		if err := os.CopyFS(absDir, tmplFS); err != nil {
+			return fmt.Errorf("writing %s template: %w", tmplName, err)
+		}
+	} else {
+		for _, d := range []string{
+			filepath.Join(absDir, consts.DirContent, "blog"),
+			filepath.Join(absDir, consts.DirContent, "docs"),
+		} {
+			if err := os.MkdirAll(d, 0o755); err != nil {
+				return fmt.Errorf("creating directory %s: %w", d, err)
+			}
+		}
+		for rel, content := range map[string]string{
+			consts.FileSiteConfig:                                          siteYAMLContent,
+			filepath.Join(consts.DirContent, "_index.md"):                  indexMDContent,
+			filepath.Join(consts.DirContent, "blog", "_index.md"):          blogIndexContent,
+			filepath.Join(consts.DirContent, "blog", "hello-world.md"):     blogPostContent,
+			filepath.Join(consts.DirContent, "docs", "_index.md"):          docsIndexContent,
+			filepath.Join(consts.DirContent, "docs", "getting-started.md"): docsPageContent,
+			filepath.Join(consts.DirPublic, ".gitkeep"):                    "",
+		} {
+			files[rel] = content
+		}
 	}
 
 	for relPath, content := range files {
@@ -69,12 +101,18 @@ func runNewSite(cmd *cobra.Command, args []string) error {
 
 	quiet, _ := cmd.Flags().GetBool("quiet")
 	if !quiet {
-		fmt.Printf("Created new site at %s\n", absDir)
+		if tmplName != "" {
+			fmt.Printf("Created new site at %s from the %q template\n", absDir, tmplName)
+		} else {
+			fmt.Printf("Created new site at %s\n", absDir)
+		}
 		fmt.Println("  Run 'sarde dev' to start the dev server.")
 	}
 
 	return nil
 }
+
+const gitignoreContent = "dist/\n.cache/\n.sarde/\n"
 
 const siteYAMLContent = `site:
   title: "My Site"
