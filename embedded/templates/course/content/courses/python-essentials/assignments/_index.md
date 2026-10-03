@@ -2,7 +2,7 @@
 title: Assignments
 description: Practice what you learned in Python Essentials.
 sidebar:
-  order: 3
+  order: 5
   badge:
     text: Assignment
     variant: note

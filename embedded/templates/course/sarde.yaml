@@ -35,3 +35,31 @@ homepage:
       light: /images/hero-light.svg
       dark: /images/hero-dark.svg
       alt: "Hero illustration"
+
+# The announcements plugin shows banners at the bottom of the page.
+# `show_on` limits a banner to one course: its lessons and its labs.
+plugins:
+  enabled:
+    - search
+    - seo
+    - sitemap
+    - robots
+    - rss
+    - atom
+    - content_lint
+    - link_validator
+    - redirects
+    - llms_txt
+    - katex
+    - mermaid
+    - social_cards
+    - announcements
+  config:
+    announcements:
+      items:
+        - id: web-fundamentals-assignment-1
+          message: "Web Fundamentals: Assignment 1 is due at the end of week 2."
+          type: info
+          show_on:
+            - /courses/web-fundamentals/**
+            - /labs/web-fundamentals/**

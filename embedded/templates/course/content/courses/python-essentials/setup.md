@@ -2,7 +2,7 @@
 title: Setting Up Python
 description: Install Python and check your setup.
 sidebar:
-  order: 1
+  order: 3
 tags: [python]
 ---
 

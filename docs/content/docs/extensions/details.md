@@ -67,6 +67,8 @@ token = response.json()["token"]
 
 → The collapsed section contains formatted text, a numbered list, and a syntax-highlighted code block.
 
+When every item in a list opens with an [icon](/extensions/icon/), the icons replace the bullets, as in a [timeline icon list](/extensions/timeline/#icon-lists).
+
 ## Using with accordion
 
 Wrap multiple `:::details` blocks in an `:::accordion` container to create mutually exclusive panels where opening one closes the others. See the Accordion extension page for details.

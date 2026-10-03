@@ -2,7 +2,7 @@
 title: HTML Basics
 description: Learn how an HTML document is structured.
 sidebar:
-  order: 1
+  order: 3
 tags: [html]
 ---
 

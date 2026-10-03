@@ -2,7 +2,7 @@
 title: Types and Variables
 description: Learn Python's basic types, variables, and conversions.
 sidebar:
-  order: 2
+  order: 4
 tags: [python]
 ---
 

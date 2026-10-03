@@ -2,7 +2,7 @@
 title: Assignments
 description: Practice what you learned in Web Fundamentals.
 sidebar:
-  order: 3
+  order: 5
   badge:
     text: Assignment
     variant: note

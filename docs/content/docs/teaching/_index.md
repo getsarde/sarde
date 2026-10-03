@@ -33,4 +33,4 @@ To start with a working course site rather than an empty project, create it from
 sarde new site my-college --template course
 ```
 
-The site has two sample courses with lessons and assignments, hands-on labs grouped by course, and an announcements page. Replace the sample content with your own; [`new site`](/reference/cli-commands/#course-template) lists what the template creates.
+The site has two sample courses with lessons, assignments, and their own announcements and schedule pages, hands-on labs grouped by course, and a site-wide announcements page. Replace the sample content with your own; [`new site`](/reference/cli-commands/#course-template) lists what the template creates.

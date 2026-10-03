@@ -52,15 +52,15 @@
 	}
 
 	/* Re-entry: extensions that wrap with not-content but whose inner panels
-	   hold rendered markdown (tabs, details, steps, columns). */
-	.sarde-markdown-content :is(.sarde-tab-panel, .sarde-details-content, .sarde-step-content, .sarde-column) a:not([class], :where(.kazari-block *, .kz-group *)) {
+	   hold rendered markdown (tabs, details, steps, columns, timelines, cards). */
+	.sarde-markdown-content :is(.sarde-tab-panel, .sarde-details-content, .sarde-step-content, .sarde-column, .sarde-timeline-content, .sarde-card-body) a:not([class], :where(.kazari-block *, .kz-group *)) {
 	  text-decoration: underline;
 	  text-decoration-thickness: 1px;
 	  text-underline-offset: 3px;
 	  text-decoration-color: color-mix(in srgb, var(--sd-text-accent) 45%, transparent);
 	}
 
-	.sarde-markdown-content :is(.sarde-tab-panel, .sarde-details-content, .sarde-step-content, .sarde-column) a:not([class], :where(.kazari-block *, .kz-group *)):hover {
+	.sarde-markdown-content :is(.sarde-tab-panel, .sarde-details-content, .sarde-step-content, .sarde-column, .sarde-timeline-content, .sarde-card-body) a:not([class], :where(.kazari-block *, .kz-group *)):hover {
 	  color: var(--sd-text-high);
 	  text-decoration-color: currentColor;
 	}
@@ -87,6 +87,19 @@
 	article ul, article ol,
 	.content ul, .content ol {
 	  padding-inline-start: var(--sd-space-6);
+	}
+
+	/* In a timeline entry or details panel, a list whose items open with an
+	   icon uses the icon as its marker, e.g. a course schedule's lessons,
+	   labs, and assignments. */
+	:is(.sarde-timeline-content, .sarde-details-content) ul:has(> li > .sarde-icon-inline:first-child) {
+	  list-style: none;
+	  padding-inline-start: 0;
+	}
+
+	:is(.sarde-timeline-content, .sarde-details-content) li > .sarde-icon-inline:first-child {
+	  color: var(--sd-text-accent);
+	  margin-inline-end: var(--sd-space-1);
 	}
 
 	article li > ul, article li > ol,

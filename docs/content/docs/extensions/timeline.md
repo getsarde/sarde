@@ -68,6 +68,26 @@ Each timeline entry supports any Markdown content: paragraphs, lists, code block
 
 → Each entry displays its bullet list below the version marker.
 
+## Icon lists
+
+When every item in a list opens with an [icon](/extensions/icon/), the icons replace the bullets. A bold first line becomes the entry's heading. Together they suit a course schedule, where the icon tells students what each item is:
+
+````
+:::timeline
+== Week 1: HTML structure
+**How is a web page put together?**
+
+- :icon[calendar] Sep 7 to 13
+- :icon[book-open] [HTML Basics](/courses/web/html-basics/)
+- :icon[flask-conical] [Hello World](/labs/web/hello-world/)
+- :icon[pencil] [Build a Page](/courses/web/build-a-page/), due Fri Sep 18
+:::
+````
+
+→ The question appears as the entry heading, and each item shows its icon in the accent color, with no bullet.
+
+Icon lists work the same way inside a [details](/extensions/details/) panel. For a long course, one collapsible panel per week inside an [accordion](/extensions/accordion/) keeps the page short.
+
 ## Edge cases
 
 - Content before the first `==` or `###` delimiter creates an implicit entry with no title.

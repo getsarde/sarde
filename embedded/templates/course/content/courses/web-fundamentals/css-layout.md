@@ -2,7 +2,7 @@
 title: CSS Layout
 description: Lay out pages with the box model, flexbox, and grid.
 sidebar:
-  order: 2
+  order: 4
 tags: [css]
 ---
 
