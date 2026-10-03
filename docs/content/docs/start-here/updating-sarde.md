@@ -5,9 +5,7 @@ sidebar:
   order: 6
 ---
 
-Run `sarde update` to replace the installed program with the latest release. Sarde downloads the release, verifies it, and swaps the program file in place. The next `sarde` command runs the new version.
-
-Releases are published on the [GitHub releases page](https://github.com/getsarde/sarde/releases). `sarde build` and `sarde dev` print a one-line notice when a newer release exists. This page covers checking the installed version, reading the notes for a newer release, installing it, and how Sarde verifies each download.
+Run `sarde update` to replace the installed program with the latest release. Sarde downloads the release, verifies it, and swaps the program file in place. The next `sarde` command runs the new version. Releases are published on the [GitHub releases page](https://github.com/getsarde/sarde/releases).
 
 ## Check the installed version
 
@@ -48,6 +46,8 @@ sarde update --check
   Run sarde update to install
 ```
 
+When the installed version is already the latest, the command prints `✓ Already up to date (v1.2.0)` instead.
+
 ## Install the latest version
 
 Run the command without flags:
@@ -63,20 +63,26 @@ The command shows the release notes, then asks for confirmation before replacing
 ✓ Updated to v1.2.0
 ```
 
-Sarde swaps the program file in place, in the folder where it already lives, so the `PATH` stays the same. The next `sarde` command runs the new version.
+Sarde swaps the program file in place, in the folder where it is installed, so the `PATH` stays the same.
+
+If the command fails with `Permission denied while replacing the binary`, the current user cannot write to the program file. Rerun the command with elevated privileges, for example `sudo sarde update`, or reinstall Sarde into a folder your user can write to.
 
 ## Flags
+
+`sarde update` accepts two flags:
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--check` | bool | `false` | Only check for updates without installing. |
 | `--yes`, `-y` | bool | `false` | Skip the confirmation prompt. |
 
-In scripts or CI, stdin is not a terminal and the confirmation prompt cannot be answered. Pass `--yes` to update non-interactively:
+In scripts or continuous integration (CI), stdin is not a terminal and the confirmation prompt cannot be answered. Pass `--yes` to update non-interactively:
 
 ```sh
 sarde update --yes
 ```
+
+Without `--yes`, the command exits with `stdin is not a terminal; pass --yes to update non-interactively`.
 
 ## Signed releases
 
@@ -84,7 +90,7 @@ Every release is cryptographically signed, and `sarde update` verifies the downl
 
 ## Package manager installs
 
-When Sarde was installed through a package manager, `sarde update` does not replace the program. It prints the matching upgrade command instead, because a self-update would leave the package manager's record of the installed version out of date:
+When Sarde was installed through a package manager, `sarde update` does not replace the program, and `--check` does not look up releases. Both print the matching upgrade command instead, because a self-update would leave the package manager's record of the installed version out of date:
 
 | Install method | Suggested command |
 |----------------|-------------------|
@@ -94,7 +100,7 @@ When Sarde was installed through a package manager, `sarde update` does not repl
 | winget | `winget upgrade sarde` |
 | System package manager | your distribution's package manager |
 
-## Update notices in build and dev
+## Update notices in `sarde build` and `sarde dev`
 
 `sarde build` and `sarde dev` show a one-line notice when a newer release is available. The lookup runs at most once per 24 hours and caches its result in `~/.sarde/update-check.json`. Sarde announces each release only once.
 
@@ -108,4 +114,4 @@ Sarde skips the notice and the background lookup when any of these apply:
 
 ## Dev builds
 
-A copy of Sarde compiled from source code, rather than downloaded as a release, reports its version as `dev` and refuses to self-update, since there is no release version to compare against. To switch to release builds and get updates, install Sarde with the [installation steps](/docs/start-here/getting-started/#install-sarde).
+A copy of Sarde compiled from source code, rather than downloaded as a release, reports its version as `dev`. It has no release version to compare against, so `sarde update` exits with `cannot update a dev build; install a release version first`. To switch to release builds and get updates, follow the [installation steps](/start-here/getting-started/#install-sarde).

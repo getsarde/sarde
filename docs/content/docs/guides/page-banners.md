@@ -5,13 +5,13 @@ sidebar:
   order: 21
 ---
 
-Page banners are colored notices that appear at the top of page content, above the article body. Configure them per-page through frontmatter, with four visual variants and support for cascade inheritance across sections.
+A page banner is a colored notice at the top of a page, such as "This page is under construction" or "This feature is deprecated". Add one with a `banner` field in frontmatter. A banner can also be applied to a whole section through `cascade`.
 
-## Quick example
+## Add a banner
 
-Add a `banner` field to any page's frontmatter:
+Add a `banner` field to the page's frontmatter:
 
-```yaml
+```yaml title="content/docs/migration-guide.md"
 ---
 title: "Migration Guide"
 banner:
@@ -19,17 +19,30 @@ banner:
 ---
 ```
 
-The banner renders at the top of the content area, before the article body.
+→ A blue notice with an info icon and the text appears at the top of the page. In the docs and labs layouts it sits above the page title, below the breadcrumbs. In the default layout it sits above the page content. The presentation layout does not render banners.
 
 ## Options
 
+The `banner` field accepts these keys:
+
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `content` | `string` | | The text to display. Required. The banner is hidden when empty or absent. |
-| `variant` | `string` | `"note"` | Visual style. One of: `note`, `tip`, `caution`, `danger`. |
-| `icon` | `string` | per-variant | Lucide icon name. Overrides the variant's default icon. |
+| `content` | `string` | | The text to display. Required. The banner is hidden when empty or absent. Rendered as plain text, so Markdown and HTML are shown literally. |
+| `variant` | `string` | `"note"` | Visual style. One of `note`, `tip`, `caution`, `danger`. |
+| `icon` | `string` | per variant | Lucide icon name. Overrides the variant's default icon. |
 
-Each variant includes a default icon: `note` uses `info`, `tip` uses `lightbulb`, `caution` uses `alert-triangle`, `danger` uses `alert-octagon`. Set `icon` to use any icon from the Lucide set instead:
+## Variants
+
+Each variant sets an accent color and a default icon:
+
+| Variant | Use for | Accent color | Default icon |
+|---|---|---|---|
+| `note` | General information. The default. | Blue | `info` |
+| `tip` | Helpful suggestions or recommendations | Green | `lightbulb` |
+| `caution` | Warnings that deserve attention | Amber | `alert-triangle` |
+| `danger` | Breaking changes or destructive actions | Red | `alert-octagon` |
+
+Set the variant and, optionally, a different icon:
 
 ```yaml
 banner:
@@ -38,60 +51,15 @@ banner:
   icon: "rocket"
 ```
 
-## Variants
+→ A green notice with a rocket icon appears at the top of the page.
 
-### Note
-
-General-purpose information. This is the default when `variant` is omitted.
-
-```yaml
-banner:
-  content: "This API is in beta and may change without notice."
-```
-
-Renders with a blue accent.
-
-### Tip
-
-Helpful suggestions or recommendations.
-
-```yaml
-banner:
-  content: "A faster alternative is available. See the Performance guide."
-  variant: "tip"
-```
-
-Renders with a green accent.
-
-### Caution
-
-Important warnings that deserve attention.
-
-```yaml
-banner:
-  content: "This page documents a deprecated feature."
-  variant: "caution"
-```
-
-Renders with an amber accent.
-
-### Danger
-
-Critical alerts about breaking changes or destructive actions.
-
-```yaml
-banner:
-  content: "Following these steps will delete all existing data."
-  variant: "danger"
-```
-
-Renders with a red accent.
+Use only the four variants. Sarde does not validate the value, and any other name renders without color styling and with an untranslated accessible label.
 
 ## Cascade inheritance
 
-Apply a banner to every page in a section by setting it in the section's `_index.md` under `cascade`:
+Apply a banner to every page in a section by setting it under `cascade` in the section's `_index.md`:
 
-```yaml
+```yaml title="content/docs/experimental/_index.md"
 ---
 title: "Experimental Features"
 cascade:
@@ -101,8 +69,18 @@ cascade:
 ---
 ```
 
-Every page under this section inherits the banner. A page that defines its own `banner` in frontmatter overrides the cascaded value. The page-level banner always wins.
+Every page under the section inherits the banner. A page that sets its own `banner` with `content` in frontmatter keeps its own and ignores the cascaded one.
 
-## Customizing the template
+## Customize the template
 
-The banner renders through the `PageBanner` component. Override it by placing a custom template at `layouts/components/PageBanner.html` in the project root. The template receives the full route data context, with `.PageBanner.Content` and `.PageBanner.Variant` available as fields.
+The banner renders through the `PageBanner` component. Override it by adding `layouts/components/PageBanner.html` to the project root. The component runs on every page, including pages without a banner, so wrap the markup in a check. The banner is available as `.PageBanner` with the fields `.Content`, `.Variant`, and `.Icon`:
+
+```html title="layouts/components/PageBanner.html"
+{{ if .PageBanner }}
+<aside class="my-banner my-banner-{{ or .PageBanner.Variant "note" }}">
+  {{ .PageBanner.Content }}
+</aside>
+{{ end }}
+```
+
+Without the `{{ if .PageBanner }}` check, the build fails with a nil pointer error on the first page that has no banner. See [Frontmatter](/reference/frontmatter/#banner) for the field reference.

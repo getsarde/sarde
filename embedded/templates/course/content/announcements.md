@@ -7,7 +7,7 @@ description: News, updates, and the course schedule.
 
 ### New courses available
 
-Two starter courses are now live: Web Fundamentals and Go Essentials. Browse the [course catalog](/courses/) to get started.
+Two starter courses are now live: Web Fundamentals and Python Essentials. Browse the [course catalog](/courses/) to get started.
 
 ### Labs are open
 

@@ -1,9 +1,9 @@
 ---
 title: CLI Todo App
-description: Build a command-line todo application in Go.
-tags: [go, cli]
+description: Build a command-line todo application in Python.
+tags: [python, cli]
 learning_objectives:
-  - Set up a Go project with modules
+  - Set up a Python project with a virtual environment
   - Parse command-line arguments
   - Write and run tests
 ---

@@ -5,16 +5,16 @@ sidebar:
   order: 1
 ---
 
-A Sarde project is a directory with a `sarde.yaml` file and a `content/` folder. Everything else is optional. This page explains what each directory and config file does.
+A Sarde project is a directory with a `content/` folder. Everything else is optional. The sections below describe what each directory and config file is for, and which ones Sarde generates.
 
 ## Directory layout
 
-A typical project looks like this after scaffolding with `sarde new site`:
+`sarde new site` scaffolds this layout:
 
 ```text
 my-site/
-  sarde.yaml              # Site configuration (required)
-  kazari.config.yaml      # Code block highlighting settings
+  sarde.yaml              # Site configuration
+  kazari.config.yaml      # Code block settings
   content/                # All Markdown content (required)
     _index.md             # Homepage
     blog/
@@ -28,109 +28,128 @@ my-site/
   .gitignore
 ```
 
-Only `sarde.yaml` and `content/` are required. Sarde ignores missing directories without errors.
+Only `content/` is required. A project without a `sarde.yaml` builds with the embedded defaults, and Sarde skips any other missing directory without an error. A build with no `content/` directory fails.
+
+Sarde ignores directories inside `content/` whose names start with `.` or `_`, and files whose names start with `.`.
 
 ## Directories
 
+Sarde reads these directories from the project root. Only `content/` is required.
+
 ### `content/`
 
-All Markdown content lives here. Each top-level subdirectory becomes a *collection* (e.g., `blog/`, `docs/`, `courses/`). Files at the root of `content/` become standalone pages.
+All Markdown content lives here. Each top-level subdirectory becomes a *collection* (for example `blog/`, `docs/`, `courses/`). Files at the root of `content/` become standalone pages.
 
-See [Content & Collections](/guides/content-and-collections) for how collections are detected and configured.
+See [Content and Collections](/guides/content-and-collections/) for how collections are detected and configured.
 
 ### `public/`
 
-Files in `public/` are copied to the output directory without processing. Use it for images, fonts, PDFs, or any file that does not need transformation.
+Files in `public/` are copied to the output directory without processing. Use it for images, fonts, PDFs, or any file that needs no transformation.
 
 A file at `public/images/logo.png` is available at `/images/logo.png` in the built site.
 
 ### `layouts/`
 
-Custom template overrides. Sarde ships a complete embedded theme, so this directory is only needed when overriding default templates. The override resolution order (most specific wins):
+Template overrides. Sarde ships a complete embedded theme, so create this directory only to override a default template. Sarde uses the first match in this order:
 
-1. `layouts/<collection>/` (e.g., `layouts/_docs/single.html`)
-2. `layouts/_default/`
-3. Theme layouts (if using an external theme)
-4. Embedded default layouts
+1. `layouts/<collection>/` in the project, for example `layouts/blog/single.html`
+2. `themes/<name>/layouts/<collection>/` in the active theme
+3. The layout-type directory (`_docs`, `_blog`, `_slides`, `_presentation`, `_labs`), project first, then theme
+4. `layouts/_default/` in the project, then the theme's `_default/`
+5. The embedded theme
 
-See [Layouts & Templates](/customization/layouts-and-templates) for details on template resolution and available layout types.
+See [Layouts and Templates](/customization/layouts-and-templates/) for template names and layout types.
 
 ### `assets/`
 
-CSS and JavaScript files for bundling. Sarde processes these through esbuild, producing fingerprinted output files in production builds. Files here are not copied as-is (use `public/` for that).
+CSS and JavaScript source files. Sarde bundles the files you list under `head.custom_css` and `head.custom_js` in `sarde.yaml` through esbuild and fingerprints the output filenames in production builds. A file in `assets/` that no setting lists is not written to the output. Use `public/` for files that need no bundling.
+
+See [Images and Assets](/guides/images-and-assets/#css-and-js-bundling) for the lookup order and configuration.
 
 ### `themes/`
 
-External themes installed via `sarde theme add`. Each theme is a subdirectory containing its own `theme.yaml`, layouts, and assets. Most projects use the built-in default theme and do not need this directory.
+External themes installed with `sarde theme add`. Each theme is a subdirectory with its own `theme.yaml`, layouts, and assets. Most projects use the built-in default theme and do not need this directory.
 
 ### `data/`
 
-YAML data files accessible in templates. Taxonomy term metadata (custom slugs, descriptions) is loaded from files matching `data/<taxonomy-name>.yml`.
+Data files for templates. A template reads `data/<name>.yaml`, `.yml`, `.json`, or `.toml` with the `data` function. Taxonomy term metadata (custom slugs, descriptions) loads from `data/<taxonomy-name>.yml`.
 
 ### `i18n/`
 
-Translation files for UI strings. Each file is named by language code (e.g., `i18n/fr.yaml`, `i18n/es.yaml`). Sarde merges these with embedded defaults and theme translations in a three-layer cascade: embedded, theme, then project (project wins).
+Translation files for UI strings, one file per language code (`i18n/fr.yaml`, `i18n/es.yaml`). Sarde merges them with the embedded defaults and the theme's translations in three layers: embedded, theme, then project. The project wins.
 
-See [Internationalization](/guides/internationalization) for the full i18n workflow.
+See [Internationalization](/guides/internationalization/) for the full workflow.
 
 ### `icons/`
 
-Local SVG icon files. Place `.svg` files here and reference them by filename with the `:icon[name]` extension. This is the default `icons.local_dir` location.
+Local SVG files. Reference one by filename with the `:icon[name]` extension. `icons/` is the default value of `icons.local_dir`.
 
-See [Icons](/guides/icons) for icon sets and configuration.
+See [Icons](/guides/icons/) for icon sets and configuration.
 
 ### `directives/`
 
-Custom `:::` block directives. Each directive is a `<name>.yaml` schema plus a `<name>.html` template, with an optional `<name>.css` sidecar that is bundled into the site stylesheet automatically. Scaffold one with `sarde new directive <name>`.
+Custom `:::` block directives. Each directive is a `<name>.yaml` schema plus a `<name>.html` template, with an optional `<name>.css` file that Sarde bundles into the site stylesheet. Scaffold one with `sarde new directive <name>`.
 
-See [Custom Directives](/extensions/custom-directives) for the schema and template data.
+See [Custom Directives](/extensions/custom-directives/) for the schema and template data.
+
+### `plugins/`
+
+External plugins, one subdirectory per plugin with a `plugin.yaml` manifest. See [External Plugins](/plugins/external-plugins/).
 
 ## Config files
 
+Every config file is optional. Each one lives at the project root unless its entry says otherwise.
+
 ### `sarde.yaml`
 
-The main site configuration file. Controls site metadata, theme settings, build options, plugin toggles, collection overrides, and all other site-wide settings. This is the only required config file (beyond having a `content/` directory).
+The main site configuration file, at the project root. It controls site metadata, theme settings, build options, plugin toggles, collection overrides, and every other site-wide setting. The file is optional, because every key has an embedded default.
 
-See [Configuration](/reference/configuration) for every available key.
+See [Configuration](/reference/configuration/) for every key.
 
 ### `kazari.config.yaml`
 
-Code block highlighting configuration. Controls syntax themes, toolbar buttons (copy, fullscreen, wrap), line numbers, frame detection, and language-specific defaults. This file is optional. Without it, Sarde uses sensible defaults.
+Code block toolbar and display settings, at the project root. The file is optional.
 
-See [Code Blocks](/guides/code-blocks) for code block features and syntax.
+See [Code Blocks](/guides/code-blocks/) for code block syntax and settings.
 
 ### `theme.yaml`
 
-Theme-specific configuration. Only present inside a theme directory (`themes/<name>/theme.yaml`). Defines preset token overrides and theme-level layout defaults. Values from `theme.yaml` sit between embedded defaults and `sarde.yaml` in the config cascade.
+Theme metadata, design tokens, and presets. It lives inside a theme directory (`themes/<name>/theme.yaml`). Its values sit between the embedded defaults and `sarde.yaml` in the config cascade.
 
-See [Themes & Styling](/guides/themes-and-styling) for theme presets and token overrides.
+See [Themes and Styling](/guides/themes-and-styling/) for presets and token overrides.
 
 ### `sidebar.yaml`
 
-Per-entry sidebar overrides, placed at the project root. Relabels, reorders, hides, or un-hides individual sidebar entries without editing their frontmatter, and adjusts the tab bar on tabbed collections. It is the highest-precedence sidebar layer, above `sarde.yaml`.
+Per-entry sidebar overrides, at the project root next to `sarde.yaml`. It relabels, reorders, hides, or un-hides individual sidebar entries without editing their frontmatter, and adjusts the tab bar on tabbed collections. It is the highest-precedence sidebar layer, above `sarde.yaml`.
 
-See [Navigation & Sidebar](/guides/navigation-and-sidebar#overrides-with-sidebar-yaml) for the override schema.
+See [Navigation and Sidebar](/guides/navigation-and-sidebar/#overrides-with-sidebar-yaml) for the override schema.
 
 ### `nav.yaml`
 
-Manual sidebar navigation overrides. Only applicable to tabbed docs collections. Sarde auto-generates sidebar navigation from the directory structure by default, so this file is rarely needed.
+A hand-written sidebar tree for one tab of a tabbed collection, for example `content/docs/guides/nav.yaml`. A `nav.yaml` anywhere else is ignored. Sarde builds the sidebar from the directory structure by default, so most projects never need this file.
 
-See [Navigation & Sidebar](/guides/navigation-and-sidebar) for sidebar configuration.
+See [Navigation and Sidebar](/guides/navigation-and-sidebar/#manual-tab-sidebar-with-nav-yaml) for the format.
 
-### `config.yaml` (per-collection)
+### `config.yaml` (per collection)
 
-Per-collection schema definitions placed inside a collection directory (e.g., `content/docs/config.yaml`). Defines required frontmatter fields, types, and validation rules for pages in that collection.
+A frontmatter schema for one collection, placed inside the collection directory (for example `content/docs/config.yaml`). Its `frontmatter_schema` key defines custom fields with types, defaults, and validation rules. Schema violations produce warnings and never block the build.
 
-See [Frontmatter](/reference/frontmatter) for per-collection schema options.
+See [Frontmatter](/reference/frontmatter/#per-collection-schema) for the schema options.
 
-## Output directories
+## Generated directories
+
+Sarde creates these directories at the project root.
 
 ### `dist/`
 
-The build output directory. Created by `sarde build`. Contains the complete static site ready for deployment. Override the name with `build.output` in `sarde.yaml`.
+The build output, written by `sarde build`. It contains the complete static site, ready to deploy. Set a different directory with `build.output` in `sarde.yaml` or `--output` on the command. Each build removes files in the output directory that the new build did not write (`build.clean` is `true` by default), so do not store files there by hand.
 
 ### `.cache/`
 
-Build cache for processed images and dev-mode render results. Safe to delete at any time. Sarde regenerates cached files on the next build.
+The build cache: rendered pages, processed images, and generated social cards. Delete it at any time. The next build recreates it.
 
-Both `dist/` and `.cache/` are excluded from version control by the scaffolded `.gitignore`.
+### `.sarde/`
+
+Local state, including the external link check cache (`.sarde/linkcache.json`) and project license files.
+
+The scaffolded `.gitignore` excludes `dist/`, `.cache/`, and `.sarde/` from version control.

@@ -1,4 +1,4 @@
 ---
-title: Go Essentials Labs
-description: Practical labs for the Go Essentials course.
+title: Python Essentials Labs
+description: Practical labs for the Python Essentials course.
 ---

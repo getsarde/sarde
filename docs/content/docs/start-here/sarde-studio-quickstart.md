@@ -6,9 +6,9 @@ sidebar:
   order: 5
 ---
 
-Sarde Studio is a visual editor for Sarde sites. It wraps the Sarde engine in a native desktop application so content can be created, edited, and previewed without opening a terminal. Available for macOS, Windows, and Linux.
+Sarde Studio is a visual editor for Sarde sites. It wraps the Sarde engine in a native desktop application so content can be created, edited, and previewed without opening a terminal. It is available for macOS, Windows, and Linux.
 
-Prefer the command line? See [Getting Started](/start-here/getting-started) for the CLI workflow.
+For the command-line workflow, see [Getting Started](/start-here/getting-started/).
 
 ## Download and install
 
@@ -64,9 +64,7 @@ title: Photosynthesis Overview
 ---
 ```
 
-The new page appears in the sidebar and opens in the editor.
-
-The sidebar updates to show the new page sorted within its collection.
+→ The new page opens in the editor and appears in the sidebar, sorted within its collection.
 
 ## Edit content
 
@@ -91,7 +89,7 @@ This process requires both water and carbon dioxide.
 
 Save with **Ctrl+S** (Windows/Linux) or **Cmd+S** (macOS). The preview panel updates automatically.
 
-The preview shows the rendered page with the note aside styled as a blue callout.
+→ The preview shows the rendered page with the note aside styled as a blue callout.
 
 <!-- SCREENSHOT: studio-editor-preview: editor with Markdown source on the left and rendered preview on the right -->
 
@@ -110,7 +108,7 @@ draft: false
 
 Toggle **Raw YAML** to switch between the form view and a YAML text editor. Changes sync between both views.
 
-The frontmatter form shows each field with its label, type-appropriate input widget, and validation indicators.
+→ The frontmatter form shows each field with its label, an input that matches its type, and validation indicators.
 
 <!-- SCREENSHOT: studio-frontmatter-form: visual frontmatter editor with title, tags, and draft fields -->
 
@@ -127,6 +125,8 @@ Resize the preview panel by dragging its left edge, or collapse it entirely to f
 Press **Ctrl+Shift+F** (Windows/Linux) or **Cmd+Shift+F** (macOS) to search across all content files in the project. Results display the file path and matching line. Click a result to open the file in a new editor tab.
 
 ## Keyboard shortcuts
+
+The main shortcuts:
 
 | Shortcut | Action |
 |----------|--------|
@@ -146,6 +146,6 @@ The output is written to the `dist/` directory, ready for deployment. See [Deplo
 
 ## Next steps
 
-- [Getting Started](/start-here/getting-started) for the CLI workflow
-- [Content & Collections](/guides/content-and-collections) to understand how collections work
-- [Configuration](/reference/configuration) to customize `sarde.yaml`
+- [Getting Started](/start-here/getting-started/) for the CLI workflow
+- [Content and Collections](/guides/content-and-collections/) to understand how collections work
+- [Configuration](/reference/configuration/) to customize `sarde.yaml`

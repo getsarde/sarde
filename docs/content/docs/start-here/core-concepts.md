@@ -11,7 +11,7 @@ Every Sarde build combines three inputs and writes one output directory. [Gettin
 content + configuration + theme → sarde build → dist/
 ```
 
-Content supplies the pages. Configuration adjusts the defaults. The theme decides how pages look. Understanding how each one is resolved explains most of Sarde's behavior.
+Content supplies the pages. Configuration adjusts the defaults. The theme decides how pages look.
 
 ## Content and URLs
 
@@ -27,10 +27,7 @@ Markdown files in `content/` become pages, and the file path becomes the URL. No
 
 A file named `_index.md` is the landing page for the directory that contains it, so `content/docs/_index.md` becomes `/docs/` rather than `/docs/_index/`. Every permalink ends in a trailing slash.
 
-Two filename patterns carry extra meaning:
-
-- A numeric prefix sets the sidebar position and is stripped from the URL. `content/docs/01-installation.md` becomes `/docs/installation/` with `sidebar.order` set to `1`.
-- A date prefix sets the publication date and is stripped from the URL. `content/blog/2024-03-15-first-post.md` becomes `/blog/first-post/`, dated 15 March 2024.
+A numeric filename prefix sets the sidebar position and is stripped from the URL. `content/docs/01-installation.md` becomes `/docs/installation/` with `sidebar.order` set to `1`.
 
 ## Frontmatter
 
@@ -56,11 +53,11 @@ Common fields:
 | `date` | date | Inferred | Sort key for date-sorted collections |
 | `sidebar.order` | int | Inferred | Position within the sidebar |
 
-Omitted fields are inferred rather than left empty. `title` falls back to the first H1 in the body, then to the filename. `date` falls back to a date prefix in the filename, then to the file modification time. `sidebar.order` falls back to a numeric prefix, then to `0`. See [Frontmatter](/reference/frontmatter/) for every supported field.
+Omitted fields are inferred rather than left empty. `title` falls back to the first H1 in the body, then to the filename. `date` falls back to the file modification time. `sidebar.order` falls back to a numeric prefix, then to `0`. See [Frontmatter](/reference/frontmatter/) for every supported field.
 
 ## Collections
 
-Each top-level directory inside `content/` is a collection, and Sarde infers how it should behave from its name.
+Each top-level directory inside `content/` is a collection, and Sarde infers how it behaves from its name.
 
 | Directory names | Inferred behavior |
 |---|---|
@@ -70,13 +67,9 @@ Each top-level directory inside `content/` is a collection, and Sarde infers how
 | `slides`, `presentations`, `decks` | Date-sorted; deck pages use the presentation layout, the list page is a card gallery |
 | Any other name | Default layout, sorted by title |
 
-The docs family is the most full-featured of these: sidebar navigation, table of contents, versioning, and search are all active by default, with nothing to configure.
+The names are a convention, and the behavior they select is a default. To give a directory with another name the docs behavior, configure the collection in `sarde.yaml` instead of renaming the directory:
 
-These names are a convention, not a requirement. Any directory name works, and an unrecognized name produces a general collection sorted by title. To use a different name with docs behavior, set the collection explicitly in `sarde.yaml` rather than renaming the directory.
-
-`sarde.yaml`
-
-```yaml
+```yaml title="sarde.yaml"
 collections:
   handbook:
     sort: order
@@ -95,13 +88,13 @@ Configuration resolves in five layers. Later layers override earlier ones.
 4. **CLI flags** passed to the command
 5. **`SARDE_` environment variables**
 
-A value set nowhere falls through to the embedded default, which is why an empty `sarde.yaml` still produces a complete site. Overriding the output directory for one build takes a flag, and leaves the config file untouched:
+A value set nowhere falls through to the embedded default, which is why a project with no `sarde.yaml` still builds a complete site. To override the output directory for one build, pass a flag and leave the config file unchanged:
 
 ```sh
 sarde build --output public
 ```
 
-To see the fully resolved configuration after all five layers merge:
+Print the resolved configuration after all five layers merge:
 
 ```sh
 sarde effective-config
@@ -111,7 +104,7 @@ See [Configuration](/reference/configuration/) for the full key reference.
 
 ## Themes
 
-A theme supplies layouts, components, styles, and design tokens. Content carries no styling information, so switching themes changes the appearance of the site without touching a single Markdown file.
+A theme supplies layouts, components, styles, and design tokens. Content carries no styling information, so switching themes changes the appearance of the site without editing any Markdown file.
 
 Sarde resolves templates by specificity, and the first match wins: a collection override in the project, then a collection template in the theme, then a project default, then a theme default, then an embedded fallback. Overriding one template therefore means copying one file into the project, not forking the theme.
 
@@ -119,8 +112,10 @@ See [Themes and Styling](/guides/themes-and-styling/) to customize the look.
 
 ## Developing and building
 
-`sarde dev` runs a local server on port 4727, watches the content directory, and reloads the browser on change. CSS edits swap in without a full page reload. Drafts and expired pages are included so work in progress stays visible.
+`sarde dev` runs a local server on port 4727, watches the project files, and reloads the browser on change. CSS edits swap in without a full page reload. Drafts and expired pages are included so work in progress stays visible.
 
-`sarde build` writes the publishable site to `dist/`. Drafts, future-dated pages, and expired pages are excluded, and broken internal links fail the build.
+`sarde build` writes the publishable site to `dist/`. Drafts and expired pages are excluded. The build also checks internal links and anchors, and most broken ones stop it. [Internal Links](/guides/internal-links/#links-that-do-not-resolve) lists the cases that only warn.
 
-When a page appears locally but not in production, check its frontmatter for `draft: true`.
+Both commands exclude a page with a future `publish_date` until that date passes. Pass `--future` to either command to include it.
+
+When a page appears locally but not in production, check its frontmatter for `draft: true` or a past `expiry_date`.

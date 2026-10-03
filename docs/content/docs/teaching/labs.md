@@ -55,7 +55,7 @@ labs/
       deploy.md            # step, sidebar.order: 3
     hello-world/
       _index.md            # Lab 2: a single-page lab
-  go-essentials/
+  python-essentials/
     _index.md
     cli-todo-app/
       _index.md            # Lab 1 again: numbering restarts per course
@@ -64,10 +64,10 @@ labs/
       testing.md
 ```
 
-`sarde new site my-academy --template course` creates a working copy of this layout. See [`new site`](/reference/cli-commands/#course-template).
+`sarde new site my-college --template course` creates a working copy of this layout. See [`new site`](/reference/cli-commands/#course-template).
 :::
 
-Both work with no configuration. Lab numbering restarts inside each course, so `web-fundamentals` and `go-essentials` both begin at Lab 1.
+Both work with no configuration. Lab numbering restarts inside each course, so `web-fundamentals` and `python-essentials` both begin at Lab 1.
 
 ## Step and lab order
 

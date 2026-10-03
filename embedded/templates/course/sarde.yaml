@@ -1,5 +1,5 @@
 site:
-  title: "My Academy"
+  title: "My College"
   description: "A course platform built with Sarde"
   url: "http://localhost:4727"
 
@@ -15,7 +15,7 @@ theme:
 
 homepage:
   hero:
-    title: "Welcome to My Academy"
+    title: "Welcome to My College"
     subtitle: "Explore courses, complete hands-on labs, and build real projects."
     background: gradient
     cta:

@@ -5,83 +5,100 @@ sidebar:
   order: 7
 ---
 
-The homepage is the `content/_index.md` file. Sarde renders it using one of eight built-in templates, each designed for a different type of site. The default is `hero`.
+The homepage is `content/_index.md`. Sarde renders it with one of eight built-in templates, selected in `sarde.yaml`. The default is `hero`.
 
 ## Choosing a template
 
 Set the template in `sarde.yaml`:
 
-```yaml
+```yaml title="sarde.yaml"
 homepage:
   template: "hero"
 ```
 
-| Template | Best for |
-|----------|----------|
-| `hero` (default) | Documentation sites, course portals. Large title, subtitle, CTA buttons, optional proof panel |
-| `catalog` | Content directories with multiple collections |
-| `minimal` | Clean single-column landing with body content |
-| `dashboard` | Data-heavy sites with stat tiles |
-| `portfolio` | Personal sites, project showcases |
-| `landing` | Product pages with marketing-style sections |
-| `marketing` | Feature grids, testimonials, pricing blocks |
-| `blog` | Blog-first sites with recent posts |
+The table lists what each template renders and which `homepage.hero` keys it reads. An unrecognized template name renders `hero` without an error or warning.
+
+| Template | Renders | `homepage.hero` keys used |
+|----------|---------|---------------------------|
+| `hero` (default) | Headline, subtitle, buttons, and an optional image, code, or stats panel. Body content follows. | All |
+| `catalog` | Site title and a card for each collection with its description and three most recent entries. Body content follows the grid. | None |
+| `minimal` | Site title, then body content. | None |
+| `dashboard` | Title and subtitle, counts of collections, pages, and taxonomies, and a card for each collection listing its first five pages. Body content follows. | `title`, `subtitle` |
+| `portfolio` | Title, subtitle, one button, body content, then the three most recent entries of each collection as cards. | `title`, `subtitle`, `cta` |
+| `landing` | Title, subtitle, one button, body content, then a closing section that repeats the subtitle and button. | `title`, `subtitle`, `cta` |
+| `marketing` | Title, subtitle, one button, a page count per collection, a card for each collection, body content, then the three most recent entries of each collection. | `title`, `subtitle`, `cta` |
+| `blog` | Title as a heading and subtitle as a short bio, body content, then the five most recent entries of each collection. | `title`, `subtitle` |
+
+Where a template lists "each collection", it covers every collection that has entries, not only blog collections. Keys a template does not use are ignored. No template has settings beyond `homepage.template` and `homepage.hero`, and `title` falls back to the site title.
 
 ## Hero template
 
-The hero template is the default. It renders a large headline, subtitle, call-to-action buttons, and an optional proof panel (image, code snippet, or stats).
+The hero template shows a large headline, a subtitle, up to two buttons, and an optional panel beside the text.
 
-```yaml
+```yaml title="sarde.yaml"
 homepage:
   template: "hero"
   hero:
-    eyebrow: "Open Source"
-    title: "Build Documentation Sites"
-    subtitle: "A zero-config static site generator for educators and developers."
+    eyebrow: "Spring term"
+    title: "Introduction to Biology"
+    subtitle: "Lessons, labs, and assignments for the spring term."
     background: "gradient"
     cta:
-      label: "Get Started"
-      url: "/docs/start-here/getting-started"
+      label: "Start the course"
+      url: "/courses/"
     secondary_cta:
-      label: "View on GitHub"
-      url: "https://github.com/getsarde/sarde"
+      label: "Browse the labs"
+      url: "/labs/"
 ```
 
-Result: A full-width hero section with the title, subtitle, and two CTA buttons.
+→ A full-width hero section appears with the title, subtitle, and two buttons. The second button has an outline style.
 
 <!-- SCREENSHOT: homepage-hero-default - hero template with gradient background and two CTAs -->
 
 ### Hero fields
 
+`homepage.hero` accepts these keys:
+
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `eyebrow` | string | - | Small text above the title |
-| `title` | string | site title | Main headline. Supports inline Markdown |
-| `subtitle` | string | - | Text below the title |
-| `background` | string | `"gradient"` | Background style: `"gradient"`, `"solid"`, `"none"` |
-| `cta` | object | - | Primary call-to-action button (`label`, `url`) |
-| `secondary_cta` | object | - | Secondary button with outline style |
+| `eyebrow` | string | - | Small text above the title. |
+| `title` | string | site title | Main headline. Supports inline Markdown. |
+| `subtitle` | string | - | Text below the title. |
+| `background` | string | `"gradient"` | Hero background: `"gradient"`, `"solid"`, or `"none"`. Applies to the `hero` template only. |
+| `cta` | object | - | Primary button. |
+| `secondary_cta` | object | - | Secondary button with an outline style. |
+| `image` | object | - | Image panel. Mutually exclusive with `code`. |
+| `code` | object | - | Code panel. Mutually exclusive with `image`. |
+| `stats` | list | - | Stat tiles. Combine with `image`, `code`, or use alone. |
+
+Each button takes these keys:
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `label` | string | Button text. |
+| `url` | string | Link target. A site-relative path such as `/courses/` is prefixed with `build.base_path`. A full URL is used as is. |
+| `icon` | string | Optional icon name shown after the label. See [Icons](/guides/icons/). |
 
 ### Proof panel
 
-The hero template supports a proof panel on the right side. Three panel types are available, and the first one configured is rendered:
+The hero template can show a panel beside the text. Setting both `image` and `code` fails the build with `homepage.hero.code and homepage.hero.image are mutually exclusive; remove one`.
 
 **Image panel:**
 
-```yaml
+```yaml title="sarde.yaml"
 homepage:
   hero:
     image:
       light: /images/hero-light.svg
       dark: /images/hero-dark.svg
-      alt: "Hero illustration"
+      alt: "A cell diagram"
 ```
 
-Supports separate light/dark images, a single `src`, or raw `html` for custom content.
+Use `light` and `dark` together for per-theme images, `src` for a single image, or `html` for raw HTML. If more than one is set, `html` wins, then `light` with `dark`, then `src`. Paths resolve against `public/`.
 
 **Code panel:**
 
-```yaml
+```yaml title="sarde.yaml"
 homepage:
   hero:
     code:
@@ -93,68 +110,40 @@ homepage:
         sarde dev
 ```
 
-Result: A styled code card appears next to the hero text.
+→ A code card appears beside the hero text. Its header shows the `title` (default `Quick start`) and the `language` label. The card renders only when `body` is set.
 
 **Stats panel:**
 
-```yaml
+```yaml title="sarde.yaml"
 homepage:
   hero:
     stats:
-      - value: "200+"
-        label: "Languages"
-      - value: "25"
-        label: "Extensions"
-      - value: "<1s"
-        label: "Build time"
+      - value: "12"
+        label: "Lessons"
+      - value: "4"
+        label: "Labs"
+      - value: "3"
+        label: "Assignments"
 ```
 
-Result: A row of stat tiles appears next to the hero text.
-
-## Other templates
-
-### Catalog
-
-Displays collection cards (docs, blog, courses) as a grid. Each card links to the collection root. Body content from `_index.md` renders above the grid. This template has no template-specific configuration keys; the grid is populated automatically from the collections defined in `sarde.yaml`.
-
-### Minimal
-
-A single-column page that renders body content from `_index.md` below an optional hero. Good for sites that need a custom landing page built in Markdown. The optional hero reuses the same `homepage.hero` keys documented under [Hero fields](#hero-fields). Omit the `hero` key entirely to render body content only.
-
-### Dashboard
-
-Renders stat tiles and collection summaries in a dashboard layout. Suitable for project portals or internal documentation hubs. This template has no template-specific configuration keys; stat tiles and collection summaries are generated from the site's existing collections.
-
-### Portfolio
-
-Full-width sections with alternating layouts. Body content from `_index.md` renders inline. The hero, CTA buttons, and content sections flow as a single scrollable page. The hero section reuses the same `homepage.hero` keys documented under [Hero fields](#hero-fields).
-
-### Landing
-
-A marketing-style landing page with full-width sections. Body content renders in a centered container between the hero and footer. No sidebar. The hero section reuses the same `homepage.hero` keys documented under [Hero fields](#hero-fields).
-
-### Marketing
-
-Feature grids, social proof sections, and CTA blocks. Similar to landing but with more structured sections for product pages. This template has no template-specific configuration keys beyond `homepage.template`; sections are generated from body content and the site's collections.
-
-### Blog
-
-Displays recent blog posts below the hero. Pulls from the first blog-type collection found. Suitable for blog-first sites. This template has no template-specific configuration keys beyond `homepage.template`; the hero section reuses the same `homepage.hero` keys documented under [Hero fields](#hero-fields).
+→ A row of stat tiles appears beside the hero text, below the image or code panel when one is set.
 
 ## Body content
 
-All templates render the Markdown body of `content/_index.md` below the hero section (except portfolio, landing, marketing, and blog, which integrate body content into their own layouts). Write Markdown content in `_index.md` to add additional sections:
+Write Markdown in `content/_index.md` to add content to the homepage:
 
-```markdown
+```markdown title="content/_index.md"
 ---
 title: Welcome
 ---
 
-## Features
+## What you will learn
 
-- Zero configuration
-- 25 Markdown extensions
-- Offline search
+- Cell structure and function
+- Photosynthesis and respiration
+- Genetics basics
 ```
+
+The `hero`, `catalog`, `minimal`, and `dashboard` templates render the body in a content area below their own sections. The `portfolio`, `landing`, `marketing`, and `blog` templates place the body inside their layout, as listed in the table above.
 
 See [Configuration](/reference/configuration/site-and-branding/#homepage) for all homepage settings.

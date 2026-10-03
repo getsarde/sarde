@@ -5,26 +5,26 @@ sidebar:
   order: 9
 ---
 
-Sarde has two ways to include assets in your site: co-located page bundles (with automatic responsive image processing) and the `public/` directory (copied as-is). This page covers where to place assets, how to link them in Markdown, and how to configure the image processing pipeline.
+Sarde handles assets in two ways: page bundles, which sit next to the page and get responsive image processing, and the `public/` directory, which is copied as is. This page covers where to place assets, how to link them from Markdown, and how to configure image processing and CSS/JS bundling.
 
 ## Placing assets
 
-Assets live in one of two places: next to the page that uses them, or in `public/` for files shared across the site. The location decides the path style and whether Sarde optimizes the image.
+The location decides the path style and whether Sarde optimizes an image. Put an asset next to the page that uses it, or in `public/` for files shared across the site.
 
-### Page bundles (co-located assets)
+### Page bundles
 
-A [page bundle](/guides/content-and-collections#page-bundles) is a directory with an `index.md` file and sibling non-Markdown files. The sibling files become assets of that page.
+A [page bundle](/guides/content-and-collections/#page-bundles) is a directory with an `index.md` file and sibling non-Markdown files. The sibling files become assets of that page.
 
 ```text
 content/blog/
   my-post/
     index.md          # Page content
-    cover.jpg          # Bundle asset
-    diagram.svg        # Bundle asset
-    report.pdf         # Bundle asset
+    cover.jpg         # Bundle asset
+    diagram.svg       # Bundle asset
+    report.pdf        # Bundle asset
 ```
 
-Reference bundle assets with a bare relative filename in the Markdown:
+Reference bundle assets by filename, relative to the page:
 
 ```markdown
 ![Cover image](cover.jpg)
@@ -32,11 +32,11 @@ Reference bundle assets with a bare relative filename in the Markdown:
 [Download the report](report.pdf)
 ```
 
-Images referenced this way go through the responsive image pipeline automatically, producing multiple widths, WebP variants, and LQIP placeholders. SVGs pass through unprocessed.
+Raster images referenced this way go through the responsive image pipeline, which produces several widths, converts them to the configured formats, and adds a blurred placeholder. SVGs are not processed and render as a plain `<img>`. Sarde also copies every bundle file, including the original image, to the output next to the page's `index.html`. A Markdown image that matches no file in the page's bundle renders as a plain `<img>` with the path as written.
 
-### `public/` directory (site-wide assets)
+### The `public/` directory
 
-Files in [`public/`](/guides/project-structure#public) are copied to the output directory without processing. Use it for images, fonts, favicons, or any file shared across pages.
+Files in [`public/`](/guides/project-structure/#public) are copied to the output directory without processing. Use it for images, fonts, favicons, and any file shared across pages.
 
 ```text
 public/
@@ -54,129 +54,111 @@ Reference these with absolute paths:
 [Download brochure](/files/brochure.pdf)
 ```
 
-Images in `public/` are **not** processed through the responsive pipeline. They render as plain `<img>` tags with the original file.
+Images from `public/` are not processed. They render as a plain `<img>` with the original file.
 
 ### Which to use
+
+Choose the placement by how widely the file is used:
 
 | Scenario | Placement | Path style |
 |----------|-----------|------------|
 | Image for one specific page | Page bundle (next to `index.md`) | `![alt](photo.jpg)` |
 | Site logo, favicon, shared icons | `public/` directory | `![alt](/images/logo.png)` |
-| Logo in the site header | `public/` directory | [`site.logo`](/guides/branding) config |
+| Logo in the site header | `public/` directory | [`site.logo`](/guides/branding/) config |
 | PDF download for one page | Page bundle | `[Download](report.pdf)` |
 | PDF shared across the site | `public/` directory | `[Download](/files/report.pdf)` |
 
-## Per-image overrides
-
-Override the default responsive settings on individual images using Goldmark attributes:
-
-```markdown
-![Hero](hero.jpg){width=800 op=fill format=webp quality=90}
-```
-
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `width` | int | Target width in pixels. |
-| `height` | int | Target height (used with `fill` and `fit` operations). |
-| `op` | string | Resize operation: `scale`, `fit_width`, `fit_height`, `fit`, `fill`. |
-| `quality` | int | Override encoding quality (1-100). |
-| `format` | string | Output format: `jpeg`, `png`, `webp`, `avif`. |
-
-Per-image overrides only apply to page bundle images. Images from `public/` are not processed.
-
 ## Responsive image generation
 
-Markdown images are automatically processed into multiple widths and formats during `sarde build`. Each image produces a `<picture>` element with `<source>` entries and a `srcset` attribute.
+During `sarde build`, each page bundle image becomes a `<picture>` element with a `<source>` per format and a `srcset` of widths. Configure the defaults in `sarde.yaml`:
 
-Configure the default widths, formats, and quality in `sarde.yaml`:
-
-```yaml
+```yaml title="sarde.yaml"
 images:
   widths: [400, 800, 1200]
   formats: ["webp"]
   quality: 80
   max_width: 2400
   lazy_loading: true
-  dimensions: true
+  placeholder: "lqip"
 ```
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `widths` | int[] | `[400, 800, 1200]` | Breakpoint widths for responsive variants. Images are never upscaled past their original width. |
-| `formats` | string[] | `["webp"]` | Output formats. Options: `jpeg`, `png`, `webp`, `avif`. |
-| `quality` | int | `80` | Encoding quality (1-100) for lossy formats. |
-| `max_width` | int | `2400` | Maximum output width. Variants wider than this are skipped. |
-| `lazy_loading` | bool | `true` | Add `loading="lazy" decoding="async"` to `<img>` tags. |
-| `dimensions` | bool | `true` | Include `width` and `height` attributes to prevent layout shift. |
-| `placeholder` | string | `"lqip"` | Placeholder strategy: `"lqip"` or `"none"`. |
+| `widths` | int[] | `[400, 800, 1200]` | Widths of the responsive variants. A width at or above the source width is skipped. |
+| `formats` | string[] | `["webp"]` | Output formats: `jpeg`, `png`, `webp`, or `avif`. |
+| `quality` | int | `80` | Encoding quality, 1 to 100, for lossy formats. |
+| `max_width` | int | `2400` | Skips any entry of `widths` above this value. Does not shrink the full-size variant. |
+| `lazy_loading` | bool | `true` | Adds `loading="lazy" decoding="async"` to `<img>` tags. The first image on a page always loads eagerly. |
+| `placeholder` | string | `"lqip"` | `"lqip"` embeds a blurred preview. `"none"` disables it. |
 
-For a 1600px-wide source image with the defaults above, Sarde generates three WebP variants (400w, 800w, 1200w) plus the original at 1600w.
+Sarde also writes a variant at the source's full width, in each configured format. For a 1600px source with the defaults, Sarde generates WebP files at 400, 800, 1200, and 1600 pixels wide. A 300px source produces only its full-width WebP. A 3000px source keeps its 3000px variant even though `max_width` is 2400.
+
+`sarde dev` skips image processing and placeholder generation. Images render from their original files, with `width` and `height` still read from the file.
 
 ## LQIP placeholders
 
-Low Quality Image Placeholders (LQIP) provide a blurred preview while the full image loads. Sarde generates a 20px-wide JPEG, blurs it, and base64-encodes it as a data URI applied via `background-image`.
+A Low Quality Image Placeholder (LQIP) is a blurred preview that shows while the full image loads. Sarde resizes the image to 20px wide, blurs it, encodes it as a JPEG data URI, and sets it as the `<img>` element's `background-image`.
 
-Result: A blurred version of the image appears instantly, then fades to the sharp version once loaded.
+To disable it:
 
-Set `placeholder: "none"` to disable LQIP generation:
-
-```yaml
+```yaml title="sarde.yaml"
 images:
   placeholder: "none"
 ```
 
 ## `<picture>` element output
 
-The generated HTML uses `<picture>` with `<source>` elements for each format, ordered by priority (AVIF first, then WebP, then original format). The `<img>` fallback uses the variant closest to 800px.
+Each format gets a `<source>` element, listed AVIF first, then WebP, then JPEG or PNG. The `<img>` fallback uses the generated variant closest to 800px wide.
 
 ```html
 <picture>
   <source type="image/webp"
     srcset="/assets/images/hero-a1b2-400w.webp 400w,
-           /assets/images/hero-a1b2-800w.webp 800w,
-           /assets/images/hero-a1b2-1200w.webp 1200w"
+           /assets/images/hero-c3d4-800w.webp 800w,
+           /assets/images/hero-e5f6-1200w.webp 1200w,
+           /assets/images/hero-a7b8-1600w.webp 1600w"
     sizes="(max-width: 600px) 400px, (max-width: 1024px) 800px, 1200px">
-  <img src="/assets/images/hero-a1b2-800w.webp" alt="Course hero image"
+  <img src="/assets/images/hero-c3d4-800w.webp" alt="Course hero image"
     width="1600" height="900" loading="lazy" decoding="async"
     style="background-image: url(data:image/jpeg;base64,...); background-size: cover;">
 </picture>
 ```
 
-The `sizes` attribute is computed from the configured `widths` array.
+The `<img>` always carries `width` and `height` from the source file, and every image gets the same `sizes` value.
 
 ## Format support
 
+Sarde can write four image formats:
+
 | Format | Status | Notes |
 |--------|--------|-------|
-| JPEG | Built-in | Default fallback format. |
+| JPEG | Built-in | Output only when listed in `formats`. |
 | PNG | Built-in | Lossless. |
-| WebP | Built-in | Default output format. Good compression with broad browser support. |
-| AVIF | Build tag | Requires `go build -tags avif`. If configured but unavailable, Sarde logs a warning and skips AVIF variants. |
+| WebP | Built-in | Default output format. |
+| AVIF | Build tag | Requires a binary built with `go build -tags avif`. Otherwise Sarde logs a warning and skips AVIF variants. |
 
-Add multiple formats to produce variants in each:
+List several formats to produce variants in each. The browser picks the first `<source>` it supports:
 
-```yaml
+```yaml title="sarde.yaml"
 images:
   formats: ["avif", "webp"]
 ```
 
-The `<picture>` element lists formats in priority order (AVIF, WebP, then original), and the browser picks the first it supports.
-
 ## Image disk cache
 
-Processed image variants are cached in `.cache/images/` under the project root. The cache key combines the source image hash with the processing parameters (widths, quality, formats, resize operation, max width, placeholder mode). Changing any of these settings invalidates the cache for affected images.
+Sarde caches processed variants in `.cache/images/` under the project root. The cache key combines the source image hash with the widths, quality, formats, resize operation, maximum width, and placeholder mode. Changing any of these settings regenerates the affected images.
 
-On subsequent builds, cached variants are copied directly to the output directory without re-processing. Delete `.cache/images/` to force a full rebuild of all image variants.
+Later builds copy cached variants to the output directory without reprocessing. Delete `.cache/images/` to regenerate every variant.
 
-## CSS/JS bundling
+## CSS and JS bundling
 
-CSS and JS files listed in `head.custom_css` and `head.custom_js` are bundled through esbuild. The bundler resolves `@import` and `import` statements through a 3-layer lookup:
+Sarde bundles the files listed in `head.custom_css` and `head.custom_js` with esbuild. Each entry is a path relative to an `assets/` directory, and `@import` and `import` statements resolve through the same lookup, in this order:
 
 1. `assets/` in the project root
 2. `themes/<name>/assets/` in the active theme
-3. Embedded theme assets (compiled into the binary)
+3. Embedded theme assets, compiled into the binary
 
-```yaml
+```yaml title="sarde.yaml"
 head:
   custom_css:
     - "css/custom.css"
@@ -184,45 +166,38 @@ head:
     - "js/analytics.js"
 ```
 
-Place the files in `assets/css/custom.css` and `assets/js/analytics.js`. The bundler processes imports, resolves dependencies, and outputs a single file per entry point.
+Put the files at `assets/css/custom.css` and `assets/js/analytics.js`. Each entry produces one output file. An entry that Sarde cannot find, including a full URL, fails the build. To load an external stylesheet or script, use a `head.tags` entry instead.
 
-In dev mode, esbuild adds inline source maps for debugging. Minification is skipped.
+Production builds minify the output unless `build.minify` is `false`. `sarde dev` skips minification and adds inline source maps.
 
-## Fingerprinted filenames
+### Fingerprinted filenames
 
-Production builds embed a content hash in output filenames for cache-busting:
+Production builds add a content hash to each bundled filename for cache busting:
 
 | Mode | Filename |
 |------|----------|
-| Dev | `main.css` |
-| Production | `main.a1b2c3d4.css` |
+| Dev | `custom.css` |
+| Production | `custom.a1b2c3d4.css` |
 
-The hash is the first 8 hex characters of the SHA-256 digest of the file content. Changing the file produces a new hash, which busts browser caches. The asset manifest tracks the mapping from original paths to fingerprinted URLs for template use.
+The hash is the first 8 hex characters of the SHA-256 digest of the output file. Changing the file produces a new hash and bypasses browser caches.
 
 ## `resize_image` template function
 
-Use `resize_image` in templates to process a page bundle resource with custom parameters:
+Use `resize_image` in a template to process a page bundle resource with custom parameters:
 
-```go
+```html
 {{ $img := getResource .Resources "hero.jpg" }}
 {{ resize_image $img "width=800&quality=85&format=webp" }}
 ```
 
-The function accepts a `Resource` and a query string with these parameters:
+The function takes a resource and a query string:
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `width` | int | Target width in pixels. |
-| `height` | int | Target height (used with `fill` and `fit` operations). |
-| `op` | string | Resize operation: `scale`, `fit_width`, `fit_height`, `fit`, `fill`. |
-| `quality` | int | Override encoding quality. |
-| `format` | string | Output format: `jpeg`, `png`, `webp`, `avif`. |
+| `width` | int | Target width in pixels. Replaces the configured `widths` for this image. |
+| `height` | int | Target height, used with `fill` and `fit`. |
+| `op` | string | Resize operation: `scale`, `fit_width`, `fit_height`, `fit`, or `fill`. |
+| `quality` | int | Encoding quality for this image. |
+| `format` | string | Output format: `jpeg`, `png`, `webp`, or `avif`. |
 
-The function returns a `<picture>` HTML element with responsive variants. When no image processor is available in dev mode, it falls back to a plain `<img>` tag with the original source.
-
-## Edge cases
-
-- Images smaller than a configured width are not upscaled. A 300px-wide image with `widths: [400, 800, 1200]` produces only the original-size variant.
-- SVG files are not processed. They pass through as-is.
-- Dev mode (`sarde dev`) skips all image processing and LQIP generation. Images render with their original source paths. Dimensions are still read from the file header.
-- Concurrent builds use per-path locks to prevent race conditions when writing identical output filenames.
+The function returns a `<picture>` element. In `sarde dev`, no variants are generated and it returns a plain `<img>` with the original source.

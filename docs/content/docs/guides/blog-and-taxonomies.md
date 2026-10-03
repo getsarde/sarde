@@ -5,47 +5,53 @@ sidebar:
   order: 8
 ---
 
-Blog collections are auto-detected by directory name. Place content in `blog/`, `posts/`, `articles/`, or `news/` and Sarde applies date-sorted, feed-enabled defaults with no configuration required.
+Put posts in a `blog/`, `posts/`, `articles/`, or `news/` directory and Sarde treats it as a blog: newest first, paginated, with RSS and Atom feeds. No configuration is required. Tags, categories, and authors group posts into browsable listing pages.
 
 ## Blog collection setup
 
-Create a `blog/` directory inside `content/`:
+Create a `blog/` directory inside `content/` with an `_index.md` and one file per post:
 
 ```text
 content/blog/
   _index.md
-  2026-03-15-hello-world.md
-  2026-04-01-new-release.md
+  hello-world.md
+  new-release.md
 ```
 
-Sarde auto-detects this as a blog collection with date-sorted posts (newest first), pagination at 10 posts per page, and RSS/Atom feeds enabled.
+Give each post a `date`. The date controls sort order:
 
-Any of these directory names trigger blog-type detection: `blog`, `posts`, `articles`, `news`. See [Content & Collections](/guides/content-and-collections) for the full auto-detection table.
+```yaml title="content/blog/hello-world.md"
+---
+title: Hello World
+date: 2026-03-15
+tags: [announcements]
+---
+```
+
+The collection defaults to posts sorted newest first, 10 posts per page, Newer and Older links between posts, and feeds enabled. The [auto-detection rules](/guides/content-and-collections/#auto-detection-rules) list every directory name Sarde recognizes.
 
 ## List layouts
 
-Blog list pages (the index at `/blog/`) render with one of three layouts. Set the layout with the `template` field in `_index.md` frontmatter:
+The blog index at `/blog/` renders with one of three templates. Set the template with the `template` field in the collection's `_index.md`:
 
-```yaml
+```yaml title="content/blog/_index.md"
 ---
 title: Blog
 template: "blog/list-grid"
 ---
 ```
 
-| Layout | Description |
-|--------|-------------|
-| `blog/list` (default) | Post list with optional featured posts, reading time, tags, and paginator |
-| `blog/list-grid` | Bordered card grid with optional cover images |
-| `blog/list-minimal` | Minimal layout showing title and date per post |
-
-Without a `template` override, blog list pages use `blog/list`.
+| Template | Description |
+|----------|-------------|
+| `blog/list` (default) | Post cards with date, reading time, tags, and authors. Posts with `featured: true` also appear in a Featured section above the list. Shows a tag sidebar and a paginator. |
+| `blog/list-grid` | Bordered card grid with an optional cover image (the post's `image` field). Shows a tag sidebar and a paginator. |
+| `blog/list-minimal` | One line per post with title and date, and a paginator. |
 
 ## Single post layouts
 
-Individual blog posts render with one of three layouts. Set the layout with the `template` field in the post's frontmatter:
+Posts render with `blog/single` unless the post's frontmatter sets another template:
 
-```yaml
+```yaml title="content/blog/hello-world.md"
 ---
 title: Hello World
 template: "blog/single-cover"
@@ -53,40 +59,38 @@ image: cover.jpg
 ---
 ```
 
-| Layout | Description |
-|--------|-------------|
-| `blog/single` (default) | Centered header with date, reading time, tags, content, and newer/older navigation |
-| `blog/single-cover` | Full-width cover image bleed at the top of the page |
-| `blog/single-wide` | Wider content area (56rem) for media-heavy posts |
-
-Without a `template` override, blog posts use `blog/single`.
+| Template | Description |
+|----------|-------------|
+| `blog/single` (default) | Header with date, reading time, authors, and tags, then the content and Newer and Older links. |
+| `blog/single-cover` | Shows the post's `image` as a full-width cover above the header. |
+| `blog/single-wide` | Widens the content area to 56rem for media-heavy posts. |
 
 ## Pagination
 
-Blog list pages paginate automatically. Override the default of 10 per page in `sarde.yaml`:
+The blog index shows 10 posts per page. Later pages live at `/blog/page/2/`, `/blog/page/3/`, and so on. Change the page size in `sarde.yaml`:
 
-```yaml
+```yaml title="sarde.yaml"
 collections:
   blog:
     paginate: 20
 ```
 
-Set `paginate: 0` to disable pagination and show all posts on a single page.
+`paginate` takes a positive integer. A value of `0` is ignored and the default of 10 applies, so to show every post on one page, set a number larger than the post count.
 
 ## Taxonomies
 
-Taxonomies group content by shared terms. Sarde ships with `tags` enabled by default. Each taxonomy generates a listing page at `/<taxonomy>/` and a term page for each value at `/<taxonomy>/<term>/`.
+A taxonomy groups content by shared terms. Sarde enables `tags` by default. Each taxonomy generates a listing page at `/<taxonomy>/` and a page for each term at `/<taxonomy>/<term>/`. Term pages paginate at `/<taxonomy>/<term>/page/2/`.
 
 ### Default configuration
 
-The default `sarde.yaml` includes:
+The default configuration is:
 
-```yaml
+```yaml title="sarde.yaml"
 taxonomies:
   tags: "tag"
 ```
 
-The value (`"tag"`) is the singular form used in URL slugs. Adding tags to a post:
+Add tags to a post in its frontmatter:
 
 ```yaml
 ---
@@ -95,20 +99,20 @@ tags: [biology, lab-work, plants]
 ---
 ```
 
-Result: The post appears on `/tags/biology/`, `/tags/lab-work/`, and `/tags/plants/`. Each term page lists all posts with that tag.
+→ The post appears on `/tags/biology/`, `/tags/lab-work/`, and `/tags/plants/`. Each term page lists every post with that tag.
 
 ### Custom taxonomies
 
-Add additional taxonomies in `sarde.yaml`:
+Add taxonomies under `taxonomies` in `sarde.yaml`:
 
-```yaml
+```yaml title="sarde.yaml"
 taxonomies:
   tags: "tag"
   categories: "category"
   authors: "author"
 ```
 
-Assign terms in frontmatter using the taxonomy name as the key:
+Assign terms in frontmatter with the taxonomy name as the key:
 
 ```yaml
 ---
@@ -119,29 +123,31 @@ authors: [dr-chen]
 ---
 ```
 
+The default theme links `authors` terms from each post and from blog index cards. It shows `tags` as chips on the page. It does not show `categories` on posts, but the category listing and term pages are still generated.
+
 ### Taxonomy options
 
-Each taxonomy supports per-taxonomy configuration:
+Replace the short form with an object to set options:
 
-```yaml
+```yaml title="sarde.yaml"
 taxonomies:
   tags:
-    singular: "tag"
     paginate_by: 20
     undefined_tags: "warn"
-    render: true
+    show_tags: true
 ```
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `singular` | string | taxonomy name | Singular form for URL slugs |
-| `paginate_by` | int | `0` | Items per page on term listing pages. `0` uses the collection default |
-| `undefined_tags` | string | `""` | How to handle terms not defined in `data/<taxonomy>.yml`: `"warn"` or `""` (ignore) |
-| `render` | bool | `true` | Generate HTML pages for this taxonomy |
+| `singular` | string | taxonomy name | Singular name of the taxonomy. The default theme does not use it, and URLs always use the taxonomy key (`/tags/`). |
+| `paginate_by` | int | `10` | Items per page on term pages. Must be at least 1. |
+| `undefined_tags` | string | `"warn"` | How to treat terms used in content but missing from `data/<taxonomy>.yml`: `warn` logs a warning, `error` fails the build, `ignore` skips the check, `create` accepts them silently. The check runs only when the data file exists. |
+| `render` | bool | `true` | Generate the listing and term pages. |
+| `show_tags` | bool | `true` | Show tag chips on pages. Applies to the `tags` taxonomy only. A post's own `show_tags` frontmatter field overrides it. |
 
 ### Term metadata
 
-Define term metadata (display name, description, icon, color) in a YAML file at `data/<taxonomy-name>.yml`:
+Define display names, descriptions, icons, and colors for terms in `data/<taxonomy>.yml`. Key each entry by the term's slug (the lowercase, hyphenated form of the term):
 
 ```yaml title="data/tags.yml"
 biology:
@@ -150,41 +156,51 @@ biology:
   color: "green"
 lab-work:
   label: "Lab Work"
-  icon: "flask-conical"
 ```
 
-Term metadata controls how tags appear in the sidebar tag cloud and on tag chips throughout the site.
+| Field | Description |
+|-------|-------------|
+| `label` | Display name. Defaults to the term as written in content. |
+| `description` | Text shown under the term page title. |
+| `color` | Accent color for the term's chips and its pill on the listing page. |
+| `icon` | Lucide icon name drawn on tag chips. |
+| `hidden` | Leaves the term out of the tag sidebar and the listing page. |
+| `priority` | Orders the listing page. Higher values come first. |
+| `permalink` | Replaces the term's slug in its URL. |
 
 ### Slug collisions
 
-Terms are keyed by slug, so two terms that slugify to the same string become one. Sarde warns instead of failing the build. Two warnings are possible:
+Terms are keyed by slug, so two terms that slugify to the same string become one. Sarde warns and continues the build.
 
-```
+When two term names reduce to the same slug, the warning reads:
+
+```text
 taxonomy "tags": terms "Lab Work" and "lab work" collide on slug "lab-work"
 ```
 
-Two different term names reduced to the same slug. Their pages merge under whichever name was seen first, which makes the winner depend on content order. Pick one spelling.
+Their pages merge under whichever name was seen first, so the winner depends on content order. Pick one spelling.
 
-```
-taxonomy "tags": permalink "biology" of "Life Sciences" collides with an existing
-slug — merged 4 page(s) into the existing entry (check data/tags.yml)
+When a `permalink` in `data/<taxonomy>.yml` points a term at a slug another term already uses, the warning starts with:
+
+```text
+taxonomy "tags": permalink "biology" of "Life Sciences" collides with an existing slug
 ```
 
-A custom permalink in `data/<taxonomy>.yml` points a term at a slug another term already occupies. The pages merge into the existing entry and the term keeps its old name. Change the permalink in the data file.
+The pages of the displaced term merge into the existing entry, and the displaced term gets no page of its own. Change the permalink in the data file.
 
 ## Feeds
 
-Blog collections generate RSS and Atom feeds automatically:
+Blog collections generate an RSS feed and an Atom feed with the 20 most recent posts:
 
 - RSS 2.0 at `/<collection>/feed.xml`
 - Atom 1.0 at `/<collection>/atom.xml`
 
-Disable feeds per collection:
+Turn feeds off for a collection:
 
-```yaml
+```yaml title="sarde.yaml"
 collections:
   blog:
     feed: false
 ```
 
-See [Configuration](/reference/configuration/content/#taxonomies) for all taxonomy settings, and [Frontmatter](/reference/frontmatter#taxonomy-fields) for per-page taxonomy fields.
+See [Feeds](/plugins/feeds/) for the feed limit and the per-collection plugin options, and [SEO and Feeds](/guides/seo-and-feeds/) for the rest of the site metadata. The full list of taxonomy settings is in [Configuration](/reference/configuration/content/#taxonomies), and per-page fields are in [Frontmatter](/reference/frontmatter/#taxonomy-fields).

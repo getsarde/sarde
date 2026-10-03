@@ -63,6 +63,6 @@ Use these when changing the appearance or output behavior:
 - [Internationalization](/guides/internationalization/) covers multi-language
   sites, localized URLs, and RTL support.
 - [Versioning](/guides/versioning/) covers multi-version documentation with
-  version switcher and search scoping.
+  a version switcher and search scoping.
 - [Teaching](/teaching/) covers slide decks, the presentation layout, and
   course integration.

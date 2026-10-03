@@ -1,15 +1,15 @@
 ---
 title: Navigation and Sidebar
-description: "Control sidebar ordering, grouping, icons, and collapsed state through frontmatter and directory structure"
+description: "Control sidebar ordering, grouping, icons, and collapsed state through frontmatter, sidebar.yaml, and directory structure"
 sidebar:
   order: 5
 ---
 
-Sarde auto-generates sidebar navigation from the directory structure in docs-layout collections. Pages are sorted by `sidebar.order` (from frontmatter or numeric filename prefix), then by title. No configuration is required for the default behavior.
+Sarde builds the sidebar of a docs-layout collection from its directory tree. Pages sort by `sidebar.order`, then alphabetically by label. The default behavior needs no configuration; this page covers the controls for changing it.
 
 ## Auto-generated sidebar
 
-For docs-layout collections (`docs/`, `courses/`, `tutorials/`, etc.), Sarde walks the directory tree and builds a collapsible navigation sidebar. Each subdirectory with an `_index.md` becomes a collapsible group. Pages within a group are sorted by their `sidebar.order` field.
+For docs-layout collections (`docs/`, `courses/`, `tutorials/`, and the other names in [Content and Collections](/guides/content-and-collections/)), Sarde walks the directory tree and builds a collapsible sidebar. Every subdirectory becomes a group, and the pages inside it are its children.
 
 ```text
 content/docs/
@@ -23,17 +23,19 @@ content/docs/
     writing-content.md
 ```
 
-Result: The sidebar shows two collapsible groups with pages nested inside each.
+→ The sidebar shows two collapsible groups with their pages nested inside.
 
-Each group label is a link to that section's `_index.md`, so clicking "Guides" opens the section index rather than only expanding the group. Set `render: false` in the section's `_index.md` to keep the label as plain text, which suits a section index that exists only to name the group.
+A group takes its label and position from the section's `_index.md`. A subdirectory without an `_index.md` still becomes a group, labeled from the directory name and listed at order `0`.
+
+A group label is a link to the section's `_index.md`, so selecting "Guides" opens the section page as well as expanding the group. Set `render: false` in the `_index.md` to keep the label as plain text. Sarde then does not generate a page for that section, which suits an index that exists only to name the group.
 
 <!-- SCREENSHOT: sidebar-auto-generated - auto-generated sidebar with two collapsible groups -->
 
 ## Controlling sidebar order
 
-Set `sidebar.order` in frontmatter to control the position of a page or section within its parent group:
+Set `sidebar.order` in frontmatter to position a page or section within its parent group. Lower values come first, and entries with the same value sort alphabetically.
 
-```yaml
+```yaml title="getting-started.md"
 ---
 title: Getting Started
 sidebar:
@@ -41,11 +43,11 @@ sidebar:
 ---
 ```
 
-Alternatively, prefix filenames with numbers: `01-getting-started.md` sets `sidebar.order` to 1 without frontmatter. See [Writing Content](/guides/writing-content#numeric-filename-prefixes) for details.
+A numeric filename prefix does the same without frontmatter: `01-getting-started.md` sets `sidebar.order` to 1. See [Numeric filename prefixes](/guides/writing-content/#numeric-filename-prefixes).
 
 ## Sidebar labels
 
-Override the sidebar display label without changing the page title:
+Override the sidebar text without changing the page title:
 
 ```yaml
 ---
@@ -55,11 +57,11 @@ sidebar:
 ---
 ```
 
-Result: The sidebar shows "i18n" while the page heading remains "Internationalization and Localization".
+→ The sidebar shows "i18n" while the page heading stays "Internationalization and Localization".
 
 ## Hiding pages
 
-Hide a page from the sidebar while keeping it accessible via direct URL:
+Hide a page from the sidebar while keeping it reachable by URL:
 
 ```yaml
 ---
@@ -71,7 +73,7 @@ sidebar:
 
 ## Sidebar badges
 
-Add a badge chip next to a sidebar item:
+Add a badge chip next to a sidebar entry:
 
 ```yaml
 ---
@@ -81,7 +83,7 @@ sidebar:
 ---
 ```
 
-Badges also support variant styling:
+Use the object form to pick a variant (`default`, `note`, `tip`, `success`, `caution`, or `danger`):
 
 ```yaml
 ---
@@ -92,33 +94,38 @@ sidebar:
 ---
 ```
 
+A badge set in a section's `_index.md` shows on that section's group. See [Frontmatter](/reference/frontmatter/#sidebar-badge) for the legacy color aliases.
+
 ## Collapsible sections
 
-Sidebar groups are collapsible by default. Configure this per collection in `sarde.yaml`:
+Sidebar groups start open. Configure the sidebar per collection in `sarde.yaml`:
 
-```yaml
+```yaml title="sarde.yaml"
 collections:
   docs:
     sidebar:
-      collapsible: true
-      collapsed_by_default: false
+      collapsed_by_default: true
+      collapse_level: 1
       max_depth: 4
 ```
 
+The `sidebar` keys:
+
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `collapsible` | bool | `true` | Allow groups to collapse/expand |
-| `collapsed_by_default` | bool | `false` | Start all groups collapsed |
-| `max_depth` | int | `4` | Maximum nesting depth in the sidebar tree |
-| `search` | bool | `true` | Show the sidebar filter input |
+| `collapsed_by_default` | bool | `false` | Start all groups collapsed. The group holding the current page is always open. |
+| `collapse_level` | int | unset | Open groups down to this depth and collapse deeper ones. `1` opens the top-level groups only. Overrides `collapsed_by_default` for the groups it covers. |
+| `max_depth` | int | `4` | Maximum nesting depth in the sidebar tree. Accepts 1 to 10. Deeper sections do not appear. |
+| `collapsible` | bool | `true` | Accepted, but the default theme always renders collapsible groups. |
+| `search` | bool | `true` | Accepted, but the default theme renders no sidebar filter. |
 
-Open/closed state for each group persists across page navigations via `sessionStorage`.
+Each group remembers whether the reader opened or closed it. The state lasts for the browser session (`sessionStorage`) and resets when the sidebar structure changes.
 
 ## Overrides with `sidebar.yaml`
 
-A `sidebar.yaml` at the project root adjusts individual sidebar entries without touching their frontmatter. Use it to relabel or reorder pages you do not own, or to keep presentation choices out of the content files.
+A `sidebar.yaml` next to `sarde.yaml` adjusts individual sidebar entries without touching their frontmatter. Use it to relabel or reorder pages you do not own, or to keep presentation choices out of the content files.
 
-```yaml
+```yaml title="sidebar.yaml"
 docs:
   collapse_level: 2
   overrides:
@@ -134,40 +141,40 @@ docs:
       hidden: true
 ```
 
-The top-level key is the collection name. `sidebar.yaml` sits above `sarde.yaml` in the cascade, so anything set here wins.
+The top-level key is the collection name. `sidebar.yaml` wins over both `sarde.yaml` and frontmatter, and a `collapse_level` here wins over the one in `sarde.yaml`.
 
 ### Override keys
 
-Each key under `overrides` is a page or section path relative to the collection root, with no leading or trailing slash. A page at `/docs/guide/intro/` in the `docs` collection is keyed `guide/intro`.
+Each key under `overrides` is a page or section path relative to the collection root. A page at `/docs/guide/intro/` in the `docs` collection is keyed `guide/intro`.
 
-Keys are canonicalized before matching: backslashes become forward slashes, and leading and trailing slashes are trimmed. Two keys that canonicalize to the same path are a build error rather than a silent last-wins, so `/guide/intro/` and `guide/intro` in the same file stop the build and name both spellings.
+Sarde canonicalizes keys before matching: backslashes become forward slashes, and leading and trailing slashes are trimmed. Two keys that canonicalize to the same path stop the build with an error naming both spellings, so `/guide/intro/` and `guide/intro` cannot share a file.
 
-A key matching nothing produces a warning naming the key and its collection, and the build continues.
+A key that matches no page or section produces a warning naming the key and its collection, and the build continues.
+
+Each override accepts these fields:
 
 | Key | Type | Description |
 |-----|------|-------------|
-| `label` | string | Replaces the sidebar text |
-| `description` | string | Description text where the theme shows one |
-| `order` | int | Sort position, same scale as `sidebar.order` |
-| `collapsed` | bool | Start this group open or closed |
-| `icon` | string | Icon on the entry |
-| `badge` | string or object | Badge chip, scalar or `{text, variant}` |
-| `hidden` | bool | Show or hide the entry. See below |
-| `attrs` | map | Extra HTML attributes on the link |
+| `label` | string | Replaces the sidebar text. |
+| `description` | string | Shown as a tooltip on the entry in the default theme. |
+| `order` | int | Sort position, on the same scale as `sidebar.order`. |
+| `collapsed` | bool | `false` opens the group by default. `true` closes it, but only when the collection already starts groups collapsed (`collapsed_by_default` or `collapse_level`). |
+| `icon` | string | Icon on the entry. |
+| `badge` | string or object | Badge chip, as a string or `{text, variant}`. |
+| `hidden` | bool | Show or hide the entry. See [Un-hiding a page](#un-hiding-a-page). |
+| `attrs` | map | Extra attributes on the entry for themes that render them. The default theme ignores it. |
 
-`collapsed: true` is ignored while the reader is on a page inside that group, so the current page is never hidden behind a closed section.
+A closed group still opens while the reader is on a page inside it, so the current page is never hidden behind a closed section.
 
 ### Un-hiding a page
 
-`hidden` is three-state. Leaving it out changes nothing, `hidden: true` removes the entry, and `hidden: false` restores a page that set `sidebar.hidden: true` in its own frontmatter.
-
-That last case is the reason the field is not a plain boolean: it lets a site reveal a page it does not want to edit. Sections have no frontmatter `hidden` field, so `hidden: false` on a section does nothing.
+`hidden` has three states. Leaving it out changes nothing, `hidden: true` removes the entry, and `hidden: false` restores a page that set `sidebar.hidden: true` in its own frontmatter. This lets a site reveal a page without editing it. Sections have no `hidden` frontmatter field, so `hidden: false` on a section does nothing.
 
 ### Tab overrides
 
-For [tabbed collections](/guides/tabbed-navigation), `tabs` adjusts the tab bar. Each key is the tab's directory name.
+For [tabbed collections](/guides/tabbed-navigation/), `tabs` adjusts the tab switcher. Each key is the tab's directory name.
 
-```yaml
+```yaml title="sidebar.yaml"
 docs:
   tabs:
     api:
@@ -176,33 +183,30 @@ docs:
       order: 1
 ```
 
+Each tab accepts these fields:
+
 | Key | Type | Description |
 |-----|------|-------------|
-| `label` | string | Replaces the tab title from the tab's `_index.md` |
-| `description` | string | Description shown in the mobile tab menu |
-| `icon` | string | Icon on the tab |
-| `order` | int | Tab position |
+| `label` | string | Replaces the tab title taken from the tab's `_index.md`. |
+| `description` | string | Description under the tab title in the switcher menu. |
+| `icon` | string | Icon on the tab. |
+| `order` | int | Tab position. |
 
 ### Validation
 
-The file is strictly parsed. An unknown field is a build error naming the line and the field, so a typo like `lable:` fails loudly instead of being silently dropped. An empty or comments-only file is valid and contributes nothing.
+Sarde parses the file strictly. An unknown field stops the build with an error naming the line and the field, so a typo such as `lable:` stops the build instead of being ignored. An empty or comments-only file is valid and contributes nothing.
 
 :::caution
-A structural `items:` list is accepted by the parser but not implemented. Supplying one emits `structural sidebar items are not implemented yet; ignoring` and the entry is dropped. Use `nav.yaml` below to hand-author a tree.
+`sidebar.yaml` does not support a structural `items:` list. Supplying one prints `structural sidebar items are not implemented yet; ignoring` and drops the entry. Use [`nav.yaml`](#manual-tab-sidebar-with-nav-yaml) to hand-author a tab's tree.
 :::
 
 ## Manual tab sidebar with `nav.yaml`
 
-[Tabbed collections](/guides/tabbed-navigation) can use `nav.yaml` inside a tab
-directory to replace the auto-generated navigation for that tab. Use this when
-the tab needs links that do not match the file tree.
+A [tabbed collection](/guides/tabbed-navigation/) can replace the auto-generated sidebar of one tab with a `nav.yaml` inside that tab's directory. Use it when the tab needs a different structure than its file tree.
 
-The file only applies per tab. A `nav.yaml` at the collection root is ignored,
-and non-tabbed collections always use the auto-generated sidebar.
+The file applies per tab only. Sarde ignores a `nav.yaml` at the collection root, and collections without tabs always use the auto-generated sidebar.
 
-`content/docs/guides/nav.yaml`
-
-```yaml
+```yaml title="content/docs/guides/nav.yaml"
 - label: "Getting Started"
   page: getting-started
 - label: "Guides"
@@ -211,45 +215,43 @@ and non-tabbed collections always use the auto-generated sidebar.
       page: guides/writing-content
     - label: "Code Blocks"
       page: guides/code-blocks
-- label: "External Docs"
-  url: "https://example.com"
-  external: true
 ```
 
 Each item supports:
 
 | Key | Type | Description |
 |-----|------|-------------|
-| `label` | string | Display text (falls back to page title) |
-| `page` | string | Page slug or relative path within the collection |
-| `url` | string | External URL (use with `external: true`) |
-| `external` | bool | Open in new tab with `noopener noreferrer` |
-| `badge` | object | Badge chip on this item |
-| `collapsed` | bool | Override group open/closed default |
-| `items` | array | Nested child items |
+| `label` | string | Display text. Falls back to the page's sidebar label, then its title. |
+| `page` | string | Page slug, or path relative to the collection root. |
+| `badge` | string or object | Badge chip on a page item. Overrides the page's own badge. |
+| `collapsed` | bool | `false` opens the group by default. |
+| `attrs` | map | Extra attributes on the entry for themes that render them. The default theme ignores it. |
+| `items` | array | Nested child items. |
 
-Items without `page` or `url` act as group labels (headings with no link).
+An item without `page` acts as a group label, a heading with no link. A `page` that matches no page in the tab is skipped without a warning. The tab's `_index.md` gets no Overview entry, because the file defines the whole tree.
 
 ## Breadcrumbs
 
-Docs-layout pages render breadcrumbs automatically: Collection Root > Section > Page. Transparent sections are skipped in the breadcrumb trail. Sections without an `_index.md` appear as plain text (no link).
+Docs-layout pages show breadcrumbs from the collection title through each section to the page. Tabbed collections add the tab after the collection title. Transparent sections are skipped, and sections without an `_index.md` appear as plain text.
 
-## Prev/next links
+## Previous and next links
 
-Docs-layout collections render prev/next navigation links at the bottom of each page. The order follows a depth-first traversal of the sidebar tree, so readers navigate through sections sequentially.
+Docs-layout collections show Previous and Next links at the bottom of each page. The order follows the sidebar tree depth-first, so readers move through sections in sequence. In a tabbed collection the links stay inside the active tab.
 
-Override prev/next for a specific page in frontmatter:
+Override a link for one page in frontmatter. A string names the target page by slug, and the object form sets an explicit URL and label:
 
 ```yaml
 ---
 prev: "installation"
 next:
-  slug: "advanced-config"
+  link: "/docs/guides/advanced-config/"
   label: "Advanced Configuration"
 ---
 ```
 
-Disable prev/next for a page:
+A string slug must match a page in the same sidebar tree. Setting only `label` in the object form renames the automatic link without changing its target.
+
+Remove a link from a page:
 
 ```yaml
 ---
@@ -258,36 +260,43 @@ next: false
 ---
 ```
 
-## Global navigation
+To turn the links off for a whole collection, set `collections.<name>.prev_next.enabled: false` in `sarde.yaml`.
 
-The site header displays navigation links configured in `sarde.yaml`:
+## Header navigation
 
-```yaml
+The site header lists each collection in alphabetical order, linking to its root. Links from `header.links` in `sarde.yaml` follow them:
+
+```yaml title="sarde.yaml"
 header:
   links:
-    - label: "Docs"
-      url: "/docs/"
-    - label: "Blog"
-      url: "/blog/"
     - label: "GitHub"
       url: "https://github.com/getsarde/sarde"
       external: true
 ```
 
-Header links appear as a horizontal navigation bar. External links open in a new tab.
+External links open in a new tab.
 
 ## Table of contents
 
-Docs-layout pages display a table of contents panel on the right side of the content area. The TOC lists headings extracted from the page content, with scroll-synchronized highlighting of the current section.
+Docs-layout pages show a table of contents on the right of the content area. It lists the page's headings and highlights the current section as the reader scrolls.
 
-Disable the TOC site-wide or per collection:
+Turn it off for the whole site:
 
 ```yaml title="sarde.yaml"
 toc:
   enabled: false
 ```
 
-Or per page in frontmatter:
+Turn it off for one collection:
+
+```yaml title="sarde.yaml"
+collections:
+  docs:
+    toc:
+      enabled: false
+```
+
+Or for one page, in frontmatter:
 
 ```yaml
 ---
@@ -297,13 +306,12 @@ toc: false
 
 ### Heading level range
 
-Two settings control which headings appear in the TOC:
+Two settings control which headings appear in the table of contents:
 
-1. **`markdown.toc.min_heading_level` / `max_heading_level`** controls which headings are *extracted* during the build. Headings outside this range get no `id` attribute, no anchor link, and cannot be linked to with fragment URLs. Default: 2 through 4.
+1. **`markdown.toc.min_heading_level` and `max_heading_level`** control which headings Sarde extracts during the build. Headings outside the range get no `id` attribute or anchor link, and fragment URLs cannot target them. The default is 2 through 4.
+2. **`toc.min_level` and `toc.max_level`** control which extracted headings the table of contents displays. This can narrow the range but not widen it past what was extracted. The default is 2 through 4.
 
-2. **`toc.min_level` / `toc.max_level`** controls which extracted headings are *displayed* in the TOC sidebar. This can only narrow the range, not widen it beyond what was extracted. Default: 2 through 4.
-
-To include all heading levels in the TOC:
+To include every heading level:
 
 ```yaml title="sarde.yaml"
 markdown:
@@ -314,7 +322,7 @@ toc:
   max_level: 6
 ```
 
-To extract h2 through h6 for IDs and link validation, but only display h2 and h3 in the sidebar:
+To extract h2 through h6 for IDs and link validation but display only h2 and h3:
 
 ```yaml title="sarde.yaml"
 markdown:
@@ -325,10 +333,10 @@ toc:
   max_level: 3
 ```
 
-Per-page frontmatter can override the display range for individual pages. See [Frontmatter](/reference/frontmatter#table-of-contents-fields) for per-page `toc:` options.
+Frontmatter can override the display range for a single page. See [Frontmatter](/reference/frontmatter/#table-of-contents-fields).
 
 ## Mobile sidebar
 
-On screens narrower than 1024px, the sidebar collapses into a drawer accessible via a hamburger menu button. The drawer slides in from the left and contains the same navigation tree. It closes on link click or by tapping outside the drawer.
+On screens narrower than 1024px, the sidebar becomes a drawer opened from a menu button in the header. The drawer slides in from the left and holds the same navigation tree.
 
-See [Configuration](/reference/configuration/) for all sidebar settings, and [Frontmatter](/reference/frontmatter#sidebar-fields) for per-page sidebar fields.
+See [Configuration](/reference/configuration/) for every sidebar setting, and [Frontmatter](/reference/frontmatter/#sidebar-fields) for the per-page sidebar fields.

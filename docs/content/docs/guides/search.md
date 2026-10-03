@@ -5,45 +5,47 @@ sidebar:
   order: 11
 ---
 
-Sarde builds an offline search index at build time and serves it client-side using Orama. No external search service is needed. Search works on any hosting provider, including static file hosts with no server-side capabilities.
+Every Sarde site ships with full-text search that runs in the reader's browser. The build writes the index, and the [Orama](https://orama.com/) library queries it client-side, so search works on any host, including static file hosts with no server.
 
 ## How it works
 
-During `sarde build`, the search plugin extracts text from every page and writes a JSON index file (`search-index.<lang>.json`). The Orama client-side library loads this index on first search interaction and runs queries entirely in the browser.
+During `sarde build`, the search plugin extracts text from every page and writes one JSON index file per language (`search-index.<lang>.json`). The browser loads the index when the reader first opens search.
 
-Each page produces a primary document (title, description, content, tags, section) plus one sub-document per heading. Field weights prioritize titles (5x), tags (2.5x), and descriptions (2x) over body content (1x) using BM25 ranking.
+Each page produces a primary document (title, description, content, tags, section) plus one document per `h2` to `h4` heading. Titles weigh 5x, tags 2.5x, and descriptions 2x against body content at 1x.
 
 ## Opening search
 
-Press **Ctrl+K** (Windows/Linux) or **Cmd+K** (macOS) to open the search modal. Alternatively, click the search button in the header.
+Press **Ctrl+K** (Windows and Linux) or **Cmd+K** (macOS), or click the search button in the header.
 
-Result: A modal overlay appears with a search input, keyboard navigation hints, and a results list.
+→ A modal appears with a search input, keyboard hints, and a results list.
 
 <!-- SCREENSHOT: search-modal - search modal with results list and keyboard hints -->
 
-Type a query to see results. Use arrow keys to navigate, Enter to select, and Escape to close.
+Type a query to see results. Use the arrow keys to move through them, Enter to open one, and Escape to close the modal.
 
 ### Full-search mode
 
-Press **Ctrl+Space** (Windows/Linux) or **Cmd+Space** (macOS) inside the search modal to toggle full-search mode. This expands the modal into a split-pane view with the result list on the left and a preview of the selected result on the right.
+Press **Ctrl+Space** (Windows and Linux) or **Cmd+Space** (macOS) inside the search modal to toggle full-search mode.
+
+→ The modal expands into a split pane with the result list on the left and a preview of the selected result on the right.
 
 <!-- SCREENSHOT: search-full-mode - split-pane search with result list and content preview -->
 
 ## Search scope
 
-Search results are scoped automatically:
+Search results are scoped to where the reader is:
 
-- **Versioned collections**: results are filtered to the current version. A reader on `/docs/v2/...` only sees v2 pages.
-- **Multi-language sites**: results are filtered to the current language. A reader on `/fr/docs/...` only sees French pages.
-- **Section filters**: results display the collection and breadcrumb path, making it clear where each result lives.
+- **Versioned collections:** results are filtered to the current version. A reader on `/docs/v2/...` only sees v2 pages.
+- **Multi-language sites:** each language has its own index, so a reader on `/fr/docs/...` only sees French pages.
+- **Sections:** each result shows its collection and breadcrumb path, and the modal offers one filter chip per collection to narrow results.
 
 ### Language support
 
-Each language lane gets language-aware tokenization when Sarde ships a stemmer for it: Arabic, Danish, Dutch, English, Finnish, French, German, Italian, Norwegian, Portuguese, Russian, Spanish, Swedish, and Turkish. For these, search applies the language's stemming rules (searching *manger* matches *mangeons*) and filters common stopwords. Regional codes fall back to their base language (`pt-BR` uses the Portuguese stemmer). Languages without a stemmer still work with default tokenization. Only the stemmers for languages your site actually uses are shipped with the built output.
+Each language gets language-aware tokenization when Sarde ships a stemmer for it: Arabic, Danish, Dutch, English, Finnish, French, German, Italian, Norwegian, Portuguese, Russian, Spanish, Swedish, and Turkish. For these, search applies the language's stemming rules (searching *manger* matches *mangeons*) and filters common stopwords. Regional codes fall back to their base language (`pt-BR` uses the Portuguese stemmer). Languages without a stemmer still work with default tokenization. The built output includes only the stemmers for the languages the site uses.
 
 ## Per-heading indexing
 
-Every heading in a page generates a separate search document with a direct anchor link. Searching for a term that appears under a specific heading links directly to that section, not the top of the page.
+Every `h2`, `h3`, and `h4` heading generates its own search document with an anchor link. A result for a heading opens the page at that section instead of at the top. The page title (`h1`) and `h5` and `h6` headings are not indexed as separate results.
 
 For example, searching "photosynthesis" might return:
 
@@ -59,16 +61,16 @@ Search needs no configuration. These settings turn it off, translate its labels,
 
 Search is enabled by default. Disable it in `sarde.yaml`:
 
-```yaml
+```yaml title="sarde.yaml"
 search:
   enabled: false
 ```
 
-This removes the header button, the search modal, the runtime script, and the index files from the build. Any `plugins.config.search` block is kept without a warning, so toggling search off and on leaves the rest of the config untouched.
+Disabling search removes the header button, the search modal, the runtime script, and the index files from the build. A `plugins.config.search` block is kept without a warning, so toggling search off and on leaves the rest of the config untouched.
 
-To hide only the header button while keeping the index and modal (for example to open search from a custom `[data-search-trigger]` element), use `header.search` instead:
+To hide only the header button and keep the index and modal, use `header.search`. This suits a custom element with the `data-search-trigger` attribute that opens search instead:
 
-```yaml
+```yaml title="sarde.yaml"
 header:
   search: false
 ```
@@ -88,9 +90,9 @@ Keys ending in `_one` and `_other` are plural forms picked from the page languag
 
 ### Index size and excluded URLs
 
-Limit how much of each page is indexed, or keep whole URL patterns out of the index, in the search plugin config:
+Limit how many characters of each page are indexed, or keep URL patterns out of the index, in the search plugin config:
 
-```yaml
+```yaml title="sarde.yaml"
 plugins:
   config:
     search:
@@ -99,6 +101,8 @@ plugins:
         - "/internal/*"
         - "/drafts/*"
 ```
+
+`exclude` patterns match the page URL. A `*` matches within a single path segment, so `/internal/*` excludes `/internal/notes/` but not `/internal/notes/old/`. List each depth you need to exclude.
 
 The [search plugin options](/plugins/search/#configuration) list each key with its type and default.
 
@@ -113,8 +117,10 @@ pagefind: false
 ---
 ```
 
+Set `pagefind: false` under `cascade` in a section's `_index.md` to exclude every page in the section.
+
 ## Search highlighting
 
-The `search_highlighter` plugin highlights search terms on the target page after a reader clicks a search result. This plugin is separate from the search plugin and must be enabled independently. When it is enabled, result links carry the query as a `?q=` parameter (placed before any `#heading` anchor); when it is not, result links stay clean.
+The `search_highlighter` plugin highlights the search terms on the target page after a reader clicks a result. It is off by default and must be added to `plugins.enabled`. When it is enabled, result links carry the query as a `?q=` parameter, placed before any `#heading` anchor. When it is not, result links stay clean.
 
-See [Plugins](/plugins/search-highlighter) for search highlighter configuration.
+See [Search Highlighter](/plugins/search-highlighter/) to enable it and for its options.

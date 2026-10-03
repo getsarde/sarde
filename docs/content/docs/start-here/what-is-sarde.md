@@ -7,9 +7,9 @@ sidebar:
   order: 1
 ---
 
-Sarde is a static site generator (SSG). It reads a folder of Markdown files and writes a complete, themed website that can be hosted anywhere. It is ideal for product or API documentation, course materials, and blogs, or anything that needs clean navigation and search without setup.
+Sarde is a static site generator (SSG). It reads a folder of Markdown files and writes a complete, themed website that can be hosted anywhere. It suits product and API documentation, course materials, and blogs.
 
-There is no frontend project to set up first, and no build tooling to assemble. A site is complete on the first build, with navigation, syntax highlighting, and search already in place. Configuration adjusts those defaults rather than producing them.
+The first build produces a complete site, with navigation, syntax highlighting, and search in place. Configuration changes those defaults, and none of it is required.
 
 ## How it works
 
@@ -29,14 +29,14 @@ Build the site:
 sarde build
 ```
 
-→ The terminal prints:
+→ The output ends with:
 
 ```text
 Built in 320 ms
   Output: /path/to/my-site/dist
 ```
 
-`content/docs/photosynthesis.md` is now a page at `/docs/photosynthesis/`. The file path determines the URL, so moving a file moves its page and renaming a file renames its URL.
+`content/docs/photosynthesis.md` is now a page at `/docs/photosynthesis/`. The file path determines the URL, so moving or renaming a file changes the URL of its page.
 
 ## Build output
 
@@ -45,16 +45,18 @@ Built in 320 ms
 - One HTML page per Markdown file, on a responsive theme with light and dark modes
 - A sidebar built from the directory structure, and a table of contents per page
 - Full-text search that runs offline in the browser
-- Internal link validation on every build, and link prefetching on hover
 - Syntax highlighting for code blocks
+- Link prefetching on hover
 - A compiled CSS bundle and a small JavaScript bundle
 - Responsive images converted to WebP, with low-quality placeholders
-- RSS and Atom feeds for date-sorted collections, `sitemap.xml`, and `robots.txt`
+- RSS and Atom feeds for blog collections, `sitemap.xml`, `robots.txt`, and `llms.txt`
 - Social card images for link previews
+
+Every build also checks internal links and anchors, and most broken ones stop the build.
 
 Nothing in `dist/` needs Sarde or Go at runtime. The output is plain HTML, CSS, and JavaScript, so it runs on GitHub Pages, Netlify, Cloudflare Pages, Vercel, an object storage bucket, or a directory served by nginx. If Sarde stops being the right tool later, the built site keeps working and the Markdown sources stay readable.
 
-## No toolchain
+## A single executable
 
 Sarde is a single compiled executable. Installing it puts one file on the `PATH`.
 
@@ -64,9 +66,7 @@ There is no `node_modules` directory, no lockfile, and no dependency install bef
 
 Pages are Markdown with a short block of frontmatter at the top:
 
-`content/docs/photosynthesis.md`
-
-```markdown
+```markdown title="content/docs/photosynthesis.md"
 ---
 title: Photosynthesis Overview
 sidebar:
@@ -79,13 +79,13 @@ Plants convert light energy into chemical energy through a series of reactions
 in the chloroplast.
 ```
 
-That file opens in any text editor. It diffs cleanly in review, merges like source code, and carries its history in Git. Moving the content to another tool needs no export step, because the Markdown files are the only copy.
+The file opens in any text editor. It diffs cleanly in review, merges like source code, and carries its history in Git. Moving the content to another tool needs no export step, because the Markdown files are the only copy.
 
 ## Convention-based defaults
 
-Sarde reads the folder layout and infers how each group of content should behave. A `docs/` directory gets documentation navigation with a collapsible sidebar and Previous/Next links. A `blog/` directory gets posts sorted newest first, with a feed. These names are a convention, not a requirement: any name works, and an unrecognized directory becomes a general collection sorted by title.
+Sarde reads the folder layout and infers how each group of content behaves. A `docs/` directory gets documentation navigation with a collapsible sidebar and Previous/Next links. A `blog/` directory gets posts sorted newest first, with a feed. Any other directory name also works, and an unrecognized name becomes a general collection sorted by title.
 
-`sarde.yaml` at the project root changes the defaults. Every setting has one, so the file only needs the values that differ, and an empty file is valid.
+A `sarde.yaml` file at the project root changes the defaults. Every setting has a default, so the file is optional and needs only the values that differ.
 
 [Core Concepts](/start-here/core-concepts/) covers which directory names mean what, and [Configuration](/reference/configuration/) lists every key.
 
@@ -98,11 +98,11 @@ Sarde fits sites where files are the source of truth and content changes through
 - Handbooks and internal wikis
 - Blogs and changelogs
 
-The choices that make those sites easy cost flexibility elsewhere:
+That design comes with tradeoffs:
 
-- **Conventions carry weight**: Directory names determine layout and sorting, so renaming `docs/` to `handbook/` changes the inferred behavior unless the collection is configured explicitly.
+- **Directory names change behavior**: Renaming `docs/` to `handbook/` changes the inferred layout and sorting unless the collection is configured explicitly.
 - **No server-side rendering**: Pages are built once, so anything that varies per visitor has to happen in the browser or in a separate service.
 - **No browser-based editing**: Publishing means editing a file and running a build, usually through Git. Contributors who expect a publish button need a content management system instead.
-- **A smaller ecosystem**: Hugo and Astro have more themes, more plugins, and more answered questions. Sarde covers documentation and content sites thoroughly rather than trying to cover everything.
+- **A smaller ecosystem**: Hugo and Astro have more themes, more plugins, and more answered questions. Sarde targets documentation, course, and blog sites.
 
 Continue to [Getting Started](/start-here/getting-started/) to install Sarde and build a first site. Once it runs, [Core Concepts](/start-here/core-concepts/) explains the model behind these defaults.

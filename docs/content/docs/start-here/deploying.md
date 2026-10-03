@@ -5,26 +5,30 @@ sidebar:
   order: 4
 ---
 
-Sarde builds a static site that works on any hosting provider. Build it once, then follow the guide for your host.
+Sarde builds a static site that any static host can serve. Build it once, then follow the guide for your host.
 
 ## Build for production
+
+Run the build from the project folder. If the dev server is running there, stop it first, because both commands write to `dist/`.
 
 ```sh
 sarde build
 ```
 
-→ The terminal prints a summary:
+→ The output ends with:
 
 ```text
 Built in 320 ms
   Output: /path/to/my-site/dist
 ```
 
-The `dist/` directory contains the complete site: HTML pages, CSS, JavaScript, images, feeds, sitemap, and search index.
+The `dist/` directory contains the complete site: HTML pages, CSS, JavaScript, images, feeds, sitemap, and search index. Drafts, scheduled pages, and expired pages are left out.
 
-## Pick your host
+## Choose a host
 
-- [GitHub Pages](/deployment/github-pages/): publish with GitHub Actions or push to a `gh-pages` branch.
+Each guide covers the deployment methods its host supports:
+
+- [GitHub Pages](/deployment/github-pages/): publish with GitHub Actions, or push `dist/` to a branch with `sarde deploy`.
 - [Netlify](/deployment/netlify/): build from Git, deploy with `sarde deploy`, or use the Netlify CLI.
 - [Cloudflare Pages](/deployment/cloudflare-pages/): build from Git, deploy with `sarde deploy`, or use Wrangler.
 - [Vercel](/deployment/vercel/): build from Git, deploy with `sarde deploy`, or use the Vercel CLI.

@@ -1,6 +1,6 @@
 ---
 title: Assignments
-description: Practice what you learned in Go Essentials.
+description: Practice what you learned in Python Essentials.
 sidebar:
   order: 3
   badge:

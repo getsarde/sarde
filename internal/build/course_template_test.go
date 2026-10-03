@@ -47,14 +47,14 @@ func TestBuild_CourseTemplate(t *testing.T) {
 	for _, page := range []string{
 		"index.html",
 		"announcements/index.html",
-		"courses/go-essentials/index.html",
+		"courses/python-essentials/index.html",
 		"courses/web-fundamentals/assignments/build-a-page/index.html",
 		"labs/index.html",
 		"labs/web-fundamentals/build-a-webpage/scaffold/index.html",
 		"labs/web-fundamentals/hello-world/index.html",
-		"labs/go-essentials/cli-todo-app/testing/index.html",
+		"labs/python-essentials/cli-todo-app/testing/index.html",
 	} {
 		assertFixtureFileExists(t, distDir, page)
 	}
-	assertFixtureFileContains(t, distDir, "courses/go-essentials/index.html", "sarde-tab-switcher")
+	assertFixtureFileContains(t, distDir, "courses/python-essentials/index.html", "sarde-tab-switcher")
 }

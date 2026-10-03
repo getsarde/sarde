@@ -297,7 +297,7 @@ func TestRunNewSite_CourseTemplate(t *testing.T) {
 
 	assertExists(t, site, "kazari.config.yaml", ".gitignore",
 		"public/images/hero-light.svg", "public/images/hero-dark.svg",
-		"content/courses/go-essentials/_index.md", "content/labs/web-fundamentals/hello-world/_index.md")
+		"content/courses/python-essentials/_index.md", "content/labs/web-fundamentals/hello-world/_index.md")
 	assertMissing(t, site, "content/blog")
 }
 
@@ -310,4 +310,23 @@ func TestRunNewSite_InvalidTemplate(t *testing.T) {
 		t.Errorf("error = %q, want the unknown name and the available templates", err)
 	}
 	assertMissing(t, site, "sarde.yaml")
+}
+
+// The scaffolded kazari.config.yaml must not set darkMode: Sarde applies its
+// own dark-mode selector so code blocks follow the theme toggle, and a darkMode
+// entry would only trigger a build warning.
+func TestRunNewSite_KazariConfigLeavesDarkModeToSarde(t *testing.T) {
+	site, err := runNewSiteIn(t, "")
+	if err != nil {
+		t.Fatalf("new site failed: %v", err)
+	}
+	data, err := os.ReadFile(filepath.Join(site, "kazari.config.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		if strings.HasPrefix(line, "darkMode:") {
+			t.Errorf("kazari.config.yaml sets darkMode:\n%s", data)
+		}
+	}
 }

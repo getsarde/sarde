@@ -5,9 +5,11 @@ sidebar:
   order: 2
 ---
 
-This guide covers installing Sarde and creating a first website with it. No step assumes prior experience with build tools. By the end, a themed site is running in the browser and updating itself on every save, a first page sits in the sidebar, and a production build waits in `dist/`, ready to put on the web.
+Install Sarde, create a site, and preview it in the browser. By the end, a themed site runs locally and updates on every save, a new page appears in its sidebar, and a production build sits in `dist/`, ready to publish. The steps need a terminal and a text editor, and assume no experience with build tools.
 
 ## Install Sarde
+
+Choose one installation method:
 
 :::tabs
 
@@ -26,6 +28,8 @@ The install script supports macOS and Linux. On Windows, use the Windows tab ins
 ```sh
 curl -sSfL https://raw.githubusercontent.com/getsarde/sarde/main/install.sh | sh
 ```
+
+The script installs `sarde` into `/usr/local/bin`, or into `~/.local/bin` when `/usr/local/bin` is not writable. If it prints `Add <directory> to your PATH`, run the `export` command it shows, and add the same line to the shell profile (for example, `~/.bashrc` or `~/.zshrc`) to keep it for new terminals.
 
 == Windows
 
@@ -54,7 +58,7 @@ Verify the installation:
 sarde version
 ```
 
-→ The terminal prints:
+→ The terminal prints the Sarde version, the Go version, and the platform:
 
 ```text
 sarde 1.0.0
@@ -62,9 +66,11 @@ Go: go1.25.0
 OS/Arch: linux/amd64
 ```
 
+An error saying that `sarde` is not found or not recognized means the folder that holds the program is not on the `PATH`. Open a new terminal window and run the command again before repeating the install steps.
+
 ## Create a site
 
-One command produces a complete, working site: configuration, a homepage, a sample blog post, and a sample docs page. There is nothing to assemble before seeing results; writing can start from a site that already works.
+`sarde new site` creates a working site in a new folder: a configuration file, a homepage, a sample blog post, and a sample docs page. Create a site named `my-site` and move into its folder:
 
 ```sh
 sarde new site my-site
@@ -78,7 +84,7 @@ Created new site at /path/to/my-site
   Run 'sarde dev' to start the dev server.
 ```
 
-The scaffolded project contains everything needed to start:
+The `my-site` folder contains:
 
 ```text
 my-site/
@@ -94,6 +100,8 @@ my-site/
       getting-started.md # Sample docs page
   public/
     images/
+      hero-light.svg     # Homepage illustration, light mode
+      hero-dark.svg      # Homepage illustration, dark mode
   .gitignore
 ```
 
@@ -101,7 +109,7 @@ The `sarde.yaml` file controls the site title, theme preset, homepage hero, and 
 
 ## Start the dev server
 
-The dev server is a private preview of the site, running only on this machine; nobody else can see it. It watches the project's files, and every time a file is saved it rebuilds the affected pages and refreshes the browser on its own. Leave it running in the terminal while writing.
+The dev server is a private preview of the site that runs only on this machine. It watches the project files, and on every save it rebuilds the affected pages and refreshes the browser. Start it and leave it running while writing:
 
 ```sh
 sarde dev
@@ -117,15 +125,13 @@ sarde dev
 
 Open `http://localhost:4727` in a browser.
 
-→ A finished-looking site appears: a homepage with a hero section, a navigation bar linking to the sample blog and docs pages, working search, and a dark mode toggle. All of it comes from the scaffold; no configuration was involved.
+→ The site appears with a homepage hero section, a navigation bar that links to the sample blog and docs pages, search, and a dark mode toggle. All of it comes from the scaffold, with no configuration.
 
-From here on, the loop is: edit a file, save, glance at the browser. The page refreshes automatically, and CSS changes appear without even a page reload.
-
-[Draft, scheduled, and expired content](/guides/writing-content/#drafts-scheduled-and-expiring-content) is included by default in dev mode. Use `--no-drafts` to exclude it.
+From here on, edit a file, save it, and check the browser. The page refreshes on its own, and CSS changes apply without a page reload. To stop the dev server, press `Ctrl+C` in its terminal.
 
 ## Add content
 
-Time to add a page of your own. `sarde new` creates the file in the right folder with the metadata already filled in:
+The dev server occupies its terminal, so open a second terminal window and move into the `my-site` folder. Create a page with `sarde new`, which takes the name of a *collection* (a top-level folder in `content/`) and a page title:
 
 ```sh
 sarde new docs "My First Page"
@@ -137,17 +143,17 @@ sarde new docs "My First Page"
 Created content/docs/my-first-page.md
 ```
 
-Open `content/docs/my-first-page.md` in an editor. The file starts with *frontmatter*, a short metadata block between `---` fences that sets the page title and other fields. Sarde pre-fills it:
+Open `content/docs/my-first-page.md` in a text editor. The file starts with *frontmatter*, a short metadata block between `---` fences that sets the page title and other fields. Sarde fills it in:
 
 ```yaml
 ---
+date: "2026-03-15T09:00:00-05:00"
 draft: true
 title: My First Page
-date: 2026-03-15T09:00:00-05:00
 ---
 ```
 
-The `draft: true` line marks the page as work in progress: the dev server shows it, but `sarde build` leaves it out. Remove the line (or set it to `false`) when the page is ready to publish.
+The `draft: true` line marks the page as work in progress. The dev server shows drafts, and `sarde build` leaves them out. [Drafts, scheduled, and expiring content](/guides/writing-content/#drafts-scheduled-and-expiring-content) explains the publishing rules.
 
 Add Markdown content below the frontmatter and save the file:
 
@@ -162,32 +168,35 @@ and more are built in.
 :::
 ```
 
-The browser updates automatically, the new page appears in the sidebar navigation, and the `:::note` block renders as a colored callout. See [Using Extensions](/extensions/using-extensions/) for the full extended syntax.
+Open `http://localhost:4727/docs/my-first-page/` in the browser.
 
-Sarde auto-detects the collection type from the directory name. Content in `docs/` gets the docs layout with sidebar navigation, while content in `blog/` gets the blog layout with date-sorted posts.
+→ **My First Page** appears in the docs sidebar, and the `:::note` block renders as a colored callout.
+
+The page joined the docs sidebar because of the folder it is in. Sarde infers how a collection behaves from its directory name: `docs/` gets sidebar navigation, and `blog/` gets posts sorted newest first. [Core Concepts](/start-here/core-concepts/#collections) lists the recognized names, and [Using Extensions](/extensions/using-extensions/) covers the full extended syntax.
 
 ## Build the site
 
-Building is the step that turns the project into something publishable. The dev server renders pages on demand for one viewer; a build writes every page out ahead of time as plain files, so a web host can serve them to anyone without running Sarde at all.
+`sarde build` writes the whole site into `dist/` as plain files that a web host can serve without running Sarde. A build leaves drafts out, so remove the `draft: true` line from `content/docs/my-first-page.md` and save the file.
 
-Remove the `draft: true` line from the new page, then build:
+The dev server and the build both write to `dist/`, and only one of them can use it at a time. A build started while the dev server runs stops with `another sarde process ... is already writing to output directory`. Stop the dev server with `Ctrl+C`, then build:
 
 ```sh
 sarde build
 ```
 
-→ The terminal prints:
+→ The output ends with:
 
 ```text
 Built in 320 ms
   Output: /path/to/my-site/dist
 ```
 
-The `dist/` directory is the complete site as plain HTML, CSS, and JavaScript. It needs no server-side runtime, so any static host can serve it. [Deploying](/start-here/deploying/) covers publishing it to GitHub Pages, Netlify, Cloudflare Pages, Vercel, or a custom target.
+Before those lines, the build prints the link check result, a table of page counts, and one line per plugin. Outside a Git repository, it also prints a `git strategy unavailable` warning. The build still succeeds, and page dates come from file modification times.
+
+The `dist/` directory is the complete site as HTML, CSS, and JavaScript. [Deploying](/start-here/deploying/) covers publishing it to GitHub Pages, Netlify, Cloudflare Pages, Vercel, or another host.
 
 ## Next steps
 
 - [Writing Content](/guides/writing-content/) covers frontmatter, drafts, and page bundles
 - [Content and Collections](/guides/content-and-collections/) explains how folders become blogs, docs, and courses
-- [Using Extensions](/extensions/using-extensions/) tours the extended Markdown: asides, tabs, cards, and more
-- [Deploying](/start-here/deploying/) publishes the site to the web
+- [Core Concepts](/start-here/core-concepts/) explains how content, configuration, and a theme combine into a site

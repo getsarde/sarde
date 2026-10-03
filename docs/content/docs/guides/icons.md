@@ -5,7 +5,7 @@ sidebar:
   order: 17
 ---
 
-Sarde renders inline SVG icons from Iconify icon sets and local SVG files. Insert icons in Markdown with the `:icon[name]` extension. Lucide is the default bundled set.
+Sarde renders inline SVG icons from Iconify icon sets and from your own SVG files. Insert an icon in Markdown with `:icon[name]`. The Lucide set is bundled, so those icons work with no setup.
 
 ## Basic usage
 
@@ -15,73 +15,83 @@ Insert an icon by name:
 Click the :icon[settings] icon to open preferences.
 ```
 
-Result: An inline SVG of the Lucide "settings" icon appears in the text.
+→ The Lucide "settings" icon appears inline in the text.
 
-Add attributes for color and size:
+Add attributes after the name to set color and size:
 
 ```markdown
-:icon[alert-triangle color="orange" size=20]
+:icon[alert-triangle color="orange" width=20 height=20]
 ```
 
-Result: An orange warning triangle at 20px.
+→ An orange warning triangle, 20 pixels square, appears in the text. Without `width` and `height`, icons render at 16 pixels.
 
 ## Icon resolution
 
-When Sarde encounters `:icon[name]`, it resolves the icon in this order:
+For a name without a prefix, Sarde looks for the icon in this order:
 
-1. **Local SVGs** (`icons/` directory): if `name.svg` exists, use it
-2. **Default icon set** (Lucide): look up `name` in the bundled set
-3. **Fallback**: render a `circle-help` placeholder icon
+1. **Local SVGs:** `name.svg` in the `icons/` directory.
+2. **Default icon set:** `name` in the set named by `icons.default_prefix` (Lucide by default).
+3. **Alias:** a few shorthand names map to Lucide icons when the default prefix is `lucide`, for example `warning`, `note`, `tip`, `arrow`, and `close`.
+4. **Fallback:** a `circle-help` placeholder icon.
+
+A missing icon never fails the build and produces no warning, so a typo shows up as the placeholder on the page.
 
 ### Prefixed names
 
-Reference icons from a specific set with the `prefix:name` syntax:
+Write `prefix:name` to take an icon from a specific set, skipping local files:
 
 ```markdown
 :icon[tabler:brand-github]
 :icon[simple-icons:typescript]
 ```
 
-The `brands:` prefix is a shortcut for `simple-icons:`:
+`brands:` is a shortcut for `simple-icons:`:
 
 ```markdown
 :icon[brands:github]
 ```
 
-## Adding icon sets
+A prefixed icon renders only when its set is loaded. See [Add icon sets](#add-icon-sets).
 
-Sarde supports any icon set published in Iconify JSON format (4000+ sets available). Download sets with the CLI:
+## Add icon sets
 
-```sh
-sarde icons add tabler simple-icons
-```
+Sarde reads icon sets in Iconify JSON format. Adding a set takes two steps: download it, then tell Sarde where the downloaded files are.
 
-Result: Downloads `tabler.json` and `simple-icons.json` into the `icon-sets/` directory or the path configured in `icons.sets_dir`.
+1. From the project directory, download one or more sets by prefix:
 
-Browse available sets:
+   ```sh
+   sarde icons add tabler simple-icons
+   ```
 
-```sh
-sarde icons list
-```
+   → The command saves `tabler.json` and `simple-icons.json` into `icon-sets/` (or into `--dest` or `icons.sets_dir` when given), and prints one line per set. It fetches the sets from the npm registry.
 
-Result: Displays a paginated table of all Iconify sets with prefix, name, icon count, and local download status.
+2. Point `icons.sets_dir` at that directory:
 
-Filter the list:
+   ```yaml title="sarde.yaml"
+   icons:
+     sets_dir: "icon-sets"
+   ```
 
-```sh
-sarde icons list --search "brand"
-```
+   Sarde loads every `*.json` file in `sets_dir` and registers each set under the `prefix` stored inside the file.
 
-After downloading, reference icons with the set prefix:
+Reference the icons with the set prefix:
 
 ```markdown
 :icon[tabler:home]
 :icon[simple-icons:react]
 ```
 
+To see which sets are available, run `sarde icons list`. It prints the prefix, name, icon count, category, license, and a `*` in the `DL` column for sets already downloaded, 30 rows at a time. Filter by prefix, name, or category:
+
+```sh
+sarde icons list --search "brand"
+```
+
+See [CLI Commands](/reference/cli-commands/#icons) for all flags. Some sets use licenses that require attribution, such as CC BY. When a page uses such a set and `icons.attribution` is empty, the build logs a warning. Set `attribution` to the credit line you show on the site.
+
 ## Custom local icons
 
-Place SVG files in the `icons/` directory (configurable via `icons.local_dir`):
+Put SVG files in the `icons/` directory (change it with `icons.local_dir`):
 
 ```text
 icons/
@@ -89,20 +99,20 @@ icons/
   custom-arrow.svg
 ```
 
-Reference them by filename (without `.svg`):
+Reference them by filename without `.svg`:
 
 ```markdown
 :icon[logo]
 :icon[custom-arrow]
 ```
 
-Local icons take priority over set icons. A file at `icons/home.svg` overrides the Lucide `home` icon.
+Subdirectories of `icons/` are not scanned. Local icons win over set icons for names without a prefix, so `icons/home.svg` replaces the Lucide `home` icon. `:icon[lucide:home]` still reaches the Lucide icon.
 
 ## Configuration
 
-Configure the icon system in `sarde.yaml`:
+Icons need no configuration for Lucide and local files. Add keys to `sarde.yaml` to load other sets or change the output:
 
-```yaml
+```yaml title="sarde.yaml"
 icons:
   default_prefix: "lucide"
   sets_dir: "icon-sets"
@@ -112,40 +122,43 @@ icons:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `default_prefix` | string | `"lucide"` | Icon set used for bare (prefixless) names |
-| `sets` | array | `[]` | Extra Iconify JSON sets to load: `[{prefix: "mdi", file: "icon-sets/mdi.json"}]` |
-| `sets_dir` | string | `""` | Directory of Iconify `*.json` files, auto-discovered by filename |
-| `local_dir` | string | `"icons"` | Directory of local `*.svg` files |
-| `attribution` | string | `""` | Attribution line for sets whose license requires it |
-| `render` | string | `"inline"` | Output mode: `"inline"` (full `<svg>` per use) or `"sprite"` (one `<symbol>` per unique icon, referenced via `<use>`) |
+| `default_prefix` | string | `"lucide"` | Icon set used for names without a prefix. |
+| `sets` | array | `[]` | Individual Iconify JSON files to load, as `file` entries such as `[{prefix: "mdi", file: "icon-sets/mdi.json"}]`. The set's prefix comes from the file's own `prefix` field. |
+| `sets_dir` | string | `""` | Directory whose `*.json` files are all loaded as icon sets. |
+| `local_dir` | string | `"icons"` | Directory of local `*.svg` files. |
+| `attribution` | string | `""` | Credit line for sets whose license requires attribution. |
+| `render` | string | `"inline"` | `"inline"` writes a full `<svg>` for each use. `"sprite"` writes one `<symbol>` per unique icon and references it with `<use>`. |
 
 ### Render modes
 
-- **`inline`** (default): each `:icon[name]` emits a complete `<svg>` element. Produces larger HTML but each icon is self-contained.
-- **`sprite`**: emits one hidden `<symbol>` per unique icon per page and references it with `<svg><use href="#..."></svg>`. Smaller HTML when the same icon appears many times on a page.
+- **`inline`** (default) writes a complete `<svg>` element for each `:icon[name]`. The HTML is larger, and each icon is self-contained.
+- **`sprite`** writes one hidden `<symbol>` per unique icon on each page and references it with `<svg><use href="#..."></svg>`. The HTML is smaller when the same icon appears many times on a page.
 
 ## Icon attributes
 
-The `:icon[]` extension accepts these attributes inside the brackets:
+The `:icon[]` extension accepts these attributes after the name:
 
 | Attribute | Description |
 |-----------|-------------|
-| `color` | Icon color (any CSS color value) |
-| `size` | Icon size in pixels |
-| `width` | Icon width (overrides size for non-square) |
-| `height` | Icon height (overrides size for non-square) |
-| `rotate` | Rotation in degrees |
-| `flip` | Flip direction: `horizontal`, `vertical`, `both` |
-| `title` | Accessible title text |
-| `aria-label` | ARIA label for screen readers |
+| `color` | Icon color, any CSS color value. Lucide icons draw with `currentColor`, so this recolors them. |
+| `width` | Width in pixels. Defaults to 16. |
+| `height` | Height in pixels. Defaults to 16. |
+| `rotate` | Rotation in degrees. |
+| `flip` | Flip direction: `horizontal`, `vertical`, or `both`. |
+| `class` | CSS class added to the `<svg>` element. |
+| `style` | Inline CSS added to the `<svg>` element. |
+| `title` | Accessible title text. Adds a `<title>` element and `role="img"`. |
+| `aria-label` | ARIA label for screen readers. Adds `role="img"`. |
 
-Icons without `title` or `aria-label` are rendered with `aria-hidden="true"` for accessibility.
+There is no `size` attribute. Set `width` and `height` instead. Any other attribute passes through to the `<svg>` element unchanged.
+
+An icon without `title` or `aria-label` is hidden from assistive technology with `aria-hidden="true"`.
 
 ## Icons on pages and sections
 
-`sidebar.icon` in a page's frontmatter sets the icon on its sidebar entry, and the same icon is rendered before the page's own `<h1>`:
+`sidebar.icon` in a page's frontmatter sets the icon on its sidebar entry. The same icon is also drawn before the page's `<h1>`:
 
-```yaml
+```yaml title="content/docs/guides/_index.md"
 ---
 title: Guides
 sidebar:
@@ -153,8 +166,8 @@ sidebar:
 ---
 ```
 
-On a section's `_index.md` this gives the section index page a heading icon matching its sidebar group, which is where the field is most useful.
+On a section's `_index.md`, this gives the section index page a heading icon that matches its sidebar group. See [Frontmatter](/reference/frontmatter/#sidebar-fields) for the sidebar fields.
 
-A page-level `icon` field is separate and does not touch the sidebar. See [Frontmatter](/reference/frontmatter#sidebar-fields).
+A page-level `icon` field is separate from `sidebar.icon`. The default theme does not render it, and it is available to custom templates as `.Page.Params.icon`.
 
-See [CLI Commands](/reference/cli-commands#icons) for `sarde icons` usage, and [Configuration](/reference/configuration/theme-and-appearance/#icons) for all icon settings.
+Templates can draw icons with the `icon` function. See [Template Functions](/reference/template-functions/) and [Configuration](/reference/configuration/theme-and-appearance/#icons) for all icon settings.

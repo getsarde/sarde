@@ -338,11 +338,11 @@ mysite/
 `--template course` creates a course site: courses with lessons and assignments, hands-on labs grouped by course, an announcements page, and a homepage. The sample pages use Markdown extensions such as tabs, steps, and collapsible panels. The same site is published as the [course-template](https://github.com/getsarde/course-template) repository.
 
 ```
-sarde new site my-academy --template course
+sarde new site my-college --template course
 ```
 
 ```
-my-academy/
+my-college/
   sarde.yaml
   kazari.config.yaml
   .gitignore
@@ -350,10 +350,10 @@ my-academy/
     _index.md
     announcements.md
     courses/
-      go-essentials/          # one course: _index.md, lessons, assignments/
+      python-essentials/      # one course: _index.md, lessons, assignments/
       web-fundamentals/
     labs/
-      go-essentials/          # labs grouped by course, one directory per lab
+      python-essentials/      # labs grouped by course, one directory per lab
       web-fundamentals/
   public/
     images/

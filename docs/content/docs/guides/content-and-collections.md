@@ -5,13 +5,11 @@ sidebar:
   order: 2
 ---
 
-Collections turn folders of related Markdown files into organized areas of a
-site, such as a blog, documentation library, course, or reference section.
+Collections turn folders of related Markdown files into organized areas of a site, such as a blog, documentation library, course, or reference section.
 
 ## What are collections
 
-A *collection* is any top-level subdirectory inside `content/` that contains
-Markdown content.
+A *collection* is any top-level subdirectory inside `content/` that contains Markdown content.
 
 ```text
 content/
@@ -23,68 +21,59 @@ content/
     lesson-planning.md
 ```
 
-`blog/` and `docs/` become separate collections. Sarde uses the folder name as
-the collection name and URL mount, so these folders render at `/blog/` and
-`/docs/`. Each collection carries its own inferred defaults: sorting, layout,
-sidebar, table of contents, and feeds.
+`blog/` and `docs/` become separate collections. Sarde uses the folder name as the collection name and URL mount, so these folders render at `/blog/` and `/docs/`. Each collection carries its own inferred defaults: sorting, layout, sidebar, table of contents, and feeds.
 
-This is a convention, not a special setup step. Any top-level folder with
-Markdown content becomes a collection. Known folder names only change the
-defaults Sarde applies.
+A known folder name only changes the defaults Sarde applies. Folders that start with `.` or `_` are ignored, and the language folders of a multilingual site are language roots, not collections (see [Internationalization](/guides/internationalization/)).
 
 ## Auto-detection rules
 
-Sarde recognizes four collection families by directory name:
+Sarde recognizes four collection families by directory name. Any other name gets the default behavior.
 
 | Directory names | Type | Sort | Layout | Feed | Sidebar |
-|-----------------|------|------|--------|------|---------|
+|---|---|---|---|---|---|
 | `blog`, `posts`, `articles`, `news` | Blog | date (newest first) | default | yes | no |
 | `docs`, `documentation`, `guides`, `reference`, `courses`, `tutorials`, `lessons`, `workshops` | Docs | order (ascending) | docs | no | yes |
 | `slides`, `presentations`, `decks` | Slides | date (newest first) | default list rendered as a gallery, presentation per deck | no | no |
 | `labs` | [Labs](/teaching/labs/) | order (ascending) | default at the top, labs inside a lab | no | yes (per lab) |
 | Any other name | Default | title (ascending) | default | no | no |
 
-Naming a directory `blog/` is a convention. Sarde auto-detects it as a date-sorted collection with feeds, but any directory name works. A directory named `updates/` would get default-type behavior unless overridden in `sarde.yaml`.
+A directory named `updates/` gets the default behavior. To give it blog or docs behavior, configure the collection in `sarde.yaml` (see [Overriding collection config](#overriding-collection-config)) instead of renaming the directory.
 
 ## Per-collection defaults
 
-Each collection type comes with pre-configured behavior:
+Beyond the table, each family sets these defaults.
 
 ### Blog collections
 
-- Sorted by `date` descending (newest first)
 - Paginated at 10 posts per page
-- RSS/Atom feeds enabled
-- Prev/next links wired from the sorted post order
+- RSS and Atom feeds enabled
+- Previous and next links follow the sorted post order, labeled Newer and Older
 
 ### Docs collections
 
-- Sorted by `order` ascending (controlled by frontmatter `sidebar.order` or numeric filename prefix)
-- Docs layout with sidebar navigation
-- Collapsible sidebar with 4-level depth
-- Table of contents enabled (H2 through H4)
-- Prev/next links wired from the sidebar order
+- Sorted by `sidebar.order` from frontmatter or a numeric filename prefix, then by title
+- Collapsible sidebar, 4 levels deep
+- Table of contents for H2 through H4, with scroll highlighting
+- Previous and next links follow the sidebar order
 
 ### Slides collections
 
-- Sorted by `date` descending (newest first)
-- The list page uses the default layout, rendered through a gallery template with a card grid (thumbnails, slide counts, tags, authors). There is no separate `gallery` layout value.
-- Deck pages auto-default to `layout: presentation` (full-viewport slide viewer, no configuration needed)
-- Course subdirectories render as nested galleries
-- See the [Teaching](/teaching/) section for the full guide
+- The list page uses the default layout, rendered as a gallery of cards (thumbnails, slide counts, dates, tags, authors). There is no separate `gallery` layout value.
+- Deck pages use `layout: presentation` with no configuration.
+- Subdirectories appear as course cards on the list page.
+
+See the [Teaching](/teaching/) section for the full guide.
 
 ### Default collections
 
-- Sorted by `title` ascending
-- Default layout (no sidebar, no TOC)
+- Sorted by title
+- Default layout, with no sidebar or table of contents
 
 ## Overriding collection config
 
-Override any auto-detected default in `sarde.yaml` under the `collections` key:
+Override any inferred default in `sarde.yaml` under the `collections` key:
 
-`sarde.yaml`
-
-```yaml
+```yaml title="sarde.yaml"
 collections:
   blog:
     sort: "title asc"
@@ -101,25 +90,25 @@ collections:
     layout: "docs"
 ```
 
-Available per-collection settings:
+Settings you leave out keep the inferred value. These settings are available per collection:
 
 | Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `sort` | string | Inferred from folder name | Sort field and direction, such as `"date desc"`, `"order asc"`, or `"title asc"`. |
-| `layout` | string | Inferred from folder name | Layout type: `default`, `docs`, `splash`, `wide`, `full`, `centered`, or `split`. |
-| `paginate` | int | `10` for blog collections, otherwise `0` | Items per page for list views. `0` disables pagination. |
-| `feed` | bool | `true` for blog collections, otherwise `false` | Generate RSS/Atom feeds for this collection when feed plugins are enabled. |
+|---|---|---|---|
+| `sort` | string | Inferred from folder name | Sort field and direction, such as `"date desc"`, `"order asc"`, or `"title asc"`. The fields are `date`, `order`, `title`, and `slug`. |
+| `layout` | string | Inferred from folder name | `default`, `docs`, `splash`, `wide`, `full`, `centered`, `split`, or `presentation`. |
+| `paginate` | int | `10` for blog collections, otherwise `0` | Items per page for list views. Set a positive number. `0` keeps the inferred value, so it does not turn pagination off for a blog collection. |
+| `feed` | bool | `true` for blog collections, otherwise `false` | Generate RSS and Atom feeds for this collection when the feed plugins are enabled. |
 | `tabs` | bool | Auto-detected | Enable or disable tabbed docs navigation. See [Tabbed Navigation](/guides/tabbed-navigation/). |
-| `permalink` | string | File path URL | URL pattern for non-index pages. |
-| `sidebar` | object | Inferred for docs collections | Sidebar sub-config: `collapsible`, `collapsed_by_default`, `max_depth`, `search`. |
-| `toc` | object | Inferred for docs collections | Table of contents sub-config: `enabled`, `depth`, `scroll_highlight`. |
-| `versioning` | object | Disabled | Version config: `enabled`, `versions`, `last_version`. |
+| `permalink` | string | File path URL | URL pattern for non-index pages. Write the full path, including the collection prefix (for example `/blog/:year/:slug/`). Placeholders: `:slug`, `:year`, `:month`, `:day`, `:section`, `:collection`, `:title`. |
+| `sidebar` | object | Inferred for docs collections | `collapsed_by_default`, `collapse_level`, `max_depth`. See [Navigation and Sidebar](/guides/navigation-and-sidebar/#collapsible-sections). |
+| `toc` | object | Inferred for docs collections | `enabled`, `depth`, `scroll_highlight`. |
+| `versioning` | object | Disabled | `enabled`, `versions`, `last_version`. See [Versioning](/guides/versioning/). |
 
-See [Configuration](/reference/configuration/) for the complete reference.
+See [Configuration](/reference/configuration/content/#collections) for the complete reference.
 
 ## Sections and `_index.md`
 
-Subdirectories within a collection become *sections*. Each section can have an `_index.md` file that defines the section's title, order, and metadata.
+Subdirectories within a collection become *sections*. A section can have an `_index.md` file that sets its title, order, and other metadata.
 
 ```text
 content/docs/
@@ -135,11 +124,11 @@ content/docs/
     frontmatter.md
 ```
 
-The `_index.md` file is optional. Without it, Sarde infers the section title from the directory name and assigns a default order of 0.
+The `_index.md` file is optional. Without it, Sarde infers the section title from the directory name, with any numeric prefix removed and the words title-cased (`my-section/` becomes "My Section").
 
-Use frontmatter in `_index.md` to control the section's sidebar position and label:
+Set the section's sidebar position and label in the frontmatter of its `_index.md`:
 
-```yaml
+```yaml title="content/docs/guides/_index.md"
 ---
 title: Guides
 sidebar:
@@ -148,22 +137,22 @@ sidebar:
 ---
 ```
 
-Sections can nest deeper than the sidebar renders. Sarde builds a tree from the
-directory structure, then sidebar rendering follows the collection's
-`sidebar.max_depth` setting.
+Sections can nest deeper than the sidebar renders. Sarde builds a tree from the directory structure, and the sidebar then follows the collection's `sidebar.max_depth`.
 
 ## Transparent sections
 
-A transparent section groups files on disk without appearing as a separate level in the sidebar. Its child pages are hoisted into the parent section.
+A transparent section groups files on disk without adding a level to the sidebar. Its pages appear in the parent section.
 
 Set `transparent: true` in the section's `_index.md`:
 
-```yaml
+```yaml title="content/docs/internal/_index.md"
 ---
 title: Internal
 transparent: true
 ---
 ```
+
+With this layout:
 
 ```text
 content/docs/
@@ -175,16 +164,13 @@ content/docs/
   other-page.md
 ```
 
-Result: The sidebar shows `page-a` and `page-b` alongside `other-page`, not nested under an "Internal" group. The `internal/` directory still organizes the files on disk.
+→ The sidebar lists `page-a` and `page-b` beside `other-page`, with no "Internal" group. The URLs still include the directory, such as `/docs/internal/page-a/`.
 
-Transparent sections affect navigation structure only. A transparent section can
-still render its own section page. Add `render: false` to the section's
-`_index.md` when the section acts as a navigation group without its own
-page.
+Transparency changes navigation only. The section page itself still renders at `/docs/internal/`. Add `render: false` to the section's `_index.md` to skip that page when the section is only a navigation group.
 
 ## Page bundles
 
-A page bundle is an `index.md` file (not `_index.md`) placed in a directory alongside non-Markdown files. The sibling files (images, PDFs, data files) become assets of that page.
+A page bundle is an `index.md` file (not `_index.md`) in a directory that also holds non-Markdown files. Those sibling files become assets of the page.
 
 ```text
 content/blog/
@@ -200,22 +186,22 @@ Reference bundle assets with relative paths in the Markdown:
 ![Cover image](cover.jpg)
 ```
 
-Moving or renaming the bundle directory moves the page and its assets together.
+Sarde copies the assets next to the page, so `cover.jpg` is served from `/blog/my-post/cover.jpg`. Moving or renaming the bundle directory moves the page and its assets together.
 
 ## Content at the root
 
-Markdown files placed directly in `content/` (not inside a collection directory) become standalone pages. The homepage `_index.md` at `content/_index.md` is a special case that renders using the configured homepage template.
+Markdown files placed directly in `content/` (not inside a collection directory) become standalone pages, for example `content/about.md` at `/about/`. `content/_index.md` is the homepage. See [Homepage](/guides/homepage/) to configure it.
 
 ## Node kinds
 
 Sarde classifies every Markdown file into one of five kinds:
 
 | Kind | File pattern | Example |
-|------|-------------|---------|
+|---|---|---|
 | Home | `content/_index.md` | Homepage |
 | Section | `content/<collection>/<dir>/_index.md` | Section index page |
-| Page | Any `.md` file inside a collection | Regular content page |
+| Page | Any other `.md` file inside a collection | Regular content page |
 | Bundle | `index.md` with sibling non-Markdown files | Page bundle |
-| Standalone | `.md` file at `content/` root (not `_index.md`) | About page, contact page |
+| Standalone | `.md` file at the `content/` root, other than `_index.md` | About page, contact page |
 
-See [Frontmatter](/reference/frontmatter/) for all available frontmatter fields and auto-inference rules.
+An `index.md` with no sibling assets is a regular page and still takes its directory's URL. See [Frontmatter](/reference/frontmatter/) for all frontmatter fields and inference rules.

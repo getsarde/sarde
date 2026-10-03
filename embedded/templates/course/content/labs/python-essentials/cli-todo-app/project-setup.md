@@ -1,29 +1,29 @@
 ---
 title: Project Setup
-description: Create the Go module and entry point.
+description: Create the project folder, virtual environment, and entry point.
 sidebar:
   order: 1
 ---
 
-Initialize the Go module and create the entry point. Replace this with your step instructions.
+Create the project folder, a virtual environment, and the entry point. Replace this with your step instructions.
 
 :::steps
-1. Run `go mod init todo`
-2. Create `main.go`
-3. Add a `main` function that prints "Todo App"
+1. Create a folder named `todo` and open a terminal in it
+2. Run `python -m venv .venv` to create a virtual environment
+3. Create `main.py` with a `main` function that prints "Todo App"
 :::
 
 Your project should look like this:
 
 :::file-tree
 - todo/
-  - **main.go**
-  - go.mod
+  - .venv/
+  - **main.py**
 :::
 
 Check that it runs:
 
 :::terminal
-$ go run .
+$ python main.py
 Todo App
 :::

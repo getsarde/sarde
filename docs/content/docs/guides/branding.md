@@ -7,7 +7,7 @@ sidebar:
 
 Sarde renders a site logo in the header, immediately before the site title. Point `site.logo` at a file in `public/`:
 
-```yaml
+```yaml title="sarde.yaml"
 site:
   logo: /images/logo.svg
 ```
@@ -28,7 +28,7 @@ The config path drops the `public/` segment, so that file is `/images/logo.svg`.
 
 The object form takes a separate image per theme:
 
-```yaml
+```yaml title="sarde.yaml"
 site:
   logo:
     light: /images/logo-light.svg
@@ -55,7 +55,7 @@ Artwork with a transparent background disappears against one of the two themes. 
 
 Set `replaces_title` to show the logo alone:
 
-```yaml
+```yaml title="sarde.yaml"
 site:
   logo:
     light: /images/wordmark.svg
@@ -71,15 +71,17 @@ With the title text visible, an empty `alt` is correct. The text beside the imag
 
 Logo height comes from the `logo-height` token, not a config key. It defaults to `1.75rem` and shrinks to 85 percent of that below 768px. Override it like any other token:
 
-```yaml
+```yaml title="sarde.yaml"
 theme:
   overrides:
     logo-height: "2.25rem"
 ```
 
-See [Theme Tokens](/reference/theme-tokens#layout) for the full layout token list.
+See [Theme Tokens](/reference/theme-tokens/#layout) for the full layout token list.
 
 ### Image formats
+
+How Sarde sizes the logo depends on the file format:
 
 | Format | Dimensions |
 |--------|------------|
@@ -90,22 +92,22 @@ For raster formats, Sarde reads the intrinsic dimensions during the build and em
 
 Files in `public/` bypass the responsive image pipeline, so a raster logo gets no generated `srcset`. Supply it at two to three times the rendered height to stay sharp on high-density displays.
 
-The [Social Cards plugin](/plugins/social-cards#logo-and-watermark) reuses `site.logo` to brand generated Open Graph images, but it can only composite raster formats. With an SVG `site.logo`, the header shows the logo and the cards render without it. To get both, keep the SVG for the header and point `social_cards.logo` at a PNG export.
+The [Social Cards plugin](/plugins/social-cards/#logo-and-watermark) reuses `site.logo` to brand generated Open Graph images, preferring the `dark` variant, but it cannot render SVG. With an SVG `site.logo`, the header shows the logo and the cards render without it. To get both, keep the SVG for the header and set `plugins.config.social_cards.logo` to a PNG export.
 
 ## Favicon
 
 Point `site.favicon` at a file in `public/`:
 
-```yaml
+```yaml title="sarde.yaml"
 site:
   favicon: /favicon.svg
 ```
 
-Sarde sets the `type` attribute from the extension: `image/svg+xml`, `image/x-icon`, or `image/png`.
+Sarde sets the `type` attribute from a `.svg`, `.ico`, or `.png` extension (`image/svg+xml`, `image/x-icon`, `image/png`). Other extensions get no `type` attribute.
 
 ### Auto-detection
 
-With `site.favicon` unset, Sarde looks in `public/` for `favicon.svg`, then `favicon.ico`, then `favicon.png`, and uses the first one found. A project that follows that naming needs no favicon config at all.
+With `site.favicon` unset, Sarde looks in `public/` for `favicon.svg`, then `favicon.ico`, then `favicon.png`, and uses the first one found. A project that follows that naming needs no favicon config.
 
 Set `site.favicon` explicitly to use a different filename or a file in a subdirectory.
 
@@ -113,6 +115,6 @@ Set `site.favicon` explicitly to use a different filename or a file in a subdire
 
 Both the logo and the favicon are read from `public/`, which Sarde copies to the output directory without processing. One file can serve as both when the artwork reads at header size and at 16px.
 
-A configured file missing from `public/` logs a build warning and leaves the rest of the build untouched.
+A logo file missing from `public/` logs a build warning, and the header still emits the `<img>` with a broken source. A missing favicon file logs nothing, so check the browser tab after changing the path.
 
-See [Project Structure](/guides/project-structure#public) for what else belongs in `public/`, and [Configuration](/reference/configuration/site-and-branding/#site) for every `site` key.
+See [Project Structure](/guides/project-structure/#public) for what else belongs in `public/`, and [Configuration](/reference/configuration/site-and-branding/#site) for every `site` key.

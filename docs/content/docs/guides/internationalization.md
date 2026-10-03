@@ -5,13 +5,13 @@ sidebar:
   order: 18
 ---
 
-Sarde supports multi-language sites with localized URLs, automatic fallback pages, a language switcher, and translated UI strings. Content for each language lives in its own subdirectory under `content/`.
+Sarde builds multi-language sites with localized URLs, fallback pages for untranslated content, a language switcher, and translated UI strings. Content for each non-default language lives in its own subdirectory under `content/`.
 
 ## Configuring languages
 
-Define languages in `sarde.yaml` under the `i18n` key:
+Define languages in `sarde.yaml` under the `i18n` key. List the default language in `languages` too:
 
-```yaml
+```yaml title="sarde.yaml"
 i18n:
   default_language: "en"
   strategy: "prefix-except-default"
@@ -31,26 +31,43 @@ i18n:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `default_language` | string | `"en"` | Language code for the primary language. |
-| `strategy` | string | `"prefix-except-default"` | URL strategy. The default language has no prefix; others get `/<lang>/`. |
-| `fallback` | string | `"default"` | `"default"` clones the default-language page. `"omit"` skips untranslated pages. |
-| `strict` | bool | `false` | When `true`, records translation keys that fell back during resolution. |
-| `languages` | map | `{}` | Map of language code to language config. An empty map means single-language. |
+| `default_language` | string | `"en"` | Code of the primary language. It must also appear in `languages`, or the build fails with `default_language "en" is not listed in languages`. |
+| `strategy` | string | `"prefix-except-default"` | URL strategy. The default language has no prefix, and other languages get `/<lang>/`. This is the only supported value. |
+| `fallback` | string | `"default"` | `"default"` generates a fallback page from the default-language page. `"omit"` skips untranslated pages. |
+| `strict` | bool | `false` | Adds a build warning for each UI string that the build looked up in a language that does not define it. The `--strict-i18n` flag turns it on for one build. |
+| `languages` | map | `{}` | Language code to language settings. An empty map means a single-language site. |
 
 Each language entry accepts:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `name` | string | none | Display name shown in the language switcher. |
-| `title` | string | none | Optional site title override for this language. |
-| `weight` | int | `0` | Sort order in the language switcher. Lower values appear first. |
-| `dir` | string | `"ltr"` | Text direction. Set to `"rtl"` for Arabic, Hebrew, and similar scripts. |
+| `name` | string | language code | Display name in the language switcher. |
+| `weight` | int | `0` | Position in the language switcher. Lower values come first, and ties sort by code. |
+| `dir` | string | `"ltr"` | Text direction, `"ltr"` or `"rtl"`. Use `"rtl"` for Arabic, Hebrew, and similar scripts. |
+
+A map with a single language builds a site without language prefixes and without a switcher.
+
+## Add a language with the CLI
+
+Three commands set up and track a language. Each prints one line of JSON, because the desktop app reads their output.
+
+```sh
+sarde i18n add-language . fr --name "Français" --weight 2
+sarde i18n scaffold . fr
+sarde i18n status .
+```
+
+- `add-language` adds the code to `i18n.languages` in `sarde.yaml`. It rewrites the file from parsed data, so comments and key order may change.
+- `scaffold` creates `content/fr/<collection>/_index.md` stubs for each collection and an `i18n/fr.yaml` seeded from the default language's project file.
+- `status` reports how many Markdown files each language has per collection compared with the default language.
+
+See [CLI Commands](/reference/cli-commands/#i18n) for every flag.
 
 ## Content directory structure
 
-Place translated content in language-prefixed directories under `content/`:
+Place translated content in a directory named for the language code under `content/`:
 
-```
+```text
 content/
   docs/
     getting-started.md      # English (default)
@@ -66,13 +83,13 @@ content/
       getting-started.md    # Arabic translation
 ```
 
-The default language (`en` above) has no directory prefix. Non-default languages use `content/<lang>/` as the root, then mirror the same structure.
+The default language has no directory prefix. Other languages use `content/<lang>/` as their root and mirror the same structure.
 
-Sarde matches pages across languages by their path relative to the language prefix. `docs/getting-started.md` in the root and `fr/docs/getting-started.md` are treated as translations of each other.
+Sarde matches pages across languages by their path after the language prefix. `docs/getting-started.md` and `fr/docs/getting-started.md` are translations of each other.
 
 ## Localized URLs
 
-With the `prefix-except-default` strategy (the only strategy currently supported), the default language serves at the site root. Other languages get a `/<lang>/` prefix:
+With `prefix-except-default`, the default language serves from the site root and other languages get a `/<lang>/` prefix:
 
 | Language | Content path | URL |
 |----------|-------------|-----|
@@ -82,25 +99,26 @@ With the `prefix-except-default` strategy (the only strategy currently supported
 
 ## Translation strings
 
-UI text (navigation labels, search prompts, version notices, error messages) comes from YAML translation files. Sarde merges strings from three layers, with later layers overriding earlier ones per key:
+UI text such as navigation labels, search prompts, version notices, and error messages comes from YAML translation files. Sarde merges strings from three layers, and later layers override earlier ones per key:
 
-1. **Embedded defaults** (compiled into the binary, English)
-2. **Theme `i18n/`** directory (e.g., `themes/mytheme/i18n/fr.yaml`)
-3. **Project `i18n/`** directory (e.g., `i18n/fr.yaml`)
+1. **Embedded defaults** compiled into the binary, in English only
+2. **Theme `i18n/` directory**, for example `themes/mytheme/i18n/fr.yaml`
+3. **Project `i18n/` directory**, for example `i18n/fr.yaml`
 
 Create one file per language, named by language code:
 
-```
+```text
 i18n/
   en.yaml
   fr.yaml
   ar.yaml
 ```
 
-Keys use dot notation. A French translation file:
+A key that a language does not define falls back to the default language's string. Because the embedded defaults are English, a site whose `default_language` is not `en` needs an `i18n/<default_language>.yaml` file. Without it, the pages show raw keys such as `nav.previous`.
 
-`i18n/fr.yaml`
-```yaml
+Keys use nested YAML, addressed in dot notation. A French translation file:
+
+```yaml title="i18n/fr.yaml"
 nav:
   previous: "Précédent"
   next: "Suivant"
@@ -113,50 +131,58 @@ fallback:
   notice: "Cette page n'est pas encore disponible en {{ .Lang }}."
 ```
 
-Values can include Go template syntax. The `fallback.notice` key receives a `.Lang` variable with the current language's display name.
+Values can use Go template syntax. Three keys receive variables:
+
+| Key | Variable |
+|-----|----------|
+| `nav.reading_time` | `.Minutes`, the reading time in minutes |
+| `nav.toggle_section` | `.Label`, the sidebar group label |
+| `fallback.notice` | `.Lang`, the page's language code, such as `fr` |
 
 ### Built-in string keys
 
-Override any of these. Anything left out falls back to the default language.
+Any key can be overridden. These are the groups:
 
 | Group | Keys |
 |-------|------|
-| `nav` | `previous`, `next`, `newer`, `older`, `newer_posts`, `older_posts`, `toc`, `toc_label`, `toc_overview`, `overview`, `search`, `draft`, `reading_time`, `language`, `version`, `version_latest`, `back_to_top`, `skip_to_content`, `menu`, `collapse_sidebar`, `breadcrumb`, `section_nav`, `page_nav`, `footer`, `opens_new_tab` |
-| `search` | `results`, `no_results`, `close`, `tip_typos`, `tip_keywords`, `kbd_navigate`, `kbd_select`, `kbd_close`, `full_search`, `switch_full_search` |
+| `nav` | `previous`, `next`, `newer`, `older`, `newer_posts`, `older_posts`, `toc`, `toc_label`, `toc_overview`, `overview`, `search`, `draft`, `reading_time`, `language`, `version`, `version_latest`, `back_to_top`, `skip_to_content`, `menu`, `collapse_sidebar`, `expand_sidebar`, `toggle_section`, `pagination`, `main_nav`, `post_nav`, `docs_nav`, `sidebar`, `center_content`, `breadcrumb`, `section_nav`, `page_nav`, `footer`, `opens_new_tab` |
+| `search` | `results`, `no_results`, `close`, `tip_typos`, `tip_keywords`, `kbd_navigate`, `kbd_select`, `kbd_close`, `full_search`, `switch_full_search`, plus runtime strings such as `recent`, `type_to_search`, and `results_count_one`. See [Search](/guides/search/) |
 | `theme` | `selection`, `light`, `system`, `dark` |
 | `taxonomy` | `post`, `posts`, `tags`, `authors` |
 | `blog` | `featured`, `page`, `of` |
 | `labs` | `step`, `of`, `overview`, `learning_objectives` |
-| `home` | `all_posts`, `get_started` |
+| `home` | `all_posts`, `get_started`, `hero_highlights` |
 | `error` | `not_found`, `not_found_desc`, `return_home`, `not_found_illustrated`, `not_found_illustrated_desc` |
 | `version` | `unmaintained_notice`, `unreleased_notice`, `unmaintained_link`, `unreleased_link` |
 | `fallback` | `notice` |
 | `announcements` | `dismiss` |
+| `banner` | `note`, `tip`, `caution`, `danger` |
+| `ui` | `reveal_spoiler`, `hide_spoiler` |
+| `draft` | `notice` |
+| `telescope` | Labels for the quick-navigation dialog |
 | (top level) | `edit_this_page`, `last_updated_label` |
 
-Two keys take template variables: `nav.reading_time` receives `.Minutes`, and `fallback.notice` receives `.Lang`.
+To find the keys a language still lacks, set `i18n.strict: true` and build. Each missing key appears as a warning naming the `i18n/<lang>.yaml` file.
 
 ## Fallback pages
 
-When a page exists in the default language but has no translation, Sarde generates a *fallback page*. The fallback displays the default-language content with a notice banner:
+When a page exists in the default language but has no translation, Sarde generates a fallback page at the translated URL. The fallback shows the default-language content with a notice banner.
 
-Result: A banner appears at the top: "This page is not yet available in French. Showing the original version."
+→ A banner at the top of the page reads "This page is not yet available in fr. Showing the original version."
 
 <!-- SCREENSHOT: fallback-notice-banner - a fallback notice banner on an untranslated page -->
 
-Control fallback behavior at two levels:
+Set the behavior site-wide in `sarde.yaml`:
 
-**Site-wide**, in `sarde.yaml`:
-
-```yaml
+```yaml title="sarde.yaml"
 i18n:
-  fallback: "default"    # clone the default-language page (default)
+  fallback: "default"    # generate a fallback page (default)
   # fallback: "omit"     # skip untranslated pages entirely
 ```
 
-**Per collection**, to override the site-wide setting:
+Override it per collection:
 
-```yaml
+```yaml title="sarde.yaml"
 collections:
   blog:
     i18n_fallback: "omit"    # do not generate fallback blog posts
@@ -164,23 +190,25 @@ collections:
     i18n_fallback: "default" # always show fallback docs pages
 ```
 
-Fallback pages have `IsFallback: true` in templates. The `FallbackNotice` component checks this flag and renders the notice banner.
+Fallback pages set `IsFallback` to `true` in templates, and the `FallbackNotice` component renders the banner when it is set. Customize the text through the `fallback.notice` key. The component renders on the docs and default layouts.
+
+In a versioned collection, fallback stays within a version. A missing French translation of `v2/guides/auth.md` falls back to the English `v2/guides/auth.md`, not to `v3/guides/auth.md`.
 
 ## Language switcher
 
-When a page has translations (or fallback pages), the language switcher component appears in the header. It lists all available languages, sorted by weight.
+When a page has translations or fallback pages, a language switcher appears in the header. It lists the available languages in `weight` order.
 
-Result: A dropdown shows each language by its display name. The current language is highlighted. Fallback entries are visually distinguished.
+→ A dropdown shows each language by its display name. The current language is highlighted, and fallback entries carry a distinct style.
 
 <!-- SCREENSHOT: language-switcher-dropdown - the language switcher open with three languages -->
 
-The switcher links to the same page in each language. For fallback pages, the link points to the fallback URL. The dropdown closes on outside click or the Escape key.
+Each entry links to the same page in that language, or to its fallback page. The dropdown closes on an outside click or the Escape key.
 
 ## RTL support
 
-Set `dir: "rtl"` on a language to enable right-to-left layout. Sarde sets the `dir` attribute on the `<html>` element and applies mirrored CSS for sidebar, navigation, and content layout.
+Set `dir: "rtl"` on a language to switch it to right-to-left layout. Sarde sets the `dir` attribute on the `<html>` element and applies mirrored CSS for the sidebar, navigation, and content layout.
 
-```yaml
+```yaml title="sarde.yaml"
 i18n:
   languages:
     ar:
@@ -190,21 +218,14 @@ i18n:
 
 ## Hreflang tags
 
-The SEO plugin automatically emits `<link rel="alternate" hreflang="...">` tags for every page that has translations. The default-language page also gets an `x-default` hreflang tag. No configuration is needed beyond enabling the SEO plugin (enabled by default).
+The default theme adds `<link rel="alternate" hreflang="...">` tags to every page that has translations, including an `x-default` tag that points to the default-language version. No configuration is needed.
 
 ## Cross-language linking
 
-Link to a specific language version of a page using the `?lang=` query parameter in internal links:
+Links between pages stay within the current language. To link to a specific language version of a page, add `?lang=` to an [internal link](/guides/internal-links/):
 
 ```markdown
-[French version](/start-here/getting-started/?lang=fr)
+[French version](/guides/auth/?lang=fr)
 ```
 
-The link validator resolves this to the French translation of the target page. Without the `?lang=` parameter, internal links resolve within the current language.
-
-## Edge cases
-
-- Sarde requires at least two entries in `i18n.languages` to enable multi-language mode. A single entry (or an empty map) produces a single-language site with no language prefixes.
-- The `default_language` code does not need to appear in the `languages` map, but omitting it means the language switcher will not display a name for it.
-- For versioned collections, fallback operates within a version. A missing French translation of `v2/guides/auth.md` falls back to the English `v2/guides/auth.md`, not `v3/guides/auth.md`.
-- The `FallbackNotice` component renders on both docs and default layouts. Customize the notice text by overriding the `fallback.notice` key in your `i18n/<lang>.yaml` file.
+Written inside the `docs` collection, this link becomes `/fr/docs/guides/auth/` in the built page, and Sarde removes the query parameter. The link checker validates the target in the French content.

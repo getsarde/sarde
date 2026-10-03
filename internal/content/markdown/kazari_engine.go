@@ -50,17 +50,29 @@ func BuildKazariEngine(ctx context.Context, cfg *config.CodeblocksSettings, proj
 		hl = kazarinuri.New(ctx, nuriHL)
 	}
 
-	darkModeSelector := cfg.DarkModeSelector
-	if darkModeSelector == "" {
-		darkModeSelector = "[data-theme=\"dark\"]"
-	}
+	darkModeSelector := DarkModeSelector(cfg)
 
+	// Kazari applies options in order, so kazari.config.yaml overrides the
+	// themes and other options set before it. Dark mode comes after it on
+	// purpose: the selector must match what the theme toggle sets on <html>,
+	// so a darkMode entry in the file cannot disconnect code blocks from the
+	// site theme (warnKazariDarkMode reports such an entry).
 	engine := kazari.New(
 		kazari.WithHighlighter(hl),
 		kazari.WithThemes(cfg.LightTheme, cfg.DarkTheme),
-		kazari.WithDarkMode(kazari.SelectorMode(darkModeSelector)),
 		kazari.WithMermaidPassThrough(true),
 		kazari.WithConfigDir(projectDir),
+		kazari.WithDarkMode(kazari.SelectorMode(darkModeSelector)),
 	)
 	return engine, nil
+}
+
+// DarkModeSelector returns the CSS selector that scopes code blocks' dark
+// theme: markdown.codeblocks.dark_mode_selector, or the attribute Sarde's
+// theme toggle sets on <html> when that is empty.
+func DarkModeSelector(cfg *config.CodeblocksSettings) string {
+	if cfg != nil && cfg.DarkModeSelector != "" {
+		return cfg.DarkModeSelector
+	}
+	return `[data-theme="dark"]`
 }

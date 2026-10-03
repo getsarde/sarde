@@ -5,74 +5,86 @@ sidebar:
   order: 4
 ---
 
-Link to another page by the path to its `.md` file. At build time, Sarde rewrites each link to the final URL, including the base path, language prefix, and version segment.
+Link to another page by the path to its source file. At build time, Sarde rewrites each link to the final URL, including the base path, language prefix, and version segment, and checks that the target exists.
 
 ## Syntax reference
 
+Each row shows a link form, what it means, and what Sarde resolves it against:
+
 | You write | Meaning | Resolves against |
 |---|---|---|
-| `[text](./auth.md)` | Relative to current file | Current file's directory, same language and version |
-| `[text](./auth)` | Relative (no extension) | Same as above; `.md` extension is optional |
-| `[text](../guides/auth)` | Parent directory traversal | Same rules, `../` works as expected |
-| `[text](/guides/auth)` | Content-root (within collection) | Current collection's root directory |
-| `[text](/guides/auth.md)` | Content-root (with `.md`) | Same as above; extension is optional |
-| `[text](#setup)` | Same-page anchor | Current page's URL + `#setup` |
-| `[text](./auth#setup)` | Path + anchor | Resolves path, validates `#setup` against target headings |
-| `[text](./auth?highlight=true)` | Path + query | Query string preserved in output |
-| `[text](./auth?lang=fr)` / `?version=v1` | Explicit cross-lane override | Resolves in the given language/version lane; reserved keys stripped from output |
+| `[text](./auth.md)` | Relative to the current file | The current file's directory, same language and version |
+| `[text](./auth)` | Relative, no extension | Same as above. The `.md` extension is optional. |
+| `[text](../guides/auth)` | Parent directory traversal | Same rules. `../` works as in a file path. |
+| `[text](/guides/auth)` | Collection-root path | The current collection's root directory |
+| `[text](/guides/auth.md)` | Collection-root path with `.md` | Same as above. The extension is optional. |
+| `[text](/)` | Collection root | The current collection's index page. On a page at the `content/` root, the homepage. |
+| `[text](#setup)` | Same-page anchor | The current page's URL plus `#setup` |
+| `[text](./auth#setup)` | Path and anchor | Resolves the path, then checks `#setup` against the target's headings |
+| `[text](./auth?highlight=true)` | Path and query | The query string is kept in the output |
+| `[text](./auth?lang=fr)` or `?version=v1` | Explicit cross-language or cross-version link | Resolves in the given language or version. Sarde removes these two keys from the output URL. |
+| `[text](site:/pricing)` | Site-root link | `/pricing` at the site root, with no collection, language, or version. Never validated. |
 | `[text](https://example.com)` | External URL | Passed through unchanged |
-| `[text](/img/logo.png)` | Public asset (has a file extension) | Base path applied, not validated |
+| `[text](/img/logo.png)` | Public asset (a file extension other than `.md`) | Base path applied, not validated |
 
 ## What triggers resolution
 
-Three link styles are resolved and validated. The `.md` extension is always optional.
+Sarde resolves and validates three link styles. The `.md` extension is always optional.
 
-**Relative links** (`./` or `../` prefix) are resolved from the current file's directory. The prefix is what triggers resolution, not the extension.
+**Relative links** start with `./` or `../` and resolve from the current file's directory. The prefix triggers resolution, not the extension.
 
-- `./page` or `./page.md` resolves to a sibling page
-- `../other` or `../other.md` resolves via parent traversal
+- `./page` or `./page.md` resolves to a sibling page.
+- `../other` or `../other.md` resolves through the parent directory.
 
-**Content-root links** (leading `/`, no file extension in the basename) are resolved from the current collection's root directory. This is the recommended style for within-collection linking.
+**Collection-root links** start with `/` and have no file extension in the last segment. They resolve from the current collection's root directory.
 
-- `/guide/page` or `/guide/page.md` resolves within the current collection
-- `/api/` resolves to the section index (`_index.md`)
+- `/guide/page` or `/guide/page.md` resolves within the current collection.
+- `/api/` resolves to the section index (`_index.md`).
 
 **Same-page anchors** (`#anchor`) resolve as a fragment on the current page's URL.
 
 Everything else passes through unchanged:
 
-- `https://example.com` passes through as an external link
-- `/` is the site root; base path applied, never validated
-- `/img/logo.png` (leading `/` with a non-markdown file extension) is treated as a public asset; base path applied, never validated
+- `https://example.com` and other absolute URLs are external links.
+- `/img/logo.png` and any other `/` path with a non-Markdown extension is a public asset. Sarde applies the base path and does not validate it.
+- A bare name without `.md`, such as `auth`, is left exactly as written, and the browser resolves it against the current URL. Write `./auth` or `/guide/auth` instead.
+
+### Relative links produce a warning
+
+By default, each `./` or `../` link prints a `relative link` warning at build time (`link_validation.on_relative_links` is `warn`). The link still resolves. Prefer collection-root links within a collection to keep the build output quiet. See [Link Validation and Linting](/guides/link-validation-and-linting/) to change the policy.
 
 ## What is rejected
 
-Bare names without a `./`, `../`, or `/` prefix that include a `.md` extension are **ambiguous** and produce a build error:
+A bare name that ends in `.md` and has no `./`, `../`, or `/` prefix is **ambiguous** and fails the build:
 
 ```markdown
 [text](auth.md)        <!-- ERROR: ambiguous, use ./auth.md instead -->
 [text](guides/auth.md) <!-- ERROR: ambiguous, use ./guides/auth.md instead -->
 ```
 
-This prevents silent mis-resolution when multiple files share a name. Always use an explicit prefix.
+The prefix removes the doubt about whether the name is a sibling file or a path from the content root. Always write an explicit prefix.
 
 ## Resolution rules
 
+The resolved link styles differ in where the path starts.
+
 ### Relative links
 
-Resolved from the current file's directory within the content tree. The version segment is stripped during resolution so that links work identically across versions:
+A relative link resolves from the current file's directory within the content tree and stays in the page's language and version, so the same link works in every version:
 
 ```text
-content/docs/v2/guide/03-quick-start.md
+content/docs/guide/03-quick-start.md
                        contains ./02-installation.md
                        resolves to: /docs/guide/installation/
 ```
 
-Numeric filename prefixes (e.g. `02-`) are stripped by Sarde's slug algorithm. `02-installation.md` becomes `/installation/` in the URL.
+Sarde strips numeric filename prefixes such as `02-` from the URL, but the link still names the file as written on disk.
 
-### Content-root links
+A relative link can cross collections. `../../blog/hello-world` on a page at `content/docs/guide/auth.md` resolves to the blog post.
 
-The leading `/` means "from this collection's root." Sarde prepends the current collection name automatically.
+### Collection-root links
+
+A leading `/` starts from the current collection's root, not from the site root. Sarde adds the collection name.
 
 ```markdown
 <!-- In a docs page: both resolve within the docs collection -->
@@ -80,29 +92,43 @@ The leading `/` means "from this collection's root." Sarde prepends the current 
 [Router API](/api/router)     -->  /docs/api/router/   (same result)
 ```
 
-Content-root links are fully i18n-aware: on a French page, `/guide/quick-start` resolves to `/fr/docs/guide/quick-start/`. On an English page, the same link resolves to `/docs/guide/quick-start/`. The base path, language prefix, and version segment are all applied automatically.
+Collection-root links follow the page's language: on a French page, `/guide/quick-start` resolves to `/fr/docs/guide/quick-start/`, and on an English page to `/docs/guide/quick-start/`. The base path and version segment apply the same way.
+
+A collection-root link cannot reach another collection, because `/blog/post` on a docs page means `content/docs/blog/post`. To link into another collection, use a relative path or a `site:` link (see [Link to another collection](#link-to-another-collection)). To reach the homepage from a collection page, write `site:/`.
 
 ### Directory links
 
-Linking to a directory resolves to its section index:
+A link to a directory resolves to its section index:
 
 ```markdown
 [Guides](./guides/)  -->  resolves to guides/_index.md
 ```
 
+## Links that do not resolve
+
+What happens to a link with no target depends on how it is written:
+
+| Link | Result by default |
+|---|---|
+| Relative link to a missing page, or any link written with `.md` | Build error: `broken target` |
+| Extension-less collection-root link that matches no page in the current language and version | Build warning: `unverified internal`. Sarde leaves the URL as written, which may not exist. |
+| Link to a heading that does not exist | Build error: `broken anchor` |
+
+The extension-less collection-root case is a warning because the author may have meant a page in another collection, language, or version. Add `.md` to the link to turn it into an error. See [Link Validation and Linting](/guides/link-validation-and-linting/) for the policy settings.
+
 ## URL composition
 
-The same link resolves differently depending on the page's language and version context:
+The same link resolves differently depending on the page's language and version:
 
 | You write (in `.md`) | Page context | Built HTML output |
 |---|---|---|
 | `/guide/quick-start` | English, docs collection | `/docs/guide/quick-start/` |
 | `/guide/quick-start` | French, docs collection | `/fr/docs/guide/quick-start/` |
-| `/guide/quick-start` | English, docs v1 | `/docs/v1/guide/quick-start/` |
-| `./quick-start` | French, in guide/ dir | `/fr/docs/guide/quick-start/` |
-| `../api/router` | English, in guide/ dir | `/docs/api/router/` |
+| `/guide/quick-start` | English, docs v1 (older version) | `/docs/v1/guide/quick-start/` |
+| `./quick-start` | French, in `guide/` directory | `/fr/docs/guide/quick-start/` |
+| `../api/router` | English, in `guide/` directory | `/docs/api/router/` |
 | `https://example.com` | Any | `https://example.com` (unchanged) |
-| `/assets/logo.png` | Any | `/assets/logo.png` (asset, no lang/version) |
+| `/assets/logo.png` | Any | `/assets/logo.png` (asset, no language or version) |
 
 ### Language
 
@@ -116,8 +142,8 @@ Links resolve within the current page's language. A relative link on a French pa
 
 Links resolve within the current page's version:
 
-- On a **latest-version** page (served at the unprefixed URL), links resolve to unprefixed URLs.
-- On an **older-version** page (e.g. `/docs/v1/guide/...`), links stay within that version. A target that exists in latest but not in v1 is a build error.
+- On a page of the latest version (served at the unprefixed URL), links resolve to unprefixed URLs.
+- On a page of an older version (for example `/docs/v1/guide/...`), links stay in that version. A `.md` or relative link to a page that exists only in the latest version is a `broken target` error, and an extension-less collection-root link is an `unverified internal` warning.
 
 To link across versions, use the `?version=` query parameter:
 
@@ -125,69 +151,48 @@ To link across versions, use the `?version=` query parameter:
 [See v1 docs](./auth?version=v1)
 ```
 
-Reserved query keys (`lang`, `version`) are stripped from the output URL.
+Sarde removes the reserved query keys `lang` and `version` from the output URL.
 
 ## Anchor validation
 
-When a link includes a `#fragment`, Sarde validates it against the target page's heading IDs after all pages are rendered. Invalid anchors are reported as broken links:
+When a link includes a `#fragment`, Sarde checks it against the target page's heading IDs after all pages render. A missing heading fails the build:
 
 ```markdown
 [Setup](./auth.md#setup)        <!-- OK if auth.md has a ## Setup heading -->
-[Missing](./auth.md#nonexistent) <!-- build error: heading not found -->
+[Missing](./auth.md#nonexistent) <!-- build error: broken anchor -->
 ```
 
-Same-page anchors (`#section-name`) are also validated.
+Same-page anchors (`#section-name`) are checked too.
 
-## Common patterns
+## Other link forms
 
-### Link to a sibling page
+These forms cover targets outside the current collection and links written in extension attributes.
+
+### Link to another collection
+
+From a docs page, link to a blog post with a relative path, which is validated, or with a `site:` link, which is not:
 
 ```markdown
-[Installation](./02-installation)
-[Installation](./02-installation.md)   <!-- also works, .md is optional -->
+[Release notes](../../blog/hello-world)
+[Release notes](site:/blog/hello-world)
 ```
 
-### Link to a page in a parent directory
-
-```markdown
-[Back to overview](../overview)
-```
-
-### Link to a section index
-
-```markdown
-[All guides](./guides/)
-```
-
-### Link from collection root
-
-```markdown
-[API Reference](/api/router)
-[Quick Start](/guide/quick-start)
-```
-
-### Link with anchor
-
-```markdown
-[Configuration section](./setup#configuration)
-```
-
-### External link
-
-```markdown
-[GitHub](https://github.com/example/project)
-```
+`site:` is the default value of `link_validation.site_root_escape_prefix`. It also reaches pages at the `content/` root, such as `site:/about`.
 
 ### Public asset
+
+Link to a file in `public/` by its path from the site root:
 
 ```markdown
 ![Logo](/img/logo.png)
 [Download PDF](/files/report.pdf)
 ```
 
+Sarde applies the base path to a linked asset and does not check that the file exists.
+
 ### Markdown extensions
 
-The same link syntax works in extension attributes like link cards and link buttons:
+The same syntax works in extension attributes such as link cards and link buttons, and they go through the same resolution:
 
 ```markdown
 :::link-card[Getting Started](href="/guide/quick-start" icon="book-open")
@@ -196,15 +201,3 @@ The same link syntax works in extension attributes like link cards and link butt
 :::link-button[Read the Docs](href="/guide/introduction" variant="primary")
 :::
 ```
-
-These go through the same resolution pipeline.
-
-## Gotchas
-
-**Bare names are rejected:** always use `./` for relative links. `auth.md` without a prefix is ambiguous and will error. Write `./auth.md` instead.
-
-**Numeric prefixes are stripped:** files named `01-introduction.md`, `02-installation.md` produce slugs `introduction`, `installation`. When linking, use the original filename: `./02-installation.md` resolves correctly to `/guide/installation/`.
-
-**Content-root `/` means collection root:** a leading `/` in a link means "from this collection's root," not from the site root. `/guide/auth` from a `docs` page resolves within the `docs` collection.
-
-**Link validation:** Sarde validates every internal link at build time. Broken targets and anchors fail the build by default. See [Link Validation and Linting](/guides/link-validation-and-linting) for configuration options and policy settings.

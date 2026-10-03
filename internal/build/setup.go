@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/frostybee/kazari"
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/collection"
 	"github.com/getsarde/sarde/internal/config"
@@ -420,4 +421,49 @@ func faviconMIME(path string) string {
 	default:
 		return ""
 	}
+}
+
+// kazariConfigFiles are the file names Kazari loads from the project root,
+// in its lookup order; the first one found is used.
+var kazariConfigFiles = []string{"kazari.config.yaml", "kazari.config.yml", "kazari.config.json"}
+
+// warnKazariDarkMode reports a darkMode entry in the project's Kazari config
+// that differs from Sarde's. Sarde applies its own dark-mode selector after
+// the file (see markdown.BuildKazariEngine), so such an entry has no effect.
+// A file that does not parse is left to Kazari's loader, which reports it.
+func warnKazariDarkMode(projectDir, selector string) []engine.ValidationWarning {
+	for _, name := range kazariConfigFiles {
+		data, err := os.ReadFile(filepath.Join(projectDir, name))
+		if err != nil {
+			continue
+		}
+		format := "yaml"
+		if strings.HasSuffix(name, ".json") {
+			format = "json"
+		}
+		fc, err := kazari.ParseConfig(data, format)
+		if err != nil || fc.DarkMode == nil {
+			return nil
+		}
+		if fc.DarkMode.Kind == "selector" && sameSelector(fc.DarkMode.Selector, selector) {
+			return nil
+		}
+		return []engine.ValidationWarning{{
+			File:  name,
+			Field: "darkMode",
+			Message: fmt.Sprintf("darkMode is ignored; code blocks follow the site theme (%s). "+
+				"Set markdown.codeblocks.dark_mode_selector in sarde.yaml to change it", selector),
+			Level: "warning",
+		}}
+	}
+	return nil
+}
+
+// sameSelector compares two CSS selectors ignoring quotes and whitespace,
+// so [data-theme="dark"] and [data-theme=dark] count as equal.
+func sameSelector(a, b string) bool {
+	norm := func(s string) string {
+		return strings.NewReplacer(`"`, "", "'", "", " ", "").Replace(s)
+	}
+	return norm(a) == norm(b)
 }

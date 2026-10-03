@@ -5,111 +5,133 @@ sidebar:
   order: 12
 ---
 
-Sarde generates meta tags, structured data, sitemaps, and feeds automatically. No configuration is needed for sensible defaults. The SEO, sitemap, feeds, and social cards plugins are all enabled by default.
+A default build already emits meta tags, structured data, a sitemap, `robots.txt`, `llms.txt`, feeds, and social card images. The `seo`, `sitemap`, `robots`, `rss`, `atom`, `llms_txt`, and `social_cards` plugins are all enabled by default, so the work left is setting the site URL and per-page descriptions and images. Turn any of them off in [Plugins and checks](/reference/configuration/plugins-and-checks/#plugins).
+
+Set `site.url` in `sarde.yaml` to the address the site is published at. Canonical links, sitemap entries, feed links, and social card URLs are built from it:
+
+```yaml title="sarde.yaml"
+site:
+  url: "https://example.com"
+```
 
 ## Meta tags
 
-The SEO plugin injects Open Graph and Twitter Card meta tags into every page:
+The `seo` plugin adds Open Graph and Twitter Card meta tags to every page:
 
-**Open Graph:**
-- `og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`, `og:locale`
-- `og:image` (from page `image` frontmatter, social card, or `default_image` config)
-- `article:published_time` and `article:modified_time` for collection pages
+- **Open Graph:** `og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`, `og:locale`, and `og:image` with its alt text. Pages in a collection get `og:type` set to `article` plus `article:published_time` and `article:modified_time`. On multi-language sites, `og:locale:alternate` lists the translations.
+- **Twitter Card:** `twitter:card` (default `summary_large_image`), `twitter:title`, `twitter:description`, `twitter:image`, and `twitter:site` when a handle is configured.
 
-**Twitter Card:**
-- `twitter:card` (defaults to `summary_large_image`)
-- `twitter:title`, `twitter:description`, `twitter:image`
-- `twitter:site` (from `twitter_handle` config)
-
-All values are auto-populated from page frontmatter and site config. Override the description per page:
+Values come from the page's frontmatter and the site configuration. Set the description and image per page:
 
 ```yaml
 ---
 title: Photosynthesis
 description: "How plants convert light into chemical energy."
+image: /images/photosynthesis.png
 ---
 ```
 
-When `description` is not set, the SEO plugin falls back to the page summary (first prose paragraph, truncated; code fences and directive blocks are skipped). If the body has no prose at all, such as a homepage built entirely from directive blocks, the description is derived from the rendered page text instead.
+The image resolves in this order: the page's `image`, a generated [social card](#social-card-images), then the `default_image` option.
+
+When `description` is not set, the plugin uses the page summary (the first prose paragraph, truncated; code fences and directive blocks are skipped). If the body has no prose at all, such as a homepage built only from directive blocks, it uses text taken from the rendered page. Set `auto_description: false` to turn the fallback off.
+
+To control indexing for one page, set `robots` in its frontmatter:
+
+```yaml
+---
+title: Internal Notes
+robots: "noindex,nofollow"
+---
+```
+
+Pagination pages after the first (`/blog/page/2/` and later) get `noindex,follow` automatically and are left out of the sitemap.
+
+## Site-wide SEO options
+
+Set the Twitter handle, card type, and a fallback image in the `seo` plugin config:
+
+```yaml title="sarde.yaml"
+plugins:
+  config:
+    seo:
+      twitter_handle: "@getsarde"
+      twitter_card: "summary_large_image"
+      default_image: "/images/og-default.png"
+```
+
+See [SEO](/plugins/seo/) for every option and for the full list of generated tags.
 
 ## JSON-LD structured data
 
-The SEO plugin emits a `<script type="application/ld+json">` block with a `@graph` containing:
+The `seo` plugin writes a `<script type="application/ld+json">` block containing a `@graph` of these nodes:
 
 | Node | When |
 |------|------|
 | `Article` | Pages in a collection (blog posts, docs pages) |
 | `CollectionPage` | Section index pages and the homepage |
 | `WebPage` | Standalone pages without a collection |
-| `BreadcrumbList` | All docs-layout pages (built from route breadcrumbs) |
-| `Course` | Pages with `schema_type: Course` in frontmatter |
+| `BreadcrumbList` | Pages whose breadcrumb trail has two or more entries |
+| `Course` | Pages with `schema_type: Course` under `params` |
 
-The `BreadcrumbList` follows the same trail as the visible breadcrumbs, including collection and section titles.
+The `BreadcrumbList` follows the visible breadcrumbs, including collection and section titles. `Article` reads its author from `params.author`, and `Course` reads its provider from `params.provider`. Set all three under `params` in frontmatter:
+
+```yaml
+---
+title: Photosynthesis
+params:
+  schema_type: Course
+  provider: "Riverside High School"
+  author: "Dr. Chen"
+---
+```
 
 ## Canonical URLs
 
-Every page gets a `<link rel="canonical">` tag pointing to its absolute URL. For versioned documentation, non-latest versions point their canonical to the latest version's URL, consolidating SEO signals on the current docs.
+Every page gets a `<link rel="canonical">` tag with its absolute URL. In versioned documentation, pages of older versions point their canonical to the matching page in the latest version, which consolidates search ranking on the current docs.
 
-## Twitter Card configuration
+## hreflang alternates
 
-Set the site-wide Twitter handle in plugin config:
-
-```yaml
-plugins:
-  config:
-    seo:
-      twitter_handle: "@getsarde"
-      twitter_card: "summary_large_image"
-```
+On multi-language sites, the default theme adds a `<link rel="alternate" hreflang="...">` tag for every translation of a page, plus an `x-default` entry for the default language. Search engines use them to serve the right language version.
 
 ## Social card images
 
-The social cards plugin auto-generates 1200x630 PNG images for every page, used as `og:image` and `twitter:image`. Cards include the page title, description, site branding (site name, plus an optional logo mark and watermark), the collection name, and, for explicitly dated pages, the date, styled with the active theme colors.
+The `social_cards` plugin generates a 1200x630 PNG for each page that has no `image` of its own, and uses it as `og:image` and `twitter:image`. A card shows the page title, description, site name, the collection name, and, for pages with an explicit date, the date, in the active theme colors. A logo mark and a watermark are optional.
 
-```yaml
+Cards are written to `og/` during `sarde build`. `sarde dev` does not write them. The plugin depends on `seo`, which supplies the title and description tags that accompany the image.
+
+```yaml title="sarde.yaml"
 plugins:
   config:
     social_cards:
       skip_if_image: true
       format: "png"
-      quality: 90
 ```
 
-When `skip_if_image` is `true` (the default), pages with an explicit `image` in frontmatter use that image instead of generating a card.
-
-See [Plugins > Social Cards](/plugins/social-cards) for the full options reference.
+When `skip_if_image` is `true` (the default), a page with an `image` in its frontmatter uses that image and gets no card. `format` also accepts `jpeg`, which adds the `quality` option. See [Social Cards](/plugins/social-cards/) for colors, logo, background, fonts, and per-page overrides.
 
 ## Sitemap
 
-The sitemap plugin generates `sitemap.xml` at the site root with all published pages, `lastmod` timestamps, and configurable `changefreq` and `priority` values.
+The `sitemap` plugin writes `sitemap.xml` at the site root. It lists every published page with a `lastmod` date and leaves out drafts and pagination pages. `changefreq` and `priority` are configurable, and `exclude` takes URL patterns to skip.
 
-See [Plugins > Sitemap](/plugins/sitemap) for configuration.
+See [Sitemap](/plugins/sitemap/) for the options.
 
 ## RSS and Atom feeds
 
-Blog-type collections generate feeds automatically:
+Blog collections generate feeds without configuration:
 
 - RSS 2.0 at `/<collection>/feed.xml`
 - Atom 1.0 at `/<collection>/atom.xml`
 
-Feeds include the most recent posts (configurable limit) with title, link, description, published date, and full content.
+Each feed holds the 20 most recent posts by default. An entry carries the title, link, date, and a summary taken from the page `description`, falling back to the page summary. Feeds do not include the full post body.
 
-Disable feeds per collection with `feed: false` in the collection config. See [Plugins > Feeds](/plugins/feeds) for feed options.
+Set `feed: false` on a collection to turn its feeds off, or `feed: true` on another collection to add feeds for it. See [Feeds](/plugins/feeds/) for the entry limit and the `collections` option.
 
 ## robots.txt
 
-The robots plugin generates `robots.txt` at the site root with a `Sitemap` directive pointing to `sitemap.xml` and a default `Allow: /` rule.
+The `robots` plugin writes `robots.txt` with an `Allow: /` rule. It adds a `Sitemap:` line pointing to `sitemap.xml` only when the `sitemap` plugin is enabled and `site.url` is set.
 
-See [Plugins > Robots](/plugins/robots) for configuration.
+See [Robots](/plugins/robots/) for the options.
 
-## hreflang alternates
+## llms.txt
 
-On multi-language sites, the SEO plugin adds `<link rel="alternate" hreflang="...">` tags for all translations of a page. This helps search engines serve the correct language version to users.
-
-## LLMs.txt
-
-The LLMs.txt plugin generates a machine-readable manifest at `/llms.txt` for AI and LLM consumption, listing all pages with titles and URLs.
-
-See [Plugins > LLMs.txt](/plugins/llms-txt) for configuration.
-
-See [Configuration](/reference/configuration/plugins-and-checks/#plugins) for enabling/disabling plugins, and individual plugin pages under [Plugins](/plugins/using-plugins) for detailed options.
+The `llms_txt` plugin writes `/llms.txt`, a Markdown index of the site for AI tools. It lists each content page with its title and URL and leaves out section index pages and the homepage. Configure it under the top-level `llms_txt` key, not under `plugins.config`. See [LLMs.txt](/plugins/llms-txt/) for the options.

@@ -1,19 +1,35 @@
 ---
 title: Types and Variables
-description: Learn Go's basic types, variables, and conversions.
+description: Learn Python's basic types, variables, and conversions.
 sidebar:
   order: 2
-tags: [go]
+tags: [python]
 ---
 
-This lesson introduces Go's type system. Replace this with your own content.
+This lesson introduces Python's type system. Replace this with your own content.
 
 :::warning
-Variables declared without a value get a zero value (`0`, `""`, `false`, `nil`), not an error. Check for it explicitly when it matters.
+Type hints are not checked when the program runs: `age: int = "thirty"` runs without an error. Use a type checker such as mypy to catch mismatches before they reach users.
 :::
+
+## Declaring variables
+
+A variable gets its type from the value assigned to it. A type hint after the name documents the type you expect:
+
+```python title="types.py" showLineNumbers {"Type hints":5-7} "type"
+count = 0      # int
+price = 9.99   # float
+name = "Ada"   # str
+
+age: int = 30
+ratio: float = 0.5
+ready: bool = False
+
+print(type(count), type(price), type(name))
+```
 
 ## Topics
 
 - Basic types
-- Variable declarations
+- Variables and assignment
 - Type conversions

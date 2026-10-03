@@ -170,7 +170,7 @@ Controls which heading levels are *extracted* during the build: ID injection, an
 | `light_theme` | string | `"github-light"` | Light mode highlighting theme name. |
 | `dark_theme` | string | `"github-dark"` | Dark mode highlighting theme name. |
 | `theme` | string | `""` | Single theme override (applies to both modes). |
-| `dark_mode_selector` | string | `"[data-theme=\"dark\"]"` | CSS selector for dark mode scoping. |
+| `dark_mode_selector` | string | `"[data-theme=\"dark\"]"` | CSS selector for dark mode scoping. The default matches Sarde's theme toggle. Always applies: a `darkMode` entry in `kazari.config.yaml` is ignored, with a build warning. |
 
 ## `i18n`
 

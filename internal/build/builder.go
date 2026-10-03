@@ -94,6 +94,7 @@ func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
 	registerSubpackagePlugins(mgr, enabled, opts.Config.Plugins.Config, opts.PluginAssetsDir)
 	extDirs, extDirectiveDirs, extWarnings := external.LoadAll(mgr, opts.ProjectDir, opts.Config, ReservedPluginNames(""))
 	extWarnings = append(extWarnings, warnUnusedPluginConfig(opts.Config, enabled, opts.ProjectDir)...)
+	extWarnings = append(extWarnings, warnKazariDarkMode(opts.ProjectDir, markdown.DarkModeSelector(&opts.Config.Markdown.Codeblocks))...)
 
 	return &SiteBuilder{
 		projectDir:                  opts.ProjectDir,

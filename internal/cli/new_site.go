@@ -18,7 +18,7 @@ var newSiteCmd = &cobra.Command{
 	Long: "Scaffold a new Sarde site with starter files, example content, and a discoverable config.\n\n" +
 		"Use --template to start from a ready-made site instead. The course template creates\n" +
 		"courses with lessons and assignments, hands-on labs, and an announcements page:\n\n" +
-		"  sarde new site my-academy --template course",
+		"  sarde new site my-college --template course",
 	Args: cobra.MaximumNArgs(1),
 	RunE: runNewSite,
 }
@@ -196,9 +196,8 @@ themes:
   light: github-light
   dark: github-dark
 
-darkMode:
-  kind: selector
-  selector: ".dark"
+# Dark mode follows the site theme. Sarde sets it, so there is no darkMode
+# entry here; change markdown.codeblocks.dark_mode_selector in sarde.yaml.
 
 # --- Toolbar ---
 copyButton: true
