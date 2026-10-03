@@ -93,6 +93,13 @@ func runNewSite(cmd *cobra.Command, args []string) error {
 	}
 
 	for relPath, content := range files {
+		// A template's own copy of a shared file (e.g. a kazari.config.yaml
+		// with different toolbar options) takes precedence.
+		if tmplFS != nil {
+			if _, err := fs.Stat(tmplFS, filepath.ToSlash(relPath)); err == nil {
+				continue
+			}
+		}
 		fullPath := filepath.Join(absDir, relPath)
 		if err := os.WriteFile(fullPath, []byte(content), 0o644); err != nil {
 			return fmt.Errorf("writing %s: %w", relPath, err)

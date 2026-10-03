@@ -330,3 +330,24 @@ func TestRunNewSite_KazariConfigLeavesDarkModeToSarde(t *testing.T) {
 		}
 	}
 }
+
+// The course template ships its own kazari.config.yaml so it can turn on the
+// per-block theme toggle. Everything else must match the shared scaffold
+// config, so fixes to one (like the dark-mode change) reach the other.
+func TestCourseTemplateKazariConfigTracksScaffold(t *testing.T) {
+	tmpl, ok := embedded.SiteTemplate("course")
+	if !ok {
+		t.Fatal("course template not embedded")
+	}
+	data, err := fs.ReadFile(tmpl, "kazari.config.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := strings.Replace(kazariConfigContent, "themeToggleButton: false", "themeToggleButton: true", 1)
+	if want == kazariConfigContent {
+		t.Fatal("scaffold kazari.config.yaml no longer has themeToggleButton: false; update this test")
+	}
+	if string(data) != want {
+		t.Error("course template kazari.config.yaml differs from the scaffold config beyond themeToggleButton")
+	}
+}
