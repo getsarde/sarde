@@ -75,7 +75,7 @@ All 31 built-in components, alphabetically.
 | LearningObjectives | Callout listing a lab's objectives | `.LearningObjectives` | `_labs/baseof.html` |
 | MobileTableOfContents | Mobile collapsible ToC with progress ring | `.Page.Headings` | `_docs/baseof.html` |
 | PageBanner | Frontmatter-driven page banner | `.PageBanner` | Both baseof templates |
-| PageTags | Tag chips with taxonomy links | `.Page.Tags` | `_docs/baseof.html`, blog singles |
+| PageTags | Tag chips with taxonomy links | `.Page.Tags` | `_docs/baseof.html`, `_labs/baseof.html`, blog singles |
 | PageTitle | `<h1>` with optional icon and description | `.Page.Title`, `.Page.Sidebar.Icon` | `_docs/baseof.html` |
 | Pagination | Prev/next page links | `.Pagination` | `_docs/baseof.html` |
 | Scripts | `<script>` tags (deferred, inline, module) | `.Scripts`, `.InlineScripts`, `.ModuleScripts` | Both baseof templates |

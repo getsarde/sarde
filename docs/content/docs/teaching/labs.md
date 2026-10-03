@@ -92,6 +92,8 @@ Landing pages and lab pages use different layouts, which is what makes the colle
 
 Set `layout` in a page's frontmatter to override any of these.
 
+Tags in a lab page's frontmatter appear under the title and link to their tag pages, as on docs pages.
+
 Cards on a landing page show a count taken from what the directory holds: `2 labs` for a course, `1 steps` for a lab. Add `image` to a lab's `_index.md` for a thumbnail, and `description` for the card text.
 
 ## Per-lab sidebar

@@ -3,6 +3,7 @@ package build
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/getsarde/sarde/embedded"
@@ -57,4 +58,19 @@ func TestBuild_CourseTemplate(t *testing.T) {
 		assertFixtureFileExists(t, distDir, page)
 	}
 	assertFixtureFileContains(t, distDir, "courses/python-essentials/index.html", "sarde-tab-switcher")
+
+	// Lab pages show the tags from their frontmatter; steps without tags show none.
+	assertFixtureFileContains(t, distDir, "labs/web-fundamentals/build-a-webpage/index.html", "sarde-page-tags")
+	assertFixtureFileContains(t, distDir, "labs/web-fundamentals/build-a-webpage/index.html", `href="/tags/html/"`)
+	step, err := os.ReadFile(filepath.Join(distDir, "labs/web-fundamentals/build-a-webpage/scaffold/index.html"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(step), "sarde-page-tags") {
+		t.Error("lab step without tags renders a tag list")
+	}
+
+	// The template header links to the announcements page and the tag index.
+	assertFixtureFileContains(t, distDir, "index.html", `href="/announcements/"`)
+	assertFixtureFileContains(t, distDir, "index.html", `href="/tags/"`)
 }

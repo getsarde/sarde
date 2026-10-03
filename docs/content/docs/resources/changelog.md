@@ -23,6 +23,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Fixed
 
+- **Lab pages show their tags:** tags set in a lab page's frontmatter now appear under the title and link to their tag pages, as they already did on docs pages. The labs layout never rendered them, so they only appeared on the tag pages themselves.
 - **Code blocks follow dark mode:** sites created with `sarde new site` set `darkMode.selector` to `.dark` in `kazari.config.yaml`, a class Sarde never sets, so code blocks stayed light after switching to dark mode. Dark mode for code blocks now always comes from `markdown.codeblocks.dark_mode_selector` in `sarde.yaml`, which matches the theme toggle by default, so existing sites are fixed on their next build. A `darkMode` entry in `kazari.config.yaml` is ignored and the build warns about it; delete it. New sites no longer write one.
 - **Section badges show in the sidebar:** a `sidebar.badge` set in a section's `_index.md` never appeared on the section's group row, because only page entries copied the badge. Groups now show it, and a `sidebar.yaml` badge override still takes precedence. Sidebar badges also use a compact, normal-case style and wrap under a long label instead of overlapping it; badges in page content are unchanged.
 - **The labs Overview entry is translatable:** the first sidebar entry of a lab was hardcoded English. It now uses the `labs.overview` UI string. Templates can read the new `NavNode.LabelKey` field for generated entries like this one.

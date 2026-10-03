@@ -13,6 +13,13 @@ theme:
 #   labs:
 #     sort: "order"
 
+header:
+  links:
+    - label: "Announcements"
+      url: "/announcements/"
+    - label: "Tags"
+      url: "/tags/"
+
 homepage:
   hero:
     title: "Welcome to My College"
