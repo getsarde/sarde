@@ -42,6 +42,9 @@ func runCheck(cmd *cobra.Command, args []string) error {
 
 func runCheckWithReport(cmd *cobra.Command, args []string, report string) error {
 	projectDir := projectDirFromArgs(args)
+	if err := requireSite(cmd, projectDir); err != nil {
+		return err
+	}
 
 	cfg, themeCfg, err := resolveAll(cmd, projectDir)
 	if err != nil {

@@ -7,7 +7,10 @@
 </head>
 <body class="sarde-layout-{{ .Layout }}">
   <a href="#main-content" class="sarde-skip-link">{{ t "nav.skip_to_content" }}</a>
-  {{ component "Header" . }}
+  <div class="sarde-masthead">
+    {{ announcementBanner }}
+    {{ component "Header" . }}
+  </div>
   {{ if .Page.Headings }}{{ component "MobileTableOfContents" . }}{{ end }}
   {{ if .HasSidebar }}
   <nav class="sarde-mobile-nav" aria-label="{{ t "nav.docs_nav" }}">
@@ -45,7 +48,6 @@
       {{ end }}
       <div class="sarde-main-pane">
         <main class="sarde-doc-body" id="main-content">
-          {{ announcementBanner }}
           <div class="sarde-content-panel sarde-content-panel--header">
             {{ if .Breadcrumbs }}{{ component "Breadcrumbs" . }}{{ end }}
             {{ component "DraftBanner" . }}

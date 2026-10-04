@@ -23,9 +23,14 @@
   var lastHeadingId = headingIds[headingIds.length - 1];
 
   // ── Narrow 53px detection strip just below the nav ────────────────
+  // The masthead holds the header plus any announcement banner above it.
+  function getHeaderHeight() {
+    var header = document.querySelector('.sarde-masthead') || document.querySelector('.sarde-header');
+    return header ? header.offsetHeight : 64;
+  }
+
   function getStripRootMargin() {
-    var header = document.querySelector('.sarde-header');
-    var navHeight = header ? header.offsetHeight : 64;
+    var navHeight = getHeaderHeight();
     var mobileTocH = (window.innerWidth < 1280 && mobileToc) ? 48 : 0;
     var topOffset = navHeight + mobileTocH + 32;
     var bottomOffset = topOffset + 53 - window.innerHeight;
@@ -132,11 +137,12 @@
     if (resizeTimer) clearTimeout(resizeTimer);
     resizeTimer = setTimeout(buildObserver, 200);
   }, { passive: true });
+  // Dismissing the announcement banner shrinks the masthead.
+  document.addEventListener('sarde:banner-change', buildObserver);
 
   // ── Smooth scroll on TOC link click ───────────────────────────────
   function getNavOffset() {
-    var header = document.querySelector('.sarde-header');
-    var base = header ? header.offsetHeight : 64;
+    var base = getHeaderHeight();
     var mobileTocH = (window.innerWidth < 1024 && mobileToc) ? 48 : 0;
     return base + mobileTocH + 8;
   }

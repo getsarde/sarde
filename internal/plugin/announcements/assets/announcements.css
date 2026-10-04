@@ -125,6 +125,69 @@
     outline-offset: 2px;
 }
 
+/* ── Above the header ── */
+/* The layout offsets content by --sd-banner-height, so the strip keeps that
+   height: one line of text, rotate dots overlaid at the bottom. */
+
+.sarde-masthead .sarde-announcement-container {
+    position: relative;
+}
+
+.sarde-masthead .sarde-announcement-banner {
+    box-sizing: border-box;
+    height: var(--sd-banner-height, 3rem);
+    padding-block: 0;
+}
+
+.sarde-masthead .sarde-announcement-content {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sarde-masthead .sarde-announcement-dots {
+    position: absolute;
+    inset-block-end: 0.125rem;
+    inset-inline: 0;
+    padding: 0;
+    pointer-events: none;
+}
+
+.sarde-masthead .sarde-announcement-dot {
+    pointer-events: auto;
+}
+
+/* Narrow screens: wrap onto a second line in the same height, with smaller
+   text. Rotate dots move to a column at the start edge, clear of the text. */
+@media (max-width: 50em) {
+    .sarde-masthead .sarde-announcement-banner {
+        gap: 0.5rem;
+        padding-inline: 1rem 0.5rem;
+    }
+
+    .sarde-masthead .sarde-announcement-content {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        white-space: normal;
+        font-size: 0.8125rem;
+        line-height: 1.3;
+    }
+
+    .sarde-masthead .sarde-announcement-container[data-display-mode="rotate"] .sarde-announcement-banner {
+        padding-inline-start: 1.75rem;
+    }
+
+    .sarde-masthead .sarde-announcement-dots {
+        flex-direction: column;
+        gap: 0.25rem;
+        inset-block: 0;
+        inset-inline: 0.625rem auto;
+    }
+}
+
 /* ── Accessibility ── */
 
 @media (prefers-reduced-motion: reduce) {

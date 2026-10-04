@@ -1,6 +1,10 @@
 package cli
 
 import (
+	"errors"
+	"fmt"
+	"os"
+
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/version"
 	"github.com/spf13/cobra"
@@ -23,7 +27,14 @@ func init() {
 }
 
 func Execute() error {
-	return rootCmd.Execute()
+	err := rootCmd.Execute()
+	// Cobra prints errors as plain text; the not-a-site error is silenced
+	// there (see requireSite) and printed here with its colored hints.
+	var nse *notSiteError
+	if errors.As(err, &nse) {
+		fmt.Fprint(os.Stderr, nse.Pretty())
+	}
+	return err
 }
 
 // CollectCLIFlags reads changed flags into a map for config.Resolve.

@@ -39,6 +39,9 @@ func runValidate(cmd *cobra.Command, args []string) error {
 
 func validateProject(cmd *cobra.Command, args []string) error {
 	projectDir := projectDirFromArgs(args)
+	if err := requireSite(cmd, projectDir); err != nil {
+		return err
+	}
 
 	cfg, themeCfg, err := resolveAll(cmd, projectDir)
 	if err != nil {

@@ -483,6 +483,48 @@ func TestBuild_Announcements_BannerRendered(t *testing.T) {
 	}
 }
 
+// The banner renders in the masthead above the site header, on docs and
+// default-layout pages alike, never inside <main>.
+func TestBuild_Announcements_AboveHeader(t *testing.T) {
+	projDir := createRichFixtureSite(t)
+	cfg := config.Defaults()
+	cfg.Plugins.Enabled = []string{"announcements"}
+	cfg.Plugins.Config = map[string]map[string]any{
+		"announcements": {
+			"items": []any{
+				map[string]any{"message": "Notice", "active": true, "id": "notice"},
+			},
+		},
+	}
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: buildThemeConfig(),
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(projDir, "dist")
+	for _, page := range []string{"docs/guide/index.html", "index.html"} {
+		html := readFixture(t, distDir, page)
+		masthead := strings.Index(html, `<div class="sarde-masthead">`)
+		banner := strings.Index(html, `<div class="sarde-announcement-container"`)
+		header := strings.Index(html, `<header class="sarde-header"`)
+		main := strings.Index(html, `<main`)
+		if masthead == -1 || banner == -1 || header == -1 || main == -1 {
+			t.Fatalf("%s: missing masthead (%d), banner (%d), header (%d) or main (%d)",
+				page, masthead, banner, header, main)
+		}
+		if !(masthead < banner && banner < header && header < main) {
+			t.Errorf("%s: want masthead < banner < header < main, got %d, %d, %d, %d",
+				page, masthead, banner, header, main)
+		}
+	}
+}
+
 func TestBuild_Announcements_InactiveNoBanner(t *testing.T) {
 	projDir := createRichFixtureSite(t)
 	cfg := config.Defaults()

@@ -11,6 +11,8 @@ sarde <command> [flags] [project-dir]
 
 Every command accepts an optional project directory as the first positional argument. If omitted, the current working directory is used.
 
+`build`, `dev`, `check-links`, and `validate` stop with `not a Sarde site` when the project directory has neither the config file (`sarde.yaml`, or the file named by `--config`) nor a `content/` folder. Passing `--content` skips this check. When a subfolder holds a site, the error names it and prints the commands to run it. See [Troubleshooting](/resources/troubleshooting#not-a-sarde-site).
+
 ## Global flags
 
 These flags are inherited by all commands.
@@ -362,6 +364,8 @@ my-college/
 ```
 
 An unknown template name stops with `unknown template "<name>"; available templates: course`, and nothing is written. Like the default scaffold, `new site` refuses to run where a `sarde.yaml` already exists.
+
+When the site is created in a subfolder, `new site` ends with `Run 'cd <path>' then 'sarde dev' to start the dev server.` Run `sarde dev` from inside the new folder, not from the folder you ran `new site` in.
 
 ### `new course <name>`
 

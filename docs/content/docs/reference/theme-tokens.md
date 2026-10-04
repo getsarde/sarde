@@ -248,6 +248,7 @@ Heading tokens map to the size scale and shift up one step on wider viewports.
 | Token | Default | Description |
 |-------|---------|-------------|
 | `nav-height` | `4rem` | Top navigation bar height |
+| `banner-height` | `3rem` | Height of the announcement banner strip above the navigation bar |
 | `logo-height` | `1.75rem` | Site logo height in the header |
 | `sidebar-width` | `280px` | Sidebar width on desktop |
 | `sidebar-collapsed-width` | `40px` | Sidebar width when collapsed |

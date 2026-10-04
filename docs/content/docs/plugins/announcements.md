@@ -5,7 +5,7 @@ sidebar:
   order: 30
 ---
 
-Renders dismissible announcement banners at the bottom of every page. Supports multiple announcements, three display modes, date scheduling, page targeting, and i18n message resolution. Disabled by default.
+Renders dismissible announcement banners in a one-line strip above the site header. Supports multiple announcements, three display modes, date scheduling, page targeting, and i18n message resolution. Disabled by default.
 
 ## Enable the plugin
 
@@ -37,7 +37,7 @@ plugins:
           dismissible: true
 ```
 
-→ A yellow warning banner appears at the bottom of every page with a dismiss button.
+→ A yellow warning banner appears above the site header on every page, with a dismiss button.
 
 <!-- SCREENSHOT: announcement-warning-banner - a warning announcement banner with dismiss button -->
 
@@ -68,6 +68,14 @@ When every item is inactive or dismissed, the plugin renders no banner container
 
 All four types support light and dark mode with distinct color palettes. Banners are hidden in print output.
 
+## Placement
+
+Banners appear in a full-width strip above the site header and stay with the header as the page scrolls, until the reader dismisses them. The strip is one line high, so keep messages short: text wider than the screen is cut off with an ellipsis. On narrow screens such as phones, the text wraps onto a second line in a slightly smaller size, and is cut off after that. Its height is the `banner-height` [theme token](/reference/theme-tokens/#layout), `3rem` by default. While a banner shows, the sidebar, table of contents, and anchor links move down by that height.
+
+The strip shows one banner at a time, so `stack` mode behaves like `first`.
+
+Banners that the reader has dismissed, that are outside their date window, or that target other pages are hidden before the page is drawn, so they never flash on load.
+
 ## Display modes
 
 The `display_mode` option controls how multiple active announcements appear.
@@ -82,7 +90,7 @@ plugins:
 
 | Mode | Behavior |
 |------|----------|
-| `stack` | All active banners are visible at once, stacked vertically. Default. |
+| `stack` | All active banners are visible at once, stacked vertically. Default. In the strip above the header, behaves like `first`. |
 | `first` | Only the first active banner is shown. When dismissed, the next one takes its place. |
 | `rotate` | Banners cycle automatically at the configured interval. A dot indicator shows the current position. |
 
@@ -91,7 +99,7 @@ plugins:
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `rotate_interval` | Number | `5000` | Rotation interval in milliseconds. Minimum: 500. |
-| `show_rotate_indicator` | Boolean | `true` | Show dot indicators below the banner for manual navigation. |
+| `show_rotate_indicator` | Boolean | `true` | Show dot indicators along the bottom of the banner for manual navigation. |
 
 ```yaml
 plugins:
@@ -109,7 +117,7 @@ plugins:
           type: info
 ```
 
-→ Two banners rotate every 4 seconds with dot navigation below.
+→ Two banners rotate every 4 seconds, with dot navigation along the bottom of the strip.
 
 Rotation pauses while a banner is hovered or focused, and when the reader has `prefers-reduced-motion` enabled. The dot indicators accept arrow keys, ::kbd[Home], and ::kbd[End].
 
@@ -175,10 +183,13 @@ The dismiss button label also uses `announcements.dismiss` from the string table
 
 ## Template function
 
-The plugin registers an `announcementBanner` template function. Call it in a layout template to control where banners appear:
+The plugin registers an `announcementBanner` template function. The default theme calls it in each base layout, inside a masthead wrapper together with the Header component:
 
-```go
-{{ announcementBanner }}
+```html
+<div class="sarde-masthead">
+  {{ announcementBanner }}
+  {{ component "Header" . }}
+</div>
 ```
 
-The default theme already calls this function in the base layout. Override placement by ejecting the base template and moving the call.
+If you eject a base layout, keep this wrapper so the sidebar, table of contents, and anchor links stay below the banner. Called anywhere else, banners render where the call is, at their natural height, and `stack` mode shows them all.

@@ -263,6 +263,37 @@ func TestRunNewSite_Default(t *testing.T) {
 	assertMissing(t, site, "content/courses")
 }
 
+// The next-step hint tells the user to cd into a site created in a subfolder,
+// since running "sarde dev" from the parent fails.
+func TestRunNewSite_NextStepHint(t *testing.T) {
+	tests := []struct {
+		path string
+		want string
+	}{
+		{"vanier", "Run 'cd vanier' then 'sarde dev' to start the dev server."},
+		{"my site", `Run 'cd "my site"' then 'sarde dev' to start the dev server.`},
+		{".", "  Run 'sarde dev' to start the dev server."},
+	}
+	for _, tt := range tests {
+		t.Run(tt.path, func(t *testing.T) {
+			dir := t.TempDir()
+			origWd, _ := os.Getwd()
+			os.Chdir(dir)
+			defer os.Chdir(origWd)
+
+			// rootCmd keeps flag values between Execute calls; reset both.
+			rootCmd.SetArgs([]string{"new", "site", tt.path, "--template=", "--quiet=false"})
+			out, err := captureStdout(t, rootCmd.Execute)
+			if err != nil {
+				t.Fatalf("new site failed: %v", err)
+			}
+			if !strings.Contains(out, tt.want) {
+				t.Errorf("output missing %q:\n%s", tt.want, out)
+			}
+		})
+	}
+}
+
 func TestRunNewSite_CourseTemplate(t *testing.T) {
 	site, err := runNewSiteIn(t, "course")
 	if err != nil {

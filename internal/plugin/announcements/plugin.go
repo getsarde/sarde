@@ -1,7 +1,7 @@
 // Package announcements provides a built-in plugin that renders dismissible
-// announcement banners at the bottom of every page. Supports multiple
-// announcements with i18n, three display modes (stack/first/rotate),
-// date scheduling, and page targeting.
+// announcement banners. The default theme places them in a one-line strip
+// above the site header. Supports multiple announcements with i18n, three
+// display modes (stack/first/rotate), date scheduling, and page targeting.
 package announcements
 
 import (
@@ -29,6 +29,7 @@ var (
 	assetsOnce sync.Once
 	jsData     []byte
 	cssData    []byte
+	prefilter  string
 	jsURL      string
 	cssURL     string
 )
@@ -37,6 +38,8 @@ func ensureAssets() {
 	assetsOnce.Do(func() {
 		jsData, _ = fs.ReadFile(assetsFS, "assets/announcements.js")
 		cssData, _ = fs.ReadFile(assetsFS, "assets/announcements.css")
+		pf, _ := fs.ReadFile(assetsFS, "assets/announcements-prefilter.js")
+		prefilter = compactScript(string(pf))
 
 		if len(jsData) > 0 {
 			jsURL = "/" + pluginPrefix + asset.FingerprintedName("announcements.js", asset.Fingerprint(jsData))
@@ -142,6 +145,13 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 		container.WriteString(`>`)
 		container.WriteString(banners.String())
 		container.WriteString(`</div>`)
+		// Inline, right after the container: hides banners that do not apply
+		// to this page before the header below them is parsed and painted.
+		if prefilter != "" {
+			container.WriteString(`<script>`)
+			container.WriteString(prefilter)
+			container.WriteString(`</script>`)
+		}
 
 		return template.HTML(container.String())
 	}
@@ -192,6 +202,21 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 			},
 		},
 	}
+}
+
+// compactScript drops comment-only lines and indentation from a script that
+// is inlined on every page. It is not a minifier: code lines are kept intact.
+func compactScript(src string) string {
+	var b strings.Builder
+	for _, line := range strings.Split(src, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "//") {
+			continue
+		}
+		b.WriteString(line)
+		b.WriteByte('\n')
+	}
+	return b.String()
 }
 
 func resolveString(st *i18n.StringTable, lang, key string) string {

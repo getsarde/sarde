@@ -7,7 +7,8 @@
   var sidebar = document.getElementById('sarde-sidebar');
   var backdrop = document.getElementById('sarde-sidebar-backdrop');
   var mainFrame = document.querySelector('.sarde-main-frame');
-  var header = document.querySelector('.sarde-header');
+  // The masthead also holds the announcement banner and its dismiss button.
+  var header = document.querySelector('.sarde-masthead') || document.querySelector('.sarde-header');
   var mobileToc = document.getElementById('sarde-mobile-toc');
   var skipLink = document.querySelector('.sarde-skip-link');
 

@@ -442,7 +442,7 @@
 	  .sarde-mobile-toc {
 	    display: block;
 	    position: fixed;
-	    top: calc(var(--sd-nav-height) - 1px);
+	    top: calc(var(--sd-header-offset) - 1px);
 	    inset-inline: 0;
 	    z-index: var(--sd-z-toc);
 	    background: color-mix(in srgb, var(--sd-bg-nav) 85%, transparent);
@@ -551,7 +551,7 @@
 	    background: var(--sd-bg);
 	    border-top: 1px solid var(--sd-border);
 	    box-shadow: var(--sd-shadow-md);
-	    max-height: calc(85vh - var(--sd-nav-height) - var(--sd-mobile-toc-height));
+	    max-height: calc(85vh - var(--sd-header-offset) - var(--sd-mobile-toc-height));
 	    overflow-y: auto;
 	    overscroll-behavior: contain;
 	  }

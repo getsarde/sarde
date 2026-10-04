@@ -405,3 +405,33 @@ func TestNew_DefaultAttributesOmitted(t *testing.T) {
 		t.Error("empty end_date should not emit data-end-date")
 	}
 }
+
+func TestNew_InlinePrefilterAfterContainer(t *testing.T) {
+	cfg := map[string]any{
+		"items": []any{
+			map[string]any{"id": "test", "message": "msg", "active": true},
+		},
+	}
+
+	p := announcements.New(cfg, nil, nil)
+	result := string(getBannerFunc(t, p)())
+
+	// The prefilter must directly follow the container so that
+	// document.currentScript.previousElementSibling finds it.
+	closeIdx := strings.LastIndex(result, `</div><script>`)
+	if closeIdx == -1 {
+		t.Fatalf("expected inline <script> right after the container, got %q", result)
+	}
+	if !strings.HasSuffix(result, `</script>`) {
+		t.Errorf("expected output to end with the inline script, got %q", result)
+	}
+	script := result[closeIdx+len(`</div><script>`):]
+	if !strings.Contains(script, "sd-has-banner") {
+		t.Error("prefilter should toggle the sd-has-banner class")
+	}
+	for _, line := range strings.Split(script, "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "//") {
+			t.Errorf("inlined prefilter should not carry comment lines, found %q", line)
+		}
+	}
+}

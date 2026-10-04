@@ -7,9 +7,11 @@
 </head>
 <body class="sarde-layout-{{ .Layout }}">
   <a href="#main-content" class="sarde-skip-link">{{ t "nav.skip_to_content" }}</a>
-  {{ component "Header" . }}
-  <main id="main-content">
+  <div class="sarde-masthead">
     {{ announcementBanner }}
+    {{ component "Header" . }}
+  </div>
+  <main id="main-content">
     {{ component "DraftBanner" . }}
     {{ component "FallbackNotice" . }}
     {{ component "PageBanner" . }}

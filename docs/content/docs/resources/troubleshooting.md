@@ -9,6 +9,27 @@ Find an error by the text Sarde prints. Entries are grouped by where the error o
 
 ## Build errors
 
+### "not a Sarde site"
+
+```
+Error: not a Sarde site: /path/to/projects
+  This folder has no sarde.yaml and no content/ folder.
+  Found a site in the subfolder "my-site". Run:
+    cd my-site
+    sarde dev
+```
+
+`sarde build`, `dev`, `check-links`, or `validate` ran in a folder that has neither a `sarde.yaml` nor a `content/` folder, so Sarde stops before building anything. This often happens right after `sarde new site my-site`, when `sarde dev` runs from the folder that contains `my-site` instead of from inside it. If a subfolder holds a `sarde.yaml`, the error names it (up to three subfolders) and prints the commands to run it.
+
+**Fix:** Run the command from the site's folder:
+
+```bash
+cd my-site
+sarde dev
+```
+
+Or pass the site's folder as the first argument: `sarde dev my-site`. To turn the current folder into a site, run `sarde new site .`.
+
 ### "discovering content" failure
 
 ```

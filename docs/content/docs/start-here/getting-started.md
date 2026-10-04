@@ -81,7 +81,7 @@ cd my-site
 
 ```text
 Created new site at /path/to/my-site
-  Run 'sarde dev' to start the dev server.
+  Run 'cd my-site' then 'sarde dev' to start the dev server.
 ```
 
 The `my-site` folder contains:

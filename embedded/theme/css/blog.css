@@ -147,7 +147,7 @@
 	    width: 220px;
 	    flex-shrink: 0;
 	    position: sticky;
-	    top: calc(var(--sd-nav-height) + var(--sd-space-8));
+	    top: calc(var(--sd-header-offset) + var(--sd-space-8));
 	    align-self: flex-start;
 	  }
 	}

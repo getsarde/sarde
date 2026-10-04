@@ -8,7 +8,7 @@
    ======================================== */
 .sarde-reading-progress {
     position: fixed;
-    top: var(--sd-nav-height, 4rem);
+    top: var(--sd-header-offset, var(--sd-nav-height, 4rem));
     left: 0;
     width: 100%;
     height: var(--rp-bar-height, 3px);

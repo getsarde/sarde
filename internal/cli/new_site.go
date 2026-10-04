@@ -113,7 +113,13 @@ func runNewSite(cmd *cobra.Command, args []string) error {
 		} else {
 			fmt.Printf("Created new site at %s\n", absDir)
 		}
-		fmt.Println("  Run 'sarde dev' to start the dev server.")
+		// Two separate commands rather than "cd x && sarde dev": Windows
+		// PowerShell 5 has no &&.
+		if cwd, _ := os.Getwd(); absDir != cwd {
+			fmt.Printf("  Run 'cd %s' then 'sarde dev' to start the dev server.\n", quoteIfSpaced(targetDir))
+		} else {
+			fmt.Println("  Run 'sarde dev' to start the dev server.")
+		}
 	}
 
 	return nil

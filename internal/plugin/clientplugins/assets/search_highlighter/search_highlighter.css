@@ -30,7 +30,7 @@
 
 .sarde-search-hl-badge {
     position: sticky;
-    top: var(--sd-nav-height, 60px);
+    top: var(--sd-header-offset, var(--sd-nav-height, 60px));
     z-index: 50;
     display: flex;
     align-items: center;

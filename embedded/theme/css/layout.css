@@ -4,7 +4,7 @@
 	/* ── Single-Column Layout ── */
 	.sarde-layout-default {
 	  display: grid;
-	  grid-template-rows: var(--sd-nav-height) 1fr auto;
+	  grid-template-rows: auto 1fr auto;
 	  grid-template-areas: "header" "content" "footer";
 	  min-height: 100vh;
 	}
@@ -19,6 +19,28 @@
 
 	.sarde-layout-default > main:has(.sarde-blog-with-sidebar) {
 	  max-width: 72rem;
+	}
+
+	/* ── Masthead: announcement banner + site header ── */
+	/* --sd-header-offset is the distance from the viewport top to the content
+	   below the masthead. Fixed and sticky elements offset by it. The
+	   announcements prefilter adds .sd-has-banner when a banner is showing. */
+	:root {
+	  --sd-header-offset: var(--sd-nav-height);
+	}
+
+	:root.sd-has-banner {
+	  --sd-header-offset: calc(var(--sd-nav-height) + var(--sd-banner-height));
+	}
+
+	.sarde-masthead {
+	  position: sticky;
+	  top: 0;
+	  z-index: var(--sd-z-header);
+	}
+
+	.sarde-layout-default > .sarde-masthead {
+	  grid-area: header;
 	}
 
 	/* ── Site Header ── */
@@ -189,7 +211,7 @@
 	  position: fixed;
 	  /* 40px box: comfortably above the 24px WCAG floor and near the 44px
 	     platform guidance for the sole entry point to mobile navigation. */
-	  top: calc((var(--sd-nav-height) - 2.5rem) / 2);
+	  top: calc(var(--sd-header-offset) - (var(--sd-nav-height) + 2.5rem) / 2);
 	  inset-inline-end: var(--sd-space-4);
 	  z-index: var(--sd-z-overlay);
 	  border: 0;
@@ -250,7 +272,7 @@
 	/* ── Docs Sidebar Pane ── */
 	.sarde-sidebar {
 	  position: fixed;
-	  inset-block: var(--sd-nav-height) 0;
+	  inset-block: var(--sd-header-offset) 0;
 	  inset-inline-start: 0;
 	  z-index: var(--sd-z-sidebar);
 	  width: 100%;
@@ -303,7 +325,7 @@
 
 	@media (min-width: 1024px) {
 	  .sarde-sidebar {
-	    inset-block: var(--sd-nav-height) 0;
+	    inset-block: var(--sd-header-offset) 0;
     inset-inline-start: 0;
     inset-inline-end: auto;
 	    width: var(--sd-sidebar-width);
@@ -323,7 +345,7 @@
 	.sarde-sidebar-backdrop {
 	  display: none;
 	  position: fixed;
-	  inset-block: var(--sd-nav-height) 0;
+	  inset-block: var(--sd-header-offset) 0;
 	  inset-inline: 0;
 	  z-index: calc(var(--sd-z-sidebar) - 1);
 	  background: rgba(0, 0, 0, 0.5);
@@ -485,7 +507,7 @@
 	       explicit width is what keeps long headings inside the ToC column
 	       instead of running out toward the viewport edge. */
 	    width: var(--sd-toc-width);
-	    padding-top: calc(var(--sd-nav-height) + var(--sd-space-6));
+	    padding-top: calc(var(--sd-header-offset) + var(--sd-space-6));
 	    height: 100vh;
 	    overflow-y: auto;
 	    scrollbar-width: thin;
@@ -637,7 +659,7 @@
 	    overflow-x: hidden;
 	    overflow-y: auto;
 	    white-space: normal;
-	    max-height: calc(100vh - var(--sd-nav-height));
+	    max-height: calc(100vh - var(--sd-header-offset));
 	    background: var(--sd-bg);
 	    border-bottom: 1px solid var(--sd-border);
 	    box-shadow: var(--sd-shadow-lg);

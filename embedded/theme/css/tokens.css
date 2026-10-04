@@ -149,6 +149,7 @@
 
 	  /* ── Layout ── */
 	  --sd-nav-height: 4rem;
+	  --sd-banner-height: 3rem;
 	  --sd-logo-height: 1.75rem;
 	  --sd-sidebar-width: 280px;
   --sd-sidebar-collapsed-width: 40px;

@@ -64,6 +64,9 @@ func runBuildWithFormat(cmd *cobra.Command, args []string, format string) error 
 	}
 
 	projectDir := projectDirFromArgs(args)
+	if err := requireSite(cmd, projectDir); err != nil {
+		return err
+	}
 
 	// Resolve config.
 	cfg, themeCfg, err := resolveAll(cmd, projectDir)
@@ -188,13 +191,8 @@ func printStatsTable(result *engine.BuildResult) {
 
 // resolveAll resolves site config and theme config from the project directory.
 func resolveAll(cmd *cobra.Command, projectDir string) (*config.SiteConfig, *engine.ThemeConfig, error) {
-	configPath, _ := cmd.Flags().GetString("config")
-	if !filepath.IsAbs(configPath) {
-		configPath = filepath.Join(projectDir, configPath)
-	}
-
 	cfg, err := config.Resolve(config.ResolveOptions{
-		ConfigPath:   configPath,
+		ConfigPath:   configPathFor(cmd, projectDir),
 		CLIFlags:     CollectCLIFlags(cmd),
 		EnvPrefix:    "SARDE",
 		Strict:       true,

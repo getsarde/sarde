@@ -1,4 +1,4 @@
-// Announcements Plugin — display modes, dismissal, scheduling, page targeting
+// Announcements Plugin: display modes, dismissal, rotation
 (function () {
     'use strict';
 
@@ -12,18 +12,9 @@
     var rotateInterval = parseInt(container.dataset.rotateInterval, 10) || 5000;
     var showIndicator = container.dataset.showRotateIndicator !== 'false';
 
-    // ── Glob matching ──
-
-    function matchGlob(pattern, path) {
-        var escaped = pattern
-            .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-            .replace(/\*\*/g, '\x01')
-            .replace(/\*/g, '[^/]*')
-            .replace(/\x01/g, '.*');
-        return new RegExp('^' + escaped + '$').test(path);
-    }
-
     // ── Filtering ──
+    // Dates and page targeting are evaluated by the inline prefilter, which
+    // marks banners that do not apply to this page with data-applies="false".
 
     function isDismissed(id) {
         try { return !!localStorage.getItem(STORAGE_PREFIX + id); } catch (e) { return false; }
@@ -31,29 +22,6 @@
 
     function dismiss(id) {
         try { localStorage.setItem(STORAGE_PREFIX + id, '1'); } catch (e) { /* noop */ }
-    }
-
-    function isDateActive(banner) {
-        var now = Date.now();
-        var start = banner.dataset.startDate;
-        var end = banner.dataset.endDate;
-        if (start && now < new Date(start).getTime()) return false;
-        if (end && now > new Date(end).getTime()) return false;
-        return true;
-    }
-
-    function isPageMatch(banner) {
-        var path = window.location.pathname;
-        var showOn = banner.dataset.showOn;
-        var hideOn = banner.dataset.hideOn;
-
-        var showPatterns = showOn ? showOn.split(',') : ['/**'];
-        var hidePatterns = hideOn ? hideOn.split(',') : [];
-
-        var shown = showPatterns.some(function (p) { return matchGlob(p.trim(), path); });
-        var hidden = hidePatterns.some(function (p) { return matchGlob(p.trim(), path); });
-
-        return shown && !hidden;
     }
 
     function getAllBanners() {
@@ -65,8 +33,21 @@
     function getVisibleBanners() {
         return getAllBanners().filter(function (b) {
             var id = b.dataset.announcementId;
-            return !isDismissed(id) && isDateActive(b) && isPageMatch(b);
+            return b.dataset.applies !== 'false' && !isDismissed(id);
         });
+    }
+
+    // Above the header, the layout offsets content by the banner strip while
+    // a banner shows. Drop that offset once the last banner is dismissed.
+    var inMasthead = !!container.closest('.sarde-masthead');
+
+    function syncMasthead() {
+        if (!inMasthead) return;
+        var showing = getAllBanners().some(function (b) {
+            return !b.classList.contains('dismissed');
+        });
+        document.documentElement.classList.toggle('sd-has-banner', showing);
+        document.dispatchEvent(new CustomEvent('sarde:banner-change'));
     }
 
     // ── Stack mode ──
@@ -86,6 +67,7 @@
             var banner = btn.closest('.sarde-announcement-banner');
             if (banner) banner.classList.add('dismissed');
             if (id) dismiss(id);
+            syncMasthead();
         });
     }
 
@@ -107,6 +89,7 @@
             var id = btn.dataset.announcementId;
             if (id) dismiss(id);
             showFirst();
+            syncMasthead();
         });
     }
 
@@ -246,6 +229,7 @@
                 stopRotation();
                 getAllBanners().forEach(function (b) { b.classList.add('dismissed'); });
                 if (dotContainer) dotContainer.remove();
+                syncMasthead();
                 return;
             }
             rotateIndex = Math.min(rotateIndex, rotateVisible.length - 1);
