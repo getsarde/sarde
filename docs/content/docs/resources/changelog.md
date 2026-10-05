@@ -24,6 +24,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Fixed
 
+- **List items ending in an icon or key stay aligned:** in a list that holds paragraphs or other blocks, a list item whose last element was inline, such as an `:icon[...]`, a `::kbd[...]` key, or a highlight, got the spacing meant for blocks. That pushed the element above its line of text, as in the course template's schedule items. Only block elements now get that spacing.
 - **Clear error outside a site:** `sarde build`, `dev`, `check-links`, and `validate` run in a folder with no `sarde.yaml` and no `content/` folder now stop with `not a Sarde site` and the commands to fix it, including `cd` into a subfolder that holds a site. Previously `sarde dev` printed a `discovering content` error and kept serving 404 pages. See [Troubleshooting](/resources/troubleshooting#not-a-sarde-site).
 - **`sarde new site` says to `cd` first:** creating a site in a subfolder now ends with `Run 'cd <path>' then 'sarde dev'` instead of only `Run 'sarde dev'`, which failed from the parent folder.
 - **Links in timelines and cards are underlined:** plain Markdown links inside a timeline entry or a card were told apart from the text by color alone, because both extensions opt out of prose styles. They now get the same subtle underline as links in body text, tabs, and steps.

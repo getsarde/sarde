@@ -77,10 +77,13 @@
 	  margin-top: 0.25rem;
 	}
 
+	/* Loose lists: items holding block content get space below their last
+	   block. Match block elements explicitly so an inline element ending an
+	   item (an icon, kbd, image) is not mistaken for one and pushed up. */
 	.sarde-markdown-content
-		:is(ol, ul):has(> li > :not(a, strong, em, del, span, input, code, br, script, ol, ul))
+		:is(ol, ul):has(> li > :is(p, div, pre, blockquote, table, figure, details, dl, aside, hr, h1, h2, h3, h4, h5, h6))
 		> li
-		> :last-child:not(a, strong, em, del, span, input, code, br, script) {
+		> :last-child:is(p, div, pre, blockquote, table, figure, details, dl, aside, hr, ol, ul, h1, h2, h3, h4, h5, h6) {
 		margin-bottom: 1.25rem;
 	}
 
