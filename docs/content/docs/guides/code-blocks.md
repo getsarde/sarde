@@ -108,10 +108,11 @@ def read_observations():
 
 → Line 3 and lines 5 through 7 are highlighted.
 
-Add labels to highlighted ranges when the reason matters.
+Add labels to highlighted ranges when the reason matters. The label sits on the first line of its range, over the start of that line, so begin the range on a blank line or the label covers the code.
 
 ````markdown
-```python {"Input":1-2} {"Validation":4-6}
+```python {"Input":1-3} {"Validation":4-7}
+
 data = read_file("plants.csv")
 records = parse_csv(data)
 

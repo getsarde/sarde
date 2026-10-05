@@ -17,7 +17,7 @@ Write tests for the todo commands. Replace this with your step instructions.
 
 pytest runs every function named `test_*` in files named `test_*.py`. A plain `assert` statement reports the failure:
 
-```python title="test_todo.py" {"Assertion":5}
+```python title="test_todo.py" {"Assertion":4-5}
 def test_add_todo():
     todos = []
     todos.append("write tests")

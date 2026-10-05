@@ -16,7 +16,7 @@ Type hints are not checked when the program runs: `age: int = "thirty"` runs wit
 
 A variable gets its type from the value assigned to it. A type hint after the name documents the type you expect:
 
-```python title="types.py" showLineNumbers {"Type hints":5-7} "type"
+```python title="types.py" showLineNumbers {"Type hints":4-7} "type"
 count = 0      # int
 price = 9.99   # float
 name = "Ada"   # str
