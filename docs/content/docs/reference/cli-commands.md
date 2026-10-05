@@ -337,7 +337,7 @@ mysite/
 
 #### Course template
 
-`--template course` creates a course site: courses with lessons, assignments, and their own announcements and schedule pages, hands-on labs grouped by course, a site-wide announcements page, and a homepage. A sample banner from the [announcements plugin](/plugins/announcements/) appears only on one course's lessons and labs. The sample pages use Markdown extensions such as tabs, steps, and collapsible panels. The same site is published as the [course-template](https://github.com/getsarde/course-template) repository.
+`--template course` creates a course site: courses with lessons, assignments, and their own announcements and schedule pages, hands-on labs grouped by course, a site-wide announcements page, and a homepage. A sample banner from the [announcements plugin](/plugins/announcements/) appears only on one course's lessons and labs, and the [Telescope plugin](/plugins/telescope/) is enabled for quick page navigation. The sample pages use Markdown extensions such as tabs, steps, and collapsible panels. The same site is published as the [course-template](https://github.com/getsarde/course-template) repository.
 
 ```
 sarde new site my-college --template course

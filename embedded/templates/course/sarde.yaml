@@ -36,8 +36,10 @@ homepage:
       dark: /images/hero-dark.svg
       alt: "Hero illustration"
 
-# The announcements plugin shows banners at the bottom of the page.
-# `show_on` limits a banner to one course: its lessons and its labs.
+# Listing plugins replaces the default set, so the defaults are repeated here.
+# announcements: banners above the header. `show_on` limits a banner to one
+#   course: its lessons and its labs.
+# telescope: quick page navigation, opened with Ctrl+/ (Cmd+/ on Mac).
 plugins:
   enabled:
     - search
@@ -54,6 +56,7 @@ plugins:
     - mermaid
     - social_cards
     - announcements
+    - telescope
   config:
     announcements:
       items:
