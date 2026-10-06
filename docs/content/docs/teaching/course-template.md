@@ -207,6 +207,16 @@ The template's `sarde.yaml` also lists every default plugin under `plugins.enabl
 - **Homepage content:** `content/_index.md` links to each course with a card.
 - **Quick navigation:** the [Telescope plugin](/plugins/telescope/) is on, so ::kbd[Ctrl]+::kbd[/] (::kbd[Cmd]+::kbd[/] on Mac) opens a quick search that jumps to any page by name.
 
+## Reading aids
+
+The template's `sarde.yaml` enables three plugins that help with long lessons and labs, listed under `plugins.enabled` with the others:
+
+- **[Scroll to Top](/plugins/scroll-to-top/):** a button at the bottom of the screen that returns to the top of the page, shown after the reader scrolls down.
+- **[Reading Progress](/plugins/reading-progress/):** a bar under the header that fills as the reader scrolls, and an estimated reading time under the page title. Both appear on lessons, assignments, schedules, announcement pages, and lab steps, but not on course overviews, lab introductions, or the catalog.
+- **[Focus Mode](/plugins/focus-mode/):** ::kbd[Shift+F] or the button at the bottom right hides the sidebar and table of contents on course and lab pages. It works on screens at least 1024 pixels wide.
+
+To turn one off, remove it from `plugins.enabled`.
+
 ## Replace the sample content
 
 1. In `sarde.yaml`, set `site.title`, `site.description`, and `site.url`, then change the hero text and buttons under `homepage.hero`.

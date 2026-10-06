@@ -57,7 +57,7 @@ plugins:
 
 ## Injection rule
 
-This plugin activates on pages with a sidebar (`has_sidebar`), which includes the `docs` and `wide` layouts. Pages using other layouts receive no plugin config or behavior.
+This plugin activates on pages with a sidebar (`has_sidebar`), which includes the `docs`, `wide`, and `labs` layouts. Pages using other layouts receive no plugin config or behavior.
 
 ## Edge cases
 

@@ -40,6 +40,9 @@ homepage:
 # announcements: banners above the header. `show_on` limits a banner to one
 #   course: its lessons and its labs.
 # telescope: quick page navigation, opened with Ctrl+/ (Cmd+/ on Mac).
+# scroll_to_top: a button that returns to the top of long pages.
+# reading_progress: a progress bar under the header and a reading time on lessons.
+# focus_mode: hides the sidebar and table of contents (Shift+F, desktop only).
 plugins:
   enabled:
     - search
@@ -57,6 +60,9 @@ plugins:
     - social_cards
     - announcements
     - telescope
+    - scroll_to_top
+    - reading_progress
+    - focus_mode
   config:
     announcements:
       items:
