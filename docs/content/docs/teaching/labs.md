@@ -64,7 +64,7 @@ labs/
       testing.md
 ```
 
-`sarde new site my-college --template course` creates a working copy of this layout. See [`new site`](/reference/cli-commands/#course-template).
+`sarde new site my-college --template course` creates a working copy of this layout. See [Course Template](/teaching/course-template/).
 :::
 
 Both work with no configuration. Lab numbering restarts inside each course, so `web-fundamentals` and `python-essentials` both begin at Lab 1.

@@ -34,7 +34,7 @@ description: Browse all available courses.
 Pick a course to start.
 ```
 
-→ `/courses/` lists every course as a card, and the header's **Courses** link opens the catalog instead of the first course.
+→ `/courses/` lists every course as a card, and the header's **Courses** link opens the catalog instead of the first course. The [course template](/teaching/course-template/#the-course-catalog) ships with a working catalog.
 
 To change the catalog's markup, add `layouts/<collection>/catalog.html`, for example `layouts/courses/catalog.html`. Its `.DocsTabs` holds the tabs in order; see [Route Data](/reference/route-data/).
 

@@ -70,6 +70,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Docs
 
+- Added a Course Template page under Teaching: creating a course site from the template, what it contains, courses, schedules, announcements, labs, replacing the sample content, and publishing on GitHub Pages.
 - Added a Template API page that maps what a template receives, the base shell contract, and where components, partials, and functions are documented, and a Route Data reference listing every field available as the dot context with the conditions under which each is populated. A test in `internal/engine` fails when a struct field is added without a docs entry.
 
 ## 1.4.0 - 2026-08-28

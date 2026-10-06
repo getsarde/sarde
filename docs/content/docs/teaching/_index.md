@@ -12,6 +12,9 @@ Build slide decks, labs, and course material from Markdown. Sarde renders presen
 as full-screen slide viewers, organizes decks into SlideShare-style galleries, and turns a
 `labs` directory into a step-by-step workbook.
 
+- [Course Template](/teaching/course-template/) starts a complete course website:
+  courses with schedules and announcements, labs, a course catalog, and GitHub Pages
+  publishing.
 - [Slides Collection](/teaching/slides-collection/) covers the auto-detected
   `slides` collection type, gallery pages, and multi-course organization.
 - [Presentation Layout](/teaching/presentation-layout/) explains the
@@ -33,4 +36,4 @@ To start with a working course site rather than an empty project, create it from
 sarde new site my-college --template course
 ```
 
-The site has two sample courses with lessons, assignments, and their own announcements and schedule pages, hands-on labs grouped by course, and a site-wide announcements page. Replace the sample content with your own; [`new site`](/reference/cli-commands/#course-template) lists what the template creates.
+[Course Template](/teaching/course-template/) walks through what the site contains, how to replace the sample courses and labs, and how to publish it on GitHub Pages.
