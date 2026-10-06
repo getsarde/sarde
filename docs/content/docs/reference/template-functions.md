@@ -178,7 +178,8 @@ See [`icons`](/reference/configuration/theme-and-appearance/#icons) for icon set
 | `boolVal` | `boolVal(p *bool, def bool) bool` | Dereferences a `*bool`, returning `def` when nil |
 | `boolParam` | `boolParam(params map[string]any, key string, def bool) bool` | Reads a bool from a param map, returning `def` when missing |
 | `stringParam` | `stringParam(params map[string]any, key string) string` | Reads a string from a param map, returning `""` when missing |
-| `renderHeadTags` | `renderHeadTags(tags []HeadTag) HTML` | Renders head tags into `<head>` markup. Filters by allowed tag names. |
+| `renderHeadTags` | `renderHeadTags(tags []HeadTag) HTML` | Renders head tags into `<head>` markup. Filters by allowed tag names. Also takes site config tags and tags set through a section `cascade`. The content of `script`, `style`, and `noscript` is not escaped. |
+| `siteHeadTags` | `siteHeadTags(data any) HTML` | Renders the site-wide `head.tags` from `sarde.yaml`. The default `Head` component calls it before the page's own tags. |
 | `renderAttrs` | `renderAttrs(attrs map[string]string) HTML` | Renders a map as sorted, escaped HTML attributes |
 | `versionOf` | `versionOf(page *Page, versionID string) *Page` | Finds the version peer of a page matching the given version ID |
 | `toString` | `toString(v any) string` | Converts any value to its string representation |
@@ -199,7 +200,7 @@ See [`icons`](/reference/configuration/theme-and-appearance/#icons) for icon set
 |----------|-----------|-------------|
 | `partial` | `partial(name string, data any) HTML` | Renders a cached partial template by name |
 | `component` | `component(name string, data any) HTML` | Renders a registered component by name |
-| `themeStyles` | `themeStyles(data *RouteData) HTML` | Emits `<link>` and/or `<style>` tags for the token CSS and main CSS bundle. See [Theme Tokens](/reference/theme-tokens). |
+| `themeStyles` | `themeStyles(data *RouteData) HTML` | Emits `<link>` and/or `<style>` tags for the token CSS and main CSS bundle, preceded by the web font preconnects and stylesheet when [`theme.web_fonts`](/guides/themes-and-styling/#web-fonts) is set. See [Theme Tokens](/reference/theme-tokens). |
 | `announcementBanner` | `announcementBanner() HTML` | No-op stub. Overridden by the announcements plugin when enabled. |
 
 ## Dates

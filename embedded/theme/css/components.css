@@ -1307,6 +1307,24 @@
 	  color: var(--sd-text-muted);
 	}
 
+	/* ── Catalog (tabbed collection landing page) ── */
+	.sarde-catalog-card {
+	  flex-direction: row;
+	  align-items: flex-start;
+	  gap: 0.875rem;
+	}
+	.sarde-catalog-card__body {
+	  display: flex;
+	  flex-direction: column;
+	  flex: 1;
+	  min-width: 0;
+	}
+	.sarde-catalog-card .sarde-badge {
+	  align-self: flex-start;
+	  margin: 0.625rem 0 0;
+	  font-size: var(--sd-text-xs);
+	}
+
 	/* ── Icons ── */
 	.sarde-icon {
 	  width: 1.25rem;

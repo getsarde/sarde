@@ -36,7 +36,7 @@ A preset name that the active theme does not define is ignored without a warning
 
 The color presets (`ocean`, `forest`, `rose`) keep the bundled Inter and JetBrains Mono fonts. The full-look presets (`clean`, `minimal`, `docs`, `academic`) set their own `font-sans` stack. The `docs` preset uses a native system-font stack, so pages render with no font download.
 
-Sarde bundles only Inter and JetBrains Mono. Plus Jakarta Sans, Fira Code, and Merriweather are not bundled: `clean` and `academic` use them only on devices that have them installed, and fall back to the rest of the stack elsewhere.
+Sarde bundles only Inter and JetBrains Mono. Plus Jakarta Sans, Fira Code, and Merriweather are not bundled. By default, `clean` and `academic` use them only on devices that have them installed, and fall back to the rest of the stack elsewhere. Set [`web_fonts`](#web-fonts) to load them for every visitor.
 
 Sarde emits the Inter font preload only when the resolved font tokens reference Inter. To bring Inter back under a full-look preset, set `font_family`, which wins over preset tokens:
 
@@ -98,9 +98,30 @@ theme:
 
 An explicit `theme.overrides` entry for the same token wins over its shortcut field.
 
-A font family renders only when the visitor has it. For a web font other than the bundled Inter and JetBrains Mono, load it with an `@font-face` or `@import` rule in a stylesheet listed under `head.custom_css`, or with a `head.tags` link.
+A font field that holds a single family name is quoted and given a generic fallback: `font_family: Plus Jakarta Sans` becomes `'Plus Jakarta Sans', system-ui, sans-serif`. The fallback follows the family's Google Fonts category (`serif`, `ui-monospace, monospace`, or `cursive` for handwriting fonts), and otherwise the field: `font_mono` falls back to `ui-monospace, monospace`, the others to `system-ui, sans-serif`. A value with a comma or a quote is used as written, and so is a generic keyword such as `system-ui`.
 
 To change the code block themes, see [Code Blocks](/guides/code-blocks/#configuration).
+
+## Web fonts
+
+A font renders only when the visitor has it installed or the site loads it. Sarde bundles Inter and JetBrains Mono. To load the other fonts the theme names, set `web_fonts` to a font service:
+
+```yaml title="sarde.yaml"
+theme:
+  preset: "clean"
+  web_fonts: "bunny"
+```
+
+| Value | Service |
+|-------|---------|
+| `google` | [Google Fonts](https://fonts.google.com) |
+| `bunny` | [Bunny Fonts](https://fonts.bunny.net), which serves the Google Fonts library |
+
+Sarde reads the first family of the resolved `font-sans`, `font-heading`, and `font-mono` tokens, whether a preset, a shortcut field, or `overrides` set it. Every one of those families that is in the Google Fonts library and not bundled is requested in a single stylesheet, after a preconnect to the service, at the weights the theme uses (400 to 800, plus italics). A family outside the library, such as a system font, is left to the visitor's device.
+
+With `web_fonts` set, each visitor's browser fetches the fonts from the service, which receives the visitor's IP address. Bunny Fonts states that it keeps no logs. A German court ruled in 2022 that loading Google Fonts from Google's servers without the visitor's consent breached the GDPR, so sites with EU visitors usually prefer `bunny`.
+
+To self-host a font instead, put the font file and an `@font-face` rule in a stylesheet under `assets/` and list the stylesheet in `head.custom_css`.
 
 ## Accent color derivation
 

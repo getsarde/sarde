@@ -120,10 +120,21 @@ func runNewSite(cmd *cobra.Command, args []string) error {
 		} else {
 			fmt.Println("  Run 'sarde dev' to start the dev server.")
 		}
+		// The workflow fails on every push until GitHub Pages is set to
+		// build from Actions, and a scaffolded site has no README saying so.
+		if tmplFS != nil {
+			if _, err := fs.Stat(tmplFS, pagesWorkflowPath); err == nil {
+				fmt.Printf("  %s publishes the site to GitHub Pages. In the repository's\n", pagesWorkflowPath)
+				fmt.Println("  Settings > Pages, set Source to GitHub Actions, or delete the file if you host elsewhere.")
+			}
+		}
 	}
 
 	return nil
 }
+
+// pagesWorkflowPath is the GitHub Pages workflow a site template may ship.
+const pagesWorkflowPath = ".github/workflows/deploy.yml"
 
 const gitignoreContent = "dist/\n.cache/\n.sarde/\n"
 

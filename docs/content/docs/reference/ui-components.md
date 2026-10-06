@@ -133,7 +133,7 @@ The default layout (`_default/baseof.html`) is leaner: Head, Header, DraftBanner
 
 ### Head
 
-Renders `<head>` content: viewport and generator meta tags, sitemap link (if [`search`](/reference/configuration/build-and-output/#search) enables it), favicon, an inline `window.__SARDE__` config object, the `<title>` tag, meta description, SEO tags via `partial "seo.html"`, theme styles via [`themeStyles`](/reference/template-functions#templates), per-page stylesheets from `.Styles`, and per-page head tags from [`frontmatter head`](/reference/frontmatter#head). The `<meta charset="utf-8">` declaration is not part of this component: each `baseof.html` emits it as the first element inside `<head>` so it stays within the first 1024 bytes of the document. A custom `baseof.html` must declare it itself.
+Renders `<head>` content: viewport and generator meta tags, sitemap link (if [`search`](/reference/configuration/build-and-output/#search) enables it), favicon, an inline `window.__SARDE__` config object, the `<title>` tag, meta description, SEO tags via `partial "seo.html"`, theme styles via [`themeStyles`](/reference/template-functions#templates) (with the web font links when `theme.web_fonts` is set), per-page stylesheets from `.Styles`, the site-wide [`head.tags`](/reference/configuration/site-and-branding/#head) via `siteHeadTags`, and per-page head tags from [`frontmatter head`](/reference/frontmatter#head). The `<meta charset="utf-8">` declaration is not part of this component: each `baseof.html` emits it as the first element inside `<head>` so it stays within the first 1024 bytes of the document. A custom `baseof.html` must declare it itself.
 
 ### Header
 

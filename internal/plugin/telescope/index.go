@@ -20,9 +20,12 @@ type indexEntry struct {
 	Collection  string   `json:"collection,omitempty"`
 }
 
-// buildIndex converts the site's pages into search index entries. Drafts,
-// structural nodes (sections, taxonomies, terms), excluded paths, and
-// duplicate URLs are skipped. Exclude patterns match the lane-free
+// buildIndex converts the site's pages into search index entries. Section
+// pages are included: in docs and labs layouts an _index.md is real content
+// (a course overview, a lab introduction, a single-page lab). Drafts,
+// taxonomy and term pages, sections that do not render (render: false), a
+// tabbed collection root that only redirects to its first tab, excluded
+// paths, and duplicate URLs are skipped. Exclude patterns match the lane-free
 // RelPermalink, the same semantics as the sitemap plugin. Deduplication uses
 // the resolved URL because translations of a page share one lang-free
 // RelPermalink. Entries are sorted by path so the emitted JSON is
@@ -38,9 +41,15 @@ func buildIndex(pages []*engine.Page, exclude []string, resolve func(relPath, la
 			continue
 		}
 		switch p.Kind {
-		case engine.KindPage, engine.KindBundle, engine.KindHome, engine.KindStandalone:
-			// Real content pages.
+		case engine.KindPage, engine.KindBundle, engine.KindHome, engine.KindStandalone, engine.KindSection:
+			// Pages with their own content.
 		default:
+			continue
+		}
+		if r, ok := p.Params["render"].(bool); ok && !r {
+			continue
+		}
+		if engine.TabbedRootRedirect(p) != "" {
 			continue
 		}
 		if p.RelPermalink == "" {

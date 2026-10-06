@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 )
 
@@ -46,6 +47,10 @@ func sitemapBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 			continue
 		}
 		if strings.Contains(page.RelPermalink, "/page/") {
+			continue
+		}
+		// A tabbed collection root without a body only redirects.
+		if engine.TabbedRootRedirect(page) != "" {
 			continue
 		}
 		if ShouldExcludePath(page.RelPermalink, excludePatterns) {

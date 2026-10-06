@@ -1,0 +1,20 @@
+{{ define "content" }}
+<article class="sarde-markdown-content sarde-catalog"{{ if and .Page .Page.IsFallback }} dir="ltr"{{ end }}>
+  {{ component "PageTitle" . }}
+  {{ .Page.Content }}
+</article>
+{{ if .DocsTabs }}
+<div class="sarde-card-grid sarde-catalog-grid">
+  {{ range .DocsTabs }}
+  <a href="{{ relURL .Permalink }}" class="sarde-doc-card sarde-catalog-card">
+    <span class="sarde-tab-tile" aria-hidden="true">{{ if .Icon }}{{ icon .Icon "sarde-tab-icon" }}{{ else }}{{ initials .Title }}{{ end }}</span>
+    <div class="sarde-catalog-card__body">
+      <h2 class="sarde-doc-card__title">{{ .Title | markdownify }}</h2>
+      {{ if .Description }}<p class="sarde-doc-card__desc">{{ .Description | markdownify }}</p>{{ end }}
+      {{ with .IndexPage }}{{ if not .Sidebar.Badge.IsEmpty }}<span class="sarde-badge {{ .Sidebar.Badge.CSSClass }}">{{ .Sidebar.Badge.Text }}</span>{{ end }}{{ end }}
+    </div>
+  </a>
+  {{ end }}
+</div>
+{{ end }}
+{{ end }}

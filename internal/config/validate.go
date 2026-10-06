@@ -7,6 +7,7 @@ import (
 
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/validate"
+	"github.com/getsarde/sarde/internal/webfonts"
 )
 
 // Validate checks the merged SiteConfig for invalid values.
@@ -68,6 +69,7 @@ func validateEnums(c *validate.Checker, cfg *SiteConfig) {
 	c.OneOf("markdown.codeblocks.engine", cfg.Markdown.Codeblocks.Engine, []string{"nuri", "chroma"})
 	c.OneOf("markdown.codeblocks.style", cfg.Markdown.Codeblocks.Style, []string{"class"})
 	c.OneOf("markdown.asides.style", cfg.Markdown.Asides.Style, []string{"classic", "galaxy"})
+	c.OneOf("theme.web_fonts", cfg.Theme.WebFonts, webfonts.Providers)
 	c.OneOf("build.last_updated", string(cfg.Build.LastUpdated), []string{"git", "mtime", "false", "off", "none"})
 }
 

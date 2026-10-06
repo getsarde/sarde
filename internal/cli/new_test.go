@@ -328,8 +328,39 @@ func TestRunNewSite_CourseTemplate(t *testing.T) {
 
 	assertExists(t, site, "kazari.config.yaml", ".gitignore",
 		"public/images/hero-light.svg", "public/images/hero-dark.svg",
-		"content/courses/python-essentials/_index.md", "content/labs/web-fundamentals/hello-world/_index.md")
+		"content/courses/python-essentials/_index.md", "content/labs/web-fundamentals/hello-world/_index.md",
+		".github/workflows/deploy.yml")
 	assertMissing(t, site, "content/blog")
+}
+
+// The course template ships a GitHub Pages workflow that fails until Pages
+// builds from Actions, so the CLI says how to enable it or remove it.
+func TestRunNewSite_CourseTemplateWorkflowHint(t *testing.T) {
+	newSite := func(template string) string {
+		t.Helper()
+		dir := t.TempDir()
+		origWd, _ := os.Getwd()
+		os.Chdir(dir)
+		defer os.Chdir(origWd)
+		// rootCmd is shared across tests, so reset the flags other tests set.
+		rootCmd.SetArgs([]string{"new", "site", "site", "--template=" + template, "--quiet=false"})
+		out, err := captureStdout(t, rootCmd.Execute)
+		if err != nil {
+			t.Fatalf("new site --template=%q failed: %v", template, err)
+		}
+		return out
+	}
+
+	out := newSite("course")
+	for _, want := range []string{".github/workflows/deploy.yml", "Settings > Pages"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("course scaffold output missing %q:\n%s", want, out)
+		}
+	}
+
+	if out := newSite(""); strings.Contains(out, "GitHub Pages") {
+		t.Errorf("default scaffold should not mention the workflow:\n%s", out)
+	}
 }
 
 func TestRunNewSite_InvalidTemplate(t *testing.T) {

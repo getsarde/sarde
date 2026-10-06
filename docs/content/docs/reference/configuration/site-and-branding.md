@@ -104,9 +104,11 @@ Each entry in `head.tags`:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `tag` | string | - | HTML tag name (e.g., `"meta"`, `"link"`). |
+| `tag` | string | - | HTML tag name: `meta`, `link`, `script`, `style`, `noscript`, or `base`. Other names are skipped. |
 | `attrs` | map | - | Tag attributes as key-value pairs. |
-| `content` | string | - | Tag inner content (for tags like `<script>`). |
+| `content` | string | - | Tag inner content (for tags like `<script>`). The content of `script`, `style`, and `noscript` is written as given, so quotes in CSS or JavaScript stay intact. |
+
+Site tags are written on every page, before the tags a page sets in its own `head` frontmatter.
 
 ```yaml
 head:

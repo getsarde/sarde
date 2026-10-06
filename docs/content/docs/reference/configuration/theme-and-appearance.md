@@ -18,10 +18,11 @@ Choose the theme and color preset, control the table of contents, register icon 
 | `dark_overrides` | map | `{}` | Token overrides for dark mode only. Same format as `overrides`. |
 | `primary_color` | string | `""` | Primary brand color (hex). Shorthand for setting the `--sd-accent` token. |
 | `accent_color` | string | `""` | Accent color (hex). Sets `--sd-accent` and auto-derives hover/high/low variants. |
-| `font_family` | string | `""` | Base font family CSS value. |
+| `font_family` | string | `""` | Base font family CSS value. A single family name is quoted and given a generic fallback, see [Shortcut fields](/guides/themes-and-styling/#shortcut-fields). |
 | `font_mono` | string | `""` | Monospace font family CSS value. |
 | `font_heading` | string | `""` | Font family CSS value for `h1` to `h6`. Sets the `font-heading` token. Headings use `font_family` when unset. |
 | `font_scale` | number | `1` | Multiplier for the `text-xs` to `text-5xl` size scale, from `0.5` to `2`. Sets the `text-scale` token. |
+| `web_fonts` | string | `""` | Loads the theme's fonts that are in the Google Fonts library and not bundled. Valid values: `google` (Google Fonts), `bunny` (Bunny Fonts). Empty loads none. The service receives each visitor's IP address. See [Web fonts](/guides/themes-and-styling/#web-fonts). |
 | `code_light` | string | `""` | Syntax highlighting theme for light mode. |
 | `code_dark` | string | `""` | Syntax highlighting theme for dark mode. |
 | `date_format` | string | `"short"` | Display format for the "last updated" date. See below. |

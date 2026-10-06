@@ -112,6 +112,7 @@ func (e *Engine) buildFuncMap(
 			return ""
 		},
 		"renderHeadTags": fnRenderHeadTags,
+		"siteHeadTags":   fnSiteHeadTags,
 		"renderAttrs":    fnRenderAttrs,
 		"urlize":         content.Slugify,
 
@@ -147,6 +148,8 @@ func (e *Engine) buildFuncMap(
 				return ""
 			}
 			var sb strings.Builder
+			// Web fonts first, so the font stylesheet starts loading early.
+			sb.WriteString(webFontLinks(rd))
 			// Token CSS: external file when URL is set, inline fallback otherwise.
 			if tokenCSSURLPtr != nil && *tokenCSSURLPtr != "" {
 				url := *tokenCSSURLPtr

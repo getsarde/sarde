@@ -151,6 +151,12 @@ type ThemeSettings struct {
 	CodeLight     string            `yaml:"code_light"`
 	CodeDark      string            `yaml:"code_dark"`
 
+	// WebFonts loads the theme's fonts that are not bundled from a web font
+	// service: "google" (Google Fonts) or "bunny" (Bunny Fonts). Empty
+	// leaves them to whatever the visitor has installed. Only families in
+	// the Google Fonts library are requested (internal/webfonts).
+	WebFonts string `yaml:"web_fonts"`
+
 	// DateFormat controls the "last updated" date display. Accepts the
 	// preset names "short", "long", and "iso", or any raw Go layout. Kept raw
 	// here: the dateFormat template function resolves presets per page

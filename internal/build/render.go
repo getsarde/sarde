@@ -69,7 +69,7 @@ func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext)
 	resolveRouteAssets(b.urlResolver, rd)
 
 	var html []byte
-	if redirect := tabbedCollectionRedirect(page); redirect != "" {
+	if redirect := engine.TabbedRootRedirect(page); redirect != "" {
 		if b.urlResolver != nil {
 			redirect = b.urlResolver.URL(redirect, page.Lang, "")
 		}
@@ -254,14 +254,6 @@ func (b *SiteBuilder) renderDirtyCollectionPagination(collections map[string]*en
 		}
 	}
 	return nil
-}
-
-func tabbedCollectionRedirect(page *engine.Page) string {
-	col := page.Collection
-	if col == nil || !col.IsTabbed || col.IndexPage != page || len(col.Tabs) == 0 {
-		return ""
-	}
-	return col.Tabs[0].Permalink
 }
 
 func buildRedirectHTML(target string) string {

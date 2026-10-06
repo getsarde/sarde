@@ -47,6 +47,7 @@ func TestValidate_InvalidEnums(t *testing.T) {
 		{"markdown.codeblocks.style", func(c *SiteConfig) { c.Markdown.Codeblocks.Style = "banana" }, "markdown.codeblocks.style"},
 		{"markdown.asides.style", func(c *SiteConfig) { c.Markdown.Asides.Style = "banana" }, "markdown.asides.style"},
 		{"build.last_updated", func(c *SiteConfig) { c.Build.LastUpdated = "banana" }, "build.last_updated"},
+		{"theme.web_fonts", func(c *SiteConfig) { c.Theme.WebFonts = "adobe" }, "theme.web_fonts"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

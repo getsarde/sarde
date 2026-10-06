@@ -140,6 +140,10 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any, cache *searchDoc
 		if v, ok := page.Params["pagefind"].(bool); ok && !v {
 			continue
 		}
+		// A tabbed collection root without a body only redirects.
+		if engine.TabbedRootRedirect(page) != "" {
+			continue
+		}
 		if ShouldExcludePath(page.Permalink, excludePatterns) {
 			continue
 		}

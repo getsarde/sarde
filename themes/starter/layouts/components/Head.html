@@ -7,4 +7,5 @@
 {{ themeStyles . }}
 {{ range .Styles }}<link rel="stylesheet" href="{{ . }}">
 {{ end }}
+{{ siteHeadTags . }}
 {{ if .Page }}{{ if .Page.Params }}{{ renderHeadTags (index .Page.Params "head") }}{{ end }}{{ end }}

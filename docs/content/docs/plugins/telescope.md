@@ -24,7 +24,7 @@ plugins:
 
 ## How it works
 
-At build time, the plugin writes a `telescope-pages.json` index at the site root containing the title, URL, description, tags, collection, language, and version of every content page. Drafts, section listings, and taxonomy pages are excluded.
+At build time, the plugin writes a `telescope-pages.json` index at the site root containing the title, URL, description, tags, collection, language, and version of every content page, including section pages (`_index.md`) such as a course overview or a lab introduction. Drafts, taxonomy pages, sections with `render: false`, and a tabbed collection root that only redirects to its first tab are excluded.
 
 In the browser, a trigger button appears in the header next to the search button. Opening the palette (via the button or the keyboard shortcut) lazily fetches the index, filters it to the current language, and searches it with the bundled Fuse.js fuzzy matcher. Matches are weighted: title first, then path, tags, collection, and description. Results ranking prefers exact title matches, then title prefixes, then word-start matches, then the fuzzy score, so quick navigation always beats deep fuzzy hits. Matched substrings are highlighted.
 

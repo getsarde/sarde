@@ -32,15 +32,47 @@ func TestBuildIndex_SkipsDraftsAndStructuralNodes(t *testing.T) {
 	}
 
 	entries := buildIndex(pages, nil, nil)
-	if len(entries) != 4 {
-		t.Fatalf("got %d entries, want 4: %+v", len(entries), entries)
+	if len(entries) != 5 {
+		t.Fatalf("got %d entries, want 5: %+v", len(entries), entries)
 	}
 	for _, e := range entries {
 		switch e.Path {
-		case "/docs/intro/", "/docs/bundle/", "/", "/about/":
+		case "/docs/intro/", "/docs/bundle/", "/", "/about/", "/docs/":
 		default:
 			t.Errorf("unexpected entry %q", e.Path)
 		}
+	}
+}
+
+// Section pages are content in course sites (overviews, lab intros,
+// single-page labs), but a grouping-only section has no output and a tabbed
+// collection root without a body only redirects to its first tab.
+func TestBuildIndex_SectionPages(t *testing.T) {
+	grouping := page(engine.KindSection, "/docs/group/", "Group", "")
+	grouping.Params = map[string]any{"render": false}
+
+	col := &engine.Collection{
+		Name:     "courses",
+		IsTabbed: true,
+		Tabs:     []*engine.DocsTab{{Slug: "web", Permalink: "/courses/web/"}},
+	}
+	redirectRoot := page(engine.KindSection, "/courses/", "Courses", "")
+	redirectRoot.Collection = col
+	col.IndexPage = redirectRoot
+
+	overview := page(engine.KindSection, "/courses/web/", "Web", "")
+	overview.Collection = col
+
+	entries := buildIndex([]*engine.Page{grouping, redirectRoot, overview}, nil, nil)
+	if len(entries) != 1 || entries[0].Path != "/courses/web/" {
+		t.Fatalf("want only the course overview, got %+v", entries)
+	}
+
+	// With a body, the root is a catalog page and is indexed.
+	redirectRoot.RawContent = "Pick a course."
+	entries = buildIndex([]*engine.Page{redirectRoot, overview}, nil, nil)
+	if len(entries) != 2 || entries[0].Path != "/courses/" {
+		t.Fatalf("want the catalog root and the overview, got %+v", entries)
 	}
 }
 

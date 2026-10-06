@@ -13,9 +13,30 @@ Each top-level section of the collection becomes a tab. The switcher is a card a
 
 → Selecting a tab opens that section's index page, and the sidebar shows only that section's navigation tree.
 
-The collection root (`/docs/`) redirects to the first tab, so the root `_index.md` of a tabbed collection is never shown as a page.
+The collection root (`/docs/`) either redirects to the first tab or shows a catalog of the tabs, depending on its `_index.md`. See [The collection root](#the-collection-root).
 
 <!-- SCREENSHOT: docs-tab-switcher - the tab switcher open above the sidebar, listing tabs with icons and descriptions -->
+
+## The collection root
+
+What the collection root shows depends on the body of its `_index.md`:
+
+- **No body** (frontmatter only, or no `_index.md`): the root redirects to the first tab, so readers land on content right away. This suits documentation.
+- **A body**: the root is a catalog page. It shows the root's title, description, and body at full width with no sidebar, followed by one card per tab in tab order. Each card shows the tab's tile, title, description, and the `sidebar.badge` of the tab's `_index.md`.
+
+`content/courses/_index.md`
+```markdown
+---
+title: Courses
+description: Browse all available courses.
+---
+
+Pick a course to start.
+```
+
+→ `/courses/` lists every course as a card, and the header's **Courses** link opens the catalog instead of the first course.
+
+To change the catalog's markup, add `layouts/<collection>/catalog.html`, for example `layouts/courses/catalog.html`. Its `.DocsTabs` holds the tabs in order; see [Route Data](/reference/route-data/).
 
 ## The sidebar inside a tab
 
@@ -116,8 +137,9 @@ sidebar:
 | `description` | Secondary line under the label in the switcher menu. When empty, the menu shows a short excerpt of the page body. |
 | `icon` | Icon in the tab's tile, in place of the initials of its title. This is the page-level `icon` field, not `sidebar.icon`. |
 | `sidebar.order` | Tab position. Lower values come first, and ties sort alphabetically by title. |
+| `sidebar.badge` | Badge on the tab's card in the [catalog](#the-collection-root), as well as on its sidebar entry. |
 
-A tab with no `sidebar.order` counts as `0`, so it sorts before a tab with `order: 1`. Set `sidebar.order` on every tab to fix the sequence, because the first tab is also where the collection root redirects.
+A tab with no `sidebar.order` counts as `0`, so it sorts before a tab with `order: 1`. Set `sidebar.order` on every tab to fix the sequence, because the first tab is also where a collection root without a body redirects, and the catalog lists tabs in this order.
 
 To change a tab's label, icon, description, or position without editing its `_index.md`, use the `tabs` block of [`sidebar.yaml`](/guides/navigation-and-sidebar/#tab-overrides).
 

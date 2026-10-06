@@ -181,7 +181,7 @@ text keeps WCAG AA contrast on tinted backgrounds. Dark mode remaps them to the 
 
 Headings (`h1` to `h6`) use `font-heading`, which follows `font-sans` until you set it. The `theme.font_heading` shortcut sets it.
 
-Inter and JetBrains Mono are bundled with the theme and served locally. The Inter preload tag is only emitted when the resolved `font-sans`, `font-mono` or `font-heading` value references Inter, so presets that use system fonts (such as `docs`) ship pages with no font download.
+Inter and JetBrains Mono are bundled with the theme and served locally. The Inter preload tag is only emitted when the resolved `font-sans`, `font-mono` or `font-heading` value references Inter, so presets that use system fonts (such as `docs`) ship pages with no font download. Other families in these tokens render only where the visitor has them, unless [`theme.web_fonts`](/guides/themes-and-styling/#web-fonts) loads them from Google Fonts or Bunny Fonts.
 
 ### Size scale
 

@@ -82,8 +82,8 @@ A nil pointer is false in `{{ if }}` but panics on field access, so guard option
 | Field | Type | Set when | Description |
 |-------|------|----------|-------------|
 | `.IsTabbed` | `bool` | tabbed | True when the collection renders docs tabs |
-| `.DocsTabs` | `[]*DocsTab` | tabbed | Tabs in display order |
-| `.ActiveTab` | `*DocsTab` | tabbed | The tab containing this page; falls back to the first tab |
+| `.DocsTabs` | `[]*DocsTab` | tabbed, catalog | Tabs in display order. Also set on a tabbed collection's [catalog page](/guides/tabbed-navigation/#the-collection-root), where `.IsTabbed` is false and the page has no sidebar |
+| `.ActiveTab` | `*DocsTab` | tabbed | The tab containing this page; falls back to the first tab. Nil on a catalog page |
 
 ### `RouteLabs`
 

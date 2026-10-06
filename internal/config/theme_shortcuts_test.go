@@ -53,6 +53,75 @@ func TestFoldThemeShortcuts_UnsetFieldsAddNothing(t *testing.T) {
 	}
 }
 
+func TestFoldThemeShortcuts_QuotesBareNamesAndAddsAFallback(t *testing.T) {
+	th := ThemeSettings{
+		FontFamily:  "Plus Jakarta Sans", // catalog sans-serif
+		FontHeading: "Source Sans 3",     // a digit word: invalid CSS unquoted
+		FontMono:    "Fira Code",         // catalog monospace
+	}
+	FoldThemeShortcuts(&th)
+	want := map[string]string{
+		"font-sans":    "'Plus Jakarta Sans', system-ui, sans-serif",
+		"font-heading": "'Source Sans 3', system-ui, sans-serif",
+		"font-mono":    "'Fira Code', ui-monospace, monospace",
+	}
+	for token, v := range want {
+		if got := th.Overrides[token]; got != v {
+			t.Errorf("Overrides[%q] = %q, want %q", token, got, v)
+		}
+	}
+}
+
+func TestFoldThemeShortcuts_FallbackFollowsCategoryThenRole(t *testing.T) {
+	th := ThemeSettings{
+		FontFamily:  "Merriweather",    // catalog serif
+		FontHeading: "Dancing Script",  // catalog handwriting
+		FontMono:    "My Company Mono", // unknown: the role decides
+	}
+	FoldThemeShortcuts(&th)
+	want := map[string]string{
+		"font-sans":    "'Merriweather', serif",
+		"font-heading": "'Dancing Script', cursive",
+		"font-mono":    "'My Company Mono', ui-monospace, monospace",
+	}
+	for token, v := range want {
+		if got := th.Overrides[token]; got != v {
+			t.Errorf("Overrides[%q] = %q, want %q", token, got, v)
+		}
+	}
+}
+
+func TestFoldThemeShortcuts_LeavesStacksAndGenericsAlone(t *testing.T) {
+	th := ThemeSettings{
+		FontFamily:  "system-ui",
+		FontHeading: "'Playfair Display', Georgia, serif",
+		FontMono:    `"Fira Code"`,
+	}
+	FoldThemeShortcuts(&th)
+	want := map[string]string{
+		"font-sans":    "system-ui",
+		"font-heading": "'Playfair Display', Georgia, serif",
+		"font-mono":    `"Fira Code"`,
+	}
+	for token, v := range want {
+		if got := th.Overrides[token]; got != v {
+			t.Errorf("Overrides[%q] = %q, want %q", token, got, v)
+		}
+	}
+}
+
+func TestMergeTheme_WebFonts(t *testing.T) {
+	base := ThemeSettings{WebFonts: "google"}
+	mergeTheme(&base, &ThemeSettings{})
+	if base.WebFonts != "google" {
+		t.Errorf("empty layer changed web_fonts to %q", base.WebFonts)
+	}
+	mergeTheme(&base, &ThemeSettings{WebFonts: "bunny"})
+	if base.WebFonts != "bunny" {
+		t.Errorf("later layer did not win: web_fonts = %q", base.WebFonts)
+	}
+}
+
 func TestMergeTheme_FontHeadingAndScale(t *testing.T) {
 	base := ThemeSettings{FontHeading: "Georgia, serif", FontScale: 1.1}
 	mergeTheme(&base, &ThemeSettings{})

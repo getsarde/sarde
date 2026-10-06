@@ -73,6 +73,14 @@ func buildCollectionRouteData(rd *engine.RouteData, page *engine.Page, col *engi
 		rd.Layout = engine.ResolveLayout(v)
 	}
 
+	// A tabbed collection's root with a body is a catalog of its tabs: full
+	// width with no sidebar, like the labs landing page, rendered by the
+	// <collection>/catalog template.
+	if engine.IsTabbedLanding(page) {
+		rd.Layout = engine.LayoutDefault
+		rd.DocsTabs = col.Tabs
+	}
+
 	// Resolve template name
 	rd.Template = resolveTemplateName(page, col)
 
@@ -393,6 +401,10 @@ func resolveTemplateName(page *engine.Page, col *engine.Collection) string {
 	}
 
 	prefix := col.Name
+
+	if engine.IsTabbedLanding(page) {
+		return prefix + "/catalog"
+	}
 
 	// Labs: lab-level section pages render as content (single), not card grids (list).
 	if page.Kind == engine.KindSection && collection.IsLabsName(col.Name) {

@@ -259,6 +259,7 @@ func mergeTheme(base, over *ThemeSettings) {
 	mergeStr(&base.CodeLight, over.CodeLight)
 	mergeStr(&base.CodeDark, over.CodeDark)
 	mergeStr(&base.DateFormat, over.DateFormat)
+	mergeStr(&base.WebFonts, over.WebFonts)
 }
 
 func mergeTOC(base, over *TOCSettings) {
