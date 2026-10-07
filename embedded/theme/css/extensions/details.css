@@ -10,8 +10,23 @@
 	    margin: var(--sd-space-4) 0;
 	    border: 1px solid var(--sd-border);
 	    border-radius: var(--sd-radius-lg);
-	    overflow: hidden;
 	    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+	}
+
+	/* No overflow: hidden on the box: popovers inside it, such as annotation
+	   tooltips, must be free to extend past the edge. The summary paints the
+	   only background, so it carries the corner rounding itself: the top
+	   corners always, the bottom corners while the block is closed. */
+	.sarde-markdown-content details > summary,
+	.sarde-details > .sarde-details-summary {
+	    border-start-start-radius: calc(var(--sd-radius-lg) - 1px);
+	    border-start-end-radius: calc(var(--sd-radius-lg) - 1px);
+	}
+
+	.sarde-markdown-content details:not([open]) > summary,
+	.sarde-details:not([open]) > .sarde-details-summary {
+	    border-end-start-radius: calc(var(--sd-radius-lg) - 1px);
+	    border-end-end-radius: calc(var(--sd-radius-lg) - 1px);
 	}
 
 	.sarde-markdown-content details[open],
@@ -94,7 +109,6 @@
 	.sarde-details-group {
 	    border: 1px solid var(--sd-border);
 	    border-radius: var(--sd-radius-lg);
-	    overflow: hidden;
 	}
 
 	.sarde-details-group details,
@@ -103,6 +117,20 @@
 	    border: none;
 	    border-radius: 0;
 	    border-bottom: 1px solid var(--sd-border);
+	}
+
+	/* Inside a group the items are square; only the first summary and the
+	   last closed summary touch the group's rounded corners. */
+	.sarde-details-group details:not(:first-child) > summary,
+	.sarde-details-group .sarde-details:not(:first-child) > .sarde-details-summary {
+	    border-start-start-radius: 0;
+	    border-start-end-radius: 0;
+	}
+
+	.sarde-details-group details:not(:last-child) > summary,
+	.sarde-details-group .sarde-details:not(:last-child) > .sarde-details-summary {
+	    border-end-start-radius: 0;
+	    border-end-end-radius: 0;
 	}
 
 	.sarde-details-group details:last-child,

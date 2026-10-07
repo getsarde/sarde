@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"compress/gzip"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,7 +15,53 @@ import (
 	"time"
 
 	"github.com/getsarde/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/version"
 )
+
+// GitHubBaseURL is the host archive URLs are built on. Tests point it at an
+// httptest server; production code never changes it.
+var GitHubBaseURL = "https://github.com"
+
+// RefKind says how a Git ref should be requested from GitHub's archive
+// endpoint. RefAny lets GitHub resolve a branch, tag, or commit by name.
+type RefKind int
+
+const (
+	RefAny RefKind = iota
+	RefBranch
+	RefTag
+)
+
+// ArchiveURLFor returns the zip archive URL for a ref of a GitHub repository.
+// Each path segment of the ref is escaped on its own, so a branch such as
+// "release/1.5" keeps its slash.
+func ArchiveURLFor(owner, repo, ref string, kind RefKind) string {
+	segs := strings.Split(ref, "/")
+	for i, seg := range segs {
+		segs[i] = url.PathEscape(seg)
+	}
+	escaped := strings.Join(segs, "/")
+	base := fmt.Sprintf("%s/%s/%s/archive", strings.TrimSuffix(GitHubBaseURL, "/"), url.PathEscape(owner), url.PathEscape(repo))
+	switch kind {
+	case RefBranch:
+		return base + "/refs/heads/" + escaped + ".zip"
+	case RefTag:
+		return base + "/refs/tags/" + escaped + ".zip"
+	default:
+		return base + "/" + escaped + ".zip"
+	}
+}
+
+// HTTPStatusError reports a download that reached the server but was
+// answered with a status other than 200.
+type HTTPStatusError struct {
+	URL        string
+	StatusCode int
+}
+
+func (e *HTTPStatusError) Error() string {
+	return fmt.Sprintf("downloading %s: HTTP %d", e.URL, e.StatusCode)
+}
 
 type SourceKind int
 
@@ -99,25 +146,38 @@ func ParseGitHubURL(raw string) (*GitHubRef, error) {
 }
 
 func (r *GitHubRef) ArchiveURL() string {
-	return fmt.Sprintf("https://github.com/%s/%s/archive/refs/heads/%s.zip",
-		url.PathEscape(r.Owner), url.PathEscape(r.Repo), url.PathEscape(r.Branch))
+	return ArchiveURLFor(r.Owner, r.Repo, r.Branch, RefBranch)
 }
 
+// DownloadFile fetches srcURL into a temporary file and returns its path.
+// The caller removes the file.
 func DownloadFile(srcURL string) (string, error) {
+	return DownloadFileContext(context.Background(), srcURL)
+}
+
+// DownloadFileContext is DownloadFile with cancellation. A non-200 response
+// is returned as an *HTTPStatusError so callers can tell "not found" from a
+// network failure.
+func DownloadFileContext(ctx context.Context, srcURL string) (string, error) {
 	if strings.HasPrefix(strings.ToLower(srcURL), "http://") {
-		devlog.Warn("download", "downloading over insecure HTTP: %s — consider using HTTPS", srcURL)
+		devlog.Warn("download", "downloading over insecure HTTP: %s; consider using HTTPS", srcURL)
 	}
 
-	client := &http.Client{Timeout: 60 * time.Second}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, srcURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("downloading %s: %w", srcURL, err)
+	}
+	req.Header.Set("User-Agent", "sarde/"+version.Version)
 
-	resp, err := client.Get(srcURL)
+	client := &http.Client{Timeout: 60 * time.Second}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("downloading %s: %w", srcURL, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("downloading %s: HTTP %d", srcURL, resp.StatusCode)
+		return "", &HTTPStatusError{URL: srcURL, StatusCode: resp.StatusCode}
 	}
 
 	// Best-effort early rejection when the server declares a length. For
@@ -128,7 +188,7 @@ func DownloadFile(srcURL string) (string, error) {
 		return "", fmt.Errorf("download too large: %d bytes (max %d)", resp.ContentLength, maxDownloadSize)
 	}
 
-	tmp, err := os.CreateTemp("", "sd-theme-*")
+	tmp, err := os.CreateTemp("", "sarde-download-*")
 	if err != nil {
 		return "", fmt.Errorf("creating temp file: %w", err)
 	}

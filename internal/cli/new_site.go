@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"os"
@@ -9,6 +10,8 @@ import (
 
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/devlog"
+	"github.com/getsarde/sarde/internal/sitetemplate"
 	"github.com/spf13/cobra"
 )
 
@@ -18,13 +21,17 @@ var newSiteCmd = &cobra.Command{
 	Long: "Scaffold a new Sarde site with starter files, example content, and a discoverable config.\n\n" +
 		"Use --template to start from a ready-made site instead. The course template creates\n" +
 		"courses with lessons and assignments, hands-on labs, and an announcements page:\n\n" +
-		"  sarde new site my-college --template course",
+		"  sarde new site my-college --template course\n" +
+		"  sarde new site my-site --template owner/repo/path   # any public GitHub folder",
 	Args: cobra.MaximumNArgs(1),
 	RunE: runNewSite,
+	// A failed template download or an existing sarde.yaml is not a usage
+	// mistake; keep the error readable instead of appending the flag list.
+	SilenceUsage: true,
 }
 
 func init() {
-	newSiteCmd.Flags().StringP("template", "t", "", "start from a site template (available: "+strings.Join(embedded.SiteTemplateNames(), ", ")+")")
+	newSiteCmd.Flags().StringP("template", "t", "", "start from a site template: a name ("+strings.Join(sitetemplate.Names(), ", ")+"), owner/repo[/path][#ref], or a github.com URL")
 }
 
 func runNewSite(cmd *cobra.Command, args []string) error {
@@ -42,16 +49,35 @@ func runNewSite(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s already exists in %s", consts.FileSiteConfig, absDir)
 	}
 
-	// Resolve the template before writing anything, so an unknown name
-	// leaves the target directory untouched.
+	quiet, _ := cmd.Flags().GetBool("quiet")
+
+	// Resolve and fetch the template before writing anything, so an unknown
+	// name or a failed download leaves the target directory untouched.
 	tmplName, _ := cmd.Flags().GetString("template")
 	var tmplFS fs.FS
 	if tmplName != "" {
-		var ok bool
-		if tmplFS, ok = embedded.SiteTemplate(tmplName); !ok {
-			return fmt.Errorf("unknown template %q; available templates: %s",
-				tmplName, strings.Join(embedded.SiteTemplateNames(), ", "))
+		spec, err := sitetemplate.Parse(tmplName)
+		if err != nil {
+			return err
 		}
+		if !quiet {
+			devlog.Log("template", "Fetching %s from github.com/%s/%s", spec.Display(), spec.Owner, spec.Repo)
+		}
+		ctx := cmd.Context()
+		if ctx == nil {
+			ctx = context.Background()
+		}
+		res, err := fetchSiteTemplate(ctx, spec)
+		if err != nil {
+			return fmt.Errorf("fetching template %s: %w", spec.Display(), err)
+		}
+		defer res.Cleanup()
+		// A missing tag or an offline fallback is worth knowing even with
+		// --quiet, which silences informational lines only.
+		for _, n := range res.Notices {
+			devlog.Warn("template", "%s", n)
+		}
+		tmplFS = res.FS
 	}
 
 	if err := os.MkdirAll(filepath.Join(absDir, consts.DirPublic, "images"), 0o755); err != nil {
@@ -106,7 +132,6 @@ func runNewSite(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	quiet, _ := cmd.Flags().GetBool("quiet")
 	if !quiet {
 		if tmplName != "" {
 			fmt.Printf("Created new site at %s from the %q template\n", absDir, tmplName)
@@ -131,6 +156,13 @@ func runNewSite(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+// fetchSiteTemplate downloads the template behind --template. It is a
+// variable so tests can scaffold from an in-memory template without a
+// network.
+var fetchSiteTemplate = func(ctx context.Context, spec sitetemplate.Spec) (*sitetemplate.Result, error) {
+	return sitetemplate.DefaultFetcher().Fetch(ctx, spec)
 }
 
 // pagesWorkflowPath is the GitHub Pages workflow a site template may ship.

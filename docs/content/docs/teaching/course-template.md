@@ -5,12 +5,12 @@ sidebar:
   order: 0
 ---
 
-The course template is a complete course website to copy and fill with your own material. It has two sample courses with lessons, assignments, schedules, and announcements, hands-on labs grouped by course, a course catalog, and a GitHub Actions workflow that publishes the site to GitHub Pages. See the [live demo](https://getsarde.github.io/course-template/).
+The course template is a complete course website to copy and fill with your own material. It has two sample courses with lessons, assignments, schedules, and announcements, hands-on labs grouped by course, a course catalog, and a GitHub Actions workflow that publishes the site to GitHub Pages. See the [live demo](https://getsarde.github.io/sarde-templates/).
 
 There are two ways to start from it, and both produce the same files:
 
-- Run `sarde new site` with `--template course`.
-- Clone the [`getsarde/course-template`](https://github.com/getsarde/course-template) repository, which also has a README and a license.
+- Run `sarde new site` with `--template course`. The command downloads the template from the [`getsarde/sarde-templates`](https://github.com/getsarde/sarde-templates) repository, pinned to your Sarde version.
+- Clone that repository and copy its `course/` folder.
 
 ## Create a course site
 
@@ -31,10 +31,11 @@ There are two ways to start from it, and both produce the same files:
 
    Open `http://localhost:4727`. The site rebuilds and the browser reloads each time you save a file.
 
-To start from the repository instead, clone it and run the dev server inside it:
+To start from the repository instead, clone it, copy the `course/` folder, and run the dev server inside the copy:
 
 ```bash
-git clone https://github.com/getsarde/course-template.git my-college
+git clone https://github.com/getsarde/sarde-templates.git
+cp -r sarde-templates/course my-college
 cd my-college
 sarde dev
 ```

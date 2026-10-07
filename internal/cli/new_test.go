@@ -1,13 +1,16 @@
 package cli
 
 import (
+	"context"
+	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"testing/fstest"
 
-	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/sitetemplate"
 )
 
 func TestRunNewCourse(t *testing.T) {
@@ -294,48 +297,70 @@ func TestRunNewSite_NextStepHint(t *testing.T) {
 	}
 }
 
-func TestRunNewSite_CourseTemplate(t *testing.T) {
+// fakeTemplate makes runNewSite scaffold from an in-memory template instead
+// of downloading one. It returns the spec the command asked for.
+func fakeTemplate(t *testing.T, files map[string]string) *sitetemplate.Spec {
+	t.Helper()
+	m := fstest.MapFS{}
+	for name, body := range files {
+		m[name] = &fstest.MapFile{Data: []byte(body)}
+	}
+	var got sitetemplate.Spec
+	prev := fetchSiteTemplate
+	fetchSiteTemplate = func(_ context.Context, spec sitetemplate.Spec) (*sitetemplate.Result, error) {
+		got = spec
+		return &sitetemplate.Result{
+			FS:      sitetemplate.HideRootFiles(m, "README.md", "LICENSE"),
+			Ref:     "main",
+			Cleanup: func() {},
+		}, nil
+	}
+	t.Cleanup(func() { fetchSiteTemplate = prev })
+	return &got
+}
+
+// courseLike is the shape of the course template folder in the templates
+// repository: its own kazari config, a Pages workflow, and repo-level files
+// that must not end up in the site.
+var courseLike = map[string]string{
+	"README.md":          "# course template\n",
+	"LICENSE":            "MIT\n",
+	"sarde.yaml":         "site:\n  title: Course\n",
+	"kazari.config.yaml": strings.Replace(kazariConfigContent, "themeToggleButton: false", "themeToggleButton: true", 1),
+	"content/_index.md":  "---\ntitle: Home\n---\n",
+	"content/courses/python-essentials/_index.md": "---\ntitle: Python\n---\n",
+	".github/workflows/deploy.yml":                "on: push\n",
+}
+
+func TestRunNewSite_Template(t *testing.T) {
+	spec := fakeTemplate(t, courseLike)
 	site, err := runNewSiteIn(t, "course")
 	if err != nil {
 		t.Fatalf("new site --template course failed: %v", err)
 	}
-
-	tmpl, ok := embedded.SiteTemplate("course")
-	if !ok {
-		t.Fatal("course template not embedded")
+	if !spec.Official || spec.Owner != "getsarde" || spec.Repo != "sarde-templates" || spec.Subpath != "course" {
+		t.Errorf("fetched spec = %+v, want the registry entry for course", *spec)
 	}
-	count := 0
-	err = fs.WalkDir(tmpl, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return err
-		}
-		count++
-		want, _ := fs.ReadFile(tmpl, path)
-		got, readErr := os.ReadFile(filepath.Join(site, filepath.FromSlash(path)))
-		if readErr != nil {
-			t.Errorf("%s: %v", path, readErr)
-		} else if string(got) != string(want) {
-			t.Errorf("%s differs from the embedded template", path)
-		}
-		return nil
-	})
+
+	assertExists(t, site, "sarde.yaml", "content/_index.md", "content/courses/python-essentials/_index.md",
+		".github/workflows/deploy.yml",
+		// Added by the scaffold because the template has no copy.
+		".gitignore", "public/images/hero-light.svg", "public/images/hero-dark.svg")
+	assertMissing(t, site, "README.md", "LICENSE", "content/blog")
+
+	// The template's own kazari config wins over the scaffold's.
+	data, err := os.ReadFile(filepath.Join(site, "kazari.config.yaml"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if count < 20 {
-		t.Errorf("course template has %d files, want the full site", count)
+	if !strings.Contains(string(data), "themeToggleButton: true") {
+		t.Errorf("template kazari.config.yaml was overwritten by the scaffold copy")
 	}
-
-	assertExists(t, site, "kazari.config.yaml", ".gitignore",
-		"public/images/hero-light.svg", "public/images/hero-dark.svg",
-		"content/courses/python-essentials/_index.md", "content/labs/web-fundamentals/hello-world/_index.md",
-		".github/workflows/deploy.yml")
-	assertMissing(t, site, "content/blog")
 }
 
-// The course template ships a GitHub Pages workflow that fails until Pages
-// builds from Actions, so the CLI says how to enable it or remove it.
-func TestRunNewSite_CourseTemplateWorkflowHint(t *testing.T) {
+// A template that ships a GitHub Pages workflow fails on every push until
+// Pages builds from Actions, so the CLI says how to enable it or remove it.
+func TestRunNewSite_TemplateWorkflowHint(t *testing.T) {
 	newSite := func(template string) string {
 		t.Helper()
 		dir := t.TempDir()
@@ -351,11 +376,23 @@ func TestRunNewSite_CourseTemplateWorkflowHint(t *testing.T) {
 		return out
 	}
 
+	fakeTemplate(t, courseLike)
 	out := newSite("course")
-	for _, want := range []string{".github/workflows/deploy.yml", "Settings > Pages"} {
+	for _, want := range []string{".github/workflows/deploy.yml", "Settings > Pages", `from the "course" template`} {
 		if !strings.Contains(out, want) {
 			t.Errorf("course scaffold output missing %q:\n%s", want, out)
 		}
+	}
+
+	without := map[string]string{}
+	for k, v := range courseLike {
+		if k != ".github/workflows/deploy.yml" {
+			without[k] = v
+		}
+	}
+	fakeTemplate(t, without)
+	if out := newSite("course"); strings.Contains(out, "GitHub Pages") {
+		t.Errorf("a template without a workflow should not mention Pages:\n%s", out)
 	}
 
 	if out := newSite(""); strings.Contains(out, "GitHub Pages") {
@@ -363,7 +400,45 @@ func TestRunNewSite_CourseTemplateWorkflowHint(t *testing.T) {
 	}
 }
 
+func TestRunNewSite_TemplateExistingFile(t *testing.T) {
+	fakeTemplate(t, courseLike)
+	dir := t.TempDir()
+	origWd, _ := os.Getwd()
+	os.Chdir(dir)
+	defer os.Chdir(origWd)
+	os.MkdirAll(filepath.Join(dir, "site", "content"), 0o755)
+	os.WriteFile(filepath.Join(dir, "site", "content", "_index.md"), []byte("mine"), 0o644)
+
+	rootCmd.SetArgs([]string{"new", "site", "site", "--template=course", "--quiet"})
+	err := rootCmd.Execute()
+	if !errors.Is(err, fs.ErrExist) || !strings.Contains(err.Error(), "writing course template") {
+		t.Errorf("expected an fs.ErrExist for the pre-existing file, got %v", err)
+	}
+}
+
+func TestRunNewSite_TemplateFetchError(t *testing.T) {
+	prev := fetchSiteTemplate
+	fetchSiteTemplate = func(context.Context, sitetemplate.Spec) (*sitetemplate.Result, error) {
+		return nil, errors.New("boom")
+	}
+	t.Cleanup(func() { fetchSiteTemplate = prev })
+
+	site, err := runNewSiteIn(t, "course")
+	if err == nil || !strings.HasPrefix(err.Error(), "fetching template course: boom") {
+		t.Fatalf("error = %v", err)
+	}
+	assertMissing(t, site, "sarde.yaml", "content")
+}
+
 func TestRunNewSite_InvalidTemplate(t *testing.T) {
+	// An unknown name is rejected offline: the fetcher must never run.
+	prev := fetchSiteTemplate
+	fetchSiteTemplate = func(context.Context, sitetemplate.Spec) (*sitetemplate.Result, error) {
+		t.Fatal("fetcher called for an unknown template name")
+		return nil, nil
+	}
+	t.Cleanup(func() { fetchSiteTemplate = prev })
+
 	site, err := runNewSiteIn(t, "bogus")
 	if err == nil {
 		t.Fatal("expected an error for an unknown template")
@@ -390,26 +465,5 @@ func TestRunNewSite_KazariConfigLeavesDarkModeToSarde(t *testing.T) {
 		if strings.HasPrefix(line, "darkMode:") {
 			t.Errorf("kazari.config.yaml sets darkMode:\n%s", data)
 		}
-	}
-}
-
-// The course template ships its own kazari.config.yaml so it can turn on the
-// per-block theme toggle. Everything else must match the shared scaffold
-// config, so fixes to one (like the dark-mode change) reach the other.
-func TestCourseTemplateKazariConfigTracksScaffold(t *testing.T) {
-	tmpl, ok := embedded.SiteTemplate("course")
-	if !ok {
-		t.Fatal("course template not embedded")
-	}
-	data, err := fs.ReadFile(tmpl, "kazari.config.yaml")
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := strings.Replace(kazariConfigContent, "themeToggleButton: false", "themeToggleButton: true", 1)
-	if want == kazariConfigContent {
-		t.Fatal("scaffold kazari.config.yaml no longer has themeToggleButton: false; update this test")
-	}
-	if string(data) != want {
-		t.Error("course template kazari.config.yaml differs from the scaffold config beyond themeToggleButton")
 	}
 }

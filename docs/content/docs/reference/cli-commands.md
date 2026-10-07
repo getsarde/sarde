@@ -368,11 +368,11 @@ mysite/
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--template`, `-t` | string | `""` | Start from a site template instead of the default starter files. Available: `course`. |
+| `--template`, `-t` | string | `""` | Start from a site template instead of the default starter files. A name (`course`), `owner/repo[/path][#ref]` for a folder of any public GitHub repository, or a `github.com` URL. See [Template sources](#template-sources). |
 
 #### Course template
 
-`--template course` creates a course site: courses with lessons, assignments, and their own announcements and schedule pages, hands-on labs grouped by course, a site-wide announcements page, and a homepage. A sample banner from the [announcements plugin](/plugins/announcements/) appears only on one course's lessons and labs, the [Telescope plugin](/plugins/telescope/) is enabled for quick page navigation, and [Scroll to Top](/plugins/scroll-to-top/), [Reading Progress](/plugins/reading-progress/), and [Focus Mode](/plugins/focus-mode/) help with long pages. `/courses/` is a [catalog](/guides/tabbed-navigation/#the-collection-root) of the courses. The `deploy.yml` workflow publishes the site to [GitHub Pages](/deployment/github-pages/) on every push to `main`, once the repository's **Settings > Pages** uses **GitHub Actions** as its source. Delete it if you host the site elsewhere. [Course Template](/teaching/course-template/) walks through the site and how to customize it. The sample pages use Markdown extensions such as tabs, steps, and collapsible panels. The same site is published as the [course-template](https://github.com/getsarde/course-template) repository.
+`--template course` creates a course site: courses with lessons, assignments, and their own announcements and schedule pages, hands-on labs grouped by course, a site-wide announcements page, and a homepage. A sample banner from the [announcements plugin](/plugins/announcements/) appears only on one course's lessons and labs, the [Telescope plugin](/plugins/telescope/) is enabled for quick page navigation, and [Scroll to Top](/plugins/scroll-to-top/), [Reading Progress](/plugins/reading-progress/), and [Focus Mode](/plugins/focus-mode/) help with long pages. `/courses/` is a [catalog](/guides/tabbed-navigation/#the-collection-root) of the courses. The `deploy.yml` workflow publishes the site to [GitHub Pages](/deployment/github-pages/) on every push to `main`, once the repository's **Settings > Pages** uses **GitHub Actions** as its source. Delete it if you host the site elsewhere. [Course Template](/teaching/course-template/) walks through the site and how to customize it. The sample pages use Markdown extensions such as tabs, steps, and collapsible panels. The template is the `course/` folder of the [sarde-templates](https://github.com/getsarde/sarde-templates) repository.
 
 ```
 sarde new site my-college --template course
@@ -401,7 +401,24 @@ my-college/
       hero-dark.svg
 ```
 
-An unknown template name stops with `unknown template "<name>"; available templates: course`, and nothing is written. Like the default scaffold, `new site` refuses to run where a `sarde.yaml` already exists.
+An unknown template name stops with `unknown template "<name>"; available templates: course`, and nothing is written. A download that fails also leaves the directory untouched. Like the default scaffold, `new site` refuses to run where a `sarde.yaml` already exists.
+
+#### Template sources
+
+Templates are downloaded from GitHub as an archive, so `git` is not required. Named templates live in [getsarde/sarde-templates](https://github.com/getsarde/sarde-templates), one folder per template. A release of Sarde fetches the tag of that repository that matches its own minor version (`v1.5` for Sarde 1.5.x), so a template never relies on an engine feature the installed version lacks. When that tag does not exist yet, the download falls back to `main` and says so. Development builds use `main`.
+
+Other forms:
+
+| Value | Fetches |
+|-------|---------|
+| `course#main` | The named template at a branch, tag, or commit instead of the pinned tag. |
+| `owner/repo` | The root of any public GitHub repository, at `main`. |
+| `owner/repo/path/to/folder#v2` | A folder of that repository at a ref. |
+| `https://github.com/owner/repo/tree/dev/folder` | The same, as a URL. |
+
+A template's `README.md` and `LICENSE` at the folder root are not copied into the site. Everything else is, including a `.github/workflows/deploy.yml` when the template ships one.
+
+Downloaded archives are cached under `~/.sarde/templates/`. A pinned tag is served from the cache without a network request. `main` and explicit refs are fetched again on every run; when GitHub is unreachable, the cached copy is used and a warning names its date. With no network and no cached copy, the command fails and prints the repository's clone URL.
 
 When the site is created in a subfolder, `new site` ends with `Run 'cd <path>' then 'sarde dev' to start the dev server.` Run `sarde dev` from inside the new folder, not from the folder you ran `new site` in.
 

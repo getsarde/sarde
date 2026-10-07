@@ -30,7 +30,7 @@ as full-screen slide viewers, organizes decks into SlideShare-style galleries, a
 
 ## Start from the course template
 
-To start with a working course site rather than an empty project, create it from the course template:
+To start with a working course site rather than an empty project, create it from the course template. The command downloads the template from the [sarde-templates](https://github.com/getsarde/sarde-templates) repository, so it needs a network connection the first time:
 
 ```bash
 sarde new site my-college --template course
