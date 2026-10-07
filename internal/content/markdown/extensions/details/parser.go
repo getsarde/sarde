@@ -12,8 +12,6 @@ import (
 
 // :::details[Summary text]  or  :::details[Summary text](open)  or  :::details(open)[Summary text]  or  :::details
 var openingRegex = regexp.MustCompile(`^:{3,}\s*details(?:\(open\))?(?:\[([^\]]*)\])?(?:\(open\))?\s*(open)?\s*$`)
-var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
-var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 
 type detailsParser struct{}
 
@@ -35,7 +33,7 @@ func (p *detailsParser) Open(parent ast.Node, reader text.Reader, pc parser.Cont
 		return nil, parser.NoChildren
 	}
 
-	reader.Advance(len(line))
+	reader.AdvanceToEOL()
 
 	summary := matches[1]
 	if summary == "" {
@@ -50,38 +48,11 @@ func (p *detailsParser) Open(parent ast.Node, reader text.Reader, pc parser.Cont
 }
 
 func (p *detailsParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
-	line, _ := reader.PeekLine()
-	trimmed := strings.TrimSpace(string(line))
-
-	depth := blockutil.GetDepth(pc, node)
-
-	if strings.HasPrefix(trimmed, ":::") {
-		if nestedOpenRegex.MatchString(trimmed) && !closingRegex.MatchString(trimmed) {
-			blockutil.SetDepth(pc, node, depth+1)
-			return parser.Continue | parser.HasChildren
-		}
-
-		if m := closingRegex.FindStringSubmatch(trimmed); m != nil {
-			if depth > 0 {
-				blockutil.SetDepth(pc, node, depth-1)
-				return parser.Continue | parser.HasChildren
-			}
-			if m[1] == "details" {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-			if m[1] == "" && !blockutil.HasInnerOpenBlocks(pc, node) {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-		}
-	}
-
-	return parser.Continue | parser.HasChildren
+	return blockutil.ContinueContainer(pc, node, reader, "details")
 }
 
 func (p *detailsParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
-	blockutil.DeleteDepth(pc, node)
+	blockutil.Release(pc, node)
 }
 
 func (p *detailsParser) CanInterruptParagraph() bool {

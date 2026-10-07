@@ -85,4 +85,4 @@ Wrap multiple `:::details` blocks in an `:::accordion` container to create mutua
 - The `open` flag is accepted in parentheses before or after the summary brackets, or as a trailing bare word. All three forms are equivalent.
 - Details blocks cannot interrupt a paragraph. A blank line must precede the opening `:::`.
 - The native `<details>` element handles expand/collapse without JavaScript. The extension works even with scripts disabled.
-- Nested `:::details` blocks inside a details section require four colons (`::::`) on the outer fence.
+- Details blocks nest inside details blocks. Close each one with `:::/details`; the fence closes the innermost open details block.

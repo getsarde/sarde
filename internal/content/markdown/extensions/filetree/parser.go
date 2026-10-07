@@ -11,8 +11,6 @@ import (
 )
 
 var openingRegex = regexp.MustCompile(`^:{3,}\s*file-tree\s*$`)
-var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
-var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 
 type filetreeParser struct{}
 
@@ -25,42 +23,16 @@ func (p *filetreeParser) Open(parent ast.Node, reader text.Reader, pc parser.Con
 	if !openingRegex.MatchString(lineStr) {
 		return nil, parser.NoChildren
 	}
-	reader.Advance(len(line))
+	reader.AdvanceToEOL()
 	return &FileTreeBlock{}, parser.HasChildren
 }
 
 func (p *filetreeParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
-	line, _ := reader.PeekLine()
-	trimmed := strings.TrimSpace(string(line))
-
-	depth := blockutil.GetDepth(pc, node)
-
-	if strings.HasPrefix(trimmed, ":::") {
-		if nestedOpenRegex.MatchString(trimmed) && !closingRegex.MatchString(trimmed) {
-			blockutil.SetDepth(pc, node, depth+1)
-			return parser.Continue | parser.HasChildren
-		}
-		if m := closingRegex.FindStringSubmatch(trimmed); m != nil {
-			if depth > 0 {
-				blockutil.SetDepth(pc, node, depth-1)
-				return parser.Continue | parser.HasChildren
-			}
-			if m[1] == "file-tree" || m[1] == "filetree" {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-			if m[1] == "" && !blockutil.HasInnerOpenBlocks(pc, node) {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-		}
-	}
-
-	return parser.Continue | parser.HasChildren
+	return blockutil.ContinueContainer(pc, node, reader, "file-tree")
 }
 
 func (p *filetreeParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
-	blockutil.DeleteDepth(pc, node)
+	blockutil.Release(pc, node)
 }
 func (p *filetreeParser) CanInterruptParagraph() bool { return false }
 func (p *filetreeParser) CanAcceptIndentedLine() bool { return false }

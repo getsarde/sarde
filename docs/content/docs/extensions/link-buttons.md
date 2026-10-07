@@ -87,18 +87,18 @@ External URLs (`http://` or `https://`) automatically open in a new tab. Overrid
 
 Wrap multiple link buttons in `:::link-button-group` for horizontal alignment:
 
-:::::example
-::::link-button-group
+:::example
+:::link-button-group
 :::link-button[Get Started](href="/start-here/getting-started/" variant="primary")
 :::
 :::link-button[Kitchen Sink](href="/extensions/kitchen-sink/" variant="outline")
 :::
-::::
-:::::
+:::/link-button-group
+:::/example
 
 → Two buttons appear side by side with consistent spacing.
 
-`:::link-button-group` takes no attributes. Each nested `:::link-button` block controls its own style and content. Four colons on the outer group and three on each button is a readability convention: both fences accept three or more colons. When a nested button has no `href`, Sarde drops that button and renders the group around the remaining buttons.
+`:::link-button-group` takes no attributes. Each nested `:::link-button` block controls its own style and content. Close the group with `:::/link-button-group`. Each button closes with `:::`; a button opened with four or more colons needs at least as many colons on its own closing fence. When a nested button has no `href`, Sarde drops that button and renders the group around the remaining buttons.
 
 ## Body text as label
 

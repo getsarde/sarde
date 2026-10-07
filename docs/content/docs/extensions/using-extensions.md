@@ -22,7 +22,7 @@ Mitochondria are the powerhouse of the cell.
 Some block extensions divide their content into sections with marker lines rather than nested fences. Tabs use `== Label` to start each panel, and a panel can contain other block extensions:
 
 ````
-::::tabs
+:::tabs
 == Biology
 
 :::note
@@ -32,10 +32,10 @@ Photosynthesis converts light energy into chemical energy.
 == Chemistry
 
 The reaction produces glucose and oxygen from water and CO₂.
-::::
+:::/tabs
 ````
 
-Use four or more colons (`::::`) for the outer fence when nesting extensions inside each other.
+When a block sits inside another block, close the outer block with a named fence such as `:::/tabs`. See [Nesting](#nesting).
 
 ## Inline syntax
 
@@ -96,20 +96,38 @@ Hidden content revealed on page load.
 
 ## Nesting
 
-Block extensions can be nested. Use additional colons on the outer fence to distinguish it from the inner fence:
+Block extensions nest. Every block opens with `:::name` and closes with a bare `:::` or with a named fence, `:::/name`. Use the named fence on the outer block when nesting: it states which block it closes, so the inner blocks can use plain `:::`.
 
 ````
-::::card-grid
+:::card-grid
 :::card[Lesson 1]
 Introduction to cellular biology.
 :::
 :::card[Lesson 2]
 DNA replication and protein synthesis.
 :::
-::::
+:::/card-grid
 ````
 
-The parser tracks nesting depth internally. Mismatched closing fences are ignored until the correct depth is reached. Named closing fences (`:::/aside`) are also supported for clarity in deeply nested structures.
+A named fence closes the nearest open block with that name. If an inner block was left open, `:::/card-grid` still closes the grid, and the inner block closes with it. A named fence that matches no open block, such as `:::/tip` inside a `:::note`, renders as text. Names are case-insensitive. `:::/aside` closes an aside of any type, and `:::/filetree` is accepted for `:::file-tree`.
+
+Blocks of the same name nest too. Each `:::/details` closes the innermost open details block:
+
+````
+:::details[Outer]
+:::details[Inner]
+Hidden twice.
+:::/details
+:::/details
+````
+
+A bare `:::` closes the innermost open block. Longer fences (`::::`, `:::::`) are accepted, so content written for Docusaurus, VitePress, or Pandoc keeps working. The extra colons are a readability convention, not a nesting level.
+
+Run `sarde check-syntax` to find unclosed, mismatched, or malformed fences before building. `sarde dev --check-syntax` runs the same check on every rebuild.
+
+### Code groups
+
+Kazari's `:::code-group` is the one exception. It closes only with a bare `:::` and does not track nesting, so close a code group with `:::` before the closing fence of the block that contains it. `:::/code-group` is not recognized.
 
 ## Standard Goldmark extensions
 

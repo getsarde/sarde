@@ -6,6 +6,7 @@ import (
 
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/attrutil"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/blockutil"
+	"github.com/getsarde/sarde/internal/content/markdown/fence"
 	"github.com/getsarde/sarde/internal/directive"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
@@ -13,8 +14,6 @@ import (
 )
 
 var openingRegex = regexp.MustCompile(`^:{3,}\s*([\w-]+)(?:\[([^\]]*)\])?(?:\s+(.*))?$`)
-var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
-var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 
 type directiveParser struct {
 	registry *directive.Registry
@@ -51,7 +50,7 @@ func (p *directiveParser) Open(parent ast.Node, reader text.Reader, pc parser.Co
 	if def.Kind == directive.KindContainer {
 		// Consume the fence so the framework's same-line child-open retry
 		// (triggered by HasChildren) finds nothing left on this line.
-		reader.Advance(len(line))
+		reader.AdvanceToEOL()
 		node.SourceStart = seg.Stop
 		return node, parser.HasChildren
 	}
@@ -72,32 +71,14 @@ func (p *directiveParser) Continue(node ast.Node, reader text.Reader, pc parser.
 // continueContainer mirrors the card parser's nested-depth bookkeeping,
 // parameterized on the node's name.
 func (p *directiveParser) continueContainer(n *Node, reader text.Reader, pc parser.Context) parser.State {
-	line, seg := reader.PeekLine()
-	trimmed := strings.TrimSpace(string(line))
-	depth := blockutil.GetDepth(pc, n)
-	if strings.HasPrefix(trimmed, ":::") {
-		if nestedOpenRegex.MatchString(trimmed) && !closingRegex.MatchString(trimmed) {
-			blockutil.SetDepth(pc, n, depth+1)
-			return parser.Continue | parser.HasChildren
-		}
-		if m := closingRegex.FindStringSubmatch(trimmed); m != nil {
-			if depth > 0 {
-				blockutil.SetDepth(pc, n, depth-1)
-				return parser.Continue | parser.HasChildren
-			}
-			if m[1] == n.Name {
-				n.SourceStop = seg.Start
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-			if m[1] == "" && !blockutil.HasInnerOpenBlocks(pc, n) {
-				n.SourceStop = seg.Start
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-		}
+	// PeekLine does not consume, so seg is the candidate closer line even
+	// after the helper advances past it.
+	_, seg := reader.PeekLine()
+	state := blockutil.ContinueContainer(pc, n, reader, n.Name)
+	if state == parser.Close {
+		n.SourceStop = seg.Start
 	}
-	return parser.Continue | parser.HasChildren
+	return state
 }
 
 // continueLeaf accumulates raw body lines until the closing fence. The
@@ -107,11 +88,9 @@ func (p *directiveParser) continueLeaf(n *Node, reader text.Reader) parser.State
 	line, _ := reader.PeekLine()
 	trimmed := strings.TrimSpace(string(line))
 
-	if m := closingRegex.FindStringSubmatch(trimmed); m != nil {
-		if m[1] == "" || m[1] == n.Name {
-			reader.AdvanceToEOL()
-			return parser.Close
-		}
+	if f := fence.Classify(trimmed); f.Kind == fence.Close && (f.Name == "" || fence.Closes(f.Name, n.Name)) {
+		reader.AdvanceToEOL()
+		return parser.Close
 	}
 
 	lineContent := strings.TrimSuffix(strings.TrimSuffix(string(line), "\n"), "\r")
@@ -123,7 +102,7 @@ func (p *directiveParser) continueLeaf(n *Node, reader text.Reader) parser.State
 }
 
 func (p *directiveParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
-	blockutil.DeleteDepth(pc, node)
+	blockutil.Release(pc, node)
 }
 
 func (p *directiveParser) CanInterruptParagraph() bool { return false }

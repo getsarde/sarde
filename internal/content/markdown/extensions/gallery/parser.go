@@ -11,8 +11,6 @@ import (
 )
 
 var openingRegex = regexp.MustCompile(`^:{3,}\s*gallery(?:\[([^\]]+)\])?\s*$`)
-var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
-var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 
 type galleryParser struct{}
 
@@ -26,7 +24,7 @@ func (p *galleryParser) Open(parent ast.Node, reader text.Reader, pc parser.Cont
 	if matches == nil {
 		return nil, parser.NoChildren
 	}
-	reader.Advance(len(line))
+	reader.AdvanceToEOL()
 	label := ""
 	if len(matches) > 1 {
 		label = matches[1]
@@ -35,38 +33,12 @@ func (p *galleryParser) Open(parent ast.Node, reader text.Reader, pc parser.Cont
 }
 
 func (p *galleryParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
-	line, _ := reader.PeekLine()
-	trimmed := strings.TrimSpace(string(line))
-
-	depth := blockutil.GetDepth(pc, node)
-
-	if strings.HasPrefix(trimmed, ":::") {
-		if nestedOpenRegex.MatchString(trimmed) && !closingRegex.MatchString(trimmed) {
-			blockutil.SetDepth(pc, node, depth+1)
-			return parser.Continue | parser.HasChildren
-		}
-		if m := closingRegex.FindStringSubmatch(trimmed); m != nil {
-			if depth > 0 {
-				blockutil.SetDepth(pc, node, depth-1)
-				return parser.Continue | parser.HasChildren
-			}
-			if m[1] == "gallery" {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-			if m[1] == "" && !blockutil.HasInnerOpenBlocks(pc, node) {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-		}
-	}
-
-	return parser.Continue | parser.HasChildren
+	return blockutil.ContinueContainer(pc, node, reader, "gallery")
 }
 
 func (p *galleryParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
 	gallery := node.(*GalleryBlock)
-	blockutil.DeleteDepth(pc, node)
+	blockutil.Release(pc, node)
 
 	// Walk children to find image nodes parsed by goldmark.
 	// Alt text lives in the image node's text children; img.Title is the

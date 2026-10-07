@@ -183,7 +183,7 @@ Separate several ranges with commas, for example `collapse={1-3,8-12}`. A reveal
 
 ## Code groups
 
-Group related code blocks with `:::code-group`.
+Group related code blocks with `:::code-group`. A code group closes only with a bare `:::` and does not track nesting, so close it with `:::` before the closing fence of any block that contains it; `:::/code-group` is not recognized.
 
 ````markdown
 :::code-group

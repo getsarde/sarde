@@ -9,7 +9,7 @@ Columns split content into a side-by-side grid. Use it to place related blocks, 
 
 ## Basic syntax
 
-::::example
+:::example
 :::columns
 :::column
 Left column content.
@@ -17,8 +17,8 @@ Left column content.
 :::column
 Right column content.
 :::
-:::
-::::
+:::/columns
+:::/example
 
 → Two columns of equal width appear side by side.
 
@@ -26,7 +26,7 @@ Right column content.
 
 Set the number of columns with `cols`. The value must be a quoted string and ranges from 1 to 4. The default is 2.
 
-::::example
+:::example
 :::columns(cols="3")
 :::column
 One
@@ -37,8 +37,8 @@ Two
 :::column
 Three
 :::
-:::
-::::
+:::/columns
+:::/example
 
 → Three columns of equal width appear side by side.
 
@@ -46,7 +46,7 @@ Three
 
 Each `:::column` accepts any Markdown, including headings, lists, code blocks, and other block extensions.
 
-::::example
+:::example
 :::columns
 :::column
 ## Option A
@@ -60,8 +60,8 @@ Each `:::column` accepts any Markdown, including headings, lists, code blocks, a
 - More flexible
 - Steeper learning curve
 :::
-:::
-::::
+:::/columns
+:::/example
 
 → Each column renders its Markdown content independently, including the heading and list inside it.
 
@@ -76,4 +76,4 @@ Each `:::column` accepts any Markdown, including headings, lists, code blocks, a
 - The `cols` value is clamped to the 1-4 range. Values outside that range fall back to the default of 2.
 - The value must be quoted (`cols="3"`). An unquoted value (`cols=3`) is not recognized and the default is used instead.
 - On small screens, columns stack vertically.
-- A bare `:::` closes the nearest open block, whether that is a `:::column` or the outer `:::columns` container.
+- A bare `:::` closes the nearest open block, whether that is a `:::column` or the outer `:::columns` container. `:::/columns` closes the container explicitly, including a column left open.

@@ -11,8 +11,6 @@ import (
 )
 
 var openingRegex = regexp.MustCompile(`(?i)^:{3,}\s*terminal\s*$`)
-var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
-var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 
 type terminalParser struct{}
 
@@ -25,42 +23,16 @@ func (p *terminalParser) Open(parent ast.Node, reader text.Reader, pc parser.Con
 	if !openingRegex.MatchString(lineStr) {
 		return nil, parser.NoChildren
 	}
-	reader.Advance(len(line))
+	reader.AdvanceToEOL()
 	return &TerminalBlock{}, parser.HasChildren
 }
 
 func (p *terminalParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
-	line, _ := reader.PeekLine()
-	trimmed := strings.TrimSpace(string(line))
-
-	depth := blockutil.GetDepth(pc, node)
-
-	if strings.HasPrefix(trimmed, ":::") {
-		if nestedOpenRegex.MatchString(trimmed) && !closingRegex.MatchString(trimmed) {
-			blockutil.SetDepth(pc, node, depth+1)
-			return parser.Continue | parser.HasChildren
-		}
-		if m := closingRegex.FindStringSubmatch(trimmed); m != nil {
-			if depth > 0 {
-				blockutil.SetDepth(pc, node, depth-1)
-				return parser.Continue | parser.HasChildren
-			}
-			if m[1] == "terminal" {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-			if m[1] == "" && !blockutil.HasInnerOpenBlocks(pc, node) {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-		}
-	}
-
-	return parser.Continue | parser.HasChildren
+	return blockutil.ContinueContainer(pc, node, reader, "terminal")
 }
 
 func (p *terminalParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
-	blockutil.DeleteDepth(pc, node)
+	blockutil.Release(pc, node)
 }
 func (p *terminalParser) CanInterruptParagraph() bool { return false }
 func (p *terminalParser) CanAcceptIndentedLine() bool { return false }

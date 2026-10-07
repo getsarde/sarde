@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/content/markdown/fence"
 	"github.com/getsarde/sarde/internal/engine"
 )
 
@@ -123,8 +124,6 @@ var headingRegex = regexp.MustCompile(`^(#{1,6})\s+(.*)`)
 // bare "===" setext underline is not mistaken for a marker.
 var (
 	tabsOpenRegex          = regexp.MustCompile(`^:{3,}\s*tabs\s*$`)
-	tabsCloseRegex         = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
-	tabsNestedOpenRegex    = regexp.MustCompile(`^:{3,}\s*\w+`)
 	tabsBoundaryRegex      = regexp.MustCompile(`^==\s+\S`)
 	tabsBadEqualsRegex     = regexp.MustCompile(`^(={3,})\s+(.+)$`)
 	tabsFakeDirectiveRegex = regexp.MustCompile(`^:{2,}\s*tab[\[({]`)
@@ -142,7 +141,8 @@ func checkTabsBlocks(lines []string, fenced []bool) []lintIssue {
 		}
 
 		openLine := i + 1
-		markers, malformed, depth := 0, 0, 0
+		markers, malformed := 0, 0
+		var nested []string // names of nested openers still open, innermost last
 		j := i + 1
 
 		for ; j < len(lines); j++ {
@@ -160,20 +160,29 @@ func checkTabsBlocks(lines []string, fenced []bool) []lintIssue {
 				continue
 			}
 
-			// Track nested containers so an inner ":::note ... :::" does not
-			// look like the end of the tabs block.
+			// Track nested containers the way the parser does, so an inner
+			// ":::note ... :::" does not look like the end of the tabs block
+			// and ":::/tabs" ends it even over an unclosed inner block.
 			if strings.HasPrefix(line, ":::") {
-				if tabsNestedOpenRegex.MatchString(line) && !tabsCloseRegex.MatchString(line) {
-					depth++
+				f := fence.Classify(line)
+				if f.Kind == fence.Open {
+					nested = append(nested, f.Name)
 					continue
 				}
-				if m := tabsCloseRegex.FindStringSubmatch(line); m != nil {
-					if depth > 0 {
-						depth--
+				if f.Kind == fence.Close {
+					if f.Name == "" {
+						if len(nested) > 0 {
+							nested = nested[:len(nested)-1]
+							continue
+						}
+						break // end of the tabs block
+					}
+					if k := fence.FindClosable(nested, f.Name); k >= 0 {
+						nested = nested[:k]
 						continue
 					}
-					if m[1] == "" || m[1] == "tabs" {
-						break
+					if fence.Closes(f.Name, "tabs") {
+						break // end of the tabs block
 					}
 				}
 				continue
@@ -210,34 +219,11 @@ func checkTabsBlocks(lines []string, fenced []bool) []lintIssue {
 
 func fencedLines(lines []string) []bool {
 	mask := make([]bool, len(lines))
-	var fenceChar byte
-	fenceLen := 0
+	var code fence.CodeFence
 	for i, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if fenceChar == 0 {
-			if n := leadingRun(trimmed, '`'); n >= 3 {
-				fenceChar, fenceLen = '`', n
-				mask[i] = true
-			} else if n := leadingRun(trimmed, '~'); n >= 3 {
-				fenceChar, fenceLen = '~', n
-				mask[i] = true
-			}
-			continue
-		}
-		mask[i] = true
-		if n := leadingRun(trimmed, fenceChar); n >= fenceLen && n == len(trimmed) {
-			fenceChar, fenceLen = 0, 0
-		}
+		mask[i] = code.Feed(strings.TrimSpace(line))
 	}
 	return mask
-}
-
-func leadingRun(s string, ch byte) int {
-	n := 0
-	for n < len(s) && s[n] == ch {
-		n++
-	}
-	return n
 }
 
 // stripCodeSpans blanks inline code spans (backtick-delimited, closing run of

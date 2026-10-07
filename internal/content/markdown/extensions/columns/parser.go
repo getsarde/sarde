@@ -21,8 +21,6 @@ const (
 var (
 	columnsOpeningRegex = regexp.MustCompile(`^:{3,}\s*columns(?:\((.+)\))?\s*$`)
 	columnOpeningRegex  = regexp.MustCompile(`^:{3,}\s*column\s*$`)
-	closingRegex        = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
-	nestedOpenRegex     = regexp.MustCompile(`^:{3,}\s*\w+`)
 )
 
 type columnsParser struct{}
@@ -37,7 +35,7 @@ func (p *columnsParser) Open(parent ast.Node, reader text.Reader, pc parser.Cont
 	if matches == nil {
 		return nil, parser.NoChildren
 	}
-	reader.Advance(len(line))
+	reader.AdvanceToEOL()
 
 	cols := defaultCols
 	if matches[1] != "" {
@@ -51,11 +49,11 @@ func (p *columnsParser) Open(parent ast.Node, reader text.Reader, pc parser.Cont
 }
 
 func (p *columnsParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
-	return continueContainer(node, reader, pc, "columns")
+	return blockutil.ContinueContainer(pc, node, reader, "columns")
 }
 
 func (p *columnsParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
-	blockutil.DeleteDepth(pc, node)
+	blockutil.Release(pc, node)
 }
 func (p *columnsParser) CanInterruptParagraph() bool { return false }
 func (p *columnsParser) CanAcceptIndentedLine() bool { return false }
@@ -71,43 +69,16 @@ func (p *columnParser) Open(parent ast.Node, reader text.Reader, pc parser.Conte
 	if !columnOpeningRegex.MatchString(lineStr) {
 		return nil, parser.NoChildren
 	}
-	reader.Advance(len(line))
+	reader.AdvanceToEOL()
 	return &ColumnBlock{}, parser.HasChildren
 }
 
 func (p *columnParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
-	return continueContainer(node, reader, pc, "column")
+	return blockutil.ContinueContainer(pc, node, reader, "column")
 }
 
 func (p *columnParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
-	blockutil.DeleteDepth(pc, node)
+	blockutil.Release(pc, node)
 }
 func (p *columnParser) CanInterruptParagraph() bool { return false }
 func (p *columnParser) CanAcceptIndentedLine() bool { return false }
-
-func continueContainer(node ast.Node, reader text.Reader, pc parser.Context, name string) parser.State {
-	line, _ := reader.PeekLine()
-	trimmed := strings.TrimSpace(string(line))
-	depth := blockutil.GetDepth(pc, node)
-	if strings.HasPrefix(trimmed, ":::") {
-		if nestedOpenRegex.MatchString(trimmed) && !closingRegex.MatchString(trimmed) {
-			blockutil.SetDepth(pc, node, depth+1)
-			return parser.Continue | parser.HasChildren
-		}
-		if m := closingRegex.FindStringSubmatch(trimmed); m != nil {
-			if depth > 0 {
-				blockutil.SetDepth(pc, node, depth-1)
-				return parser.Continue | parser.HasChildren
-			}
-			if m[1] == name {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-			if m[1] == "" && !blockutil.HasInnerOpenBlocks(pc, node) {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-		}
-	}
-	return parser.Continue | parser.HasChildren
-}

@@ -12,8 +12,6 @@ import (
 )
 
 var openingRegex = regexp.MustCompile(`^:{3,}\s*tabs\s*$`)
-var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
-var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 var tabBoundaryRegex = regexp.MustCompile(`^==\s+(.+)`)
 var tabAttrBlockRegex = regexp.MustCompile(`\(([^)]*)\)\s*$`)
 
@@ -46,45 +44,18 @@ func (p *tabsParser) Open(parent ast.Node, reader text.Reader, pc parser.Context
 		return nil, parser.NoChildren
 	}
 
-	reader.Advance(len(line))
+	reader.AdvanceToEOL()
 	return &TabsBlock{}, parser.HasChildren
 }
 
 func (p *tabsParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
-	line, _ := reader.PeekLine()
-	trimmed := strings.TrimSpace(string(line))
-
-	depth := blockutil.GetDepth(pc, node)
-
-	if strings.HasPrefix(trimmed, ":::") {
-		if nestedOpenRegex.MatchString(trimmed) && !closingRegex.MatchString(trimmed) {
-			blockutil.SetDepth(pc, node, depth+1)
-			return parser.Continue | parser.HasChildren
-		}
-
-		if m := closingRegex.FindStringSubmatch(trimmed); m != nil {
-			if depth > 0 {
-				blockutil.SetDepth(pc, node, depth-1)
-				return parser.Continue | parser.HasChildren
-			}
-			if m[1] == "tabs" {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-			if m[1] == "" && !blockutil.HasInnerOpenBlocks(pc, node) {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-		}
-	}
-
-	// Tab boundary lines (== Tab Name) are consumed here at depth 0
-	// They become paragraph text inside the block, handled in Close
-	return parser.Continue | parser.HasChildren
+	// Tab boundary lines (== Tab Name) stay as paragraph text inside the
+	// block and are split into tabs in Close.
+	return blockutil.ContinueContainer(pc, node, reader, "tabs")
 }
 
 func (p *tabsParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
-	blockutil.DeleteDepth(pc, node)
+	blockutil.Release(pc, node)
 
 	tabsBlock := node.(*TabsBlock)
 	source := reader.Source()

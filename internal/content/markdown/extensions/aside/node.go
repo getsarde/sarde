@@ -1,28 +1,22 @@
 package aside
 
 import (
+	"github.com/getsarde/sarde/internal/content/markdown/fence"
 	gast "github.com/yuin/goldmark/ast"
 )
 
 // KindAsideBlock is the NodeKind for AsideBlock.
 var KindAsideBlock = gast.NewNodeKind("AsideBlock")
 
-// ValidTypes lists all valid aside types.
-var ValidTypes = map[string]bool{
-	"note":      true,
-	"tip":       true,
-	"info":      true,
-	"danger":    true,
-	"warning":   true,
-	"important": true,
-	"caution":   true,
-	// GitHub-style variants
-	"gh-note":      true,
-	"gh-tip":       true,
-	"gh-important": true,
-	"gh-warning":   true,
-	"gh-caution":   true,
-}
+// ValidTypes lists all valid aside types. The list lives in the fence package
+// so ":::/aside" and sarde check-syntax recognize the same names.
+var ValidTypes = func() map[string]bool {
+	m := make(map[string]bool, len(fence.AsideTypes))
+	for _, t := range fence.AsideTypes {
+		m[t] = true
+	}
+	return m
+}()
 
 // DefaultTitles maps aside types to their default display titles.
 var DefaultTitles = map[string]string{

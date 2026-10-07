@@ -11,8 +11,6 @@ import (
 )
 
 var openingFenceRegex = regexp.MustCompile(`^:{3,}\s*([\w-]+)(?:\[([^\]]+)\])?(?:\s+icon=([\w-]+))?`)
-var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
-var closingFenceRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
 
 // asideParser is a goldmark block parser for aside blocks.
 type asideParser struct{}
@@ -51,7 +49,7 @@ func (p *asideParser) Open(parent ast.Node, reader text.Reader, pc parser.Contex
 		icon = matches[3]
 	}
 
-	reader.Advance(len(line))
+	reader.AdvanceToEOL()
 
 	node := &AsideBlock{
 		AsideType: asideType,
@@ -64,60 +62,14 @@ func (p *asideParser) Open(parent ast.Node, reader text.Reader, pc parser.Contex
 
 // Continue is called to check if the block continues on the current line.
 func (p *asideParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
-	aside := node.(*AsideBlock)
-
-	line, _ := reader.PeekLine()
-	lineStr := string(line)
-	trimmed := strings.TrimSpace(lineStr)
-
-	// Get or initialize nested depth from context
-	depth := blockutil.GetDepth(pc, aside)
-
-	// Check for ::: fences
-	if strings.HasPrefix(trimmed, ":::") {
-		// Check if it's an opening fence (:::word)
-		if nestedOpenRegex.MatchString(trimmed) && !closingFenceRegex.MatchString(trimmed) {
-			blockutil.SetDepth(pc, aside, depth+1)
-			return parser.Continue | parser.HasChildren
-		}
-
-		// Check if it's a closing fence
-		if closingFenceRegex.MatchString(trimmed) {
-			if depth > 0 {
-				blockutil.SetDepth(pc, aside, depth-1)
-				return parser.Continue | parser.HasChildren
-			}
-
-			// At depth 0 — check for named closing
-			matches := closingFenceRegex.FindStringSubmatch(trimmed)
-			closingName := ""
-			if len(matches) > 1 {
-				closingName = matches[1]
-			}
-
-			if closingName != "" && closingName != aside.AsideType {
-				// Mismatched named closing — don't close
-				return parser.Continue | parser.HasChildren
-			}
-
-			if closingName == "" && blockutil.HasInnerOpenBlocks(pc, node) {
-				return parser.Continue | parser.HasChildren
-			}
-
-			// Valid closing
-			reader.AdvanceToEOL()
-			return parser.Close
-		}
-	}
-
-	return parser.Continue | parser.HasChildren
+	// The aside type is the block name, so ":::/note" closes a note;
+	// fence.Closes also accepts ":::/aside" for any type.
+	return blockutil.ContinueContainer(pc, node, reader, node.(*AsideBlock).AsideType)
 }
 
 // Close is called when the block is closed.
 func (p *asideParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
-	// Clean up context
-	aside := node.(*AsideBlock)
-	blockutil.DeleteDepth(pc, aside)
+	blockutil.Release(pc, node)
 }
 
 // CanInterruptParagraph returns false.
@@ -129,5 +81,3 @@ func (p *asideParser) CanInterruptParagraph() bool {
 func (p *asideParser) CanAcceptIndentedLine() bool {
 	return false
 }
-
-// Context key for nested depth tracking

@@ -12,8 +12,6 @@ import (
 )
 
 var openingRegex = regexp.MustCompile(`^:{3,}\s*card(?:\[([^\]]*)\])?(?:\((.+)\))?\s*$`)
-var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
-var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 
 type cardParser struct{}
 
@@ -27,7 +25,7 @@ func (p *cardParser) Open(parent ast.Node, reader text.Reader, pc parser.Context
 	if matches == nil {
 		return nil, parser.NoChildren
 	}
-	reader.Advance(len(line))
+	reader.AdvanceToEOL()
 
 	title := matches[1]
 	attrs := attrutil.Parse(matches[2])
@@ -39,34 +37,11 @@ func (p *cardParser) Open(parent ast.Node, reader text.Reader, pc parser.Context
 }
 
 func (p *cardParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
-	line, _ := reader.PeekLine()
-	trimmed := strings.TrimSpace(string(line))
-	depth := blockutil.GetDepth(pc, node)
-	if strings.HasPrefix(trimmed, ":::") {
-		if nestedOpenRegex.MatchString(trimmed) && !closingRegex.MatchString(trimmed) {
-			blockutil.SetDepth(pc, node, depth+1)
-			return parser.Continue | parser.HasChildren
-		}
-		if m := closingRegex.FindStringSubmatch(trimmed); m != nil {
-			if depth > 0 {
-				blockutil.SetDepth(pc, node, depth-1)
-				return parser.Continue | parser.HasChildren
-			}
-			if m[1] == "card" {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-			if m[1] == "" && !blockutil.HasInnerOpenBlocks(pc, node) {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-		}
-	}
-	return parser.Continue | parser.HasChildren
+	return blockutil.ContinueContainer(pc, node, reader, "card")
 }
 
 func (p *cardParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
-	blockutil.DeleteDepth(pc, node)
+	blockutil.Release(pc, node)
 }
 func (p *cardParser) CanInterruptParagraph() bool { return false }
 func (p *cardParser) CanAcceptIndentedLine() bool { return false }

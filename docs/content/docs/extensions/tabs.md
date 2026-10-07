@@ -57,10 +57,10 @@ The study of matter and its reactions.
 
 ## Tab content
 
-Each tab panel supports any Markdown content: paragraphs, code blocks, lists, images, and nested extensions. Use four colons for the outer fence when nesting block extensions inside tabs:
+Each tab panel supports any Markdown content: paragraphs, code blocks, lists, images, and nested extensions. Close the tabs block with a named fence when nesting block extensions inside tabs:
 
 ````
-::::tabs
+:::tabs
 == Overview
 
 :::note
@@ -72,7 +72,7 @@ This course requires prior knowledge of basic algebra.
 1. Introduction to functions
 2. Limits and continuity
 3. Derivatives
-::::
+:::/tabs
 ````
 
 ## localStorage sync

@@ -472,3 +472,25 @@ func TestContentLint_TabsRuleOnByDefault(t *testing.T) {
 		t.Errorf("expected the rule to be disableable, got %v", warnings)
 	}
 }
+
+func TestContentLint_TabsNamedCloserRecoversUnclosedNote(t *testing.T) {
+	// ":::/tabs" ends the block even though the inner note never closed,
+	// matching the parser, so the marker on line 7 belongs to a new block.
+	issues := checkTabsBlocks(lintLines([]string{
+		":::tabs",
+		"== Alpha",
+		":::note",
+		"careful",
+		":::/tabs",
+		":::tabs",
+		"=== Bad",
+		":::",
+	}))
+
+	if len(issues) != 1 {
+		t.Fatalf("expected 1 issue, got %d: %v", len(issues), issues)
+	}
+	if issues[0].Line != 7 {
+		t.Errorf("expected the bad marker on line 7 to be flagged, got line %d", issues[0].Line)
+	}
+}

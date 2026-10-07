@@ -57,5 +57,5 @@ Figures can contain any Markdown content, not only images. Use them to caption c
 
 - The caption is required in the syntax (square brackets must be present), but the text inside can be empty.
 - The caption text is HTML-escaped. Markdown formatting inside the caption is not rendered.
-- Figures can nest other block extensions. Use four colons (`::::`) on the outer fence when nesting.
+- Figures can nest other block extensions. Close the figure with `:::/figure` when nesting.
 - Multiple images inside a single figure share the same caption.

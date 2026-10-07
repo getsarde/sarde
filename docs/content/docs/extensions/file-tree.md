@@ -114,4 +114,4 @@ The syntax is `icon:<name> <filename>`. The icon name and filename are separated
 - Nesting is determined by standard Markdown list indentation (2 or 4 spaces per level).
 - The `#` comment marker requires a preceding space. A filename like `#readme` is not treated as a comment.
 - File extension CSS classes are alphanumeric only. Extensions with special characters (e.g., `.tar.gz`) use the last segment (`gz`).
-- The closing fence accepts both `:::/file-tree` and `:::/filetree`.
+- The closing fence accepts both `:::/file-tree` and `:::/filetree`, in any letter case.

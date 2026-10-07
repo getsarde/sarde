@@ -23,7 +23,7 @@ Body content.
 :::
 ````
 
-The `[label]` bracket and `key="value"` attributes are both optional. Attribute values must be quoted. Close the block with `:::` or a named `:::/name` fence.
+The `[label]` bracket and `key="value"` attributes are both optional. Attribute values must be quoted. Close the block with `:::`, or with `:::/name` when the directive contains other blocks (see [Nesting](/extensions/using-extensions/#nesting)).
 
 ## A worked example: pull quote (container)
 

@@ -9,4 +9,4 @@ title: Welcome
 :::
 :::link-card[Python Essentials](href="/courses/python-essentials/" icon="terminal" description="Learn Python by writing small programs.")
 :::
-::::
+:::/card-grid

@@ -118,10 +118,10 @@ All other types keep their classic icons, and an explicit `icon=` parameter alwa
 
 ## Nesting content
 
-Asides can contain any Markdown content: paragraphs, lists, code blocks, images, and even other extensions. Use four colons for the outer fence when nesting:
+Asides can contain any Markdown content: paragraphs, lists, code blocks, images, and even other extensions. Close the outer aside with a named fence when nesting:
 
 ````
-::::note[Course prerequisites]
+:::note[Course prerequisites]
 Complete these steps before starting:
 
 1. Install the development tools
@@ -131,7 +131,7 @@ Complete these steps before starting:
 :::tip
 The setup script handles dependency installation automatically.
 :::
-::::
+:::/note
 ````
 
 ## Options
@@ -147,6 +147,6 @@ The setup script handles dependency installation automatically.
 
 - An unrecognized type name (e.g., `:::custom`) is silently ignored. The content renders as a plain paragraph.
 - Asides cannot interrupt a paragraph. A blank line must precede the opening `:::`.
-- A named closing fence (`:::/note`) must match the opening type. A mismatched name (e.g., opening with `:::note` and closing with `:::/tip`) does not close the block.
+- A named closing fence (`:::/note`) must match the opening type, or use `:::/aside`, which closes an aside of any type. Names are case-insensitive. A mismatched name (opening with `:::note`, closing with `:::/tip`) does not close the block; the line renders as text.
 - When no icon is found for a type (after checking the explicit `icon` parameter and the built-in icon map), the fallback is the `info` icon.
 - The default title for an unrecognized GitHub-style variant falls back to "Note".

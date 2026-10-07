@@ -12,8 +12,6 @@ import (
 )
 
 var openingRegex = regexp.MustCompile(`^:{3,}\s*accordion(?:\((.+)\))?\s*$`)
-var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
-var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 
 type accordionParser struct{}
 
@@ -27,7 +25,7 @@ func (p *accordionParser) Open(parent ast.Node, reader text.Reader, pc parser.Co
 	if matches == nil {
 		return nil, parser.NoChildren
 	}
-	reader.Advance(len(line))
+	reader.AdvanceToEOL()
 
 	independent := false
 	if matches[1] != "" {
@@ -38,34 +36,11 @@ func (p *accordionParser) Open(parent ast.Node, reader text.Reader, pc parser.Co
 }
 
 func (p *accordionParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
-	line, _ := reader.PeekLine()
-	trimmed := strings.TrimSpace(string(line))
-	depth := blockutil.GetDepth(pc, node)
-	if strings.HasPrefix(trimmed, ":::") {
-		if nestedOpenRegex.MatchString(trimmed) && !closingRegex.MatchString(trimmed) {
-			blockutil.SetDepth(pc, node, depth+1)
-			return parser.Continue | parser.HasChildren
-		}
-		if m := closingRegex.FindStringSubmatch(trimmed); m != nil {
-			if depth > 0 {
-				blockutil.SetDepth(pc, node, depth-1)
-				return parser.Continue | parser.HasChildren
-			}
-			if m[1] == "accordion" {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-			if m[1] == "" && !blockutil.HasInnerOpenBlocks(pc, node) {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-		}
-	}
-	return parser.Continue | parser.HasChildren
+	return blockutil.ContinueContainer(pc, node, reader, "accordion")
 }
 
 func (p *accordionParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
-	blockutil.DeleteDepth(pc, node)
+	blockutil.Release(pc, node)
 }
 func (p *accordionParser) CanInterruptParagraph() bool { return false }
 func (p *accordionParser) CanAcceptIndentedLine() bool { return false }

@@ -11,8 +11,6 @@ import (
 )
 
 var openingRegex = regexp.MustCompile(`^:{3,}\s*image-compare(?:\[([^\]]+)\])?\s*$`)
-var closingRegex = regexp.MustCompile(`^:{3,}(?:/([\w-]+))?\s*$`)
-var nestedOpenRegex = regexp.MustCompile(`^:{3,}\s*\w+`)
 
 type imageCompareParser struct{}
 
@@ -26,7 +24,7 @@ func (p *imageCompareParser) Open(parent ast.Node, reader text.Reader, pc parser
 	if matches == nil {
 		return nil, parser.NoChildren
 	}
-	reader.Advance(len(line))
+	reader.AdvanceToEOL()
 	label := ""
 	if len(matches) > 1 {
 		label = matches[1]
@@ -35,40 +33,14 @@ func (p *imageCompareParser) Open(parent ast.Node, reader text.Reader, pc parser
 }
 
 func (p *imageCompareParser) Continue(node ast.Node, reader text.Reader, pc parser.Context) parser.State {
-	line, _ := reader.PeekLine()
-	trimmed := strings.TrimSpace(string(line))
-
-	depth := blockutil.GetDepth(pc, node)
-
-	if strings.HasPrefix(trimmed, ":::") {
-		if nestedOpenRegex.MatchString(trimmed) && !closingRegex.MatchString(trimmed) {
-			blockutil.SetDepth(pc, node, depth+1)
-			return parser.Continue | parser.HasChildren
-		}
-		if m := closingRegex.FindStringSubmatch(trimmed); m != nil {
-			if depth > 0 {
-				blockutil.SetDepth(pc, node, depth-1)
-				return parser.Continue | parser.HasChildren
-			}
-			if m[1] == "image-compare" {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-			if m[1] == "" && !blockutil.HasInnerOpenBlocks(pc, node) {
-				reader.AdvanceToEOL()
-				return parser.Close
-			}
-		}
-	}
-
-	return parser.Continue | parser.HasChildren
+	return blockutil.ContinueContainer(pc, node, reader, "image-compare")
 }
 
 func (p *imageCompareParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {
 	// Image extraction happens in the renderer, not here: Close runs during
 	// block parsing, before the inline pass creates the ast.Image nodes, so a
 	// walk for images at this point would always find nothing.
-	blockutil.DeleteDepth(pc, node)
+	blockutil.Release(pc, node)
 }
 
 func (p *imageCompareParser) CanInterruptParagraph() bool { return false }

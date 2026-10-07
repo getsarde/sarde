@@ -3,6 +3,8 @@ package syntax
 import (
 	"bytes"
 	"strings"
+
+	"github.com/getsarde/sarde/internal/content/markdown/fence"
 )
 
 type stackEntry struct {
@@ -10,115 +12,81 @@ type stackEntry struct {
 	line int
 }
 
-// Check scans markdown content for unclosed or mismatched fenced block tags.
+// Check scans markdown content for unclosed, mismatched or malformed ":::"
+// fences. It follows the renderer's rules (the fence package, shared with the
+// block parsers): a bare ":::" closes the innermost open block, ":::/name"
+// closes the nearest open block that name closes and takes any inner block
+// left open with it, and a ":::/name" that matches no open block is content.
 // Lines inside fenced code blocks (``` or ~~~) are skipped.
 // lineOffset is added to all reported line numbers (use page.FrontmatterLines
 // when checking RawContent that has frontmatter stripped).
 func Check(filename string, content []byte, lineOffset int) []Diagnostic {
 	var diags []Diagnostic
 	var stack []stackEntry
-	inCodeFence := false
+	var code fence.CodeFence
+
+	diag := func(line int, tag, msg, level string) {
+		diags = append(diags, Diagnostic{File: filename, Line: line, Tag: tag, Message: msg, Level: level})
+	}
 
 	lines := bytes.Split(content, []byte("\n"))
 	for i, line := range lines {
 		lineNum := i + 1 + lineOffset
 		trimmed := strings.TrimSpace(string(line))
 
-		if strings.HasPrefix(trimmed, "```") || strings.HasPrefix(trimmed, "~~~") {
-			inCodeFence = !inCodeFence
-			continue
-		}
-		if inCodeFence {
+		if code.Feed(trimmed) {
 			continue
 		}
 
-		if !strings.HasPrefix(trimmed, ":::") {
-			continue
-		}
+		f := fence.Classify(trimmed)
+		switch f.Kind {
+		case fence.Open:
+			stack = append(stack, stackEntry{tag: f.Name, line: lineNum})
 
-		rest := trimmed[3:]
-		for strings.HasPrefix(rest, ":") {
-			rest = rest[1:]
-		}
-		rest = strings.TrimSpace(rest)
-
-		if rest == "" {
-			// Bare ::: — implicit close
-			if len(stack) == 0 {
-				diags = append(diags, Diagnostic{
-					File:    filename,
-					Line:    lineNum,
-					Tag:     "",
-					Message: "orphaned closing tag with no matching opener",
-					Level:   "error",
-				})
-			} else {
-				stack = stack[:len(stack)-1]
-			}
-			continue
-		}
-
-		if rest[0] == '/' {
-			// Explicit close: :::/tagname
-			fields := strings.Fields(rest[1:])
-			if len(fields) == 0 {
+		case fence.Close:
+			if f.Name == "" {
+				if len(stack) == 0 {
+					diag(lineNum, "", "orphaned closing tag with no matching opener", "error")
+				} else {
+					stack = stack[:len(stack)-1]
+				}
 				continue
 			}
-			closeTag := fields[0]
 			if len(stack) == 0 {
-				diags = append(diags, Diagnostic{
-					File:    filename,
-					Line:    lineNum,
-					Tag:     closeTag,
-					Message: "closing tag ':::/" + closeTag + "' with no matching opener",
-					Level:   "error",
-				})
-			} else {
-				top := stack[len(stack)-1]
-				if top.tag != closeTag {
-					diags = append(diags, Diagnostic{
-						File:    filename,
-						Line:    lineNum,
-						Tag:     closeTag,
-						Message: "mismatched closing tag ':::/" + closeTag + "', expected ':::/" + top.tag + "' (opened at line " + itoa(top.line) + ")",
-						Level:   "error",
-					})
-				}
-				stack = stack[:len(stack)-1]
+				diag(lineNum, f.Name, "closing tag ':::/"+f.Name+"' with no matching opener", "error")
+				continue
 			}
-			continue
-		}
+			names := make([]string, len(stack))
+			for k, e := range stack {
+				names[k] = e.tag
+			}
+			k := fence.FindClosable(names, f.Name)
+			if k < 0 {
+				// The renderer leaves the block open and prints the line as
+				// text, so the block stays on the stack.
+				top := stack[len(stack)-1]
+				diag(lineNum, f.Name, "mismatched closing tag ':::/"+f.Name+"', expected ':::/"+top.tag+"' (opened at line "+itoa(top.line)+")", "error")
+				continue
+			}
+			for _, e := range stack[k+1:] {
+				diag(e.line, e.tag, "unclosed block ':::"+e.tag+"' (opened at line "+itoa(e.line)+"), closed implicitly by ':::/"+f.Name+"' at line "+itoa(lineNum), "warning")
+			}
+			stack = stack[:k]
 
-		// Opener: :::tagname[...](...)
-		tag := extractTag(rest)
-		if tag != "" {
-			stack = append(stack, stackEntry{tag: tag, line: lineNum})
+		case fence.Malformed:
+			// ":::/" alone is skipped, as before; a closer with a name but
+			// trailing text is a typo the renderer prints as content.
+			if f.Name != "" {
+				diag(lineNum, f.Name, "malformed closing fence '"+trimmed+"': write ':::/"+f.Name+"' with nothing after the name", "error")
+			}
 		}
 	}
 
 	for _, entry := range stack {
-		diags = append(diags, Diagnostic{
-			File:    filename,
-			Line:    entry.line,
-			Tag:     entry.tag,
-			Message: "unclosed block ':::" + entry.tag + "' (opened at line " + itoa(entry.line) + ")",
-			Level:   "warning",
-		})
+		diag(entry.line, entry.tag, "unclosed block ':::"+entry.tag+"' (opened at line "+itoa(entry.line)+")", "warning")
 	}
 
 	return diags
-}
-
-func extractTag(s string) string {
-	var b strings.Builder
-	for _, c := range s {
-		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_' {
-			b.WriteRune(c)
-		} else {
-			break
-		}
-	}
-	return b.String()
 }
 
 func itoa(n int) string {

@@ -9,8 +9,8 @@ Card grids arrange multiple cards in a responsive multi-column layout. Wrap card
 
 ## Basic syntax
 
-:::::example
-::::card-grid(cols=3)
+:::example
+:::card-grid(cols=3)
 :::card[Biology]
 Study of living organisms and their interactions.
 :::
@@ -20,25 +20,27 @@ Study of matter, its properties, and reactions.
 :::card[Physics]
 Study of energy, motion, and fundamental forces.
 :::
-::::
-:::::
+:::/card-grid
+:::/example
 
 → Three cards appear side by side in a three-column grid. On smaller screens, the grid collapses to fewer columns.
+
+The grid closes with `:::/card-grid`; each card closes with `:::`.
 
 ## Column count
 
 Set the number of columns with the `cols` attribute. Valid values are 2, 3, or 4:
 
-:::::example
-::::card-grid(cols=2)
+:::example
+:::card-grid(cols=2)
 :::card[Frontend]
 HTML, CSS, and JavaScript.
 :::
 :::card[Backend]
 Server-side logic and databases.
 :::
-::::
-:::::
+:::/card-grid
+:::/example
 
 → Two cards appear side by side in a two-column grid.
 
@@ -46,8 +48,8 @@ Server-side logic and databases.
 
 Add the `stagger` attribute to offset even-numbered cards vertically. This forces a two-column layout regardless of any `cols` value:
 
-:::::example
-::::card-grid(stagger)
+:::example
+:::card-grid(stagger)
 :::card[Week 1]
 Introduction and orientation.
 :::
@@ -60,8 +62,8 @@ Lab work and group projects.
 :::card[Week 4]
 Review and final assessment.
 :::
-::::
-:::::
+:::/card-grid
+:::/example
 
 → Cards appear in two columns with alternating vertical offsets.
 
