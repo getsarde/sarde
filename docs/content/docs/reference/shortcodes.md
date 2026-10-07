@@ -142,6 +142,8 @@ Nested shortcodes inside a paired body expand before the body is rendered as Mar
 
 :::note
 Shortcode syntax inside fenced code blocks (`` ``` `` or `~~~`) is never expanded. Examples showing `{{< ... >}}` in code fences render literally.
+
+Inline code is not protected: a real shortcode name inside backticks, such as an opening `alert` tag, is parsed as a shortcode. To mention one in a sentence or a table, write the name outside the braces or use a placeholder such as `{{< ... >}}`.
 :::
 
 ## Unknown and unclosed shortcodes

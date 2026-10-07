@@ -600,12 +600,17 @@ Embeds `*TaxonomyTerm`, so every field above (`Name`, `Slug`, `CustomSlug`, `Per
 | `.Homepage.Hero.Image` | `*HeroImageData` | Image or SVG panel |
 | `.Homepage.Hero.Background` | `string` | Background style |
 
-### `HeroCTAData`, `HeroStatData`, `HeroCodeData`, `HeroImageData`
+### `HeroCTAData` and `HeroStatData`
 
 | Type | Fields |
 |------|--------|
 | `HeroCTAData` | `Label`, `URL`, `Icon` |
 | `HeroStatData` | `Value`, `Label` |
+
+### `HeroCodeData` and `HeroImageData`
+
+| Type | Fields |
+|------|--------|
 | `HeroCodeData` | `Title`, `Language`, `Body` |
 | `HeroImageData` | `Src`, `Light`, `Dark`, `Alt`, `HTML` (inline SVG as `template.HTML`) |
 

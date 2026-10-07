@@ -53,7 +53,7 @@ Which `baseof.html` and which page template are chosen for a given page is decid
 | Component | `{{ component "Header" . }}` | Engine, overridable | Renders nothing | [UI Components](/reference/ui-components/) |
 | Partial | `{{ partial "home-hero.html" . }}` | Theme | Template error | [Layouts and Templates](/customization/layouts-and-templates/#partials) |
 | Function | `{{ relURL .URL }}`, `{{ t "nav.skip_to_content" }}` | Engine | Parse error | [Template Functions](/reference/template-functions/) |
-| Shortcode | `{{< alert >}}` in Markdown | Theme or site | Build error | [Shortcodes](/reference/shortcodes/) |
+| Shortcode | `{{< ... >}}` in Markdown | Theme or site | Build error | [Shortcodes](/reference/shortcodes/) |
 
 Components and partials receive whatever value is passed as the second argument, conventionally `.` so they see the same route data as the caller.
 
