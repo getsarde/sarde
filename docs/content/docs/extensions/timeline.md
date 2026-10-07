@@ -11,7 +11,7 @@ Timelines display a vertical sequence of entries with markers and a connecting l
 
 Use `== Title` lines to define entries inside a `:::timeline` block:
 
-````
+::::example
 :::timeline
 == September 2024
 Course materials published. Students receive access to the learning platform.
@@ -22,11 +22,9 @@ First assignments due. Office hours begin.
 == December 2024
 Final exams and course evaluations.
 :::
-````
+::::
 
 → A vertical timeline appears with a connecting line. Each entry shows its title in a marker beside the line, with the body content to the right.
-
-<!-- SCREENSHOT: timeline-separator: a three-entry vertical timeline with dates as markers -->
 
 ## Heading syntax
 
@@ -53,7 +51,7 @@ Both syntaxes can be used interchangeably. The `==` separator and `###` heading 
 
 Each timeline entry supports any Markdown content: paragraphs, lists, code blocks, and nested extensions.
 
-````
+::::example
 :::timeline
 == v3.0.0
 - Added versioning support
@@ -64,7 +62,7 @@ Each timeline entry supports any Markdown content: paragraphs, lists, code block
 - Dark mode three-way toggle
 - RTL layout support
 :::
-````
+::::
 
 → Each entry displays its bullet list below the version marker.
 
@@ -72,17 +70,17 @@ Each timeline entry supports any Markdown content: paragraphs, lists, code block
 
 When every item in a list opens with an [icon](/extensions/icon/), the icons replace the bullets. A bold first line becomes the entry's heading. Together they suit a course schedule, where the icon tells students what each item is:
 
-````
+::::example
 :::timeline
-== Week 1: HTML structure
-**How is a web page put together?**
+== Week 1: Course setup
+**How is a course site put together?**
 
 - :icon[calendar] Sep 7 to 13
-- :icon[book-open] [HTML Basics](/courses/web/html-basics/)
-- :icon[flask-conical] [Hello World](/labs/web/hello-world/)
-- :icon[pencil] [Build a Page](/courses/web/build-a-page/), due Fri Sep 18
+- :icon[book-open] [Course Template](/teaching/course-template/)
+- :icon[flask-conical] [Labs](/teaching/labs/)
+- :icon[pencil] [Writing Slides](/teaching/writing-slides/), due Fri Sep 18
 :::
-````
+::::
 
 → The question appears as the entry heading, and each item shows its icon in the accent color, with no bullet.
 

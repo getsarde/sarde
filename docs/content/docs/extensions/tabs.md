@@ -41,7 +41,7 @@ pnpm add sarde
 
 Add an icon to a tab label with `(icon="name")` after the label text:
 
-````
+::::example
 :::tabs
 == Biology (icon="leaf")
 
@@ -51,7 +51,7 @@ The study of living organisms.
 
 The study of matter and its reactions.
 :::
-````
+::::
 
 → Each tab button shows a Lucide icon beside its label.
 
@@ -59,7 +59,7 @@ The study of matter and its reactions.
 
 Each tab panel supports any Markdown content: paragraphs, code blocks, lists, images, and nested extensions. Close the tabs block with a named fence when nesting block extensions inside tabs:
 
-````
+::::example
 :::tabs
 == Overview
 
@@ -73,7 +73,7 @@ This course requires prior knowledge of basic algebra.
 2. Limits and continuity
 3. Derivatives
 :::/tabs
-````
+::::
 
 ## localStorage sync
 

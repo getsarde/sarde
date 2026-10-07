@@ -68,7 +68,7 @@ Add a comment after ` #` (space then hash) to display muted annotation text besi
 
 Use `...` as an entry to indicate omitted content:
 
-````
+::::example
 :::file-tree
 - content/
   - docs/
@@ -77,7 +77,7 @@ Use `...` as an entry to indicate omitted content:
     - ...
 - sarde.yaml
 :::
-````
+::::
 
 → Ellipsis entries appear without icons, indicating that additional files exist but are not shown.
 
@@ -85,14 +85,14 @@ Use `...` as an entry to indicate omitted content:
 
 Override the default file or folder icon with the `icon:` prefix:
 
-````
+::::example
 :::file-tree
 - icon:database data/
   - icon:file-json users.json
   - icon:file-json products.json
 - icon:settings config.yaml
 :::
-````
+::::
 
 → Each entry displays the specified Lucide icon instead of the default folder or file icon.
 

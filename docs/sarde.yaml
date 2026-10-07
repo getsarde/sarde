@@ -74,7 +74,7 @@ plugins:
       bar_height: 3.5
       bar_color: '#9122f9'
     focus_mode:
-      button_position: bottom-left
+      button_position: bottom-right
 homepage:
   hero:
     title: Sarde Documentation
