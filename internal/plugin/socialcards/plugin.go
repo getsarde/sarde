@@ -118,7 +118,8 @@ func buildDone(ctx *plugin.BuildDoneContext, cfg map[string]any, pending *sync.M
 		return nil
 	}
 
-	regularFont, boldFont, fontRegHash, fontBoldHash, err := loadCardFonts(cfg, ctx.ProjectDir, ctx.Log)
+	warnf := configWarner(ctx)
+	regularFont, boldFont, fontRegHash, fontBoldHash, err := loadCardFonts(cfg, ctx.ProjectDir, warnf)
 	if err != nil {
 		return fmt.Errorf("social_cards: loading fonts: %w", err)
 	}
@@ -145,19 +146,19 @@ func buildDone(ctx *plugin.BuildDoneContext, cfg map[string]any, pending *sync.M
 
 	// Resolve logo and background images once, before the worker pool:
 	// goroutines share the decoded images read-only.
-	logoMark, watermarkSrc := loadLogoImages(cfg, ctx.Config, ctx.ProjectDir, logoSize, ctx.Log)
+	logoMark, watermarkSrc := loadLogoImages(cfg, ctx.Config, ctx.ProjectDir, logoSize, warnf)
 	var watermarkImg *image.NRGBA
 	if cfgutil.Bool(cfg, "watermark", false) && watermarkSrc != nil {
 		watermarkImg = watermarkSrc
 	}
 	watermarkOpacity := cfgutil.Float(cfg, "watermark_opacity", watermarkOpacityDefault)
 
-	bgImage := loadBgImage(cfg, ctx.ProjectDir, ctx.Log)
+	bgImage := loadBgImage(cfg, ctx.ProjectDir, warnf)
 	bgImageOpacity := cfgutil.Float(cfg, "bg_image_opacity", 1.0)
 	if bgImageOpacity <= 0 || bgImageOpacity > 1 {
 		bgImageOpacity = 1.0
 	}
-	gradientOverride := parseGradientOverride(cfg, ctx.Log)
+	gradientOverride := parseGradientOverride(cfg, warnf)
 
 	siteTitle := ""
 	if ctx.Site != nil {
@@ -364,6 +365,20 @@ func loadFonts() (*opentype.Font, *opentype.Font, error) {
 // precedent. The returned hashes are content digests of the custom font
 // bytes for cache keying; an empty hash means the embedded face, which only
 // changes with the binary and is covered by cardCacheVersion.
+// configWarner reports a card-asset problem (unreadable font, unusable
+// logo, bad gradient) as a build warning against the plugin's config, so it
+// is counted and shown even when plugin log lines are hidden.
+func configWarner(ctx *plugin.BuildDoneContext) func(string) {
+	return func(msg string) {
+		ctx.AddWarning(engine.ValidationWarning{
+			File:    "sarde.yaml: plugins.config.social_cards",
+			Field:   "plugin",
+			Message: msg,
+			Level:   "warning",
+		})
+	}
+}
+
 func loadCardFonts(cfg map[string]any, projectDir string, logf func(string)) (regular, bold *opentype.Font, regularHash, boldHash string, err error) {
 	regular, bold, err = loadFonts()
 	if err != nil {
@@ -391,12 +406,12 @@ func loadFontFile(path, projectDir string, logf func(string)) (*opentype.Font, s
 	}
 	data, err := os.ReadFile(srcPath)
 	if err != nil {
-		logf(fmt.Sprintf("social_cards: font %s: %v (cards keep the embedded Inter face)", path, err))
+		logf(fmt.Sprintf("font %s: %v (cards keep the embedded Inter face)", path, err))
 		return nil, "", false
 	}
 	f, err := opentype.Parse(data)
 	if err != nil {
-		logf(fmt.Sprintf("social_cards: font %s: %v (cards keep the embedded Inter face)", path, err))
+		logf(fmt.Sprintf("font %s: %v (cards keep the embedded Inter face)", path, err))
 		return nil, "", false
 	}
 	return f, hashBytes(data), true
@@ -437,7 +452,7 @@ func parseGradientOverride(cfg map[string]any, logf func(string)) []color.NRGBA 
 		return nil
 	}
 	if len(hexes) > 2 {
-		logf(fmt.Sprintf("social_cards: bg_gradient takes at most two colors, ignoring %d extra", len(hexes)-2))
+		logf(fmt.Sprintf("bg_gradient takes at most two colors, ignoring %d extra", len(hexes)-2))
 		hexes = hexes[:2]
 	}
 	stops := make([]color.NRGBA, len(hexes))
@@ -484,12 +499,12 @@ func resolveLogoImages(cfg map[string]any, siteCfg *config.SiteConfig, projectDi
 	case "sarde":
 		m, err := decodeEmbeddedPNG("assets/logo/sarde-mark.png")
 		if err != nil {
-			logf(fmt.Sprintf("social_cards: embedded mark: %v", err))
+			logf(fmt.Sprintf("embedded mark: %v", err))
 			return nil, nil
 		}
 		r, err := decodeEmbeddedPNG("assets/logo/sarde-ribbon.png")
 		if err != nil {
-			logf(fmt.Sprintf("social_cards: embedded ribbon: %v", err))
+			logf(fmt.Sprintf("embedded ribbon: %v", err))
 			r = m
 		}
 		return resizeLogoMark(m, logoSize), resizeWatermark(r)
@@ -523,13 +538,13 @@ func resolveLogoImages(cfg map[string]any, siteCfg *config.SiteConfig, projectDi
 // logging) on SVG input, missing files, or decode errors.
 func loadProjectImage(path, projectDir string, logf func(string)) *image.NRGBA {
 	if strings.EqualFold(filepath.Ext(path), ".svg") {
-		logf(fmt.Sprintf("social_cards: logo %s is an SVG, which cards cannot rasterize; provide a PNG or JPEG to brand cards", path))
+		logf(fmt.Sprintf("logo %s is an SVG, which cards cannot rasterize; provide a PNG or JPEG to brand cards", path))
 		return nil
 	}
 	srcPath := filepath.Join(projectDir, consts.DirPublic, filepath.FromSlash(strings.TrimPrefix(path, "/")))
 	img, err := imaging.Open(srcPath)
 	if err != nil {
-		logf(fmt.Sprintf("social_cards: logo %s: %v (cards render without a logo)", path, err))
+		logf(fmt.Sprintf("logo %s: %v (cards render without a logo)", path, err))
 		return nil
 	}
 	return imaging.Clone(img)

@@ -656,6 +656,7 @@ func (b *SiteBuilder) rerenderDirtyMarkdown(s *incrementalRebuildState) error {
 					Field:   "syntax",
 					Message: msg,
 					Level:   d.Level,
+					Line:    d.Line,
 				})
 			}
 		}

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	htmltemplate "html/template"
 	"io/fs"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -39,12 +38,18 @@ func (b *SiteBuilder) phaseAssets(s *buildState) error {
 	if err := b.renderAllMarkdown(s); err != nil {
 		return err
 	}
-	if done, err := b.validateLinks(s); done || err != nil {
+	done, err := b.validateLinks(s)
+	if err != nil {
 		return err
+	}
+	s.recordTiming("Checking links")
+	if done {
+		return nil
 	}
 	if err := b.bundleGlobalAssets(s); err != nil {
 		return err
 	}
+	s.recordTiming("Bundling assets")
 	return b.wireTemplateEngine(s)
 }
 
@@ -63,12 +68,15 @@ func (b *SiteBuilder) checkPageSyntax(s *buildState) {
 		diags := syntax.Check(p.FilePath, []byte(p.RawContent), p.FrontmatterLines)
 		for _, d := range diags {
 			msg := fmt.Sprintf("line %d: %s", d.Line, d.Message)
+			// Also counted by devlog.WarnCount; sarde build never enables
+			// CheckSyntax, so its warning total cannot double-count these.
 			devlog.Warn("syntax", "%s:%d %s", d.File, d.Line, d.Message)
 			s.warnings = append(s.warnings, engine.ValidationWarning{
 				File:    d.File,
 				Field:   "syntax",
 				Message: msg,
 				Level:   d.Level,
+				Line:    d.Line,
 			})
 		}
 	}
@@ -218,12 +226,14 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 			return
 		}
 		if lastProgress.CompareAndSwap(prev, now) {
-			devlog.SetProgress("build", "Rendering content... %d/%d", n, totalPages)
+			devlog.SetProgress("build", "Rendering markdown %d/%d", n, totalPages)
 		}
 	}
 	clearProgress := func() {
 		devlog.ClearProgress()
 	}
+	// Per-page render time, indexed like s.allPages; feeds SlowestPages.
+	mdDur := make([]time.Duration, len(s.allPages))
 
 	if workers.ShouldParallelize(s.parallel, markdownPages, s.workerCount) {
 		poolSize := s.workerCount
@@ -245,13 +255,17 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 
 		g := new(errgroup.Group)
 		g.SetLimit(cap(b.rendererPool))
-		for _, page := range s.allPages {
+		for i, page := range s.allPages {
 			if page.RawContent == "" {
 				rendered.Add(1)
 				continue
 			}
 			g.Go(func() error {
 				renderer := <-b.rendererPool
+				// Timed after the pool hand-off so waiting for a free
+				// renderer is not charged to the page.
+				start := time.Now()
+				defer func() { mdDur[i] = time.Since(start) }()
 				lr := renderer.LinkRenderer()
 				lr.PageIndex = pageIndex
 				lr.URLResolver = b.urlResolver
@@ -358,8 +372,10 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 			collections:    s.collections,
 			assetPipeline:  assetPipeline,
 		}
-		for _, page := range s.allPages {
+		for i, page := range s.allPages {
+			start := time.Now()
 			collectedLinks, pageAnchors, scWarns, err := b.renderMarkdownPageSerial(page, deps, s.siteCtx)
+			mdDur[i] = time.Since(start)
 			if err != nil {
 				clearProgress()
 				return err
@@ -378,6 +394,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 
 	s.pendingAnchors = pendingAnchors
 	s.validationData = validationData
+	s.mdDurations = mdDur
 	return nil
 }
 
@@ -401,10 +418,9 @@ func (b *SiteBuilder) validateLinks(s *buildState) (bool, error) {
 	if config.BoolVal(b.config.LinkValidation.Enabled, true) {
 		lvc := b.config.LinkValidation
 
-		devlog.Log("links", "Checking links...")
-
 		extCfg := lvc.External
 		if config.BoolVal(extCfg.Check, false) {
+			devlog.Log("links", "Checking external links...")
 			timeout, err := time.ParseDuration(extCfg.Timeout)
 			if err != nil || timeout <= 0 {
 				timeout = 10 * time.Second
@@ -459,17 +475,33 @@ func (b *SiteBuilder) validateLinks(s *buildState) (bool, error) {
 			SiteURL: siteURL,
 		})
 		b.checkReportResult = &reportResult
-		if reportResult.Output != "" {
-			fmt.Fprint(os.Stderr, reportResult.Output)
+		// Through devlog so the report never lands on the progress line. A
+		// clean report is a single informational line, which quiet drops.
+		if reportResult.Output != "" && (len(reportResult.Findings) > 0 || !devlog.Quiet()) {
+			devlog.Print(reportResult.Output)
 		}
 		for _, f := range reportResult.Findings {
 			if f.Policy == "warn" {
 				s.warnings = append(s.warnings, engine.ValidationWarning{
 					File:    f.Ref.FromFile,
+					Field:   "link",
 					Message: fmt.Sprintf("%s: %s", f.Type.Label(), f.Ref.RawDest),
 					Level:   "warn",
+					Line:    f.Ref.Line,
+					Col:     f.Ref.Col,
 				})
 			}
+		}
+		counts := links.CountFindings(reportResult.Findings)
+		s.linkSummary = &engine.LinkSummary{
+			Links:          b.lastCoverage.TotalLinks,
+			Lanes:          b.lastCoverage.TotalLanes,
+			BrokenTargets:  counts.BrokenTargets,
+			BrokenAnchors:  counts.BrokenAnchors,
+			ExternalBroken: counts.ExternalBroken,
+			Other:          counts.Other,
+			Errors:         counts.Errors,
+			Warnings:       counts.Warnings,
 		}
 		if reportResult.HasErrors {
 			return false, fmt.Errorf("build failed: link validation errors found")
@@ -478,7 +510,6 @@ func (b *SiteBuilder) validateLinks(s *buildState) (bool, error) {
 
 	// Check-only: return after validation without rendering or writing.
 	if b.checkOnly {
-		s.recordTiming("Link validation")
 		s.checkResult = &engine.BuildResult{
 			PageCount: len(s.allPages),
 			Warnings:  s.warnings,

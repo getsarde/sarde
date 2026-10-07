@@ -39,20 +39,10 @@ type jsonDim struct {
 }
 
 func writeJSONReport(sb *strings.Builder, findings []Finding, cov CoverageSummary, _ string) {
-	var brokenTargets, brokenAnchors, externalBroken, warnCount int
+	c := CountFindings(findings)
 	jFindings := make([]jsonFinding, 0, len(findings))
 
 	for _, f := range findings {
-		switch f.Type {
-		case FindingBrokenTarget, FindingAmbiguousLink:
-			brokenTargets++
-		case FindingBrokenAnchor:
-			brokenAnchors++
-		case FindingExternalBroken:
-			externalBroken++
-		default:
-			warnCount++
-		}
 		jFindings = append(jFindings, jsonFinding{
 			File:     f.Ref.FromFile,
 			Line:     f.Ref.Line,
@@ -74,10 +64,10 @@ func writeJSONReport(sb *strings.Builder, findings []Finding, cov CoverageSummar
 		Summary: jsonSummary{
 			Links:          cov.TotalLinks,
 			Lanes:          cov.TotalLanes,
-			BrokenTargets:  brokenTargets,
-			BrokenAnchors:  brokenAnchors,
-			ExternalBroken: externalBroken,
-			Warnings:       warnCount,
+			BrokenTargets:  c.BrokenTargets,
+			BrokenAnchors:  c.BrokenAnchors,
+			ExternalBroken: c.ExternalBroken,
+			Warnings:       c.Other,
 		},
 		Findings: jFindings,
 	}

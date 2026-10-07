@@ -264,22 +264,45 @@ func classifyRefs(refs []LinkRef, cfg LinkCheckConfig, siteURL string) []Finding
 	return findings
 }
 
-func buildSummaryLine(cov CoverageSummary, findings []Finding) string {
-	var brokenTargets, brokenAnchors, externalBroken, warnCount int
+// FindingCounts tallies findings two ways: by type, and by the policy that
+// produced them. Every finding lands in exactly one type bucket and one
+// policy bucket.
+type FindingCounts struct {
+	BrokenTargets  int // includes ambiguous links, which share the broken-target policy
+	BrokenAnchors  int
+	ExternalBroken int
+	Other          int // relative, local, same-site and unverified links
+	Errors         int // policy "error"
+	Warnings       int // any other policy ("warn")
+}
+
+// CountFindings tallies findings by type and by policy.
+func CountFindings(findings []Finding) FindingCounts {
+	var c FindingCounts
 	for _, f := range findings {
 		switch f.Type {
 		case FindingBrokenTarget, FindingAmbiguousLink:
-			brokenTargets++
+			c.BrokenTargets++
 		case FindingBrokenAnchor:
-			brokenAnchors++
+			c.BrokenAnchors++
 		case FindingExternalBroken:
-			externalBroken++
+			c.ExternalBroken++
 		default:
-			warnCount++
+			c.Other++
+		}
+		if f.Policy == "error" {
+			c.Errors++
+		} else {
+			c.Warnings++
 		}
 	}
+	return c
+}
+
+func buildSummaryLine(cov CoverageSummary, findings []Finding) string {
+	c := CountFindings(findings)
 	return fmt.Sprintf("checked %d links across %d lanes: %d broken targets, %d broken anchors, %d broken external, %d warnings",
-		cov.TotalLinks, cov.TotalLanes, brokenTargets, brokenAnchors, externalBroken, warnCount)
+		cov.TotalLinks, cov.TotalLanes, c.BrokenTargets, c.BrokenAnchors, c.ExternalBroken, c.Other)
 }
 
 // shouldExcludeRef matches link destinations against exclude globs using

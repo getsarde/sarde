@@ -106,7 +106,7 @@ A missing or unreadable logo file never fails the build; the card renders withou
 | GIF | Yes | First frame only; limited palette. |
 | BMP | Yes | No transparency. |
 | TIFF | Yes | |
-| SVG | No | Cards have no vector rasterizer. SVG logos are skipped with a build log note. |
+| SVG | No | Cards have no vector rasterizer. SVG logos are skipped with a build warning. |
 
 Prefer a transparent PNG (or WebP) around 512 to 1024 pixels: the logo mark draws at 64px (configurable via `logo_size`) and the watermark scales its file up to roughly 820px, so that range keeps both crisp. If your logo only exists as SVG, export it to PNG once and point `logo` at the exported file.
 
@@ -170,11 +170,11 @@ plugins:
         bold: "assets/fonts/MyFont-Bold.otf"
 ```
 
-Both TTF and OTF files work, and paths resolve relative to the project directory (they do not need to live under `public/`, since the font itself is never served). A slot whose file is missing or unparsable logs a warning and keeps the embedded Inter face; the build never fails over a font. Different fonts have different metrics, so after switching check a few cards with long titles: the auto-sizing ladder still prevents overflow, but line counts may shift.
+Both TTF and OTF files work, and paths resolve relative to the project directory (they do not need to live under `public/`, since the font itself is never served). A slot whose file is missing or unparsable produces a build warning and keeps the embedded Inter face; the build never fails over a font. Different fonts have different metrics, so after switching check a few cards with long titles: the auto-sizing ladder still prevents overflow, but line counts may shift.
 
 ## Caching
 
-Rendered cards are cached across builds under `.cache/social_cards/` in the project directory, keyed by a content hash of everything that affects the card's pixels: its text, resolved colors, format and quality, logo, watermark, background image, and fonts. A rebuild where nothing changed serves every card from cache; changing any input re-renders only the affected cards. The build log reports the split, e.g. `Generated 119 social card(s) (117 from cache)`.
+Rendered cards are cached across builds under `.cache/social_cards/` in the project directory, keyed by a content hash of everything that affects the card's pixels: its text, resolved colors, format and quality, logo, watermark, background image, and fonts. A rebuild where nothing changed serves every card from cache; changing any input re-renders only the affected cards. `sarde build --verbose` reports the split, for example `Generated 119 social card(s) (117 from cache)`.
 
 The cache directory is safe to delete at any time to force full regeneration, and there is no eviction. Set `cache: false` to disable caching entirely. The default project `.gitignore` already excludes `.cache/`.
 

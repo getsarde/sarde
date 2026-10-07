@@ -3,6 +3,7 @@ package build
 import (
 	"io/fs"
 	"path/filepath"
+	"slices"
 	"time"
 
 	"github.com/frostybee/kazari"
@@ -55,9 +56,10 @@ type SiteBuilder struct {
 	linkGraph     *links.LinkGraph
 	lastCoverage  links.CoverageSummary
 
-	checkOnly         bool                // when true, Build() returns after link validation
-	checkReportResult *links.ReportResult // stored for Check() to read after Build() returns
-	checkSyntax       bool                // when true, run fenced-block syntax checks during markdown rendering
+	checkOnly         bool                     // when true, Build() returns after link validation
+	checkReportResult *links.ReportResult      // stored for Check() to read after Build() returns
+	checkSyntax       bool                     // when true, run fenced-block syntax checks during markdown rendering
+	onPhase           func(engine.PhaseTiming) // optional; called as each full-build phase finishes
 
 	// Last-build state for incremental rebuild.
 	lastCollections    map[string]*engine.Collection
@@ -112,6 +114,45 @@ func NewSiteBuilder(opts BuildOptions) *SiteBuilder {
 	}
 }
 
+// fullBuildPhases lists, in order, the phase names a full Build() records in
+// BuildResult.PhaseTimings. Check() stops after "Checking links".
+var fullBuildPhases = []string{
+	"Initializing",
+	"Discovering content",
+	"Parsing content",
+	"Assembling site",
+	"Asset preparation",
+	"Rendering markdown",
+	"Checking links",
+	"Bundling assets",
+	"Template setup",
+	"Rendering templates",
+	"Rendering synthetic pages",
+	"Rendering 404 pages",
+	"Minifying HTML",
+	"Writing assets",
+	"Running plugins",
+	"Writing output",
+	"Pruning output",
+}
+
+// FullBuildPhases returns the ordered phase names of a full build, so callers
+// observing progress can name the phase that is about to start.
+func FullBuildPhases() []string {
+	return slices.Clone(fullBuildPhases)
+}
+
+// SetPhaseObserver registers fn to be called, synchronously and in order, as
+// each phase of a full Build() or Check() finishes. Pass nil to remove it.
+func (b *SiteBuilder) SetPhaseObserver(fn func(engine.PhaseTiming)) {
+	b.onPhase = fn
+}
+
+// ContentDir returns the absolute path to the content directory.
+func (b *SiteBuilder) ContentDir() string {
+	return b.resolveContentDir()
+}
+
 // resolveContentDir returns the absolute path to the content directory,
 // respecting the optional Content.Dir override in site config.
 func (b *SiteBuilder) resolveContentDir() string {
@@ -143,7 +184,13 @@ func (b *SiteBuilder) runBuild() (*engine.BuildResult, error) {
 	var timings []engine.PhaseTiming
 	phaseStart := time.Now()
 	recordTiming := func(phase string) {
-		timings = append(timings, engine.PhaseTiming{Phase: phase, Duration: time.Since(phaseStart)})
+		pt := engine.PhaseTiming{Phase: phase, Duration: time.Since(phaseStart)}
+		timings = append(timings, pt)
+		if b.onPhase != nil {
+			b.onPhase(pt)
+		}
+		// Reset after the observer so its own time is not charged to the
+		// next phase.
 		phaseStart = time.Now()
 	}
 
@@ -167,6 +214,7 @@ func (b *SiteBuilder) runBuild() (*engine.BuildResult, error) {
 	if s.checkResult != nil {
 		s.checkResult.Duration = time.Since(start)
 		s.checkResult.PhaseTimings = timings
+		engine.SortWarnings(s.checkResult.Warnings)
 		return s.checkResult, nil
 	}
 	if err := b.phaseRender(s); err != nil {
@@ -178,5 +226,6 @@ func (b *SiteBuilder) runBuild() (*engine.BuildResult, error) {
 	}
 	result.Duration = time.Since(start)
 	result.PhaseTimings = timings
+	engine.SortWarnings(result.Warnings)
 	return result, nil
 }

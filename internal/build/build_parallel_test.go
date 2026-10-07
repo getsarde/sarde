@@ -37,25 +37,14 @@ func TestBuild_ParallelMatchesSerialOutput(t *testing.T) {
 	if serialResult.PageCount != parallelResult.PageCount {
 		t.Fatalf("PageCount mismatch: serial=%d parallel=%d", serialResult.PageCount, parallelResult.PageCount)
 	}
-	for _, phase := range []string{
-		"Discovering content",
-		"Parsing content",
-		"Assembling site",
-		"Asset preparation",
-		"Rendering markdown",
-		"Template setup",
-		"Rendering templates",
-		"Rendering synthetic pages",
-		"Rendering 404 pages",
-		"Minifying HTML",
-		"Writing output",
-		"Writing assets",
-		"Running plugins",
-		"Pruning output",
-	} {
-		if !hasPhase(parallelResult.PhaseTimings, phase) {
-			t.Fatalf("parallel build missing phase timing %q", phase)
-		}
+	// Both modes record exactly the documented phases, in order: progress
+	// output names the next phase from FullBuildPhases.
+	want := strings.Join(FullBuildPhases(), ", ")
+	if got := strings.Join(phaseNames(serialResult.PhaseTimings), ", "); got != want {
+		t.Fatalf("serial phases:\n got %s\nwant %s", got, want)
+	}
+	if got := strings.Join(phaseNames(parallelResult.PhaseTimings), ", "); got != want {
+		t.Fatalf("parallel phases:\n got %s\nwant %s", got, want)
 	}
 
 	enPage := string(parallelFiles["blog/post-01/index.html"])
@@ -174,11 +163,10 @@ func readOutputTree(t *testing.T, root string) map[string][]byte {
 	return files
 }
 
-func hasPhase(timings []engine.PhaseTiming, phase string) bool {
-	for _, timing := range timings {
-		if timing.Phase == phase {
-			return true
-		}
+func phaseNames(timings []engine.PhaseTiming) []string {
+	names := make([]string, len(timings))
+	for i, timing := range timings {
+		names[i] = timing.Phase
 	}
-	return false
+	return names
 }

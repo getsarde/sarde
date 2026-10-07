@@ -173,6 +173,9 @@ func TestContentLint_LineNumbersIncludeFrontmatterOffset(t *testing.T) {
 	if want := "line 7: image missing alt text"; warnings[0].Message != want {
 		t.Errorf("message = %q, want %q", warnings[0].Message, want)
 	}
+	if warnings[0].Line != 7 {
+		t.Errorf("Line = %d, want 7", warnings[0].Line)
+	}
 }
 
 func TestContentLint_FrontmatterRequired(t *testing.T) {

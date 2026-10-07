@@ -11,11 +11,14 @@ Every `sarde build` checks the internal links in your content, and `sarde check-
 
 The checker validates internal links and `#anchor` references to headings. It resolves each link inside its own lane, the language and version of the page that contains it: a link in French v2 docs resolves against French v2 pages. Use the `?lang=` and `?version=` query parameters for links that cross lanes (see [Internal Links](/guides/internal-links/)).
 
-No configuration is needed. The build prints a summary line, followed by the findings grouped by file:
+No configuration is needed. The build prints a summary line that counts the findings by policy, followed by one line per finding with its `path:line:col` location:
 
 ```text
-[links] checked 1 links across 2 lanes: 1 broken targets, 0 broken anchors, 0 broken external, 0 warnings
+[links] checked 12 links across 2 lanes: 1 error
+  ERROR  content/docs/guide.md:7:3  broken target    ./missing.md
 ```
+
+A run without findings prints `no issues` after the lane count. Identical findings in one file appear once, followed by a count such as `(x3)`.
 
 Each finding has one of these types:
 
@@ -29,7 +32,7 @@ Each finding has one of these types:
 | Unverified internal | An extension-less internal link, such as `/docs/nope/`, that did not resolve in its lane | `on_unverified_internal` |
 | Same site | A link written with the site's own absolute URL | `same_site_policy` |
 
-Sarde never guesses what a bare `name.md` means. It reports the link as an ambiguous link, and the finding's `hint` gives the fix: write `./name.md` for a sibling page or `docs/name.md` from the content root. Every finding carries the 1-based `line` and `col` of the link in its source file, visible in the `json` report.
+Sarde never guesses what a bare `name.md` means. It reports the link as an ambiguous link, and the finding's `hint` gives the fix: write `./name.md` for a sibling page or `docs/name.md` from the content root. Every finding carries the 1-based line and column of the link in its source file: the `pretty` report shows them as `path:line:col`, and the `json` report as `line` and `col`.
 
 Image sources are not checked, and static assets such as `/img/logo.png` and the site root `/` are never reported as unverified.
 
@@ -97,7 +100,7 @@ Run link validation without rendering templates or writing output:
 sarde check-links
 ```
 
-→ The command prints the summary line and a list of findings grouped by source file. It exits with code 1 when any finding has the `error` policy. The report goes to stderr in every format.
+→ The command prints the summary line and one line per finding, ordered by source file. It exits with code 1 when any finding has the `error` policy. The report goes to stderr in every format.
 
 | Flag | Default | Description |
 |------|---------|-------------|
@@ -115,7 +118,7 @@ Choose a format with `--report` or `link_validation.report`:
 
 | Format | Description |
 |--------|-------------|
-| `pretty` | Findings grouped by source file, with a policy label on each line. The default. |
+| `pretty` | One line per finding, ordered by source file, with a policy label and a `path:line:col` location. The default. |
 | `json` | A `summary` object with the counts and a `findings` array. Each finding includes `file`, `line`, `col`, `dest`, `type`, and `policy`. |
 | `github-actions` | The plain-text report, plus a `link_validation_failed` value written to `$GITHUB_OUTPUT` and a Markdown table appended to `$GITHUB_STEP_SUMMARY` when those variables are set. It does not print `::error` annotations. |
 

@@ -23,8 +23,8 @@ These flags are inherited by all commands.
 | `--baseURL` | string | `""` | Override the site base URL. |
 | `--drafts`, `-D` | bool | `false` | Include draft content. |
 | `--future` | bool | `false` | Include future-dated content. |
-| `--verbose`, `-v` | bool | `false` | Enable verbose output. |
-| `--quiet`, `-q` | bool | `false` | Suppress non-error output. |
+| `--verbose`, `-v` | bool | `false` | Enable verbose output. `sarde build` adds phase timings, plugin messages, and the slowest pages. See [Build output](#build-output). |
+| `--quiet`, `-q` | bool | `false` | Suppress informational output. `sarde build` still prints warnings and errors. |
 
 ## `build`
 
@@ -40,13 +40,48 @@ sarde build [flags] [project-dir]
 | `--base-path` | string | `""` | Override the URL base path (for subdirectory hosting). |
 | `--content` | string | `""` | Override the content directory path. |
 | `--strict-i18n` | bool | `false` | Warn on missing translation keys per language. |
-| `--format` | string | `pretty` | Output format: `pretty` or `json`. With `json`, the build result (page counts, duration, per-phase timings, warnings) is printed to stdout as a single JSON object and the human-readable summary is suppressed. Failures are also machine-readable. See [JSON error envelope](#json-error-envelope). |
+| `--format` | string | `pretty` | Output format: `pretty` or `json`. With `json`, the build result (page counts, duration, per-phase timings, warnings with their source line and column, link check counts, and the slowest pages) is printed to stdout as a single JSON object and the human-readable summary is suppressed. Failures are also machine-readable. See [JSON error envelope](#json-error-envelope). |
 
 ```
 sarde build
 sarde build --output public --drafts
 sarde build /path/to/project
 ```
+
+### Build output
+
+`sarde build` prints a header, the link check result, a table of page counts, and the list of warnings, then a final line that counts every warning. A build with one link warning and two content warnings prints:
+
+```text
+Building site with sarde v1.4.0 (linux/amd64)
+14:02:11 [links] checked 642 links across 3 lanes: 1 warning
+   WARN  content/docs/guides/setup.md:42:5  broken anchor    ./install.md#prereqs
+
+                    | Total
+-------------------+-------
+  Pages            |  143
+  Paginator pages  |    0
+  Collections      |    2
+  Bundle assets    |    0
+  Public files     |    5
+  Processed images |    0
+  Aliases          |    4
+  Sitemaps         |    1
+
+2 warnings:
+   WARN  content/docs/reference/route-data.md:603  [lint] heading exceeds 60 characters (62)
+   WARN  content/docs/reference/template-api.md  [alert] unclosed shortcode "alert"
+
+Built 143 pages in 1501 ms, 3 warnings (1 in the log above)
+  Output: /path/to/my-site/dist
+```
+
+- Each warning starts with its location, `path:line:col` when the line is known, relative to the current directory. Terminals that link file paths open the file at that line.
+- Identical warnings appear once, followed by a count such as `(x3)`.
+- Some warnings print while the build runs, such as the link check finding in the example or a missing logo file. The final line counts them as `in the log above` instead of repeating them in the list.
+- In an interactive terminal, one line at the bottom shows the phase in progress and disappears when the build ends. When the output goes to a file, a pipe, or a CI log, the build writes no progress line and no cursor-control characters.
+- `--verbose` prints each phase with its duration as the phase finishes, the messages plugins report (such as `Generated sitemap.xml`), and the five slowest pages by render time.
+- `--quiet` prints only warnings and errors. A build without warnings prints nothing.
 
 A build lock prevents concurrent `sarde build` or `sarde dev` processes from writing to the same output directory. The second process exits with `another sarde process (pid N, ...) is already writing to output directory`. See [Troubleshooting](/resources/troubleshooting#another-sarde-process-is-already-writing) if no such process is running.
 

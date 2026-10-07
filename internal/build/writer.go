@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"golang.org/x/sync/errgroup"
 
@@ -21,6 +22,8 @@ type RenderedPage struct {
 	Page    *engine.Page
 	HTML    []byte
 	OutPath string // relative to output dir (e.g., "docs/intro/index.html")
+
+	renderTime time.Duration // template render time, for SlowestPages
 }
 
 // Writer handles the Write phase: outputting HTML, aliases, and static files.

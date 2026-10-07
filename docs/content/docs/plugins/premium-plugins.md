@@ -115,8 +115,8 @@ Editing any field invalidates the signature. Verification checks the slug, the s
 A premium plugin without a valid license is skipped, never fatal. The build completes and reports a warning naming the exact problem and where to buy a license:
 
 ```
-1 warning(s):
-  plugins/grade-sync/plugin.yaml: premium plugin "grade-sync" disabled: no license
+1 warning:
+   WARN  plugins/grade-sync/plugin.yaml  [plugin] premium plugin "grade-sync" disabled: no license
   file found (looked for .sarde/licenses/grade-sync.license and
   ~/.sarde/licenses/grade-sync.license). Install a license with
   'sarde license install' (purchase at https://example.com/buy/grade-sync)

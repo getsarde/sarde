@@ -361,6 +361,7 @@ func (b *SiteBuilder) phaseInitialize(s *buildState) error {
 		}
 		b.loadIconSources()
 	}
+	s.recordTiming("Initializing")
 	return nil
 }
 

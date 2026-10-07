@@ -372,20 +372,78 @@ func TestGenerateReport_PrettyGroupByFile(t *testing.T) {
 		Config:   LinkCheckConfig{OnBroken: "error", ReportFormat: "pretty"},
 	})
 
-	lines := strings.Split(result.Output, "\n")
-	var fileHeaders []string
-	for _, l := range lines {
-		stripped := strings.TrimSpace(l)
-		if stripped != "" && !strings.HasPrefix(stripped, "ERROR") && !strings.HasPrefix(stripped, "WARN") &&
-			!strings.HasPrefix(stripped, "link check") && !strings.HasPrefix(stripped, "checked") {
-			if !strings.HasPrefix(stripped, "[") {
-				fileHeaders = append(fileHeaders, stripped)
-			}
+	// One line per finding, ordered by file: a.md before b.md.
+	var files []string
+	for _, l := range strings.Split(result.Output, "\n") {
+		fields := strings.Fields(l)
+		if len(fields) >= 2 && fields[0] == "ERROR" {
+			files = append(files, fields[1])
 		}
 	}
-	// Files should be sorted: a.md before b.md
-	if len(fileHeaders) >= 2 && fileHeaders[0] > fileHeaders[1] {
-		t.Errorf("expected alphabetical file ordering, got %v", fileHeaders)
+	want := []string{"a.md", "a.md", "b.md"}
+	if strings.Join(files, ",") != strings.Join(want, ",") {
+		t.Errorf("finding files = %v, want %v\n%s", files, want, result.Output)
+	}
+}
+
+func TestGenerateReport_PrettyLocation(t *testing.T) {
+	graph := NewLinkGraph()
+	graph.Record(LinkRef{FromFile: "a.md", RawDest: "./m.md", Line: 3, Col: 7, Status: StatusBrokenTarget})
+	graph.Record(LinkRef{FromFile: "b.md", RawDest: "./n.md", Status: StatusBrokenTarget})
+
+	result := GenerateReport(ReportInput{
+		Graph:    graph,
+		Coverage: CoverageSummary{TotalLinks: 2, TotalLanes: 1},
+		Config:   LinkCheckConfig{OnBroken: "warn", ReportFormat: "pretty"},
+	})
+	if !strings.Contains(result.Output, " a.md:3:7 ") {
+		t.Errorf("expected a path:line:col location:\n%s", result.Output)
+	}
+	if !strings.Contains(result.Output, " b.md ") {
+		t.Errorf("expected a bare path when the line is unknown:\n%s", result.Output)
+	}
+}
+
+func TestPrettySummary(t *testing.T) {
+	tests := []struct {
+		name     string
+		cov      CoverageSummary
+		findings []Finding
+		want     string
+	}{
+		{"clean single lane", CoverageSummary{TotalLinks: 812, TotalLanes: 1}, nil,
+			"checked 812 links across 1 lane: no issues"},
+		{"clean single link", CoverageSummary{TotalLinks: 1, TotalLanes: 3}, nil,
+			"checked 1 link across 3 lanes: no issues"},
+		{"policy split", CoverageSummary{TotalLinks: 9, TotalLanes: 2}, []Finding{
+			{Type: FindingAmbiguousLink, Policy: "error"},
+			{Type: FindingBrokenAnchor, Policy: "warn"},
+			{Type: FindingRelativeLink, Policy: "warn"},
+		}, "checked 9 links across 2 lanes: 1 error, 2 warnings"},
+		{"warnings only", CoverageSummary{TotalLinks: 4, TotalLanes: 1}, []Finding{
+			{Type: FindingBrokenAnchor, Policy: "warn"},
+		}, "checked 4 links across 1 lane: 1 warning"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := prettySummary(tt.cov, tt.findings); got != tt.want {
+				t.Errorf("prettySummary = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCountFindings(t *testing.T) {
+	c := CountFindings([]Finding{
+		{Type: FindingBrokenTarget, Policy: "error"},
+		{Type: FindingAmbiguousLink, Policy: "warn"},
+		{Type: FindingBrokenAnchor, Policy: "warn"},
+		{Type: FindingExternalBroken, Policy: "warn"},
+		{Type: FindingSameSite, Policy: "error"},
+	})
+	want := FindingCounts{BrokenTargets: 2, BrokenAnchors: 1, ExternalBroken: 1, Other: 1, Errors: 2, Warnings: 3}
+	if c != want {
+		t.Errorf("CountFindings = %+v, want %+v", c, want)
 	}
 }
 

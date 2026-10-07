@@ -94,10 +94,13 @@ func LintPages(pages []*engine.Page, lint config.ContentLintSettings) []engine.V
 		}
 
 		for _, issue := range issues {
+			// The "line N:" prefix stays in Message for consumers that do
+			// not read Line yet (Sarde Studio); the CLI strips it.
 			warnings = append(warnings, engine.ValidationWarning{
 				File:    page.FilePath,
 				Field:   "lint",
 				Message: fmt.Sprintf("line %d: %s", issue.Line, issue.Message),
+				Line:    issue.Line,
 			})
 		}
 	}

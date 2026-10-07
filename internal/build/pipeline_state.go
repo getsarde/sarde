@@ -1,6 +1,8 @@
 package build
 
 import (
+	"time"
+
 	"github.com/getsarde/sarde/internal/asset"
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/directive"
@@ -38,15 +40,17 @@ type buildState struct {
 	siteCtx    *engine.SiteContext
 
 	// Phase 4.5 — Assets + Markdown render
-	assetPipeline  *asset.Pipeline
-	pageIndex      *content.PageIndex
+	assetPipeline     *asset.Pipeline
+	pageIndex         *content.PageIndex
 	scProcessor       *shortcode.Processor
 	shortcodesHash    string
 	directiveRegistry *directive.Registry
 	iconRenderKey     string
-	pageCache      *PageCache
-	pendingAnchors []links.PendingAnchorCheck
-	validationData map[string]engine.ValidationEntry
+	pageCache         *PageCache
+	pendingAnchors    []links.PendingAnchorCheck
+	validationData    map[string]engine.ValidationEntry
+	mdDurations       []time.Duration     // per-page markdown render time, indexed like allPages
+	linkSummary       *engine.LinkSummary // nil when link validation is disabled
 
 	// Set by phaseAssets when b.checkOnly is true; Build() returns it directly.
 	checkResult *engine.BuildResult
@@ -57,4 +61,5 @@ type buildState struct {
 	paginatorPages int
 	syntheticPages []*engine.Page
 	taxonomyPages  []*engine.Page
+	slowestPages   []engine.PageTiming
 }

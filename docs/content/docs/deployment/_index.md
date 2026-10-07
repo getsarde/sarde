@@ -32,7 +32,7 @@ sarde build
 → The terminal prints a summary:
 
 ```text
-Built in 320 ms
+Built 9 pages in 320 ms
   Output: /path/to/my-site/dist
 ```
 

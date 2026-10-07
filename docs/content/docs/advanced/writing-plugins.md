@@ -74,8 +74,8 @@ Context is thread-safe and provides:
 - `OutputDir`, `Pages`, `Collections`, `Site`, `Resolver`, `PageIndex`
 - `DevMode`, `Incremental`, `ChangedPages`
 - `WriteFile(relPath, data)` -- write a file under the output directory, thread-safe and tracked for orphan pruning
-- `Log(message)` -- log a message prefixed with the plugin name
-- `AddWarning(w)` -- add a build warning
+- `Log(message)` -- log a message prefixed with the plugin name. `sarde build` shows these messages only with `--verbose`.
+- `AddWarning(w)` -- add a build warning. Use it for problems the site owner needs to fix: warnings are counted and listed on every build.
 
 ## Example: a minimal plugin
 

@@ -185,5 +185,7 @@ func (b *SiteBuilder) phaseWrite(s *buildState) (*engine.BuildResult, error) {
 		AliasCount:      len(s.aliases),
 		SitemapCount:    sitemapCount,
 		LogMessages:     buildLogger.Messages(),
+		Links:           s.linkSummary,
+		SlowestPages:    s.slowestPages,
 	}, nil
 }

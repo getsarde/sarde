@@ -602,3 +602,22 @@ func TestLoadBgImage_CoverAndContain(t *testing.T) {
 		t.Error("missing bg_image should log a warning")
 	}
 }
+
+func TestConfigWarner_ReportsBuildWarning(t *testing.T) {
+	var ws []engine.ValidationWarning
+	ctx := &plugin.BuildDoneContext{}
+	ctx.SetWarnings(&ws)
+
+	configWarner(ctx)("font fonts/x.ttf: not found (cards keep the embedded Inter face)")
+
+	if len(ws) != 1 {
+		t.Fatalf("expected 1 warning, got %d", len(ws))
+	}
+	w := ws[0]
+	if w.File != "sarde.yaml: plugins.config.social_cards" || w.Field != "plugin" || w.Level != "warning" {
+		t.Errorf("unexpected warning shape: %+v", w)
+	}
+	if strings.HasPrefix(w.Message, "social_cards:") {
+		t.Errorf("message should not repeat the plugin name: %q", w.Message)
+	}
+}

@@ -1,8 +1,10 @@
 package engine
 
 import (
+	"cmp"
 	"html/template"
 	"io/fs"
+	"slices"
 	"time"
 )
 
@@ -141,12 +143,39 @@ type BuildResult struct {
 	// Build logging.
 	LogMessages  []BuildLogEntry
 	PhaseTimings []PhaseTiming
+
+	// Links summarizes the internal link check; nil when link validation
+	// is disabled or did not run (incremental rebuilds).
+	Links *LinkSummary
+	// SlowestPages lists the pages with the longest markdown plus template
+	// render time, slowest first (full builds only).
+	SlowestPages []PageTiming
 }
 
 // PhaseTiming records the duration of a single build pipeline phase.
 type PhaseTiming struct {
 	Phase    string
 	Duration time.Duration
+}
+
+// PageTiming records how long a single page took to render.
+type PageTiming struct {
+	Path     string // project-relative source path, or the permalink for generated pages
+	Duration time.Duration
+}
+
+// LinkSummary holds the counts from a build's link check. The type counts
+// (BrokenTargets, BrokenAnchors, ExternalBroken, Other) cover every finding;
+// Errors and Warnings split the same findings by their configured policy.
+type LinkSummary struct {
+	Links          int
+	Lanes          int
+	BrokenTargets  int
+	BrokenAnchors  int
+	ExternalBroken int
+	Other          int
+	Errors         int
+	Warnings       int
 }
 
 // BuildLogEntry is a single log message emitted during the build.
@@ -161,6 +190,22 @@ type ValidationWarning struct {
 	Field   string
 	Message string
 	Level   string
+	Line    int // 1-based source line; 0 when unknown
+	Col     int // 1-based source column; 0 when unknown
+}
+
+// SortWarnings orders warnings by location, then field and message, so build
+// output is stable regardless of which parallel phase produced each warning.
+func SortWarnings(ws []ValidationWarning) {
+	slices.SortStableFunc(ws, func(a, b ValidationWarning) int {
+		return cmp.Or(
+			cmp.Compare(a.File, b.File),
+			cmp.Compare(a.Line, b.Line),
+			cmp.Compare(a.Col, b.Col),
+			cmp.Compare(a.Field, b.Field),
+			cmp.Compare(a.Message, b.Message),
+		)
+	})
 }
 
 // ---------------------------------------------------------------------------

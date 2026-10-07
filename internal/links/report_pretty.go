@@ -7,34 +7,28 @@ import (
 	"github.com/getsarde/sarde/internal/devlog"
 )
 
+// writePrettyReport prints the summary line, then one line per finding
+// (duplicates within a file collapsed to "(xN)"), led by a path:line:col
+// location that terminals can open.
 func writePrettyReport(sb *strings.Builder, findings []Finding, cov CoverageSummary, _ string) {
 	sb.WriteString(devlog.FormatLog("links", prettySummary(cov, findings)))
 	sb.WriteByte('\n')
-	if len(findings) == 0 {
-		return
-	}
-	sb.WriteByte('\n')
 
-	groups := groupByFile(findings)
-	for _, g := range groups {
-		sb.WriteString(devlog.Bold(g.File))
-		sb.WriteByte('\n')
-
-		deduped := deduplicateFindings(g.Findings)
-		for _, d := range deduped {
-			label := policyLabel(d.finding.Policy)
-			typeLabel := d.finding.Type.Label()
-			dest := d.finding.Ref.RawDest
-			if d.finding.Ref.Fragment != "" && !strings.Contains(dest, "#") {
-				dest += "#" + d.finding.Ref.Fragment
+	for _, g := range groupByFile(findings) {
+		for _, d := range deduplicateFindings(g.Findings) {
+			ref := d.finding.Ref
+			dest := ref.RawDest
+			if ref.Fragment != "" && !strings.Contains(dest, "#") {
+				dest += "#" + ref.Fragment
 			}
 
-			line := fmt.Sprintf("  %s  %-16s %s", label, typeLabel, devlog.Dim(dest))
+			line := fmt.Sprintf("  %s  %s  %-16s %s",
+				policyLabel(d.finding.Policy), findingLocation(ref), d.finding.Type.Label(), devlog.Dim(dest))
 			if d.count > 1 {
 				line += " " + devlog.Dim(fmt.Sprintf("(x%d)", d.count))
 			}
 
-			dimStr := formatDim(d.finding.Ref.Dim)
+			dimStr := formatDim(ref.Dim)
 			if dimStr != "" {
 				line += "  " + devlog.Dim(dimStr)
 			}
@@ -45,8 +39,19 @@ func writePrettyReport(sb *strings.Builder, findings []Finding, cov CoverageSumm
 			sb.WriteString(line)
 			sb.WriteByte('\n')
 		}
-		sb.WriteByte('\n')
 	}
+}
+
+// findingLocation renders a ref's source position as path[:line[:col]].
+func findingLocation(ref LinkRef) string {
+	loc := devlog.DisplayPath(ref.FromFile)
+	if ref.Line > 0 {
+		loc += fmt.Sprintf(":%d", ref.Line)
+		if ref.Col > 0 {
+			loc += fmt.Sprintf(":%d", ref.Col)
+		}
+	}
+	return loc
 }
 
 func policyLabel(policy string) string {
@@ -79,25 +84,38 @@ type dedupedFinding struct {
 	count   int
 }
 
+// prettySummary reports the link count and the findings split by policy:
+// "checked 812 links across 1 lane: no issues" or "...: 1 error, 2 warnings".
 func prettySummary(cov CoverageSummary, findings []Finding) string {
-	var brokenTargets, brokenAnchors, externalBroken, warnCount int
-	for _, f := range findings {
-		switch f.Type {
-		case FindingBrokenTarget:
-			brokenTargets++
-		case FindingBrokenAnchor:
-			brokenAnchors++
-		case FindingExternalBroken:
-			externalBroken++
-		default:
-			warnCount++
+	outcome := "no issues"
+	if len(findings) > 0 {
+		c := CountFindings(findings)
+		var parts []string
+		if c.Errors > 0 {
+			parts = append(parts, devlog.Red(plural(c.Errors, "error", "errors")))
 		}
+		if c.Warnings > 0 {
+			parts = append(parts, devlog.Yellow(plural(c.Warnings, "warning", "warnings")))
+		}
+		outcome = strings.Join(parts, ", ")
 	}
-	return fmt.Sprintf("%s %s %s %s %s %d broken targets, %d broken anchors, %d broken external, %d warnings",
+	return fmt.Sprintf("%s %s %s %s %s",
 		devlog.Green("checked"), devlog.Bold(fmt.Sprint(cov.TotalLinks)),
-		devlog.Green("links across"), devlog.Bold(fmt.Sprint(cov.TotalLanes)),
-		devlog.Green("lanes:"),
-		brokenTargets, brokenAnchors, externalBroken, warnCount)
+		devlog.Green(pluralWord(cov.TotalLinks, "link", "links")+" across"),
+		devlog.Bold(fmt.Sprint(cov.TotalLanes)),
+		devlog.Green(pluralWord(cov.TotalLanes, "lane", "lanes")+":")+" "+outcome)
+}
+
+// plural formats a count with the matching noun form: "1 error", "2 errors".
+func plural(n int, one, many string) string {
+	return fmt.Sprintf("%d %s", n, pluralWord(n, one, many))
+}
+
+func pluralWord(n int, one, many string) string {
+	if n == 1 {
+		return one
+	}
+	return many
 }
 
 func deduplicateFindings(findings []Finding) []dedupedFinding {

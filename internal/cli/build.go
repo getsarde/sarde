@@ -5,17 +5,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
-	"time"
 
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/build"
 	"github.com/getsarde/sarde/internal/buildlock"
 	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/outputpath"
 	"github.com/getsarde/sarde/internal/theme"
-	"github.com/getsarde/sarde/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -68,6 +66,23 @@ func runBuildWithFormat(cmd *cobra.Command, args []string, format string) error 
 		return err
 	}
 
+	// Human output: the header comes first so config warnings and build log
+	// lines land below it. warnBase brackets the devlog warnings this run
+	// prints, which the final line counts.
+	quiet, _ := cmd.Flags().GetBool("quiet")
+	verbose, _ := cmd.Flags().GetBool("verbose")
+	warnBase := devlog.WarnCount()
+	var report *buildReporter
+	if format == "json" {
+		devlog.DisableProgress()
+	} else {
+		prevQuiet := devlog.Quiet()
+		devlog.SetQuiet(quiet)
+		defer devlog.SetQuiet(prevQuiet)
+		report = newBuildReporter(os.Stdout, projectDir, verbose, quiet, build.FullBuildPhases())
+		report.header()
+	}
+
 	// Resolve config.
 	cfg, themeCfg, err := resolveAll(cmd, projectDir)
 	if err != nil {
@@ -102,8 +117,14 @@ func runBuildWithFormat(cmd *cobra.Command, args []string, format string) error 
 
 	// Build.
 	builder := newSiteBuilder(projectDir, cfg, themeCfg)
+	if report != nil {
+		report.contentDir = builder.ContentDir()
+		builder.SetPhaseObserver(report.onPhase)
+		devlog.SetProgress("build", "%s...", build.FullBuildPhases()[0])
+	}
 
 	result, err := builder.Build()
+	devlog.ClearProgress()
 	if err != nil {
 		return fmt.Errorf("build failed: %w", err)
 	}
@@ -115,78 +136,13 @@ func runBuildWithFormat(cmd *cobra.Command, args []string, format string) error 
 		return json.NewEncoder(os.Stdout).Encode(result)
 	}
 
-	// Print summary.
-	quiet, _ := cmd.Flags().GetBool("quiet")
-	verbose, _ := cmd.Flags().GetBool("verbose")
-	if !quiet {
-		printBuildSummary(result, verbose, cfg)
-		if len(result.Warnings) > 0 {
-			fmt.Printf("\n  %d warning(s):\n", len(result.Warnings))
-			for _, w := range result.Warnings {
-				fmt.Printf("    %s: %s\n", w.File, w.Message)
-			}
-		}
-	}
+	report.summary(result, cfg, int(devlog.WarnCount()-warnBase))
 
 	// Passive update notice; waits briefly for the lookup started at the top
 	// of the run. Nil-safe when the check was skipped or in JSON mode.
 	updateCheck.finishAndNotify()
 
 	return nil
-}
-
-func printBuildSummary(result *engine.BuildResult, verbose bool, cfg *config.SiteConfig) {
-	fmt.Printf("\nStart building sites ...\n")
-	fmt.Printf("sarde v%s %s/%s\n", version.Version, runtime.GOOS, runtime.GOARCH)
-
-	if verbose {
-		fmt.Println()
-		for _, pt := range result.PhaseTimings {
-			fmt.Printf("[build] %s... done (%s)\n", pt.Phase, pt.Duration.Round(time.Millisecond))
-		}
-	}
-
-	fmt.Println()
-	printStatsTable(result)
-
-	if len(result.LogMessages) > 0 {
-		fmt.Println()
-		for _, msg := range result.LogMessages {
-			fmt.Printf("[%s] %s\n", msg.Source, msg.Message)
-		}
-	}
-
-	fmt.Printf("\nBuilt in %d ms\n", result.Duration.Milliseconds())
-	fmt.Printf("  Output: %s\n", result.OutputDir)
-
-	if verbose {
-		fmt.Printf("  Theme: %s\n", cfg.Theme.Name)
-		fmt.Printf("  Base path: %q\n", cfg.Build.BasePath)
-		fmt.Printf("  Content dir: %s\n", cfg.Content.Dir)
-	}
-}
-
-func printStatsTable(result *engine.BuildResult) {
-	type row struct {
-		label string
-		value int
-	}
-	rows := []row{
-		{"Pages", result.PageCount},
-		{"Paginator pages", result.PaginatorPages},
-		{"Collections", result.Collections},
-		{"Bundle assets", result.BundleAssets},
-		{"Public files", result.PublicFiles},
-		{"Processed images", result.ProcessedImages},
-		{"Aliases", result.AliasCount},
-		{"Sitemaps", result.SitemapCount},
-	}
-
-	fmt.Printf("%19s | Total\n", "")
-	fmt.Printf("-------------------+-------\n")
-	for _, r := range rows {
-		fmt.Printf("  %-17s|%5d\n", r.label, r.value)
-	}
 }
 
 // resolveAll resolves site config and theme config from the project directory.

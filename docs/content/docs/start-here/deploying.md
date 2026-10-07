@@ -18,7 +18,7 @@ sarde build
 → The output ends with:
 
 ```text
-Built in 320 ms
+Built 9 pages in 320 ms
   Output: /path/to/my-site/dist
 ```
 

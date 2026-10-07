@@ -187,11 +187,11 @@ sarde build
 → The output ends with:
 
 ```text
-Built in 320 ms
+Built 9 pages in 320 ms
   Output: /path/to/my-site/dist
 ```
 
-Before those lines, the build prints the link check result, a table of page counts, and one line per plugin. Outside a Git repository, it also prints a `git strategy unavailable` warning. The build still succeeds, and page dates come from file modification times.
+Before those lines, the build prints the link check result and a table of page counts. Outside a Git repository, it also lists a `git strategy unavailable` warning, and the last line reads `Built 9 pages in 320 ms, 1 warning`. The build still succeeds, and page dates come from file modification times.
 
 The `dist/` directory is the complete site as HTML, CSS, and JavaScript. [Deploying](/start-here/deploying/) covers publishing it to GitHub Pages, Netlify, Cloudflare Pages, Vercel, or another host.
 

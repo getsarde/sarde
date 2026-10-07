@@ -9,6 +9,10 @@ import (
 var colorEnabled bool
 
 func init() {
+	// Progress follows the terminal alone: FORCE_COLOR asks for colored
+	// logs, not for \r redraws in a captured stream.
+	progressOK = term.IsTerminal(int(os.Stderr.Fd())) && os.Getenv("TERM") != "dumb"
+
 	if os.Getenv("NO_COLOR") != "" {
 		colorEnabled = false
 		return

@@ -6,6 +6,7 @@ import (
 	htmltemplate "html/template"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/getsarde/sarde/internal/asset"
 	"github.com/getsarde/sarde/internal/config"
@@ -39,10 +40,12 @@ func (b *SiteBuilder) renderPages(pages []*engine.Page, siteCtx *engine.SiteCont
 
 	rendered := make([]RenderedPage, len(pages))
 	err := workers.ParallelFor(pages, parallel, workerCount, func(i int, page *engine.Page) error {
+		start := time.Now()
 		rp, err := b.renderPage(page, siteCtx)
 		if err != nil {
 			return err
 		}
+		rp.renderTime = time.Since(start)
 		rendered[i] = rp
 		return nil
 	})
@@ -427,6 +430,7 @@ func (b *SiteBuilder) phaseRender(s *buildState) error {
 	if err != nil {
 		return err
 	}
+	s.slowestPages = slowestPages(b.projectDir, s.allPages, s.mdDurations, rendered, slowestPagesCount)
 	s.recordTiming("Rendering templates")
 
 	// Synthesize numbered pagination pages, then taxonomy index/term pages.

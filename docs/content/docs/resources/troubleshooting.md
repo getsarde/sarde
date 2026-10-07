@@ -258,7 +258,7 @@ A color value in `theme.overrides` or a plugin config is not a valid hex color.
 
 ## Getting more information
 
-Run `sarde build --verbose` or `sarde dev --verbose` for detailed build output, including timing information for each pipeline phase.
+Run `sarde build --verbose` to print each pipeline phase with its duration as it finishes, the messages plugins report, and the five slowest pages. `sarde dev --verbose` prints per-phase timings on every rebuild. See [Build output](/reference/cli-commands/#build-output) for what each part of the output means.
 
 Run `sarde validate` to check `sarde.yaml` for errors and warnings without building the site.
 
