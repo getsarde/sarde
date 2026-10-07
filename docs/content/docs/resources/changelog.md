@@ -26,6 +26,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ### Fixed
 
+- **Annotation tooltips are no longer cut off inside details and accordion blocks:** both containers clipped everything that extended past their edge, so a tooltip on a term near the edge of a panel was partly hidden. The containers keep their rounded corners and let popovers show in full.
 - **`:::/aside` did not close `:::note`:** the docs said it did; the parser compared the closer against the type name only.
 - **A named closer over an unclosed inner block was swallowed:** `:::/tabs` after an unclosed `:::note` inside the tabs left the tabs block open to the end of the page. It now closes the tabs block and the note.
 - **A nested block on the first line after an opener was invisible to its parent:** the parent's fence tracking never saw that line, so a bare `:::` later in the block could close the wrong fence. Every nested fence is now tracked.
