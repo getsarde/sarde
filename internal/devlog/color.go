@@ -2,11 +2,12 @@ package devlog
 
 import (
 	"os"
+	"sync/atomic"
 
 	"golang.org/x/term"
 )
 
-var colorEnabled bool
+var colorEnabled atomic.Bool
 
 func init() {
 	// Progress follows the terminal alone: FORCE_COLOR asks for colored
@@ -14,18 +15,22 @@ func init() {
 	progressOK = term.IsTerminal(int(os.Stderr.Fd())) && os.Getenv("TERM") != "dumb"
 
 	if os.Getenv("NO_COLOR") != "" {
-		colorEnabled = false
 		return
 	}
 	if os.Getenv("FORCE_COLOR") != "" {
-		colorEnabled = true
+		colorEnabled.Store(true)
 		return
 	}
-	colorEnabled = term.IsTerminal(int(os.Stderr.Fd()))
+	colorEnabled.Store(term.IsTerminal(int(os.Stderr.Fd())))
 }
 
+// SetColor turns ANSI colors on or off, overriding the NO_COLOR, FORCE_COLOR
+// and terminal detection done at startup. Tests that compare rendered output
+// call SetColor(false) so they pass when run from a color terminal.
+func SetColor(on bool) { colorEnabled.Store(on) }
+
 func ansi(code, s string) string {
-	if !colorEnabled {
+	if !colorEnabled.Load() {
 		return s
 	}
 	return "\033[" + code + "m" + s + "\033[0m"
