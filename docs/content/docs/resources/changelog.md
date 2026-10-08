@@ -9,6 +9,19 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ## Unreleased
 
+## 1.5.1 - 2026-10-07
+
+### Added
+
+- **`rootURL` template function:** resolves a path against the site's base path without the page's language prefix, for files that exist once at the site root, such as `/sitemap.xml` or theme fonts. See [Template Functions](/reference/template-functions/#urls).
+
+### Fixed
+
+- **Translated pages linked a missing sitemap and font:** a page in a non-default language linked `/<lang>/sitemap.xml` and preloaded `/<lang>/assets/fonts/InterVariable.woff2`. Neither file exists, so the browser fetched two 404s on every translated page. Both links now point at the site root.
+- **`Inter Tight` no longer preloads Inter:** the theme preloaded the bundled Inter font whenever a font stack contained the text "Inter", so a stack such as `'Inter Tight', sans-serif` or `Interstate` downloaded a font the page never used. Font names now match in full.
+- **The sitemap switches agree:** with `sitemap` in `plugins.disabled`, the build summary still counted a sitemap and every page still linked `sitemap.xml`. `build.sitemap: false` had no effect, although the docs say it turns the sitemap off. Either switch now removes the file, the `<link rel="sitemap">` tag, the robots.txt `Sitemap:` line, and the count.
+- **Link check failures name the cause once:** a build stopped by link errors reported `build failed: build failed: link validation errors found`. The prefix now appears once.
+
 ## 1.5.0 - 2026-10-07
 
 ### Added
@@ -24,6 +37,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 - **Font size scale:** `theme.font_scale` (or the new `text-scale` token) multiplies the whole `text-xs` to `text-5xl` scale, so body text and headings grow or shrink together. Accepts `0.5` to `2`; a value outside that range is a config error.
 - **Web fonts:** `theme.web_fonts: google` or `bunny` loads the theme's fonts that Sarde does not bundle from Google Fonts or Bunny Fonts, so the `clean` and `academic` presets, and any Google Fonts family set in `font_family`, `font_heading`, or `font_mono`, look the same for every visitor. Sarde requests only families in the Google Fonts library, in one stylesheet after a preconnect. Off by default; the service receives each visitor's IP address. See [Web fonts](/guides/themes-and-styling/#web-fonts).
 - **Plugin requirements in the catalog:** `sarde plugins --format json` gives each plugin a `requires` list of plugin ids it needs enabled. `social_cards` requires `seo` and `search_highlighter` requires `search`. The field is omitted when empty, and the catalog version is unchanged.
+- **`sarde schema <collection>`** prints a collection's resolved frontmatter schema: every catalog field that applies to its layout and inferred type, merged with the collection's custom `frontmatter_schema`, each labeled `catalog` or `custom`. `--format json` prints the same data for tools such as Sarde Studio.
 - **Icon lists in timelines and details:** a list inside a timeline entry or a details panel whose items each open with an `:icon[...]` uses the icons as markers instead of bullets. See [Timeline](/extensions/timeline/#icon-lists).
 - **Plugin translation capability**: `BeforeRenderContext.T(lang, key)` resolves UI strings through the site's i18n layers for any plugin's per-page hook.
 
