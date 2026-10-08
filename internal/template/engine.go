@@ -351,13 +351,7 @@ func (e *Engine) funcMapForLang(lang string) htmltemplate.FuncMap {
 		return localizedDateFormat(t, format, lang)
 	}
 	fm["relURL"] = func(relPath string) string {
-		if strings.Contains(relPath, "://") {
-			return relPath
-		}
-		if e.urlResolver != nil {
-			return e.urlResolver.URL(relPath, lang, "")
-		}
-		return relPath
+		return relURLFor(e.urlResolver, relPath, lang)
 	}
 	fm["absURL"] = func(relPath string) string {
 		if e.urlResolver != nil {
