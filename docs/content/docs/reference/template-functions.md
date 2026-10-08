@@ -87,7 +87,8 @@ All math functions accept any numeric type. Results stay as `int` when both oper
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `absURL` | `absURL(path string) string` | Resolves a path to an absolute URL using the site's base URL |
-| `relURL` | `relURL(path string) string` | Resolves a path to a relative URL. Passes through paths already containing `://`. |
+| `relURL` | `relURL(path string) string` | Resolves a path to a relative URL. On a translated page, adds the page's language prefix. Passes through paths already containing `://`. |
+| `rootURL` | `rootURL(path string) string` | Resolves a path against the site's base path, never adding a language prefix. Use it for files that exist once at the site root, such as `/sitemap.xml` or theme fonts. Passes through paths already containing `://`. |
 | `editURL` | `editURL(base, relPath string) string` | Joins a base "edit this page" URL with a relative content path |
 
 ## Assets
@@ -221,4 +222,5 @@ Shortcode templates run during parallel Markdown rendering and receive a reduced
 | Plugin functions | Absent | Plugin-registered functions are not merged into the shortcode map |
 | `t`, `tWithData` | Degraded | Return the key unchanged (i18n string table unavailable) |
 | `absURL`, `relURL` | Degraded | Available but not language-aware (URL resolver unavailable) |
+| `rootURL` | Degraded | Returns the path without the base path (URL resolver unavailable) |
 | `themeStyles` | Degraded | Emits inline `<style>` only, not external `<link>` tags |

@@ -356,6 +356,40 @@ func TestRelURL_WithBasePath(t *testing.T) {
 	}
 }
 
+// On a translated page relURL adds the language segment, but site-root files
+// (the sitemap, theme fonts) exist once, so rootURL must leave it out.
+func TestRootURL_TranslatedPageKeepsSiteRoot(t *testing.T) {
+	e := &Engine{
+		resolver: &engine.ThemeResolver{},
+		site:     testSite(),
+		urlResolver: &engine.URLResolver{
+			BasePath:    "/docs/",
+			BaseURL:     "https://example.com",
+			I18nEnabled: true,
+			DefaultLang: "en",
+			Languages:   map[string]bool{"en": true, "fr": true},
+		},
+	}
+	e.currentLang = "en"
+	e.funcMap = e.buildFuncMap(nil, nil)
+	fm := e.funcMapForLang("fr")
+
+	rel := fm["relURL"].(func(string) string)
+	root := fm["rootURL"].(func(string) string)
+	if got := rel("/sitemap.xml"); got != "/docs/fr/sitemap.xml" {
+		t.Errorf("relURL on fr page: got %q, want %q", got, "/docs/fr/sitemap.xml")
+	}
+	for in, want := range map[string]string{
+		"/sitemap.xml":                      "/docs/sitemap.xml",
+		"/assets/fonts/InterVariable.woff2": "/docs/assets/fonts/InterVariable.woff2",
+		"https://cdn.example.com/a.woff2":   "https://cdn.example.com/a.woff2",
+	} {
+		if got := root(in); got != want {
+			t.Errorf("rootURL(%q) on fr page = %q, want %q", in, got, want)
+		}
+	}
+}
+
 // ── Cross-collection tests ──
 
 func TestRecentEntries(t *testing.T) {
@@ -634,6 +668,15 @@ func TestFontUsed(t *testing.T) {
 	}
 	if !fontUsed(rd, "inter") {
 		t.Error("fontUsed should match case-insensitively")
+	}
+
+	// Whole family names only: a family that merely starts with "Inter"
+	// must not trigger the bundled Inter preload.
+	for _, stack := range []string{"'Inter Tight', system-ui, sans-serif", "Interstate, sans-serif"} {
+		rd.Theme.Tokens["font-sans"] = stack
+		if fontUsed(rd, "Inter") {
+			t.Errorf("fontUsed(%q, Inter) = true, want false", stack)
+		}
 	}
 
 	rd.Theme.Tokens["font-sans"] = "system-ui, sans-serif"

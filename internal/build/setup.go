@@ -280,10 +280,15 @@ func warnPluginConfigKeys(slug string, userCfg map[string]any) []engine.Validati
 // a site-level switch turns off. `search.enabled: false` is the documented
 // way to remove site search, so it must unregister the search plugin (no
 // index, no runtime script) in addition to hiding the header button.
+// The sitemap plugin is unregistered whenever SiteConfig.SitemapActive says
+// the sitemap is off, which covers `build.sitemap: false`.
 func effectivePluginDisabled(cfg *config.SiteConfig) []string {
 	disabled := cfg.Plugins.Disabled
 	if !config.BoolVal(cfg.Search.Enabled, true) {
 		disabled = append(append([]string(nil), disabled...), "search")
+	}
+	if !cfg.SitemapActive() {
+		disabled = append(append([]string(nil), disabled...), "sitemap")
 	}
 	return disabled
 }

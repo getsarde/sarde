@@ -59,6 +59,25 @@ func TestPrimaryFamily(t *testing.T) {
 	}
 }
 
+func TestStackHas(t *testing.T) {
+	for _, tc := range []struct {
+		stack, family string
+		want          bool
+	}{
+		{"'Inter', system-ui, sans-serif", "Inter", true},
+		{"'Inter', system-ui, sans-serif", "inter", true},
+		{`"Inter Tight", sans-serif`, "Inter", false},
+		{"Interstate, sans-serif", "Inter", false},
+		{"system-ui, 'Inter'", "Inter", true},
+		{"'Comma, Inside', serif", "Comma, Inside", true},
+		{"", "Inter", false},
+	} {
+		if got := StackHas(tc.stack, tc.family); got != tc.want {
+			t.Errorf("StackHas(%q, %q) = %v, want %v", tc.stack, tc.family, got, tc.want)
+		}
+	}
+}
+
 func TestIsGeneric(t *testing.T) {
 	for _, g := range []string{"serif", "SANS-SERIF", "system-ui", "-apple-system", "BlinkMacSystemFont", "ui-monospace"} {
 		if !IsGeneric(g) {

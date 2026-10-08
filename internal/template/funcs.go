@@ -9,6 +9,7 @@ import (
 	"github.com/getsarde/sarde/internal/component"
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/webfonts"
 )
 
 // buildFuncMap creates the template.FuncMap with all template functions.
@@ -132,10 +133,9 @@ func (e *Engine) buildFuncMap(
 			if !ok || rd == nil || rd.Theme == nil {
 				return false
 			}
-			needle := strings.ToLower(family)
 			for _, tokens := range []map[string]string{rd.Theme.Tokens, rd.Theme.DarkTokens} {
 				for _, key := range []string{"font-sans", "font-mono", "font-heading"} {
-					if strings.Contains(strings.ToLower(tokens[key]), needle) {
+					if webfonts.StackHas(tokens[key], family) {
 						return true
 					}
 				}

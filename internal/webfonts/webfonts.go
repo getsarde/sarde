@@ -78,6 +78,17 @@ func PrimaryFamily(stack string) string {
 	return ""
 }
 
+// StackHas reports whether a CSS font stack names family, compared whole and
+// case-insensitively: `'Inter Tight', sans-serif` does not have "Inter".
+func StackHas(stack, family string) bool {
+	for _, part := range splitStack(stack) {
+		if strings.EqualFold(part, family) {
+			return true
+		}
+	}
+	return false
+}
+
 // splitStack splits a font stack on the commas outside quotes, trimming each
 // family and stripping its quotes.
 func splitStack(stack string) []string {

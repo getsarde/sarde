@@ -29,7 +29,6 @@ func TestBuild_Plugins_SitemapAndRobots(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Build failed: %v", err)
 	}
-	_ = result
 
 	distDir := filepath.Join(projDir, "dist")
 
@@ -62,6 +61,12 @@ func TestBuild_Plugins_SitemapAndRobots(t *testing.T) {
 	}
 	if !strings.Contains(robots, "Sitemap: https://example.com/sitemap.xml") {
 		t.Error("expected Sitemap line in robots.txt")
+	}
+	if result.SitemapCount != 1 {
+		t.Errorf("SitemapCount = %d, want 1", result.SitemapCount)
+	}
+	if home := readFixture(t, distDir, "index.html"); !strings.Contains(home, `<link rel="sitemap" type="application/xml" href="/sitemap.xml">`) {
+		t.Error("expected a root-relative <link rel=\"sitemap\"> on the home page")
 	}
 }
 
@@ -180,5 +185,47 @@ func TestBuild_NoPlugins(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(distDir, "robots.txt")); !os.IsNotExist(err) {
 		t.Error("robots.txt should not exist without robots plugin")
+	}
+}
+
+// The sitemap file, its count in the build result and the <link rel="sitemap">
+// tag must agree whichever switch turns the sitemap off.
+func TestBuild_SitemapOff_CountAndLinkAgree(t *testing.T) {
+	for name, setup := range map[string]func(*config.SiteConfig){
+		"plugins.disabled":     func(c *config.SiteConfig) { c.Plugins.Disabled = []string{"sitemap"} },
+		"build.sitemap: false": func(c *config.SiteConfig) { c.Build.Sitemap = config.BoolPtr(false) },
+	} {
+		t.Run(name, func(t *testing.T) {
+			projDir := createFixtureSite(t)
+			cfg := config.Defaults()
+			cfg.Site.URL = "https://example.com"
+			cfg.Plugins.Enabled = []string{"sitemap", "robots"}
+			setup(cfg)
+
+			builder := NewSiteBuilder(BuildOptions{
+				ProjectDir:  projDir,
+				Config:      cfg,
+				ThemeConfig: buildThemeConfig(),
+				EmbeddedFS:  embedded.ThemeFS(),
+			})
+			result, err := builder.Build()
+			if err != nil {
+				t.Fatalf("Build failed: %v", err)
+			}
+
+			distDir := filepath.Join(projDir, "dist")
+			if _, err := os.Stat(filepath.Join(distDir, "sitemap.xml")); !os.IsNotExist(err) {
+				t.Error("sitemap.xml was written")
+			}
+			if result.SitemapCount != 0 {
+				t.Errorf("SitemapCount = %d, want 0", result.SitemapCount)
+			}
+			if home := readFixture(t, distDir, "index.html"); strings.Contains(home, `rel="sitemap"`) {
+				t.Error(`home page links a sitemap that was not built`)
+			}
+			if robots := readFixture(t, distDir, "robots.txt"); strings.Contains(robots, "Sitemap:") {
+				t.Errorf("robots.txt references a sitemap that was not built:\n%s", robots)
+			}
+		})
 	}
 }

@@ -109,7 +109,7 @@ func (b *SiteBuilder) phaseAssemble(s *buildState) error {
 		SiteID:           computeSiteID(b.config.Site.Title, b.config.Build.BasePath),
 		Language:         b.config.Site.Language,
 		Generator:        "Sarde v" + version.Version,
-		SitemapEnabled:   b.config.Build.Sitemap == nil || *b.config.Build.Sitemap,
+		SitemapEnabled:   b.config.SitemapActive(),
 		Config:           b.config,
 		Collections:      s.collections,
 		Taxonomies:       taxonomies,

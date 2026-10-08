@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/getsarde/sarde/internal/config"
@@ -39,11 +38,7 @@ func robotsBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 	return nil
 }
 
-// sitemapEnabled reports whether the sitemap plugin runs in this build:
-// listed in plugins.enabled and not in plugins.disabled.
+// sitemapEnabled reports whether the sitemap plugin runs in this build.
 func sitemapEnabled(cfg *config.SiteConfig) bool {
-	if cfg == nil {
-		return true
-	}
-	return slices.Contains(cfg.Plugins.Enabled, "sitemap") && !slices.Contains(cfg.Plugins.Disabled, "sitemap")
+	return cfg == nil || cfg.SitemapActive()
 }
