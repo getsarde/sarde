@@ -13,6 +13,8 @@ testsite/
 # go -C benchmarks/generators/sarde run . -root <abs-path>/benchmarks/fixtures/sarde
 benchmarks/fixtures/
 *-output.md
+# Documentation page, not a scratch output file.
+!docs/content/docs/reference/configuration/build-and-output.md
 .coderoo-cache/
 .cache/
 dist1
