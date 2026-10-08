@@ -143,8 +143,9 @@ func detectPackageManager(exePath string) packageManager {
 			return pmHomebrew
 		}
 	}
-	// Windows paths are case-insensitive; normalize before matching.
-	lower := strings.ToLower(filepath.ToSlash(exePath))
+	// Windows paths are case-insensitive, and filepath.ToSlash leaves
+	// backslashes alone on non-Windows hosts, so normalize both by hand.
+	lower := strings.ToLower(strings.ReplaceAll(exePath, `\`, "/"))
 	if strings.Contains(lower, "/scoop/apps/") {
 		return pmScoop
 	}

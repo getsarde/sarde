@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"path/filepath"
 	"strings"
 	"syscall"
 	"testing"
@@ -41,12 +40,9 @@ func TestDetectPackageManager(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// detectPackageManager uses filepath.ToSlash internally, which is
-			// a no-op on Linux (backslash is a valid filename char, not a
-			// separator). Normalize the test input so Windows paths work on
-			// all platforms.
-			p := filepath.ToSlash(tt.path)
-			if got := detectPackageManager(p); got != tt.want {
+			// Windows paths are passed as written: the function normalizes
+			// backslashes itself, so the result is the same on every host.
+			if got := detectPackageManager(tt.path); got != tt.want {
 				t.Errorf("detectPackageManager(%q) = %v, want %v", tt.path, got, tt.want)
 			}
 		})
