@@ -3,7 +3,6 @@ package build
 import (
 	"fmt"
 	"path/filepath"
-	"slices"
 
 	"github.com/getsarde/sarde/internal/asset"
 	"github.com/getsarde/sarde/internal/config"
@@ -156,7 +155,7 @@ func (b *SiteBuilder) phaseWrite(s *buildState) (*engine.BuildResult, error) {
 		bundleAssets += len(p.Resources)
 	}
 	sitemapCount := 0
-	if slices.Contains(b.config.Plugins.Enabled, "sitemap") {
+	if b.config.SitemapActive() {
 		sitemapCount = 1
 	}
 

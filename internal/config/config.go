@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 
 	"github.com/getsarde/sarde/internal/devlog"
@@ -74,6 +75,16 @@ type SiteConfig struct {
 	// SidebarFile is the parsed root-level sidebar.yaml (nil when absent).
 	// Populated programmatically by Resolve, never from sarde.yaml content.
 	SidebarFile SidebarFile `yaml:"-"`
+}
+
+// SitemapActive reports whether the build writes sitemap.xml: the sitemap
+// plugin is in plugins.enabled and not in plugins.disabled, and build.sitemap
+// is not false. The build count, the <link rel="sitemap"> tag and the
+// robots.txt Sitemap line all read this, so they cannot disagree.
+func (c *SiteConfig) SitemapActive() bool {
+	return BoolVal(c.Build.Sitemap, true) &&
+		slices.Contains(c.Plugins.Enabled, "sitemap") &&
+		!slices.Contains(c.Plugins.Disabled, "sitemap")
 }
 
 // ---------------------------------------------------------------------------
