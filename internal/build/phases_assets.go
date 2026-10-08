@@ -2,6 +2,7 @@ package build
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	htmltemplate "html/template"
 	"io/fs"
@@ -504,7 +505,8 @@ func (b *SiteBuilder) validateLinks(s *buildState) (bool, error) {
 			Warnings:       counts.Warnings,
 		}
 		if reportResult.HasErrors {
-			return false, fmt.Errorf("build failed: link validation errors found")
+			// No "build failed:" prefix: the CLI adds it when it reports the error.
+			return false, errors.New("link validation errors found")
 		}
 	}
 
