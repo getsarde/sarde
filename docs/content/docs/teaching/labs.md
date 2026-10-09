@@ -85,8 +85,8 @@ Landing pages and lab pages use different layouts, which is what makes the colle
 
 | Page | Layout | Renders as |
 |------|--------|------------|
-| Collection root (`labs/_index.md`) | `default` | Card grid of courses or labs |
-| Course index (three-level only) | `default` | Card grid of labs |
+| Collection root (`labs/_index.md`) | `default` | Title, description, and body, then a card grid of courses or labs |
+| Course index (three-level only) | `default` | Title, description, and body, then a card grid of labs |
 | Lab index (`_index.md`) | `labs` | Lab intro with sidebar and progress |
 | Step page | `labs` | Step with sidebar and progress |
 
@@ -94,7 +94,7 @@ Set `layout` in a page's frontmatter to override any of these.
 
 Tags in a lab page's frontmatter appear under the title and link to their tag pages, as on docs pages.
 
-Cards on a landing page show a count taken from what the directory holds: `2 labs` for a course, `1 steps` for a lab. Add `image` to a lab's `_index.md` for a thumbnail, and `description` for the card text.
+Each card on a landing page shows a tile with the index page's `sidebar.icon`, or the initials of its title when there is no icon, followed by the title and `description`. A `sidebar.badge` on the index page appears on the card, so a course can carry the same level badge in `labs/` as in its docs collection. Cards also show a count taken from what the directory holds: `2 labs` for a course, `4 steps` for a lab. The step count includes the Overview page, so it matches the `Step 1 of 4` progress bar inside the lab, and a single-page lab reads `1 step`. The wording comes from the `labs.lab_count` and `labs.step_count` [translation strings](/guides/internationalization/#translation-strings). Add `image` to a lab's `_index.md` for a thumbnail above the card body.
 
 ## Per-lab sidebar
 

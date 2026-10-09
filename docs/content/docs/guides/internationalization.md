@@ -131,13 +131,17 @@ fallback:
   notice: "Cette page n'est pas encore disponible en {{ .Lang }}."
 ```
 
-Values can use Go template syntax. Three keys receive variables:
+Values can use Go template syntax. Five keys receive variables:
 
 | Key | Variable |
 |-----|----------|
 | `nav.reading_time` | `.Minutes`, the reading time in minutes |
 | `nav.toggle_section` | `.Label`, the sidebar group label |
 | `fallback.notice` | `.Lang`, the page's language code, such as `fr` |
+| `labs.lab_count` | `.Count`, the number of labs on a course card |
+| `labs.step_count` | `.Count`, the number of steps on a lab card, Overview included |
+
+The two count keys choose a plural form with an `if`, for example `{{ if eq .Count 1 }}1 lab{{ else }}{{ .Count }} labs{{ end }}`.
 
 ### Built-in string keys
 
@@ -150,7 +154,7 @@ Any key can be overridden. These are the groups:
 | `theme` | `selection`, `light`, `system`, `dark` |
 | `taxonomy` | `post`, `posts`, `tags`, `authors` |
 | `blog` | `featured`, `page`, `of` |
-| `labs` | `step`, `of`, `overview`, `learning_objectives` |
+| `labs` | `step`, `of`, `overview`, `learning_objectives`, `lab_count`, `step_count` |
 | `home` | `all_posts`, `get_started`, `hero_highlights` |
 | `error` | `not_found`, `not_found_desc`, `return_home`, `not_found_illustrated`, `not_found_illustrated_desc` |
 | `version` | `unmaintained_notice`, `unreleased_notice`, `unmaintained_link`, `unreleased_link` |

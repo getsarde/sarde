@@ -200,7 +200,7 @@ The template's `sarde.yaml` also lists every default plugin under `plugins.enabl
 
 ## Labs
 
-`content/labs/` groups the labs by course, with one directory per course and one directory per lab inside it. Lab numbers restart in each course. `web-fundamentals/hello-world/` is a single-page lab: it has only an `_index.md`. [Labs](/teaching/labs/) covers the structure, step order, progress bars, and learning objectives.
+`content/labs/` groups the labs by course, with one directory per course and one directory per lab inside it. Lab numbers restart in each course. `web-fundamentals/hello-world/` is a single-page lab: it has only an `_index.md`. The `_index.md` of each course directory carries the same `sidebar.badge` as the course itself, so the cards on `/labs/` match the ones on `/courses/`. [Labs](/teaching/labs/) covers the structure, step order, progress bars, and learning objectives.
 
 ## Homepage and navigation
 

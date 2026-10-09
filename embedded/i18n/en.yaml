@@ -43,6 +43,8 @@ labs:
   of: "of"
   overview: "Overview"
   learning_objectives: "Learning Objectives"
+  lab_count: "{{ if eq .Count 1 }}1 lab{{ else }}{{ .Count }} labs{{ end }}"
+  step_count: "{{ if eq .Count 1 }}1 step{{ else }}{{ .Count }} steps{{ end }}"
 
 home:
   all_posts: "View all posts"

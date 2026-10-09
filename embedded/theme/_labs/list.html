@@ -1,5 +1,8 @@
 {{ define "content" }}
-{{ if .Page.Content }}{{ .Page.Content }}{{ end }}
+<article class="sarde-markdown-content sarde-labs-landing"{{ if and .Page .Page.IsFallback }} dir="ltr"{{ end }}>
+  {{ component "PageTitle" . }}
+  {{ if .Page.Content }}{{ .Page.Content }}{{ end }}
+</article>
 {{ if or .Section.Sections .Section.Pages }}
 <div class="sarde-card-grid sarde-labs-card-grid">
   {{ range .Section.Sections }}
@@ -11,31 +14,39 @@
     </div>
     {{ end }}
     <div class="sarde-labs-card__body">
-      <h2 class="sarde-doc-card__title">{{ .Title | markdownify }}</h2>
+      <div class="sarde-labs-card__header">
+        <span class="sarde-tab-tile" aria-hidden="true">{{ if and .IndexPage .IndexPage.Sidebar.Icon }}{{ icon .IndexPage.Sidebar.Icon "sarde-tab-icon" }}{{ else }}{{ initials .Title }}{{ end }}</span>
+        <h2 class="sarde-doc-card__title">{{ .Title | markdownify }}</h2>
+      </div>
       {{ if and .IndexPage .IndexPage.Description }}
       <p class="sarde-doc-card__desc">{{ .IndexPage.Description | markdownify }}</p>
       {{ end }}
+      {{ with .IndexPage }}{{ if not .Sidebar.Badge.IsEmpty }}<span class="sarde-badge {{ .Sidebar.Badge.CSSClass }}">{{ .Sidebar.Badge.Text }}</span>{{ end }}{{ end }}
       {{ if .Sections }}
-      <span class="sarde-doc-card__count">{{ len .Sections }} labs</span>
-      {{ else if .Pages }}
-      <span class="sarde-doc-card__count">{{ len .Pages }} steps</span>
+      <span class="sarde-doc-card__count">{{ tWithData "labs.lab_count" (dict "Count" (len .Sections)) }}</span>
+      {{ else }}
+      <span class="sarde-doc-card__count">{{ tWithData "labs.step_count" (dict "Count" (add (len .Pages) 1)) }}</span>
       {{ end }}
     </div>
   </a>
   {{ end }}
   {{ end }}
   {{ range .Section.Pages }}
-  <a href="{{ .Permalink }}" class="sarde-doc-card sarde-labs-card">
+  <a href="{{ relURL .Permalink }}" class="sarde-doc-card sarde-labs-card">
     {{ if .Image }}
     <div class="sarde-labs-card__image">
       <img src="{{ relURL .Image }}" alt="" loading="lazy">
     </div>
     {{ end }}
     <div class="sarde-labs-card__body">
-      <h2 class="sarde-doc-card__title">{{ .Title | markdownify }}</h2>
+      <div class="sarde-labs-card__header">
+        <span class="sarde-tab-tile" aria-hidden="true">{{ if .Sidebar.Icon }}{{ icon .Sidebar.Icon "sarde-tab-icon" }}{{ else }}{{ initials .Title }}{{ end }}</span>
+        <h2 class="sarde-doc-card__title">{{ .Title | markdownify }}</h2>
+      </div>
       {{ if .Description }}
       <p class="sarde-doc-card__desc">{{ .Description | markdownify }}</p>
       {{ end }}
+      {{ if not .Sidebar.Badge.IsEmpty }}<span class="sarde-badge {{ .Sidebar.Badge.CSSClass }}">{{ .Sidebar.Badge.Text }}</span>{{ end }}
     </div>
   </a>
   {{ end }}
