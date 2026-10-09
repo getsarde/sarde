@@ -70,6 +70,7 @@ my-college/
       web-fundamentals/        # the labs for one course
       python-essentials/
   public/
+    favicon.ico                # placeholder icon, the Sarde logo
     images/                    # homepage hero images
 ```
 
@@ -225,7 +226,8 @@ To turn one off, remove it from `plugins.enabled`.
 3. Replace the sample labs in `content/labs/`.
 4. Update `content/announcements.md`, each course's `announcements.md` and `schedule.md`, and the banners under `plugins.config.announcements` in `sarde.yaml`.
 5. Update the course links in `content/_index.md`.
-6. Search the `content/` directory for the word "Replace". Most sample pages open with a sentence that starts with it, which marks text you have not replaced yet.
+6. Replace `public/favicon.ico`, the Sarde icon, with your own. Sarde picks up a `favicon.svg`, `favicon.ico`, or `favicon.png` in `public/` without any configuration.
+7. Search the `content/` directory for the word "Replace". Most sample pages open with a sentence that starts with it, which marks text you have not replaced yet.
 
 The sample lessons and labs also show Markdown extensions and code-block options in context. [Using Extensions](/extensions/using-extensions/) and [Code Blocks](/guides/code-blocks/) document each one.
 
