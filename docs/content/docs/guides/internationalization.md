@@ -168,6 +168,8 @@ Any key can be overridden. These are the groups:
 
 To find the keys a language still lacks, set `i18n.strict: true` and build. Each missing key appears as a warning naming the `i18n/<lang>.yaml` file.
 
+To see every key with its value in each layer, run `sarde i18n strings .`. See [`i18n strings`](/reference/cli-commands/#i18n-strings-project-dir).
+
 ## Fallback pages
 
 When a page exists in the default language but has no translation, Sarde generates a fallback page at the translated URL. The fallback shows the default-language content with a notice banner.

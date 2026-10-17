@@ -21,6 +21,16 @@ func resolvePageVersion(page *engine.Page) string {
 	return engine.ResolvePageVersion(page)
 }
 
+// assetURLResolver returns a function that prefixes a root-relative asset
+// URL with the base path only (no language or version, assets are shared).
+// It returns nil when no resolver is configured, which leaves URLs unchanged.
+func (b *SiteBuilder) assetURLResolver() func(string) string {
+	if b.urlResolver == nil {
+		return nil
+	}
+	return func(u string) string { return b.urlResolver.URL(u, "", "") }
+}
+
 // resolveRouteAssets applies the URL resolver to asset URLs, breadcrumbs,
 // global nav, and pagination URLs in RouteData at render time. CDN URLs
 // (with a scheme) are left untouched.

@@ -306,7 +306,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 					}
 				}
 
-				lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor())
+				lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor(), b.assetURLResolver())
 				renderer.SetImageLookup(lookup)
 				renderer.SetImageLazyLoading(markdown.LazyLoadingEnabled(assetPipeline.ImageProcessor()))
 				renderer.SetLinkContext(page)

@@ -62,7 +62,11 @@ my-college/
         css-layout.md          # lesson
         assignments/
           _index.md
-          build-a-page.md
+          build-a-page/          # a page bundle: the page and its files
+            index.md
+            rubric.pdf
+            starter.zip
+            screenshot.png
           style-a-card.md
       python-essentials/       # a second course with the same shape
     labs/
@@ -71,6 +75,8 @@ my-college/
       python-essentials/
   public/
     favicon.ico                # placeholder icon, the Sarde logo
+    files/
+      syllabus.pdf             # site-wide file, linked as /files/syllabus.pdf
     images/                    # homepage hero images
 ```
 
@@ -106,6 +112,8 @@ The overview ends with a **Course info** card for the instructor's contact detai
 :::card[Course info](icon="user")
 - **Instructor:** Your Name, [you@example.edu](mailto:you@example.edu)
 - **Office hours:** Mondays 12:00 to 13:30 and Fridays 12:00 to 13:00, online
+- **Syllabus:** [download the PDF](/files/syllabus.pdf)
+- **Plan:** see the [schedule](/courses/web-fundamentals/schedule/) and the latest [announcements](/courses/web-fundamentals/announcements/)
 :::
 ```
 
@@ -121,6 +129,25 @@ The course sidebar lists **Overview** first, then the course's pages in `sidebar
 | 5 | The `assignments/` group |
 
 Give each new lesson a `sidebar.order` to place it. `assignments/` is a sidebar group with its own `_index.md`, which sets the **Assignment** badge on the group. The assignments inside it are ordered the same way.
+
+### Files and images
+
+The template shows the two places a file can live, which [Images and Assets](/guides/images-and-assets/#which-to-use) describes in full.
+
+**Next to the page.** The Build a Page assignment is a directory, `assignments/build-a-page/`, whose `index.md` sits beside `rubric.pdf`, `starter.zip`, and `screenshot.png`. That makes it a [page bundle](/guides/images-and-assets/#page-bundles): Sarde copies the three files with the page, and the screenshot gets responsive WebP variants and a blurred placeholder. The page links them by bare file name:
+
+```markdown
+Grading follows the [rubric](rubric.pdf).
+
+:::link-button[Download the starter files](href="starter.zip" icon="download" variant="secondary")
+:::
+
+![Example of a finished page](screenshot.png)
+```
+
+Write `rubric.pdf`, not `./rubric.pdf`. A path that starts with `./` is resolved as a link to a page and fails the build. The URL of the page does not change when it becomes a bundle, so links to `/courses/web-fundamentals/assignments/build-a-page/` keep working. Only `index.md` forms a bundle; files next to an `_index.md` are not copied.
+
+**In `public/`.** `public/files/syllabus.pdf` is served at `/files/syllabus.pdf` and linked from the Course info card and the schedule. Use `public/` for files that several pages share. Images placed there are served as they are, without responsive variants.
 
 ### The course catalog
 
@@ -227,7 +254,8 @@ To turn one off, remove it from `plugins.enabled`.
 4. Update `content/announcements.md`, each course's `announcements.md` and `schedule.md`, and the banners under `plugins.config.announcements` in `sarde.yaml`.
 5. Update the course links in `content/_index.md`.
 6. Replace `public/favicon.ico`, the Sarde icon, with your own. Sarde picks up a `favicon.svg`, `favicon.ico`, or `favicon.png` in `public/` without any configuration.
-7. Search the `content/` directory for the word "Replace". Most sample pages open with a sentence that starts with it, which marks text you have not replaced yet.
+7. Replace the placeholder files: `rubric.pdf`, `starter.zip`, and `screenshot.png` in `content/courses/web-fundamentals/assignments/build-a-page/`, and `public/files/syllabus.pdf`.
+8. Search the `content/` directory for the word "Replace". Most sample pages open with a sentence that starts with it, which marks text you have not replaced yet.
 
 The sample lessons and labs also show Markdown extensions and code-block options in context. [Using Extensions](/extensions/using-extensions/) and [Code Blocks](/guides/code-blocks/) document each one.
 

@@ -205,6 +205,58 @@ func TestBuild_AssetPipeline_EndToEnd(t *testing.T) {
 	}
 }
 
+// TestBuild_AssetPipeline_BasePath: a page-bundle image on a site under a
+// base path links its responsive variants and fallback src under that
+// prefix. Variant URLs are produced root-relative by the image processor
+// and the <img> src is the resource's prefix-free RelPermalink, so both
+// must be resolved when the page is rendered.
+func TestBuild_AssetPipeline_BasePath(t *testing.T) {
+	projDir := createAssetFixtureSite(t)
+	cfg := config.Defaults()
+	cfg.Build.BasePath = "/demo/"
+	themeCfg := buildThemeConfig()
+
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: themeCfg,
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(projDir, "dist")
+	postHTML := readFixture(t, distDir, "blog/my-post/index.html")
+
+	if !strings.Contains(postHTML, `srcset="/demo/assets/images/`) {
+		t.Error("expected srcset variants under the base path")
+	}
+	if !strings.Contains(postHTML, `src="/demo/assets/images/`) {
+		t.Error("expected the <img> fallback under the base path")
+	}
+	if strings.Contains(postHTML, `="/assets/images/`) {
+		t.Error("found an image URL without the base path")
+	}
+
+	// Dev mode has no variants; the plain src must still carry the prefix.
+	devDir := createAssetFixtureSite(t)
+	devBuilder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  devDir,
+		Config:      cfg,
+		ThemeConfig: themeCfg,
+		EmbeddedFS:  embedded.ThemeFS(),
+		DevMode:     true,
+	})
+	if _, err := devBuilder.Build(); err != nil {
+		t.Fatalf("dev build failed: %v", err)
+	}
+	devHTML := readFixture(t, filepath.Join(devDir, "dist"), "blog/my-post/index.html")
+	if !strings.Contains(devHTML, `src="/demo/blog/my-post/hero.png"`) {
+		t.Error("expected the dev-mode <img> src under the base path")
+	}
+}
+
 func TestBuild_AssetPipeline_DevMode(t *testing.T) {
 	projDir := createAssetFixtureSite(t)
 	cfg := config.Defaults()

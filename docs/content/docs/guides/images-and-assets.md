@@ -32,6 +32,8 @@ Reference bundle assets by filename, relative to the page:
 [Download the report](report.pdf)
 ```
 
+Write the bare file name, as above. A path that starts with `./` is resolved as a link to a page, finds none, and fails the build.
+
 Raster images referenced this way go through the responsive image pipeline, which produces several widths, converts them to the configured formats, and adds a blurred placeholder. SVGs are not processed and render as a plain `<img>`. Sarde also copies every bundle file, including the original image, to the output next to the page's `index.html`. A Markdown image that matches no file in the page's bundle renders as a plain `<img>` with the path as written.
 
 ### The `public/` directory

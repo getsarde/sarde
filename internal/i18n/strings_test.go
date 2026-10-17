@@ -143,3 +143,67 @@ func TestFlatten(t *testing.T) {
 		}
 	}
 }
+
+func writeStringFile(t *testing.T, dir, name, body string) {
+	t.Helper()
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, name), []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestLoadLayers_KeepsEachLayerApart(t *testing.T) {
+	fsys := fstest.MapFS{
+		"en.yaml": &fstest.MapFile{Data: []byte("nav:\n  next: \"Next\"\n  toc: \"On this page\"\n")},
+	}
+	projectDir := t.TempDir()
+	writeStringFile(t, filepath.Join(projectDir, "themes", "acme", "i18n"), "fr.yaml", "nav:\n  next: Suivant\n")
+	writeStringFile(t, filepath.Join(projectDir, "i18n"), "en.yml", "nav:\n  next: Forward\nedit: Edit\n")
+
+	layers, problems := LoadLayers(fsys, projectDir, "acme")
+	if len(problems) != 0 {
+		t.Fatalf("problems: %v", problems)
+	}
+	if len(layers) != 3 {
+		t.Fatalf("got %d layers, want 3", len(layers))
+	}
+	want := []struct{ source, dir, lang, key, value string }{
+		{SourceBuiltin, "", "en", "nav.toc", "On this page"},
+		{SourceTheme, "themes/acme/i18n", "fr", "nav.next", "Suivant"},
+		{SourceProject, "i18n", "en", "nav.next", "Forward"},
+	}
+	for i, w := range want {
+		l := layers[i]
+		if l.Source != w.source || l.Dir != w.dir {
+			t.Errorf("layer %d: got %s %q, want %s %q", i, l.Source, l.Dir, w.source, w.dir)
+		}
+		if got := l.Strings[w.lang][w.key]; got != w.value {
+			t.Errorf("layer %d %s %s: got %q, want %q", i, w.lang, w.key, got, w.value)
+		}
+	}
+	if _, ok := layers[2].Strings["en"]["nav.toc"]; ok {
+		t.Error("the project layer must not hold the built-in nav.toc")
+	}
+}
+
+func TestLoadLayers_ReportsABadFileAndKeepsTheRest(t *testing.T) {
+	projectDir := t.TempDir()
+	dir := filepath.Join(projectDir, "i18n")
+	writeStringFile(t, dir, "de.yaml", "nav: [unclosed\n")
+	writeStringFile(t, dir, "fr.yaml", "nav:\n  next: Suivant\n")
+
+	layers, problems := LoadLayers(nil, projectDir, "")
+	if len(problems) != 1 || problems[0].File != "i18n/de.yaml" || problems[0].Source != SourceProject {
+		t.Fatalf("problems: %+v", problems)
+	}
+	if got := layers[0].Strings["fr"]["nav.next"]; got != "Suivant" {
+		t.Errorf("fr nav.next: got %q", got)
+	}
+
+	// The build still refuses the bad file.
+	if _, err := LoadStrings(nil, projectDir, "", "en"); err == nil {
+		t.Error("LoadStrings: want an error for the bad file")
+	}
+}

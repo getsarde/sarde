@@ -609,7 +609,7 @@ Downloaded sets are marked with `*` in the `DL` column.
 
 Manage internationalization: languages and translation files.
 
-The `i18n add-language`, `i18n remove-language`, `i18n scaffold`, and `i18n status` commands output a single JSON line to stdout instead of human-readable text, for integration with the desktop app.
+The `i18n add-language`, `i18n remove-language`, `i18n scaffold`, `i18n status`, and `i18n strings` commands output a single JSON line to stdout instead of human-readable text, for integration with the desktop app.
 
 ### `i18n add-language <project-dir> <code>`
 
@@ -662,6 +662,32 @@ sarde i18n status .
 ```
 
 Reports, per collection and language, the total number of Markdown files in the default language versus the number present in each other language.
+
+### `i18n strings <project-dir>`
+
+List the translation strings of every layer, without merging them.
+
+```
+sarde i18n strings .
+```
+
+Prints the default language, the configured languages in weight order, and one entry per layer in load order: the built-in English strings, the active theme's `i18n/` folder, and the site's `i18n/` folder. Each layer maps a language code to its keys, in dot notation, and their values. Later layers override earlier ones per key.
+
+```json
+{
+  "ok": true,
+  "defaultLanguage": "en",
+  "languages": ["en", "fr"],
+  "layers": [
+    { "source": "builtin", "strings": { "en": { "nav.toc": "On this page" } } },
+    { "source": "theme", "dir": "themes/default/i18n", "strings": {} },
+    { "source": "project", "dir": "i18n", "strings": { "fr": { "nav.toc": "Sur cette page" } } }
+  ],
+  "problems": []
+}
+```
+
+A file that cannot be parsed is listed under `problems` with its `source`, `file`, and `message`, and its strings are left out. `sarde build` fails on the same file.
 
 ## `doc-version`
 

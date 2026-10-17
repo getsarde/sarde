@@ -108,9 +108,16 @@ func LazyLoadingEnabled(processor *asset.ImageProcessor) bool {
 }
 
 // ImageLookupForPage creates a lookup function for a specific page's resources.
-func ImageLookupForPage(page *engine.Page, processor *asset.ImageProcessor) imagerender.ImageLookupFunc {
+// resolve maps a root-relative URL to its final form, typically prefixing the
+// site's base path; nil leaves URLs unchanged. It is applied to the fallback
+// src and to every responsive variant, since the processor emits both
+// root-relative (variant URLs live under /assets/images/).
+func ImageLookupForPage(page *engine.Page, processor *asset.ImageProcessor, resolve func(string) string) imagerender.ImageLookupFunc {
 	if processor == nil {
 		return nil
+	}
+	if resolve == nil {
+		resolve = func(u string) string { return u }
 	}
 	loading := "lazy"
 	if processor.Config.LazyLoading != nil && !*processor.Config.LazyLoading {
@@ -133,7 +140,7 @@ func ImageLookupForPage(page *engine.Page, processor *asset.ImageProcessor) imag
 		// In dev mode, return simple image without variants.
 		if processor.DevMode {
 			return &asset.ProcessedImage{
-				Src:     res.RelPermalink,
+				Src:     resolve(res.RelPermalink),
 				Width:   res.Width,
 				Height:  res.Height,
 				Loading: loading,
@@ -146,19 +153,26 @@ func ImageLookupForPage(page *engine.Page, processor *asset.ImageProcessor) imag
 		if err != nil {
 			// Fallback to unprocessed.
 			return &asset.ProcessedImage{
-				Src:     res.RelPermalink,
+				Src:     resolve(res.RelPermalink),
 				Width:   res.Width,
 				Height:  res.Height,
 				Loading: loading,
 			}
 		}
 
+		// Copy before rewriting: the processor caches the variant slice.
+		resolved := make([]asset.ImageVariant, len(variants))
+		for i, v := range variants {
+			v.URL = resolve(v.URL)
+			resolved[i] = v
+		}
+
 		return &asset.ProcessedImage{
-			Src:      res.RelPermalink,
+			Src:      resolve(res.RelPermalink),
 			Width:    res.Width,
 			Height:   res.Height,
 			LQIP:     lqip,
-			Variants: variants,
+			Variants: resolved,
 			Loading:  loading,
 		}
 	}

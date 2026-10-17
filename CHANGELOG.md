@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`sarde i18n strings`:** lists the translation strings of every layer (built-in, theme, and project) as JSON, with the layer each value comes from and any file that fails to parse. See [`i18n strings`](/reference/cli-commands/#i18n-strings-project-dir).
+
 ### Fixed
 
+- **Bundle images honor `build.base_path`:** the responsive variants and the fallback `<img>` of a page-bundle image were written as root-absolute URLs, so a site served under a base path requested them from the wrong place. Both now carry the base path, in production builds and in `sarde dev`. See [Images and Assets](/guides/images-and-assets/#page-bundles).
 - **Labs landing pages show their title:** the labs collection root and, in a course > lab > step layout, each course page now render the page title, description, and body above the card grid, so the page has a heading like the course catalog. Each card shows a tile with the index page's `sidebar.icon` or the initials of its title, and its `sidebar.badge`. Counts are pluralized ("1 lab", not "1 labs") and come from the new `labs.lab_count` and `labs.step_count` translation strings. A lab's step count includes the Overview, so it matches the progress bar inside the lab, and a single-page lab shows "1 step" instead of no count. Lab cards also honor `build.base_path`. See [Labs](/teaching/labs/#layouts).
 
 ## [1.5.1] - 2026-10-07

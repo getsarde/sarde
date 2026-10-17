@@ -11,8 +11,11 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"github.com/getsarde/sarde/embedded"
+	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/i18n"
 	"github.com/spf13/cobra"
 )
 
@@ -61,6 +64,15 @@ var i18nStatusCmd = &cobra.Command{
 	RunE:          runI18nStatus,
 }
 
+var i18nStringsCmd = &cobra.Command{
+	Use:           "strings <project-dir>",
+	Short:         "List the translation strings of every layer (built-in, theme, project)",
+	Args:          cobra.ExactArgs(1),
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	RunE:          runI18nStrings,
+}
+
 func init() {
 	i18nAddLanguageCmd.Flags().String("name", "", "Display name for the language")
 	i18nAddLanguageCmd.Flags().Int("weight", 0, "Sort weight (lower sorts first)")
@@ -72,6 +84,7 @@ func init() {
 	i18nCmd.AddCommand(i18nRemoveLanguageCmd)
 	i18nCmd.AddCommand(i18nScaffoldCmd)
 	i18nCmd.AddCommand(i18nStatusCmd)
+	i18nCmd.AddCommand(i18nStringsCmd)
 	rootCmd.AddCommand(i18nCmd)
 }
 
@@ -305,6 +318,40 @@ func runI18nStatus(cmd *cobra.Command, args []string) error {
 	}
 
 	printJSONResult(map[string]any{"ok": true, "status": status})
+	return nil
+}
+
+// runI18nStrings prints the string layers unmerged, in load order, so an
+// editor can show where each value comes from. A file that fails to parse is
+// listed under "problems" instead of failing the command.
+func runI18nStrings(cmd *cobra.Command, args []string) error {
+	projectDir := projectDirFromArgs(args)
+
+	cfg, err := config.Resolve(config.ResolveOptions{
+		ConfigPath: filepath.Join(projectDir, consts.FileSiteConfig),
+		EnvPrefix:  "SARDE",
+	})
+	if err != nil {
+		return printJSONError(err)
+	}
+
+	layers, problems := i18n.LoadLayers(embedded.I18nFS(), projectDir, cfg.Theme.Name)
+	if problems == nil {
+		problems = []i18n.FileProblem{}
+	}
+	languages := cfg.I18n.LanguageCodes()
+	defaultLang := cfg.I18n.GetDefaultLanguage()
+	if len(languages) == 0 {
+		languages = []string{defaultLang}
+	}
+
+	printJSONResult(map[string]any{
+		"ok":              true,
+		"defaultLanguage": defaultLang,
+		"languages":       languages,
+		"layers":          layers,
+		"problems":        problems,
+	})
 	return nil
 }
 
