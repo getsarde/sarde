@@ -140,6 +140,7 @@ func (b *SiteBuilder) phaseAssemble(s *buildState) error {
 	urlResolver := b.urlResolver
 	b.resolutionKey = urlResolver.CacheKey() + "|escape=" + b.config.LinkValidation.SiteRootEscapePrefix
 	resolvePermalinks(urlResolver, allPages)
+	addLegacyDateAliases(urlResolver, allPages, b.config.Redirects)
 
 	// Resolve per-language taxonomy permalinks through the URLResolver.
 	if taxByLang != nil {

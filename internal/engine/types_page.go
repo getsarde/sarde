@@ -88,6 +88,11 @@ type PageTaxonomy struct {
 	Categories []string
 	Aliases    []string
 	Extra      map[string][]string
+	// LegacyRelPermalink is the URL Sarde 1.5 gave a date-prefixed file
+	// (content.LegacyDatePermalink), language- and version-free like
+	// RelPermalink; "" when it is the current URL. The build adds it to
+	// Aliases so the old URL redirects.
+	LegacyRelPermalink string
 }
 
 // PageSidebar holds sidebar presentation fields.

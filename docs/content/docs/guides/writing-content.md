@@ -113,6 +113,8 @@ content/blog/
   2026-04-02-01-intro.md      # date: 2026-04-02, order: 1, served at /blog/intro/
 ```
 
+Sarde 1.5 and earlier kept part of the date in the URL: `2026-03-15-hello-world.md` was served at `/blog/03-15-hello-world/`. The build redirects that old URL to the current one, the same way as a page's [`aliases`](/plugins/redirects/#page-aliases), so published links keep working. A page, an alias or a [global redirect](/plugins/redirects/#global-redirects) at the old path takes priority. Collections with a `permalink` pattern get no redirect, because their URLs never contained the date prefix.
+
 A frontmatter `date` takes priority over the filename. Two posts in one folder whose names differ only by the date, such as `2025-01-10-recap.md` and `2026-01-10-recap.md`, resolve to the same URL. The build warns about the collision and keeps the first; rename one, or give the collection a `permalink` pattern with `:year`.
 
 A filename made only of characters outside the Latin alphabet, such as `日本語.md`, has no slug to strip down to. Its slug and URL use the first 8 hex characters of a hash of the name instead: `/blog/a1b2c3d4/`. For a readable URL, name the file in Latin characters, or set `slug` in frontmatter and give the collection a `permalink` pattern with `:slug`.

@@ -252,3 +252,27 @@ func TestComputePermalink_DatePrefix(t *testing.T) {
 		}
 	}
 }
+
+// The 1.5 URL of a date-prefixed file, which the build redirects from: 1.5
+// stripped only a numeric prefix, so the year went and the month stayed.
+func TestLegacyDatePermalink(t *testing.T) {
+	tests := []struct {
+		rel  string
+		want string
+	}{
+		{"blog/2026-03-15-hello.md", "/blog/03-15-hello/"},
+		{"2026-03-15-hello.md", "/03-15-hello/"},
+		{"blog/2026-01-15-01-intro.md", "/blog/01-15-01-intro/"},
+		{"blog/hello.md", ""},
+		{"blog/01-intro.md", ""},
+		// Not a real date: the URL did not change.
+		{"blog/2026-13-45-x.md", ""},
+		{"blog/2026-03-15-hello/index.md", ""},
+		{"blog/_index.md", ""},
+	}
+	for _, tt := range tests {
+		if got := LegacyDatePermalink(tt.rel); got != tt.want {
+			t.Errorf("LegacyDatePermalink(%q) = %q, want %q", tt.rel, got, tt.want)
+		}
+	}
+}

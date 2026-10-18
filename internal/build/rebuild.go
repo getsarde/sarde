@@ -354,6 +354,7 @@ func (b *SiteBuilder) patchPages(s *incrementalRebuildState) error {
 		if b.urlResolver != nil {
 			e.newPage.Permalink = b.urlResolver.URL(
 				e.newPage.RelPermalink, e.newPage.Lang, resolvePageVersion(e.newPage))
+			carryLegacyDateAlias(b.urlResolver, e.newPage, e.old)
 		}
 
 		patchedAllPages[idx] = e.newPage

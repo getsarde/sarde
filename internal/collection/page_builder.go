@@ -234,8 +234,12 @@ func buildPage(
 		}
 		if relPathForPermalink != "" {
 			page.RelPermalink = content.ComputePermalinkFromRelPath(relPathForPermalink)
+			page.LegacyRelPermalink = content.LegacyDatePermalink(relPathForPermalink)
 		} else {
 			page.RelPermalink = content.ComputePermalink(contentDir, cf.FilePath)
+			if rel, err := filepath.Rel(contentDir, cf.FilePath); err == nil {
+				page.LegacyRelPermalink = content.LegacyDatePermalink(filepath.ToSlash(rel))
+			}
 		}
 	}
 	page.Permalink = page.RelPermalink

@@ -200,6 +200,7 @@ Internal, not for templates: `ContentDigest` and `FrontmatterDigest` are hashes 
 | `.Page.Categories` | `[]string` | Categories |
 | `.Page.Aliases` | `[]string` | Redirect aliases |
 | `.Page.Extra` | `map[string][]string` | Custom taxonomies keyed by name, for example `authors` |
+| `.Page.LegacyRelPermalink` | `string` | URL Sarde 1.5 gave a [date-prefixed file](/guides/writing-content/#date-filename-prefixes), such as `/blog/03-15-hello/`, without a language or version prefix. Empty when it matches the current URL. The build redirects it to the page |
 
 ### `PageSidebar` (`.Page.Sidebar`)
 

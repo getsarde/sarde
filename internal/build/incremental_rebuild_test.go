@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -761,4 +762,38 @@ func TestReusedBuilder_AnnouncementUsesLatestStrings(t *testing.T) {
 		t.Fatalf("second Build failed: %v", err)
 	}
 	assertFixtureFileContains(t, distDir, "about/index.html", "Term starts Tuesday")
+}
+
+// A dated post's 1.5 URL redirect survives a dev body edit and a dev full
+// build's prune.
+func TestContentRebuild_KeepsLegacyDateAlias(t *testing.T) {
+	dir := createIncrementalSite(t)
+	writeFixture(t, dir, "content/blog/2026-03-15-hello.md", "---\ntitle: Hello\n---\n# Hello\nBody.\n")
+	builder := newIncrementalBuilder(dir, config.Defaults())
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+	distDir := filepath.Join(dir, "dist")
+	assertFixtureFileExists(t, distDir, "blog/03-15-hello/index.html")
+
+	postPath := filepath.Join(dir, "content", "blog", "2026-03-15-hello.md")
+	writeFixture(t, dir, "content/blog/2026-03-15-hello.md", "---\ntitle: Hello\n---\n# Hello\nEdited body.\n")
+	if _, err := builder.ContentRebuild([]string{postPath}); err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+	found := false
+	for _, p := range builder.lastAllPages {
+		if p.FilePath == postPath && slices.Contains(p.Aliases, "/blog/03-15-hello/") {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("the rebuilt page lost its 1.5 URL alias")
+	}
+	assertFixtureFileExists(t, distDir, "blog/03-15-hello/index.html")
+
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("second Build failed: %v", err)
+	}
+	assertFixtureFileExists(t, distDir, "blog/03-15-hello/index.html")
 }

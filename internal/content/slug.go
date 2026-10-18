@@ -82,6 +82,22 @@ func FileSlug(nameNoExt string) (slug string, order int) {
 	return slug, order
 }
 
+// legacyFileSlug is the slug Sarde 1.5 gave a file name: only a numeric
+// prefix was stripped, so "2026-03-15-hello" gave "03-15-hello". Used by
+// LegacyDatePermalink.
+func legacyFileSlug(nameNoExt string) string {
+	slug := Slugify(nameNoExt)
+	if _, clean, found := ExtractNumericPrefix(nameNoExt); found {
+		if s := Slugify(clean); s != "" {
+			slug = s
+		}
+	}
+	if slug == "" {
+		slug = SlugOrHash(nameNoExt)
+	}
+	return slug
+}
+
 // ExtractNumericPrefix parses a leading numeric prefix from a filename (without extension).
 // "01-intro" returns (1, "intro", true). "intro" returns (0, "intro", false).
 func ExtractNumericPrefix(name string) (weight int, slug string, found bool) {

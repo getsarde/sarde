@@ -9,12 +9,13 @@ Generates redirect files from page aliases and global redirect mappings. Outputs
 
 ## Redirect sources
 
-Redirects come from two places, merged at build time:
+Redirects come from three places, merged at build time:
 
 1. **Global redirects** in `sarde.yaml` (the `redirects` map)
 2. **Page aliases** in frontmatter (the `aliases` field)
+3. **Old URLs of date-prefixed posts:** the URL Sarde 1.5 gave a file such as `2026-03-15-hello.md` (`/blog/03-15-hello/`). See [Date filename prefixes](/guides/writing-content/#date-filename-prefixes).
 
-Page aliases override global redirects when both define the same source path.
+Page aliases override global redirects when both define the same source path. An old date-prefix URL is added only when no page, alias or global redirect already uses that path.
 
 ## Global redirects
 

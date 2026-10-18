@@ -50,11 +50,44 @@ func ComputePermalinkFromRelPath(relPath string) string {
 		return "/" + dir + "/"
 	default:
 		slug, _ := FileSlug(strings.TrimSuffix(base, path.Ext(base)))
-		if dir == "" {
-			return "/" + slug + "/"
-		}
-		return "/" + dir + "/" + slug + "/"
+		return fileURL(dir, slug)
 	}
+}
+
+// LegacyDatePermalink returns the URL Sarde 1.5 gave a date-prefixed file,
+// such as "/blog/03-15-hello/" for "blog/2026-03-15-hello.md" (1.5 read the
+// year as a numeric order prefix and kept the rest of the date). It returns
+// "" for any other file, and when the 1.5 URL equals the current one. relPath
+// is forward-slash and relative to the content root, like
+// ComputePermalinkFromRelPath takes. The build redirects the 1.5 URL to the
+// current one; drop this with those redirects in the next major release.
+func LegacyDatePermalink(relPath string) string {
+	base := path.Base(relPath)
+	if base == "_index.md" || base == "index.md" {
+		return ""
+	}
+	name := strings.TrimSuffix(base, path.Ext(base))
+	if _, _, ok := SplitDatePrefix(name); !ok {
+		return ""
+	}
+	legacy := legacyFileSlug(name)
+	if slug, _ := FileSlug(name); legacy == slug {
+		return ""
+	}
+	dir := path.Dir(relPath)
+	if dir == "." {
+		dir = ""
+	}
+	return fileURL(dir, legacy)
+}
+
+// fileURL is the URL of a regular file with the given slug in dir (a
+// forward-slash path relative to the content root, "" for the root).
+func fileURL(dir, slug string) string {
+	if dir == "" {
+		return "/" + slug + "/"
+	}
+	return "/" + dir + "/" + slug + "/"
 }
 
 // PermalinkVars holds the values available for pattern interpolation.
@@ -126,9 +159,6 @@ func ComputePermalink(contentDir, filePath string) string {
 	default:
 		// Regular page or standalone
 		slug, _ := FileSlug(strings.TrimSuffix(base, filepath.Ext(base)))
-		if dir == "" {
-			return "/" + slug + "/"
-		}
-		return "/" + dir + "/" + slug + "/"
+		return fileURL(dir, slug)
 	}
 }
