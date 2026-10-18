@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-18
+
 ### Added
 
 - **`sarde i18n strings`:** lists the translation strings of every layer (built-in, theme, and project) as JSON, with the layer each value comes from and any file that fails to parse. See [`i18n strings`](/reference/cli-commands/#i18n-strings-project-dir).
@@ -301,7 +303,8 @@ The first stable release. Everything below has accumulated since the 0.1.x previ
 - WebSocket hub uses ping/pong keepalive (30-second interval) to detect stale connections.
 - Unchanged headings are reused during incremental rebuilds, and link validation is scoped to changed pages only.
 
-[Unreleased]: https://github.com/getsarde/sarde/compare/v1.5.1...HEAD
+[Unreleased]: https://github.com/getsarde/sarde/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/getsarde/sarde/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/getsarde/sarde/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/getsarde/sarde/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/frostybee/sarde/compare/v1.3.0...v1.4.0

@@ -9,6 +9,8 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ## Unreleased
 
+## 1.6.0 - 2026-10-18
+
 ### Added
 
 - **`sarde i18n strings`:** lists the translation strings of every layer (built-in, theme, and project) as JSON, with the layer each value comes from and any file that fails to parse. See [`i18n strings`](/reference/cli-commands/#i18n-strings-project-dir).
