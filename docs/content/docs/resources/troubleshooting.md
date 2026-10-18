@@ -140,7 +140,7 @@ already writing to output directory "dist"; stop it first, or delete "dist/.sard
 if you are sure it is not running
 ```
 
-Sarde takes a lock on the output directory so two builds cannot interleave writes into the same `dist/`. Both `sarde build` and `sarde dev` take it.
+Sarde takes a lock on the output directory so two builds cannot interleave writes into the same `dist/`. `sarde build`, `sarde dev` and `sarde deploy` take it, so a deploy cannot upload a `dist/` the dev server is rewriting.
 
 **Fix:** Stop the process named in the message. It is usually a `sarde dev` left running in another terminal or an editor's integrated preview.
 

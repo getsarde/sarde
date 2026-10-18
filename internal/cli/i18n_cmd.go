@@ -181,6 +181,78 @@ func runI18nRemoveLanguage(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+// i18nSite is what the scaffold and status commands read from a project: the
+// resolved config, its content directory, and the language codes.
+type i18nSite struct {
+	contentDir  string
+	defaultLang string
+	languages   map[string]bool // every configured code, the default included
+}
+
+func loadI18nSite(projectDir string) (*i18nSite, error) {
+	cfg, err := config.Resolve(config.ResolveOptions{
+		ConfigPath: filepath.Join(projectDir, consts.FileSiteConfig),
+		EnvPrefix:  "SARDE",
+	})
+	if err != nil {
+		return nil, err
+	}
+	contentDir := filepath.Join(projectDir, consts.DirContent)
+	if dir := cfg.Content.Dir; dir != "" {
+		if filepath.IsAbs(dir) {
+			contentDir = dir
+		} else {
+			contentDir = filepath.Join(projectDir, dir)
+		}
+	}
+	site := &i18nSite{
+		contentDir:  contentDir,
+		defaultLang: cfg.I18n.GetDefaultLanguage(),
+		languages:   map[string]bool{},
+	}
+	for _, code := range cfg.I18n.LanguageCodes() {
+		site.languages[code] = true
+	}
+	site.languages[site.defaultLang] = true
+	return site, nil
+}
+
+// collections lists the default language's collections the way the build
+// sees them: every content folder that is not ignored and is not another
+// language's folder. A folder named after the default language is not a
+// language folder to the build, which reads it as a collection, so it is
+// listed (and the caller warns).
+func (s *i18nSite) collections() ([]string, error) {
+	entries, err := os.ReadDir(s.contentDir)
+	if err != nil {
+		return nil, fmt.Errorf("reading content directory: %w", err)
+	}
+	var cols []string
+	for _, e := range entries {
+		name := e.Name()
+		if !e.IsDir() || content.IsIgnoredDirName(name) {
+			continue
+		}
+		if s.languages[name] && name != s.defaultLang {
+			continue
+		}
+		cols = append(cols, name)
+	}
+	sort.Strings(cols)
+	return cols, nil
+}
+
+// defaultLangFolderWarning is printed to stderr when content/<default>/
+// exists: the default language has no folder, so the build reads it as a
+// collection named after the language and never pairs its pages.
+func (s *i18nSite) defaultLangFolderWarning(cmd *cobra.Command) {
+	if fi, err := os.Stat(filepath.Join(s.contentDir, s.defaultLang)); err == nil && fi.IsDir() {
+		fmt.Fprintf(cmd.ErrOrStderr(),
+			"warning: the default language has no folder; content/%s/ is read as a collection named %q. Move its pages up to content/ to pair them with their translations.\n",
+			s.defaultLang, s.defaultLang)
+	}
+}
+
 func runI18nScaffold(cmd *cobra.Command, args []string) error {
 	projectDir := projectDirFromArgs(args)
 	code := strings.ToLower(strings.TrimSpace(args[1]))
@@ -188,43 +260,29 @@ func runI18nScaffold(cmd *cobra.Command, args []string) error {
 		return printJSONError(fmt.Errorf("invalid language code %q", code))
 	}
 
-	siteYAMLPath := filepath.Join(projectDir, consts.FileSiteConfig)
-	raw, _ := i18nReadRawYAML(siteYAMLPath)
-
-	defaultLang := "en"
-	if i18nSection, ok := raw["i18n"].(map[string]any); ok {
-		if dl, ok := i18nSection["default_language"].(string); ok && dl != "" {
-			defaultLang = dl
-		}
-	}
-
-	contentDir := filepath.Join(projectDir, consts.DirContent)
-
-	// Discover collection names from the default-language content tree, if
-	// present; otherwise fall back to the content root (pre-i18n layout).
-	scanDir := contentDir
-	if fi, err := os.Stat(filepath.Join(contentDir, defaultLang)); err == nil && fi.IsDir() {
-		scanDir = filepath.Join(contentDir, defaultLang)
-	}
-
-	entries, err := os.ReadDir(scanDir)
+	site, err := loadI18nSite(projectDir)
 	if err != nil {
-		return printJSONError(fmt.Errorf("reading content directory: %w", err))
+		return printJSONError(err)
+	}
+	if code == site.defaultLang {
+		return printJSONError(fmt.Errorf("%q is the default language, which has no folder of its own", code))
+	}
+	site.defaultLangFolderWarning(cmd)
+	cols, err := site.collections()
+	if err != nil {
+		return printJSONError(err)
 	}
 
-	targetRoot := filepath.Join(contentDir, code)
+	targetRoot := filepath.Join(site.contentDir, code)
 	scaffolded := 0
-	for _, e := range entries {
-		if !e.IsDir() || strings.HasPrefix(e.Name(), ".") || strings.HasPrefix(e.Name(), "_") {
-			continue
-		}
-		colDir := filepath.Join(targetRoot, e.Name())
+	for _, col := range cols {
+		colDir := filepath.Join(targetRoot, col)
 		if err := os.MkdirAll(colDir, 0o755); err != nil {
 			return printJSONError(fmt.Errorf("creating collection directory: %w", err))
 		}
 		indexPath := filepath.Join(colDir, "_index.md")
 		if _, err := os.Stat(indexPath); os.IsNotExist(err) {
-			title := content.FilenameToTitle(e.Name())
+			title := content.FilenameToTitle(col)
 			stub := fmt.Sprintf("---\ntitle: %q\n---\n", title)
 			if err := os.WriteFile(indexPath, []byte(stub), 0o644); err != nil {
 				return printJSONError(fmt.Errorf("writing index stub: %w", err))
@@ -234,13 +292,13 @@ func runI18nScaffold(cmd *cobra.Command, args []string) error {
 	}
 
 	// Seed i18n/<code>.yaml from the default language's file, or create empty.
-	i18nDir := filepath.Join(projectDir, "i18n")
+	i18nDir := filepath.Join(projectDir, consts.DirI18n)
 	if err := os.MkdirAll(i18nDir, 0o755); err != nil {
 		return printJSONError(fmt.Errorf("creating i18n directory: %w", err))
 	}
 	targetFile := filepath.Join(i18nDir, code+".yaml")
 	if _, err := os.Stat(targetFile); os.IsNotExist(err) {
-		defaultFile := filepath.Join(i18nDir, defaultLang+".yaml")
+		defaultFile := filepath.Join(i18nDir, site.defaultLang+".yaml")
 		data, rerr := os.ReadFile(defaultFile)
 		if rerr != nil {
 			data = []byte{}
@@ -258,63 +316,64 @@ func runI18nScaffold(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+// runI18nStatus counts, per collection and language, the default-language
+// pages and how many of them have a translation. Pages pair by their path
+// without the language folder, as the build pairs them, so a translated
+// page with no default-language source does not count.
 func runI18nStatus(cmd *cobra.Command, args []string) error {
 	projectDir := projectDirFromArgs(args)
-
-	siteYAMLPath := filepath.Join(projectDir, consts.FileSiteConfig)
-	raw, _ := i18nReadRawYAML(siteYAMLPath)
-
-	defaultLang := "en"
-	var languages []string
-	if i18nSection, ok := raw["i18n"].(map[string]any); ok {
-		if dl, ok := i18nSection["default_language"].(string); ok && dl != "" {
-			defaultLang = dl
-		}
-		if langsMap, ok := i18nSection["languages"].(map[string]any); ok {
-			for code := range langsMap {
-				languages = append(languages, code)
-			}
-		}
+	site, err := loadI18nSite(projectDir)
+	if err != nil {
+		return printJSONError(err)
 	}
-	sort.Strings(languages)
-
-	allLangs := []string{defaultLang}
-	for _, l := range languages {
-		if l != defaultLang {
-			allLangs = append(allLangs, l)
-		}
+	site.defaultLangFolderWarning(cmd)
+	cols, err := site.collections()
+	if err != nil {
+		return printJSONError(err)
 	}
 
-	contentDir := filepath.Join(projectDir, consts.DirContent)
-	defaultDir := contentDir
-	if fi, err := os.Stat(filepath.Join(contentDir, defaultLang)); err == nil && fi.IsDir() {
-		defaultDir = filepath.Join(contentDir, defaultLang)
-	}
-
-	entries, err := os.ReadDir(defaultDir)
+	scanner := &content.Scanner{Languages: site.languages, DefaultLang: site.defaultLang}
+	files, err := scanner.DiscoverFiles(site.contentDir)
 	if err != nil {
 		return printJSONError(fmt.Errorf("reading content directory: %w", err))
 	}
-
-	status := make(map[string]map[string]map[string]int)
-	for _, e := range entries {
-		if !e.IsDir() || strings.HasPrefix(e.Name(), ".") || strings.HasPrefix(e.Name(), "_") {
+	// Default-language pages per collection, keyed by their pairing path.
+	sources := make(map[string]map[string]bool, len(cols))
+	// Translated pairing paths per language.
+	translations := make(map[string]map[string]bool)
+	for _, f := range files {
+		if f.Lang == site.defaultLang {
+			if sources[f.CollectionName] == nil {
+				sources[f.CollectionName] = map[string]bool{}
+			}
+			sources[f.CollectionName][f.LangRelPath] = true
 			continue
 		}
-		colName := e.Name()
-		total := countMarkdownFilesCLI(filepath.Join(defaultDir, colName))
+		if translations[f.Lang] == nil {
+			translations[f.Lang] = map[string]bool{}
+		}
+		translations[f.Lang][f.LangRelPath] = true
+	}
 
-		perLang := make(map[string]map[string]int, len(allLangs))
-		perLang[defaultLang] = map[string]int{"total": total, "translated": total}
-
-		for _, lang := range allLangs {
-			if lang == defaultLang {
+	status := make(map[string]map[string]map[string]int, len(cols))
+	for _, col := range cols {
+		total := len(sources[col])
+		perLang := map[string]map[string]int{
+			site.defaultLang: {"total": total, "translated": total},
+		}
+		for lang := range site.languages {
+			if lang == site.defaultLang {
 				continue
 			}
-			translated := countMarkdownFilesCLI(filepath.Join(contentDir, lang, colName))
+			translated := 0
+			for rel := range sources[col] {
+				if translations[lang][rel] {
+					translated++
+				}
+			}
 			perLang[lang] = map[string]int{"total": total, "translated": translated}
 		}
-		status[colName] = perLang
+		status[col] = perLang
 	}
 
 	printJSONResult(map[string]any{"ok": true, "status": status})
@@ -413,18 +472,4 @@ func i18nEnsureMapSection(raw map[string]any, key string) map[string]any {
 		raw[key] = section
 	}
 	return section
-}
-
-func countMarkdownFilesCLI(dir string) int {
-	count := 0
-	filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return nil
-		}
-		if !d.IsDir() && strings.HasSuffix(d.Name(), ".md") {
-			count++
-		}
-		return nil
-	})
-	return count
 }

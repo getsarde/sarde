@@ -13,6 +13,7 @@ import (
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/content/markdown"
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/i18n"
 	"github.com/getsarde/sarde/internal/links"
 	"github.com/getsarde/sarde/internal/plugin"
 	"github.com/getsarde/sarde/internal/plugin/external"
@@ -60,6 +61,10 @@ type SiteBuilder struct {
 	checkReportResult *links.ReportResult      // stored for Check() to read after Build() returns
 	checkSyntax       bool                     // when true, run fenced-block syntax checks during markdown rendering
 	onPhase           func(engine.PhaseTiming) // optional; called as each full-build phase finishes
+
+	// stringTable is the UI string table the latest build loaded. Plugins
+	// registered once per builder read it through currentStringTable.
+	stringTable *i18n.StringTable
 
 	// Last-build state for incremental rebuild.
 	lastCollections    map[string]*engine.Collection
@@ -228,4 +233,9 @@ func (b *SiteBuilder) runBuild() (*engine.BuildResult, error) {
 	result.PhaseTimings = timings
 	engine.SortWarnings(result.Warnings)
 	return result, nil
+}
+
+// currentStringTable returns the string table of the latest build.
+func (b *SiteBuilder) currentStringTable() *i18n.StringTable {
+	return b.stringTable
 }

@@ -39,6 +39,9 @@ func runPluginInfo(cmd *cobra.Command, args []string) error {
 	printField("Description", m.Description)
 	printField("Author", m.Author)
 	printField("Homepage", m.Homepage)
+	if len(m.Requires) > 0 {
+		printField("Requires", strings.Join(m.Requires, ", "))
+	}
 	printField("Premium", fmt.Sprintf("%v", m.Premium))
 	if m.Premium {
 		status := "licensed"

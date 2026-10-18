@@ -86,6 +86,15 @@ The first run asks you to log in and link the directory to a site.
 
 ## Redirects
 
-The build writes a `_redirects` file for configured redirects and page aliases, and Netlify reads it with every method above. Sarde also writes an HTML redirect page at each old path. Netlify serves an existing file in place of a `_redirects` rule for the same path, so visitors are redirected by that page rather than by a 301 response. See [Redirects](/plugins/redirects/).
+The build writes a `_redirects` file for configured redirects and page aliases, and Netlify reads it with every method above. Sarde also writes an HTML redirect page at each old path, and Netlify serves an existing file in place of a plain rule for the same path.
+
+Set the provider in `sarde.yaml` so the build forces each rule with `301!` and visitors get a 301 response:
+
+```yaml
+deploy:
+  provider: netlify
+```
+
+`sarde deploy --build --provider netlify` forces the rules for that run too. Without either, visitors are redirected by the HTML page instead. See [Redirects](/plugins/redirects/).
 
 See [Deployment](/deployment/) for other hosts.

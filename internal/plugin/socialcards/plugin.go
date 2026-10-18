@@ -102,6 +102,12 @@ func beforeRender(ctx *plugin.BeforeRenderContext, cfg map[string]any, pending *
 
 func buildDone(ctx *plugin.BuildDoneContext, cfg map[string]any, pending *sync.Map) error {
 	if ctx.DevMode {
+		// Cards are not generated in dev, but pages still point og:image at
+		// them; keep the cards an earlier build wrote from being pruned.
+		pending.Range(func(key, _ any) bool {
+			_ = ctx.KeepFile(key.(string))
+			return true
+		})
 		return nil
 	}
 

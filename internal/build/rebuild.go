@@ -642,6 +642,12 @@ func (b *SiteBuilder) rerenderDirtyMarkdown(s *incrementalRebuildState) error {
 	}
 	for i := range s.parsed {
 		e := &s.parsed[i]
+		// Frontmatter links are not in the body's validation data, which
+		// the link_validator plugin rechecks; check them here.
+		for _, w := range frontmatterLinkWarnings(e.newPage, s.newPageIndex, b.urlResolver, b.config.LinkValidation) {
+			devlog.Warn("links", "%s: %s", devlog.DisplayPath(w.File), w.Message)
+			s.warnings = append(s.warnings, w)
+		}
 		if e.newPage.RawContent == "" {
 			delete(s.mergedValidation, e.newPage.Permalink)
 			continue

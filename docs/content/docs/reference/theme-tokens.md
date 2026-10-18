@@ -455,6 +455,6 @@ A preset is a `tokens` map and an optional `dark_tokens` map, and both accept an
 | `clean` | Full-look | 182 (teal) | Default | Plus Jakarta Sans | `0.75rem` |
 | `minimal` | Full-look | 286 (near-monochrome) | Default | system-ui | `0.375rem` |
 | `docs` | Full-look | 264 (indigo) | Default | System sans-serif | `0.375rem` |
-| `academic` | Full-look | 264 (deep indigo) | Default | Merriweather (serif) | `0.25rem` |
+| `academic` | Full-look | 264 (deep indigo) | Default | Default, Merriweather (serif) headings | `0.25rem` |
 
 Inspect a preset's tokens with [`sarde theme info`](/reference/cli-commands#theme). To define your own, see [Creating a Preset](/customization/creating-a-preset/).

@@ -34,9 +34,33 @@ Each finding has one of these types:
 
 Sarde never guesses what a bare `name.md` means. It reports the link as an ambiguous link, and the finding's `hint` gives the fix: write `./name.md` for a sibling page or `docs/name.md` from the content root. Every finding carries the 1-based line and column of the link in its source file: the `pretty` report shows them as `path:line:col`, and the `json` report as `line` and `col`.
 
-Image sources are not checked, and static assets such as `/img/logo.png` and the site root `/` are never reported as unverified.
+Image sources in the body are not checked, and static assets such as `/img/logo.png` and the site root `/` linked from the body are never reported as unverified.
 
 A full build re-validates every link target and anchor, including on pages served from the page cache, so renaming a linked page is caught without editing the file that links to it.
+
+## Frontmatter links
+
+The checker also covers the frontmatter fields the theme writes into the page as a URL. The theme uses these values unchanged, so write them as site URLs, not `.md` paths:
+
+| Field | Checked against | A problem is reported as |
+|-------|-----------------|--------------------------|
+| `image` | A file under `public/`, or a file beside a page bundle's `index.md` | Unverified internal |
+| `prev.link`, `next.link` | A page of the site and its heading, or a static file | Broken target, broken anchor, or unverified internal |
+| `prev`, `next` as a slug | A page of the same collection with that slug | Broken target |
+
+```yaml title="content/blog/2026-03-15-field-trip.md"
+---
+title: Field trip
+image: /images/field-trip.jpg
+prev:
+  link: /blog/lab-safety/
+next: pond-samples
+---
+```
+
+→ The build checks that `public/images/field-trip.jpg` exists, that `/blog/lab-safety/` is a page, and that the blog collection has a page with the slug `pond-samples`.
+
+A relative value resolves from the page's URL, as a browser resolves it: `image: photo.jpg` on a bundle page finds the `photo.jpg` beside its `index.md`. External URLs are skipped, unless [external URL probing](#external-url-probing) is on. A frontmatter finding has no line number: the report shows the field instead, as `content/blog/field-trip.md (frontmatter image)`, and the `json` report adds a `field` key. `link_validation.exclude` patterns apply to these values too.
 
 ## Configurable policies
 
@@ -119,7 +143,7 @@ Choose a format with `--report` or `link_validation.report`:
 | Format | Description |
 |--------|-------------|
 | `pretty` | One line per finding, ordered by source file, with a policy label and a `path:line:col` location. The default. |
-| `json` | A `summary` object with the counts and a `findings` array. Each finding includes `file`, `line`, `col`, `dest`, `type`, and `policy`. |
+| `json` | A `summary` object with the counts and a `findings` array. Each finding includes `file`, `line`, `col`, `dest`, `type`, and `policy`, plus `field` for a [frontmatter link](#frontmatter-links). |
 | `github-actions` | The plain-text report, plus a `link_validation_failed` value written to `$GITHUB_OUTPUT` and a Markdown table appended to `$GITHUB_STEP_SUMMARY` when those variables are set. It does not print `::error` annotations. |
 
 Set the default format in `sarde.yaml`:

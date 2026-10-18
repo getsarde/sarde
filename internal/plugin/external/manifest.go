@@ -21,16 +21,20 @@ import (
 
 // Manifest is the parsed plugin.yaml of one external plugin.
 type Manifest struct {
-	Name        string       `yaml:"name"`
-	Slug        string       `yaml:"slug"`
-	Version     string       `yaml:"version"`
-	Description string       `yaml:"description"`
-	Author      string       `yaml:"author"`
-	Homepage    string       `yaml:"homepage"`
-	Premium     bool         `yaml:"premium"`
-	PurchaseURL string       `yaml:"purchase_url"`
-	Inject      InjectConfig `yaml:"inject"`
-	Output      OutputConfig `yaml:"output"`
+	Name        string `yaml:"name"`
+	Slug        string `yaml:"slug"`
+	Version     string `yaml:"version"`
+	Description string `yaml:"description"`
+	Author      string `yaml:"author"`
+	Homepage    string `yaml:"homepage"`
+	Premium     bool   `yaml:"premium"`
+	PurchaseURL string `yaml:"purchase_url"`
+	// Requires lists the ids of plugins this one needs enabled to work
+	// fully, built-in or external. Informational, as for built-in plugins:
+	// the build does not enforce it; `sarde plugins` and Studio show it.
+	Requires []string     `yaml:"requires"`
+	Inject   InjectConfig `yaml:"inject"`
+	Output   OutputConfig `yaml:"output"`
 }
 
 // InjectConfig declares conditional per-page asset injection.
@@ -105,6 +109,14 @@ func (m *Manifest) Validate(dirName string) error {
 	}
 	if m.Version == "" {
 		return fmt.Errorf("manifest is missing required field 'version'")
+	}
+	for _, id := range m.Requires {
+		if id == "" {
+			return fmt.Errorf("requires has an empty plugin id")
+		}
+		if id == m.Slug {
+			return fmt.Errorf("requires lists the plugin itself (%q)", id)
+		}
 	}
 
 	when := m.Inject.When

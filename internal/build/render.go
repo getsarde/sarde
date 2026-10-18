@@ -53,6 +53,11 @@ func (b *SiteBuilder) renderPages(pages []*engine.Page, siteCtx *engine.SiteCont
 		return nil, nil, err
 	}
 	for _, page := range pages {
+		// A fallback copy of an untranslated page carries its source's
+		// aliases; the source owns them.
+		if page.IsFallback {
+			continue
+		}
 		for _, alias := range page.Aliases {
 			aliases[alias] = page.Permalink
 		}

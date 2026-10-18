@@ -1,4 +1,9 @@
 fields:
+  collections:
+    type: list
+    label: "Collections"
+    hint: "Only these collections get a feed (empty means every collection with feed on)"
+    default: []
   limit:
     type: number
     label: "Item Limit"

@@ -80,6 +80,7 @@ func Build(projectDir string) Catalog {
 			if m, err := external.LoadManifest(dir); err == nil {
 				entry.Description = m.Description
 				entry.Label = m.Name
+				entry.Requires = m.Requires
 			}
 			if fields, err := external.LoadBlueprint(dir); err == nil {
 				entry.Fields = nonNil(fields)

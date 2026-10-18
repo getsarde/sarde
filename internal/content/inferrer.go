@@ -3,16 +3,10 @@ package content
 import (
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
-	"time"
 
 	"github.com/getsarde/sarde/internal/engine"
 )
-
-// dateFilenameRegex matches blog-style filenames like "2024-03-15-my-post"
-// (without the .md extension). Capture 1 is the date, capture 2 is the slug.
-var dateFilenameRegex = regexp.MustCompile(`^(\d{4}-\d{2}-\d{2})-(.+)$`)
 
 // Inferrer fills missing frontmatter values using filesystem metadata.
 // This is the "zero-config magic" — users get sensible defaults without
@@ -31,54 +25,34 @@ type Inferrer struct {
 //
 // Inference cascade:
 //   - Title:    frontmatter �� first H1 in RawContent → filename title-cased
-//   - Date:     frontmatter → file modification time
+//   - Date:     frontmatter → YYYY-MM-DD filename prefix → file modification time
 //   - Updated:  frontmatter → git commit time or file mtime, per LastUpdatedStrategy
 //   - Weight:   frontmatter → numeric prefix from filename → 0
-//   - Slug:     frontmatter → filename with prefix stripped, slugified
+//   - Slug:     frontmatter → filename with date and numeric prefixes stripped (FileSlug)
 //   - Template: "splash" for home pages if not set
 func (inf *Inferrer) Infer(page *engine.Page, filePath string) error {
 	filename := filepath.Base(filePath)
 	nameNoExt := strings.TrimSuffix(filename, filepath.Ext(filename))
 
-	// Detect YYYY-MM-DD-slug blog-style filename once; reused for slug and date.
-	var filenameDate time.Time
-	var filenameSlugRemainder string
-	if m := dateFilenameRegex.FindStringSubmatch(nameNoExt); m != nil {
-		if t, err := time.Parse("2006-01-02", m[1]); err == nil {
-			filenameDate = t
-			filenameSlugRemainder = m[2]
-		}
-	}
+	// A YYYY-MM-DD- prefix (blog-style names) gives the date; FileSlug strips
+	// it, and then a numeric prefix, for the slug and the order.
+	filenameDate, _, _ := SplitDatePrefix(nameNoExt)
+	isIndex := filename == "_index.md" || filename == "index.md"
+	fileSlug, fileOrder := FileSlug(nameNoExt)
 
-	// Slug and weight from filename
+	// Slug from the file name, or for an index page from its folder.
 	if page.Slug == "" {
-		if filenameSlugRemainder != "" {
-			if w, clean, found := ExtractNumericPrefix(filenameSlugRemainder); found {
-				page.Slug = Slugify(clean)
-				if page.Sidebar.Order == 0 {
-					page.Sidebar.Order = w
-				}
-			} else {
-				page.Slug = Slugify(filenameSlugRemainder)
-			}
-		} else if w, clean, found := ExtractNumericPrefix(nameNoExt); found {
-			page.Slug = Slugify(clean)
-			if page.Sidebar.Order == 0 {
-				page.Sidebar.Order = w
-			}
-		} else if filename == "_index.md" || filename == "index.md" {
-			// Slug comes from parent directory
-			page.Slug = Slugify(filepath.Base(filepath.Dir(filePath)))
+		if isIndex {
+			page.Slug = SlugOrHash(filepath.Base(filepath.Dir(filePath)))
 		} else {
-			page.Slug = Slugify(nameNoExt)
+			page.Slug = fileSlug
 		}
 	}
 
-	// Order from numeric prefix (if not already set by frontmatter or slug inference)
-	if page.Sidebar.Order == 0 {
-		if w, _, found := ExtractNumericPrefix(nameNoExt); found {
-			page.Sidebar.Order = w
-		}
+	// Order from a numeric prefix, after any date prefix (if frontmatter did
+	// not set it): "2024-03-15-hello" carries no order, "02-setup" carries 2.
+	if page.Sidebar.Order == 0 && !isIndex {
+		page.Sidebar.Order = fileOrder
 	}
 
 	// Title: frontmatter → first H1 → filename
@@ -92,10 +66,9 @@ func (inf *Inferrer) Infer(page *engine.Page, filePath string) error {
 
 	// Date: filename date prefix takes precedence over mtime when frontmatter
 	// did not set it. A filename date is a deliberate authoring choice, so it
-	// also counts as explicit for DateExplicit purposes. Note: buildPage
-	// pre-fills page.Date from the file's mtime before calling Infer, so this
-	// branch is currently unreachable through that path; it is kept correct
-	// for direct callers.
+	// also counts as explicit for DateExplicit purposes. buildPage pre-fills
+	// page.Date from the file's mtime before calling Infer, except for a
+	// date-prefixed name, so this branch sees those.
 	if page.Date.IsZero() && !filenameDate.IsZero() {
 		page.Date = filenameDate
 		page.DateExplicit = true

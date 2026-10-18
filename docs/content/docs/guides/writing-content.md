@@ -83,8 +83,8 @@ Sarde fills in missing frontmatter from the filesystem and the content, so a fil
 | Field | Inference chain |
 |---|---|
 | `title` | Frontmatter, then first `# Heading`, then filename title-cased |
-| `slug` | Frontmatter, then filename (numeric prefix stripped, slugified) |
-| `date` | Frontmatter, then file modification time |
+| `slug` | Frontmatter, then filename (date and numeric prefixes stripped, slugified) |
+| `date` | Frontmatter, then a `YYYY-MM-DD-` filename prefix, then file modification time |
 | `updated` | Frontmatter, then git commit date or file modification time (per `build.last_updated`) |
 | `order` | Frontmatter `sidebar.order`, then numeric filename prefix (for example `01-intro.md` sets order to 1), then `0` |
 
@@ -103,7 +103,19 @@ content/docs/
 
 The prefix is stripped from the URL: `01-getting-started.md` produces `/docs/getting-started/`, not `/docs/01-getting-started/`. Directory names keep their prefix in the URL, so `content/docs/01-setup/install.md` is served at `/docs/01-setup/install/`.
 
-Sarde does not read a date from a filename. A name such as `2026-03-15-hello-world.md` is read as the numeric prefix `2026`, which produces the URL `/blog/03-15-hello-world/`. Name the file `hello-world.md` and set `date: 2026-03-15` in its frontmatter.
+### Date filename prefixes
+
+A blog-style name that starts with a date sets the page's date, and the date is stripped from the URL:
+
+```text
+content/blog/
+  2026-03-15-hello-world.md   # date: 2026-03-15, served at /blog/hello-world/
+  2026-04-02-01-intro.md      # date: 2026-04-02, order: 1, served at /blog/intro/
+```
+
+A frontmatter `date` takes priority over the filename. Two posts in one folder whose names differ only by the date, such as `2025-01-10-recap.md` and `2026-01-10-recap.md`, resolve to the same URL. The build warns about the collision and keeps the first; rename one, or give the collection a `permalink` pattern with `:year`.
+
+A filename made only of characters outside the Latin alphabet, such as `日本語.md`, has no slug to strip down to. Its slug and URL use the first 8 hex characters of a hash of the name instead: `/blog/a1b2c3d4/`. For a readable URL, name the file in Latin characters, or set `slug` in frontmatter and give the collection a `permalink` pattern with `:slug`.
 
 ## Page bundles
 

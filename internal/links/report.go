@@ -317,6 +317,12 @@ func shouldExcludeRef(rawDest string, patterns []string) bool {
 	return false
 }
 
+// ShouldExcludeRef reports whether link_validation.exclude skips rawDest,
+// for checks that run outside GenerateReport.
+func ShouldExcludeRef(rawDest string, patterns []string) bool {
+	return shouldExcludeRef(rawDest, patterns)
+}
+
 func isLocalHref(href string) bool {
 	u, err := url.Parse(href)
 	if err != nil {

@@ -12,6 +12,34 @@ func intPtr(v int) *int             { return &v }
 // OneOf
 // ---------------------------------------------------------------------------
 
+func TestOneOf_ListsSortedUniqueValuesAndSuggests(t *testing.T) {
+	var c Checker
+	c.OneOf("plugins.enabled[0]", "sitemp", []string{"sitemap", "rss", "sitemap", "atom"})
+	if !c.HasErrors() {
+		t.Fatal("expected an error")
+	}
+	e := c.Errors()[0]
+	if e.Message != "must be one of: atom, rss, sitemap" {
+		t.Errorf("message = %q, want the sorted list without the duplicate", e.Message)
+	}
+	if strings.Join(e.Allowed, ",") != "atom,rss,sitemap" {
+		t.Errorf("allowed = %v", e.Allowed)
+	}
+	if e.Suggestion != "sitemap" {
+		t.Errorf("suggestion = %q, want sitemap", e.Suggestion)
+	}
+	want := `plugins.enabled[0]: must be one of: atom, rss, sitemap (got "sitemp"; did you mean "sitemap"?)`
+	if e.Error() != want {
+		t.Errorf("Error() = %q, want %q", e.Error(), want)
+	}
+
+	var far Checker
+	far.OneOf("deploy.provider", "heroku", []string{"github", "netlify"})
+	if got := far.Errors()[0]; got.Suggestion != "" || strings.Contains(got.Error(), "did you mean") {
+		t.Errorf("a distant value must get no hint: %q", got.Error())
+	}
+}
+
 func TestOneOf(t *testing.T) {
 	tests := []struct {
 		name    string

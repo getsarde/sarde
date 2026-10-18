@@ -28,9 +28,12 @@ type DimKey struct {
 
 // LinkRef records a single link resolution attempt.
 type LinkRef struct {
-	FromPage   *engine.Page
-	FromFile   string
-	Line, Col  int
+	FromPage  *engine.Page
+	FromFile  string
+	Line, Col int
+	// Field is the frontmatter key a link came from ("image", "prev.link"),
+	// empty for a link in the body. Frontmatter links carry no Line.
+	Field      string
 	RawDest    string
 	Dim        DimKey
 	Kind       LinkKind

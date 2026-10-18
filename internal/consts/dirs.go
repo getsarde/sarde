@@ -10,6 +10,7 @@ const (
 	DirData       = "data"
 	DirPlugins    = "plugins"
 	DirDirectives = "directives"
+	DirI18n       = "i18n" // translation strings, <lang>.yaml
 
 	// Layout subdirectory names (used in embedded theme and template overlay).
 	DirDefault      = "_default"

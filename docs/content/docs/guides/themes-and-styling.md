@@ -26,7 +26,7 @@ The default theme defines seven presets:
 | `clean` | `oklch(0.49 0.12 182)` | Plus Jakarta Sans | `0.75rem` |
 | `minimal` | `oklch(0.210 0.006 286)` | System fonts | `0.375rem` |
 | `docs` | `oklch(0.53 0.24 270)` | System fonts | `0.375rem` |
-| `academic` | `oklch(0.42 0.21 264)` | Merriweather | `0.25rem` |
+| `academic` | `oklch(0.42 0.21 264)` | Inter, with Merriweather headings | `0.25rem` |
 
 Every preset uses JetBrains Mono for code except `clean` (Fira Code). Without a preset, the accent is indigo (hue 264), the fonts are Inter and JetBrains Mono, and the radius is `0.5rem`.
 
@@ -34,7 +34,7 @@ A preset name that the active theme does not define is ignored without a warning
 
 ### Preset typography
 
-The color presets (`ocean`, `forest`, `rose`) keep the bundled Inter and JetBrains Mono fonts. The full-look presets (`clean`, `minimal`, `docs`, `academic`) set their own `font-sans` stack. The `docs` preset uses a native system-font stack, so pages render with no font download.
+The color presets (`ocean`, `forest`, `rose`) keep the bundled Inter and JetBrains Mono fonts. The full-look presets `clean`, `minimal` and `docs` set their own `font-sans` stack. The `docs` preset uses a native system-font stack, so pages render with no font download. The `academic` preset keeps Inter for text and the interface, and sets Merriweather for headings through `font-heading`.
 
 Sarde bundles only Inter and JetBrains Mono. Plus Jakarta Sans, Fira Code, and Merriweather are not bundled. By default, `clean` and `academic` use them only on devices that have them installed, and fall back to the rest of the stack elsewhere. Set [`web_fonts`](#web-fonts) to load them for every visitor.
 

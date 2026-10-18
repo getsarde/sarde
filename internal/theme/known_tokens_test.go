@@ -101,23 +101,3 @@ func TestSuggestToken_NoMatch(t *testing.T) {
 		t.Errorf("expected empty suggestion, got %q", s)
 	}
 }
-
-func TestLevenshtein(t *testing.T) {
-	tests := []struct {
-		a, b string
-		want int
-	}{
-		{"", "", 0},
-		{"abc", "", 3},
-		{"", "abc", 3},
-		{"abc", "abc", 0},
-		{"abc", "abd", 1},
-		{"bg-sidebar", "bg-sidbar", 1},
-		{"font-sans", "fontsans", 1},
-	}
-	for _, tt := range tests {
-		if got := levenshtein(tt.a, tt.b); got != tt.want {
-			t.Errorf("levenshtein(%q, %q) = %d, want %d", tt.a, tt.b, got, tt.want)
-		}
-	}
-}

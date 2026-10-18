@@ -144,7 +144,9 @@ presets:
       text: "oklch(0.216 0.009 56)"
       text-muted: "oklch(0.429 0.012 60)"
       border: "oklch(0.869 0.006 70)"
-      font-sans: "'Merriweather', 'Georgia', serif"
+      # Serif headings only: font-sans also sets the interface (sidebar,
+      # navigation, forms), which stays on the default sans stack.
+      font-heading: "'Merriweather', 'Georgia', serif"
       font-mono: "'JetBrains Mono', 'Source Code Pro', ui-monospace, monospace"
       radius: "0.25rem"
     dark_tokens:

@@ -10,6 +10,7 @@ import (
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/taxonomy"
 )
 
 func newIncrementalBuilder(projectDir string, cfg *config.SiteConfig) *SiteBuilder {
@@ -684,4 +685,80 @@ func TestContentRebuild_MultiLangBodyOnlyReusesTaxonomies(t *testing.T) {
 	if !foundUpdated {
 		t.Error("English taxonomy term should contain the updated page content")
 	}
+}
+
+// Non-Latin tags all slugified to "", so dropping one while another stayed
+// looked like no change, and the dropped term's page kept listing the post.
+func TestContentRebuild_RemovedNonLatinTermUpdatesTermPage(t *testing.T) {
+	dir := createIncrementalSite(t)
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\ntags: [日本語, Привет]\n---\n# One\nBody.\n")
+	writeFixture(t, dir, "content/blog/two.md", "---\ntitle: Two\ndate: 2025-01-01T00:00:00Z\ntags: [日本語]\n---\n# Two\nSecond body.\n")
+
+	builder := newIncrementalBuilder(dir, config.Defaults())
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+	distDir := filepath.Join(dir, "dist")
+	jpPage := "tags/" + taxonomy.TermSlug("日本語") + "/index.html"
+	assertFixtureFileContains(t, distDir, jpPage, "/blog/one/")
+
+	postPath := filepath.Join(dir, "content", "blog", "one.md")
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\ntags: [Привет]\n---\n# One\nBody.\n")
+	if _, err := builder.ContentRebuild([]string{postPath}); err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+	assertFixtureFileNotContains(t, distDir, jpPage, "/blog/one/")
+	assertFixtureFileContains(t, distDir, jpPage, "/blog/two/")
+}
+
+// A full build in dev mode prunes output the build no longer writes: a
+// deleted page and a removed public/ file stop being served without a
+// production build.
+func TestDevFullBuild_PrunesStaleOutput(t *testing.T) {
+	dir := createIncrementalSite(t)
+	writeFixture(t, dir, "public/handout.pdf", "pdf")
+	builder := newIncrementalBuilder(dir, config.Defaults())
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+	distDir := filepath.Join(dir, "dist")
+	assertFixtureFileExists(t, distDir, "blog/two/index.html")
+	assertFixtureFileExists(t, distDir, "handout.pdf")
+
+	os.Remove(filepath.Join(dir, "content", "blog", "two.md"))
+	os.Remove(filepath.Join(dir, "public", "handout.pdf"))
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("second Build failed: %v", err)
+	}
+	assertFixtureFileNotExists(t, distDir, "blog/two/index.html")
+	assertFixtureFileNotExists(t, distDir, "handout.pdf")
+	assertFixtureFileExists(t, distDir, "blog/one/index.html")
+}
+
+// A dev server reuses its builder for some rebuilds. The announcements
+// plugin is registered once per builder, so it must still render the
+// strings the latest build loaded, not the first build's.
+func TestReusedBuilder_AnnouncementUsesLatestStrings(t *testing.T) {
+	dir := createIncrementalSite(t)
+	writeFixture(t, dir, "i18n/en.yaml", "announcements:\n  term: \"Term starts Monday\"\n")
+	cfg := config.Defaults()
+	cfg.Plugins.Enabled = append(cfg.Plugins.Enabled, "announcements")
+	if cfg.Plugins.Config == nil {
+		cfg.Plugins.Config = map[string]map[string]any{}
+	}
+	cfg.Plugins.Config["announcements"] = map[string]any{
+		"items": []any{map[string]any{"id": "term", "message": "announcements.term", "active": true}},
+	}
+	builder := newIncrementalBuilder(dir, cfg)
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+	distDir := filepath.Join(dir, "dist")
+	assertFixtureFileContains(t, distDir, "about/index.html", "Term starts Monday")
+
+	writeFixture(t, dir, "i18n/en.yaml", "announcements:\n  term: \"Term starts Tuesday\"\n")
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("second Build failed: %v", err)
+	}
+	assertFixtureFileContains(t, distDir, "about/index.html", "Term starts Tuesday")
 }

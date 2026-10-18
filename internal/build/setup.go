@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -131,7 +132,8 @@ var subpackagePluginNames = []string{"katex", "mermaid", "announcements", "socia
 // KnownPluginNames returns the union of all valid plugin names from the
 // Go-side registry, subpackage plugins, client-side manifest, and external
 // plugins discovered under {projectDir}/plugins. An empty projectDir skips
-// external discovery.
+// external discovery. Sorted and without duplicates (a project folder may
+// share a built-in's name), so error messages listing it are stable.
 func KnownPluginNames(projectDir string) []string {
 	_ = clientplugins.Initialize()
 	names := plugin.BuiltinNames()
@@ -140,7 +142,8 @@ func KnownPluginNames(projectDir string) []string {
 	if projectDir != "" {
 		names = append(names, external.DiscoverSlugs(projectDir)...)
 	}
-	return names
+	slices.Sort(names)
+	return slices.Compact(names)
 }
 
 // ReservedPluginNames returns KnownPluginNames plus the deprecated kebab-case
@@ -331,6 +334,7 @@ func (b *SiteBuilder) phaseInitialize(s *buildState) error {
 		stringTable.SetStrict(true)
 	}
 	s.stringTable = stringTable
+	b.stringTable = stringTable
 	// Installed on every build (not only the first) so plugins translating in
 	// BeforeRender pick up string changes on incremental rebuilds too.
 	b.pluginMgr.SetStringTable(stringTable)
@@ -349,15 +353,15 @@ func (b *SiteBuilder) phaseInitialize(s *buildState) error {
 		for _, name := range filterDisabled(b.config.Plugins.Enabled, effectivePluginDisabled(b.config)) {
 			switch name {
 			case "announcements":
-				b.pluginMgr.Register(announcements.New(
+				b.pluginMgr.Register(announcements.NewWithStrings(
 					b.config.Plugins.Config[name],
-					stringTable,
+					b.currentStringTable,
 					b.tmplEngine.CurrentLangPtr(),
 				))
 			case "telescope":
-				b.pluginMgr.Register(telescope.New(
+				b.pluginMgr.Register(telescope.NewWithStrings(
 					b.config.Plugins.Config[name],
-					stringTable,
+					b.currentStringTable,
 				))
 			}
 		}

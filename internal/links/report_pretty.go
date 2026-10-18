@@ -42,9 +42,13 @@ func writePrettyReport(sb *strings.Builder, findings []Finding, cov CoverageSumm
 	}
 }
 
-// findingLocation renders a ref's source position as path[:line[:col]].
+// findingLocation renders a ref's source position as path[:line[:col]], or
+// "path (frontmatter key)" for a link from frontmatter.
 func findingLocation(ref LinkRef) string {
 	loc := devlog.DisplayPath(ref.FromFile)
+	if ref.Field != "" {
+		return loc + " (frontmatter " + ref.Field + ")"
+	}
 	if ref.Line > 0 {
 		loc += fmt.Sprintf(":%d", ref.Line)
 		if ref.Col > 0 {

@@ -231,6 +231,23 @@ func (c *BuildDoneContext) WriteFile(relPath string, data []byte) error {
 	return atomicwrite.WriteFile(absPath, data, 0o644)
 }
 
+// KeepFile marks an existing output file as part of this build without
+// rewriting it, so pruning leaves it in place: for a plugin that skips work
+// in dev mode but whose earlier output pages still reference.
+func (c *BuildDoneContext) KeepFile(relPath string) error {
+	absPath, err := outputpath.SafeJoin(c.OutputDir, relPath)
+	if err != nil {
+		return err
+	}
+	c.initMu()
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.TrackFn != nil {
+		c.TrackFn(absPath)
+	}
+	return nil
+}
+
 // SetWarnings sets the warnings slice pointer. Must be called before RunBuildDone.
 func (c *BuildDoneContext) SetWarnings(w *[]engine.ValidationWarning) {
 	c.warnings = w

@@ -39,7 +39,8 @@ func runDeployCLI(t *testing.T, args ...string) ([]string, error) {
 	var out bytes.Buffer
 	rootCmd.SetOut(&out)
 	defer rootCmd.SetOut(nil)
-	rootCmd.SetArgs(append([]string{"deploy"}, args...))
+	// --build=false first: a later spelled-out flag still wins.
+	rootCmd.SetArgs(append([]string{"deploy", "--build=false"}, args...))
 	err := rootCmd.Execute()
 	var lines []string
 	for _, l := range strings.Split(strings.TrimSpace(out.String()), "\n") {

@@ -80,6 +80,18 @@ func TestManifestValidate(t *testing.T) {
 			wantErr: "slug",
 		},
 		{
+			name:    "requires itself",
+			yaml:    "name: X\nslug: x\nversion: 1.0.0\nrequires: [search, x]\n",
+			dirName: "x",
+			wantErr: "itself",
+		},
+		{
+			name:    "requires an empty id",
+			yaml:    "name: X\nslug: x\nversion: 1.0.0\nrequires: [\"\"]\n",
+			dirName: "x",
+			wantErr: "empty plugin id",
+		},
+		{
 			name:    "missing version",
 			yaml:    "name: X\nslug: x\n",
 			dirName: "x",

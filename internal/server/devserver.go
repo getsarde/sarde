@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io/fs"
 	"mime"
 	"net"
 	"net/http"
@@ -223,7 +225,7 @@ func (ds *DevServer) Start() error {
 		localURL += strings.TrimRight(ds.basePath, "/")
 	}
 	devlog.Banner(ds.version, localURL, ds.host, result.Duration)
-	devlog.Log("watch", "Watching: content/, layouts/, assets/, data/")
+	devlog.Log("watch", "Watching: content/, layouts/, assets/, data/, public/, i18n/, themes/, plugins/, directives/")
 
 	// Emit JSON ready signal on stdout for the Tauri desktop app to detect.
 	// This deliberately stays AFTER the initial build — the desktop app
@@ -323,6 +325,13 @@ func (ds *DevServer) syncPublicFile(path string) error {
 		return err
 	}
 	data, err := os.ReadFile(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		// Deleted or renamed away: drop the served copy too.
+		if err := os.Remove(dst); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			return err
+		}
+		return nil
+	}
 	if err != nil {
 		return err
 	}

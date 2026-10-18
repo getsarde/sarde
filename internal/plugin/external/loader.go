@@ -42,6 +42,15 @@ func LoadAll(mgr *plugin.Manager, projectDir string, cfg *config.SiteConfig, res
 	for _, name := range reserved {
 		reservedSet[name] = true
 	}
+	// Plugin ids a requires entry may name: the built-ins and every plugin
+	// folder of the project.
+	knownIDs := make(map[string]bool, len(reserved))
+	for name := range reservedSet {
+		knownIDs[name] = true
+	}
+	for _, slug := range DiscoverSlugs(projectDir) {
+		knownIDs[slug] = true
+	}
 
 	for _, dir := range DiscoverDirs(projectDir) {
 		slug := filepath.Base(dir)
@@ -72,6 +81,13 @@ func LoadAll(mgr *plugin.Manager, projectDir string, cfg *config.SiteConfig, res
 				}
 				warnings = append(warnings, pluginWarning(manifestRef, msg))
 				continue
+			}
+		}
+
+		for _, id := range m.Requires {
+			if !knownIDs[id] {
+				warnings = append(warnings, pluginWarning(manifestRef,
+					fmt.Sprintf("requires unknown plugin %q", id)))
 			}
 		}
 

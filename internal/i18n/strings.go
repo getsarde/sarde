@@ -12,6 +12,8 @@ import (
 	"text/template"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/getsarde/sarde/internal/consts"
 )
 
 // StringTable holds translation strings for all languages with fallback resolution.
@@ -75,12 +77,12 @@ func LoadLayers(embeddedFS fs.FS, projectDir, themeName string) ([]Layer, []File
 
 	// Layer 2: theme i18n
 	if themeName != "" {
-		add(SourceTheme, "themes/"+themeName+"/i18n",
-			os.DirFS(filepath.Join(projectDir, "themes", themeName, "i18n")))
+		add(SourceTheme, consts.DirThemes+"/"+themeName+"/"+consts.DirI18n,
+			os.DirFS(filepath.Join(projectDir, consts.DirThemes, themeName, consts.DirI18n)))
 	}
 
 	// Layer 3: user i18n
-	add(SourceProject, "i18n", os.DirFS(filepath.Join(projectDir, "i18n")))
+	add(SourceProject, consts.DirI18n, os.DirFS(filepath.Join(projectDir, consts.DirI18n)))
 
 	return layers, problems
 }

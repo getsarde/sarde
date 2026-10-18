@@ -66,7 +66,13 @@ A `_redirects` file is generated at the site root with one line per redirect:
 
 All redirects use status code 301 (permanent).
 
-Netlify serves an existing file in place of a `_redirects` rule for the same path. Because the plugin always writes an HTML page at each source path, Netlify visitors are redirected by that page rather than by a 301 response. See [Netlify](/deployment/netlify/#redirects).
+Netlify serves an existing file in place of a plain `_redirects` rule for the same path, and the plugin always writes an HTML page at each source path. When the site targets Netlify, through `deploy.provider: netlify` or `deploy.redirect_format: netlify`, each rule is forced with `301!`, so Netlify answers with the 301 instead of the HTML page:
+
+```text
+/old-page/  /new-page/  301!
+```
+
+Every other target keeps the plain `301`. Cloudflare Pages applies its `_redirects` rules ahead of files, so the HTML pages do not get in the way there. See [Netlify](/deployment/netlify/#redirects).
 
 ### Vercel `vercel.json`
 
@@ -121,7 +127,7 @@ plugins:
     # redirects removed
 ```
 
-Page `aliases` and the `redirects` map in `sarde.yaml` are still parsed but no redirect files are generated.
+The build still writes an HTML redirect page at each page alias. The `redirects` map in `sarde.yaml` produces nothing, and no `_redirects` or `vercel.json` file is written.
 
 ## Edge cases
 

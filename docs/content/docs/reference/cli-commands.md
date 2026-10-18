@@ -83,7 +83,7 @@ Built 143 pages in 1501 ms, 3 warnings (1 in the log above)
 - `--verbose` prints each phase with its duration as the phase finishes, the messages plugins report (such as `Generated sitemap.xml`), and the five slowest pages by render time.
 - `--quiet` prints only warnings and errors. A build without warnings prints nothing.
 
-A build lock prevents concurrent `sarde build` or `sarde dev` processes from writing to the same output directory. The second process exits with `another sarde process (pid N, ...) is already writing to output directory`. See [Troubleshooting](/resources/troubleshooting#another-sarde-process-is-already-writing) if no such process is running.
+A build lock prevents concurrent `sarde build`, `sarde dev` or `sarde deploy` processes from using the same output directory. The second process exits with `another sarde process (pid N, ...) is already writing to output directory`. See [Troubleshooting](/resources/troubleshooting#another-sarde-process-is-already-writing) if no such process is running.
 
 ### JSON error envelope
 
@@ -97,15 +97,17 @@ With `--format json` (on `build`, `dev`, and `validate`), a fatal error is emitt
     {
       "path": "plugins.enabled[0]",
       "value": "serch",
-      "message": "must be one of: sitemap, rss, ...",
-      "allowed": ["sitemap", "rss", "..."]
+      "message": "must be one of: announcements, atom, ...",
+      "allowed": ["announcements", "atom", "..."],
+      "suggestion": "search"
     }
   ]
 }}
 ```
 
 - `kind`: `config_validation` for configuration validation failures (carries per-field `details`), otherwise `build_failed` / `dev_failed` / `validate_failed` with `message` only.
-- `details[].allowed`: present when the failed check was an enumeration, so tooling can offer suggestions.
+- `details[].allowed`: present when the failed check was an enumeration, sorted and without duplicates.
+- `details[].suggestion`: the allowed value closest to `value`, present when `value` looks like a typo of one (two edits or fewer). The human-readable error adds it as `did you mean "search"?`.
 
 Human-readable error text still goes to stderr in both formats. This envelope is consumed by Sarde Studio; the field names are stable.
 
@@ -194,16 +196,26 @@ sarde validate [flags] [project-dir]
 |------|------|---------|-------------|
 | `--lint` | bool | `true` | Run content lint rules after validation. Pass `--lint=false` to disable. |
 | `--strict` | bool | `false` | Exit with code 1 if any warnings exist. |
-| `--format` | string | `pretty` | Error output format: `pretty` or `json`. With `json`, a fatal error is emitted as a [JSON error envelope](#json-error-envelope) on stdout before exiting. Success output is unaffected. |
+| `--format` | string | `pretty` | Output format: `pretty` or `json`. |
 
 ```
 sarde validate
 sarde validate --strict --lint=false
 ```
 
+With `--format json`, stdout carries one JSON object and nothing else:
+
+```json
+{"ok":true,"pages":12,"collections":2,"durationMs":41,"warnings":[
+  {"file":"docs/start.md","field":"layout","message":"must be one of: default, docs, splash, wide, full, centered, split, presentation (got \"wiki\")","level":"warning"}
+]}
+```
+
+`warnings` is always present, sorted by file and line. `level` is `warning` or `error`, and `line` and `col` are left out when unknown. With `--strict` and at least one warning, `ok` is `false` and the command exits with status 1. A fatal error, such as invalid configuration, prints the [JSON error envelope](#json-error-envelope) instead.
+
 ## `deploy`
 
-Deploy the built site to a hosting provider. Run `sarde build` first.
+Deploy the built site to a hosting provider. Run `sarde build` first, or pass `--build` to build and deploy in one run.
 
 ```
 sarde deploy [flags] [project-dir]
@@ -214,6 +226,7 @@ sarde deploy [flags] [project-dir]
 | `--provider` | string | `""` | Override the deploy provider. `github`, `netlify`, `cloudflare`, `vercel`, or `custom`. |
 | `--output`, `-o` | string | `""` | Override the output directory. |
 | `--check` | bool | `false` | Verify the credentials and access to the configured site or project, then exit without uploading. Not available for `custom`. |
+| `--build` | bool | `false` | Build the site, then deploy it. Cannot be combined with `--check`. |
 | `--format` | string | `pretty` | Output format: `pretty` or `json`. |
 
 ```
@@ -221,7 +234,13 @@ sarde build
 sarde deploy --provider github
 ```
 
-The output directory must exist. If it does not, an error prompts to run `sarde build` first. `--check` does not need it.
+```
+sarde deploy --build --provider netlify
+```
+
+Without `--build`, the output directory must exist. If it does not, an error prompts to run `sarde build` first. `--check` does not need it. With `--build`, the build sees the `--provider` override, so the redirect files are written for that host.
+
+The deploy takes the same output-directory build lock as `sarde build`, and holds it until the upload ends. It fails while `sarde dev` or another build is writing to the same directory.
 
 Provider tokens come from environment variables: `NETLIFY_AUTH_TOKEN`, `CLOUDFLARE_API_TOKEN` and `VERCEL_TOKEN`. `CLOUDFLARE_ACCOUNT_ID` and `VERCEL_ORG_ID` override `deploy.account_id` and `deploy.team_id`. See [Deployment](/deployment/) for each platform.
 
@@ -240,7 +259,7 @@ With `--format json`, stdout carries one JSON object per line and nothing else; 
 | `result` | `ok`, `provider`, `url`, `deploy_url`, `deploy_id`, `admin_url`, `files_total`, `files_uploaded`, `bytes_uploaded`, `duration_ms` | Last line of a successful deploy |
 | `check` | `ok`, `provider`, `target_id`, `target`, `url`, `account` | Last line of a successful `--check` |
 
-`url` is the live production address, and `deploy_url` the permalink of this particular deploy. A failure ends with the error envelope shared by the other commands, with kind `deploy_failed` (or `deploy_check_failed`) and a `code`:
+With `--build`, the build prints nothing to stdout. `url` is the live production address, and `deploy_url` the permalink of this particular deploy. A failure ends with the error envelope shared by the other commands, with kind `deploy_failed` (or `deploy_check_failed`, or `build_failed` when the `--build` build fails) and a `code`:
 
 ```json
 {"error":{"kind":"deploy_failed","message":"netlify: GET /sites/{site_id} returned HTTP 401: Access Denied","code":"auth"}}
@@ -651,7 +670,9 @@ Scaffold content directories and a translation file for a language.
 sarde i18n scaffold . fr
 ```
 
-Creates `content/<code>/<collection>/` for each collection found in the default language's content directory, with a stub `_index.md` in each. Creates `i18n/<code>.yaml`, seeded from the default language's translation file if one exists.
+Creates `content/<code>/<collection>/` for each collection of the default language, with a stub `_index.md` in each. The other languages' folders are not collections, and `content.dir` is honored. Creates `i18n/<code>.yaml`, seeded from the default language's translation file if one exists.
+
+The default language has no folder of its own. When `content/<default>/` exists, `scaffold` and `status` print a warning to stderr: the build reads that folder as a collection named after the language, so its pages never pair with their translations. Move its pages up to `content/`.
 
 ### `i18n status <project-dir>`
 
@@ -661,7 +682,7 @@ Show translation coverage across all languages and collections.
 sarde i18n status .
 ```
 
-Reports, per collection and language, the total number of Markdown files in the default language versus the number present in each other language.
+Reports, per collection and language, the number of pages in the default language and how many of them have a translation. A page counts as translated when the language has a page at the same path, as the build pairs them: `fr/docs/setup.md` translates `docs/setup.md`. A translated page with no default-language source does not count.
 
 ### `i18n strings <project-dir>`
 
@@ -860,6 +881,71 @@ sarde effective-config [project-dir] [--format pretty|json]
 | `--format` | string | `"pretty"` | Output format. `pretty` or `json`. |
 
 Use it to see what a collection is actually doing before overriding anything, which is the quickest way to answer why a directory sorted or laid itself out the way it did.
+
+## `plugins`
+
+Print every plugin that `plugins.enabled` accepts: the built-in server and client plugins, then the external plugins under the project's `plugins/` folder, with their descriptions, default state, and configurable fields. Used by Sarde Studio to render plugin settings.
+
+```
+sarde plugins [project-dir] [--format pretty|json]
+```
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--format` | string | `"pretty"` | Output format. `pretty` or `json`. |
+
+The `pretty` format prints one line per plugin: id, kind, group, default state, and description.
+
+```text
+atom                     server    content    on   Generate Atom feed per collection
+```
+
+The `json` format prints the catalog. Plugins are sorted by kind (`server`, `client`, `external`), then by id. `requires` lists the ids of plugins a plugin needs enabled, and is left out when empty:
+
+```json
+{
+  "version": 1,
+  "plugins": [
+    {
+      "id": "rss",
+      "label": "RSS Feed",
+      "kind": "server",
+      "group": "content",
+      "description": "Generate RSS feed per collection",
+      "defaultEnabled": true,
+      "fields": [
+        { "name": "collections", "type": "list", "label": "Collections", "hint": "Only these collections get a feed (empty means every collection with feed on)", "default": [] },
+        { "name": "limit", "type": "number", "label": "Item Limit", "hint": "Maximum number of entries per feed", "default": 20, "min": 1, "max": 500 }
+      ]
+    }
+  ]
+}
+```
+
+The output is metadata only: `plugins.disabled` and premium license checks are not applied, and a build enforces both.
+
+## `schema`
+
+Print the resolved frontmatter schema of one collection: every catalog field that applies to its layout and type, merged with the custom `frontmatter_schema` from `content/<collection>/config.yaml`. Used by Sarde Studio to prefill its schema editor.
+
+```
+sarde schema <collection> [project-dir] [--format pretty|json]
+```
+
+The collection comes first, before the optional project directory.
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--format` | string | `"pretty"` | Output format. `pretty` or `json`. |
+
+```
+sarde schema docs
+sarde schema courses ./my-site --format json
+```
+
+The `pretty` format prints a header with the collection's type and layout, then the custom fields and the catalog fields, with nested fields indented. The `json` format prints `collection`, `layout`, `type`, and a `fields` map. Each field has its `type` and a `source` of `catalog` or `custom`, plus whichever of `label`, `description`, `required`, `default`, `min`, `max`, `maxLength`, `options`, `fields`, and `items` apply.
+
+A collection with neither a `content/<collection>/` folder nor a `sarde.yaml` entry exits with status 1. With `--format json`, stdout carries the message as `{"error":"unknown collection \"guides\": no content/guides directory and no sarde.yaml entry"}`.
 
 ```
 sarde effective-config

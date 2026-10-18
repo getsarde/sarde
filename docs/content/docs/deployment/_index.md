@@ -45,7 +45,7 @@ Each host page covers up to three methods:
 | Method | How it works | Use it when |
 | --- | --- | --- |
 | Deploy from Git | The host clones your repository, installs Sarde, and builds on every push. | You want every push to `main` to publish automatically. |
-| `sarde deploy` | Sarde uploads your local `dist/` to the host through its API. | You build on your own machine or in your own CI job. |
+| `sarde deploy` | Sarde uploads your local `dist/` to the host through its API. `--build` builds it first, in the same run. | You build on your own machine or in your own CI job. |
 | Host CLI | The host's own tool (`netlify`, `wrangler`, `vercel`) uploads `dist/`. | You already use that tool, or `sarde deploy` does not support your setup. |
 
 ## Deploy tokens

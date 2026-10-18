@@ -29,7 +29,7 @@ A ping/pong keepalive runs every 30 seconds to detect stale connections.
 
 ## File watching
 
-The server watches these project directories for changes: `content/`, `layouts/`, `assets/`, `data/`, `public/`, `themes/`, `plugins/`. It also watches the project root non-recursively for config file changes (`sarde.yaml`, `theme.yaml`, `nav.yaml`, `sidebar.yaml`).
+The server watches these project directories for changes: `content/`, `layouts/`, `assets/`, `data/`, `public/`, `themes/`, `plugins/`, `directives/`, `i18n/`. It also watches the project root non-recursively for config file changes (`sarde.yaml`, `theme.yaml`, `nav.yaml`, `sidebar.yaml`). A watched directory created while the server runs is picked up too. The output directory is never watched, even when `build.output` names one of these directories.
 
 Changes are debounced (150ms) and batched before processing.
 
@@ -40,16 +40,18 @@ Each changed file is classified into one of six kinds:
 | Kind | Trigger | Behavior |
 |------|---------|----------|
 | Config | `sarde.yaml`, `theme.yaml`, `nav.yaml`, `sidebar.yaml` | Fresh builder, full build |
-| Template | Files under `layouts/` or `themes/` (except theme CSS) | Fresh builder, full build |
+| Template | Files under `layouts/`, `themes/` (except theme CSS), `directives/` or `i18n/` | Fresh builder, full build |
 | Plugin | Files under `plugins/` | Fresh builder, full build |
 | Content | Files under `content/` | Incremental rebuild, reuses existing builder |
 | CSS | `.css` files under `public/` | Hot-swap, no rebuild |
 | Theme CSS | `.css` files under `themes/<name>/css/` (or the theme dev source tree) | Bundle reassembled in place, no rebuild |
-| Static | Everything else (`assets/`, `data/`, other files) | Full build, reuses existing builder |
+| Static | Everything else (`assets/`, `data/`, other `public/` files, other files) | Full build, reuses existing builder |
+
+A full build in the dev server removes output the build no longer writes, as `sarde build` does: the page of a deleted file, a file removed from `public/`, a page that stopped being scheduled. Content rebuilds remove the pages of deleted files and their aliases. Social cards are not generated in dev mode, so the cards a production build left in the output directory are kept.
 
 ## CSS hot-swap
 
-When all changes in a batch are CSS files under `public/`, no rebuild runs. Each changed file is copied directly to the output directory, and the browser receives a CSS-specific reload message that swaps the stylesheet in place without a full page reload.
+When all changes in a batch are CSS files under `public/`, no rebuild runs. Each changed file is copied directly to the output directory (a deleted file is removed from it), and the browser receives a CSS-specific reload message that swaps the stylesheet in place without a full page reload.
 
 CSS files under `assets/` are excluded from hot-swap because they may be bundled or fingerprinted through esbuild. Changes to those files trigger a full rebuild instead.
 

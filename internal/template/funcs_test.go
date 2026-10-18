@@ -14,6 +14,7 @@ import (
 	"github.com/getsarde/sarde/internal/asset"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/taxonomy"
 )
 
 func nilFuncMap() htmltemplate.FuncMap {
@@ -712,6 +713,41 @@ func TestFnInitials(t *testing.T) {
 	for _, tt := range tests {
 		if got := fnInitials(tt.s); got != tt.want {
 			t.Errorf("fnInitials(%q) = %q, want %q", tt.s, got, tt.want)
+		}
+	}
+}
+
+// A tag in non-Latin script and a tag with a custom permalink from
+// data/tags.yml both link to their term page, in the base FuncMap and in
+// the per-language one; neither falls back to /tags//.
+func TestTermURL_NonLatinAndCustomSlugTerms(t *testing.T) {
+	jp := taxonomy.TermSlug("日本語")
+	site := testSite()
+	site.Taxonomies = map[string]*engine.Taxonomy{
+		"tags": {Name: "tags", Terms: map[string]*engine.TaxonomyTerm{
+			jp:    {Name: "日本語", Slug: jp, Permalink: "/tags/" + jp + "/"},
+			"cpp": {Name: "C++", Slug: "cpp", CustomSlug: "cpp", Permalink: "/tags/cpp/", Label: "C plus plus"},
+		}},
+	}
+	e := &Engine{resolver: &engine.ThemeResolver{}, site: site}
+	e.currentLang = "en"
+	e.funcMap = e.buildFuncMap(nil, nil)
+
+	for name, fm := range map[string]htmltemplate.FuncMap{"base": e.funcMap, "per-language": e.funcMapForLang("en")} {
+		termURL := fm["termURL"].(func(string, string) string)
+		lookupTerm := fm["lookupTerm"].(func(string, string) *engine.TaxonomyTerm)
+		if got := termURL("tags", "日本語"); got != "/tags/"+jp+"/" {
+			t.Errorf("%s termURL(日本語) = %q", name, got)
+		}
+		if got := termURL("tags", "C++"); got != "/tags/cpp/" {
+			t.Errorf("%s termURL(C++) = %q, want the custom permalink", name, got)
+		}
+		if got := lookupTerm("tags", "C++"); got == nil || got.Label != "C plus plus" {
+			t.Errorf("%s lookupTerm(C++) = %v, want the enriched term", name, got)
+		}
+		// A term the site does not have still gets a usable URL.
+		if got := termURL("tags", "Ελληνικά"); got == "/tags//" || got != "/tags/"+taxonomy.TermSlug("Ελληνικά")+"/" {
+			t.Errorf("%s termURL(missing non-Latin) = %q", name, got)
 		}
 	}
 }

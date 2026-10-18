@@ -72,6 +72,13 @@ type announcementItem struct {
 // a pointer to the current language (captured by closure, resolved at render time).
 // st and langPtr may be nil — the plugin degrades to raw message keys.
 func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plugin {
+	return NewWithStrings(cfg, func() *i18n.StringTable { return st }, langPtr)
+}
+
+// NewWithStrings is New with the string table read at render time: a
+// builder reused across dev rebuilds loads the strings again on every build,
+// and the plugin, registered once, must render the latest ones.
+func NewWithStrings(cfg map[string]any, strs func() *i18n.StringTable, langPtr *string) *plugin.Plugin {
 	ensureAssets()
 	pcfg := cfgPluginConfig(cfg)
 	items := cfgItems(cfg)
@@ -88,7 +95,7 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 				continue
 			}
 
-			msg := resolveString(st, lang, item.messageKey)
+			msg := resolveString(strs(), lang, item.messageKey)
 			if msg == "" {
 				continue
 			}
@@ -122,7 +129,7 @@ func New(cfg map[string]any, st *i18n.StringTable, langPtr *string) *plugin.Plug
 				html.EscapeString(msg),
 			))
 			if item.dismissible {
-				dismissLabel := resolveString(st, lang, "announcements.dismiss")
+				dismissLabel := resolveString(strs(), lang, "announcements.dismiss")
 				banners.WriteString(fmt.Sprintf(
 					`<button class="sarde-announcement-dismiss" data-announcement-id="%s" aria-label="%s">&times;</button>`,
 					html.EscapeString(item.id), html.EscapeString(dismissLabel),

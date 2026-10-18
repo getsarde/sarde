@@ -192,8 +192,10 @@ func buildPage(
 	mapFrontmatterToParams(page, fm, fmMap, taxCfg)
 
 	// Pre-populate Date from the already-opened FileInfo to avoid a
-	// redundant os.Stat inside Infer.
-	if page.Date.IsZero() && fi != nil {
+	// redundant os.Stat inside Infer. A YYYY-MM-DD- file name is left for
+	// Infer, which takes the date from the name.
+	base := filepath.Base(cf.FilePath)
+	if _, _, dated := content.SplitDatePrefix(strings.TrimSuffix(base, filepath.Ext(base))); page.Date.IsZero() && fi != nil && !dated {
 		page.Date = fi.ModTime()
 	}
 
@@ -219,7 +221,7 @@ func buildPage(
 			Day:        page.Date.Format("02"),
 			Section:    extractSection(cf.FilePath, contentDir),
 			Collection: cf.CollectionName,
-			Title:      content.Slugify(page.Title),
+			Title:      content.SlugOrHash(page.Title),
 		}
 		page.RelPermalink = content.ComputePatternPermalink(collCfg.Permalink, vars)
 	} else {

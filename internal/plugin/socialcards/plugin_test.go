@@ -621,3 +621,23 @@ func TestConfigWarner_ReportsBuildWarning(t *testing.T) {
 		t.Errorf("message should not repeat the plugin name: %q", w.Message)
 	}
 }
+
+// Dev mode skips card generation, but must keep the cards an earlier build
+// wrote: a dev build prunes untracked output, and pages still point
+// og:image at them.
+func TestBuildDone_DevModeKeepsExistingCards(t *testing.T) {
+	var tracked []string
+	ctx := &plugin.BuildDoneContext{
+		OutputDir: t.TempDir(),
+		DevMode:   true,
+		TrackFn:   func(p string) { tracked = append(tracked, p) },
+	}
+	var pending sync.Map
+	pending.Store("og/blog/one.png", &engine.Page{})
+	if err := buildDone(ctx, map[string]any{}, &pending); err != nil {
+		t.Fatal(err)
+	}
+	if len(tracked) != 1 || !strings.HasSuffix(filepath.ToSlash(tracked[0]), "og/blog/one.png") {
+		t.Errorf("tracked = %v, want the card kept", tracked)
+	}
+}

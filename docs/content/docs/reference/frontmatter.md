@@ -366,7 +366,7 @@ Sarde parses filenames to extract dates, ordering, and slugs.
 2024-03-15-hello-world.md
 ```
 
-Infers `date: 2024-03-15` and `slug: hello-world`.
+Infers `date: 2024-03-15` and `slug: hello-world`. The URL ends in `/hello-world/`.
 
 **Numeric prefix** (`NN-slug.md` or `NN_slug.md`):
 
@@ -383,6 +383,8 @@ Infers `sidebar.order: 3` and `slug: advanced-topics`.
 ```
 
 Infers `date: 2024-01-15`, `sidebar.order: 1`, and `slug: intro`.
+
+A filename made only of characters outside the Latin alphabet, such as `日本語.md`, gets the first 8 hex characters of a hash of the name as its slug and URL segment.
 
 **Index files** (`_index.md` or `index.md`):
 

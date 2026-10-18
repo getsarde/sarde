@@ -8,6 +8,7 @@ import (
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/engine"
+	"github.com/getsarde/sarde/internal/taxonomy"
 )
 
 // buildContentFuncs returns cross-collection content lookup functions: ref,
@@ -75,29 +76,19 @@ func buildContentFuncs(pageIndexPtr **content.PageIndex, sitePtr **engine.SiteCo
 		// to inject the rendering page's language.
 		"termURL": func(taxonomyName, termName string) string {
 			s := *sitePtr
-			slug := content.Slugify(termName)
-			url := "/" + taxonomyName + "/" + slug + "/"
 			if s != nil {
-				if tax, ok := s.Taxonomies[taxonomyName]; ok && tax != nil {
-					if term, ok := tax.Terms[slug]; ok {
-						url = term.Permalink
-					}
+				if term := taxonomy.LookupTerm(s.Taxonomies[taxonomyName], termName); term != nil {
+					return term.Permalink
 				}
 			}
-			return url
+			return "/" + taxonomyName + "/" + taxonomy.TermSlug(termName) + "/"
 		},
 		"lookupTerm": func(taxonomyName, termName string) *engine.TaxonomyTerm {
 			s := *sitePtr
 			if s == nil {
 				return nil
 			}
-			slug := content.Slugify(termName)
-			if tax, ok := s.Taxonomies[taxonomyName]; ok && tax != nil {
-				if term, ok := tax.Terms[slug]; ok {
-					return term
-				}
-			}
-			return nil
+			return taxonomy.LookupTerm(s.Taxonomies[taxonomyName], termName)
 		},
 		"showPageTags": func(page *engine.Page) bool {
 			if page == nil {

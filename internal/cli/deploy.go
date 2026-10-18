@@ -2,7 +2,9 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -13,6 +15,7 @@ import (
 	"golang.org/x/term"
 
 	"github.com/getsarde/sarde/internal/build"
+	"github.com/getsarde/sarde/internal/buildlock"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/deploy"
 	"github.com/getsarde/sarde/internal/outputpath"
@@ -21,14 +24,18 @@ import (
 var deployCmd = &cobra.Command{
 	Use:   "deploy [dir]",
 	Short: "Deploy the built site",
-	Long: `Deploy the site output directory to a hosting provider. Run 'sarde build' first.
+	Long: `Deploy the site output directory to a hosting provider. Run 'sarde build' first,
+or pass --build to build and deploy in one run.
 
 Provider tokens come from environment variables, never from sarde.yaml:
 NETLIFY_AUTH_TOKEN, VERCEL_TOKEN, CLOUDFLARE_API_TOKEN. GitHub Pages uses the
 git credentials already configured for the repository.
 
 --check verifies the credentials and access to the configured site or project
-without uploading anything.`,
+without uploading anything.
+
+The deploy holds the output directory's lock, so it fails while 'sarde dev' or
+another build is writing to the same directory.`,
 	SilenceUsage: true,
 	RunE:         runDeploy,
 }
@@ -49,6 +56,7 @@ func init() {
 	deployCmd.Flags().StringP("output", "o", "", "Override output directory (default: dist)")
 	deployCmd.Flags().String("format", "pretty", "Output format: pretty, json")
 	deployCmd.Flags().Bool("check", false, "Verify credentials and target access without deploying")
+	deployCmd.Flags().Bool("build", false, "Build the site first, then deploy it")
 	rootCmd.AddCommand(deployCmd)
 }
 
@@ -58,6 +66,10 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unknown format %q (expected pretty or json)", format)
 	}
 	check, _ := cmd.Flags().GetBool("check")
+	buildFirst, _ := cmd.Flags().GetBool("build")
+	if check && buildFirst {
+		return fmt.Errorf("--build and --check cannot be combined")
+	}
 
 	var rep deployReporter
 	if format == "json" {
@@ -74,11 +86,15 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 	ctx, stop := signal.NotifyContext(cmdContext(cmd), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	err := runDeployWith(ctx, cmd, args, check, rep)
+	err := runDeployWith(ctx, cmd, args, deployRun{check: check, build: buildFirst, format: format}, rep)
 	if err != nil && format == "json" {
 		kind := "deploy_failed"
-		if check {
+		var bf *deployBuildError
+		switch {
+		case check:
 			kind = "deploy_check_failed"
+		case errors.As(err, &bf):
+			kind = "build_failed"
 		}
 		writeJSONError(cmd.OutOrStdout(), kind, deploy.ErrorCode(err), err)
 	}
@@ -92,7 +108,22 @@ func cmdContext(cmd *cobra.Command) context.Context {
 	return context.Background()
 }
 
-func runDeployWith(ctx context.Context, cmd *cobra.Command, args []string, check bool, rep deployReporter) error {
+// deployRun is what the flags ask of one deploy.
+type deployRun struct {
+	check  bool   // verify access only
+	build  bool   // build first (--build)
+	format string // "pretty" or "json"
+}
+
+// deployBuildError marks a failure of the build that --build runs first, so
+// the JSON envelope names it build_failed rather than deploy_failed.
+type deployBuildError struct{ err error }
+
+func (e *deployBuildError) Error() string { return e.err.Error() }
+func (e *deployBuildError) Unwrap() error { return e.err }
+
+func runDeployWith(ctx context.Context, cmd *cobra.Command, args []string, run deployRun, rep deployReporter) error {
+	check := run.check
 	projectDir := projectDirFromArgs(args)
 
 	configPath, _ := cmd.Flags().GetString("config")
@@ -145,8 +176,29 @@ func runDeployWith(ctx context.Context, cmd *cobra.Command, args []string, check
 	if err != nil {
 		return err
 	}
-	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
-		return fmt.Errorf("output directory %q does not exist; run 'sarde build' first", outputDir)
+
+	// Hold the output dir for the whole deploy, so a build or dev server
+	// cannot rewrite it mid-upload (dev writes drafts into it). Under --build
+	// the build runs inside this lock; Acquire is re-entrant in one process.
+	lock, err := buildlock.Acquire(outputDir, "deploy")
+	if err != nil {
+		return err
+	}
+	defer lock.Release()
+
+	if run.build {
+		// JSON mode keeps stdout to the deploy's event stream: the build
+		// reports nothing there, and its failure surfaces as build_failed.
+		out := cmd.OutOrStdout()
+		if run.format == "json" {
+			out = io.Discard
+		}
+		err := runBuildTo(cmd, args, buildRun{format: run.format, out: out, provider: deployCfg.Provider})
+		if err != nil {
+			return &deployBuildError{err: err}
+		}
+	} else if _, err := os.Stat(outputDir); os.IsNotExist(err) {
+		return fmt.Errorf("output directory %q does not exist; run 'sarde build' first, or pass --build", outputDir)
 	}
 
 	rep.Start(deployer.Name())

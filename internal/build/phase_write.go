@@ -126,7 +126,13 @@ func (b *SiteBuilder) phaseWrite(s *buildState) (*engine.BuildResult, error) {
 	}
 	s.recordTiming("Writing output")
 
-	if tracker != nil && !b.devMode {
+	// Dev mode prunes too, so a deleted page, a removed public/ file or a
+	// scheduled page from an earlier --future run stops being served. That
+	// is safe now that dev assets have fixed names (sarde.js, kazari.js,
+	// tokens-theme.css) and the one fingerprinted stylesheet is rewritten
+	// under its own name, so a page still loading cannot lose its assets.
+	// Only a full Build() reaches here; incremental rebuilds do not prune.
+	if tracker != nil {
 		if err := tracker.Prune(s.outputDir); err != nil {
 			return nil, fmt.Errorf("pruning output: %w", err)
 		}

@@ -20,9 +20,11 @@ type jsonSummary struct {
 }
 
 type jsonFinding struct {
-	File     string  `json:"file"`
-	Line     int     `json:"line"`
-	Col      int     `json:"col"`
+	File string `json:"file"`
+	Line int    `json:"line"`
+	Col  int    `json:"col"`
+	// Field is the frontmatter key of a link from frontmatter.
+	Field    string  `json:"field,omitempty"`
 	Dest     string  `json:"dest"`
 	Fragment string  `json:"fragment,omitempty"`
 	Dim      jsonDim `json:"dim"`
@@ -47,6 +49,7 @@ func writeJSONReport(sb *strings.Builder, findings []Finding, cov CoverageSummar
 			File:     f.Ref.FromFile,
 			Line:     f.Ref.Line,
 			Col:      f.Ref.Col,
+			Field:    f.Ref.Field,
 			Dest:     f.Ref.RawDest,
 			Fragment: f.Ref.Fragment,
 			Dim: jsonDim{

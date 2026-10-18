@@ -84,18 +84,32 @@ func FieldNames() []string {
 // st may be nil; UI labels then degrade to their raw i18n keys and the client
 // falls back to built-in English strings.
 func New(cfg map[string]any, st *i18n.StringTable) *plugin.Plugin {
+	return NewWithStrings(cfg, func() *i18n.StringTable { return st })
+}
+
+// NewWithStrings is New with the string table read at render time: a
+// builder reused across dev rebuilds loads the strings again on every build,
+// and the plugin, registered once, must render the latest ones.
+func NewWithStrings(cfg map[string]any, strs func() *i18n.StringTable) *plugin.Plugin {
 	ensureAssets()
 	pcfg := cfgTelescopeConfig(cfg)
 
 	// The inline config script is identical for every page of a language, so
 	// it is serialized once per language. BeforeRender may run from parallel
 	// render workers, hence the mutex.
+	// A new table (a later build) empties the cache.
 	var mu sync.Mutex
 	scriptByLang := make(map[string]htmltemplate.JS)
+	var cachedFor *i18n.StringTable
 
 	inlineScript := func(lang string) htmltemplate.JS {
 		mu.Lock()
 		defer mu.Unlock()
+		st := strs()
+		if st != cachedFor {
+			scriptByLang = make(map[string]htmltemplate.JS)
+			cachedFor = st
+		}
 		if s, ok := scriptByLang[lang]; ok {
 			return s
 		}

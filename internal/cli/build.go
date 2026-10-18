@@ -3,6 +3,7 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -45,19 +46,32 @@ func runBuild(cmd *cobra.Command, args []string) error {
 	// One boundary for machine-readable failure: every error path inside the
 	// build (config validation, theme load, lock, build proper) surfaces here
 	// and becomes an {"error": ...} envelope on stdout in json mode.
-	err := runBuildWithFormat(cmd, args, format)
+	err := runBuildTo(cmd, args, buildRun{format: format, out: os.Stdout, updateCheck: true})
 	if err != nil && format == "json" {
 		return emitJSONError("build_failed", err)
 	}
 	return err
 }
 
-func runBuildWithFormat(cmd *cobra.Command, args []string, format string) error {
+// buildRun is how a build reports: `sarde build` writes to stdout, and
+// `sarde deploy --build` builds first with the deploy's own output stream.
+type buildRun struct {
+	format string    // "pretty" or "json"
+	out    io.Writer // the human report, or the JSON BuildResult
+	// updateCheck runs the passive update lookup (pretty mode only).
+	updateCheck bool
+	// provider, when set, overrides deploy.provider for the build, so the
+	// redirects plugin writes the rules for the host being deployed to.
+	provider string
+}
+
+func runBuildTo(cmd *cobra.Command, args []string, run buildRun) error {
+	format := run.format
 	// Start the passive update lookup now so it overlaps with the build and
 	// its result can be shown after the summary. JSON mode stays silent and
 	// makes no network calls.
 	var updateCheck *pendingUpdateCheck
-	if format != "json" {
+	if format != "json" && run.updateCheck {
 		updateCheck = beginUpdateCheck(cmd)
 	}
 
@@ -79,7 +93,7 @@ func runBuildWithFormat(cmd *cobra.Command, args []string, format string) error 
 		prevQuiet := devlog.Quiet()
 		devlog.SetQuiet(quiet)
 		defer devlog.SetQuiet(prevQuiet)
-		report = newBuildReporter(os.Stdout, projectDir, verbose, quiet, build.FullBuildPhases())
+		report = newBuildReporter(run.out, projectDir, verbose, quiet, build.FullBuildPhases())
 		report.header()
 	}
 
@@ -101,10 +115,14 @@ func runBuildWithFormat(cmd *cobra.Command, args []string, format string) error 
 	if strictI18n, _ := cmd.Flags().GetBool("strict-i18n"); strictI18n {
 		cfg.I18n.Strict = true
 	}
+	if run.provider != "" {
+		cfg.Deploy.Provider = run.provider
+	}
 
-	// Guard the output dir against a concurrent sarde process (dev or build)
-	// writing into the same dist/. Resolved from the same cfg the builder
-	// resolves later, so the locked dir always equals the written dir.
+	// Guard the output dir against a concurrent sarde process (dev, build or
+	// deploy) using the same dist/. Resolved from the same cfg the builder
+	// resolves later, so the locked dir always equals the written dir. Under
+	// deploy --build the deploy already holds it; the lock is re-entrant.
 	outputDir, err := outputpath.ResolveOutputDir(projectDir, cfg.Build.Output)
 	if err != nil {
 		return err
@@ -133,7 +151,7 @@ func runBuildWithFormat(cmd *cobra.Command, args []string, format string) error 
 	// summary entirely. Consumed by the benchmark harness (cmd/sarde-bench)
 	// and any tooling that wants structured build stats.
 	if format == "json" {
-		return json.NewEncoder(os.Stdout).Encode(result)
+		return json.NewEncoder(run.out).Encode(result)
 	}
 
 	report.summary(result, cfg, int(devlog.WarnCount()-warnBase))

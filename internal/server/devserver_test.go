@@ -311,3 +311,21 @@ func TestSyncPublicFile_RejectsPathsOutsidePublic(t *testing.T) {
 		t.Error("expected error for a file outside public/")
 	}
 }
+
+// Deleting a public CSS file drops its served copy instead of failing the
+// sync and leaving the old stylesheet in the output.
+func TestSyncPublicFile_DeletedSourceRemovesCopy(t *testing.T) {
+	projectDir := t.TempDir()
+	outputDir := filepath.Join(projectDir, "dist")
+	outCopy := filepath.Join(outputDir, "css", "old.css")
+	os.MkdirAll(filepath.Dir(outCopy), 0o755)
+	os.WriteFile(outCopy, []byte("body{}"), 0o644)
+
+	ds := &DevServer{projectDir: projectDir, outputDir: outputDir}
+	if err := ds.syncPublicFile(filepath.Join(projectDir, "public", "css", "old.css")); err != nil {
+		t.Fatalf("sync of a deleted file: %v", err)
+	}
+	if _, err := os.Stat(outCopy); !os.IsNotExist(err) {
+		t.Error("the served copy of a deleted public file must go")
+	}
+}

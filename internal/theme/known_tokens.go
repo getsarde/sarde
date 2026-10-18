@@ -1,5 +1,7 @@
 package theme
 
+import "github.com/getsarde/sarde/internal/suggest"
+
 // KnownTokens returns the set of all valid --sd-* token names (without the prefix).
 // This must stay in sync with tokens.css — the TestKnownTokens_MatchesCSS test enforces this.
 func KnownTokens() map[string]bool {
@@ -101,40 +103,9 @@ func KnownTokens() map[string]bool {
 
 // SuggestToken returns the closest known token name if the edit distance is ≤ 2.
 func SuggestToken(unknown string, known map[string]bool) string {
-	best := ""
-	bestDist := 3
+	names := make([]string, 0, len(known))
 	for name := range known {
-		d := levenshtein(unknown, name)
-		if d < bestDist {
-			bestDist = d
-			best = name
-		}
+		names = append(names, name)
 	}
-	return best
-}
-
-func levenshtein(a, b string) int {
-	if len(a) == 0 {
-		return len(b)
-	}
-	if len(b) == 0 {
-		return len(a)
-	}
-	prev := make([]int, len(b)+1)
-	curr := make([]int, len(b)+1)
-	for j := range prev {
-		prev[j] = j
-	}
-	for i := 1; i <= len(a); i++ {
-		curr[0] = i
-		for j := 1; j <= len(b); j++ {
-			cost := 1
-			if a[i-1] == b[j-1] {
-				cost = 0
-			}
-			curr[j] = min(curr[j-1]+1, min(prev[j]+1, prev[j-1]+cost))
-		}
-		prev, curr = curr, prev
-	}
-	return prev[len(b)]
+	return suggest.Closest(unknown, names)
 }

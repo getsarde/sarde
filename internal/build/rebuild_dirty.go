@@ -9,6 +9,7 @@ import (
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/navigation"
+	"github.com/getsarde/sarde/internal/taxonomy"
 	sardetemplate "github.com/getsarde/sarde/internal/template"
 )
 
@@ -146,15 +147,14 @@ func addRemovedTermsDirty(old, next *engine.Page, oldTaxonomies map[string]*engi
 		}
 		kept := make(map[string]bool)
 		for _, t := range pageTerms(next, taxName) {
-			kept[content.Slugify(t)] = true
+			kept[taxonomy.TermSlug(t)] = true
 		}
 		removedAny := false
 		for _, t := range pageTerms(old, taxName) {
-			slug := content.Slugify(t)
-			if kept[slug] {
+			if kept[taxonomy.TermSlug(t)] {
 				continue
 			}
-			if term, ok := tax.Terms[slug]; ok {
+			if term := taxonomy.LookupTerm(tax, t); term != nil {
 				dirty[term.Permalink] = struct{}{}
 				removedAny = true
 			}

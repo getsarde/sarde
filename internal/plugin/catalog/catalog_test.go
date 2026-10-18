@@ -54,7 +54,7 @@ func TestBuild_IncludesExternalPlugins(t *testing.T) {
 	if err := os.MkdirAll(pdir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	os.WriteFile(filepath.Join(pdir, "plugin.yaml"), []byte("name: Acme\nslug: acme\nversion: 1.0.0\ndescription: Acme things\n"), 0o644)
+	os.WriteFile(filepath.Join(pdir, "plugin.yaml"), []byte("name: Acme\nslug: acme\nversion: 1.0.0\ndescription: Acme things\nrequires: [search]\n"), 0o644)
 	os.WriteFile(filepath.Join(pdir, "blueprint.yaml"), []byte("fields:\n  speed:\n    type: select\n    default: fast\n    options:\n      - { value: fast, label: Fast }\n"), 0o644)
 	cat := Build(dir)
 	var found *Entry
@@ -71,6 +71,9 @@ func TestBuild_IncludesExternalPlugins(t *testing.T) {
 	}
 	if len(found.Fields) != 1 || len(found.Fields[0].Options) != 1 {
 		t.Errorf("blueprint options not carried: %+v", found.Fields)
+	}
+	if len(found.Requires) != 1 || found.Requires[0] != "search" {
+		t.Errorf("external requires = %v, want [search]", found.Requires)
 	}
 }
 

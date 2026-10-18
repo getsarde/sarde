@@ -20,7 +20,7 @@ Configure `sarde deploy` and the redirects the build writes. For step-by-step ho
 | `project_id` | string | `""` | Vercel project ID or name. |
 | `team_id` | string | `""` | Vercel team ID (`team_...`) for a project owned by a team. The `VERCEL_ORG_ID` environment variable overrides it. |
 | `command` | string | `""` | Custom deployment command (for `custom` provider). |
-| `redirect_format` | string | `""` | Redirect file format. `html`, `netlify`, `vercel`, or `all`. |
+| `redirect_format` | string | `""` | Redirect file format. `html`, `netlify`, `vercel`, or `all`. With `netlify`, or with `provider: netlify`, the `_redirects` rules are forced (`301!`). |
 
 API tokens are never read from `sarde.yaml`. Each provider takes its token from an environment variable:
 

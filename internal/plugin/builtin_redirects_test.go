@@ -267,3 +267,71 @@ func TestRedirectsBuildDone_HtmlOnlyFormat(t *testing.T) {
 		t.Error("vercel.json should not be written for html format")
 	}
 }
+
+// Netlify serves the HTML stub at a source path instead of a plain rule, so
+// a site that targets Netlify gets forced rules; every other target keeps
+// the plain status, which Cloudflare Pages also reads.
+func TestRedirectsBuildDone_StatusPerTarget(t *testing.T) {
+	cases := []struct {
+		name   string
+		deploy config.DeployConfig
+		want   string
+	}{
+		{"default", config.DeployConfig{}, "/old  /new  301"},
+		{"netlify provider", config.DeployConfig{Provider: "netlify"}, "/old  /new  301!"},
+		{"netlify format", config.DeployConfig{RedirectFormat: "netlify"}, "/old  /new  301!"},
+		{"cloudflare provider", config.DeployConfig{Provider: "cloudflare"}, "/old  /new  301"},
+		{"all formats", config.DeployConfig{RedirectFormat: "all"}, "/old  /new  301"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			outDir := t.TempDir()
+			var warnings []engine.ValidationWarning
+			ctx := &BuildDoneContext{
+				Config:    &config.SiteConfig{Deploy: tc.deploy, Redirects: map[string]string{"/old": "/new"}},
+				OutputDir: outDir,
+				Pages:     []*engine.Page{},
+			}
+			ctx.SetWarnings(&warnings)
+			if err := redirectsBuildDone(ctx); err != nil {
+				t.Fatal(err)
+			}
+			data, err := os.ReadFile(filepath.Join(outDir, "_redirects"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := strings.TrimSpace(string(data)); got != tc.want {
+				t.Errorf("_redirects = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+// On a multilingual site an untranslated page has fallback copies in the
+// other languages, which inherit its aliases. The alias must keep pointing
+// at the source page, not at whichever copy came last.
+func TestRedirectsBuildDone_FallbackCopiesDoNotOwnAliases(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+	source := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "Hello", RelPermalink: "/blog/hello/"},
+		PageTaxonomy: engine.PageTaxonomy{Aliases: []string{"/old-hello/"}},
+	}
+	fallback := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "Hello", RelPermalink: "/fr/blog/hello/"},
+		PageTaxonomy: engine.PageTaxonomy{Aliases: []string{"/old-hello/"}},
+		PageI18n:     engine.PageI18n{Lang: "fr", IsFallback: true},
+	}
+	ctx := &BuildDoneContext{Config: &config.SiteConfig{}, OutputDir: outDir, Pages: []*engine.Page{source, fallback}}
+	ctx.SetWarnings(&warnings)
+	if err := redirectsBuildDone(ctx); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(outDir, "_redirects"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.TrimSpace(string(data)); got != "/old-hello/  /blog/hello/  301" {
+		t.Errorf("_redirects = %q, want the alias to point at the source page", got)
+	}
+}

@@ -35,6 +35,8 @@ func TestClassifyChange(t *testing.T) {
 		{"theme extension css", "/project/themes/default/css/extensions/cards.css", ChangeThemeCSS},
 		{"theme template stays template", "/project/themes/default/templates/base.html", ChangeTemplate},
 		{"css dir itself stays template", "/project/themes/default/css", ChangeTemplate},
+		{"project strings", "/project/i18n/fr.yaml", ChangeTemplate},
+		{"image in public", "/project/public/img/logo.png", ChangeStatic},
 	}
 
 	for _, tt := range tests {
@@ -87,7 +89,8 @@ func TestShouldIgnore(t *testing.T) {
 		{"git dir", "/project/.git/HEAD", true},
 		{"cache dir", "/project/.cache/data", true},
 		{"dist dir", "/project/dist/index.html", true},
-		{"public dir", "/project/public/index.html", true},
+		// public/ is the static root: watched, so its CSS hot-swaps.
+		{"public file", "/project/public/index.html", false},
 		{"hidden file", "/project/content/.DS_Store", true},
 		{"swap file", "/project/content/hello.md.swp", true},
 		{"tilde file", "/project/content/hello.md~", true},
@@ -145,7 +148,7 @@ func TestShouldIgnoreDir(t *testing.T) {
 		{"git", ".git", true},
 		{"cache", ".cache", true},
 		{"dist", "dist", true},
-		{"public", "public", true},
+		{"public", "public", false},
 		{"node_modules", "node_modules", true},
 		{"hidden", ".hidden", true},
 		{"content", "content", false},
@@ -418,5 +421,17 @@ func TestWatcherStop_CancelsPendingDebounce(t *testing.T) {
 	case <-fired:
 		t.Fatal("onChange fired after Stop")
 	case <-time.After(100 * time.Millisecond):
+	}
+}
+
+// A build output folder named public is still not watched, so the build's
+// own writes cannot trigger a rebuild loop.
+func TestShouldIgnore_OutputDirNamedPublic(t *testing.T) {
+	w := &Watcher{projectDir: filepath.FromSlash("/project"), outputDir: "public"}
+	if !w.shouldIgnore(filepath.FromSlash("/project/public/index.html")) {
+		t.Error("a file in the output dir must be ignored")
+	}
+	if !w.shouldIgnoreDir(filepath.FromSlash("/project/public")) {
+		t.Error("the output dir must not be watched")
 	}
 }

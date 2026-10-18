@@ -2,11 +2,9 @@
 package taxonomy
 
 import (
-	"crypto/sha256"
 	"fmt"
 
 	"github.com/getsarde/sarde/internal/config"
-	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/engine"
 )
 
@@ -89,15 +87,10 @@ func BuildTaxonomies(pages []*engine.Page, taxCfg map[string]config.TaxonomyConf
 // both slugify to "c") — in that case the existing term silently absorbs the
 // page instead of the collision being reported, unless we surface it here.
 func addTerm(tax *engine.Taxonomy, termName string, page *engine.Page) string {
-	slug := content.Slugify(termName)
-	if slug == "" {
-		// termName has no ASCII alphanumeric characters (all punctuation, CJK,
-		// Cyrillic, etc.), so Slugify collapses it to "". Left as-is, this
-		// would key the term under "" and its permalink (tax.Permalink + "/")
-		// would collide with the taxonomy index page. Fall back to a short
-		// hash of the original name instead.
-		slug = fmt.Sprintf("%x", sha256.Sum256([]byte(termName)))[:8]
-	}
+	// A name with no ASCII alphanumerics (all punctuation, CJK, Cyrillic)
+	// slugifies to "", which would key the term under "" and collide its
+	// permalink with the taxonomy index page; TermSlug hashes those names.
+	slug := TermSlug(termName)
 
 	var warning string
 	term, ok := tax.Terms[slug]

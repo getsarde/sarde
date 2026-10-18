@@ -1,8 +1,6 @@
 package content
 
 import (
-	"crypto/sha256"
-	"fmt"
 	"path"
 	"path/filepath"
 	"strings"
@@ -51,15 +49,7 @@ func ComputePermalinkFromRelPath(relPath string) string {
 		}
 		return "/" + dir + "/"
 	default:
-		name := strings.TrimSuffix(base, path.Ext(base))
-		slug, _ := FilenameSlug(name + ".md")
-		if slug == "" {
-			slug = Slugify(name)
-		}
-		if slug == "" {
-			h := sha256.Sum256([]byte(name))
-			slug = fmt.Sprintf("%x", h[:4])
-		}
+		slug, _ := FileSlug(strings.TrimSuffix(base, path.Ext(base)))
 		if dir == "" {
 			return "/" + slug + "/"
 		}
@@ -135,15 +125,7 @@ func ComputePermalink(contentDir, filePath string) string {
 
 	default:
 		// Regular page or standalone
-		name := strings.TrimSuffix(base, filepath.Ext(base))
-		slug, _ := FilenameSlug(name + ".md")
-		if slug == "" {
-			slug = Slugify(name)
-		}
-		if slug == "" {
-			h := sha256.Sum256([]byte(name))
-			slug = fmt.Sprintf("%x", h[:4])
-		}
+		slug, _ := FileSlug(strings.TrimSuffix(base, filepath.Ext(base)))
 		if dir == "" {
 			return "/" + slug + "/"
 		}

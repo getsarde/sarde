@@ -10,6 +10,7 @@ import (
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/theme"
+	"github.com/getsarde/sarde/internal/webfonts"
 )
 
 // buildHeadFixtureSite builds a docs site with the `clean` preset (Plus
@@ -85,5 +86,27 @@ func TestBuild_HeadLoadsPresetWebFontsAndSiteTags(t *testing.T) {
 	head := html[:strings.Index(html, "</head>")]
 	if fonts, themeCSS := strings.Index(head, "fonts.bunny.net/css"), strings.Index(head, `href="/assets/`); themeCSS == -1 || fonts > themeCSS {
 		t.Errorf("the web font stylesheet should come before the theme CSS:\n%s", head)
+	}
+}
+
+// The academic preset sets serif headings, not a serif interface: its
+// Merriweather stack goes to font-heading, font-sans stays the default, and
+// web_fonts still loads Merriweather from the heading stack.
+func TestAcademicPreset_SerifHeadingsOnly(t *testing.T) {
+	thm, _ := theme.LoadFromFS(embedded.ThemeFS(), ".")
+	defaults := theme.DefaultTokens()
+	light := theme.ResolveTokens(defaults, thm, "academic", nil)
+
+	if !strings.Contains(light["font-heading"], "Merriweather") {
+		t.Errorf("font-heading = %q, want the Merriweather stack", light["font-heading"])
+	}
+	if light["font-sans"] != defaults["font-sans"] {
+		t.Errorf("font-sans = %q, want the default %q", light["font-sans"], defaults["font-sans"])
+	}
+	if css := string(theme.GenerateStyleTag(light, nil)); !strings.Contains(css, "--sd-font-heading:") || !strings.Contains(css, "Merriweather") {
+		t.Errorf("style tag does not set --sd-font-heading to Merriweather")
+	}
+	if fams := webfonts.Families(light); len(fams) == 0 || fams[0] != "Merriweather" {
+		t.Errorf("web font families = %v, want Merriweather from the heading stack", fams)
 	}
 }

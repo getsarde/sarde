@@ -227,3 +227,28 @@ func TestComputePermalinkFromRelPath(t *testing.T) {
 		})
 	}
 }
+
+// A date-prefixed file's URL uses the slug the inferrer gives the page:
+// the date and then a numeric prefix are stripped.
+func TestComputePermalink_DatePrefix(t *testing.T) {
+	content := filepath.Join("project", "content")
+	tests := []struct {
+		rel  string
+		want string
+	}{
+		{"blog/2024-03-15-hello-world.md", "/blog/hello-world/"},
+		{"blog/2024-01-15-01-intro.md", "/blog/intro/"},
+		// Not a real date: only the numeric-prefix rule applies.
+		{"blog/2024-13-45-not-a-date.md", "/blog/13-45-not-a-date/"},
+		{"blog/03-setup.md", "/blog/setup/"},
+	}
+	for _, tt := range tests {
+		parts := strings.Split(tt.rel, "/")
+		if got := ComputePermalink(content, filepath.Join(append([]string{content}, parts...)...)); got != tt.want {
+			t.Errorf("ComputePermalink(%s) = %q, want %q", tt.rel, got, tt.want)
+		}
+		if got := ComputePermalinkFromRelPath(tt.rel); got != tt.want {
+			t.Errorf("ComputePermalinkFromRelPath(%s) = %q, want %q", tt.rel, got, tt.want)
+		}
+	}
+}

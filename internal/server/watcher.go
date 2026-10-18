@@ -102,7 +102,7 @@ func (w *Watcher) Start() error {
 	w.watcher = fsw
 
 	// Add recursive watches on key directories.
-	watchDirs := []string{consts.DirContent, consts.DirLayouts, consts.DirAssets, consts.DirData, consts.DirPublic, consts.DirThemes, consts.DirPlugins, consts.DirDirectives}
+	watchDirs := []string{consts.DirContent, consts.DirLayouts, consts.DirAssets, consts.DirData, consts.DirPublic, consts.DirThemes, consts.DirPlugins, consts.DirDirectives, consts.DirI18n}
 	for _, dir := range watchDirs {
 		abs := filepath.Join(w.projectDir, dir)
 		if info, err := os.Stat(abs); err == nil && info.IsDir() {
@@ -327,8 +327,9 @@ func (w *Watcher) shouldIgnore(path string) bool {
 		return true
 	}
 
-	// Ignore default output and cache directories.
-	if strings.HasPrefix(rel, "dist/") || strings.HasPrefix(rel, "public/") ||
+	// Ignore default output and cache directories. public/ is the static
+	// root, watched like content: its CSS hot-swaps, other files rebuild.
+	if strings.HasPrefix(rel, "dist/") ||
 		strings.HasPrefix(rel, ".cache/") || strings.HasPrefix(rel, ".git/") {
 		return true
 	}
@@ -363,7 +364,7 @@ func (w *Watcher) shouldIgnoreDir(path string) bool {
 	}
 	name := filepath.Base(path)
 	switch name {
-	case ".git", ".cache", "dist", "public", "node_modules", ".svn", ".hg":
+	case ".git", ".cache", "dist", "node_modules", ".svn", ".hg":
 		return true
 	}
 	return strings.HasPrefix(name, ".")
@@ -417,6 +418,13 @@ func (w *Watcher) classifyChange(path string) ChangeKind {
 	// construction, so any yaml/html/css change needs a fresh builder,
 	// same as templates. Theme-side directives/ hit the themes/ rule above.
 	if strings.HasPrefix(rel, consts.DirDirectives+"/") {
+		return ChangeTemplate
+	}
+
+	// Project translation strings: the build reloads them on every Build(),
+	// but plugins built once per builder (announcements, telescope) hold
+	// their table, so a fresh builder, the same as theme i18n under themes/.
+	if strings.HasPrefix(rel, consts.DirI18n+"/") {
 		return ChangeTemplate
 	}
 

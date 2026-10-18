@@ -241,3 +241,49 @@ func TestInfer_ShowUpdatedFalseStillResolvesUpdated(t *testing.T) {
 		t.Error("ShowUpdated should report false so the badge stays hidden")
 	}
 }
+
+// A name in non-Latin script slugifies to nothing; the page's slug falls
+// back to the same hash its URL uses, so a /:slug/ pattern stays distinct.
+func TestInfer_NonLatinFilenameSlugMatchesPermalink(t *testing.T) {
+	dir := t.TempDir()
+	contentDir := filepath.Join(dir, "content")
+	os.MkdirAll(filepath.Join(contentDir, "blog"), 0755)
+	inf := &Inferrer{}
+
+	slugs := map[string]bool{}
+	for _, name := range []string{"日本語.md", "Привет.md"} {
+		path := filepath.Join(contentDir, "blog", name)
+		os.WriteFile(path, []byte("content"), 0644)
+		page := &engine.Page{PageContent: engine.PageContent{RawContent: "content"}}
+		inf.Infer(page, path)
+
+		if len(page.Slug) != 8 {
+			t.Errorf("%s: Slug = %q, want the 8-hex fallback", name, page.Slug)
+		}
+		if want := "/blog/" + page.Slug + "/"; ComputePermalink(contentDir, path) != want {
+			t.Errorf("%s: permalink %q does not end in the slug %q", name, ComputePermalink(contentDir, path), page.Slug)
+		}
+		slugs[page.Slug] = true
+	}
+	if len(slugs) != 2 {
+		t.Errorf("two non-Latin names got the same slug: %v", slugs)
+	}
+}
+
+// "2024" in a date prefix is a year, not a sidebar order.
+func TestInfer_DatePrefixCarriesNoOrder(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "2024-03-15-hello.md")
+	os.WriteFile(path, []byte("content"), 0644)
+
+	// The frontmatter set the slug, so only the order comes from the name.
+	page := &engine.Page{PageIdentity: engine.PageIdentity{Slug: "greeting"}, PageContent: engine.PageContent{RawContent: "content"}}
+	(&Inferrer{}).Infer(page, path)
+
+	if page.Sidebar.Order != 0 {
+		t.Errorf("Order = %d, want 0", page.Sidebar.Order)
+	}
+	if page.Title != "Hello" {
+		t.Errorf("Title = %q, want %q (the date is not part of the title)", page.Title, "Hello")
+	}
+}

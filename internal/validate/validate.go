@@ -2,8 +2,11 @@ package validate
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/getsarde/sarde/internal/suggest"
 )
 
 // Error describes a single validation failure. The json tags define the
@@ -14,10 +17,16 @@ type Error struct {
 	Value   string   `json:"value,omitempty"`   // the invalid value (stringified for display)
 	Message string   `json:"message"`           // human-readable explanation with valid options
 	Allowed []string `json:"allowed,omitempty"` // valid values when the check was an enumeration
+	// Suggestion is the allowed value closest to Value, when it looks like a
+	// typo of one (an edit distance of 2 or less).
+	Suggestion string `json:"suggestion,omitempty"`
 }
 
 func (e Error) Error() string {
-	if e.Value != "" {
+	switch {
+	case e.Value != "" && e.Suggestion != "":
+		return fmt.Sprintf("%s: %s (got %q; did you mean %q?)", e.Path, e.Message, e.Value, e.Suggestion)
+	case e.Value != "":
 		return fmt.Sprintf("%s: %s (got %q)", e.Path, e.Message, e.Value)
 	}
 	return fmt.Sprintf("%s: %s", e.Path, e.Message)
@@ -29,21 +38,25 @@ type Checker struct {
 }
 
 // OneOf checks that value is one of the allowed strings.
-// Skips if value is empty (zero value means "use default").
+// Skips if value is empty (zero value means "use default"). The error lists
+// the allowed values sorted and without duplicates, so it reads the same on
+// every run, and suggests the closest one when value looks like a typo.
 func (c *Checker) OneOf(path, value string, allowed []string) {
 	if value == "" {
 		return
 	}
-	for _, a := range allowed {
-		if value == a {
-			return
-		}
+	if slices.Contains(allowed, value) {
+		return
 	}
+	list := slices.Clone(allowed)
+	slices.Sort(list)
+	list = slices.Compact(list)
 	c.errors = append(c.errors, Error{
-		Path:    path,
-		Value:   value,
-		Message: fmt.Sprintf("must be one of: %s", strings.Join(allowed, ", ")),
-		Allowed: allowed,
+		Path:       path,
+		Value:      value,
+		Message:    fmt.Sprintf("must be one of: %s", strings.Join(list, ", ")),
+		Allowed:    list,
+		Suggestion: suggest.Closest(value, list),
 	})
 }
 

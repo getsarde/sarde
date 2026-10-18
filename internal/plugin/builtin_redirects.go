@@ -28,8 +28,12 @@ func redirectsBuildDone(ctx *BuildDoneContext) error {
 		redirects[from] = to
 	}
 
-	// 2. Page aliases (override global if conflict).
+	// 2. Page aliases (override global if conflict). A fallback copy of an
+	// untranslated page carries its source's aliases; the source owns them.
 	for _, page := range ctx.Pages {
+		if page.IsFallback {
+			continue
+		}
 		for _, alias := range page.Aliases {
 			redirects[alias] = page.URL()
 		}
@@ -51,6 +55,7 @@ func redirectsBuildDone(ctx *BuildDoneContext) error {
 	format := ctx.Config.Deploy.RedirectFormat
 	netlifyEnabled := format == "" || format == "all" || format == "netlify"
 	vercelEnabled := format == "" || format == "all" || format == "vercel"
+	status := redirectStatus(ctx.Config.Deploy.Provider, format)
 
 	// Write HTML meta-refresh files (universal fallback) and build _redirects content.
 	var redirectsFile strings.Builder
@@ -71,7 +76,7 @@ func redirectsBuildDone(ctx *BuildDoneContext) error {
 
 		// Append to _redirects file (Netlify/Cloudflare format).
 		if netlifyEnabled {
-			fmt.Fprintf(&redirectsFile, "%s  %s  301\n", from, to)
+			fmt.Fprintf(&redirectsFile, "%s  %s  %s\n", from, to, status)
 		}
 	}
 
@@ -91,6 +96,19 @@ func redirectsBuildDone(ctx *BuildDoneContext) error {
 
 	ctx.Log(fmt.Sprintf("Generated %d redirect(s)", len(redirects)))
 	return nil
+}
+
+// redirectStatus is the status column of the _redirects rules. Netlify
+// serves a file that exists at the source path instead of applying a plain
+// rule, and the HTML stub written above is such a file, so a site that
+// targets Netlify gets the forced form ("301!"). Cloudflare Pages reads the
+// same file but follows its rules over files anyway and does not document
+// the "!" suffix, so every other target keeps the plain status.
+func redirectStatus(provider, format string) string {
+	if provider == "netlify" || format == "netlify" {
+		return "301!"
+	}
+	return "301"
 }
 
 type vercelRedirect struct {

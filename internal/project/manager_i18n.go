@@ -11,16 +11,9 @@ import (
 
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/consts"
-	"github.com/getsarde/sarde/internal/content"
 )
 
 var languageCodePattern = regexp.MustCompile(`^[a-z]{2,3}(-[a-z0-9]+)*$`)
-
-// TranslationCoverage reports content coverage for one collection x language pair.
-type TranslationCoverage struct {
-	Total      int `json:"total"`
-	Translated int `json:"translated"`
-}
 
 // AddLanguage registers a new language in i18n.languages. The first time a
 // second language is configured, default_language is set to the existing
@@ -125,144 +118,6 @@ func (pm *ProjectManager) RemoveLanguage(code string, deleteContent bool) error 
 	}
 
 	return pm.reresolveAndBroadcast(projectDir)
-}
-
-// ScaffoldLanguageContent creates content/<code>/<collection>/ directories
-// with _index.md stubs mirroring the default language's collections, and
-// seeds i18n/<code>.yaml from the default language's translation file.
-func (pm *ProjectManager) ScaffoldLanguageContent(code string) error {
-	pm.mu.Lock()
-	if pm.state == StateClosed {
-		pm.mu.Unlock()
-		return fmt.Errorf("no project open")
-	}
-	projectDir := pm.projectDir
-	contentDir := pm.contentDir()
-	cfg := pm.config
-	pm.mu.Unlock()
-
-	code = strings.ToLower(strings.TrimSpace(code))
-	if !languageCodePattern.MatchString(code) {
-		return fmt.Errorf("invalid language code %q", code)
-	}
-
-	defaultLang := "en"
-	if cfg != nil && cfg.I18n.DefaultLanguage != "" {
-		defaultLang = cfg.I18n.DefaultLanguage
-	}
-
-	// Discover collection names from the default-language content tree, if
-	// present; otherwise fall back to the content root (pre-i18n layout).
-	scanDir := contentDir
-	if fi, err := os.Stat(filepath.Join(contentDir, defaultLang)); err == nil && fi.IsDir() {
-		scanDir = filepath.Join(contentDir, defaultLang)
-	}
-
-	entries, err := os.ReadDir(scanDir)
-	if err != nil {
-		return fmt.Errorf("reading content directory: %w", err)
-	}
-
-	targetRoot := filepath.Join(contentDir, code)
-	for _, e := range entries {
-		if !e.IsDir() || strings.HasPrefix(e.Name(), ".") || strings.HasPrefix(e.Name(), "_") {
-			continue
-		}
-		colDir := filepath.Join(targetRoot, e.Name())
-		if err := os.MkdirAll(colDir, 0o755); err != nil {
-			return fmt.Errorf("creating collection directory: %w", err)
-		}
-		indexPath := filepath.Join(colDir, "_index.md")
-		if _, err := os.Stat(indexPath); os.IsNotExist(err) {
-			title := content.FilenameToTitle(e.Name())
-			stub := fmt.Sprintf("---\ntitle: %q\n---\n", title)
-			if err := os.WriteFile(indexPath, []byte(stub), 0o644); err != nil {
-				return fmt.Errorf("writing index stub: %w", err)
-			}
-		}
-	}
-
-	// Seed i18n/<code>.yaml from the default language's file, or create empty.
-	i18nDir := filepath.Join(projectDir, "i18n")
-	if err := os.MkdirAll(i18nDir, 0o755); err != nil {
-		return fmt.Errorf("creating i18n directory: %w", err)
-	}
-	targetFile := filepath.Join(i18nDir, code+".yaml")
-	if _, err := os.Stat(targetFile); os.IsNotExist(err) {
-		defaultFile := filepath.Join(i18nDir, defaultLang+".yaml")
-		data, err := os.ReadFile(defaultFile)
-		if err != nil {
-			data = []byte{}
-		}
-		if err := os.WriteFile(targetFile, data, 0o644); err != nil {
-			return fmt.Errorf("writing i18n file: %w", err)
-		}
-	}
-
-	pm.eventHub.Broadcast(Event{Type: "config:changed"})
-	return nil
-}
-
-// TranslationStatus returns, per collection and language, the total number
-// of pages in the default language and how many exist in each language.
-func (pm *ProjectManager) TranslationStatus() (map[string]map[string]TranslationCoverage, error) {
-	pm.mu.RLock()
-	if pm.state == StateClosed {
-		pm.mu.RUnlock()
-		return nil, fmt.Errorf("no project open")
-	}
-	contentDir := pm.contentDir()
-	cfg := pm.config
-	pm.mu.RUnlock()
-
-	if cfg == nil {
-		return map[string]map[string]TranslationCoverage{}, nil
-	}
-
-	defaultLang := cfg.I18n.GetDefaultLanguage()
-
-	languages := []string{defaultLang}
-	for _, code := range cfg.I18n.LanguageCodes() {
-		if code != defaultLang {
-			languages = append(languages, code)
-		}
-	}
-
-	// Discover collections from the default-language tree, if present;
-	// otherwise fall back to the content root (pre-i18n layout).
-	defaultDir := contentDir
-	if fi, err := os.Stat(filepath.Join(contentDir, defaultLang)); err == nil && fi.IsDir() {
-		defaultDir = filepath.Join(contentDir, defaultLang)
-	}
-
-	entries, err := os.ReadDir(defaultDir)
-	if err != nil {
-		return nil, fmt.Errorf("reading content directory: %w", err)
-	}
-
-	result := make(map[string]map[string]TranslationCoverage)
-	for _, e := range entries {
-		if !e.IsDir() || strings.HasPrefix(e.Name(), ".") || strings.HasPrefix(e.Name(), "_") {
-			continue
-		}
-		colName := e.Name()
-		total := countMarkdownFiles(filepath.Join(defaultDir, colName))
-
-		perLang := make(map[string]TranslationCoverage, len(languages))
-		perLang[defaultLang] = TranslationCoverage{Total: total, Translated: total}
-
-		for _, lang := range languages {
-			if lang == defaultLang {
-				continue
-			}
-			translated := countMarkdownFiles(filepath.Join(contentDir, lang, colName))
-			perLang[lang] = TranslationCoverage{Total: total, Translated: translated}
-		}
-
-		result[colName] = perLang
-	}
-
-	return result, nil
 }
 
 // ---------------------------------------------------------------------------

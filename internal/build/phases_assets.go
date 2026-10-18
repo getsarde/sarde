@@ -407,6 +407,7 @@ func (b *SiteBuilder) validateLinks(s *buildState) (bool, error) {
 	emitCollisionWarnings(s.pageIndex.Collisions())
 
 	links.ValidateAnchors(b.linkGraph, s.pendingAnchors, s.pageIndex)
+	recordFrontmatterRefs(b.linkGraph, s.allPages, s.pageIndex, b.urlResolver)
 
 	var langCodes []string
 	if s.isMultiLang {
@@ -483,10 +484,14 @@ func (b *SiteBuilder) validateLinks(s *buildState) (bool, error) {
 		}
 		for _, f := range reportResult.Findings {
 			if f.Policy == "warn" {
+				msg := fmt.Sprintf("%s: %s", f.Type.Label(), f.Ref.RawDest)
+				if f.Ref.Field != "" {
+					msg += " (frontmatter " + f.Ref.Field + ")"
+				}
 				s.warnings = append(s.warnings, engine.ValidationWarning{
 					File:    f.Ref.FromFile,
 					Field:   "link",
-					Message: fmt.Sprintf("%s: %s", f.Type.Label(), f.Ref.RawDest),
+					Message: msg,
 					Level:   "warn",
 					Line:    f.Ref.Line,
 					Col:     f.Ref.Col,

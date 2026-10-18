@@ -110,3 +110,40 @@ func TestFilenameSlug(t *testing.T) {
 		}
 	}
 }
+
+func TestSlugOrHash(t *testing.T) {
+	if got := SlugOrHash("Getting Started"); got != "getting-started" {
+		t.Errorf("SlugOrHash(ASCII) = %q", got)
+	}
+	a, b := SlugOrHash("日本語"), SlugOrHash("Привет")
+	if len(a) != 8 || len(b) != 8 || a == b {
+		t.Errorf("SlugOrHash(non-Latin) = %q, %q, want two distinct 8-hex hashes", a, b)
+	}
+	if SlugOrHash("日本語") != a {
+		t.Error("SlugOrHash is not stable")
+	}
+}
+
+func TestFileSlug(t *testing.T) {
+	tests := []struct {
+		name      string
+		wantSlug  string
+		wantOrder int
+	}{
+		{"hello-world", "hello-world", 0},
+		{"03-setup", "setup", 3},
+		{"2024-03-15-hello", "hello", 0},
+		{"2024-01-15-02-intro", "intro", 2},
+		{"2024-02-30-bad-date", "02-30-bad-date", 2024},
+		{"01-日本語", "01", 1},
+	}
+	for _, tt := range tests {
+		slug, order := FileSlug(tt.name)
+		if slug != tt.wantSlug || order != tt.wantOrder {
+			t.Errorf("FileSlug(%q) = (%q, %d), want (%q, %d)", tt.name, slug, order, tt.wantSlug, tt.wantOrder)
+		}
+	}
+	if slug, _ := FileSlug("日本語"); slug != SlugOrHash("日本語") {
+		t.Errorf("FileSlug(non-Latin) = %q, want the hash", slug)
+	}
+}

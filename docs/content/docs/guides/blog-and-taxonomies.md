@@ -147,7 +147,7 @@ taxonomies:
 
 ### Term metadata
 
-Define display names, descriptions, icons, and colors for terms in `data/<taxonomy>.yml`. Key each entry by the term's slug (the lowercase, hyphenated form of the term):
+Define display names, descriptions, icons, and colors for terms in `data/<taxonomy>.yml`. Key each entry by the term's slug (the lowercase, hyphenated form of the term). A term written only in characters outside the Latin alphabet, such as `日本語`, has no such form, and its slug is the first 8 hex characters of a hash of the name; its term page URL shows it:
 
 ```yaml title="data/tags.yml"
 biology:

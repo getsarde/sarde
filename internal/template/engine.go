@@ -20,6 +20,7 @@ import (
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/i18n"
 	sardeplugin "github.com/getsarde/sarde/internal/plugin"
+	"github.com/getsarde/sarde/internal/taxonomy"
 )
 
 // Engine loads templates from the resolved lookup chain and renders pages to HTML.
@@ -360,14 +361,10 @@ func (e *Engine) funcMapForLang(lang string) htmltemplate.FuncMap {
 		return relPath
 	}
 	fm["termURL"] = func(taxonomyName, termName string) string {
-		slug := content.Slugify(termName)
-		url := "/" + taxonomyName + "/" + slug + "/"
+		url := "/" + taxonomyName + "/" + taxonomy.TermSlug(termName) + "/"
 		if e.site != nil {
-			taxMap := e.lookupTaxonomies(lang)
-			if tax, ok := taxMap[taxonomyName]; ok && tax != nil {
-				if term, ok := tax.Terms[slug]; ok {
-					url = term.Permalink
-				}
+			if term := taxonomy.LookupTerm(e.lookupTaxonomies(lang)[taxonomyName], termName); term != nil {
+				url = term.Permalink
 			}
 		}
 		if e.urlResolver != nil {
@@ -379,14 +376,7 @@ func (e *Engine) funcMapForLang(lang string) htmltemplate.FuncMap {
 		if e.site == nil {
 			return nil
 		}
-		slug := content.Slugify(termName)
-		taxMap := e.lookupTaxonomies(lang)
-		if tax, ok := taxMap[taxonomyName]; ok && tax != nil {
-			if term, ok := tax.Terms[slug]; ok {
-				return term
-			}
-		}
-		return nil
+		return taxonomy.LookupTerm(e.lookupTaxonomies(lang)[taxonomyName], termName)
 	}
 	fm["topTerms"] = func(taxonomyName string, n int) []*engine.TaxonomyTerm {
 		if e.site == nil {

@@ -49,6 +49,7 @@ author: example-author
 homepage: https://example.com/grade-sync
 premium: true
 purchase_url: https://example.com/buy/grade-sync
+requires: [search]
 
 inject:
   when: collection
@@ -71,6 +72,7 @@ output:
 | `homepage` | No | Project or documentation URL. |
 | `premium` | No | `true` requires a valid license before the plugin activates. Default `false`. |
 | `purchase_url` | No | Where to buy a license. Shown in install output and license warnings. |
+| `requires` | No | Ids of plugins this one needs enabled to work fully, built-in (`search`) or another plugin under `plugins/`. Informational: the build does not enable them or refuse to run without them. `sarde plugins --format json` lists them, `sarde plugin info` prints them, and Sarde Studio warns when one is off. An id that matches no plugin is a build warning; listing the plugin itself is an error. |
 | `inject` | No | Conditional per-page asset injection. See below. |
 | `output` | No | Which files under `assets/` are copied to the build output, and where. See below. |
 

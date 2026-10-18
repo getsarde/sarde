@@ -220,3 +220,17 @@ func TestNewExternalPluginHooks(t *testing.T) {
 		t.Errorf("expected injection with always: true, got %v", rd.Styles)
 	}
 }
+
+// requires may name a built-in or another project plugin; an unknown id is
+// a warning, and the plugin still loads (requires is informational).
+func TestLoadAllRequiresUnknownPluginWarns(t *testing.T) {
+	project := t.TempDir()
+	writePluginFixture(t, project, "quiz", "name: Quiz\nslug: quiz\nversion: 1.0.0\nrequires: [search, scoreboard, nope]\n")
+	writePluginFixture(t, project, "scoreboard", "name: Scoreboard\nslug: scoreboard\nversion: 1.0.0\n")
+
+	mgr := plugin.NewManager()
+	_, _, warnings := LoadAll(mgr, project, config.Defaults(), []string{"search"})
+	if len(warnings) != 1 || !strings.Contains(warnings[0].Message, `requires unknown plugin "nope"`) {
+		t.Errorf("warnings = %+v, want one for the unknown id", warnings)
+	}
+}

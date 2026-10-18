@@ -59,7 +59,7 @@ sarde i18n status .
 
 - `add-language` adds the code to `i18n.languages` in `sarde.yaml`. It rewrites the file from parsed data, so comments and key order may change.
 - `scaffold` creates `content/fr/<collection>/_index.md` stubs for each collection and an `i18n/fr.yaml` seeded from the default language's project file.
-- `status` reports how many Markdown files each language has per collection compared with the default language.
+- `status` reports, per collection, how many default-language pages each language has translated, pairing pages by path.
 
 See [CLI Commands](/reference/cli-commands/#i18n) for every flag.
 

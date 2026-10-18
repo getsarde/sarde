@@ -93,3 +93,54 @@ func TestBuildPage_OGCard_AbsentLeavesParamUnset(t *testing.T) {
 		t.Error("pages without an og_card block must not set the param")
 	}
 }
+
+// buildNamedPage is buildTestPage with a chosen file name and collection
+// config.
+func buildNamedPage(t *testing.T, name, markdown string, collCfg *engine.CollectionConfig) *engine.Page {
+	t.Helper()
+	contentDir := t.TempDir()
+	blogDir := filepath.Join(contentDir, "blog")
+	if err := os.MkdirAll(blogDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	filePath := filepath.Join(blogDir, name)
+	if err := os.WriteFile(filePath, []byte(markdown), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cf := content.ContentFile{
+		FilePath:       filePath,
+		RelPath:        "blog/" + name,
+		LangRelPath:    "blog/" + name,
+		Kind:           engine.KindPage,
+		CollectionName: "blog",
+	}
+	page, _, err := buildPage(cf, contentDir, collCfg, nil, 0, "mtime", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return page
+}
+
+// A YYYY-MM-DD- file name dates the page (the mtime prefill used to hide
+// it), and its URL and slug agree on the name without the date.
+func TestBuildPage_DatePrefixedName(t *testing.T) {
+	page := buildNamedPage(t, "2024-03-15-hello-world.md", "---\ntitle: Hello\n---\n\nBody.\n", nil)
+	if page.Date.Format("2006-01-02") != "2024-03-15" || !page.DateExplicit {
+		t.Errorf("Date = %v (explicit %v), want 2024-03-15 from the name", page.Date, page.DateExplicit)
+	}
+	if page.Slug != "hello-world" || page.RelPermalink != "/blog/hello-world/" {
+		t.Errorf("Slug = %q, RelPermalink = %q, want hello-world and /blog/hello-world/", page.Slug, page.RelPermalink)
+	}
+}
+
+// Two posts named in non-Latin script get distinct :slug URLs instead of
+// both collapsing to /blog/2024/.
+func TestBuildPage_PatternPermalinkNonLatinSlug(t *testing.T) {
+	cfg := &engine.CollectionConfig{Permalink: "/blog/:year/:slug/"}
+	md := "---\ntitle: Post\ndate: 2024-05-01\n---\n\nBody.\n"
+	a := buildNamedPage(t, "日本語.md", md, cfg)
+	b := buildNamedPage(t, "Привет.md", md, cfg)
+	if a.RelPermalink == "/blog/2024/" || b.RelPermalink == "/blog/2024/" || a.RelPermalink == b.RelPermalink {
+		t.Errorf("RelPermalinks = %q, %q, want two distinct /blog/2024/<hash>/ URLs", a.RelPermalink, b.RelPermalink)
+	}
+}
