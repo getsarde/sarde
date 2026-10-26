@@ -172,12 +172,22 @@ func (c *Checker) Errors() []Error { return c.errors }
 // HasErrors returns true if any errors were recorded.
 func (c *Checker) HasErrors() bool { return len(c.errors) > 0 }
 
-// FormatErrors joins all errors into a single multi-line string.
+// FormatErrors joins all errors into a single multi-line string. An
+// enumeration's list of allowed values is printed once: a later error with
+// the same list (every bad entry of plugins.enabled) refers back to it.
 func FormatErrors(errs []Error) string {
 	var b strings.Builder
+	listed := map[string]bool{}
 	for i, e := range errs {
 		if i > 0 {
 			b.WriteByte('\n')
+		}
+		if len(e.Allowed) > 0 {
+			if listed[e.Message] {
+				e.Message = "must be one of the values listed above"
+			} else {
+				listed[e.Message] = true
+			}
 		}
 		b.WriteString(e.Error())
 	}

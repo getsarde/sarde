@@ -200,6 +200,24 @@ func TestFirstProseParagraph_CodeFenceContainingColons(t *testing.T) {
 	}
 }
 
+func TestFirstProseParagraph_TildeAndLongerFences(t *testing.T) {
+	tests := []struct {
+		name string
+		raw  string
+	}{
+		{"tilde fence", "~~~\ncode line\n~~~\n\nProse."},
+		{"longer fence holding a shorter one", "````md\n```\ncode line\n```\n````\n\nProse."},
+		{"backticks inside a tilde fence", "~~~\n```\ncode line\n~~~\n\nProse."},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := firstProseParagraph(tt.raw); got != "Prose." {
+				t.Errorf("firstProseParagraph = %q, want %q", got, "Prose.")
+			}
+		})
+	}
+}
+
 func TestExtractSummary_SkipsHTMLBlocks(t *testing.T) {
 	// extractSummary shares the scanner's HTML-block skip that previously
 	// only extractDescription had.
@@ -220,6 +238,7 @@ func TestTransform_DescriptionInferred(t *testing.T) {
 		{"inferred from first paragraph", "# Title\n\nOpening sentence.\n", "", true},
 		{"set in frontmatter", "# Title\n\nOpening sentence.\n", "Written by the author.", false},
 		{"no prose to infer from", "# Title\n\n```go\nfmt.Println()\n```\n", "", false},
+		{"only a tilde-fenced block", "# Title\n\n~~~go\nfmt.Println()\n~~~\n", "", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

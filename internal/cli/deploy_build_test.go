@@ -40,10 +40,36 @@ func TestDeployJSON_BuildFirst(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(dir, "dist", "index.html")); err != nil {
 		t.Fatalf("--build did not write dist/index.html: %v", err)
 	}
-	// Every stdout line is a deploy event: the build reports nothing there.
+	// Every stdout line is an event: the build's own come first, ending
+	// with its result, then the deploy's.
 	events := decodeEvents(t, lines)
-	if events[0]["event"] != "start" {
-		t.Errorf("first line = %v, want the start event", events[0])
+	if events[0]["event"] != "build_start" {
+		t.Errorf("first line = %v, want the build_start event", events[0])
+	}
+	index := map[string]int{}
+	phases := 0
+	for i, e := range events {
+		name, _ := e["event"].(string)
+		if _, seen := index[name]; !seen {
+			index[name] = i
+		}
+		if name == "build_phase" {
+			phases++
+			if e["phase"] == "" || e["duration_ms"] == nil {
+				t.Errorf("build_phase = %v", e)
+			}
+		}
+	}
+	if phases == 0 {
+		t.Error("no build_phase events")
+	}
+	br, ok := index["build_result"]
+	if !ok || br > index["start"] {
+		t.Fatalf("build_result missing or after start: %v", index)
+	}
+	result, _ := events[br]["result"].(map[string]any)
+	if result["PageCount"] == nil || result["OutputDir"] == nil {
+		t.Errorf("build_result.result = %v, want the BuildResult", result)
 	}
 	if last := events[len(events)-1]; last["event"] != "result" || last["ok"] != true {
 		t.Errorf("last event = %v", last)
@@ -66,9 +92,40 @@ func TestDeployJSON_BuildFailureIsBuildFailed(t *testing.T) {
 		t.Fatal("expected the build to fail")
 	}
 	events := decodeEvents(t, lines)
+	if events[0]["event"] != "build_start" {
+		t.Errorf("first line = %v, want the build_start event", events[0])
+	}
 	env, ok := events[len(events)-1]["error"].(map[string]any)
 	if !ok || env["kind"] != "build_failed" {
 		t.Errorf("last line = %v, want a build_failed envelope", events[len(events)-1])
+	}
+	for _, e := range events {
+		if e["event"] == "build_result" || e["event"] == "start" {
+			t.Errorf("a failed build sent %v", e)
+		}
+	}
+}
+
+func TestDeployJSON_BuildWarningsAreEvents(t *testing.T) {
+	dir := buildableDeploySite(t, "deploy:\n  provider: custom\n  command: echo shipped\n")
+	// A skipped heading level: a content-lint warning in the result, not a
+	// failure.
+	os.WriteFile(filepath.Join(dir, "content", "_index.md"),
+		[]byte("---\ntitle: Home\n---\n# Welcome\n\n### Skipped a level\n\nText.\n"), 0o644)
+
+	lines, err := runDeployCLI(t, dir, "--format", "json", "--check=false", "--provider", "", "--build")
+	if err != nil {
+		t.Fatalf("deploy --build: %v\n%s", err, strings.Join(lines, "\n"))
+	}
+	var warnings []any
+	for _, e := range decodeEvents(t, lines) {
+		if e["event"] == "build_result" {
+			result, _ := e["result"].(map[string]any)
+			warnings, _ = result["Warnings"].([]any)
+		}
+	}
+	if len(warnings) == 0 {
+		t.Errorf("build_result carries no warnings for a broken link:\n%s", strings.Join(lines, "\n"))
 	}
 }
 

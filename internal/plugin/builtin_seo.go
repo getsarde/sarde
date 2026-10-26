@@ -62,9 +62,11 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 	// <meta name="description"> tag sees it too. Without this, pages
 	// lacking a frontmatter description got og:description but no classic
 	// meta description at all. Guarded so an explicit value is never
-	// overwritten.
+	// overwritten. The value is inferred, so PageTitle does not show it
+	// under the title.
 	if page.Description == "" && description != "" {
 		page.Description = description
+		page.DescriptionInferred = true
 	}
 
 	// Build image URL.

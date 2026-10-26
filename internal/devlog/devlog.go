@@ -23,7 +23,39 @@ var (
 
 	quiet     atomic.Bool
 	warnCount atomic.Int64
+
+	// sink, when set, receives Log, Warn and Error lines instead of stderr:
+	// a run whose stdout is a machine-readable stream turns them into
+	// events there. Guarded by mu.
+	sink func(level, tag, msg string)
 )
+
+// SetSink sends Log ("info"), Warn ("warn") and Error ("error") lines to fn
+// instead of stderr until the returned restore runs. Quiet still silences
+// Log, and Warn still counts.
+func SetSink(fn func(level, tag, msg string)) (restore func()) {
+	mu.Lock()
+	prev := sink
+	sink = fn
+	mu.Unlock()
+	return func() {
+		mu.Lock()
+		sink = prev
+		mu.Unlock()
+	}
+}
+
+// toSink hands a line to the sink, if one is set; false means print it.
+func toSink(level, tag, msg string) bool {
+	mu.Lock()
+	fn := sink
+	mu.Unlock()
+	if fn == nil {
+		return false
+	}
+	fn(level, tag, msg)
+	return true
+}
 
 func timestamp() string { return time.Now().Format("15:04:05") }
 
@@ -135,6 +167,9 @@ func Log(tag, format string, args ...any) {
 	if quiet.Load() {
 		return
 	}
+	if toSink("info", tag, fmt.Sprintf(format, args...)) {
+		return
+	}
 	line := FormatLog(tag, fmt.Sprintf(format, args...)) + "\n"
 	mu.Lock()
 	writeLineUnlocked(line)
@@ -145,6 +180,9 @@ func Log(tag, format string, args ...any) {
 func Warn(tag, format string, args ...any) {
 	warnCount.Add(1)
 	msg := fmt.Sprintf(format, args...)
+	if toSink("warn", tag, msg) {
+		return
+	}
 	line := fmt.Sprintf("%s %s %s %s\n", Bold(timestamp()), Yellow("[WARN]"), Yellow("["+tag+"]"), msg)
 	mu.Lock()
 	writeLineUnlocked(line)
@@ -154,6 +192,9 @@ func Warn(tag, format string, args ...any) {
 // Error prints an error log line: "15:04:05 [ERROR] [tag] message"
 func Error(tag, format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
+	if toSink("error", tag, msg) {
+		return
+	}
 	line := fmt.Sprintf("%s %s %s %s\n", Bold(timestamp()), Red("[ERROR]"), Red("["+tag+"]"), msg)
 	mu.Lock()
 	writeLineUnlocked(line)

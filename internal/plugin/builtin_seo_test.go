@@ -297,6 +297,40 @@ func TestSEO_RenderedFallbackWhenSummaryEmpty(t *testing.T) {
 	}
 }
 
+func TestSEO_RenderedFallbackSkipsCodeAndMarksTheDescriptionInferred(t *testing.T) {
+	run := func(content string) *engine.Page {
+		page := &engine.Page{
+			PageIdentity: engine.PageIdentity{Title: "Example", RelPermalink: "/example/"},
+			PageContent:  engine.PageContent{Content: template.HTML(content)},
+		}
+		ctx := &BeforeRenderContext{
+			Page:  page,
+			Site:  &engine.SiteContext{BaseURL: "https://example.com"},
+			store: NewStore(),
+		}
+		if err := seoBeforeRender(ctx, map[string]any{}); err != nil {
+			t.Fatalf("seoBeforeRender failed: %v", err)
+		}
+		return page
+	}
+
+	// Only code and a diagram: no prose, so no description at all.
+	codeOnly := run(`<figure class="frame" data-lang="go"><pre data-language="go"><div class="kz-code"><div class="kz-line">fmt.Println("hi")</div></div></pre></figure>` +
+		`<div class="sarde-mermaid not-content">graph TD; A--&gt;B</div>`)
+	if codeOnly.Description != "" {
+		t.Errorf("Description = %q, want none for a code-only page", codeOnly.Description)
+	}
+
+	// Prose around code: the prose only, inferred, so PageTitle hides it.
+	mixed := run(`<pre><code>npm install</code></pre><p>Run <code>sarde build</code> to publish.</p>`)
+	if mixed.Description != "Run sarde build to publish." {
+		t.Errorf("Description = %q", mixed.Description)
+	}
+	if !mixed.DescriptionInferred {
+		t.Error("a description written back from the page body must be marked inferred")
+	}
+}
+
 func TestSEO_RenderedFallbackRespectsAutoDescriptionOptOut(t *testing.T) {
 	page := &engine.Page{
 		PageIdentity: engine.PageIdentity{Title: "Welcome", RelPermalink: "/"},

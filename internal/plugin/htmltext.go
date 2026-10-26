@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"html"
 	"html/template"
 	"strings"
 	"unicode/utf8"
@@ -85,11 +86,13 @@ func TrimTitlePrefix(text, title string) string {
 // truncated to at most maxChars at a word boundary, for use as a last-resort
 // description when both the frontmatter description and the auto-generated
 // summary are empty (e.g. a body that is entirely directive blocks, which
-// the raw-markdown summary extractor rightly skips). Entities are left
-// encoded: callers apply a single terminal html.UnescapeString so the value
-// is decoded exactly once.
+// the raw-markdown summary extractor rightly skips). Code blocks, diagrams
+// and math source are not prose and never become the excerpt
+// (ExtractProseText), so a page that is only code has none. Entities are
+// left encoded: callers apply a single terminal html.UnescapeString so the
+// value is decoded exactly once.
 func RenderedTextFallback(content template.HTML, maxChars int) string {
-	text := StripHTML(TruncateRuneSafe(string(content), renderedFallbackScanBytes))
+	text := html.EscapeString(ExtractProseText(TruncateRuneSafe(string(content), renderedFallbackScanBytes)))
 	runes := []rune(text)
 	if len(runes) <= maxChars {
 		return text

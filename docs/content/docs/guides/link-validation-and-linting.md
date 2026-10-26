@@ -181,7 +181,7 @@ content_lint:
 |------|------|---------|-------------|
 | `heading_max_length` | int | `60` | Maximum heading text length. `0` disables the rule. |
 | `heading_increment` | bool | `true` | Warn when heading levels skip, for example `#` followed by `####`. |
-| `image_alt_required` | bool | `true` | Warn on images with empty alt text (`![](...)`). |
+| `image_alt_required` | bool | `true` | Warn on images with empty alt text (`![](...)`) and on HTML `<img>` tags with no `alt` attribute (`alt=""` marks a decorative image and passes). |
 | `no_empty_links` | bool | `true` | Warn on links with empty text (`[](...)`). |
 | `frontmatter_required` | string[] | `[]` | Frontmatter fields every page must have, for example `["title", "description"]`. |
 | `tabs_marker_syntax` | bool | `true` | Warn on `:::tabs` blocks whose `== Label` markers are malformed or missing. |

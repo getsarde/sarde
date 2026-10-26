@@ -54,6 +54,12 @@ type Watcher struct {
 	watcher      *fsnotify.Watcher
 	externalDirs []externalWatch
 
+	// The static root (public/) and, where subtreeWatchSupported, its one
+	// subtree watch; extra carries that watch's events into loop().
+	staticDir string
+	static    *subtreeWatch
+	extra     chan fsnotify.Event
+
 	mu      sync.Mutex
 	timer   *time.Timer
 	pending []FileChange
@@ -93,6 +99,25 @@ func (w *Watcher) AddExternalDir(dir string, kind, cssKind ChangeKind) {
 	w.externalDirs = append(w.externalDirs, externalWatch{dir: abs, kind: kind, cssKind: cssKind})
 }
 
+// watchDirs are the project folders watched recursively.
+var watchDirs = []string{consts.DirContent, consts.DirLayouts, consts.DirAssets, consts.DirData, consts.DirPublic, consts.DirThemes, consts.DirPlugins, consts.DirDirectives, consts.DirI18n}
+
+// isNewRootLevelOther reports whether path is a folder directly in the
+// project root that is none of watchDirs: the root's own watch reports it,
+// but nothing inside it is watched (a renamed-away public/ included).
+func (w *Watcher) isNewRootLevelOther(path string) bool {
+	if filepath.Dir(filepath.Clean(path)) != filepath.Clean(w.projectDir) {
+		return false
+	}
+	name := filepath.Base(path)
+	for _, d := range watchDirs {
+		if name == d {
+			return false
+		}
+	}
+	return true
+}
+
 // Start begins watching project directories for changes.
 func (w *Watcher) Start() error {
 	fsw, err := fsnotify.NewWatcher()
@@ -100,12 +125,17 @@ func (w *Watcher) Start() error {
 		return err
 	}
 	w.watcher = fsw
+	w.staticDir = filepath.Join(w.projectDir, consts.DirPublic)
+	w.extra = make(chan fsnotify.Event, 1024)
 
 	// Add recursive watches on key directories.
-	watchDirs := []string{consts.DirContent, consts.DirLayouts, consts.DirAssets, consts.DirData, consts.DirPublic, consts.DirThemes, consts.DirPlugins, consts.DirDirectives, consts.DirI18n}
 	for _, dir := range watchDirs {
 		abs := filepath.Join(w.projectDir, dir)
 		if info, err := os.Stat(abs); err == nil && info.IsDir() {
+			if abs == w.staticDir && subtreeWatchSupported {
+				w.openStatic()
+				continue
+			}
 			w.addRecursive(abs)
 		}
 	}
@@ -144,8 +174,14 @@ func (w *Watcher) Stop() {
 	}
 	w.pending = nil
 	started := w.started
+	static := w.static
+	w.static = nil
 	w.mu.Unlock()
 
+	if static != nil {
+		static.close()
+		<-static.done
+	}
 	if w.watcher != nil {
 		w.watcher.Close()
 	}
@@ -165,48 +201,10 @@ func (w *Watcher) loop() {
 			if !ok {
 				return
 			}
-			if !isRelevantOp(event.Op) {
-				continue
-			}
-			if w.shouldIgnore(event.Name) {
-				continue
-			}
+			w.handleEvent(event)
 
-			// If a new directory is created, watch it recursively and queue
-			// the files already inside it: files that landed before the watch
-			// attached (e.g. a pasted folder) emit no events of their own.
-			if event.Op&fsnotify.Create != 0 {
-				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
-					w.addRecursive(event.Name)
-					w.enqueueDirFiles(event.Name)
-				}
-			}
-
-			// Writes to a directory (emitted alongside writes to files inside
-			// it) carry no information of their own and would misclassify the
-			// batch (e.g. a CSS-only save escalating to a template rebuild
-			// via its parent dir). Remove/Rename targets fail the stat and
-			// pass through.
-			if event.Op&fsnotify.Write != 0 && event.Op&(fsnotify.Remove|fsnotify.Rename) == 0 {
-				if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
-					continue
-				}
-			}
-
-			// The project root is watched for config files only; skip every
-			// other root-level entry (stray files, the watched dirs
-			// themselves). Content inside subdirectories arrives via their
-			// own recursive watches.
-			if w.isRootLevelNonConfig(event.Name) {
-				continue
-			}
-
-			change := FileChange{
-				Path:       event.Name,
-				Kind:       w.classifyChange(event.Name),
-				DetectedAt: time.Now(),
-			}
-			w.debounceChange(change)
+		case event := <-w.extra:
+			w.handleEvent(event)
 
 		case err, ok := <-w.watcher.Errors:
 			if !ok {
@@ -214,6 +212,108 @@ func (w *Watcher) loop() {
 			}
 			devlog.Error("watch", "%v", err)
 		}
+	}
+}
+
+func (w *Watcher) handleEvent(event fsnotify.Event) {
+	if !isRelevantOp(event.Op) {
+		return
+	}
+	if w.shouldIgnore(event.Name) {
+		return
+	}
+
+	// A removed or renamed folder takes its watches along: a watch left on
+	// a renamed folder would report its files under the old path.
+	if event.Op&(fsnotify.Remove|fsnotify.Rename) != 0 {
+		w.unwatchTree(event.Name)
+	}
+
+	// If a new directory is created, watch it recursively and queue
+	// the files already inside it: files that landed before the watch
+	// attached (e.g. a pasted folder) emit no events of their own.
+	if event.Op&fsnotify.Create != 0 && !w.isNewRootLevelOther(event.Name) {
+		if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+			if event.Name == w.staticDir && subtreeWatchSupported {
+				w.openStatic()
+			} else {
+				w.addRecursive(event.Name)
+			}
+			w.enqueueDirFiles(event.Name)
+		}
+	}
+
+	// Writes to a directory (emitted alongside writes to files inside
+	// it) carry no information of their own and would misclassify the
+	// batch (e.g. a CSS-only save escalating to a template rebuild
+	// via its parent dir). Remove/Rename targets fail the stat and
+	// pass through.
+	if event.Op&fsnotify.Write != 0 && event.Op&(fsnotify.Remove|fsnotify.Rename) == 0 {
+		if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+			return
+		}
+	}
+
+	// The project root is watched for config files only; skip every
+	// other root-level entry (stray files, the watched dirs
+	// themselves). Content inside subdirectories arrives via their
+	// own recursive watches.
+	if w.isRootLevelNonConfig(event.Name) {
+		return
+	}
+
+	change := FileChange{
+		Path:       event.Name,
+		Kind:       w.classifyChange(event.Name),
+		DetectedAt: time.Now(),
+	}
+	w.debounceChange(change)
+}
+
+// unwatchTree drops the fsnotify watches on dir and every folder under it,
+// and the static root's subtree watch when dir is the static root.
+func (w *Watcher) unwatchTree(dir string) {
+	if dir == w.staticDir {
+		w.mu.Lock()
+		static := w.static
+		w.static = nil
+		w.mu.Unlock()
+		if static != nil {
+			static.close()
+		}
+	}
+	prefix := dir + string(filepath.Separator)
+	for _, p := range w.watcher.WatchList() {
+		if p == dir || strings.HasPrefix(p, prefix) {
+			_ = w.watcher.Remove(p)
+		}
+	}
+}
+
+// openStatic starts the static root's subtree watch (subtreeWatchSupported
+// only), replacing any earlier one.
+func (w *Watcher) openStatic() {
+	sw, err := openSubtreeWatch(w.staticDir, func(ev fsnotify.Event, quit <-chan struct{}) bool {
+		select {
+		case w.extra <- ev:
+			return true
+		case <-quit:
+			return false
+		}
+	}, func() {
+		// Events were lost: treat every file as changed.
+		w.enqueueDirFiles(w.staticDir)
+	})
+	if err != nil {
+		devlog.Error("watch", "%s: %v", w.staticDir, err)
+		return
+	}
+	w.mu.Lock()
+	old := w.static
+	w.static = sw
+	w.mu.Unlock()
+	if old != nil {
+		old.close()
 	}
 }
 
@@ -277,13 +377,22 @@ func (w *Watcher) addRecursive(root string) {
 			return nil
 		}
 		if info.IsDir() {
-			if w.shouldIgnoreDir(path) {
+			if w.shouldIgnoreDir(path) || w.coveredByStatic(path) {
 				return filepath.SkipDir
 			}
 			w.watcher.Add(path)
 		}
 		return nil
 	})
+}
+
+// coveredByStatic reports whether dir is the static root or inside it while
+// a subtree watch covers it, so it needs no fsnotify watch of its own.
+func (w *Watcher) coveredByStatic(dir string) bool {
+	if !subtreeWatchSupported || w.staticDir == "" {
+		return false
+	}
+	return dir == w.staticDir || strings.HasPrefix(dir, w.staticDir+string(filepath.Separator))
 }
 
 // enqueueDirFiles queues every file already inside a newly created directory

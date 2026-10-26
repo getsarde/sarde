@@ -18,6 +18,7 @@ import (
 	"github.com/getsarde/sarde/internal/buildlock"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/deploy"
+	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/outputpath"
 )
 
@@ -187,14 +188,21 @@ func runDeployWith(ctx context.Context, cmd *cobra.Command, args []string, run d
 	defer lock.Release()
 
 	if run.build {
+		br := buildRun{format: run.format, out: cmd.OutOrStdout(), provider: deployCfg.Provider}
 		// JSON mode keeps stdout to the deploy's event stream: the build
-		// reports nothing there, and its failure surfaces as build_failed.
-		out := cmd.OutOrStdout()
+		// reports there as build_start, build_log, build_phase and
+		// build_result events, and its failure surfaces as build_failed.
 		if run.format == "json" {
-			out = io.Discard
+			br.out = io.Discard
+			if jr, ok := rep.(*jsonDeployReporter); ok {
+				jr.BuildStart()
+				restore := devlog.SetSink(jr.BuildLog)
+				defer restore()
+				br.onPhase = jr.BuildPhase
+				br.onResult = jr.BuildResult
+			}
 		}
-		err := runBuildTo(cmd, args, buildRun{format: run.format, out: out, provider: deployCfg.Provider})
-		if err != nil {
+		if err := runBuildTo(cmd, args, br); err != nil {
 			return &deployBuildError{err: err}
 		}
 	} else if _, err := os.Stat(outputDir); os.IsNotExist(err) {

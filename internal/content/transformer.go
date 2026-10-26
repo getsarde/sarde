@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/getsarde/sarde/internal/content/markdown/fence"
 	"github.com/getsarde/sarde/internal/engine"
 )
 
@@ -74,17 +75,13 @@ var directiveOpenRe = regexp.MustCompile(`^:{3,}\s*[\w-]`)
 func firstProseParagraph(markdown string) string {
 	lines := strings.Split(markdown, "\n")
 	var para strings.Builder
-	inCodeFence := false
+	var code fence.CodeFence // backtick and tilde fences, closer at least as long
 	directiveDepth := 0
 	inPara := false
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "```") {
-			inCodeFence = !inCodeFence
-			continue
-		}
-		if inCodeFence {
+		if code.Feed(trimmed) {
 			continue
 		}
 		if strings.HasPrefix(trimmed, ":::") {

@@ -145,3 +145,36 @@ func TestDisplayPath(t *testing.T) {
 		t.Errorf("config reference: got %q", got)
 	}
 }
+
+func TestSetSinkTakesLogWarnAndError(t *testing.T) {
+	buf := capture(t, false)
+	type line struct{ level, tag, msg string }
+	var got []line
+	restore := SetSink(func(level, tag, msg string) { got = append(got, line{level, tag, msg}) })
+	before := WarnCount()
+	Log("build", "rendered %d pages", 3)
+	Warn("lint", "heading skipped")
+	Error("build", "failed")
+	restore()
+
+	want := []line{{"info", "build", "rendered 3 pages"}, {"warn", "lint", "heading skipped"}, {"error", "build", "failed"}}
+	if len(got) != len(want) {
+		t.Fatalf("sink got %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("line %d = %v, want %v", i, got[i], want[i])
+		}
+	}
+	if buf.Len() != 0 {
+		t.Errorf("sinked lines reached the output: %q", buf.String())
+	}
+	if WarnCount()-before != 1 {
+		t.Errorf("a sinked warning must still count")
+	}
+	// Restored: lines print again.
+	Log("build", "after")
+	if !strings.Contains(buf.String(), "after") {
+		t.Errorf("output after restore = %q", buf.String())
+	}
+}

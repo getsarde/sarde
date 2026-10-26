@@ -58,11 +58,11 @@ Flags headings that skip levels (e.g., jumping from `##` to `####`).
 
 ### Image alt text
 
-Flags images with empty alt text (`![](path)`).
+Flags Markdown images with empty alt text (`![](path)`) and HTML `<img>` tags with no `alt` attribute. An empty `alt=""` marks a decorative image and is not flagged.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `image_alt_required` | Boolean | `true` | Require non-empty alt text on all images. |
+| `image_alt_required` | Boolean | `true` | Require non-empty alt text on Markdown images, and an `alt` attribute on HTML `<img>` tags (`alt=""` marks a decorative image). |
 
 ```markdown
 ![](diagram.png)
@@ -155,7 +155,7 @@ During incremental rebuilds (e.g., in `sarde dev`), only changed pages are re-li
 | `enabled` | Boolean | `true` | Enable or disable the plugin entirely. |
 | `rules.heading_max_length` | Number | `60` | Maximum heading text length. `0` disables. Must be at least 1 when set. |
 | `rules.heading_increment` | Boolean | `true` | Require heading levels to increment by one. |
-| `rules.image_alt_required` | Boolean | `true` | Require non-empty image alt text. |
+| `rules.image_alt_required` | Boolean | `true` | Require image alt text (Markdown and HTML). |
 | `rules.no_empty_links` | Boolean | `true` | Flag links with empty display text. |
 | `rules.frontmatter_required` | List | `[]` | Frontmatter fields that must be present on every non-draft page. |
 | `rules.tabs_marker_syntax` | Boolean | `true` | Flag tabs blocks whose `== Label` markers are malformed or missing. |

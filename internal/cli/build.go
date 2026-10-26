@@ -63,6 +63,11 @@ type buildRun struct {
 	// provider, when set, overrides deploy.provider for the build, so the
 	// redirects plugin writes the rules for the host being deployed to.
 	provider string
+	// onPhase and onResult, set by `deploy --build --format json`, receive
+	// each finished build phase and the result instead of the JSON
+	// BuildResult on out.
+	onPhase  func(engine.PhaseTiming)
+	onResult func(*engine.BuildResult)
 }
 
 func runBuildTo(cmd *cobra.Command, args []string, run buildRun) error {
@@ -139,6 +144,8 @@ func runBuildTo(cmd *cobra.Command, args []string, run buildRun) error {
 		report.contentDir = builder.ContentDir()
 		builder.SetPhaseObserver(report.onPhase)
 		devlog.SetProgress("build", "%s...", build.FullBuildPhases()[0])
+	} else if run.onPhase != nil {
+		builder.SetPhaseObserver(run.onPhase)
 	}
 
 	result, err := builder.Build()
@@ -151,6 +158,10 @@ func runBuildTo(cmd *cobra.Command, args []string, run buildRun) error {
 	// summary entirely. Consumed by the benchmark harness (cmd/sarde-bench)
 	// and any tooling that wants structured build stats.
 	if format == "json" {
+		if run.onResult != nil {
+			run.onResult(result)
+			return nil
+		}
 		return json.NewEncoder(run.out).Encode(result)
 	}
 

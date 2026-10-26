@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`sarde deploy --build --format json` reports the build:** the build's result, log lines and phases were discarded, so tooling saw nothing of the build until the deploy started, and a failed build left only a `build_failed` envelope. The event stream now opens with `build_start`, carries each log line as `build_log` and each finished phase as `build_phase`, and ends the build with `build_result`, the object `sarde build --format json` prints, warnings included. Without `--build` the stream is unchanged. See [`deploy`](/reference/cli-commands/#json-output).
+
+### Changed
+
+- **`image_alt_required` checks HTML images:** the rule flagged only Markdown images with empty alt text (`![](...)`), so an `<img>` tag with no `alt` attribute passed. It is now flagged too. An empty `alt=""` marks a decorative image and still passes. Sarde Studio's editor applies the same rule. See [Content Lint](/plugins/content-lint/).
+
+### Fixed
+
+- **No code in auto descriptions:** a page with no prose took its description from the rendered HTML, code blocks and Mermaid source included, and the page header showed that text under the title. The rendered fallback now skips code blocks, diagrams and math, and a description it writes is marked inferred, so the header never shows it. RSS, Atom and social cards use the same text.
+- **`~~~` code blocks in auto descriptions:** the first-paragraph extractor treated only backtick fences as code, so the content of a tilde fence could become the page description or summary. Both fence kinds now count, and a closing fence must be at least as long as the opening one.
+- **Config errors list the allowed values once:** a config with several unknown plugins in `plugins.enabled` printed the full list of plugin names after each one. Later errors with the same list now point back to it. JSON output is unchanged.
+- **Renaming `public/` while `sarde dev` runs on Windows:** the dev server held a watch on every folder inside `public/`, and Windows refuses to rename a folder while a folder inside it is open, so the rename failed with "Access is denied". On Windows the dev server now watches `public/` through one handle on the folder itself, which does not block it, and on every platform a renamed or removed folder drops its watches. A new folder in the project root that is not one of the watched folders is no longer watched.
+
 ## [1.6.0] - 2026-10-18
 
 ### Added

@@ -36,6 +36,47 @@ var searchSkipClasses = map[string]bool{
 // a space is inserted at element boundaries, matching StripHTML's shape. On
 // a parse failure it falls back to StripHTML.
 func ExtractSearchText(s string) string {
+	return extractText(s, func(n *nethtml.Node) bool {
+		return searchSkipTags[n.Data] || hasClass(n, func(cls string) bool { return searchSkipClasses[cls] })
+	})
+}
+
+// proseSkipTags are elements whose subtree is never part of a page's prose:
+// the search skips plus code blocks.
+var proseSkipTags = map[string]bool{
+	"script":   true,
+	"style":    true,
+	"noscript": true,
+	"svg":      true,
+	"iframe":   true,
+	"template": true,
+	"pre":      true,
+}
+
+// proseSkipClasses are the class tokens of code and diagram markup: Mermaid
+// source, raw math, and Kazari's code frames. "not-content" is not among
+// them: cards and asides carry it and are prose.
+var proseSkipClasses = map[string]bool{
+	"sarde-mermaid": true,
+	"sarde-math":    true,
+	"frame":         true, // <figure class="frame">, a Kazari code block
+}
+
+// ExtractProseText returns the prose of rendered page HTML: ExtractSearchText
+// without code blocks, diagrams or math source, for a description written
+// from the page body. Inline <code> stays, as part of its sentence. Entities
+// are decoded once.
+func ExtractProseText(s string) string {
+	return extractText(s, func(n *nethtml.Node) bool {
+		return proseSkipTags[n.Data] || hasClass(n, func(cls string) bool {
+			return proseSkipClasses[cls] || strings.HasPrefix(cls, "kz-")
+		})
+	})
+}
+
+// extractText is the walk behind ExtractSearchText and ExtractProseText:
+// the text of every subtree `skip` keeps, whitespace collapsed.
+func extractText(s string, skip func(*nethtml.Node) bool) string {
 	doc, err := nethtml.Parse(strings.NewReader(s))
 	if err != nil {
 		return StripHTML(s)
@@ -66,7 +107,7 @@ func ExtractSearchText(s string) string {
 			writeText(n.Data)
 			return
 		case nethtml.ElementNode:
-			if searchSkipTags[n.Data] || hasSearchSkipClass(n) {
+			if skip(n) {
 				return
 			}
 			if !lastSpace {
@@ -86,13 +127,14 @@ func ExtractSearchText(s string) string {
 	return strings.TrimSpace(b.String())
 }
 
-func hasSearchSkipClass(n *nethtml.Node) bool {
+// hasClass reports whether one of n's class tokens satisfies match.
+func hasClass(n *nethtml.Node, match func(string) bool) bool {
 	for _, a := range n.Attr {
 		if a.Key != "class" {
 			continue
 		}
 		for _, cls := range strings.Fields(a.Val) {
-			if searchSkipClasses[cls] {
+			if match(cls) {
 				return true
 			}
 		}

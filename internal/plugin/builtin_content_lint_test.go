@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -59,6 +60,26 @@ func TestContentLint_ImageAlt(t *testing.T) {
 
 	if len(issues) != 2 {
 		t.Fatalf("expected 2 issues, got %d", len(issues))
+	}
+}
+
+func TestContentLint_HTMLImageAlt(t *testing.T) {
+	issues := checkImageAlt(lintLines([]string{
+		`<img src="a.png" alt="A cat">`,
+		`<img src="decorative.png" alt="">`,
+		`<img src="bare.png" alt>`,
+		`<img src="missing.png" width="40">`,
+		`<IMG SRC=upper.png />`,
+		`<img src="titled.png" title="alt">`,
+		"`<img src=\"code.png\">` in inline code",
+		`<imgx src="not-an-img.png">`,
+	}))
+	var lines []int
+	for _, is := range issues {
+		lines = append(lines, is.Line)
+	}
+	if want := []int{4, 5, 6}; !slices.Equal(lines, want) {
+		t.Errorf("issue lines = %v, want %v", lines, want)
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/getsarde/sarde/internal/deploy"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // deployEventVersion is sent as "v" on every JSON event. Adding fields is
@@ -41,6 +42,26 @@ func (r *jsonDeployReporter) emit(event string, fields map[string]any) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	_ = r.enc.Encode(fields)
+}
+
+// BuildStart opens the build that `deploy --build` runs first.
+func (r *jsonDeployReporter) BuildStart() {
+	r.emit("build_start", map[string]any{})
+}
+
+// BuildLog is one build log line: level "info", "warn" or "error".
+func (r *jsonDeployReporter) BuildLog(level, tag, msg string) {
+	r.emit("build_log", map[string]any{"level": level, "tag": tag, "message": msg})
+}
+
+// BuildPhase is one finished build phase.
+func (r *jsonDeployReporter) BuildPhase(pt engine.PhaseTiming) {
+	r.emit("build_phase", map[string]any{"phase": pt.Phase, "duration_ms": pt.Duration.Milliseconds()})
+}
+
+// BuildResult carries the BuildResult `sarde build --format json` prints.
+func (r *jsonDeployReporter) BuildResult(res *engine.BuildResult) {
+	r.emit("build_result", map[string]any{"result": res})
 }
 
 func (r *jsonDeployReporter) Start(provider string) {

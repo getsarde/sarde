@@ -177,7 +177,7 @@ Internal, not for templates: `ContentDigest` and `FrontmatterDigest` are hashes 
 |-------|------|-------------|
 | `.Page.Draft` | `bool` | True for `draft: true` pages |
 | `.Page.Description` | `string` | Page description |
-| `.Page.DescriptionInferred` | `bool` | True when `Description` was derived from the first prose paragraph rather than set in frontmatter. The page header skips an inferred description because the body already opens with it |
+| `.Page.DescriptionInferred` | `bool` | True when `Description` was derived from the page body (the first prose paragraph, or the SEO plugin's fallback from the rendered text) rather than set in frontmatter. The page header skips an inferred description because the body already opens with it |
 | `.Page.Image` | `string` | Cover image from the `image` frontmatter field |
 | `.Page.DateExplicit` | `bool` | True when `Date` came from frontmatter or a `YYYY-MM-DD` filename prefix rather than file modification time. Check it before presenting a date as editorial content |
 

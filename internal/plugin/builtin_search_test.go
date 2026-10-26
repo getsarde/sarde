@@ -63,6 +63,45 @@ func TestExtractSearchText(t *testing.T) {
 	}
 }
 
+func TestExtractProseText(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{
+			"code block dropped, inline code kept",
+			`<pre><code>npm install</code></pre><p>Run <code>sarde build</code> now.</p>`,
+			"Run sarde build now.",
+		},
+		{
+			"kazari frame dropped",
+			`<figure class="frame" data-lang="go"><figcaption>main.go</figcaption><pre data-language="go"><div class="kz-code"><div class="kz-line">x := 1</div></div></pre></figure><p>After.</p>`,
+			"After.",
+		},
+		{
+			"mermaid and math dropped",
+			`<div class="sarde-mermaid not-content">graph TD; A--&gt;B;</div><p>Area is <span class="sarde-math">$x^2$</span> here.</p>`,
+			"Area is here.",
+		},
+		{
+			"cards stay, though not-content",
+			`<div class="card not-content"><p>Card prose.</p></div>`,
+			"Card prose.",
+		},
+		{
+			"entities decoded once",
+			"<p>R&amp;D</p>",
+			"R&D",
+		},
+	}
+	for _, tt := range tests {
+		if got := ExtractProseText(tt.input); got != tt.want {
+			t.Errorf("%s: ExtractProseText(%q) = %q, want %q", tt.name, tt.input, got, tt.want)
+		}
+	}
+}
+
 func TestSearch_PagefindFrontmatterExcludes(t *testing.T) {
 	outDir := t.TempDir()
 	var warnings []engine.ValidationWarning

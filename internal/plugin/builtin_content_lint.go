@@ -320,7 +320,25 @@ func checkHeadingIncrement(lines []string, fenced []bool) []lintIssue {
 	return issues
 }
 
-var emptyAltRegex = regexp.MustCompile(`!\[\]\(`)
+var (
+	emptyAltRegex = regexp.MustCompile(`!\[\]\(`)
+	htmlImgRegex  = regexp.MustCompile(`(?i)<img\b[^>]*>`)
+	quotedRegex   = regexp.MustCompile(`"[^"]*"|'[^']*'`)
+	altAttrRegex  = regexp.MustCompile(`(?i)\salt[\s=/>]`)
+)
+
+// htmlImageWithoutAlt reports whether line holds an HTML <img> with no alt
+// attribute. alt="" marks a decorative image and passes. Quoted attribute
+// values are blanked first, so title="alt" is not an alt attribute. Sarde
+// Studio's alt-text lint applies the same rule (image-scan.js).
+func htmlImageWithoutAlt(line string) bool {
+	for _, tag := range htmlImgRegex.FindAllString(line, -1) {
+		if !altAttrRegex.MatchString(quotedRegex.ReplaceAllString(tag, `""`)) {
+			return true
+		}
+	}
+	return false
+}
 
 func checkImageAlt(lines []string, fenced []bool) []lintIssue {
 	var issues []lintIssue
@@ -328,7 +346,8 @@ func checkImageAlt(lines []string, fenced []bool) []lintIssue {
 		if fenced[i] {
 			continue
 		}
-		if emptyAltRegex.MatchString(stripCodeSpans(line)) {
+		code := stripCodeSpans(line)
+		if emptyAltRegex.MatchString(code) || htmlImageWithoutAlt(code) {
 			issues = append(issues, lintIssue{
 				Line:    i + 1,
 				Message: "image missing alt text",

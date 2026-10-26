@@ -258,8 +258,12 @@ With `--format json`, stdout carries one JSON object per line and nothing else; 
 | `log` | `level` (`info` or `warn`), `message` | Warnings, and output of the `github` and `custom` providers |
 | `result` | `ok`, `provider`, `url`, `deploy_url`, `deploy_id`, `admin_url`, `files_total`, `files_uploaded`, `bytes_uploaded`, `duration_ms` | Last line of a successful deploy |
 | `check` | `ok`, `provider`, `target_id`, `target`, `url`, `account` | Last line of a successful `--check` |
+| `build_start` | none | With `--build`: first line, as the build begins |
+| `build_log` | `level` (`info`, `warn` or `error`), `tag`, `message` | With `--build`: each line the build logs, sent here instead of stderr |
+| `build_phase` | `phase`, `duration_ms` | With `--build`: as each build phase finishes |
+| `build_result` | `result`: the object `sarde build --format json` prints | With `--build`: once the build succeeds, before `start` |
 
-With `--build`, the build prints nothing to stdout. `url` is the live production address, and `deploy_url` the permalink of this particular deploy. A failure ends with the error envelope shared by the other commands, with kind `deploy_failed` (or `deploy_check_failed`, or `build_failed` when the `--build` build fails) and a `code`:
+With `--build`, the build reports through the `build_*` events: its warnings are in `build_result`'s `result.Warnings`, and a failed build sends its error lines as `build_log` events before the `build_failed` envelope. `url` is the live production address, and `deploy_url` the permalink of this particular deploy. A failure ends with the error envelope shared by the other commands, with kind `deploy_failed` (or `deploy_check_failed`, or `build_failed` when the `--build` build fails) and a `code`:
 
 ```json
 {"error":{"kind":"deploy_failed","message":"netlify: GET /sites/{site_id} returned HTTP 401: Access Denied","code":"auth"}}

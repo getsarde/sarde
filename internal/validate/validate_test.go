@@ -302,3 +302,28 @@ func TestFormatErrors(t *testing.T) {
 		t.Errorf("expected 1 newline, got %d", strings.Count(got, "\n"))
 	}
 }
+
+func TestFormatErrors_ListsAllowedValuesOnce(t *testing.T) {
+	var c Checker
+	known := []string{"search", "seo", "sitemap"}
+	c.OneOf("plugins.enabled[0]", "serch", known)
+	c.OneOf("plugins.enabled[1]", "sittemap", known)
+	c.OneOf("layout", "wide", []string{"default", "docs"})
+	got := FormatErrors(c.Errors())
+	if n := strings.Count(got, "must be one of: search, seo, sitemap"); n != 1 {
+		t.Errorf("the plugin list appears %d times, want 1:\n%s", n, got)
+	}
+	for _, want := range []string{
+		`plugins.enabled[0]: must be one of: search, seo, sitemap (got "serch"; did you mean "search"?)`,
+		`plugins.enabled[1]: must be one of the values listed above (got "sittemap"; did you mean "sitemap"?)`,
+		`layout: must be one of: default, docs (got "wide")`,
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
+	}
+	// The errors themselves keep their full message for JSON output.
+	if c.Errors()[1].Message != "must be one of: search, seo, sitemap" {
+		t.Errorf("FormatErrors changed the error: %q", c.Errors()[1].Message)
+	}
+}
