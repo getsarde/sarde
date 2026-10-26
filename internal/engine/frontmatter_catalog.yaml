@@ -55,8 +55,7 @@ categories:
       - key: title
         type: string
         label: Title
-        required: true
-        description: Page title displayed in the browser tab and site navigation.
+        description: Page title displayed in the browser tab and site navigation. Defaults to the first `# Heading`, then the file name.
 
       - key: slug
         type: string

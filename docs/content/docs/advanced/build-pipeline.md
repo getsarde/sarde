@@ -24,7 +24,7 @@ Sarde builds a site through six sequential phases. Some phases run their work it
 
 - Builds collections from discovered files (parallel-capable)
 - Parses frontmatter (YAML, TOML, JSON)
-- Applies the DefaultsInferrer (title from H1/filename, date from git/mtime, weight from numeric prefix)
+- Applies the DefaultsInferrer (title from H1/filename, date from a `YYYY-MM-DD-` filename prefix or the modification time, weight from numeric prefix)
 - Validates frontmatter against collection schemas
 - Builds standalone pages
 

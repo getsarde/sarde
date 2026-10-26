@@ -88,7 +88,7 @@ Configuration resolves in five layers. Later layers override earlier ones.
 4. **CLI flags** passed to the command
 5. **`SARDE_` environment variables**
 
-A value set nowhere falls through to the embedded default, which is why a project with no `sarde.yaml` still builds a complete site. To override the output directory for one build, pass a flag and leave the config file unchanged:
+A value set nowhere falls through to the embedded default, which is why a project with an empty `sarde.yaml`, or none at all, still builds a complete site. To override the output directory for one build, pass a flag and leave the config file unchanged:
 
 ```sh
 sarde build --output public

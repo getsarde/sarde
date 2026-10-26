@@ -85,7 +85,7 @@ The file opens in any text editor. It diffs cleanly in review, merges like sourc
 
 Sarde reads the folder layout and infers how each group of content behaves. A `docs/` directory gets documentation navigation with a collapsible sidebar and Previous/Next links. A `blog/` directory gets posts sorted newest first, with a feed. Any other directory name also works, and an unrecognized name becomes a general collection sorted by title.
 
-A `sarde.yaml` file at the project root changes the defaults. Every setting has a default, so the file is optional and needs only the values that differ.
+A `sarde.yaml` file at the project root changes the defaults. Every setting has a default, so the file is optional and needs only the values that differ. An empty file is valid too.
 
 [Core Concepts](/start-here/core-concepts/) covers which directory names mean what, and [Configuration](/reference/configuration/) lists every key.
 

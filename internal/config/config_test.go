@@ -638,3 +638,19 @@ func TestEnv_UnsetVarNoEffect(t *testing.T) {
 		t.Errorf("Site.Title changed to %q without env var set", cfg.Site.Title)
 	}
 }
+
+// A comments-only sarde.yaml resolves under strict loading to the embedded
+// defaults, the same as a project without the file.
+func TestResolve_EmptyConfigStrict(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "sarde.yaml")
+	if err := os.WriteFile(path, []byte("# nothing set yet\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Resolve(ResolveOptions{ConfigPath: path, Strict: true})
+	if err != nil {
+		t.Fatalf("Resolve: %v", err)
+	}
+	if cfg.Site.Title != "My Site" {
+		t.Errorf("Site.Title = %q, want the default %q", cfg.Site.Title, "My Site")
+	}
+}

@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/getsarde/sarde/internal/validate"
@@ -397,6 +398,30 @@ func TestLoadFileStrict_ValidFile(t *testing.T) {
 	}
 	if cfg.Site.Title != "Test" {
 		t.Errorf("Site.Title = %q, want %q", cfg.Site.Title, "Test")
+	}
+}
+
+// An empty or comments-only sarde.yaml holds no YAML document; it is a config
+// that sets nothing, not an EOF error.
+func TestLoadFileStrict_EmptyFile(t *testing.T) {
+	for name, body := range map[string]string{
+		"empty":         "",
+		"whitespace":    "\n  \n",
+		"comments only": "# site settings go here\n# site:\n#   title: x\n",
+	} {
+		t.Run(name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "sarde.yaml")
+			if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			cfg, err := LoadFileStrict(path)
+			if err != nil {
+				t.Fatalf("LoadFileStrict: %v", err)
+			}
+			if cfg == nil {
+				t.Fatal("expected an empty config, got nil")
+			}
+		})
 	}
 }
 

@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 
@@ -30,7 +31,8 @@ func LoadFile(path string) (*SiteConfig, error) {
 
 // LoadFileStrict reads a YAML config file with unknown-field detection enabled.
 // Any field in the YAML that doesn't map to a SiteConfig struct field causes
-// an error. Used only for the user's sarde.yaml (layer 3).
+// an error. Used only for the user's sarde.yaml (layer 3). An empty or
+// comments-only file is a config that sets nothing, as it is for LoadFile.
 func LoadFileStrict(path string) (*SiteConfig, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -44,6 +46,10 @@ func LoadFileStrict(path string) (*SiteConfig, error) {
 	dec := yaml.NewDecoder(f)
 	dec.KnownFields(true)
 	if err := dec.Decode(cfg); err != nil {
+		// A file without a YAML document decodes to io.EOF.
+		if errors.Is(err, io.EOF) {
+			return cfg, nil
+		}
 		return nil, fmt.Errorf("sarde.yaml: %w", err)
 	}
 	return cfg, nil

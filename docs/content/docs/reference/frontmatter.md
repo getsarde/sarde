@@ -56,7 +56,7 @@ If the opening brace is never balanced, the file is treated as content with no f
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `title` | string | inferred | Page title. Inferred from the first `# H1` heading or the filename if not set. **Required** (after inference). |
+| `title` | string | inferred | Page title. When not set, Sarde uses the first `# H1` heading, then the filename. |
 | `slug` | string | inferred | URL slug for the page. Inferred from the filename with numeric prefixes stripped. |
 | `date` | date | inferred | Publication date. Inferred from a `YYYY-MM-DD` filename prefix or the file modification time. |
 | `updated` | date | inferred | Last modification date. Inferred from the file's last git commit, or its modification time, per [`build.last_updated`](/reference/configuration/build-and-output/#last-updated-strategy). Set it explicitly when a commit date would misrepresent the change (a formatting sweep, for example). |
@@ -444,7 +444,7 @@ Sarde validates built-in frontmatter fields automatically, independent of per-co
 
 | Rule | Severity |
 |------|----------|
-| `title` is required (after inference) | error |
+| `title` must not be empty after inference (frontmatter, first `# H1`, filename) | error |
 | `toc.min_level` and `toc.max_level` must be 1-6 | warning |
 | `toc.min_level` must be &le; `toc.max_level` | warning |
 | `sidebar.order` must be &ge; 0 | warning |

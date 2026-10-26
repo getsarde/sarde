@@ -44,7 +44,7 @@ var validBadgeVariants = []string{
 
 func ValidatePageFields(page *engine.Page, fm *engine.Frontmatter) []engine.ValidationWarning {
 	var result []engine.ValidationWarning
-	result = append(result, validateIdentity(fm)...)
+	result = append(result, validateIdentity(page)...)
 	result = append(result, validateTOC(page)...)
 	result = append(result, validateSidebar(page)...)
 	result = append(result, validateLayout(fm)...)
@@ -111,8 +111,11 @@ func DetectUnknownFields(fmMap map[string]any, schema *engine.FrontmatterSchema,
 	return warnings
 }
 
-func validateIdentity(fm *engine.Frontmatter) []engine.ValidationWarning {
-	v := edict.FromStruct(fm)
+// validateIdentity checks the title after inference, which takes it from the
+// frontmatter, the first H1, or the file name, so a page with no frontmatter
+// title is valid.
+func validateIdentity(page *engine.Page) []engine.ValidationWarning {
+	v := edict.FromStruct(page)
 	v.Field("Title").Required()
 	return collectWarnings(v)
 }

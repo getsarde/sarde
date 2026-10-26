@@ -35,7 +35,7 @@ draft: false
 Markdown content starts here.
 ```
 
-Every frontmatter field is optional. Without a `title`, Sarde uses the first `# Heading` in the content, or the filename converted to title case. A page with no `title` in its frontmatter still builds, but the build prints a `<file>: is required` warning for it.
+Every frontmatter field is optional. Without a `title`, Sarde uses the first `# Heading` in the content, or the filename converted to title case.
 
 See [Frontmatter](/reference/frontmatter/) for the complete field reference.
 

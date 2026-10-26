@@ -40,8 +40,9 @@ func (pm *ProjectManager) UpdateSettings(input SettingsInput) error {
 		return fmt.Errorf("reading sarde.yaml: %w", err)
 	}
 
+	// An empty or comments-only sarde.yaml unmarshals to a nil map.
 	var raw map[string]any
-	if err := yaml.Unmarshal(data, &raw); err != nil {
+	if err := yaml.Unmarshal(data, &raw); err != nil || raw == nil {
 		raw = make(map[string]any)
 	}
 

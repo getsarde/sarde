@@ -198,6 +198,25 @@ func TestProjectManager_UpdateSettings(t *testing.T) {
 	}
 }
 
+// A comments-only sarde.yaml opens, and saving the settings writes into it
+// instead of panicking on the nil map it decodes to.
+func TestProjectManager_UpdateSettings_EmptyConfig(t *testing.T) {
+	dir := createTestProject(t)
+	os.WriteFile(filepath.Join(dir, "sarde.yaml"), []byte("# settings go here\n"), 0o644)
+	pm := NewProjectManager(NewEventHub(), embedded.ThemeFS(), nil)
+
+	if _, err := pm.OpenProject(dir); err != nil {
+		t.Fatalf("OpenProject failed: %v", err)
+	}
+	newTitle := "Updated Title"
+	if err := pm.UpdateSettings(SettingsInput{Title: &newTitle}); err != nil {
+		t.Fatalf("UpdateSettings failed: %v", err)
+	}
+	if got := pm.GetConfig().Site.Title; got != "Updated Title" {
+		t.Errorf("Title = %q, want Updated Title", got)
+	}
+}
+
 func TestProjectManager_GetCollections(t *testing.T) {
 	dir := createTestProject(t)
 	hub := NewEventHub()

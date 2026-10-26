@@ -7,7 +7,9 @@ import (
 	"github.com/getsarde/sarde/internal/engine"
 )
 
-func TestValidatePageFields_MissingTitle(t *testing.T) {
+// Inference fills the title from the frontmatter, the first H1, or the file
+// name, so only a title still empty after it is an error.
+func TestValidatePageFields_EmptyInferredTitle(t *testing.T) {
 	page := &engine.Page{}
 	fm := &engine.Frontmatter{}
 	warnings := ValidatePageFields(page, fm)
@@ -19,14 +21,16 @@ func TestValidatePageFields_MissingTitle(t *testing.T) {
 		}
 	}
 	if !found {
-		t.Error("expected error-level warning for missing title")
+		t.Error("expected error-level warning for an empty title")
 	}
 }
 
-func TestValidatePageFields_TitlePresent(t *testing.T) {
+// A page whose title came from its first H1 or file name has no frontmatter
+// title, and must not get a title warning.
+func TestValidatePageFields_InferredTitleOnly(t *testing.T) {
 	page := &engine.Page{}
+	page.Title = "From H1"
 	fm := &engine.Frontmatter{}
-	fm.Title = "Hello"
 	warnings := ValidatePageFields(page, fm)
 	for _, w := range warnings {
 		if w.Field == "title" {
@@ -38,7 +42,7 @@ func TestValidatePageFields_TitlePresent(t *testing.T) {
 func TestValidatePageFields_ZeroValues(t *testing.T) {
 	page := &engine.Page{}
 	fm := &engine.Frontmatter{}
-	fm.Title = "Present"
+	page.Title = "Present"
 	warnings := ValidatePageFields(page, fm)
 	if len(warnings) != 0 {
 		t.Errorf("expected no warnings for zero-value optional fields, got %d: %v", len(warnings), warnings)
@@ -51,7 +55,7 @@ func TestValidatePageFields_ValidValues(t *testing.T) {
 	page.TOC.MaxLevel = 4
 	page.Sidebar.Order = 5
 	fm := &engine.Frontmatter{}
-	fm.Title = "Present"
+	page.Title = "Present"
 	warnings := ValidatePageFields(page, fm)
 	if len(warnings) != 0 {
 		t.Errorf("expected no warnings for valid values, got %d: %v", len(warnings), warnings)
@@ -62,7 +66,7 @@ func TestValidatePageFields_TOCMinLevelOutOfRange(t *testing.T) {
 	page := &engine.Page{}
 	page.TOC.MinLevel = 99
 	fm := &engine.Frontmatter{}
-	fm.Title = "Present"
+	page.Title = "Present"
 	warnings := ValidatePageFields(page, fm)
 	found := false
 	for _, w := range warnings {
@@ -81,7 +85,7 @@ func TestValidatePageFields_TOCMinGreaterThanMax(t *testing.T) {
 	page.TOC.MinLevel = 4
 	page.TOC.MaxLevel = 2
 	fm := &engine.Frontmatter{}
-	fm.Title = "Present"
+	page.Title = "Present"
 	warnings := ValidatePageFields(page, fm)
 	found := false
 	for _, w := range warnings {
@@ -99,7 +103,7 @@ func TestValidatePageFields_SidebarOrderNegative(t *testing.T) {
 	page := &engine.Page{}
 	page.Sidebar.Order = -1
 	fm := &engine.Frontmatter{}
-	fm.Title = "Present"
+	page.Title = "Present"
 	warnings := ValidatePageFields(page, fm)
 	found := false
 	for _, w := range warnings {
@@ -116,7 +120,7 @@ func TestValidatePageFields_SidebarOrderNegative(t *testing.T) {
 func TestValidatePageFields_LayoutBogus(t *testing.T) {
 	page := &engine.Page{}
 	fm := &engine.Frontmatter{}
-	fm.Title = "Present"
+	page.Title = "Present"
 	fm.Layout = "bogus"
 	warnings := ValidatePageFields(page, fm)
 	found := false
@@ -134,7 +138,7 @@ func TestValidatePageFields_LayoutBogus(t *testing.T) {
 func TestValidatePageFields_LayoutValid(t *testing.T) {
 	page := &engine.Page{}
 	fm := &engine.Frontmatter{}
-	fm.Title = "Present"
+	page.Title = "Present"
 	fm.Layout = "presentation"
 	warnings := ValidatePageFields(page, fm)
 	for _, w := range warnings {
@@ -148,7 +152,7 @@ func TestValidatePageFields_BadgeVariantBogus(t *testing.T) {
 	page := &engine.Page{}
 	page.Sidebar.Badge.Variant = "bogus"
 	fm := &engine.Frontmatter{}
-	fm.Title = "Present"
+	page.Title = "Present"
 	warnings := ValidatePageFields(page, fm)
 	found := false
 	for _, w := range warnings {
@@ -166,7 +170,7 @@ func TestValidatePageFields_BadgeVariantValid(t *testing.T) {
 	page := &engine.Page{}
 	page.Sidebar.Badge.Variant = "tip"
 	fm := &engine.Frontmatter{}
-	fm.Title = "Present"
+	page.Title = "Present"
 	warnings := ValidatePageFields(page, fm)
 	for _, w := range warnings {
 		if w.Field == "sidebar.badge.variant" {
@@ -278,7 +282,7 @@ func TestDetectUnknownFields_TaxonomyKeySkipped(t *testing.T) {
 func TestValidatePageFields_SlugWhitespace(t *testing.T) {
 	page := &engine.Page{}
 	fm := &engine.Frontmatter{}
-	fm.Title = "Present"
+	page.Title = "Present"
 	fm.Slug = "   "
 	warnings := ValidatePageFields(page, fm)
 	found := false
@@ -295,7 +299,7 @@ func TestValidatePageFields_SlugWhitespace(t *testing.T) {
 func TestValidatePageFields_SlugValid(t *testing.T) {
 	page := &engine.Page{}
 	fm := &engine.Frontmatter{}
-	fm.Title = "Present"
+	page.Title = "Present"
 	fm.Slug = "my-page"
 	warnings := ValidatePageFields(page, fm)
 	for _, w := range warnings {
@@ -312,7 +316,7 @@ func TestValidatePageFields_SlugValid(t *testing.T) {
 func TestValidatePageFields_HeadTagInvalid(t *testing.T) {
 	page := &engine.Page{}
 	fm := &engine.Frontmatter{}
-	fm.Title = "Present"
+	page.Title = "Present"
 	fm.Head = []engine.HeadTag{{Tag: "div", Attrs: map[string]string{"class": "x"}}}
 	warnings := ValidatePageFields(page, fm)
 	found := false
@@ -329,7 +333,7 @@ func TestValidatePageFields_HeadTagInvalid(t *testing.T) {
 func TestValidatePageFields_HeadTagValid(t *testing.T) {
 	page := &engine.Page{}
 	fm := &engine.Frontmatter{}
-	fm.Title = "Present"
+	page.Title = "Present"
 	fm.Head = []engine.HeadTag{
 		{Tag: "meta", Attrs: map[string]string{"name": "robots"}},
 		{Tag: "link", Attrs: map[string]string{"rel": "canonical"}},
