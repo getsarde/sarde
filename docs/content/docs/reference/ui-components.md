@@ -80,7 +80,7 @@ All 31 built-in components, alphabetically.
 | Pagination | Prev/next page links | `.Pagination` | `_docs/baseof.html` |
 | Scripts | `<script>` tags (deferred, inline, module) | `.Scripts`, `.InlineScripts`, `.ModuleScripts` | Both baseof templates |
 | Search | Search trigger button and dialog modal | `.Site.Config.Search.Provider` | Header |
-| Sidebar | Docs nav tree (3 levels deep) | `.Sidebar`, `.SidebarCollapsedByDefault` | `_docs/baseof.html` |
+| Sidebar | Docs nav tree (3 levels deep). An entry with `External` opens in a new tab | `.Sidebar`, `.SidebarCollapsedByDefault` | `_docs/baseof.html` |
 | SiteTitle | Site name/logo link to `/` | `.Site.Title`, `.Site.Logo` | Header |
 | Social | Social icon links row | `.Site.Config.Social` | Header, Footer |
 | TableOfContents | Desktop sidebar ToC | `.Page.Headings` | `_docs/baseof.html` |

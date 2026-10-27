@@ -12,8 +12,8 @@ import (
 // navYAMLItem represents a single item in a nav.yaml file.
 type navYAMLItem struct {
 	Label      string            `yaml:"label"`
-	Page       string            `yaml:"page"`       // slug relative to collection
-	URL        string            `yaml:"url"`         // external URL
+	Page       string            `yaml:"page"` // slug relative to collection
+	URL        string            `yaml:"url"`  // another site, or a site path
 	External   bool              `yaml:"external"`
 	Badge      engine.Badge      `yaml:"badge"`
 	BadgeColor string            `yaml:"badge_color"` // legacy; normalized after decode
@@ -105,8 +105,10 @@ func buildNodeFromYAMLItem(item navYAMLItem, lookup map[string]*engine.Page, dep
 			node.Badge = badge
 		}
 	} else if item.URL != "" {
-		// External link.
+		// Link by URL: another site, or a site path. Attrs keeps target and rel
+		// for themes that render it; External drives the default theme.
 		node.URL = item.URL
+		node.External = item.External
 		if item.External {
 			if node.Attrs == nil {
 				node.Attrs = make(map[string]string)

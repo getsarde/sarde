@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/config"
 )
 
@@ -86,5 +87,51 @@ func TestContentRebuild_TabDescriptionRefreshesCatalog(t *testing.T) {
 	html := readFixture(t, filepath.Join(dir, "dist"), "courses/index.html")
 	if !strings.Contains(html, "Learn Go from scratch.") {
 		t.Error("catalog card still shows the old course description after a dev rebuild")
+	}
+}
+
+// A nav.yaml url to another site keeps its URL and, with external: true, opens
+// in a new tab; a url that is a site path still gets the base path.
+func TestBuild_NavYAMLExternalURL(t *testing.T) {
+	navYAML := `- page: html
+- label: Example
+  url: "https://example.com"
+  external: true
+- label: Go course
+  url: "/courses/go/"
+`
+	for _, tc := range []struct{ name, basePath, goHref string }{
+		{"root", "/", `href="/courses/go/"`},
+		{"base path", "/sub/", `href="/sub/courses/go/"`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := writeTabbedSite(t, "")
+			writeFixture(t, dir, "content/courses/web/nav.yaml", navYAML)
+			cfg := config.Defaults()
+			cfg.Build.BasePath = tc.basePath
+			builder := NewSiteBuilder(BuildOptions{
+				ProjectDir:  dir,
+				Config:      cfg,
+				ThemeConfig: buildThemeConfig(),
+				EmbeddedFS:  embedded.ThemeFS(),
+			})
+			if _, err := builder.Build(); err != nil {
+				t.Fatalf("Build failed: %v", err)
+			}
+
+			html := readFixture(t, filepath.Join(dir, "dist"), "courses/web/html/index.html")
+			for _, want := range []string{
+				`href="https://example.com" target="_blank" rel="noopener noreferrer"`,
+				`<span class="sr-only"> (opens in new tab)</span>`,
+				tc.goHref,
+			} {
+				if !strings.Contains(html, want) {
+					t.Errorf("sidebar is missing %s", want)
+				}
+			}
+			if strings.Contains(html, "https:/example.com") {
+				t.Error("the full URL went through the site path resolver")
+			}
+		})
 	}
 }

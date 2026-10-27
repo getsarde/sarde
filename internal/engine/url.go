@@ -89,6 +89,29 @@ func (r *URLResolver) AbsURL(relPath, lang, version string) string {
 	return origin + r.URL(relPath, lang, version)
 }
 
+// IsAbsoluteURL reports whether u names another location: a scheme such as
+// https:, mailto: or tel:, or a protocol-relative //host. The resolver's base
+// path, language and version prefixes must not touch such a URL, so callers
+// check it before URL, which treats every input as a site path.
+func IsAbsoluteURL(u string) bool {
+	if strings.HasPrefix(u, "//") {
+		return true
+	}
+	// RFC 3986 scheme: a letter, then letters, digits, "+", "-" or ".", then ":".
+	for i := 0; i < len(u); i++ {
+		c := u[i]
+		switch {
+		case c == ':':
+			return i > 0
+		case 'a' <= c && c <= 'z', 'A' <= c && c <= 'Z':
+		case i > 0 && ('0' <= c && c <= '9' || c == '+' || c == '-' || c == '.'):
+		default:
+			return false
+		}
+	}
+	return false
+}
+
 // OutputRelPath returns the on-disk output path: version- and lang-prefixed but
 // WITHOUT basePath. Used to compute filesystem write paths where version and lang
 // create real directories but basePath does not (the web server's mount handles basePath).

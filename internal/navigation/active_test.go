@@ -104,3 +104,17 @@ func TestMarkActive_CloneIndependence(t *testing.T) {
 		t.Error("m2: Guides should be open")
 	}
 }
+
+// The clone MarkActive renders from keeps External, so a nav.yaml link marked
+// external: true still opens in a new tab.
+func TestMarkActive_CopiesExternal(t *testing.T) {
+	tree := buildTestTree()
+	ext := &engine.NavNode{Label: "Example", URL: "https://example.com", External: true, Depth: 1, Parent: tree.Root}
+	tree.Root.Children = append(tree.Root.Children, ext)
+
+	marked := MarkActive(tree, &engine.Page{PageIdentity: engine.PageIdentity{RelPermalink: "/docs/a/"}})
+	got := marked.Root.Children[len(marked.Root.Children)-1]
+	if !got.External || got.URL != "https://example.com" {
+		t.Errorf("clone lost the external entry: External=%v URL=%q", got.External, got.URL)
+	}
+}

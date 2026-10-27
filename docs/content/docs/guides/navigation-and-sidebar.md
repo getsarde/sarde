@@ -215,6 +215,9 @@ The file applies per tab only. Sarde ignores a `nav.yaml` at the collection root
       page: guides/writing-content
     - label: "Code Blocks"
       page: guides/code-blocks
+- label: "External Docs"
+  url: "https://example.com"
+  external: true
 ```
 
 Each item supports:
@@ -223,12 +226,14 @@ Each item supports:
 |-----|------|-------------|
 | `label` | string | Display text. Falls back to the page's sidebar label, then its title. |
 | `page` | string | Page slug, or path relative to the collection root. |
+| `url` | string | Link target instead of `page`: a full URL such as `https://example.com`, or a site path such as `/blog/`. |
+| `external` | bool | Open the `url` in a new tab with `rel="noopener noreferrer"`. |
 | `badge` | string or object | Badge chip on a page item. Overrides the page's own badge. |
 | `collapsed` | bool | `false` opens the group by default. |
 | `attrs` | map | Extra attributes on the entry for themes that render them. The default theme ignores it. |
 | `items` | array | Nested child items. |
 
-An item without `page` acts as a group label, a heading with no link. A `page` that matches no page in the tab is skipped without a warning. The tab's `_index.md` gets no Overview entry, because the file defines the whole tree.
+An item without `page` or `url` acts as a group label, a heading with no link. A `page` that matches no page in the tab is skipped without a warning. The tab's `_index.md` gets no Overview entry, because the file defines the whole tree.
 
 ## Breadcrumbs
 

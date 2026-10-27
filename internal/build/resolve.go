@@ -32,8 +32,9 @@ func (b *SiteBuilder) assetURLResolver() func(string) string {
 }
 
 // resolveRouteAssets applies the URL resolver to asset URLs, breadcrumbs,
-// global nav, and pagination URLs in RouteData at render time. CDN URLs
-// (with a scheme) are left untouched.
+// global nav, and pagination URLs in RouteData at render time. A URL that
+// names another location (a scheme such as https: or mailto:, or //host) is
+// left untouched; see engine.IsAbsoluteURL.
 func resolveRouteAssets(r *engine.URLResolver, rd *engine.RouteData) {
 	if r == nil {
 		return
@@ -70,11 +71,18 @@ func resolveRouteAssets(r *engine.URLResolver, rd *engine.RouteData) {
 	}
 
 	// Translations: each link carries its own lang; version stays the same.
+	// AbsURL is resolved here, in the link's own language: the absURL template
+	// function adds the page's language, which is wrong for the other links.
+	origin := strings.TrimRight(r.BaseURL, "/")
 	for i := range rd.Translations {
-		rd.Translations[i].URL = r.URL(rd.Translations[i].URL, rd.Translations[i].Lang, ver)
+		link := &rd.Translations[i]
+		link.URL = r.URL(link.URL, link.Lang, ver)
+		link.AbsURL = origin + link.URL
 	}
 	for i := range rd.AllTranslations {
-		rd.AllTranslations[i].URL = r.URL(rd.AllTranslations[i].URL, rd.AllTranslations[i].Lang, ver)
+		link := &rd.AllTranslations[i]
+		link.URL = r.URL(link.URL, link.Lang, ver)
+		link.AbsURL = origin + link.URL
 	}
 
 	// Version links: each link carries its own version ID.
@@ -94,17 +102,18 @@ func resolveRouteAssets(r *engine.URLResolver, rd *engine.RouteData) {
 		}
 	}
 	if rd.Pagination != nil {
-		if rd.Pagination.Prev != nil {
-			rd.Pagination.Prev.URL = r.URL(rd.Pagination.Prev.URL, lang, ver)
+		// A frontmatter prev or next link can name another site.
+		if p := rd.Pagination.Prev; p != nil && !engine.IsAbsoluteURL(p.URL) {
+			p.URL = r.URL(p.URL, lang, ver)
 		}
-		if rd.Pagination.Next != nil {
-			rd.Pagination.Next.URL = r.URL(rd.Pagination.Next.URL, lang, ver)
+		if n := rd.Pagination.Next; n != nil && !engine.IsAbsoluteURL(n.URL) {
+			n.URL = r.URL(n.URL, lang, ver)
 		}
 	}
 	if rd.GlobalNav != nil {
 		for i := range rd.GlobalNav.Items {
 			item := &rd.GlobalNav.Items[i]
-			if !item.External && !strings.Contains(item.URL, "://") {
+			if !item.External && !engine.IsAbsoluteURL(item.URL) {
 				item.URL = r.URL(item.URL, lang, "")
 			}
 		}
@@ -121,8 +130,10 @@ func resolveRouteAssets(r *engine.URLResolver, rd *engine.RouteData) {
 	}
 }
 
+// resolveNavNodes resolves the site paths in a sidebar tree. A nav.yaml url
+// can name another site, which keeps its URL.
 func resolveNavNodes(r *engine.URLResolver, node *engine.NavNode, lang, version string) {
-	if node.URL != "" {
+	if node.URL != "" && !engine.IsAbsoluteURL(node.URL) {
 		node.URL = r.URL(node.URL, lang, version)
 	}
 	for _, child := range node.Children {
@@ -132,7 +143,7 @@ func resolveNavNodes(r *engine.URLResolver, node *engine.NavNode, lang, version 
 
 func resolveURLSlice(r *engine.URLResolver, urls []string) []string {
 	for i, u := range urls {
-		if strings.Contains(u, "://") {
+		if engine.IsAbsoluteURL(u) {
 			continue
 		}
 		urls[i] = r.URL(u, "", "")

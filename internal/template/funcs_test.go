@@ -357,6 +357,27 @@ func TestRelURL_WithBasePath(t *testing.T) {
 	}
 }
 
+// A full URL, a mailto: or tel: link, or a //host URL passes through relURL
+// unchanged; only site paths get the base path.
+func TestRelURL_PassesThroughAbsolute(t *testing.T) {
+	e := &Engine{
+		resolver:    &engine.ThemeResolver{},
+		site:        testSite(),
+		urlResolver: &engine.URLResolver{BasePath: "/sub/", BaseURL: "https://example.com"},
+	}
+	e.currentLang = "en"
+	fn := e.buildFuncMap(nil, nil)["relURL"].(func(string) string)
+
+	for _, u := range []string{"https://example.org/x", "mailto:a@b.c", "tel:+15551234", "//cdn.example.com/a.js"} {
+		if got := fn(u); got != u {
+			t.Errorf("relURL(%q) = %q, want it unchanged", u, got)
+		}
+	}
+	if got := fn("/contact/"); got != "/sub/contact/" {
+		t.Errorf("relURL(/contact/) = %q, want /sub/contact/", got)
+	}
+}
+
 // On a translated page relURL adds the language segment, but site-root files
 // (the sitemap, theme fonts) exist once, so rootURL must leave it out.
 func TestRootURL_TranslatedPageKeepsSiteRoot(t *testing.T) {

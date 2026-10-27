@@ -144,6 +144,7 @@ type TranslationLink struct {
 	Name       string // display name (e.g. "Français"), falls back to Lang code
 	Dir        string // "ltr" or "rtl"
 	URL        string
+	AbsURL     string // origin + URL, set at render time; root-relative without site.url
 	Title      string
 	IsFallback bool
 }

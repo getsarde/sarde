@@ -8,11 +8,13 @@ import (
 	"github.com/getsarde/sarde/internal/engine"
 )
 
-// relURLFor is the one template-side wrapper around URLResolver.URL: full
-// URLs pass through, and without a resolver the path is returned as written.
-// relURL, its per-language override in funcMapForLang, and rootURL all call it.
+// relURLFor is the one template-side wrapper around URLResolver.URL: a URL
+// that names another location (a scheme such as https:, mailto: or tel:, or
+// //host) passes through, and without a resolver the path is returned as
+// written. relURL, its per-language override in funcMapForLang, and rootURL
+// all call it.
 func relURLFor(r *engine.URLResolver, relPath, lang string) string {
-	if r == nil || strings.Contains(relPath, "://") {
+	if r == nil || engine.IsAbsoluteURL(relPath) {
 		return relPath
 	}
 	return r.URL(relPath, lang, "")

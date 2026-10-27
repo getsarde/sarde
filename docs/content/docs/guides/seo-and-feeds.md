@@ -91,7 +91,7 @@ Every page gets a `<link rel="canonical">` tag with its absolute URL. In version
 
 ## hreflang alternates
 
-On multi-language sites, the default theme adds a `<link rel="alternate" hreflang="...">` tag for every translation of a page, plus an `x-default` entry for the default language. Search engines use them to serve the right language version.
+On multi-language sites, the default theme adds a `<link rel="alternate" hreflang="...">` tag for each language a page exists in, its own included, plus an `x-default` tag that points at the default-language version. The URLs are absolute, built from `site.url`. A page with no translation, and the fallback copy of a page in a language that lacks it, get no tags. Search engines use them to serve the right language version.
 
 ## Social card images
 

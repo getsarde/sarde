@@ -92,6 +92,30 @@ func TestBuildNavTreeFromYAML_ExternalLink(t *testing.T) {
 	if node.Attrs["target"] != "_blank" {
 		t.Errorf("expected target=_blank, got %q", node.Attrs["target"])
 	}
+	if !node.External {
+		t.Error("external: true must set External")
+	}
+}
+
+// A url without external: true is a plain link: same tab, no target.
+func TestBuildNavTreeFromYAML_URLWithoutExternal(t *testing.T) {
+	dir := t.TempDir()
+	path := writeNavYAML(t, dir, `
+- label: "Blog"
+  url: "/blog/"
+`)
+
+	tree, err := BuildNavTreeFromYAML(path, testCollection())
+	if err != nil {
+		t.Fatal(err)
+	}
+	node := tree.Root.Children[0]
+	if node.URL != "/blog/" || node.External {
+		t.Errorf("URL = %q, External = %v; want /blog/ and false", node.URL, node.External)
+	}
+	if _, ok := node.Attrs["target"]; ok {
+		t.Errorf("unexpected target attribute %q", node.Attrs["target"])
+	}
 }
 
 func TestBuildNavTreeFromYAML_PageLabelFromTitle(t *testing.T) {

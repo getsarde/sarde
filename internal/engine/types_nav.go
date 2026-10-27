@@ -34,6 +34,7 @@ type NavNode struct {
 	Icon        string
 	Badge       Badge
 	Description string
+	External    bool // a nav.yaml url entry with external: true; opens in a new tab
 }
 
 // GlobalNav represents the top-level site navigation bar.

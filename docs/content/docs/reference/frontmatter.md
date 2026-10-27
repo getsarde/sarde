@@ -171,7 +171,7 @@ toc:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `prev` | bool, string, or object | - | Override the previous page link. `false` hides it. A string specifies a page slug. An object provides a custom `link` and `label`. |
+| `prev` | bool, string, or object | - | Override the previous page link. `false` hides it. A string specifies a page slug. An object provides a custom `link`, a site path or a full URL, and `label`. |
 | `next` | bool, string, or object | - | Override the next page link. Same forms as `prev`. |
 
 ```yaml

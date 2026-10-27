@@ -77,7 +77,7 @@ Each entry in `header.links` or `footer.links`:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `label` | string | - | Display text. |
-| `url` | string | - | Link URL. |
+| `url` | string | - | A site path such as `/blog/`, a full URL, or a `mailto:` or `tel:` link. Only a site path gets the base path and language prefix. |
 | `external` | bool | `false` | Open in a new tab. |
 
 ## `footer`

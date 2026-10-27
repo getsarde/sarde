@@ -64,7 +64,7 @@ A nil pointer is false in `{{ if }}` but panics on field access, so guard option
 |-------|------|----------|-------------|
 | `.Lang` | `string` | always | Language code of this render: the page's language, else the site language, else `en` |
 | `.Dir` | `string` | always | `ltr` or `rtl`, from the language's `dir` in `i18n.languages` |
-| `.Translations` | `[]TranslationLink` | when non-empty | The same page in other languages |
+| `.Translations` | `[]TranslationLink` | when non-empty | The page in every language it exists in, itself first. Fallback pages are left out. Feeds the hreflang tags |
 | `.AllTranslations` | `[]TranslationLink` | when non-empty | Every configured language, with fallback entries for languages that lack this page. Feeds the language switcher |
 
 ### `RouteVersioning`
@@ -465,6 +465,7 @@ Internal, not for templates: `Hash` is a cache key.
 | `Icon` | `string` | Icon name |
 | `Badge` | `Badge` | Badge next to the label |
 | `Description` | `string` | Description text |
+| `External` | `bool` | The entry opens in a new tab (`external: true` in `nav.yaml`) |
 
 Walk `Children` downward only. `Parent` and `Page.NavNode` form cycles.
 
@@ -625,6 +626,7 @@ Embeds `*TaxonomyTerm`, so every field above (`Name`, `Slug`, `CustomSlug`, `Per
 | `Name` | `string` | Display name, for example `Français`; falls back to the code |
 | `Dir` | `string` | `ltr` or `rtl` |
 | `URL` | `string` | URL of the page in that language |
+| `AbsURL` | `string` | Absolute URL of the page in that language, from `site.url`. Root-relative when `site.url` is not set |
 | `Title` | `string` | Title of the page in that language |
 | `IsFallback` | `bool` | The page does not exist in that language; the link goes to the fallback |
 

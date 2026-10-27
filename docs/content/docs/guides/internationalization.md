@@ -224,7 +224,7 @@ i18n:
 
 ## Hreflang tags
 
-The default theme adds `<link rel="alternate" hreflang="...">` tags to every page that has translations, including an `x-default` tag that points to the default-language version. No configuration is needed.
+The default theme adds `<link rel="alternate" hreflang="...">` tags to every page that has translations: one per language the page exists in, its own included, and an `x-default` tag that points to the default-language version. The URLs are absolute, so set `site.url`. No other configuration is needed.
 
 ## Cross-language linking
 

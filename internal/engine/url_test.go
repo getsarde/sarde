@@ -180,3 +180,30 @@ func TestFirstSegment(t *testing.T) {
 		}
 	}
 }
+
+// A scheme or a protocol-relative //host names another location; site paths,
+// relative names, fragments and queries do not.
+func TestIsAbsoluteURL(t *testing.T) {
+	cases := map[string]bool{
+		"https://example.com": true,
+		"http://x":            true,
+		"mailto:a@b.c":        true,
+		"tel:+1":              true,
+		"//cdn.example.com/y": true,
+		"svn+ssh://host":      true,
+		"/docs/":              false,
+		"guides/x":            false,
+		"":                    false,
+		"#top":                false,
+		"?q=1":                false,
+		"/a:b":                false,
+		"1x:y":                false,
+		":x":                  false,
+		"/go?u=https://x":     false,
+	}
+	for in, want := range cases {
+		if got := IsAbsoluteURL(in); got != want {
+			t.Errorf("IsAbsoluteURL(%q) = %v, want %v", in, got, want)
+		}
+	}
+}

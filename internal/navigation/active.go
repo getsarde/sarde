@@ -87,6 +87,7 @@ func cloneNode(node *engine.NavNode, parent *engine.NavNode) *engine.NavNode {
 		Description: node.Description,
 		DefaultOpen: node.DefaultOpen,
 		GroupIndex:  node.GroupIndex,
+		External:    node.External,
 	}
 
 	if node.Attrs != nil {
