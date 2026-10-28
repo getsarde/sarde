@@ -9,6 +9,8 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ## Unreleased
 
+## 1.7.0 - 2026-10-28
+
 ### Added
 
 - **`sarde deploy --build --format json` reports the build:** the build's result, log lines and phases were discarded, so tooling saw nothing of the build until the deploy started, and a failed build left only a `build_failed` envelope. The event stream now opens with `build_start`, carries each log line as `build_log` and each finished phase as `build_phase`, and ends the build with `build_result`, the object `sarde build --format json` prints, warnings included. Without `--build` the stream is unchanged. See [`deploy`](/reference/cli-commands/#json-output).

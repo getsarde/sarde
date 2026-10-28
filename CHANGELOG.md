@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-28
+
 ### Added
 
 - **`sarde deploy --build --format json` reports the build:** the build's result, log lines and phases were discarded, so tooling saw nothing of the build until the deploy started, and a failed build left only a `build_failed` envelope. The event stream now opens with `build_start`, carries each log line as `build_log` and each finished phase as `build_phase`, and ends the build with `build_result`, the object `sarde build --format json` prints, warnings included. Without `--build` the stream is unchanged. See [`deploy`](/reference/cli-commands/#json-output).
@@ -324,7 +326,8 @@ The first stable release. Everything below has accumulated since the 0.1.x previ
 - WebSocket hub uses ping/pong keepalive (30-second interval) to detect stale connections.
 - Unchanged headings are reused during incremental rebuilds, and link validation is scoped to changed pages only.
 
-[Unreleased]: https://github.com/getsarde/sarde/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/getsarde/sarde/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/getsarde/sarde/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/getsarde/sarde/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/getsarde/sarde/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/getsarde/sarde/compare/v1.4.0...v1.5.0
