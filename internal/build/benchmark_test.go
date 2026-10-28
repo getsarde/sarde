@@ -336,10 +336,4 @@ func foldBenchmarkThemeShortcuts(cfg *config.SiteConfig) {
 			}
 		}
 	}
-	if cfg.Theme.CodeLight != "" && cfg.Markdown.Codeblocks.LightTheme == "" {
-		cfg.Markdown.Codeblocks.LightTheme = cfg.Theme.CodeLight
-	}
-	if cfg.Theme.CodeDark != "" && cfg.Markdown.Codeblocks.DarkTheme == "" {
-		cfg.Markdown.Codeblocks.DarkTheme = cfg.Theme.CodeDark
-	}
 }

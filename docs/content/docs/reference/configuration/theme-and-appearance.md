@@ -13,7 +13,7 @@ Choose the theme and color preset, control the table of contents, register icon 
 |-----|------|---------|-------------|
 | `name` | string | `"default"` | Theme name. |
 | `preset` | string | `""` | Color preset. Valid values: `ocean`, `forest`, `rose`, `clean`, `minimal`, `docs`, `academic`. |
-| `dark` | bool | `true` | Enable dark mode toggle. |
+| `dark` | bool | `true` | Offer dark mode. `false` makes the site light-only: no theme toggle, and pages stay light whatever the visitor's system setting. |
 | `overrides` | map | `{}` | Token overrides for light mode. Map of token name to CSS value. See [Theme Tokens](/reference/theme-tokens). |
 | `dark_overrides` | map | `{}` | Token overrides for dark mode only. Same format as `overrides`. |
 | `primary_color` | string | `""` | Primary brand color (hex). Shorthand for setting the `--sd-accent` token. |
@@ -23,8 +23,8 @@ Choose the theme and color preset, control the table of contents, register icon 
 | `font_heading` | string | `""` | Font family CSS value for `h1` to `h6`. Sets the `font-heading` token. Headings use `font_family` when unset. |
 | `font_scale` | number | `1` | Multiplier for the `text-xs` to `text-5xl` size scale, from `0.5` to `2`. Sets the `text-scale` token. |
 | `web_fonts` | string | `""` | Loads the theme's fonts that are in the Google Fonts library and not bundled. Valid values: `google` (Google Fonts), `bunny` (Bunny Fonts). Empty loads none. The service receives each visitor's IP address. See [Web fonts](/guides/themes-and-styling/#web-fonts). |
-| `code_light` | string | `""` | Syntax highlighting theme for light mode. |
-| `code_dark` | string | `""` | Syntax highlighting theme for dark mode. |
+| `code_light` | string | `""` | Deprecated, no effect. Set `themes.light` in [`kazari.config.yaml`](/guides/code-blocks/#configuration). |
+| `code_dark` | string | `""` | Deprecated, no effect. Set `themes.dark` in `kazari.config.yaml`. |
 | `date_format` | string | `"short"` | Display format for the "last updated" date. See below. |
 
 ### Date format

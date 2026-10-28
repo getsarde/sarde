@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/getsarde/sarde/internal/devlog"
 )
 
 // ---------------------------------------------------------------------------
@@ -652,5 +654,63 @@ func TestResolve_EmptyConfigStrict(t *testing.T) {
 	}
 	if cfg.Site.Title != "My Site" {
 		t.Errorf("Site.Title = %q, want the default %q", cfg.Site.Title, "My Site")
+	}
+}
+
+func TestCodeThemeDeprecations(t *testing.T) {
+	cases := []struct {
+		name string
+		set  func(*SiteConfig)
+		want string
+	}{
+		{"light_theme", func(c *SiteConfig) { c.Markdown.Codeblocks.LightTheme = "nord" }, "markdown.codeblocks.light_theme is deprecated; set themes.light in kazari.config.yaml"},
+		{"dark_theme", func(c *SiteConfig) { c.Markdown.Codeblocks.DarkTheme = "nord" }, "markdown.codeblocks.dark_theme is deprecated; set themes.dark in kazari.config.yaml"},
+		{"theme", func(c *SiteConfig) { c.Markdown.Codeblocks.Theme = "nord" }, "markdown.codeblocks.theme is deprecated and has no effect; set themes in kazari.config.yaml"},
+		{"code_light", func(c *SiteConfig) { c.Theme.CodeLight = "nord" }, "theme.code_light is deprecated and has no effect; set themes.light in kazari.config.yaml"},
+		{"code_dark", func(c *SiteConfig) { c.Theme.CodeDark = "nord" }, "theme.code_dark is deprecated and has no effect; set themes.dark in kazari.config.yaml"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			u := &SiteConfig{}
+			tc.set(u)
+			got := codeThemeDeprecations(u)
+			if len(got) != 1 || got[0] != tc.want {
+				t.Errorf("codeThemeDeprecations = %q, want [%q]", got, tc.want)
+			}
+		})
+	}
+	if got := codeThemeDeprecations(&SiteConfig{}); len(got) != 0 {
+		t.Errorf("no theme keys set, got %q", got)
+	}
+}
+
+// Resolve warns about the theme keys the user's sarde.yaml sets, not about
+// the embedded defaults that fill the same fields.
+func TestResolve_WarnsDeprecatedCodeThemes(t *testing.T) {
+	var msgs []string
+	restore := devlog.SetSink(func(level, tag, msg string) {
+		if strings.Contains(msg, "kazari.config.yaml") {
+			msgs = append(msgs, msg)
+		}
+	})
+	defer restore()
+
+	path := filepath.Join(t.TempDir(), "sarde.yaml")
+	if err := os.WriteFile(path, []byte("markdown:\n  codeblocks:\n    dark_theme: github-dark-dimmed\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Resolve(ResolveOptions{ConfigPath: path, Strict: true}); err != nil {
+		t.Fatalf("Resolve: %v", err)
+	}
+	if len(msgs) != 1 || !strings.Contains(msgs[0], "markdown.codeblocks.dark_theme is deprecated") {
+		t.Errorf("warnings = %q, want only the dark_theme deprecation", msgs)
+	}
+
+	msgs = nil
+	if _, err := Resolve(ResolveOptions{ConfigPath: filepath.Join(t.TempDir(), "sarde.yaml")}); err != nil {
+		t.Fatalf("Resolve without a file: %v", err)
+	}
+	if len(msgs) != 0 {
+		t.Errorf("without sarde.yaml, warnings = %q, want none", msgs)
 	}
 }

@@ -1,4 +1,7 @@
 (function () {
+  // A light-only site (theme.dark: false) renders data-theme="light" itself.
+  if (document.documentElement.hasAttribute('data-sd-light-only')) return;
+
   var STORAGE_KEY = 'sd-theme';
 
   function getTheme() {

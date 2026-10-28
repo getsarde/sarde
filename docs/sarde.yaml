@@ -26,8 +26,6 @@ markdown:
   unsafe: false
   codeblocks:
     engine: nuri
-    light_theme: github-light
-    dark_theme: github-dark-default
 collections:
   docs:
     sort: order

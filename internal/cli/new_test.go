@@ -467,3 +467,20 @@ func TestRunNewSite_KazariConfigLeavesDarkModeToSarde(t *testing.T) {
 		}
 	}
 }
+
+// The scaffolded kazari.config.yaml sets the code block themes: they belong
+// in that file, and markdown.codeblocks.light_theme and dark_theme in
+// sarde.yaml are deprecated.
+func TestRunNewSite_KazariConfigSetsThemes(t *testing.T) {
+	site, err := runNewSiteIn(t, "")
+	if err != nil {
+		t.Fatalf("new site failed: %v", err)
+	}
+	data, err := os.ReadFile(filepath.Join(site, "kazari.config.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains("\n"+string(data), "\nthemes:\n") {
+		t.Errorf("kazari.config.yaml does not set themes:\n%s", data)
+	}
+}

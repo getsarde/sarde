@@ -35,7 +35,7 @@ Boolean values accept: `true`, `1`, `yes`, `on` (truthy) and `false`, `0`, `no`,
 | `SARDE_BUILD_CLEAN` | `build.clean` | Clean output directory before build. |
 | `SARDE_BUILD_PARALLEL` | `build.parallel` | Enable parallel rendering. |
 | `SARDE_SEARCH_ENABLED` | `search.enabled` | Enable site search. |
-| `SARDE_THEME_DARK` | `theme.dark` | Enable dark mode toggle. |
+| `SARDE_THEME_DARK` | `theme.dark` | Offer dark mode. `false` makes the site light-only. |
 
 ## Integer variables
 

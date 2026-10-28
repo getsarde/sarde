@@ -204,7 +204,7 @@ func resolveAll(cmd *cobra.Command, projectDir string) (*config.SiteConfig, *eng
 	}
 
 	// Fold theme shortcut fields into overrides before token resolution.
-	foldThemeShortcuts(cfg)
+	config.FoldThemeShortcuts(&cfg.Theme)
 
 	// Validate token names in overrides.
 	known := theme.KnownTokens()
@@ -258,19 +258,6 @@ func projectDirFromArgs(args []string) string {
 	}
 	dir, _ := os.Getwd()
 	return dir
-}
-
-// foldThemeShortcuts folds the theme shortcut fields into Overrides (see
-// config.FoldThemeShortcuts) and applies code_light / code_dark as the
-// codeblock themes when those are not set explicitly.
-func foldThemeShortcuts(cfg *config.SiteConfig) {
-	config.FoldThemeShortcuts(&cfg.Theme)
-	if cfg.Theme.CodeLight != "" && cfg.Markdown.Codeblocks.LightTheme == "" {
-		cfg.Markdown.Codeblocks.LightTheme = cfg.Theme.CodeLight
-	}
-	if cfg.Theme.CodeDark != "" && cfg.Markdown.Codeblocks.DarkTheme == "" {
-		cfg.Markdown.Codeblocks.DarkTheme = cfg.Theme.CodeDark
-	}
 }
 
 func darkOverrides(cfg *config.SiteConfig) map[string]string {

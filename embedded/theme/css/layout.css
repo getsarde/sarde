@@ -323,6 +323,11 @@
 	  margin-top: auto;
 	}
 
+	/* Hidden when the theme toggle is off and nothing else fills it. */
+	.sarde-sidebar-footer:not(:has(> *)) {
+	  display: none;
+	}
+
 	@media (min-width: 1024px) {
 	  .sarde-sidebar {
 	    inset-block: var(--sd-header-offset) 0;

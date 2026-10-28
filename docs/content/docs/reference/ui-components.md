@@ -85,7 +85,7 @@ All 31 built-in components, alphabetically.
 | Social | Social icon links row | `.Site.Config.Social` | Header, Footer |
 | TableOfContents | Desktop sidebar ToC | `.Page.Headings` | `_docs/baseof.html` |
 | TagSidebar | Popular tags widget (top 20) | `topTerms "tags" 20` | *Not called by default* |
-| ThemeToggle | Light/system/dark toggle | Static + i18n labels | Header |
+| ThemeToggle | Light/system/dark toggle. Hidden by `header.theme_toggle: false` or `theme.dark: false` | Static + i18n labels | Header |
 | VersionBanner | Unmaintained/unreleased version notice | `.VersionBanner`, `.Versions` | `_docs/baseof.html` |
 | VersionSwitcher | Version dropdown | `.Versions`, `.VersionLabel` | Header |
 
@@ -105,7 +105,7 @@ Header
   ├── LanguageSwitcher
   ├── Social              (if header.social enabled)
   ├── CenterToggle
-  └── ThemeToggle
+  └── ThemeToggle         (if header.theme_toggle and theme.dark enabled)
 MobileTableOfContents     (if page has headings)
 Sidebar
   └── DocsTabSwitcher     (if collection is tabbed)
@@ -137,7 +137,7 @@ Renders `<head>` content: viewport and generator meta tags, sitemap link (if [`s
 
 ### Header
 
-Composes eight sub-components: SiteTitle, GlobalNav, Search, VersionSwitcher, LanguageSwitcher, Social, CenterToggle, ThemeToggle. Social is gated by [`header.social`](/reference/configuration/site-and-branding/#header) (default `true`). Override `Header.html` to reorganize or remove any of these elements.
+Composes eight sub-components: SiteTitle, GlobalNav, Search, VersionSwitcher, LanguageSwitcher, Social, CenterToggle, ThemeToggle. Social is gated by [`header.social`](/reference/configuration/site-and-branding/#header) (default `true`), and ThemeToggle by `header.theme_toggle` and [`theme.dark`](/reference/configuration/theme-and-appearance/#theme) (both default `true`). Override `Header.html` to reorganize or remove any of these elements.
 
 ### Sidebar
 

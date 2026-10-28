@@ -167,9 +167,9 @@ Controls which heading levels are *extracted* during the build: ID injection, an
 |-----|------|---------|-------------|
 | `engine` | string | `""` | Syntax highlighting engine. `nuri` or `chroma`. When empty, defaults to `nuri` (tree-sitter-based). |
 | `style` | string | `"class"` | Highlighting output style. Only `class` is supported. |
-| `light_theme` | string | `"github-light"` | Light mode highlighting theme name. |
-| `dark_theme` | string | `"github-dark"` | Dark mode highlighting theme name. |
-| `theme` | string | `""` | Single theme override (applies to both modes). |
+| `light_theme` | string | `"github-light"` | Deprecated: set `themes.light` in [`kazari.config.yaml`](/guides/code-blocks/#configuration). Applies only when that file sets no `themes`. |
+| `dark_theme` | string | `"github-dark"` | Deprecated: set `themes.dark` in `kazari.config.yaml`. Applies only when that file sets no `themes`. |
+| `theme` | string | `""` | Deprecated, no effect. Set `themes` in `kazari.config.yaml`. |
 | `dark_mode_selector` | string | `"[data-theme=\"dark\"]"` | CSS selector for dark mode scoping. The default matches Sarde's theme toggle. Always applies: a `darkMode` entry in `kazari.config.yaml` is ignored, with a build warning. |
 
 ## `i18n`

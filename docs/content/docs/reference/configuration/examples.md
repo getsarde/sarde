@@ -40,9 +40,6 @@ theme:
 markdown:
   asides:
     style: galaxy
-  codeblocks:
-    light_theme: github-light
-    dark_theme: github-dark-default
 collections:
   docs:
     sidebar:
@@ -210,9 +207,9 @@ markdown:
     style: "classic"
   codeblocks:
     style: "class"
-    light_theme: "github-light"
-    dark_theme: "github-dark"
-    theme: ""
+    light_theme: "github-light"  # deprecated: set themes in kazari.config.yaml
+    dark_theme: "github-dark"    # deprecated: set themes in kazari.config.yaml
+    theme: ""                    # deprecated, no effect
     dark_mode_selector: "[data-theme=\"dark\"]"
 
 i18n:

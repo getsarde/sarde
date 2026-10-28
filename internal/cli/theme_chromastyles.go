@@ -3,10 +3,12 @@ package cli
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/alecthomas/chroma/v2/styles"
 	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/content/markdown"
 	"github.com/getsarde/sarde/internal/theme/syntax"
 	"github.com/spf13/cobra"
 )
@@ -17,14 +19,15 @@ var themeChromaStylesCmd = &cobra.Command{
 	Long: `Generate CSS for a Chroma syntax highlighting style.
 
 Use --list to see all available style names.
-Use --style to specify a style (defaults to the configured light theme).
+Use --style to specify a style (defaults to the code block theme for the mode,
+from themes in kazari.config.yaml).
 Use --dark to wrap output in [data-theme="dark"] { } scoping for dark mode.
 Use --output to write CSS to a file instead of stdout.`,
 	RunE: runThemeChromaStyles,
 }
 
 func init() {
-	themeChromaStylesCmd.Flags().String("style", "", "Chroma style name (default: configured light theme)")
+	themeChromaStylesCmd.Flags().String("style", "", "Chroma style name (default: the code block theme from kazari.config.yaml)")
 	themeChromaStylesCmd.Flags().Bool("dark", false, "Wrap output in [data-theme=\"dark\"] { } scoping")
 	themeChromaStylesCmd.Flags().Bool("list", false, "List all available Chroma style names")
 	themeChromaStylesCmd.Flags().StringP("output", "o", "", "Write CSS to file instead of stdout")
@@ -47,10 +50,11 @@ func runThemeChromaStyles(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			cfg = config.Defaults()
 		}
-		if darkFlag && cfg.Markdown.Codeblocks.DarkTheme != "" {
-			styleName = cfg.Markdown.Codeblocks.DarkTheme
-		} else if cfg.Markdown.Codeblocks.LightTheme != "" {
-			styleName = cfg.Markdown.Codeblocks.LightTheme
+		light, dark := markdown.EffectiveCodeThemes(&cfg.Markdown.Codeblocks, filepath.Dir(configPath))
+		if darkFlag && dark != "" {
+			styleName = dark
+		} else if light != "" {
+			styleName = light
 		} else {
 			styleName = "github"
 		}

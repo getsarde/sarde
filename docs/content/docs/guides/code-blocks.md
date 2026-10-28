@@ -222,27 +222,15 @@ The opening fence accepts these options:
 
 ## Configuration
 
-Two files configure code blocks. `sarde.yaml` sets the engine and the highlighting themes. `kazari.config.yaml` at the project root sets Kazari's toolbar, frame, and styling options. `sarde new site` creates both.
+Two files configure code blocks. `kazari.config.yaml` at the project root sets the highlighting themes and Kazari's toolbar, frame, and styling options. `sarde.yaml` picks the highlighting engine and the dark-mode selector that ties code blocks to Sarde's theme toggle. `sarde new site` creates both.
 
-```yaml title="sarde.yaml"
-markdown:
-  codeblocks:
-    engine: nuri
-    light_theme: github-light
-    dark_theme: github-dark
-    dark_mode_selector: '[data-theme="dark"]'
-```
-
-| Key | Type | Default | Description |
-|---|---|---|---|
-| `engine` | string | `nuri` | `nuri` or `chroma`. |
-| `light_theme` | string | `github-light` | Highlighting theme in light mode. |
-| `dark_theme` | string | `github-dark` | Highlighting theme in dark mode. |
-| `dark_mode_selector` | string | `[data-theme="dark"]` | CSS selector that marks dark mode. The default matches Sarde's theme toggle. |
-
-A `kazari.config.yaml` that sets the toolbar buttons and the default frame:
+A `kazari.config.yaml` that sets the themes, the toolbar buttons, and the default frame:
 
 ```yaml title="kazari.config.yaml"
+themes:
+  light: github-light
+  dark: github-dark
+
 copyButton: true
 fullscreenButton: true
 wrapButton: true
@@ -254,8 +242,26 @@ defaults:
   frame: auto
 ```
 
-:::caution
-`kazari.config.yaml` wins over `sarde.yaml` for any option both define, with one exception: dark mode. The file that `sarde new site` creates sets `themes`, so `light_theme` and `dark_theme` in `sarde.yaml` have no effect until you remove that entry; change `themes.light` and `themes.dark` in `kazari.config.yaml` instead. Dark mode always comes from `dark_mode_selector` in `sarde.yaml`, so code blocks switch with Sarde's theme toggle. A `darkMode` entry in `kazari.config.yaml` is ignored, and the build warns about it.
+Without a `themes` entry, code blocks use `github-light` and `github-dark`.
+
+The `sarde.yaml` settings:
+
+```yaml title="sarde.yaml"
+markdown:
+  codeblocks:
+    engine: nuri
+    dark_mode_selector: '[data-theme="dark"]'
+```
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `engine` | string | `nuri` | `nuri` or `chroma`. |
+| `dark_mode_selector` | string | `[data-theme="dark"]` | CSS selector that marks dark mode. The default matches Sarde's theme toggle. |
+
+:::note
+`kazari.config.yaml` wins over `sarde.yaml` for any option both define, with one exception: dark mode. Dark mode always comes from `dark_mode_selector` in `sarde.yaml`, so code blocks switch with Sarde's theme toggle. A `darkMode` entry in `kazari.config.yaml` is ignored, and the build warns about it.
+
+`light_theme` and `dark_theme` under `markdown.codeblocks` in `sarde.yaml` are deprecated, and the build warns about them. They apply only when `kazari.config.yaml` sets no `themes`.
 :::
 
 See [Configuration](/reference/configuration/content/#markdown-codeblocks) for the full `markdown.codeblocks` reference. The Kazari documentation lists every `kazari.config.yaml` option and meta string token: [Kazari docs](https://frostybee.github.io/kazari).

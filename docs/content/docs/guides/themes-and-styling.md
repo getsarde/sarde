@@ -157,7 +157,16 @@ The header carries a three-position toggle: light, system, and dark.
 
 The choice is saved in `localStorage` under `sd-theme` and applied as a `data-theme` attribute on the `<html>` element, set before first paint. Dark rules in the theme CSS use `:root[data-theme="dark"]` selectors, so use the same selector in your own CSS.
 
-To remove the toggle, [eject](#theme-eject) the `Header` component and delete its `ThemeToggle` call.
+To hide the toggle, set `header.theme_toggle: false`. Pages still follow the visitor's system setting.
+
+For a light-only site, turn dark mode off:
+
+```yaml title="sarde.yaml"
+theme:
+  dark: false
+```
+
+→ The toggle disappears, `<html>` carries `data-theme="light"`, and every page stays light whatever the visitor's system setting.
 
 ## CSS layer order
 

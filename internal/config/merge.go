@@ -76,6 +76,9 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 	}
 	if userCfg != nil {
 		mergeConfig(cfg, userCfg)
+		for _, msg := range codeThemeDeprecations(userCfg) {
+			devlog.Warn("config", "%s", msg)
+		}
 	}
 
 	// Optional root-level sidebar.yaml (sibling of sarde.yaml). Not a cascade
@@ -508,6 +511,31 @@ func mergePlugins(base, over *PluginSettings) {
 	if len(over.Config) > 0 {
 		base.Config = over.Config
 	}
+}
+
+// codeThemeDeprecations returns a warning for each code block theme key that
+// the user's sarde.yaml sets. Code block themes belong in the themes entry of
+// kazari.config.yaml, which wins over light_theme and dark_theme; the other
+// three keys never took effect.
+func codeThemeDeprecations(u *SiteConfig) []string {
+	var msgs []string
+	cb := u.Markdown.Codeblocks
+	if cb.LightTheme != "" {
+		msgs = append(msgs, "markdown.codeblocks.light_theme is deprecated; set themes.light in kazari.config.yaml")
+	}
+	if cb.DarkTheme != "" {
+		msgs = append(msgs, "markdown.codeblocks.dark_theme is deprecated; set themes.dark in kazari.config.yaml")
+	}
+	if cb.Theme != "" {
+		msgs = append(msgs, "markdown.codeblocks.theme is deprecated and has no effect; set themes in kazari.config.yaml")
+	}
+	if u.Theme.CodeLight != "" {
+		msgs = append(msgs, "theme.code_light is deprecated and has no effect; set themes.light in kazari.config.yaml")
+	}
+	if u.Theme.CodeDark != "" {
+		msgs = append(msgs, "theme.code_dark is deprecated and has no effect; set themes.dark in kazari.config.yaml")
+	}
+	return msgs
 }
 
 // normalizePluginSlugs rewrites deprecated kebab-case plugin slugs to their

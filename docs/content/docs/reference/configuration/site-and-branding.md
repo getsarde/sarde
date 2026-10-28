@@ -66,7 +66,7 @@ social:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `search` | bool | `true` | Show the search button in the header. The index and modal are still built; use `search.enabled` to remove search entirely. |
-| `theme_toggle` | bool | `true` | Show the light/dark mode toggle. |
+| `theme_toggle` | bool | `true` | Show the light/system/dark toggle. `false` hides it, and dark mode still follows the visitor's system setting. For a light-only site, set [`theme.dark`](/reference/configuration/theme-and-appearance/#theme) to `false`. |
 | `social` | bool | `true` | Show social links in the header. |
 | `links` | list | `[]` | Navigation links in the header. |
 

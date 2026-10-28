@@ -108,7 +108,7 @@ See [Configuration](/reference/configuration/) for every key.
 
 ### `kazari.config.yaml`
 
-Code block toolbar and display settings, at the project root. The file is optional.
+Code block themes, toolbar, and display settings, at the project root. The file is optional.
 
 See [Code Blocks](/guides/code-blocks/) for code block syntax and settings.
 

@@ -586,7 +586,7 @@ sarde theme chromastyles --style dracula --output styles.css
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--style` | string | `""` | Chroma style name. Defaults to the configured light or dark theme. |
+| `--style` | string | `""` | Chroma style name. Defaults to the light theme, or the dark one with `--dark`, from `themes` in `kazari.config.yaml`. |
 | `--dark` | bool | `false` | Wrap output in `[data-theme="dark"] { }` scoping. |
 | `--list` | bool | `false` | List all available Chroma style names. |
 | `--output`, `-o` | string | `""` | Write CSS to a file instead of stdout. |
