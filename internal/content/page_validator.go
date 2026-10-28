@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/frostybee/edict"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/engine"
-	"github.com/frostybee/edict"
 )
 
 var knownFrontmatterKeys = map[string]bool{

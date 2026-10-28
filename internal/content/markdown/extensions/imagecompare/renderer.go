@@ -5,11 +5,11 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
+	"github.com/getsarde/sarde/internal/content/markdown/icons"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
-	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
-	"github.com/getsarde/sarde/internal/content/markdown/icons"
 )
 
 var compareCounter atomic.Int64
@@ -142,4 +142,3 @@ func extractTextFromNode(n ast.Node, source []byte) string {
 	}
 	return sb.String()
 }
-

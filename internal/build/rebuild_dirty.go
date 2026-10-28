@@ -16,7 +16,7 @@ import (
 type changeClass int
 
 const (
-	changeIncremental      changeClass = iota
+	changeIncremental changeClass = iota
 	changeCollectionScoped
 	changeFullRebuild
 )

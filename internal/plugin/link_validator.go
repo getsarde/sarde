@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	errInvalidLink  = "invalid link"
-	errAmbiguous    = "ambiguous link (" + links.AmbiguousHint + ")"
-	errInvalidHash  = "invalid hash"
-	errLocalLink    = "local link"
-	errSameSite     = "same site"
+	errInvalidLink = "invalid link"
+	errAmbiguous   = "ambiguous link (" + links.AmbiguousHint + ")"
+	errInvalidHash = "invalid hash"
+	errLocalLink   = "local link"
+	errSameSite    = "same site"
 )
 
 func newLinkValidatorPlugin(cfg map[string]any) *Plugin {

@@ -39,10 +39,10 @@ func (pm *ProjectManager) ListContent(collection string) ([]ContentSummary, erro
 		}
 		title, draft, date, weight, _, _ := extractSummary(fm, body)
 		summaries = append(summaries, ContentSummary{
-			Path:   cf.RelPath,
-			Title:  title,
-			Draft:  draft,
-			Date:   date,
+			Path:  cf.RelPath,
+			Title: title,
+			Draft: draft,
+			Date:  date,
 			Order: weight,
 		})
 	}

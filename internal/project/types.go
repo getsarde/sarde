@@ -10,10 +10,10 @@ import (
 type ProjectState int
 
 const (
-	StateClosed    ProjectState = iota
-	StateOpen                   // project loaded, ready for operations
-	StateBuilding               // build in progress
-	StatePreviewing             // dev server running
+	StateClosed     ProjectState = iota
+	StateOpen                    // project loaded, ready for operations
+	StateBuilding                // build in progress
+	StatePreviewing              // dev server running
 )
 
 func (s ProjectState) String() string {
@@ -66,11 +66,11 @@ type RevisionSummary struct {
 
 // ContentSummary is a lightweight listing entry for content files.
 type ContentSummary struct {
-	Path   string    `json:"path"`
-	Title  string    `json:"title"`
-	Draft  bool      `json:"draft"`
-	Date   time.Time `json:"date,omitempty"`
-	Order  int       `json:"order"`
+	Path  string    `json:"path"`
+	Title string    `json:"title"`
+	Draft bool      `json:"draft"`
+	Date  time.Time `json:"date,omitempty"`
+	Order int       `json:"order"`
 }
 
 // CollectionInfo provides metadata about a collection.

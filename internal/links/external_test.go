@@ -24,9 +24,9 @@ func TestDedupeExternalURLs(t *testing.T) {
 		t.Fatalf("expected 3 unique URLs, got %d: %v", len(urls), urls)
 	}
 	want := map[string]bool{
-		"https://example.com/a":       true,
-		"https://example.com/b":       true,
-		"http://localhost:3000/api":    true,
+		"https://example.com/a":     true,
+		"https://example.com/b":     true,
+		"http://localhost:3000/api": true,
 	}
 	for _, u := range urls {
 		if !want[u] {

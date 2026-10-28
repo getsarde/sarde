@@ -27,9 +27,9 @@ func TestBuild_Debug(t *testing.T) {
 	}
 
 	t.Logf("Build succeeded. PageCount: %d", result.PageCount)
-	
+
 	distDir := filepath.Join(projDir, "dist")
-	
+
 	// List all files in dist
 	filepath.Walk(distDir, func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {

@@ -13,15 +13,15 @@ func TestLinkRenderHookIntegration(t *testing.T) {
 	docsCol := &engine.Collection{Name: "docs", Config: &engine.CollectionConfig{}}
 
 	targetPage := &engine.Page{
-		PageIdentity:    engine.PageIdentity{RelPermalink: "/docs/guide/installation/", Permalink: "/docs/guide/installation/", Slug: "installation"},
-		PageI18n:        engine.PageI18n{Lang: "en", LangRelPath: "docs/guide/02-installation.md"},
-		PageVersioning:  engine.PageVersioning{VersionRelPath: "guide/02-installation.md"},
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/guide/installation/", Permalink: "/docs/guide/installation/", Slug: "installation"},
+		PageI18n:          engine.PageI18n{Lang: "en", LangRelPath: "docs/guide/02-installation.md"},
+		PageVersioning:    engine.PageVersioning{VersionRelPath: "guide/02-installation.md"},
 		PageRelationships: engine.PageRelationships{Collection: docsCol},
 	}
 	currentPage := &engine.Page{
-		PageIdentity:    engine.PageIdentity{RelPermalink: "/docs/guide/quick-start/", Permalink: "/docs/guide/quick-start/", Slug: "quick-start"},
-		PageI18n:        engine.PageI18n{Lang: "en", LangRelPath: "docs/guide/03-quick-start.md"},
-		PageVersioning:  engine.PageVersioning{VersionRelPath: "guide/03-quick-start.md"},
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/guide/quick-start/", Permalink: "/docs/guide/quick-start/", Slug: "quick-start"},
+		PageI18n:          engine.PageI18n{Lang: "en", LangRelPath: "docs/guide/03-quick-start.md"},
+		PageVersioning:    engine.PageVersioning{VersionRelPath: "guide/03-quick-start.md"},
 		PageRelationships: engine.PageRelationships{Collection: docsCol},
 	}
 

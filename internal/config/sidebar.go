@@ -56,7 +56,7 @@ type SidebarNodeOverride struct {
 	Order       *int              `yaml:"order"`
 	Collapsed   *bool             `yaml:"collapsed"`
 	Icon        string            `yaml:"icon"`
-	Badge       engine.Badge      `yaml:"badge"` // scalar or {text, variant} form
+	Badge       engine.Badge      `yaml:"badge"`  // scalar or {text, variant} form
 	Hidden      *bool             `yaml:"hidden"` // nil = unset; false un-hides a frontmatter-hidden page
 	Attrs       map[string]string `yaml:"attrs"`
 }

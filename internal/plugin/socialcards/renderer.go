@@ -30,15 +30,15 @@ const (
 	logoTextGap    = 16 // gap between logo and site title
 	brandingGapMin = 24 // min gap between branding row and bottom block
 
-	titleLineGap = 4  // extra leading between title lines
-	gapTitleDesc = 20 // gap between title block and description
+	titleLineGap  = 4  // extra leading between title lines
+	gapTitleDesc  = 20 // gap between title block and description
 	gapDescFooter = 24 // gap between description and footer
 
 	accentStripW = 180 // bottom-right partial accent strip width
 	accentStripH = 3
 
-	watermarkLongEdge       = 820  // watermark image long edge, px
-	watermarkBleed          = 200  // how far the watermark hangs off the right edge
+	watermarkLongEdge       = 820 // watermark image long edge, px
+	watermarkBleed          = 200 // how far the watermark hangs off the right edge
 	watermarkOpacityDefault = 0.07
 
 	gradientAmount = 0.08 // background gradient lightness delta
@@ -406,7 +406,7 @@ func encodeImage(img *image.NRGBA, format string, quality int) ([]byte, error) {
 
 // resolveBackground determines the card background color.
 func resolveBackground(cfg map[string]any, siteCfg *config.SiteConfig) color.NRGBA {
-	if override := cfgutil.String(cfg,"bg_color", ""); override != "" {
+	if override := cfgutil.String(cfg, "bg_color", ""); override != "" {
 		return parseHexColor(override)
 	}
 	if siteCfg != nil {
@@ -424,7 +424,7 @@ func resolveBackground(cfg map[string]any, siteCfg *config.SiteConfig) color.NRG
 
 // resolveAccent determines the card accent color.
 func resolveAccent(cfg map[string]any, siteCfg *config.SiteConfig) color.NRGBA {
-	if override := cfgutil.String(cfg,"accent_color", ""); override != "" {
+	if override := cfgutil.String(cfg, "accent_color", ""); override != "" {
 		return parseHexColor(override)
 	}
 	if siteCfg != nil && siteCfg.Theme.AccentColor != "" {

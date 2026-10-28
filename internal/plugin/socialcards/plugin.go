@@ -53,12 +53,12 @@ func beforeRender(ctx *plugin.BeforeRenderContext, cfg map[string]any, pending *
 		return nil
 	}
 
-	skipIfImage := cfgutil.Bool(cfg,"skip_if_image", true)
+	skipIfImage := cfgutil.Bool(cfg, "skip_if_image", true)
 	if skipIfImage && page.Image != "" {
 		return nil
 	}
 
-	collections := cfgutil.StringSlice(cfg,"collections")
+	collections := cfgutil.StringSlice(cfg, "collections")
 	if len(collections) > 0 {
 		if page.Collection == nil || !inSlice(collections, page.Collection.Name) {
 			return nil
@@ -72,7 +72,7 @@ func beforeRender(ctx *plugin.BeforeRenderContext, cfg map[string]any, pending *
 		}
 	}
 
-	format := cfgutil.String(cfg,"format", "png")
+	format := cfgutil.String(cfg, "format", "png")
 	relPath := computeCardPath(page, format)
 
 	cardURL := ctx.AbsURL("/"+relPath, page.Lang, "")
@@ -132,7 +132,7 @@ func buildDone(ctx *plugin.BuildDoneContext, cfg map[string]any, pending *sync.M
 
 	bgColor := resolveBackground(cfg, ctx.Config)
 	accentColor := resolveAccent(cfg, ctx.Config)
-	textColor := parseHexColor(cfgutil.String(cfg,"text_color", "#ffffff"))
+	textColor := parseHexColor(cfgutil.String(cfg, "text_color", "#ffffff"))
 
 	var accentColor2 *color.NRGBA
 	if v := cfgutil.String(cfg, "accent_color_2", ""); v != "" {
@@ -171,8 +171,8 @@ func buildDone(ctx *plugin.BuildDoneContext, cfg map[string]any, pending *sync.M
 		siteTitle = html.UnescapeString(ctx.Site.Title)
 	}
 
-	format := cfgutil.String(cfg,"format", "png")
-	quality := cfgutil.Int(cfg,"quality", 90)
+	format := cfgutil.String(cfg, "format", "png")
+	quality := cfgutil.Int(cfg, "quality", 90)
 
 	// Cross-build disk cache. Asset digests are computed once here; a page
 	// that hides its logo or watermark blanks the matching digest per job so
@@ -608,4 +608,3 @@ func inSlice(slice []string, item string) bool {
 	}
 	return false
 }
-

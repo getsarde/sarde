@@ -40,8 +40,8 @@ func TestGenerateCSS_LightAndDark(t *testing.T) {
 
 func TestGenerateCSS_SortedKeys(t *testing.T) {
 	tokens := map[string]string{
-		"text":    "#1e293b",
-		"bg":      "#ffffff",
+		"text":   "#1e293b",
+		"bg":     "#ffffff",
 		"accent": "#6366f1",
 	}
 	css := GenerateCSS(tokens, nil)

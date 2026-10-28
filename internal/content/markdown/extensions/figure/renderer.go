@@ -3,10 +3,10 @@ package figure
 import (
 	"fmt"
 
+	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
-	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 )
 
 type figureRenderer struct{}
@@ -29,4 +29,3 @@ func (r *figureRenderer) render(w util.BufWriter, source []byte, node ast.Node, 
 	}
 	return ast.WalkContinue, nil
 }
-

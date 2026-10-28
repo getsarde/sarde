@@ -18,14 +18,14 @@ func BuiltinNames() []string {
 }
 
 var builtinRegistry = map[string]func(cfg map[string]any) *Plugin{
-	"sitemap":      newSitemapPlugin,
-	"robots":       newRobotsPlugin,
-	"rss":          newRSSPlugin,
-	"atom":         newAtomPlugin,
-	"seo":          newSEOPlugin,
-	"search":       newSearchPlugin,
+	"sitemap":        newSitemapPlugin,
+	"robots":         newRobotsPlugin,
+	"rss":            newRSSPlugin,
+	"atom":           newAtomPlugin,
+	"seo":            newSEOPlugin,
+	"search":         newSearchPlugin,
 	"link_validator": newLinkValidatorPlugin,
-	"redirects":    newRedirectsPlugin,
-	"content_lint": newContentLintPlugin,
-	"llms_txt":     newLlmsTxtPlugin,
+	"redirects":      newRedirectsPlugin,
+	"content_lint":   newContentLintPlugin,
+	"llms_txt":       newLlmsTxtPlugin,
 }

@@ -20,7 +20,7 @@ var (
 
 type videoParser struct{}
 
-func NewParser() parser.BlockParser { return &videoParser{} }
+func NewParser() parser.BlockParser    { return &videoParser{} }
 func (p *videoParser) Trigger() []byte { return []byte{':'} }
 
 func (p *videoParser) Open(parent ast.Node, reader text.Reader, pc parser.Context) (ast.Node, parser.State) {
@@ -70,8 +70,8 @@ func (p *videoParser) Continue(node ast.Node, reader text.Reader, pc parser.Cont
 }
 
 func (p *videoParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {}
-func (p *videoParser) CanInterruptParagraph() bool                                 { return false }
-func (p *videoParser) CanAcceptIndentedLine() bool                                 { return false }
+func (p *videoParser) CanInterruptParagraph() bool                                { return false }
+func (p *videoParser) CanAcceptIndentedLine() bool                                { return false }
 
 func extractVideoInfo(url string) (platform, videoID string) {
 	if m := youtubeRegex.FindStringSubmatch(url); m != nil {
@@ -82,4 +82,3 @@ func extractVideoInfo(url string) (platform, videoID string) {
 	}
 	return "", ""
 }
-

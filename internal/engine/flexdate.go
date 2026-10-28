@@ -12,7 +12,7 @@ import (
 //
 // An empty, whitespace-only, or null value decodes as the zero time, meaning
 // "not set", instead of failing the parse. Editors that clear a date field
-// commonly write `date: ''`, and a single such file must not abort the build.
+// commonly write `date: ""`, and a single such file must not abort the build.
 //
 // Accepted forms are the YAML native timestamp, RFC 3339, and plain
 // YYYY-MM-DD (with an optional time component). Anything else is an error.

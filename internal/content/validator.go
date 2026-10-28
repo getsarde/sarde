@@ -251,4 +251,3 @@ func toFloat64(v interface{}) (float64, bool) {
 	}
 	return 0, false
 }
-

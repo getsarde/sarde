@@ -118,8 +118,8 @@ func TestExtractZip(t *testing.T) {
 	zipPath := filepath.Join(dir, "test.zip")
 
 	createTestZip(t, zipPath, map[string]string{
-		"theme.yaml":       "name: test",
-		"css/tokens.css":   "body {}",
+		"theme.yaml":        "name: test",
+		"css/tokens.css":    "body {}",
 		"layouts/base.html": "<html>",
 	})
 

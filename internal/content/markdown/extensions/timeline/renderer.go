@@ -3,10 +3,10 @@ package timeline
 import (
 	"fmt"
 
+	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
-	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 )
 
 type timelineRenderer struct{}
@@ -44,4 +44,3 @@ func (r *timelineRenderer) renderItem(w util.BufWriter, source []byte, node ast.
 
 	return ast.WalkContinue, nil
 }
-

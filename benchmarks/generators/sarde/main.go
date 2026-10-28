@@ -13,17 +13,17 @@ import (
 // ── Target counts ──────────────────────────────────────────────────────
 
 const (
-	blogPosts       = 200
-	articlePosts    = 100
-	newsPosts       = 57
-	docsSections    = 10
-	docsPerSection  = 39
+	blogPosts        = 200
+	articlePosts     = 100
+	newsPosts        = 57
+	docsSections     = 10
+	docsPerSection   = 39
 	tutorialSections = 5
-	tutorialsPerSec = 19
-	courseSections  = 4
-	coursesPerSec   = 24
-	frPages         = 30
-	standalonePages = 7
+	tutorialsPerSec  = 19
+	courseSections   = 4
+	coursesPerSec    = 24
+	frPages          = 30
+	standalonePages  = 7
 )
 
 // ── Topic and word pools ───────────────────────────────────────────────

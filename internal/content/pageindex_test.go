@@ -283,18 +283,18 @@ func TestPageIndexEmpty(t *testing.T) {
 
 func TestLookupInLane(t *testing.T) {
 	enLatest := &engine.Page{
-		PageIdentity: engine.PageIdentity{Slug: "auth", RelPermalink: "/docs/guides/auth/", Permalink: "/docs/guides/auth/"},
-		PageI18n:     engine.PageI18n{Lang: "en"},
+		PageIdentity:   engine.PageIdentity{Slug: "auth", RelPermalink: "/docs/guides/auth/", Permalink: "/docs/guides/auth/"},
+		PageI18n:       engine.PageI18n{Lang: "en"},
 		PageVersioning: engine.PageVersioning{Version: "v2"},
 	}
 	enV1 := &engine.Page{
-		PageIdentity: engine.PageIdentity{Slug: "auth", RelPermalink: "/docs/guides/auth/", Permalink: "/docs/v1/guides/auth/"},
-		PageI18n:     engine.PageI18n{Lang: "en"},
+		PageIdentity:   engine.PageIdentity{Slug: "auth", RelPermalink: "/docs/guides/auth/", Permalink: "/docs/v1/guides/auth/"},
+		PageI18n:       engine.PageI18n{Lang: "en"},
 		PageVersioning: engine.PageVersioning{Version: "v1"},
 	}
 	frLatest := &engine.Page{
-		PageIdentity: engine.PageIdentity{Slug: "auth", RelPermalink: "/docs/guides/auth/", Permalink: "/fr/docs/guides/auth/"},
-		PageI18n:     engine.PageI18n{Lang: "fr"},
+		PageIdentity:   engine.PageIdentity{Slug: "auth", RelPermalink: "/docs/guides/auth/", Permalink: "/fr/docs/guides/auth/"},
+		PageI18n:       engine.PageI18n{Lang: "fr"},
 		PageVersioning: engine.PageVersioning{Version: "v2"},
 	}
 	blogPost := &engine.Page{

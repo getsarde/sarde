@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	maxRetries   = 5
-	baseBackoff  = 10 * time.Millisecond
+	maxRetries  = 5
+	baseBackoff = 10 * time.Millisecond
 )
 
 // WriteFile atomically writes data to path via a uniquely-named temp file in

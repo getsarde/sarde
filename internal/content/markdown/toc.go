@@ -10,7 +10,6 @@ import (
 	nethtml "golang.org/x/net/html"
 )
 
-
 // extractHeadings parses rendered HTML, finds headings in the [minLevel, maxLevel]
 // range, injects IDs and (when headingLinks is true) clickable anchor links, and
 // returns the headings as engine.Heading slices. An id already present on the

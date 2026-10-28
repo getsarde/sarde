@@ -44,4 +44,3 @@ func (r *mathRenderer) renderDisplayMath(w util.BufWriter, source []byte, node a
 	}
 	return ast.WalkSkipChildren, nil
 }
-

@@ -30,10 +30,13 @@ import (
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/highlight"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/icon"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/imagecompare"
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/imagerender"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/kbd"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkbutton"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkbuttongroup"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkcard"
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkcollector"
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkrender"
 	extmath "github.com/getsarde/sarde/internal/content/markdown/extensions/math"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/mermaid"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/spoiler"
@@ -41,9 +44,6 @@ import (
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/tabs"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/terminal"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/timeline"
-	"github.com/getsarde/sarde/internal/content/markdown/extensions/imagerender"
-	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkcollector"
-	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkrender"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/video"
 	"github.com/getsarde/sarde/internal/directive"
 	"github.com/getsarde/sarde/internal/engine"
@@ -62,15 +62,15 @@ var defaultBlockedHrefSchemes = []string{"javascript:", "data:", "vbscript:"}
 // Renderer handles markdown to HTML conversion with heading extraction.
 // Implements engine.MarkdownRenderer.
 type Renderer struct {
-	md            goldmark.Markdown
-	imgRend       *imagerender.Renderer       // mutable reference — swap lookup without rebuilding Goldmark
-	linkCollector *linkcollector.Collector     // mutable reference — collects link destinations per page
-	linkRend      *linkrender.Renderer         // mutable reference — resolves internal links per page
-	kazariEngine  *kazari.Engine               // code block rendering engine; nil disables Kazari extensions
-	fingerprint      string                    // cache-busting digest; computed once at construction
-	headingLinks     bool                      // inject clickable anchor links on headings (site.heading_links)
-	headingMinLevel  int                       // lowest heading level to extract (1-6, from markdown.toc.min_heading_level)
-	headingMaxLevel  int                       // highest heading level to extract (1-6, from markdown.toc.max_heading_level)
+	md              goldmark.Markdown
+	imgRend         *imagerender.Renderer    // mutable reference: swap lookup without rebuilding Goldmark
+	linkCollector   *linkcollector.Collector // mutable reference: collects link destinations per page
+	linkRend        *linkrender.Renderer     // mutable reference: resolves internal links per page
+	kazariEngine    *kazari.Engine           // code block rendering engine; nil disables Kazari extensions
+	fingerprint     string                   // cache-busting digest; computed once at construction
+	headingLinks    bool                     // inject clickable anchor links on headings (site.heading_links)
+	headingMinLevel int                      // lowest heading level to extract (1-6, from markdown.toc.min_heading_level)
+	headingMaxLevel int                      // highest heading level to extract (1-6, from markdown.toc.max_heading_level)
 }
 
 // SetImageLookup sets the lookup function for bundle-relative image processing.
@@ -201,7 +201,7 @@ type RendererConfig struct {
 	HeadingMaxLevel    int
 	// HardWraps renders a single newline inside a paragraph as <br>. Off by
 	// default, matching CommonMark, so prose wrapped in the source reflows.
-	HardWraps    bool
+	HardWraps bool
 	// AsideStyle selects the aside icon set ("classic" or "galaxy").
 	// Empty behaves as classic.
 	AsideStyle   string

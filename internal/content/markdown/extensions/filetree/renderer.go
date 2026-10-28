@@ -296,4 +296,3 @@ func fileExtClass(name string) string {
 	}
 	return "file-" + ext
 }
-

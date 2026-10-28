@@ -172,8 +172,8 @@ func (s *Scanner) DiscoverFiles(contentDir string) ([]ContentFile, error) {
 		}
 
 		cf := ContentFile{
-			FilePath:       path,
-			RelPath:        rel,
+			FilePath: path,
+			RelPath:  rel,
 			// Default LangRelPath to the full relative path. ClassifyLang
 			// overwrites it for i18n sites, but version classification reads
 			// it unconditionally, so single-language sites need it populated
@@ -182,7 +182,7 @@ func (s *Scanner) DiscoverFiles(contentDir string) ([]ContentFile, error) {
 			Kind:           kind,
 			CollectionName: collectionName,
 			Slug:           slug,
-			Order:         weight,
+			Order:          weight,
 			IsBundle:       kind == engine.KindBundle,
 		}
 
@@ -267,7 +267,7 @@ func (s *Scanner) ClassifyFile(contentDir, filePath string) (ContentFile, error)
 		Kind:           kind,
 		CollectionName: collectionName,
 		Slug:           slug,
-		Order:         weight,
+		Order:          weight,
 		IsBundle:       kind == engine.KindBundle,
 	}
 	if cf.IsBundle {

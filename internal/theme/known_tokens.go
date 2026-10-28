@@ -13,7 +13,7 @@ func KnownTokens() map[string]bool {
 
 		// Status hues
 		"hue-accent": true,
-		"hue-green": true, "hue-amber": true, "hue-red": true, "hue-cyan": true,
+		"hue-green":  true, "hue-amber": true, "hue-red": true, "hue-cyan": true,
 		"green": true, "green-low": true, "green-high": true,
 		"amber": true, "amber-low": true, "amber-high": true,
 		"red": true, "red-low": true, "red-high": true,
@@ -89,7 +89,7 @@ func KnownTokens() map[string]bool {
 		"aside-note-text": true, "aside-tip-text": true, "aside-info-text": true,
 		"aside-caution-text": true, "aside-danger-text": true, "aside-success-text": true,
 		"aside-important-text": true,
-		"aside-code-bg-mix": true, "aside-code-border-mix": true,
+		"aside-code-bg-mix":    true, "aside-code-border-mix": true,
 
 		// Text-safe accent variants (badges, tags, pill buttons)
 		"blue-text": true, "green-text": true, "cyan-text": true, "amber-text": true,

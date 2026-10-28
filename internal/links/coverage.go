@@ -33,10 +33,10 @@ type CoverageSummary struct {
 func ComputeCoverage(graph *LinkGraph, pages []*engine.Page, expectedLanes []DimKey) CoverageSummary {
 	// Count pages per lane (only pages with content that went through the renderer).
 	type laneStats struct {
-		pages      int
-		links      int
-		broken     int
-		external   int
+		pages           int
+		links           int
+		broken          int
+		external        int
 		hasFallbackOnly bool
 	}
 

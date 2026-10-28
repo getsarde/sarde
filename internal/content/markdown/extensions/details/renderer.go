@@ -3,10 +3,10 @@ package details
 import (
 	"fmt"
 
+	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
-	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 )
 
 type detailsRenderer struct{}
@@ -37,4 +37,3 @@ func (r *detailsRenderer) renderDetails(w util.BufWriter, source []byte, node as
 
 	return ast.WalkContinue, nil
 }
-

@@ -151,8 +151,8 @@ func TestResolveInternalLink_RelativeSameDir(t *testing.T) {
 	}
 
 	currentPage := &engine.Page{
-		PageIdentity:    engine.PageIdentity{RelPermalink: "/docs/guides/intro/"},
-		PageI18n:        engine.PageI18n{Lang: "en", LangRelPath: "docs/guides/intro.md"},
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/guides/intro/"},
+		PageI18n:          engine.PageI18n{Lang: "en", LangRelPath: "docs/guides/intro.md"},
 		PageRelationships: engine.PageRelationships{Collection: col},
 	}
 
@@ -240,8 +240,8 @@ func TestResolveInternalLink_ContentRoot(t *testing.T) {
 	}
 
 	currentPage := &engine.Page{
-		PageIdentity:    engine.PageIdentity{RelPermalink: "/docs/intro/"},
-		PageI18n:        engine.PageI18n{Lang: "en", LangRelPath: "docs/intro.md"},
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/intro/"},
+		PageI18n:          engine.PageI18n{Lang: "en", LangRelPath: "docs/intro.md"},
 		PageRelationships: engine.PageRelationships{Collection: col},
 	}
 

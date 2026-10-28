@@ -15,7 +15,7 @@ var closingRegex = regexp.MustCompile(`^:{3,}(?:/badge)?\s*$`)
 
 type badgeParser struct{}
 
-func NewParser() parser.BlockParser { return &badgeParser{} }
+func NewParser() parser.BlockParser    { return &badgeParser{} }
 func (p *badgeParser) Trigger() []byte { return []byte{':'} }
 
 func (p *badgeParser) Open(parent ast.Node, reader text.Reader, pc parser.Context) (ast.Node, parser.State) {
@@ -77,6 +77,5 @@ func (p *badgeParser) Continue(node ast.Node, reader text.Reader, pc parser.Cont
 }
 
 func (p *badgeParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {}
-func (p *badgeParser) CanInterruptParagraph() bool                                 { return false }
-func (p *badgeParser) CanAcceptIndentedLine() bool                                 { return false }
-
+func (p *badgeParser) CanInterruptParagraph() bool                                { return false }
+func (p *badgeParser) CanAcceptIndentedLine() bool                                { return false }

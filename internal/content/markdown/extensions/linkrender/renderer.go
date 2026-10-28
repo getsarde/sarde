@@ -164,7 +164,7 @@ func LookupInLaneWithDefaultFallback(idx *content.PageIndex, relPermalink string
 // target against the page index in the current lane:
 //
 //   - Found:        resolve to the canonical URL, record StatusOK (or defer an
-//                   anchor check when a #fragment is present).
+//     anchor check when a #fragment is present).
 //   - Not found, page-like (no file extension on the basename, not the site
 //     root): apply base path and record StatusUnverified — surfaced as an
 //     `unverified_internal` finding (cross-lane target or a typo).

@@ -15,7 +15,7 @@ var closingRegex = regexp.MustCompile(`^:{3,}(?:/link-card)?\s*$`)
 
 type linkCardParser struct{}
 
-func NewParser() parser.BlockParser { return &linkCardParser{} }
+func NewParser() parser.BlockParser       { return &linkCardParser{} }
 func (p *linkCardParser) Trigger() []byte { return []byte{':'} }
 
 func (p *linkCardParser) Open(parent ast.Node, reader text.Reader, pc parser.Context) (ast.Node, parser.State) {
@@ -73,6 +73,5 @@ func (p *linkCardParser) Continue(node ast.Node, reader text.Reader, pc parser.C
 }
 
 func (p *linkCardParser) Close(node ast.Node, reader text.Reader, pc parser.Context) {}
-func (p *linkCardParser) CanInterruptParagraph() bool                                 { return false }
-func (p *linkCardParser) CanAcceptIndentedLine() bool                                 { return false }
-
+func (p *linkCardParser) CanInterruptParagraph() bool                                { return false }
+func (p *linkCardParser) CanAcceptIndentedLine() bool                                { return false }

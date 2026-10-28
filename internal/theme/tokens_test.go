@@ -244,11 +244,11 @@ func TestDeriveTokens_ShortHex(t *testing.T) {
 
 func TestRGBToHSL_Roundtrip(t *testing.T) {
 	tests := []struct{ r, g, b int }{
-		{255, 0, 0},   // red
-		{0, 255, 0},   // green
-		{0, 0, 255},   // blue
-		{99, 102, 241}, // indigo (accent)
-		{0, 0, 0},     // black
+		{255, 0, 0},     // red
+		{0, 255, 0},     // green
+		{0, 0, 255},     // blue
+		{99, 102, 241},  // indigo (accent)
+		{0, 0, 0},       // black
 		{255, 255, 255}, // white
 	}
 	for _, tt := range tests {

@@ -293,7 +293,7 @@ func TestHasIgnoredSegment(t *testing.T) {
 		want bool
 	}{
 		{"blog/post.md", false},
-		{"_index.md", false},                // underscore FILES are content
+		{"_index.md", false}, // underscore FILES are content
 		{"blog/_index.md", false},
 		{".hidden.md", true},                // hidden file
 		{".trash/removed.md", true},         // hidden dir

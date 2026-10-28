@@ -18,8 +18,8 @@ func TestRedirectsBuildDone_GlobalRedirects(t *testing.T) {
 	ctx := &BuildDoneContext{
 		Config: &config.SiteConfig{
 			Redirects: map[string]string{
-				"/old-page":  "/new-page/",
-				"/legacy/":   "/modern/",
+				"/old-page": "/new-page/",
+				"/legacy/":  "/modern/",
 			},
 		},
 		OutputDir: outDir,
@@ -72,7 +72,7 @@ func TestRedirectsBuildDone_PageAliases(t *testing.T) {
 	var warnings []engine.ValidationWarning
 
 	ctx := &BuildDoneContext{
-		Config: &config.SiteConfig{},
+		Config:    &config.SiteConfig{},
 		OutputDir: outDir,
 		Pages: []*engine.Page{
 			{

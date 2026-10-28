@@ -6,16 +6,6 @@ import (
 	"strings"
 )
 
-// ComputePermalink returns the clean URL for a content file.
-// All permalinks end with "/" and use forward slashes.
-//
-// Examples:
-//
-//	content/_index.md              → "/"
-//	content/about.md               → "/about/"
-//	content/docs/_index.md         → "/docs/"
-//	content/docs/getting-started.md → "/docs/getting-started/"
-//	content/docs/guide/index.md    → "/docs/guide/"
 // PrefixPermalink prepends a language prefix to a permalink for non-default languages.
 // Used when generating fallback pages that need language-prefixed URLs.
 // For the default language, it returns the permalink unchanged.
@@ -126,6 +116,16 @@ func ComputePatternPermalink(pattern string, vars PermalinkVars) string {
 	return result
 }
 
+// ComputePermalink returns the clean URL for a content file.
+// All permalinks end with "/" and use forward slashes.
+//
+// Examples:
+//
+//	content/_index.md              → "/"
+//	content/about.md               → "/about/"
+//	content/docs/_index.md         → "/docs/"
+//	content/docs/getting-started.md → "/docs/getting-started/"
+//	content/docs/guide/index.md    → "/docs/guide/"
 func ComputePermalink(contentDir, filePath string) string {
 	rel, err := filepath.Rel(contentDir, filePath)
 	if err != nil {

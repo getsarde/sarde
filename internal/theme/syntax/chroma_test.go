@@ -53,4 +53,3 @@ func TestGenerateChromaCSS_InvalidDarkTheme(t *testing.T) {
 		t.Errorf("error should indicate it's the dark theme: %v", err)
 	}
 }
-

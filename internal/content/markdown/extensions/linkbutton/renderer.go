@@ -89,5 +89,3 @@ func (r *linkButtonRenderer) render(w util.BufWriter, source []byte, node ast.No
 	}
 	return ast.WalkSkipChildren, nil
 }
-
-

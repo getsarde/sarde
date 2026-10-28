@@ -5,10 +5,10 @@ import (
 
 	"github.com/getsarde/sarde/internal/content/markdown/icons"
 
+	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
-	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 )
 
 type cardRenderer struct{}
@@ -49,4 +49,3 @@ func (r *cardRenderer) render(w util.BufWriter, source []byte, node ast.Node, en
 	}
 	return ast.WalkContinue, nil
 }
-
