@@ -390,6 +390,16 @@ func TestRender_AsideIconsPerStyle(t *testing.T) {
 	}
 }
 
+// The Kazari config file is part of the fingerprint: options such as
+// lineNumbers change the code block HTML without changing the code block CSS.
+func TestFingerprint_KazariConfigKey(t *testing.T) {
+	a := NewRendererFromConfig(RendererConfig{HeadingLinks: true, KazariConfigKey: "kazari.config.yaml:aaa"})
+	b := NewRendererFromConfig(RendererConfig{HeadingLinks: true, KazariConfigKey: "kazari.config.yaml:bbb"})
+	if a.Fingerprint() == b.Fingerprint() {
+		t.Error("renderer fingerprints must differ when only the Kazari config differs, or the page cache serves stale code blocks")
+	}
+}
+
 func TestFingerprint_AsideStyle(t *testing.T) {
 	classic := NewRendererFromConfig(RendererConfig{HeadingLinks: true})
 	galaxy := NewRendererFromConfig(RendererConfig{HeadingLinks: true, AsideStyle: "galaxy"})

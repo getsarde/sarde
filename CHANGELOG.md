@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Editing `kazari.config.yaml` takes effect without a restart:** `sarde dev` ignored changes to the file, and changing an option that affects only the code block HTML, such as `lineNumbers`, left cached pages in place in `sarde dev` and `sarde build`. A change now rebuilds the site with the new options. See [Dev Server](/advanced/dev-server/#change-classification).
+
 ## [1.7.0] - 2026-10-28
 
 ### Added

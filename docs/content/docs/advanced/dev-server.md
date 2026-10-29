@@ -29,7 +29,7 @@ A ping/pong keepalive runs every 30 seconds to detect stale connections.
 
 ## File watching
 
-The server watches these project directories for changes: `content/`, `layouts/`, `assets/`, `data/`, `public/`, `themes/`, `plugins/`, `directives/`, `i18n/`. It also watches the project root non-recursively for config file changes (`sarde.yaml`, `theme.yaml`, `nav.yaml`, `sidebar.yaml`). A watched directory created while the server runs is picked up too. The output directory is never watched, even when `build.output` names one of these directories.
+The server watches these project directories for changes: `content/`, `layouts/`, `assets/`, `data/`, `public/`, `themes/`, `plugins/`, `directives/`, `i18n/`. It also watches the project root non-recursively for config file changes (`sarde.yaml`, `theme.yaml`, `nav.yaml`, `sidebar.yaml`, `kazari.config.yaml`). A watched directory created while the server runs is picked up too. The output directory is never watched, even when `build.output` names one of these directories.
 
 Changes are debounced (150ms) and batched before processing.
 
@@ -39,7 +39,7 @@ Each changed file is classified into one of six kinds:
 
 | Kind | Trigger | Behavior |
 |------|---------|----------|
-| Config | `sarde.yaml`, `theme.yaml`, `nav.yaml`, `sidebar.yaml` | Fresh builder, full build |
+| Config | `sarde.yaml`, `theme.yaml`, `nav.yaml`, `sidebar.yaml`, `kazari.config.yaml` | Fresh builder, full build |
 | Template | Files under `layouts/`, `themes/` (except theme CSS), `directives/` or `i18n/` | Fresh builder, full build |
 | Plugin | Files under `plugins/` | Fresh builder, full build |
 | Content | Files under `content/` | Incremental rebuild, reuses existing builder |

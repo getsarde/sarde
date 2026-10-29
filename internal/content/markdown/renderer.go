@@ -206,6 +206,9 @@ type RendererConfig struct {
 	// Empty behaves as classic.
 	AsideStyle   string
 	KazariEngine *kazari.Engine
+	// KazariConfigKey identifies the project's kazari.config.yaml (see
+	// KazariConfigKey); part of the fingerprint.
+	KazariConfigKey string
 	// DirectiveRegistry holds site/theme generic directives. Nil or empty
 	// no-ops the generic directive extension.
 	DirectiveRegistry *directive.Registry
@@ -355,7 +358,7 @@ func computeFingerprint(extensions []goldmark.Extender, cfg RendererConfig) stri
 		directiveHash = cfg.DirectiveRegistry.Hash()
 	}
 
-	raw := fmt.Sprintf("bin=%s\x00exts=%s\x00hl=%t\x00hmin=%d\x00hmax=%d\x00hw=%t\x00aside=%s\x00schemes=%s\x00kazari=%t\x00css=%s\x00directives=%s",
+	raw := fmt.Sprintf("bin=%s\x00exts=%s\x00hl=%t\x00hmin=%d\x00hmax=%d\x00hw=%t\x00aside=%s\x00schemes=%s\x00kazari=%t\x00css=%s\x00kazaricfg=%s\x00directives=%s",
 		execIdentity(),
 		strings.Join(names, "|"),
 		cfg.HeadingLinks,
@@ -366,6 +369,7 @@ func computeFingerprint(extensions []goldmark.Extender, cfg RendererConfig) stri
 		strings.Join(schemes, ","),
 		cfg.KazariEngine != nil,
 		kazariCSS,
+		cfg.KazariConfigKey,
 		directiveHash,
 	)
 	sum := sha256.Sum256([]byte(raw))

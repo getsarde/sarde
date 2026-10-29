@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/getsarde/sarde/internal/consts"
+	"github.com/getsarde/sarde/internal/content/markdown"
 )
 
 // ChangeKind classifies a file system change.
@@ -325,7 +327,14 @@ func (w *Watcher) isRootLevelNonConfig(path string) bool {
 	}
 	base := filepath.Base(path)
 	return base != consts.FileSiteConfig && base != consts.FileThemeConfig &&
-		base != consts.FileNavConfig && base != consts.FileSidebarConfig
+		base != consts.FileNavConfig && base != consts.FileSidebarConfig &&
+		!isKazariConfig(base)
+}
+
+// isKazariConfig reports whether name is one of the file names Kazari loads
+// its code block options from (kazari.config.yaml, .yml or .json).
+func isKazariConfig(name string) bool {
+	return slices.Contains(markdown.KazariConfigFiles, name)
 }
 
 func (w *Watcher) debounceChange(change FileChange) {
@@ -503,6 +512,10 @@ func (w *Watcher) classifyChange(path string) ChangeKind {
 	base := filepath.Base(rel)
 	if base == consts.FileSiteConfig || base == consts.FileThemeConfig ||
 		base == consts.FileNavConfig || base == consts.FileSidebarConfig {
+		return ChangeConfig
+	}
+	// Kazari reads its config file from the project root only.
+	if rel == base && isKazariConfig(base) {
 		return ChangeConfig
 	}
 

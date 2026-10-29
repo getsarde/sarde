@@ -117,3 +117,26 @@ func TestEffectiveCodeThemes(t *testing.T) {
 		})
 	}
 }
+
+func TestKazariConfigKey(t *testing.T) {
+	if got := KazariConfigKey(t.TempDir()); got != "" {
+		t.Errorf("no file: key = %q, want empty", got)
+	}
+
+	off := KazariConfigKey(kazariDir(t, "lineNumbers: false\n"))
+	on := KazariConfigKey(kazariDir(t, "lineNumbers: true\n"))
+	if off == "" || off == on {
+		t.Errorf("keys for lineNumbers false and true must differ and be set: %q, %q", off, on)
+	}
+	if again := KazariConfigKey(kazariDir(t, "lineNumbers: false\n")); again != off {
+		t.Errorf("same file content gave keys %q and %q", off, again)
+	}
+
+	yml := t.TempDir()
+	if err := os.WriteFile(filepath.Join(yml, "kazari.config.yml"), []byte("lineNumbers: false\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if got := KazariConfigKey(yml); got == off || !strings.HasPrefix(got, "kazari.config.yml:") {
+		t.Errorf("the file name must be part of the key, got %q", got)
+	}
+}

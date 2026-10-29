@@ -28,7 +28,7 @@ Control the build output, image processing, the search index, analytics, `llms.t
 
 Rendered pages are cached under `.cache/pages` and processed image variants under `.cache/images`, both relative to the project root. Add `.cache/` to `.gitignore`.
 
-Page cache entries are keyed by content hash plus a renderer fingerprint, so editing a page or changing a setting that affects rendering invalidates only the affected entries. Upgrading Sarde can invalidate the whole cache when the renderer changes shape.
+Page cache entries are keyed by content hash plus a renderer fingerprint, so editing a page or changing a setting that affects rendering invalidates only the affected entries. Any change to `kazari.config.yaml` re-renders every page. Upgrading Sarde can invalidate the whole cache when the renderer changes shape.
 
 Set `cache: false` to render everything on every build. Deleting `.cache/` by hand has the same one-time effect. Caching does not affect link validation: targets and anchors are re-checked on every full build even for cached pages.
 

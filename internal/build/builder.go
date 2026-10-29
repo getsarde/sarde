@@ -80,6 +80,7 @@ type SiteBuilder struct {
 	themeJSContent     []byte
 	themeJSFilename    string
 	kazariEngine       *kazari.Engine
+	kazariConfigKey    string // see markdown.KazariConfigKey; taken with kazariEngine
 	kazariJSURL        string
 	kazariJSContent    []byte
 	kazariJSFilename   string

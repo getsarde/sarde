@@ -2,6 +2,7 @@ package markdown
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -75,27 +76,48 @@ func BuildKazariEngine(ctx context.Context, cfg *config.CodeblocksSettings, proj
 // in its lookup order; the first one found is used.
 var KazariConfigFiles = []string{"kazari.config.yaml", "kazari.config.yml", "kazari.config.json"}
 
+// readKazariConfig returns the name and bytes of the project's Kazari config,
+// the first of KazariConfigFiles that exists, or "" and nil without one.
+func readKazariConfig(projectDir string) (string, []byte) {
+	for _, name := range KazariConfigFiles {
+		data, err := os.ReadFile(filepath.Join(projectDir, name))
+		if err == nil {
+			return name, data
+		}
+	}
+	return "", nil
+}
+
 // LoadKazariConfig reads the project's Kazari config, the first of
 // KazariConfigFiles that exists, and returns its file name and content. The
 // config is nil when there is no file or it does not parse; Kazari's own
 // loader reports a file that does not parse.
 func LoadKazariConfig(projectDir string) (string, *kazari.FileConfig) {
-	for _, name := range KazariConfigFiles {
-		data, err := os.ReadFile(filepath.Join(projectDir, name))
-		if err != nil {
-			continue
-		}
-		format := "yaml"
-		if strings.HasSuffix(name, ".json") {
-			format = "json"
-		}
-		fc, err := kazari.ParseConfig(data, format)
-		if err != nil {
-			return name, nil
-		}
-		return name, fc
+	name, data := readKazariConfig(projectDir)
+	if name == "" {
+		return "", nil
 	}
-	return "", nil
+	format := "yaml"
+	if strings.HasSuffix(name, ".json") {
+		format = "json"
+	}
+	fc, err := kazari.ParseConfig(data, format)
+	if err != nil {
+		return name, nil
+	}
+	return name, fc
+}
+
+// KazariConfigKey identifies the project's Kazari config file by name and
+// content, or returns "" without one. It is part of the renderer
+// fingerprint, so a change to an option that alters only the code block
+// HTML, such as lineNumbers, invalidates the page cache.
+func KazariConfigKey(projectDir string) string {
+	name, data := readKazariConfig(projectDir)
+	if name == "" {
+		return ""
+	}
+	return fmt.Sprintf("%s:%x", name, sha256.Sum256(data))
 }
 
 // EffectiveCodeThemes returns the code block themes the engine uses: the

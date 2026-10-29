@@ -197,6 +197,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 			return fmt.Errorf("initializing code block engine: %w", err)
 		}
 		b.kazariEngine = ke
+		b.kazariConfigKey = markdown.KazariConfigKey(b.projectDir)
 	}
 	if b.mdRenderer == nil {
 		b.mdRenderer = markdown.NewRendererFromConfig(markdown.RendererConfig{
@@ -207,6 +208,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 			HardWraps:          config.BoolVal(b.config.Markdown.HardWraps, false),
 			AsideStyle:         b.config.Markdown.Asides.Style,
 			KazariEngine:       b.kazariEngine,
+			KazariConfigKey:    b.kazariConfigKey,
 			DirectiveRegistry:  s.directiveRegistry,
 		})
 	}
@@ -249,6 +251,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 					HardWraps:          config.BoolVal(b.config.Markdown.HardWraps, false),
 					AsideStyle:         b.config.Markdown.Asides.Style,
 					KazariEngine:       b.kazariEngine,
+					KazariConfigKey:    b.kazariConfigKey,
 					DirectiveRegistry:  s.directiveRegistry,
 				})
 			}
