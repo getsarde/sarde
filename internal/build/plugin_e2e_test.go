@@ -154,6 +154,68 @@ func TestBuild_Plugins_Search(t *testing.T) {
 	}
 }
 
+func TestBuild_Plugins_SearchSkipsTaxonomyAndRepeatedCrumbs(t *testing.T) {
+	projDir := createFixtureSite(t)
+	writeFixture(t, projDir, "content/blog/tagged.md", "---\ntitle: Tagged\ndate: 2025-02-01T00:00:00Z\ntags: [python]\n---\nA tagged post.\n")
+	writeFixture(t, projDir, "content/docs/guides/_index.md", "---\ntitle: Guides\n---\n## Overview\nAll the guides.\n")
+	writeFixture(t, projDir, "content/docs/guides/install.md", "---\ntitle: Install\n---\n## Steps\nRun the installer.\n")
+	writeFixture(t, projDir, "content/about.md", "---\ntitle: About\n---\n## Contact\nWrite to us.\n")
+
+	cfg := config.Defaults()
+	cfg.Plugins.Enabled = []string{"search"}
+	builder := NewSiteBuilder(BuildOptions{
+		ProjectDir:  projDir,
+		Config:      cfg,
+		ThemeConfig: buildThemeConfig(),
+		EmbeddedFS:  embedded.ThemeFS(),
+	})
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+
+	distDir := filepath.Join(projDir, "dist")
+	// The tag page must exist, or the check below proves nothing.
+	if _, err := os.Stat(filepath.Join(distDir, "tags", "python", "index.html")); err != nil {
+		t.Fatalf("expected the python tag page to be built: %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(distDir, "search-index.en.json"))
+	if err != nil {
+		t.Fatalf("search-index.en.json not found: %v", err)
+	}
+	var docs []struct {
+		Title      string `json:"title"`
+		URL        string `json:"url"`
+		Breadcrumb string `json:"breadcrumb"`
+	}
+	if err := json.Unmarshal(data, &docs); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+
+	crumbs := make(map[string]string, len(docs))
+	for _, d := range docs {
+		if strings.HasPrefix(d.URL, "/tags/") {
+			t.Errorf("taxonomy page %q must not be indexed", d.URL)
+		}
+		crumbs[d.Title] = d.Breadcrumb
+	}
+	for title, want := range map[string]string{
+		"Install":  "Documentation > Guides",
+		"Steps":    "Documentation > Guides > Install",
+		"Overview": "Documentation > Guides",
+		"Contact":  "About",
+	} {
+		got, ok := crumbs[title]
+		if !ok {
+			t.Errorf("no search document titled %q", title)
+			continue
+		}
+		if got != want {
+			t.Errorf("%s: breadcrumb = %q, want %q", title, got, want)
+		}
+	}
+}
+
 func TestBuild_NoPlugins(t *testing.T) {
 	projDir := createFixtureSite(t)
 	cfg := config.Defaults()

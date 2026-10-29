@@ -140,6 +140,11 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any, cache *searchDoc
 		if v, ok := page.Params["pagefind"].(bool); ok && !v {
 			continue
 		}
+		// Taxonomy index and term pages (including their /page/N/ pages)
+		// only list other pages.
+		if page.Kind == engine.KindTaxonomy || page.Kind == engine.KindTerm {
+			continue
+		}
 		// A tabbed collection root without a body only redirects.
 		if engine.TabbedRootRedirect(page) != "" {
 			continue
@@ -230,6 +235,7 @@ func buildSearchDocs(page *engine.Page, url string, maxLen int) []searchDocument
 	}
 
 	breadcrumb := buildBreadcrumb(page)
+	headingCrumb := headingBreadcrumb(breadcrumb, page.Title)
 
 	docs := []searchDocument{{
 		ID:          url,
@@ -258,7 +264,7 @@ func buildSearchDocs(page *engine.Page, url string, maxLen int) []searchDocument
 			Title:      h.Text,
 			URL:        hURL,
 			Section:    section,
-			Breadcrumb: breadcrumb + " > " + page.Title,
+			Breadcrumb: headingCrumb,
 			Kind:       "heading",
 			Anchor:     h.ID,
 			Version:    page.Version,
@@ -268,6 +274,11 @@ func buildSearchDocs(page *engine.Page, url string, maxLen int) []searchDocument
 	return docs
 }
 
+// buildBreadcrumb returns the trail shown under a page's search result: the
+// collection title, then each section down to the page's own, the way the
+// page's breadcrumbs (navigation.BuildBreadcrumbs) show it. The collection's
+// root section is skipped because the collection title already stands for
+// it, and transparent sections are skipped as on the page.
 func buildBreadcrumb(page *engine.Page) string {
 	var parts []string
 	if page.Collection != nil {
@@ -276,6 +287,9 @@ func buildBreadcrumb(page *engine.Page) string {
 	var sectionParts []string
 	// Depth cap guards against a (mis-assembled) circular section tree.
 	for s, depth := page.Section, 0; s != nil && depth < 100; s, depth = s.Parent, depth+1 {
+		if s.Parent == nil || s.Transparent {
+			continue
+		}
 		title := s.Title
 		if title == "" && s.IndexPage != nil {
 			title = s.IndexPage.Title
@@ -288,6 +302,20 @@ func buildBreadcrumb(page *engine.Page) string {
 		parts = append(parts, sectionParts[i])
 	}
 	return strings.Join(parts, " > ")
+}
+
+// headingBreadcrumb extends a page's trail with the page title for its
+// heading results. A section index page's trail already ends with its own
+// title, so the title is not repeated; a page outside any collection has
+// no trail, so the title stands alone.
+func headingBreadcrumb(trail, title string) string {
+	switch {
+	case trail == "":
+		return title
+	case trail == title || strings.HasSuffix(trail, " > "+title):
+		return trail
+	}
+	return trail + " > " + title
 }
 
 func writeSearchAssets(ctx *BuildDoneContext, byLang map[string][]searchDocument) error {

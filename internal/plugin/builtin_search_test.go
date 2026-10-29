@@ -666,6 +666,118 @@ func TestBuildBreadcrumb_CycleSafe(t *testing.T) {
 	}
 }
 
+func TestSearch_SkipsTaxonomyPages(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+
+	stub := func(kind engine.NodeKind, title, url string) *engine.Page {
+		return &engine.Page{PageIdentity: engine.PageIdentity{Title: title, Kind: kind, RelPermalink: url, Permalink: url}}
+	}
+	ctx := &BuildDoneContext{
+		Config:    config.Defaults(),
+		OutputDir: outDir,
+		Pages: []*engine.Page{
+			{
+				PageIdentity: engine.PageIdentity{Title: "Python Basics", Kind: engine.KindPage, RelPermalink: "/blog/python-basics/", Permalink: "/blog/python-basics/"},
+				PageContent:  engine.PageContent{Content: template.HTML("<p>Learn python.</p>")},
+			},
+			stub(engine.KindTaxonomy, "tags", "/tags/"),
+			stub(engine.KindTerm, "python", "/tags/python/"),
+			stub(engine.KindTerm, "python", "/tags/python/page/2/"),
+		},
+	}
+	ctx.SetWarnings(&warnings)
+
+	if err := searchBuildDone(ctx, nil, &searchDocCache{}); err != nil {
+		t.Fatalf("searchBuildDone: %v", err)
+	}
+	data, err := readTestFile(outDir, "search-index.en.json")
+	if err != nil {
+		t.Fatalf("reading search-index.en.json: %v", err)
+	}
+	var docs []searchDocument
+	if err := json.Unmarshal(data, &docs); err != nil {
+		t.Fatalf("unmarshaling search index: %v", err)
+	}
+	if len(docs) != 1 || docs[0].URL != "/blog/python-basics/" {
+		t.Fatalf("expected only the post to be indexed, got %+v", docs)
+	}
+}
+
+// breadcrumbFixture wires a docs collection by hand: the root section
+// (titled like the collection, as collectionTitle makes it), a "Guides"
+// section, and a transparent "Group" section holding a "Setup" section.
+func breadcrumbFixture() (col *engine.Collection, root, guides, setup *engine.Section) {
+	col = &engine.Collection{Name: "docs", Title: "Docs"}
+	root = &engine.Section{Title: "Docs"}
+	guides = &engine.Section{Title: "Guides", Parent: root}
+	group := &engine.Section{Title: "Group", Parent: root, Transparent: true}
+	setup = &engine.Section{Title: "Setup", Parent: group}
+	return col, root, guides, setup
+}
+
+func TestBuildBreadcrumb(t *testing.T) {
+	col, root, guides, setup := breadcrumbFixture()
+	untitled := &engine.Section{
+		Parent:    root,
+		IndexPage: &engine.Page{PageIdentity: engine.PageIdentity{Title: "From Index"}},
+	}
+
+	tests := []struct {
+		name    string
+		col     *engine.Collection
+		section *engine.Section
+		want    string
+	}{
+		{"nested section", col, guides, "Docs > Guides"},
+		{"root section only", col, root, "Docs"},
+		{"transparent section skipped", col, setup, "Docs > Setup"},
+		{"untitled section uses index page title", col, untitled, "Docs > From Index"},
+		{"outside any collection", nil, nil, ""},
+	}
+	for _, tt := range tests {
+		page := &engine.Page{
+			PageIdentity:      engine.PageIdentity{Title: "Page"},
+			PageRelationships: engine.PageRelationships{Collection: tt.col, Section: tt.section},
+		}
+		if got := buildBreadcrumb(page); got != tt.want {
+			t.Errorf("%s: buildBreadcrumb = %q, want %q", tt.name, got, tt.want)
+		}
+	}
+}
+
+func TestBuildSearchDocs_HeadingBreadcrumbs(t *testing.T) {
+	col, root, guides, _ := breadcrumbFixture()
+
+	tests := []struct {
+		name    string
+		kind    engine.NodeKind
+		title   string
+		col     *engine.Collection
+		section *engine.Section
+		want    string
+	}{
+		{"regular page", engine.KindPage, "Install", col, guides, "Docs > Guides > Install"},
+		{"section index page", engine.KindSection, "Guides", col, guides, "Docs > Guides"},
+		{"collection root index", engine.KindSection, "Docs", col, root, "Docs"},
+		{"page outside any collection", engine.KindStandalone, "About", nil, nil, "About"},
+	}
+	for _, tt := range tests {
+		page := &engine.Page{
+			PageIdentity:      engine.PageIdentity{Title: tt.title, Kind: tt.kind},
+			PageContent:       engine.PageContent{Headings: []engine.Heading{{Level: 2, ID: "overview", Text: "Overview"}}},
+			PageRelationships: engine.PageRelationships{Collection: tt.col, Section: tt.section},
+		}
+		docs := buildSearchDocs(page, "/page/", 5000)
+		if len(docs) != 2 {
+			t.Fatalf("%s: expected page + heading docs, got %d", tt.name, len(docs))
+		}
+		if got := docs[1].Breadcrumb; got != tt.want {
+			t.Errorf("%s: heading breadcrumb = %q, want %q", tt.name, got, tt.want)
+		}
+	}
+}
+
 func TestStripHTML(t *testing.T) {
 	tests := []struct {
 		input string

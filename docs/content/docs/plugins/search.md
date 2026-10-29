@@ -26,11 +26,11 @@ Each page produces one primary document plus one document per heading. This enab
 | `section` | Collection name |
 | `tags` | Page tags |
 | `version` | Page version ID (if versioned) |
-| `breadcrumb` | Collection > Section > Subsection path |
+| `breadcrumb` | Collection > Section > Subsection path, matching the page's own breadcrumbs (transparent sections are left out) |
 
 ### Heading documents
 
-Each heading on the page generates an additional document with the heading text as `title` and the anchor URL (`page-url#heading-id`) as `url`. Heading documents include the breadcrumb extended with the page title (e.g., "Docs > Guides > Writing Content").
+Each heading on the page generates an additional document with the heading text as `title` and the anchor URL (`page-url#heading-id`) as `url`. Heading documents include the breadcrumb extended with the page title (e.g., "Docs > Guides > Writing Content"). On a section's `_index.md` page the breadcrumb already ends with the page title, so the title is not repeated.
 
 ## Output files
 
@@ -140,6 +140,7 @@ When the [`search_highlighter`](/plugins/search-highlighter/) client plugin is e
 ## Edge cases
 
 - Draft pages are excluded from the index.
+- Taxonomy pages are excluded from the index: the tag index (`/tags/`), each tag's page (`/tags/python/`), and its numbered pages (`/tags/python/page/2/`) only list other pages.
 - Duplicate URLs (permalink collisions) are deduplicated: only the first page encountered keeps its entry.
 - Heading documents within a page are also deduplicated by their anchor URL.
 - The Orama runtime and search UI script are only copied on full builds. Incremental rebuilds skip the asset copy since the files are identical.
