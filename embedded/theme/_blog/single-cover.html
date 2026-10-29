@@ -1,7 +1,7 @@
 {{ define "content" }}
 {{ if .Page.Image }}
 <div class="sarde-post-cover">
-  <img src="{{ .Page.Image }}" alt="">
+  <img src="{{ if hasPrefix .Page.Image "/" }}{{ rootURL .Page.Image }}{{ else }}{{ .Page.Image }}{{ end }}" alt="">
 </div>
 {{ end }}
 <div class="sarde-blog-post-container">

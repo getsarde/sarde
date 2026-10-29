@@ -58,6 +58,8 @@ Reference these with absolute paths:
 
 Images from `public/` are not processed. They render as a plain `<img>` with the original file.
 
+On a site served from a subfolder, Sarde adds [`build.base_path`](/reference/configuration/build-and-output/#build) to these paths, so write them from the site root without it. The same applies to a page's frontmatter `image` and to images in figures, galleries, and image comparisons. Images never get a language prefix: a translated page uses the same `/images/logo.png`.
+
 ### Which to use
 
 Choose the placement by how widely the file is used:

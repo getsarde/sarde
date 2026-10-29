@@ -246,6 +246,9 @@ func NewRendererFromConfig(cfg RendererConfig) *Renderer {
 		headingMinLevel: minLvl,
 		headingMaxLevel: maxLvl,
 	}
+	// Site-absolute image paths get the base path from the link renderer's
+	// resolver, which the build sets per builder.
+	r.imgRend.AssetURL = r.linkRend.AssetURL
 	r.md, r.fingerprint = r.buildMarkdown(cfg)
 	return r
 }
@@ -280,8 +283,8 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) (goldmark.Markdown, string)
 		&linkbutton.Extension{BlockedSchemes: cfg.BlockedHrefSchemes, LinkRenderer: r.linkRend},
 		&linkbuttongroup.Extension{},
 		&figure.Extension{},
-		&gallery.Extension{},
-		&imagecompare.Extension{},
+		&gallery.Extension{AssetURL: r.linkRend.AssetURL},
+		&imagecompare.Extension{AssetURL: r.linkRend.AssetURL},
 		&video.Extension{},
 		&terminal.Extension{},
 		&mermaid.Extension{},

@@ -2,7 +2,7 @@
 <article class="sarde-deck-card">
   <a href="{{ .Permalink }}" class="sarde-deck-card-link">
     {{ if .Image }}
-    <img class="sarde-deck-thumb" src="{{ .Image }}" alt="" loading="lazy">
+    <img class="sarde-deck-thumb" src="{{ if hasPrefix .Image "/" }}{{ rootURL .Image }}{{ else }}{{ .Image }}{{ end }}" alt="" loading="lazy">
     {{ else }}
     <div class="sarde-deck-thumb sarde-deck-thumb-placeholder">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

@@ -74,7 +74,12 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 	if ogImage == "" {
 		ogImage = defaultImage
 	}
-	if ogImage != "" && !strings.HasPrefix(ogImage, "http") {
+	switch {
+	case ogImage == "" || engine.IsAbsoluteURL(ogImage):
+	case strings.HasPrefix(ogImage, "/"):
+		// A site-absolute path: origin plus base path, never a language.
+		ogImage = ctx.AbsURL(ogImage, "", "")
+	default:
 		ogImage = baseURL + ogImage
 	}
 

@@ -17,11 +17,15 @@ import (
 type ImageLookupFunc func(imageName string, opts asset.ImageOptions) *asset.ProcessedImage
 
 // Renderer replaces the default Goldmark image renderer for bundle-relative images.
-// External/absolute URLs pass through with standard <img> rendering.
+// Other images render as a standard <img>: site-absolute paths get the base
+// path through AssetURL, and full URLs pass through.
 // The Lookup field can be swapped at runtime without rebuilding the Goldmark instance.
 type Renderer struct {
 	html.Config
-	Lookup      ImageLookupFunc
+	Lookup ImageLookupFunc
+	// AssetURL resolves a site-absolute path in the fallback <img>; nil leaves
+	// it as written.
+	AssetURL    func(string) string
 	HasImages   bool // set true when at least one image is rendered
 	LazyLoading bool // site config; the first image per page is always eager
 	imageIndex  int  // per-page image counter, reset via ResetPage
@@ -79,8 +83,12 @@ func (r *Renderer) renderImage(w util.BufWriter, source []byte, node ast.Node, e
 	}
 
 	// Fallback: standard <img> rendering.
+	src := dest
+	if r.AssetURL != nil {
+		src = r.AssetURL(dest)
+	}
 	w.WriteString("<img src=\"")
-	w.WriteString(escapeAttr(dest))
+	w.WriteString(escapeAttr(src))
 	w.WriteString("\" alt=\"")
 	w.WriteString(escapeAttr(alt))
 	w.WriteByte('"')

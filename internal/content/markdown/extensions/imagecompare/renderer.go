@@ -14,9 +14,15 @@ import (
 
 var compareCounter atomic.Int64
 
-type imageCompareRenderer struct{}
+type imageCompareRenderer struct {
+	assetURL func(string) string
+}
 
-func NewRenderer() renderer.NodeRenderer { return &imageCompareRenderer{} }
+// NewRenderer returns the image-compare renderer. assetURL resolves
+// site-absolute image paths; nil leaves them as written.
+func NewRenderer(assetURL func(string) string) renderer.NodeRenderer {
+	return &imageCompareRenderer{assetURL: assetURL}
+}
 
 func (r *imageCompareRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 	reg.Register(KindImageCompareBlock, r.render)
@@ -68,13 +74,19 @@ func (r *imageCompareRenderer) render(w util.BufWriter, source []byte, node ast.
 
 	_, _ = fmt.Fprintf(w, "<div class=\"sarde-image-compare-container\" id=\"%s\" data-position=\"50\">\n", containerID)
 
+	// Resolve site-absolute paths; the AST keeps what was written.
+	beforeSrc, afterSrc := ic.BeforeSrc, ic.AfterSrc
+	if r.assetURL != nil {
+		beforeSrc, afterSrc = r.assetURL(beforeSrc), r.assetURL(afterSrc)
+	}
+
 	// Before image
 	_, _ = fmt.Fprintf(w, "<div class=\"sarde-image-compare-before\"><img src=\"%s\" alt=\"%s\" draggable=\"false\" /></div>\n",
-		htmlutil.EscapeHTML(ic.BeforeSrc), htmlutil.EscapeHTML(ic.BeforeAlt))
+		htmlutil.EscapeHTML(beforeSrc), htmlutil.EscapeHTML(ic.BeforeAlt))
 
 	// After image
 	_, _ = fmt.Fprintf(w, "<div class=\"sarde-image-compare-after\"><img src=\"%s\" alt=\"%s\" draggable=\"false\" /></div>\n",
-		htmlutil.EscapeHTML(ic.AfterSrc), htmlutil.EscapeHTML(ic.AfterAlt))
+		htmlutil.EscapeHTML(afterSrc), htmlutil.EscapeHTML(ic.AfterAlt))
 
 	// Handle
 	_, _ = w.WriteString("<div class=\"sarde-image-compare-handle\" role=\"slider\" tabindex=\"0\" aria-label=\"Image comparison slider\" aria-valuenow=\"50\" aria-valuemin=\"0\" aria-valuemax=\"100\">\n")

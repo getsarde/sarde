@@ -243,6 +243,28 @@ func (r *Renderer) resolveSiteRoot(rawHref, rest string) string {
 
 // withSuffix re-attaches a ?query and/or #fragment to a resolved URL in the
 // canonical order (path?query#fragment).
+// AssetURL returns the URL for an asset path written in content, such as an
+// image under public/: a site-absolute path gets the base path and never a
+// language or version prefix, since assets exist once. Full URLs, relative
+// paths and a nil resolver leave src unchanged. Unlike ResolveHref it
+// records no link reference.
+func (r *Renderer) AssetURL(src string) string {
+	if r.URLResolver == nil || !strings.HasPrefix(src, "/") || engine.IsAbsoluteURL(src) {
+		return src
+	}
+	pathPart := src
+	var fragment, query string
+	if idx := strings.IndexByte(pathPart, '#'); idx >= 0 {
+		fragment = pathPart[idx+1:]
+		pathPart = pathPart[:idx]
+	}
+	if idx := strings.IndexByte(pathPart, '?'); idx >= 0 {
+		query = pathPart[idx+1:]
+		pathPart = pathPart[:idx]
+	}
+	return withSuffix(r.URLResolver.URL(pathPart, "", ""), fragment, query)
+}
+
 func withSuffix(url, fragment, query string) string {
 	if query != "" {
 		url += "?" + query

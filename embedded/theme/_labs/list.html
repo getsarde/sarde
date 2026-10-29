@@ -10,7 +10,7 @@
   <a href="{{ relURL .Permalink }}" class="sarde-doc-card sarde-labs-card">
     {{ if and .IndexPage .IndexPage.Image }}
     <div class="sarde-labs-card__image">
-      <img src="{{ relURL .IndexPage.Image }}" alt="" loading="lazy">
+      <img src="{{ rootURL .IndexPage.Image }}" alt="" loading="lazy">
     </div>
     {{ end }}
     <div class="sarde-labs-card__body">
@@ -35,7 +35,7 @@
   <a href="{{ relURL .Permalink }}" class="sarde-doc-card sarde-labs-card">
     {{ if .Image }}
     <div class="sarde-labs-card__image">
-      <img src="{{ relURL .Image }}" alt="" loading="lazy">
+      <img src="{{ rootURL .Image }}" alt="" loading="lazy">
     </div>
     {{ end }}
     <div class="sarde-labs-card__body">

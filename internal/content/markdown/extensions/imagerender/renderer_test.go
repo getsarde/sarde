@@ -211,3 +211,31 @@ func TestImageRenderer_NoAttributesFallback(t *testing.T) {
 		t.Errorf("Quality = %d, want 0", receivedOpts.Quality)
 	}
 }
+
+// A site-absolute destination goes through AssetURL, which adds the base
+// path; a relative destination that matched no bundle file stays as written.
+func TestRenderImage_SiteAbsoluteUsesAssetURL(t *testing.T) {
+	r := NewRenderer(func(string, asset.ImageOptions) *asset.ProcessedImage { return nil })
+	r.AssetURL = func(src string) string {
+		if strings.HasPrefix(src, "/") {
+			return "/sub" + src
+		}
+		return src
+	}
+	for dest, want := range map[string]string{
+		"/images/logo.svg": `src="/sub/images/logo.svg"`,
+		"missing.png":      `src="missing.png"`,
+	} {
+		n := ast.NewImage(ast.NewLink())
+		n.Destination = []byte(dest)
+		var buf bytes.Buffer
+		w := bufio.NewWriter(&buf)
+		if _, err := r.renderImage(w, nil, n, true); err != nil {
+			t.Fatalf("renderImage(%q): %v", dest, err)
+		}
+		w.Flush()
+		if !strings.Contains(buf.String(), want) {
+			t.Errorf("renderImage(%q) = %s, want %s", dest, buf.String(), want)
+		}
+	}
+}

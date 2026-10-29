@@ -22,7 +22,7 @@ Replace `octocat` with your GitHub user or organization name and `my-site` with 
 
 A user or organization site (a repository named `octocat.github.io`) is served from the root. Set `site.url` and leave `base_path` unset.
 
-Write links between pages without the base path, for example `[Setup](/guides/setup/)`. Sarde adds `base_path` to every built link.
+Write links between pages and image paths without the base path, for example `[Setup](/guides/setup/)` or `![Logo](/images/logo.png)`. Sarde adds `base_path` to every built link and image.
 
 :::caution
 Do not use the `--baseURL` flag to set the subdirectory. It overrides `site.url`, not `base_path`, so canonical links, Open Graph tags, the sitemap, and feeds end up with the wrong URL.

@@ -14,9 +14,15 @@ import (
 
 var galleryCounter atomic.Int64
 
-type galleryRenderer struct{}
+type galleryRenderer struct {
+	assetURL func(string) string
+}
 
-func NewRenderer() renderer.NodeRenderer { return &galleryRenderer{} }
+// NewRenderer returns the gallery renderer. assetURL resolves site-absolute
+// image paths; nil leaves them as written.
+func NewRenderer(assetURL func(string) string) renderer.NodeRenderer {
+	return &galleryRenderer{assetURL: assetURL}
+}
 
 func (r *galleryRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 	reg.Register(KindGalleryBlock, r.render)
@@ -55,6 +61,15 @@ func (r *galleryRenderer) render(w util.BufWriter, source []byte, node ast.Node,
 		return ast.WalkSkipChildren, nil
 	}
 
+	// Resolve site-absolute paths in a copy; the AST keeps what was written.
+	images := make([]GalleryImage, len(g.Images))
+	copy(images, g.Images)
+	if r.assetURL != nil {
+		for i := range images {
+			images[i].Src = r.assetURL(images[i].Src)
+		}
+	}
+
 	id := galleryCounter.Add(1)
 	galleryID := fmt.Sprintf("gallery-%d", id)
 	lightboxID := fmt.Sprintf("lightbox-%d", id)
@@ -68,8 +83,8 @@ func (r *galleryRenderer) render(w util.BufWriter, source []byte, node ast.Node,
 
 	_, _ = w.WriteString("<div class=\"sarde-gallery-grid\">\n")
 
-	for i, img := range g.Images {
-		_, _ = fmt.Fprintf(w, "<div class=\"sarde-gallery-item\" data-index=\"%d\" role=\"button\" tabindex=\"0\" aria-label=\"View image %d of %d\">\n", i, i+1, len(g.Images))
+	for i, img := range images {
+		_, _ = fmt.Fprintf(w, "<div class=\"sarde-gallery-item\" data-index=\"%d\" role=\"button\" tabindex=\"0\" aria-label=\"View image %d of %d\">\n", i, i+1, len(images))
 		_, _ = fmt.Fprintf(w, "<img src=\"%s\" alt=\"%s\" loading=\"lazy\" />\n", htmlutil.EscapeHTML(img.Src), htmlutil.EscapeHTML(img.Alt))
 		_, _ = w.WriteString("<div class=\"sarde-gallery-item-overlay\">" + icons.GetWithClass("zoom-in", "sarde-gallery-zoom-icon") + "</div>\n")
 		_, _ = w.WriteString("</div>\n")
@@ -133,7 +148,7 @@ func (r *galleryRenderer) render(w util.BufWriter, source []byte, node ast.Node,
     if (e.key === 'Tab') { e.preventDefault(); var idx = Array.prototype.indexOf.call(focusable, document.activeElement); focusable[(idx + (e.shiftKey ? -1 + focusable.length : 1)) %% focusable.length].focus(); }
   });
 })();
-</script>`, galleryID, lightboxID, buildImageJSON(g.Images))
+</script>`, galleryID, lightboxID, buildImageJSON(images))
 
 	_, _ = w.WriteString("\n")
 

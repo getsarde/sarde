@@ -40,3 +40,25 @@ func TestImageCompare_TwoImagesRenderSlider(t *testing.T) {
 		t.Errorf("both image sources must appear:\n%s", out)
 	}
 }
+
+// Both images of a comparison go through AssetURL.
+func TestRenderImageCompare_SiteAbsoluteUsesAssetURL(t *testing.T) {
+	prefixSub := func(src string) string {
+		if strings.HasPrefix(src, "/") {
+			return "/sub" + src
+		}
+		return src
+	}
+	gm := goldmark.New(goldmark.WithExtensions(&Extension{AssetURL: prefixSub}))
+	var buf bytes.Buffer
+	md := ":::image-compare\n![Before](/images/before.png)\n![After](/images/after.png)\n:::\n"
+	if err := gm.Convert([]byte(md), &buf); err != nil {
+		t.Fatalf("Convert failed: %v", err)
+	}
+	out := buf.String()
+	for _, want := range []string{`src="/sub/images/before.png"`, `src="/sub/images/after.png"`} {
+		if !strings.Contains(out, want) {
+			t.Errorf("missing %s in:\n%s", want, out)
+		}
+	}
+}

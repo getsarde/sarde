@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Editing `kazari.config.yaml` takes effect without a restart:** `sarde dev` ignored changes to the file, and changing an option that affects only the code block HTML, such as `lineNumbers`, left cached pages in place in `sarde dev` and `sarde build`. A change now rebuilds the site with the new options. See [Dev Server](/advanced/dev-server/#change-classification).
+- **Images honor `build.base_path`:** an image with a site-absolute path, such as `![Logo](/images/logo.svg)`, kept that path on a site served from a subfolder, so it broke. This covered Markdown images, `:::figure`, `:::gallery`, `:::image-compare`, a blog post's cover and grid card image, slide deck cards, and `og:image`. Lab card and homepage hero images also got the page's language prefix, so they broke on translated pages. These paths now get the base path and never a language prefix; full URLs and relative paths are unchanged. See [Images and Assets](/guides/images-and-assets/).
 
 ## [1.7.0] - 2026-10-28
 

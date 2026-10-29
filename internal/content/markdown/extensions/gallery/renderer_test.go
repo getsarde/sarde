@@ -79,3 +79,29 @@ func TestRenderGallery_ScriptBreakoutEscaped(t *testing.T) {
 		t.Errorf("raw script tag inside inline script data:\n%s", arrayLiteral)
 	}
 }
+
+// Site-absolute image paths go through AssetURL in the grid and in the
+// lightbox data; a relative path is left as written.
+func TestRenderGallery_SiteAbsoluteUsesAssetURL(t *testing.T) {
+	prefixSub := func(src string) string {
+		if strings.HasPrefix(src, "/") {
+			return "/sub" + src
+		}
+		return src
+	}
+	gm := goldmark.New(goldmark.WithExtensions(&Extension{AssetURL: prefixSub}))
+	var buf bytes.Buffer
+	md := ":::gallery\n![Leaf](/images/leaf.jpg)\n![Root](root.jpg)\n:::\n"
+	if err := gm.Convert([]byte(md), &buf); err != nil {
+		t.Fatalf("Convert failed: %v", err)
+	}
+	out := buf.String()
+	for _, want := range []string{`src="/sub/images/leaf.jpg"`, `"src":"/sub/images/leaf.jpg"`, `src="root.jpg"`} {
+		if !strings.Contains(out, want) {
+			t.Errorf("missing %s in:\n%s", want, out)
+		}
+	}
+	if strings.Contains(out, `"/images/leaf.jpg"`) {
+		t.Errorf("a site-absolute path kept no base path:\n%s", out)
+	}
+}

@@ -39,10 +39,10 @@
         {{ if .HTML }}
           {{ .HTML }}
         {{ else if and .Light .Dark }}
-          <img src="{{ relURL .Light }}" alt="{{ .Alt }}" class="sarde-hero-img-light">
-          <img src="{{ relURL .Dark }}" alt="{{ .Alt }}" class="sarde-hero-img-dark">
+          <img src="{{ rootURL .Light }}" alt="{{ .Alt }}" class="sarde-hero-img-light">
+          <img src="{{ rootURL .Dark }}" alt="{{ .Alt }}" class="sarde-hero-img-dark">
         {{ else if .Src }}
-          <img src="{{ relURL .Src }}" alt="{{ .Alt }}">
+          <img src="{{ rootURL .Src }}" alt="{{ .Alt }}">
         {{ end }}
       </div>
       {{ end }}

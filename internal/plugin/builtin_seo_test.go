@@ -350,3 +350,38 @@ func TestSEO_RenderedFallbackRespectsAutoDescriptionOptOut(t *testing.T) {
 		t.Errorf("auto_description: false must skip the rendered fallback, got %q", desc)
 	}
 }
+
+// A site-absolute og:image gets the base path, never the page's language; a
+// protocol-relative URL is used as written.
+func TestSEO_OGImage_BasePath(t *testing.T) {
+	resolver := &engine.URLResolver{
+		BaseURL: "https://example.com", BasePath: "/sub/",
+		I18nEnabled: true, DefaultLang: "en", Languages: map[string]bool{"en": true, "fr": true},
+	}
+	for image, want := range map[string]string{
+		"/images/cover.png":       "https://example.com/sub/images/cover.png",
+		"/sub/images/cover.png":   "https://example.com/sub/images/cover.png",
+		"//cdn.example.com/a.png": "//cdn.example.com/a.png",
+		"https://cdn.x/a.png":     "https://cdn.x/a.png",
+	} {
+		page := &engine.Page{
+			PageIdentity:      engine.PageIdentity{Title: "Post", RelPermalink: "/blog/post/"},
+			PageMeta:          engine.PageMeta{Description: "A post", Image: image},
+			PageI18n:          engine.PageI18n{Lang: "fr"},
+			PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "blog"}},
+		}
+		ctx := &BeforeRenderContext{
+			Page:     page,
+			Site:     &engine.SiteContext{BaseURL: "https://example.com", Title: "My Site"},
+			Resolver: resolver,
+			store:    NewStore(),
+		}
+		if err := seoBeforeRender(ctx, nil); err != nil {
+			t.Fatalf("seoBeforeRender(%q): %v", image, err)
+		}
+		seo := page.Params["seo"].(map[string]any)
+		if seo["og_image"] != want || seo["twitter_image"] != want {
+			t.Errorf("image %q: og_image = %v, twitter_image = %v, want %q", image, seo["og_image"], seo["twitter_image"], want)
+		}
+	}
+}
