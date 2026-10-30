@@ -12,7 +12,7 @@
   {{ if and .Paginator .Paginator.CurrentPages }}{{ $pages = .Paginator.CurrentPages }}{{ end }}
 
   <div class="sarde-post-grid sarde-post-grid-cards">
-    {{ range $pages }}
+    {{ range $pages }}{{ if ne .Kind "section" }}
     <article class="sarde-post-card sarde-post-card-bordered">
       <a href="{{ .Permalink }}">
         {{ if .Image }}<img class="sarde-post-card-image" src="{{ if hasPrefix .Image "/" }}{{ rootURL .Image }}{{ else }}{{ .Image }}{{ end }}" alt="" loading="lazy">{{ end }}
@@ -32,7 +32,7 @@
       <div class="sarde-post-card-authors">{{ range . }}<a href="{{ termURL "authors" . }}" class="sarde-post-author-pill">{{ . }}</a>{{ end }}</div>
       {{ end }}{{ end }}
     </article>
-    {{ end }}
+    {{ end }}{{ end }}
   </div>
 
   {{ if .Paginator }}

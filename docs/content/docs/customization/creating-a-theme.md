@@ -108,14 +108,14 @@ themes/magazine/layouts/_blog/list.html
   {{ $pages := .Collection.Pages }}
   {{ if and .Paginator .Paginator.CurrentPages }}{{ $pages = .Paginator.CurrentPages }}{{ end }}
   <div class="magazine-grid">
-    {{ range $pages }}
+    {{ range $pages }}{{ if ne .Kind "section" }}
     <a href="{{ .Permalink }}" class="magazine-card">
       {{ if .Image }}<img src="{{ .Image }}" alt="{{ .Title }}">{{ end }}
       <h2>{{ .Title }}</h2>
       {{ if .Description }}<p>{{ .Description }}</p>{{ end }}
       {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
     </a>
-    {{ end }}
+    {{ end }}{{ end }}
   </div>
   {{ if .Paginator }}
   <nav class="magazine-pagination">
@@ -129,7 +129,7 @@ themes/magazine/layouts/_blog/list.html
 
 → The blog index renders as a card grid with cover images, titles, and dates, followed by Newer and Older links when the collection is paginated.
 
-`.Collection.Pages` holds every page in the collection, already sorted. When `collections.<name>.paginate` is set, `.Paginator.CurrentPages` holds the slice for the current page.
+`.Collection.Pages` holds every page in the collection, already sorted, including section pages such as the blog's own `_index.md`; the `ne .Kind "section"` check skips them. On a paginated collection, `.Paginator.CurrentPages` holds the posts for the current page.
 
 ## Set the design tokens
 

@@ -206,7 +206,7 @@ func TestValidate_CollectionRanges(t *testing.T) {
 	cfg := Defaults()
 	cfg.Collections = map[string]*CollectionSiteConfig{
 		"docs": {
-			Paginate: -1,
+			Paginate: IntPtr(-1),
 			Sidebar:  &CollectionSidebarConfig{MaxDepth: 99},
 			TOC:      &CollectionTOCConfig{Depth: 9},
 		},
@@ -224,6 +224,17 @@ func TestValidate_CollectionRanges(t *testing.T) {
 	}
 	if !paths["collections.docs.toc.depth"] {
 		t.Error("expected error for collections.docs.toc.depth")
+	}
+}
+
+func TestValidate_CollectionPaginateZeroAllowed(t *testing.T) {
+	cfg := Defaults()
+	cfg.Collections = map[string]*CollectionSiteConfig{"blog": {Paginate: IntPtr(0)}}
+	errs, _ := Validate(cfg, nil)
+	for _, e := range errs {
+		if e.Path == "collections.blog.paginate" {
+			t.Errorf("paginate: 0 must be valid (pagination off), got %q", e.Message)
+		}
 	}
 }
 

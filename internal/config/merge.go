@@ -457,7 +457,7 @@ func mergeCollections(base *map[string]*CollectionSiteConfig, over map[string]*C
 		mergeStr(&existing.Sort, v.Sort)
 		mergeStr(&existing.Layout, v.Layout)
 		mergeStr(&existing.Permalink, v.Permalink)
-		mergeInt(&existing.Paginate, v.Paginate)
+		mergeIntP(&existing.Paginate, v.Paginate)
 		mergeBoolP(&existing.Enabled, v.Enabled)
 		mergeBoolP(&existing.Feed, v.Feed)
 		mergeBoolP(&existing.Tabs, v.Tabs)

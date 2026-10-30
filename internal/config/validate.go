@@ -147,7 +147,7 @@ func validateCollections(c *validate.Checker, cfg *SiteConfig) {
 				"must be one of: default, docs, splash, wide, full, centered, split, presentation")
 		}
 		c.OneOf(prefix+".i18n_fallback", col.I18nFallback, []string{"default", "omit"})
-		c.IntMin(prefix+".paginate", col.Paginate, 1)
+		c.IntMin(prefix+".paginate", IntVal(col.Paginate, 0), 0)
 
 		if col.Sidebar != nil {
 			c.IntRange(prefix+".sidebar.max_depth", col.Sidebar.MaxDepth, 1, 10)

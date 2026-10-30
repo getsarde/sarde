@@ -75,7 +75,7 @@ collections:
     paginate: 20
 ```
 
-`paginate` takes a positive integer. A value of `0` is ignored and the default of 10 applies, so to show every post on one page, set a number larger than the post count.
+`paginate` takes a positive integer. Set it to `0` to turn pagination off: the blog index then lists every post on one page, without page links.
 
 ## Taxonomies
 

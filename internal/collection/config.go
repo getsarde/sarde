@@ -8,7 +8,8 @@ import (
 )
 
 // MergeCollectionConfig overlays sarde.yaml collection values onto inferred defaults.
-// Non-zero/non-nil site config values win over inferred values.
+// Non-zero/non-nil site config values win over inferred values; paginate
+// is a pointer so that an explicit 0 (pagination off) wins too.
 // Returns a new CollectionConfig (does not mutate the input).
 func MergeCollectionConfig(inferred *engine.CollectionConfig, siteCfg *config.CollectionSiteConfig) *engine.CollectionConfig {
 	if siteCfg == nil {
@@ -34,8 +35,8 @@ func MergeCollectionConfig(inferred *engine.CollectionConfig, siteCfg *config.Co
 	if siteCfg.Permalink != "" {
 		merged.Permalink = siteCfg.Permalink
 	}
-	if siteCfg.Paginate != 0 {
-		merged.Paginate = siteCfg.Paginate
+	if siteCfg.Paginate != nil {
+		merged.Paginate = *siteCfg.Paginate
 	}
 	if siteCfg.Feed != nil {
 		merged.Feed = *siteCfg.Feed

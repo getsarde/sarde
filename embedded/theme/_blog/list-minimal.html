@@ -11,12 +11,12 @@
   {{ if and .Paginator .Paginator.CurrentPages }}{{ $pages = .Paginator.CurrentPages }}{{ end }}
 
   <ul class="sarde-post-list-minimal">
-    {{ range $pages }}
+    {{ range $pages }}{{ if ne .Kind "section" }}
     <li>
       <a href="{{ .Permalink }}">{{ .Title | markdownify }}</a>
       {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
     </li>
-    {{ end }}
+    {{ end }}{{ end }}
   </ul>
 
   {{ if .Paginator }}

@@ -526,14 +526,14 @@ Walk `Children` downward only. `Parent` and `Page.NavNode` form cycles.
 | `FirstURL` | `string` | URL of the first page |
 | `LastURL` | `string` | URL of the last page |
 
-`Pages` holds the numbered links, not the content. The content for the current page is `CurrentPages`. Page 1 lives at the collection URL and page N at `<collection>/page/N/`.
+`Pages` holds the numbered links, not the content. The content for the current page is `CurrentPages`. Page 1 lives at the collection URL and page N at `<collection>/page/N/`. On an unpaginated list, fall back to `.Collection.Pages` and skip its section pages (`_index.md`), as below.
 
 ```html
 {{ $pages := .Collection.Pages }}
 {{ with .Paginator }}{{ $pages = .CurrentPages }}{{ end }}
-{{ range $pages }}
+{{ range $pages }}{{ if ne .Kind "section" }}
 <article><a href="{{ .Permalink }}">{{ .Title }}</a></article>
-{{ end }}
+{{ end }}{{ end }}
 {{ with .Paginator }}
 <nav>
   {{ if .HasPrev }}<a href="{{ .PrevURL }}">Newer</a>{{ end }}

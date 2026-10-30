@@ -464,6 +464,20 @@ func TestMergeCollections_DeepMerge(t *testing.T) {
 	}
 }
 
+func TestMergeCollections_PaginateZeroOverrides(t *testing.T) {
+	base := map[string]*CollectionSiteConfig{"blog": {Paginate: IntPtr(5)}}
+	mergeCollections(&base, map[string]*CollectionSiteConfig{"blog": {Paginate: IntPtr(0)}})
+	if got := IntVal(base["blog"].Paginate, -1); got != 0 {
+		t.Errorf("blog.paginate = %d, want 0 from the later layer", got)
+	}
+
+	base = map[string]*CollectionSiteConfig{"blog": {Paginate: IntPtr(5)}}
+	mergeCollections(&base, map[string]*CollectionSiteConfig{"blog": {Sort: "date"}})
+	if got := IntVal(base["blog"].Paginate, -1); got != 5 {
+		t.Errorf("blog.paginate = %d, want 5 kept when the later layer leaves it unset", got)
+	}
+}
+
 func TestMergeCollections_NilBase(t *testing.T) {
 	var base map[string]*CollectionSiteConfig
 	over := map[string]*CollectionSiteConfig{

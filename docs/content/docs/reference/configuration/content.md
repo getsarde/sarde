@@ -26,7 +26,7 @@ Each key under `collections` defines overrides for a content collection. Collect
 | `sort` | string | - | Sort order. Format: `<field> <direction>` (e.g., `"date desc"`, `"weight asc"`). |
 | `layout` | string | - | Default layout for pages. `default`, `docs`, `splash`, `wide`, `full`, `centered`, `split`, or `presentation`. |
 | `permalink` | string | - | Permalink pattern (e.g., `/:slug`). |
-| `paginate` | int | - | Items per list page. Min: 1. |
+| `paginate` | int | `10` for blog collections, otherwise `0` | Items per list page. `0` turns pagination off. |
 | `feed` | bool | - | Generate RSS/Atom feeds for this collection. |
 | `tabs` | bool | - | Enable [tabbed navigation](/guides/tabbed-navigation) for this collection. |
 | `i18n_fallback` | string | - | i18n fallback strategy for this collection. `default` (use default language page) or `omit` (hide untranslated pages). |

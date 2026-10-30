@@ -62,10 +62,21 @@ func TestMergeCollectionConfig_FeedBoolPtr(t *testing.T) {
 
 func TestMergeCollectionConfig_PaginateOverride(t *testing.T) {
 	inferred := InferCollection("blog") // Paginate=10
-	siteCfg := &config.CollectionSiteConfig{Paginate: 20}
+	siteCfg := &config.CollectionSiteConfig{Paginate: config.IntPtr(20)}
 	merged := MergeCollectionConfig(inferred, siteCfg)
 	if merged.Paginate != 20 {
 		t.Errorf("Paginate = %d, want 20", merged.Paginate)
+	}
+}
+
+func TestMergeCollectionConfig_PaginateZeroDisables(t *testing.T) {
+	merged := MergeCollectionConfig(InferCollection("blog"), &config.CollectionSiteConfig{Paginate: config.IntPtr(0)})
+	if merged.Paginate != 0 {
+		t.Errorf("paginate: 0 gives Paginate = %d, want 0 (pagination off)", merged.Paginate)
+	}
+	merged = MergeCollectionConfig(InferCollection("blog"), &config.CollectionSiteConfig{})
+	if merged.Paginate != 10 {
+		t.Errorf("unset paginate gives Paginate = %d, want the inferred 10", merged.Paginate)
 	}
 }
 

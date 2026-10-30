@@ -169,6 +169,24 @@ func TestBuildEffectiveConfig_CollectionOnlyInYAML(t *testing.T) {
 	}
 }
 
+func TestBuildEffectiveConfig_PaginateZero(t *testing.T) {
+	yaml := minimalSardeYAML + `collections:
+  blog:
+    paginate: 0
+`
+	dir := createEffectiveFixtureSite(t, yaml, "blog")
+
+	cols, err := BuildEffectiveConfig(dir)
+	if err != nil {
+		t.Fatalf("BuildEffectiveConfig: %v", err)
+	}
+
+	c := findCollection(t, cols, "blog")
+	if c.Paginate.Value != 0 || c.Paginate.Source != SourceSardeYAML {
+		t.Errorf("Paginate = %+v, want {0 sarde_yaml}", c.Paginate)
+	}
+}
+
 func TestBuildEffectiveConfig_NestedOverrides(t *testing.T) {
 	yaml := minimalSardeYAML + `collections:
   docs:

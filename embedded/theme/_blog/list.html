@@ -38,7 +38,7 @@
   {{ if and .Paginator .Paginator.CurrentPages }}{{ $pages = .Paginator.CurrentPages }}{{ end }}
 
   <div class="sarde-post-grid">
-    {{ range $pages }}
+    {{ range $pages }}{{ if ne .Kind "section" }}
     <div class="sarde-post-card">
       <a href="{{ .Permalink }}">
         <h2 class="sarde-post-card-title">{{ .Title | markdownify }}</h2>
@@ -57,7 +57,7 @@
       <div class="sarde-post-card-authors">{{ range . }}<a href="{{ termURL "authors" . }}" class="sarde-post-author-pill">{{ . }}</a>{{ end }}</div>
       {{ end }}{{ end }}
     </div>
-    {{ end }}
+    {{ end }}{{ end }}
   </div>
 
   {{ if .Paginator }}

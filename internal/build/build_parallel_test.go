@@ -110,7 +110,7 @@ func runParallelFixtureBuild(t *testing.T, dir, output string, parallel bool) *e
 	if cfg.Collections == nil {
 		cfg.Collections = make(map[string]*config.CollectionSiteConfig)
 	}
-	cfg.Collections["blog"] = &config.CollectionSiteConfig{Paginate: 3}
+	cfg.Collections["blog"] = &config.CollectionSiteConfig{Paginate: config.IntPtr(3)}
 	cfg.Plugins.Enabled = []string{"announcements"}
 	cfg.Plugins.Config = map[string]map[string]any{
 		"announcements": {

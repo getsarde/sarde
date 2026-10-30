@@ -518,7 +518,7 @@ type CollectionSiteConfig struct {
 	Sort         string                    `yaml:"sort"`
 	Layout       string                    `yaml:"layout"`
 	Permalink    string                    `yaml:"permalink"`
-	Paginate     int                       `yaml:"paginate"`
+	Paginate     *int                      `yaml:"paginate"` // nil = inferred; 0 turns pagination off
 	Feed         *bool                     `yaml:"feed"`
 	Tabs         *bool                     `yaml:"tabs"`
 	Sidebar      *CollectionSidebarConfig  `yaml:"sidebar"`

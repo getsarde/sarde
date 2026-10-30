@@ -129,7 +129,7 @@ func TestContentRebuild_BodyOnlyRendersCollectionPagination(t *testing.T) {
 	dir := createIncrementalSite(t)
 	cfg := config.Defaults()
 	cfg.Collections = map[string]*config.CollectionSiteConfig{
-		"blog": {Paginate: 1},
+		"blog": {Paginate: config.IntPtr(1)},
 	}
 
 	builder := newIncrementalBuilder(dir, cfg)

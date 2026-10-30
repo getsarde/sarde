@@ -96,7 +96,7 @@ Settings you leave out keep the inferred value. These settings are available per
 |---|---|---|---|
 | `sort` | string | Inferred from folder name | Sort field and direction, such as `"date desc"`, `"order asc"`, or `"title asc"`. The fields are `date`, `order`, `title`, and `slug`. |
 | `layout` | string | Inferred from folder name | `default`, `docs`, `splash`, `wide`, `full`, `centered`, `split`, or `presentation`. |
-| `paginate` | int | `10` for blog collections, otherwise `0` | Items per page for list views. Set a positive number. `0` keeps the inferred value, so it does not turn pagination off for a blog collection. |
+| `paginate` | int | `10` for blog collections, otherwise `0` | Items per page for list views. Set a positive number, or `0` to turn pagination off. |
 | `feed` | bool | `true` for blog collections, otherwise `false` | Generate RSS and Atom feeds for this collection when the feed plugins are enabled. |
 | `tabs` | bool | Auto-detected | Enable or disable tabbed docs navigation. See [Tabbed Navigation](/guides/tabbed-navigation/). |
 | `permalink` | string | File path URL | URL pattern for non-index pages. Write the full path, including the collection prefix (for example `/blog/:year/:slug/`). Placeholders: `:slug`, `:year`, `:month`, `:day`, `:section`, `:collection`, `:title`. |

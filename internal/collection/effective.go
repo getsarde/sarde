@@ -209,7 +209,7 @@ func describeCollection(name string, merged *engine.CollectionConfig, raw *confi
 	permalinkSet := (raw != nil && raw.Permalink != "") || rawPermalinkPattern != ""
 	ec.Permalink = FieldValue{merged.Permalink, boolSrc(permalinkSet)}
 
-	ec.Paginate = FieldValue{merged.Paginate, boolSrc(raw != nil && raw.Paginate != 0)}
+	ec.Paginate = FieldValue{merged.Paginate, boolSrc(raw != nil && raw.Paginate != nil)}
 	ec.Feed = FieldValue{merged.Feed, boolSrc(raw != nil && raw.Feed != nil)}
 
 	var tabsVal any
