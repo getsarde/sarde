@@ -113,3 +113,61 @@ func TestBuild_Hreflang_BasePath(t *testing.T) {
 		}
 	}
 }
+
+// ogLocaleTags returns a page's og:locale value and its og:locale:alternate
+// values, in order.
+func ogLocaleTags(html string) (locale string, alternates []string) {
+	const altMarker = `<meta property="og:locale:alternate" content="`
+	for rest := html; ; {
+		i := strings.Index(rest, altMarker)
+		if i < 0 {
+			break
+		}
+		rest = rest[i+len(altMarker):]
+		alternates = append(alternates, rest[:strings.Index(rest, `"`)])
+	}
+	const marker = `<meta property="og:locale" content="`
+	if i := strings.Index(html, marker); i >= 0 {
+		rest := html[i+len(marker):]
+		locale = rest[:strings.Index(rest, `"`)]
+	}
+	return locale, alternates
+}
+
+// Each language version declares its own locale and names only the other
+// language as an alternate; a page without a translation names none.
+func TestBuild_OGLocale_AlternatesNameOtherLanguages(t *testing.T) {
+	read := buildHreflangSite(t, "/")
+	for _, tc := range []struct {
+		rel, locale string
+		alternates  []string
+	}{
+		{"docs/guide/index.html", "en_US", []string{"fr_FR"}},
+		{"fr/docs/guide/index.html", "fr_FR", []string{"en_US"}},
+		{"docs/solo/index.html", "en_US", nil},
+	} {
+		html, ok := read(tc.rel)
+		if !ok {
+			t.Fatalf("%s was not written", tc.rel)
+		}
+		locale, alternates := ogLocaleTags(html)
+		if locale != tc.locale {
+			t.Errorf("%s: og:locale = %q, want %q", tc.rel, locale, tc.locale)
+		}
+		if strings.Join(alternates, ",") != strings.Join(tc.alternates, ",") {
+			t.Errorf("%s: og:locale:alternate = %v, want %v", tc.rel, alternates, tc.alternates)
+		}
+	}
+}
+
+// A single-language site declares its site.language, not the en_US default.
+func TestBuild_OGLocale_SingleLanguageUsesSiteLanguage(t *testing.T) {
+	dir := t.TempDir()
+	writeFixture(t, dir, "content/_index.md", "---\ntitle: Accueil\n---\nBienvenue.\n")
+	cfg := config.Defaults()
+	cfg.Site.Language = "fr"
+	html := buildImageSite(t, dir, cfg)("index.html")
+	if locale, _ := ogLocaleTags(html); locale != "fr_FR" {
+		t.Errorf("og:locale = %q, want fr_FR", locale)
+	}
+}

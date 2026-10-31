@@ -77,7 +77,9 @@ behaviors intentionally have no equivalent:
 - **No filename-based language detection:** Hugo's `guide.fr.md` suffix convention is
   not recognized; languages are separated by directory only.
 - **No pluralization sub-keys:** UI strings resolve to a single string per key.
-  Hugo's go-i18n `one`/`other` plural forms have no equivalent.
+  Hugo's go-i18n `one`/`other` plural forms have no general equivalent; templates
+  choose a form with an `if`. Only the search modal's count strings take plural
+  forms (`_one`, `_other`, and `_zero`, `_two`, `_few`, `_many`), picked in the browser.
 - **No per-language config overrides:** a language entry carries its name, direction,
   and weight. Hugo's per-language `title`, `baseURL`, and `params` overrides have no
   equivalent.

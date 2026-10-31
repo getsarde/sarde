@@ -385,3 +385,75 @@ func TestSEO_OGImage_BasePath(t *testing.T) {
 		}
 	}
 }
+
+func TestNormalizeLocale(t *testing.T) {
+	tests := []struct{ in, want string }{
+		{"", "en_US"},
+		{"en", "en_US"},
+		{"fr", "fr_FR"},
+		{"de", "de_DE"},
+		{"ja", "ja_JP"},
+		{"en-GB", "en_GB"},
+		{"EN-gb", "en_GB"},
+		{"pt-BR", "pt_BR"},
+		{"pt_BR", "pt_BR"},
+		{"zh-Hant", "zh_TW"},
+	}
+	for _, tt := range tests {
+		if got := normalizeLocale(tt.in); got != tt.want {
+			t.Errorf("normalizeLocale(%q) = %q, want %q", tt.in, got, tt.want)
+		}
+	}
+}
+
+// seoLocaleParams runs the SEO plugin on page with route data rd and returns
+// the page's seo params.
+func seoLocaleParams(t *testing.T, page *engine.Page, rd *engine.RouteData) map[string]any {
+	t.Helper()
+	ctx := &BeforeRenderContext{
+		Page:      page,
+		RouteData: rd,
+		Site:      &engine.SiteContext{BaseURL: "https://example.com", Title: "My Site"},
+		store:     NewStore(),
+	}
+	if err := seoBeforeRender(ctx, nil); err != nil {
+		t.Fatalf("seoBeforeRender: %v", err)
+	}
+	seo, _ := page.Params["seo"].(map[string]any)
+	return seo
+}
+
+func TestSEO_OGLocaleAlternate_SkipsOwnLocale(t *testing.T) {
+	page := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "Guide", RelPermalink: "/docs/guide/"},
+		PageI18n:     engine.PageI18n{Lang: "fr"},
+	}
+	// Translations lists the page itself first, as buildTranslationLinks does.
+	rd := &engine.RouteData{}
+	rd.Translations = []engine.TranslationLink{{Lang: "fr"}, {Lang: "en"}}
+	seo := seoLocaleParams(t, page, rd)
+	if seo["og_locale"] != "fr_FR" {
+		t.Errorf("og_locale = %v, want fr_FR", seo["og_locale"])
+	}
+	alt, _ := seo["og_locale_alternate"].([]string)
+	if len(alt) != 1 || alt[0] != "en_US" {
+		t.Errorf("og_locale_alternate = %v, want [en_US]", seo["og_locale_alternate"])
+	}
+
+	// Rendered again without translations, the earlier list must not linger.
+	seo = seoLocaleParams(t, page, &engine.RouteData{})
+	if v, ok := seo["og_locale_alternate"]; ok {
+		t.Errorf("og_locale_alternate = %v, want no key without translations", v)
+	}
+}
+
+func TestSEO_OGLocale_FallsBackToRouteLang(t *testing.T) {
+	// A single-language site leaves page.Lang empty; the route language is
+	// the site language.
+	page := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Accueil", RelPermalink: "/"}}
+	rd := &engine.RouteData{}
+	rd.Lang = "fr"
+	if got := seoLocaleParams(t, page, rd)["og_locale"]; got != "fr_FR" {
+		t.Errorf("og_locale = %v, want fr_FR", got)
+	}
+}

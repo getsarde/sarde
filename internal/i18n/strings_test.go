@@ -47,6 +47,31 @@ func TestStringTable_Resolve_FallbackToKey(t *testing.T) {
 	}
 }
 
+func TestStringTable_ResolveOwn_NoFallbackNoMiss(t *testing.T) {
+	st := NewStringTable("en")
+	st.SetStrict(true)
+	st.strings["en"] = map[string]string{"search.n_other": "{count} results", "search.n_two": "two"}
+	st.strings["ar"] = map[string]string{"search.n_few": "{count} نتائج"}
+
+	if got, ok := st.ResolveOwn("ar", "search.n_few"); !ok || got != "{count} نتائج" {
+		t.Errorf("ar few: got %q, %v", got, ok)
+	}
+	// Defined in the default language only: not the page language's own.
+	if got, ok := st.ResolveOwn("ar", "search.n_two"); ok {
+		t.Errorf("ar two should not fall back to en, got %q", got)
+	}
+	// An empty language is the default language.
+	if got, ok := st.ResolveOwn("", "search.n_two"); !ok || got != "two" {
+		t.Errorf("default two: got %q, %v", got, ok)
+	}
+	if _, ok := st.ResolveOwn("fr", "search.n_few"); ok {
+		t.Error("a language with no strings has none of its own")
+	}
+	if misses := st.Misses(); len(misses) != 0 {
+		t.Errorf("ResolveOwn recorded strict misses: %v", misses)
+	}
+}
+
 func TestStringTable_Resolve_TemplateExpression(t *testing.T) {
 	st := NewStringTable("en")
 	st.strings["en"] = map[string]string{

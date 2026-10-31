@@ -127,6 +127,16 @@ func (c *BeforeRenderContext) T(lang, key string) string {
 	return c.strings.Resolve(lang, key)
 }
 
+// TOwn resolves a UI string only when the language itself defines it (see
+// i18n.StringTable.ResolveOwn); ok is false otherwise, and when no string
+// table is installed.
+func (c *BeforeRenderContext) TOwn(lang, key string) (string, bool) {
+	if c.strings == nil {
+		return "", false
+	}
+	return c.strings.ResolveOwn(lang, key)
+}
+
 // ResolveURL returns a root-relative URL with basePath, lang, and version applied.
 func (c *BeforeRenderContext) ResolveURL(relPath, lang, version string) string {
 	return resolveURL(c.Resolver, relPath, lang, version)

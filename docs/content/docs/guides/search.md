@@ -86,7 +86,7 @@ search:
   results_count_other: "{count} résultats pour '{term}'"
 ```
 
-Keys ending in `_one` and `_other` are plural forms picked from the page language's plural rules. Keep the `{count}`, `{term}`, and `{min}` placeholders in translations. The full key list is in the [search plugin reference](/plugins/search/#ui-strings).
+Keys ending in `_one` and `_other` are plural forms picked from the page language's plural rules; a language that has more forms can add `_zero`, `_two`, `_few` or `_many` keys for the two count strings. Keep the `{count}`, `{term}`, and `{min}` placeholders in translations. The full key list is in the [search plugin reference](/plugins/search/#ui-strings).
 
 ### Index size and excluded URLs
 

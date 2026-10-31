@@ -9,6 +9,10 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ## Unreleased
 
+### Added
+
+- **Search counts use every plural form a language has:** the search modal sent only the `_one` and `_other` forms of `search.results_count` and `search.matches_in_page`, so a language with more plural forms, such as Arabic or Polish, always showed its `_other` text. The modal now also receives the `_zero`, `_two`, `_few` and `_many` forms the page's language defines, and picks one with the language's plural rules; a form the language does not define still falls back to `_other`. See [Search](/plugins/search/#ui-strings).
+
 ### Fixed
 
 - **Editing `kazari.config.yaml` takes effect without a restart:** `sarde dev` ignored changes to the file, and changing an option that affects only the code block HTML, such as `lineNumbers`, left cached pages in place in `sarde dev` and `sarde build`. A change now rebuilds the site with the new options. See [Dev Server](/advanced/dev-server/#change-classification).
@@ -16,6 +20,7 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 - **Search leaves out tag pages:** the search index included the taxonomy pages, `/tags/`, each tag's page such as `/tags/python/`, and its numbered pages, so searching for a tag name returned a page that only lists other pages. Taxonomy pages are no longer indexed. See [Search](/plugins/search/#edge-cases).
 - **Search breadcrumbs name each level once:** the breadcrumb under a result repeated the collection, as in `Docs > Docs > Guides`, and included transparent sections. Heading results on a section's `_index.md` page repeated the section title, and heading results on a page outside any collection started with a stray `>`. Breadcrumbs now match the page's own breadcrumbs, as in `Docs > Guides`, and a heading result on a page outside any collection shows the page title alone. See [Search](/plugins/search/#heading-documents).
 - **`paginate: 0` turns pagination off:** a blog collection ignored `paginate: 0` and kept 10 posts per page, because `0` counted as unset. It now lists every post on one page, without page links. A list using a `blog/` template without pagination also showed the collection's own `_index.md` as a post; it now shows posts only. See [Blog and Taxonomies](/guides/blog-and-taxonomies/#pagination).
+- **`og:locale` tags name real locales:** a bare language code was repeated as its region, so English pages declared `en_EN` and Japanese pages `ja_JA`; `og:locale:alternate` listed the page's own locale among its translations; and a single-language site always declared `en_US`, whatever its `site.language`. A bare code now gets its most likely region (`en_US`, `ja_JP`), the alternates list only the page's other languages, and a single-language site uses `site.language`. See [SEO](/plugins/seo/#locale-normalization).
 
 ## 1.7.0 - 2026-10-28
 

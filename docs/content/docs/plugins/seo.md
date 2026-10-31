@@ -20,8 +20,8 @@ For each page, the plugin sets the following in `page.Params["seo"]`:
 | `og_url` | Canonical URL (version-aware) |
 | `og_type` | `"article"` for collection pages, `"website"` otherwise |
 | `og_site_name` | Site title from `sarde.yaml` |
-| `og_locale` | Page language normalized to OGP format (e.g., `en_US`, `pt_BR`) |
-| `og_locale_alternate` | Locales of available translations |
+| `og_locale` | Page language, or `site.language` on a single-language site, normalized to OGP format (e.g., `en_US`, `pt_BR`) |
+| `og_locale_alternate` | Locales of the page's other translations |
 | `og_image` | Page image, falling back to `default_image`, resolved to absolute URL |
 | `og_image_alt` | Page title |
 | `article_published_time` | Page date in RFC 3339 format (articles only) |
@@ -92,10 +92,12 @@ Language tags are converted to OGP locale format:
 |-------|--------|
 | `en` | `en_US` |
 | `fr` | `fr_FR` |
+| `ja` | `ja_JP` |
 | `pt-BR` | `pt_BR` |
+| `pt_BR` | `pt_BR` |
 | (empty) | `en_US` |
 
-Bare language codes without a region repeat the language as the region (uppercased).
+A code without a region gets its most likely region, so `ja` becomes `ja_JP`. A region given after `-` or `_` is kept.
 
 ## Disabling the plugin
 

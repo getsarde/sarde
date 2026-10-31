@@ -18,7 +18,7 @@ site:
 
 The `seo` plugin adds Open Graph and Twitter Card meta tags to every page:
 
-- **Open Graph:** `og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`, `og:locale`, and `og:image` with its alt text. Pages in a collection get `og:type` set to `article` plus `article:published_time` and `article:modified_time`. On multi-language sites, `og:locale:alternate` lists the translations.
+- **Open Graph:** `og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`, `og:locale`, and `og:image` with its alt text. Pages in a collection get `og:type` set to `article` plus `article:published_time` and `article:modified_time`. On multi-language sites, `og:locale:alternate` lists the page's other languages.
 - **Twitter Card:** `twitter:card` (default `summary_large_image`), `twitter:title`, `twitter:description`, `twitter:image`, and `twitter:site` when a handle is configured.
 
 Values come from the page's frontmatter and the site configuration. Set the description and image per page:

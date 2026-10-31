@@ -32,6 +32,16 @@ var searchStringKeys = []string{
 	"loading",
 }
 
+// searchPluralKeys are the plural strings (minus "search." and the form).
+// Their `_one`/`_other` forms are in searchStringKeys; the other plural
+// categories (searchExtraPluralForms) are sent only where the page's own
+// language defines them, since only some languages use them. The runtime
+// picks the form with Intl.PluralRules and falls back to `_other`.
+var (
+	searchPluralKeys       = []string{"results_count", "matches_in_page"}
+	searchExtraPluralForms = []string{"zero", "two", "few", "many"}
+)
+
 func newSearchPlugin(cfg map[string]any) *Plugin {
 	cache := &searchDocCache{}
 
@@ -50,6 +60,14 @@ func newSearchPlugin(cfg map[string]any) *Plugin {
 		strs := make(map[string]string, len(searchStringKeys))
 		for _, key := range searchStringKeys {
 			strs[key] = ctx.T(lang, "search."+key)
+		}
+		for _, base := range searchPluralKeys {
+			for _, form := range searchExtraPluralForms {
+				key := base + "_" + form
+				if v, ok := ctx.TOwn(lang, "search."+key); ok {
+					strs[key] = v
+				}
+			}
 		}
 		jsonBytes, _ := json.Marshal(map[string]any{"strings": strs})
 		// Merge form: other plugins (clientplugins, telescope) share

@@ -9,6 +9,7 @@ import (
 
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/plugin/cfgutil"
+	"golang.org/x/text/language"
 )
 
 func newSEOPlugin(cfg map[string]any) *Plugin {
@@ -116,15 +117,33 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 	seo["og_url"] = canonical
 	seo["og_type"] = ogType
 	seo["og_site_name"] = siteTitle
-	seo["og_locale"] = normalizeLocale(page.Lang)
+	// A single-language site leaves page.Lang empty; the route language is
+	// then the site language, the same value <html lang> uses.
+	lang := page.Lang
+	if lang == "" && ctx.RouteData != nil {
+		lang = ctx.RouteData.Lang
+	}
+	locale := normalizeLocale(lang)
+	seo["og_locale"] = locale
 	seo["canonical"] = canonical
 
-	if ctx.RouteData != nil && len(ctx.RouteData.Translations) > 0 {
-		altLocales := make([]string, 0, len(ctx.RouteData.Translations))
+	// Translations lists the page itself first; the alternates name only the
+	// other locales. The key is removed when there are none, since the seo
+	// map outlives a single render.
+	var altLocales []string
+	if ctx.RouteData != nil {
+		seen := map[string]bool{locale: true}
 		for _, t := range ctx.RouteData.Translations {
-			altLocales = append(altLocales, normalizeLocale(t.Lang))
+			if l := normalizeLocale(t.Lang); !seen[l] {
+				seen[l] = true
+				altLocales = append(altLocales, l)
+			}
 		}
+	}
+	if len(altLocales) > 0 {
 		seo["og_locale_alternate"] = altLocales
+	} else {
+		delete(seo, "og_locale_alternate")
 	}
 
 	if ogType == "article" {
@@ -280,18 +299,25 @@ func findLatestPeer(page *engine.Page, lastVersion string) *engine.Page {
 	return nil
 }
 
-// normalizeLocale converts a BCP 47 language tag (e.g. "en", "pt-BR") to
-// the OGP locale format (e.g. "en_US", "pt_BR"). For bare language codes
-// without a region, the language is repeated as region in uppercase.
+// normalizeLocale converts a language tag ("en", "pt-BR", "zh-Hant") to the
+// OGP locale format language_TERRITORY ("en_US", "pt_BR", "zh_TW"). A tag
+// without a region gets its most likely one (CLDR likely subtags), so a bare
+// code never becomes a made-up locale such as "en_EN". An empty tag gives
+// "en_US", the OGP default.
 func normalizeLocale(lang string) string {
 	if lang == "" {
 		return "en_US"
 	}
-	parts := strings.SplitN(lang, "-", 2)
-	if len(parts) == 2 {
-		return parts[0] + "_" + strings.ToUpper(parts[1])
+	tag, err := language.Parse(lang)
+	if err != nil {
+		return strings.ReplaceAll(lang, "-", "_")
 	}
-	return parts[0] + "_" + strings.ToUpper(parts[0])
+	base, _ := tag.Base()
+	region, conf := tag.Region()
+	if conf == language.No {
+		return base.String()
+	}
+	return base.String() + "_" + region.String()
 }
 
 func courseNode(page *engine.Page, pageURL, description string) map[string]any {

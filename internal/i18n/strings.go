@@ -143,6 +143,20 @@ func (st *StringTable) Resolve(lang, key string, data ...any) string {
 	return buf.String()
 }
 
+// ResolveOwn resolves key only when lang itself defines it: no fallback to
+// the default language, and no strict-mode miss. ok is false otherwise. An
+// empty lang is the default language. For language-specific keys such as
+// the plural forms only some languages use (`_few`, `_many`).
+func (st *StringTable) ResolveOwn(lang, key string, data ...any) (value string, ok bool) {
+	if lang == "" {
+		lang = st.defaultLang
+	}
+	if _, ok := st.strings[lang][key]; !ok {
+		return "", false
+	}
+	return st.Resolve(lang, key, data...), true
+}
+
 // SetStrict enables strict mode, which records keys that fall back.
 func (st *StringTable) SetStrict(on bool) { st.strict = on }
 

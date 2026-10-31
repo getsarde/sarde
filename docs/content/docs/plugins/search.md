@@ -104,7 +104,7 @@ The modal's server-rendered labels and its runtime strings all resolve through t
 | `search.group_other` | Other | Group header for pages without a collection |
 | `search.loading` | Loading results | Accessible label on the loading spinner |
 
-Plural keys are selected with the page language's plural rules; languages whose rules produce other categories fall back to `_other`. The server-rendered keys (`search.results`, `search.no_results`, `search.close`, `search.tip_typos`, `search.tip_keywords`, `search.kbd_navigate`, `search.kbd_select`, `search.kbd_close`) are listed with the other UI strings in the [internationalization guide](/guides/internationalization/).
+Plural keys are selected with the page language's plural rules. Besides `_one` and `_other`, `search.results_count` and `search.matches_in_page` accept the `_zero`, `_two`, `_few` and `_many` forms for languages that use them, for example `search.results_count_few` in `i18n/ar.yaml`. A form is used only on pages in the language that defines it; a category with no string falls back to `_other`. The server-rendered keys (`search.results`, `search.no_results`, `search.close`, `search.tip_typos`, `search.tip_keywords`, `search.kbd_navigate`, `search.kbd_select`, `search.kbd_close`) are listed with the other UI strings in the [internationalization guide](/guides/internationalization/).
 
 ## Multi-language support
 

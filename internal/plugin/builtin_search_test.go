@@ -485,6 +485,58 @@ func TestSearch_BeforeRenderResolvesStringsPerLanguage(t *testing.T) {
 	}
 }
 
+func TestSearch_BeforeRenderSendsTheLanguagesOwnPluralForms(t *testing.T) {
+	fsys := fstest.MapFS{
+		"en.yaml": &fstest.MapFile{Data: []byte(
+			"search:\n  results_count_one: \"1 result\"\n  results_count_other: \"{count} results\"\n")},
+		"ar.yaml": &fstest.MapFile{Data: []byte(
+			"search:\n  results_count_few: \"{count} نتائج\"\n  matches_in_page_many: \"{count} تطابقًا\"\n")},
+	}
+	st, err := i18n.LoadStrings(fsys, t.TempDir(), "", "en")
+	if err != nil {
+		t.Fatalf("LoadStrings: %v", err)
+	}
+	st.SetStrict(true)
+	mgr := NewManager()
+	mgr.SetStringTable(st)
+	mgr.Register(newSearchPlugin(nil))
+	cfg := config.Defaults()
+
+	render := func(lang string) string {
+		rd := &engine.RouteData{}
+		page := &engine.Page{PageIdentity: engine.PageIdentity{Title: "X"}, PageI18n: engine.PageI18n{Lang: lang}}
+		if err := mgr.RunBeforeRender(cfg, page, rd, nil, nil); err != nil {
+			t.Fatalf("RunBeforeRender(%s): %v", lang, err)
+		}
+		return string(rd.InlineScripts[0])
+	}
+
+	ar := render("ar")
+	if !strings.Contains(ar, `"results_count_few":"{count} نتائج"`) {
+		t.Errorf("ar script should carry its few form: %s", ar)
+	}
+	if !strings.Contains(ar, `"matches_in_page_many":"{count} تطابقًا"`) {
+		t.Errorf("ar script should carry its many form: %s", ar)
+	}
+	// A form the language does not define is left out (the runtime uses _other).
+	if strings.Contains(ar, "results_count_zero") || strings.Contains(ar, "results_count_two") {
+		t.Errorf("ar script should leave out undefined forms: %s", ar)
+	}
+	// Another language's forms do not leak in.
+	if en := render("en"); strings.Contains(en, "_few") || strings.Contains(en, "_many") {
+		t.Errorf("en script should have no few/many forms: %s", en)
+	}
+	// Probing the optional forms records no strict-mode miss.
+	for lang, keys := range st.Misses() {
+		for _, k := range keys {
+			if strings.HasSuffix(k, "_few") || strings.HasSuffix(k, "_many") ||
+				strings.HasSuffix(k, "_zero") || strings.HasSuffix(k, "_two") {
+				t.Errorf("optional plural form recorded as a miss: %s %s", lang, k)
+			}
+		}
+	}
+}
+
 // TestSearch_StringKeysExistInEmbeddedI18n is the drift guard: every key the
 // runtime expects must have an English value in embedded/i18n/en.yaml.
 func TestSearch_StringKeysExistInEmbeddedI18n(t *testing.T) {

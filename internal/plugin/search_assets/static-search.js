@@ -79,9 +79,9 @@
     });
   }
 
-  // plural picks "<base>_one" or "<base>_other" from the page language's
-  // plural rules; locales whose rule yields another category (few, many,
-  // zero) fall back to "_other".
+  // plural picks "<base>_<form>" from the page language's plural rules
+  // (one, other, and zero, two, few or many where the language defines that
+  // string); a form with no string falls back to "_other".
   function plural(base, count, vars) {
     var form = count === 1 ? "one" : "other";
     try {
