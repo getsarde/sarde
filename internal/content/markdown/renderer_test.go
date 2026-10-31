@@ -751,3 +751,39 @@ func TestRenderer_Fingerprint_DirectiveRegistry(t *testing.T) {
 		t.Error("non-empty registry must change the fingerprint")
 	}
 }
+
+// Source lines are on in dev mode only: production HTML has none, and the
+// fingerprint differs so the page cache never serves one for the other.
+func TestRender_SourceLines(t *testing.T) {
+	plain := NewRendererFromConfig(RendererConfig{HeadingLinks: true})
+	dev := NewRendererFromConfig(RendererConfig{HeadingLinks: true, SourceLines: true})
+	if plain.Fingerprint() == dev.Fingerprint() {
+		t.Error("renderer fingerprints must differ when only SourceLines differs")
+	}
+	source := "Intro.\n\n## Install\n\nText.\n"
+
+	out, err := plain.Render(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(out.HTML, "data-sd-line") {
+		t.Errorf("a production render carries source lines:\n%s", out.HTML)
+	}
+
+	dev.SetLinkContext(&engine.Page{PageContent: engine.PageContent{FrontmatterLines: 3}})
+	out, err = dev.Render(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`data-sd-line="4">Intro.`, `id="install"`, `data-sd-line="6"`, `data-sd-line="8">Text.`} {
+		if !strings.Contains(out.HTML, want) {
+			t.Errorf("missing %s in:\n%s", want, out.HTML)
+		}
+	}
+	// A page without frontmatter counts from its first line.
+	dev.SetLinkContext(&engine.Page{})
+	out, _ = dev.Render(source)
+	if !strings.Contains(out.HTML, `data-sd-line="1">Intro.`) {
+		t.Errorf("the offset carried over to the next page:\n%s", out.HTML)
+	}
+}

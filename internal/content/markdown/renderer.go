@@ -39,6 +39,7 @@ import (
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkrender"
 	extmath "github.com/getsarde/sarde/internal/content/markdown/extensions/math"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/mermaid"
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/sourceline"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/spoiler"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/steps"
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/tabs"
@@ -71,6 +72,7 @@ type Renderer struct {
 	headingLinks    bool                     // inject clickable anchor links on headings (site.heading_links)
 	headingMinLevel int                      // lowest heading level to extract (1-6, from markdown.toc.min_heading_level)
 	headingMaxLevel int                      // highest heading level to extract (1-6, from markdown.toc.max_heading_level)
+	sourceLines     *sourceline.Marker       // data-sd-line marker (dev mode); nil when off
 }
 
 // SetImageLookup sets the lookup function for bundle-relative image processing.
@@ -90,6 +92,12 @@ func (r *Renderer) SetImageLazyLoading(enabled bool) {
 // Must be called before Render() for each page.
 func (r *Renderer) SetLinkContext(page *engine.Page) {
 	r.linkRend.SetPage(page)
+	if r.sourceLines != nil {
+		r.sourceLines.Offset = 0
+		if page != nil {
+			r.sourceLines.Offset = page.FrontmatterLines
+		}
+	}
 }
 
 // LinkRenderer returns the internal link renderer for external configuration
@@ -212,6 +220,9 @@ type RendererConfig struct {
 	// DirectiveRegistry holds site/theme generic directives. Nil or empty
 	// no-ops the generic directive extension.
 	DirectiveRegistry *directive.Registry
+	// SourceLines marks blocks with their source line (data-sd-line), for an
+	// editor's scroll sync with the dev server's preview. Dev mode only.
+	SourceLines bool
 }
 
 // NewRenderer creates a markdown renderer with all extensions and default security.
@@ -245,6 +256,9 @@ func NewRendererFromConfig(cfg RendererConfig) *Renderer {
 		headingLinks:    cfg.HeadingLinks,
 		headingMinLevel: minLvl,
 		headingMaxLevel: maxLvl,
+	}
+	if cfg.SourceLines {
+		r.sourceLines = &sourceline.Marker{}
 	}
 	// Site-absolute image paths get the base path from the link renderer's
 	// resolver, which the build sets per builder.
@@ -300,6 +314,9 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) (goldmark.Markdown, string)
 		&imagerender.Extension{Renderer: r.imgRend},
 		// Link collector (AST transformer; collects destinations for post-build validation)
 		&linkcollector.Extension{Collector: r.linkCollector},
+	}
+	if r.sourceLines != nil {
+		extensions = append(extensions, &sourceline.Extension{Marker: r.sourceLines})
 	}
 
 	// Kazari handles fenced code blocks and :::code-group containers.
@@ -361,7 +378,7 @@ func computeFingerprint(extensions []goldmark.Extender, cfg RendererConfig) stri
 		directiveHash = cfg.DirectiveRegistry.Hash()
 	}
 
-	raw := fmt.Sprintf("bin=%s\x00exts=%s\x00hl=%t\x00hmin=%d\x00hmax=%d\x00hw=%t\x00aside=%s\x00schemes=%s\x00kazari=%t\x00css=%s\x00kazaricfg=%s\x00directives=%s",
+	raw := fmt.Sprintf("bin=%s\x00exts=%s\x00hl=%t\x00hmin=%d\x00hmax=%d\x00hw=%t\x00aside=%s\x00schemes=%s\x00kazari=%t\x00css=%s\x00kazaricfg=%s\x00directives=%s\x00lines=%t",
 		execIdentity(),
 		strings.Join(names, "|"),
 		cfg.HeadingLinks,
@@ -374,6 +391,7 @@ func computeFingerprint(extensions []goldmark.Extender, cfg RendererConfig) stri
 		kazariCSS,
 		cfg.KazariConfigKey,
 		directiveHash,
+		cfg.SourceLines,
 	)
 	sum := sha256.Sum256([]byte(raw))
 	return fmt.Sprintf("%x", sum)

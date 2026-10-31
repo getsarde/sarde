@@ -210,6 +210,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 			KazariEngine:       b.kazariEngine,
 			KazariConfigKey:    b.kazariConfigKey,
 			DirectiveRegistry:  s.directiveRegistry,
+			SourceLines:        b.devMode,
 		})
 	}
 	if b.rendererKey == "" {
@@ -253,6 +254,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 					KazariEngine:       b.kazariEngine,
 					KazariConfigKey:    b.kazariConfigKey,
 					DirectiveRegistry:  s.directiveRegistry,
+					SourceLines:        b.devMode,
 				})
 			}
 		}

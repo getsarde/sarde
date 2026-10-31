@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -264,6 +265,37 @@ func TestRunNewSite_Default(t *testing.T) {
 		"content/_index.md", "content/blog/hello-world.md", "content/docs/getting-started.md",
 		"public/images/hero-light.svg", "public/images/hero-dark.svg")
 	assertMissing(t, site, "content/courses")
+}
+
+// Every commented setting in a new site's sarde.yaml must build once
+// uncommented, so trying an example never ends in a config error.
+func TestRunNewSite_CommentedExamplesBuild(t *testing.T) {
+	resetBuildFlags(t)
+	site, err := runNewSiteIn(t, "")
+	if err != nil {
+		t.Fatalf("new site failed: %v", err)
+	}
+	cfgPath := filepath.Join(site, "sarde.yaml")
+	data, err := os.ReadFile(cfgPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// A commented "key:" line is an example setting; prose comments stay.
+	uncommented := regexp.MustCompile(`(?m)^([ \t]*)# ( *[a-z_]+:.*)$`).ReplaceAllString(string(data), "$1$2")
+	if !strings.Contains(uncommented, "\n  overrides:\n    ") {
+		t.Fatalf("expected the theme overrides example to be uncommented:\n%s", uncommented)
+	}
+	if err := os.WriteFile(cfgPath, []byte(uncommented), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = captureStdout(t, func() error {
+		rootCmd.SetArgs([]string{"build", site, "--quiet", "--format", "pretty"})
+		return rootCmd.Execute()
+	})
+	if err != nil {
+		t.Fatalf("build with the examples uncommented: %v", err)
+	}
 }
 
 // The next-step hint tells the user to cd into a site created in a subfolder,

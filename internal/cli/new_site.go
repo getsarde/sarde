@@ -179,7 +179,7 @@ theme:
   name: "default"
   # preset: "ocean"        # Try: ocean, forest, rose, clean, minimal, docs, academic
   # overrides:
-  #   primary: "#6366f1"
+  #   accent: "#6366f1"
 
 # collections:
 #   blog:

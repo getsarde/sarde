@@ -27,6 +27,16 @@ Messages arrive over the WebSocket with a `type` field:
 
 A ping/pong keepalive runs every 30 seconds to detect stale connections.
 
+## Source lines
+
+Pages served by `sarde dev` tell an editor which line of the Markdown file each block came from, so the editor and the preview can scroll together. Sarde Studio uses this to keep its editor and its Preview tab in step. Each paragraph, heading, blockquote, list, list item and table carries a `data-sd-line` attribute with the line it starts on:
+
+```html
+<p data-sd-line="7">The first paragraph after the frontmatter.</p>
+```
+
+Lines count from the top of the file, frontmatter included. Fenced code blocks and raw HTML blocks carry no attribute; paragraphs and lists inside an extension do. `sarde build` never writes the attribute, and a page cached by one command is never reused by the other.
+
 ## File watching
 
 The server watches these project directories for changes: `content/`, `layouts/`, `assets/`, `data/`, `public/`, `themes/`, `plugins/`, `directives/`, `i18n/`. It also watches the project root non-recursively for config file changes (`sarde.yaml`, `theme.yaml`, `nav.yaml`, `sidebar.yaml`, `kazari.config.yaml`). A watched directory created while the server runs is picked up too. The output directory is never watched, even when `build.output` names one of these directories.
