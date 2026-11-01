@@ -9,6 +9,8 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ## Unreleased
 
+## 1.8.0 - 2026-11-01
+
 ### Added
 
 - **Search counts use every plural form a language has:** the search modal sent only the `_one` and `_other` forms of `search.results_count` and `search.matches_in_page`, so a language with more plural forms, such as Arabic or Polish, always showed its `_other` text. The modal now also receives the `_zero`, `_two`, `_few` and `_many` forms the page's language defines, and picks one with the language's plural rules; a form the language does not define still falls back to `_other`. See [Search](/plugins/search/#ui-strings).

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-11-01
+
 ### Added
 
 - **Search counts use every plural form a language has:** the search modal sent only the `_one` and `_other` forms of `search.results_count` and `search.matches_in_page`, so a language with more plural forms, such as Arabic or Polish, always showed its `_other` text. The modal now also receives the `_zero`, `_two`, `_few` and `_many` forms the page's language defines, and picks one with the language's plural rules; a form the language does not define still falls back to `_other`. See [Search](/plugins/search/#ui-strings).
@@ -341,7 +343,8 @@ The first stable release. Everything below has accumulated since the 0.1.x previ
 - WebSocket hub uses ping/pong keepalive (30-second interval) to detect stale connections.
 - Unchanged headings are reused during incremental rebuilds, and link validation is scoped to changed pages only.
 
-[Unreleased]: https://github.com/getsarde/sarde/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/getsarde/sarde/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/getsarde/sarde/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/getsarde/sarde/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/getsarde/sarde/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/getsarde/sarde/compare/v1.5.0...v1.5.1
