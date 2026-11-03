@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/getsarde/sarde/internal/validate"
@@ -257,16 +258,52 @@ func TestValidate_VersioningFallback(t *testing.T) {
 	}
 }
 
+// A sort field Sarde does not know sorts by title, and an unknown direction
+// sorts ascending; both warn instead of failing the build.
+func TestValidate_CollectionSortWarnings(t *testing.T) {
+	cfg := Defaults()
+	cfg.Collections = map[string]*CollectionSiteConfig{
+		"docs":  {Sort: "weight asc"},
+		"notes": {Sort: "order aesc"},
+		"blog":  {Sort: "date desc"},
+	}
+	errs, warns := Validate(cfg, nil)
+	for _, e := range errs {
+		if strings.HasSuffix(e.Path, ".sort") {
+			t.Errorf("a sort value must not be a hard error: %v", e)
+		}
+	}
+	got := map[string]string{}
+	for _, w := range warns {
+		if strings.HasSuffix(w.Path, ".sort") {
+			got[w.Path] = w.Message
+		}
+	}
+	if !strings.Contains(got["collections.docs.sort"], "sort field") {
+		t.Errorf("weight asc: want a sort field warning, got %q", got["collections.docs.sort"])
+	}
+	if !strings.Contains(got["collections.notes.sort"], "sort direction") {
+		t.Errorf("order aesc: want a sort direction warning, got %q", got["collections.notes.sort"])
+	}
+	if _, ok := got["collections.blog.sort"]; ok {
+		t.Error("date desc must not warn")
+	}
+}
+
 func TestValidate_TaxonomyPaginateBy(t *testing.T) {
 	cfg := Defaults()
 	cfg.Taxonomies = map[string]TaxonomyConfig{
-		"tags": {PaginateBy: -5},
+		"tags":       {PaginateBy: IntPtr(-5)},
+		"categories": {PaginateBy: IntPtr(0)},
 	}
 	errs, _ := Validate(cfg, nil)
 	found := false
 	for _, e := range errs {
 		if e.Path == "taxonomies.tags.paginate_by" {
 			found = true
+		}
+		if e.Path == "taxonomies.categories.paginate_by" {
+			t.Errorf("paginate_by: 0 (pagination off) must be valid, got %v", e)
 		}
 	}
 	if !found {

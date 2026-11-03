@@ -155,6 +155,72 @@ func TestBuildNavTreeFromYAML_MissingPage(t *testing.T) {
 	}
 }
 
+// A page ref can name the source file with its numeric ordering prefix,
+// which the URL drops: guide/01-introduction finds /docs/guide/introduction/.
+func TestBuildNavTreeFromYAML_NumericPrefixRef(t *testing.T) {
+	dir := t.TempDir()
+	path := writeNavYAML(t, dir, `
+- label: Start
+  items:
+    - page: guide/01-introduction
+    - page: guide/introduction
+`)
+	col := testCollection()
+	col.Pages = append(col.Pages, &engine.Page{
+		PageIdentity: engine.PageIdentity{
+			Title: "Introduction", Slug: "introduction", Kind: engine.KindPage,
+			RelPermalink: "/docs/guide/introduction/", FilePath: filepath.Join(dir, "docs", "guide", "01-introduction.md"),
+		},
+	})
+	tree, err := BuildNavTreeFromYAML(path, col)
+	if err != nil {
+		t.Fatal(err)
+	}
+	group := tree.Root.Children[0]
+	if len(group.Children) != 2 {
+		t.Fatalf("expected both refs to resolve, got %d children", len(group.Children))
+	}
+	for _, child := range group.Children {
+		if child.URL != "/docs/guide/introduction/" {
+			t.Errorf("ref resolved to %q, want /docs/guide/introduction/", child.URL)
+		}
+	}
+}
+
+// CheckNavYAML reports each unresolved page ref with its position; an
+// unresolved entry's nested items are not checked, since they are dropped
+// with it.
+func TestCheckNavYAML_ReportsUnresolvedRefs(t *testing.T) {
+	dir := t.TempDir()
+	path := writeNavYAML(t, dir, `- page: getting-started
+- label: Guides
+  items:
+    - page: guides/missing
+    - page: guides/authentication
+- page: gone
+  items:
+    - page: also-gone
+`)
+	refs, err := CheckNavYAML(path, testCollection())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(refs) != 2 {
+		t.Fatalf("got %d unresolved refs %v, want guides/missing and gone", len(refs), refs)
+	}
+	if refs[0].Page != "guides/missing" || refs[0].Line != 4 {
+		t.Errorf("first ref = %+v, want guides/missing on line 4", refs[0])
+	}
+	if refs[1].Page != "gone" || refs[1].Line != 6 {
+		t.Errorf("second ref = %+v, want gone on line 6", refs[1])
+	}
+
+	bad := writeNavYAML(t, t.TempDir(), "- page: [unclosed\n")
+	if _, err := CheckNavYAML(bad, testCollection()); err == nil {
+		t.Error("expected a parse error for malformed nav.yaml")
+	}
+}
+
 func TestBuildNavTreeFromYAML_Badge_ScalarWithLegacyColor(t *testing.T) {
 	dir := t.TempDir()
 	path := writeNavYAML(t, dir, `

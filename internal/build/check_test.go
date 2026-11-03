@@ -6,6 +6,7 @@ import (
 
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/engine"
 )
 
 // Check applies per-call overrides (strict policies, report format, enabled)
@@ -60,5 +61,42 @@ func TestBuild_BrokenLinkErrorHasNoBuildFailedPrefix(t *testing.T) {
 	}
 	if got, want := err.Error(), "link validation errors found"; got != want {
 		t.Errorf("Build error = %q, want %q", got, want)
+	}
+}
+
+// An extension-less site path that no page answers is a broken target once
+// the whole site is known, while links to pages that exist only in the
+// output, a tag page or a numbered list page, and to a public/ folder with an
+// index.html pass without a warning.
+func TestBuild_UnresolvedSitePathIsBrokenTarget(t *testing.T) {
+	newSite := func(t *testing.T, body string) string {
+		dir := t.TempDir()
+		writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\nWelcome.\n")
+		writeFixture(t, dir, "content/blog/_index.md", "---\ntitle: Blog\n---\n")
+		writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02\ntags: [botany]\n---\nBody.\n")
+		writeFixture(t, dir, "content/blog/two.md", "---\ntitle: Two\ndate: 2025-01-01\ntags: [botany]\n---\nBody.\n")
+		writeFixture(t, dir, "public/demo/index.html", "<p>demo</p>")
+		writeFixture(t, dir, "content/docs/guide.md", "---\ntitle: Guide\n---\n"+body)
+		return dir
+	}
+	build := func(dir string) (*engine.BuildResult, error) {
+		cfg := config.Defaults()
+		cfg.Build.Minify = config.BoolPtr(false)
+		cfg.Collections = map[string]*config.CollectionSiteConfig{"blog": {Paginate: config.IntPtr(1)}}
+		return NewSiteBuilder(BuildOptions{ProjectDir: dir, Config: cfg, ThemeConfig: buildThemeConfig(), EmbeddedFS: embedded.ThemeFS()}).Build()
+	}
+
+	result, err := build(newSite(t, "See [botany](/tags/botany), [page two](/blog/page/2) and [the demo](/demo/).\n"))
+	if err != nil {
+		t.Fatalf("Build failed on links to output-only pages: %v", err)
+	}
+	for _, w := range result.Warnings {
+		if w.Field == "link" {
+			t.Errorf("unexpected link warning: %v", w)
+		}
+	}
+
+	if _, err := build(newSite(t, "See [the lost page](/nope/missing).\n")); err == nil || err.Error() != "link validation errors found" {
+		t.Errorf("Build with a link to nothing: err = %v, want link validation errors", err)
 	}
 }

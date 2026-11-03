@@ -141,3 +141,33 @@ func TestBuild_ThemeToggle_ThemeDarkFalse_LightOnly(t *testing.T) {
 		t.Error("sarde.js does not stop the theme script on a light-only site")
 	}
 }
+
+// The starter theme honors theme.dark: false like the embedded theme: its
+// base layouts mark <html> light-only and skip the sd-theme script.
+func TestBuild_ThemeToggle_StarterThemeDarkFalse(t *testing.T) {
+	projDir := createRichFixtureSite(t)
+	if err := os.CopyFS(filepath.Join(projDir, "themes", "starter"), os.DirFS("../../themes/starter")); err != nil {
+		t.Fatalf("copying the starter theme: %v", err)
+	}
+	cfg := config.Defaults()
+	cfg.Build.Minify = config.BoolPtr(false)
+	cfg.Theme.Name = "starter"
+	cfg.Theme.Dark = config.BoolPtr(false)
+	builder := NewSiteBuilder(BuildOptions{ProjectDir: projDir, Config: cfg, ThemeConfig: buildThemeConfig(), EmbeddedFS: embedded.ThemeFS()})
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+	distDir := filepath.Join(projDir, "dist")
+	for _, p := range []string{"index.html", "docs/guide/index.html"} {
+		html := readFixture(t, distDir, p)
+		if !strings.Contains(html, "starter-theme") {
+			t.Fatalf("%s: not rendered by the starter theme", p)
+		}
+		if !strings.Contains(html, `data-theme="light" data-sd-light-only`) {
+			t.Errorf("%s: <html> is not marked light-only", p)
+		}
+		if strings.Contains(html, themeScript) {
+			t.Errorf("%s: the sd-theme script still runs", p)
+		}
+	}
+}

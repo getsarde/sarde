@@ -103,3 +103,25 @@ Run the server with `--verbose` to print per-phase timings on every rebuild. Use
 ```bash
 sarde dev --verbose
 ```
+
+## Diagnose a page that stops responding
+
+When a page stops reacting, such as a link that does nothing when clicked, run the server with `--debug-client`:
+
+```bash
+sarde dev --debug-client
+```
+
+Every page then loads a script that reports what happens on the page to the browser console and to the terminal, with a `[client]` tag and the page path:
+
+| Event | Reported details |
+|-------|------------------|
+| `link-click` | The link's `href`, whether a script cancelled the navigation (`defaultPrevented`), and how many elements are `inert` and how many dialogs are open |
+| `pageshow`, `pagehide` | Whether the page came from or went to the browser's back-forward cache (`persisted`) |
+| `error`, `unhandled-rejection` | The script error and where it was thrown |
+| `long-task` | A task that blocked the page for 50 ms or more, with its duration |
+| `livereload` | Each live reload message the page received |
+
+→ A line such as `[client] /labs/ link-click /courses/ defaultPrevented=true inert=1 open-dialogs=0` shows that a script cancelled the click while an element was `inert`.
+
+If the page is frozen, open DevTools, press Pause in the Sources panel to see the running stack, and check `document.querySelectorAll('[inert]')` and `document.querySelector('#sarde-search-modal.open')` in the console. The flag works with live reload turned off, and `sarde build` output never includes the script.

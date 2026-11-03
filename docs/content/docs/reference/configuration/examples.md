@@ -24,7 +24,7 @@ site:
 
 ## Documentation site
 
-A documentation site published to GitHub Pages under the repository name, with a docs-oriented theme preset and a collapsible sidebar:
+A documentation site published to GitHub Pages under the repository name, with a docs-oriented theme preset and a sidebar whose groups start collapsed:
 
 ```yaml title="sarde.yaml"
 site:
@@ -43,7 +43,6 @@ markdown:
 collections:
   docs:
     sidebar:
-      collapsible: true
       collapsed_by_default: true
 social:
   - label: GitHub
@@ -92,7 +91,7 @@ theme:
 collections:
   courses:
     sidebar:
-      collapsible: true
+      collapsed_by_default: true
   labs:
     labs:
       label: Exercise
@@ -176,8 +175,8 @@ icons:
 
 prefetch:
   enabled: true
-  strategy: "hover"
-  delay: 300
+  strategy: "hover" # deprecated, no effect
+  delay: 300 # deprecated, no effect
 
 # Content: /reference/configuration/content/
 content:
@@ -192,13 +191,13 @@ taxonomies:
 permalinks: {}
 
 markdown:
-  katex: true
-  mermaid: true
-  cdn: false
-  unsafe: false
-  typographer: true
-  github_alerts: true
-  triple_colon_callouts: true
+  katex: true # deprecated, no effect
+  mermaid: true # deprecated, no effect
+  cdn: false # deprecated, no effect
+  unsafe: false # deprecated, no effect
+  typographer: true # deprecated, no effect
+  github_alerts: true # deprecated, no effect
+  triple_colon_callouts: true # deprecated, no effect
   hard_wraps: false
   toc:
     min_heading_level: 2
@@ -206,7 +205,7 @@ markdown:
   asides:
     style: "classic"
   codeblocks:
-    style: "class"
+    style: "class" # deprecated, no effect
     light_theme: "github-light"  # deprecated: set themes in kazari.config.yaml
     dark_theme: "github-dark"    # deprecated: set themes in kazari.config.yaml
     theme: ""                    # deprecated, no effect
@@ -280,19 +279,19 @@ plugins:
 
 link_validation:
   enabled: true
-  level: "warn"
+  level: "warn" # deprecated, no effect
   on_broken: "error"
   on_broken_anchor: "error"
   report: "pretty"
   on_relative_links: "warn"
   on_local_links: "warn"
   on_unverified_internal: "warn"
-  check_anchors: true
-  check_images: true
+  check_anchors: true # deprecated, no effect
+  check_images: true # deprecated, no effect
   same_site_policy: "ignore"
   site_root_escape_prefix: "site:"
   exclude: []
-  fail_build: false
+  fail_build: false # deprecated, no effect
   external:
     check: false
     concurrency: 8

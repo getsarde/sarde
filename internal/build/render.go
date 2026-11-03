@@ -166,6 +166,7 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 	lookup := markdown.ImageLookupForPage(page, deps.assetPipeline.ImageProcessor(), b.assetURLResolver())
 	b.mdRenderer.SetImageLookup(lookup)
 	b.mdRenderer.SetImageLazyLoading(markdown.LazyLoadingEnabled(deps.assetPipeline.ImageProcessor()))
+	b.mdRenderer.SetImageSettings(deps.assetPipeline.ImageProcessor())
 	b.mdRenderer.SetLinkContext(page)
 
 	result, err := b.mdRenderer.Render(processed)
@@ -204,64 +205,79 @@ func minifyRendered(rendered []RenderedPage, parallel bool, workerCount int) err
 	})
 }
 
+// renderDirtyCollectionPagination renders the dirty numbered list pages of
+// every paginated collection, in each language, the same way a full build
+// renders them (renderPage: styles, scripts, sprites, and the language's
+// output path).
 func (b *SiteBuilder) renderDirtyCollectionPagination(collections map[string]*engine.Collection, dirty map[string]struct{}, site *engine.SiteContext, rendered *[]RenderedPage) error {
-	for _, col := range collections {
-		if col == nil || col.Config == nil || col.Config.Paginate <= 0 || col.IndexPage == nil {
-			continue
-		}
-		var contentPages []*engine.Page
-		for _, p := range col.Pages {
-			if p.Kind != engine.KindSection {
-				contentPages = append(contentPages, p)
+	for _, name := range sortedKeys(collections) {
+		col := collections[name]
+		for _, lang := range listLangs(col) {
+			for _, stub := range paginationStubs(col, lang) {
+				if _, ok := dirty[stub.RelPermalink]; !ok {
+					continue
+				}
+				resolvePermalinks(b.urlResolver, []*engine.Page{stub})
+				rp, err := b.renderPage(stub, site)
+				if err != nil {
+					return err
+				}
+				*rendered = append(*rendered, rp)
 			}
-		}
-		total := (len(contentPages) + col.Config.Paginate - 1) / col.Config.Paginate
-		if total <= 1 {
-			continue
-		}
-		base := col.IndexPage.RelPermalink
-		if base == "" {
-			base = "/" + col.Name + "/"
-		}
-		for n := 2; n <= total; n++ {
-			permalink := sardetemplate.PaginationURL(base, n)
-			if _, ok := dirty[permalink]; !ok {
-				continue
-			}
-			stub := &engine.Page{
-				PageIdentity: engine.PageIdentity{
-					Title:        col.IndexPage.Title,
-					Kind:         engine.KindSection,
-					Permalink:    permalink,
-					RelPermalink: permalink,
-				},
-				PageRelationships: engine.PageRelationships{
-					Collection: col,
-					Section:    col.IndexPage.Section,
-				},
-				PageI18n: engine.PageI18n{Lang: col.IndexPage.Lang},
-				Params: map[string]any{
-					consts.PaginationCurrentKey: n,
-				},
-			}
-			resolvePermalinks(b.urlResolver, []*engine.Page{stub})
-			rd := sardetemplate.BuildRouteData(stub, site, b.themeConfig)
-			if err := b.pluginMgr.RunBeforeRender(b.config, stub, rd, site, b.urlResolver); err != nil {
-				return err
-			}
-			resolveRouteAssets(b.urlResolver, rd)
-			html, err := b.tmplEngine.Render(rd.Template, rd)
-			if err != nil {
-				return err
-			}
-			*rendered = append(*rendered, RenderedPage{
-				Page:    stub,
-				HTML:    html,
-				OutPath: PageOutputPath(permalink),
-			})
 		}
 	}
 	return nil
+}
+
+// listLangs returns the languages whose lists a collection renders: every
+// language of its per-language views, or "" (the collection itself) on a
+// single-language site.
+func listLangs(col *engine.Collection) []string {
+	if col == nil || col.LangIndex == nil {
+		return []string{""}
+	}
+	return sortedKeys(col.LangIndex)
+}
+
+// paginationStubs builds the numbered list pages 2..N (for example
+// /blog/page/2/) of a paginated collection in lang, counted from that
+// language's list and shaped after that language's index page, which may be
+// a fallback copy. A language without an index page has no list.
+func paginationStubs(col *engine.Collection, lang string) []*engine.Page {
+	if col == nil || col.Config == nil || col.Config.Paginate <= 0 {
+		return nil
+	}
+	idx := col.IndexFor(lang)
+	if idx == nil {
+		return nil
+	}
+	perPage := col.Config.Paginate
+	total := (len(col.ListPages(lang)) + perPage - 1) / perPage
+	base := idx.RelPermalink
+	if base == "" {
+		base = "/" + col.Name + "/"
+	}
+	var stubs []*engine.Page
+	for n := 2; n <= total; n++ {
+		permalink := sardetemplate.PaginationURL(base, n)
+		stubs = append(stubs, &engine.Page{
+			PageIdentity: engine.PageIdentity{
+				Title:        idx.Title,
+				Kind:         engine.KindSection,
+				Permalink:    permalink,
+				RelPermalink: permalink,
+			},
+			PageRelationships: engine.PageRelationships{
+				Collection: col,
+				Section:    idx.Section,
+			},
+			PageI18n: engine.PageI18n{Lang: idx.Lang, IsFallback: idx.IsFallback},
+			Params: map[string]any{
+				consts.PaginationCurrentKey: n,
+			},
+		})
+	}
+	return stubs
 }
 
 func buildRedirectHTML(target string) string {
@@ -277,51 +293,13 @@ func buildRedirectHTML(target string) string {
 // the number of paginator pages created.
 func (b *SiteBuilder) synthesizePaginationPages(s *buildState) ([]*engine.Page, int) {
 	var syntheticPages []*engine.Page
-	paginatorPages := 0
-
-	for _, col := range s.collections {
-		if col.Config == nil || col.Config.Paginate <= 0 {
-			continue
-		}
-		var contentPages []*engine.Page
-		for _, p := range col.Pages {
-			if p.Kind != engine.KindSection {
-				contentPages = append(contentPages, p)
-			}
-		}
-		perPage := col.Config.Paginate
-		total := (len(contentPages) + perPage - 1) / perPage
-		if total <= 1 || col.IndexPage == nil {
-			continue
-		}
-		idx := col.IndexPage
-		base := idx.RelPermalink
-		if base == "" {
-			base = "/" + col.Name + "/"
-		}
-		for n := 2; n <= total; n++ {
-			permalink := sardetemplate.PaginationURL(base, n)
-			stub := &engine.Page{
-				PageIdentity: engine.PageIdentity{
-					Title:        idx.Title,
-					Kind:         engine.KindSection,
-					Permalink:    permalink,
-					RelPermalink: permalink,
-				},
-				PageRelationships: engine.PageRelationships{
-					Collection: col,
-					Section:    idx.Section,
-				},
-				PageI18n: engine.PageI18n{Lang: idx.Lang},
-				Params: map[string]any{
-					consts.PaginationCurrentKey: n,
-				},
-			}
-			syntheticPages = append(syntheticPages, stub)
-			paginatorPages++
+	for _, name := range sortedKeys(s.collections) {
+		col := s.collections[name]
+		for _, lang := range listLangs(col) {
+			syntheticPages = append(syntheticPages, paginationStubs(col, lang)...)
 		}
 	}
-	return syntheticPages, paginatorPages
+	return syntheticPages, len(syntheticPages)
 }
 
 // synthesizeTaxonomyPages builds taxonomy index, term, and paginated-term
@@ -386,29 +364,24 @@ func (b *SiteBuilder) synthesizeTaxonomyPages(s *buildState) ([]*engine.Page, in
 
 			taxStub := stubs[taxName]
 			if s.isMultiLang {
-				taxStub.Translations = crossLinkStubs(stubsByLang, taxName, lang)
+				taxStub.Translations = crossLinkStubs(stubsByLang, taxName, lang, taxLangs)
 				taxStub.AllTranslations = taxStub.Translations
 			}
 			taxonomyPages = append(taxonomyPages, taxStub)
 
-			paginateBy := cfg.PaginateBy
-			if paginateBy <= 0 {
-				paginateBy = consts.DefaultPaginateBy
-			}
-			for _, term := range tax.Terms {
+			// Sorted, so the term pages land in allPages (the sitemap, llms.txt)
+			// in the same order on every build.
+			for _, slug := range sortedKeys(tax.Terms) {
+				term := tax.Terms[slug]
 				key := taxName + "/" + term.Slug
 				termStub := stubs[key]
 				if s.isMultiLang {
-					termStub.Translations = crossLinkStubs(stubsByLang, key, lang)
+					termStub.Translations = crossLinkStubs(stubsByLang, key, lang, taxLangs)
 					termStub.AllTranslations = termStub.Translations
 				}
 				taxonomyPages = append(taxonomyPages, termStub)
 
-				totalTermPages := (len(term.Pages) + paginateBy - 1) / paginateBy
-				if totalTermPages < 1 {
-					totalTermPages = 1
-				}
-				for n := 2; n <= totalTermPages; n++ {
+				for n := 2; n <= tax.TermPageCount(term); n++ {
 					permalink := sardetemplate.PaginationURL(term.Permalink, n)
 					paginatedStub := buildTermPaginatedStub(tax, term, permalink, n, lang)
 					taxonomyPages = append(taxonomyPages, paginatedStub)
@@ -423,10 +396,8 @@ func (b *SiteBuilder) synthesizeTaxonomyPages(s *buildState) ([]*engine.Page, in
 func (b *SiteBuilder) phaseRender(s *buildState) error {
 	var renderablePages []*engine.Page
 	for _, page := range s.allPages {
-		if page.Params != nil {
-			if r, ok := page.Params["render"].(bool); ok && !r {
-				continue
-			}
+		if !page.Renders() {
+			continue
 		}
 		renderablePages = append(renderablePages, page)
 	}

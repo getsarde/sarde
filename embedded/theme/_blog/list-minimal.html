@@ -7,7 +7,7 @@
   <div class="sarde-markdown-content">{{ .Page.Content }}</div>
   {{ end }}
 
-  {{ $pages := .Collection.Pages }}
+  {{ $pages := .ListPages }}
   {{ if and .Paginator .Paginator.CurrentPages }}{{ $pages = .Paginator.CurrentPages }}{{ end }}
 
   <ul class="sarde-post-list-minimal">

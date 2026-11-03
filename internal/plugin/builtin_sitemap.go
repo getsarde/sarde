@@ -43,7 +43,8 @@ func sitemapBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 
 	var urls []sitemapURL
 	for _, page := range ctx.Pages {
-		if page.Draft {
+		// A render: false page is never written, so it has no URL to list.
+		if page.Draft || !page.Renders() {
 			continue
 		}
 		if strings.Contains(page.RelPermalink, "/page/") {

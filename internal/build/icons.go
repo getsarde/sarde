@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/content/markdown/icons"
 	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
@@ -18,6 +19,7 @@ func (b *SiteBuilder) loadIconSources() {
 	ic := b.config.Icons
 	icons.SetDefaultPrefix(ic.DefaultPrefix)
 	icons.SetRenderMode(ic.Render)
+	icons.DrainMissing() // misses are reported per build
 
 	resolve := func(p string) string {
 		if filepath.IsAbs(p) {
@@ -41,17 +43,21 @@ func (b *SiteBuilder) loadIconSources() {
 			loadSet(resolve(set.File))
 		}
 	}
-	if ic.SetsDir != "" {
-		dir := resolve(ic.SetsDir)
-		if entries, err := os.ReadDir(dir); err != nil {
-			if !os.IsNotExist(err) {
-				devlog.Warn("icons", "read sets_dir %s: %v", dir, err)
-			}
-		} else {
-			for _, e := range entries {
-				if !e.IsDir() && strings.EqualFold(filepath.Ext(e.Name()), ".json") {
-					loadSet(filepath.Join(dir, e.Name()))
-				}
+	// `sarde icons add` downloads into icon-sets/ unless icons.sets_dir
+	// names another folder, so that folder is read by default too.
+	setsDir := ic.SetsDir
+	if setsDir == "" {
+		setsDir = consts.DirIconSets
+	}
+	dir := resolve(setsDir)
+	if entries, err := os.ReadDir(dir); err != nil {
+		if !os.IsNotExist(err) {
+			devlog.Warn("icons", "read sets_dir %s: %v", dir, err)
+		}
+	} else {
+		for _, e := range entries {
+			if !e.IsDir() && strings.EqualFold(filepath.Ext(e.Name()), ".json") {
+				loadSet(filepath.Join(dir, e.Name()))
 			}
 		}
 	}
@@ -72,6 +78,15 @@ func buildIconLicenses() []engine.IconLicense {
 		out = append(out, engine.IconLicense{Prefix: s.Prefix, Title: s.Title, SPDX: s.SPDX, URL: s.URL})
 	}
 	return out
+}
+
+// warnMissingIcons reports each icon name the pages rendered this build
+// asked for but no loaded set has, once per name. Each renders the
+// placeholder icon.
+func (b *SiteBuilder) warnMissingIcons() {
+	for _, name := range icons.DrainMissing() {
+		devlog.Warn("icons", "unknown icon %q; the placeholder icon renders instead (check the name, or load its set with sarde icons add)", name)
+	}
 }
 
 func (b *SiteBuilder) warnIconAttribution() {

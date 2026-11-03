@@ -13,6 +13,7 @@ import (
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/theme"
 )
@@ -170,8 +171,12 @@ func (pm *ProjectManager) resolveConfig(projectDir string) (*config.SiteConfig, 
 	// Fold theme shortcut fields into overrides before token resolution.
 	config.FoldThemeShortcuts(&cfg.Theme)
 
-	// Validate token names in overrides.
+	// Validate token names in overrides, and warn about unknown tokens in
+	// the theme's own theme.yaml.
 	known := theme.KnownTokens()
+	for _, msg := range theme.ThemeTokenWarnings(thm, known) {
+		devlog.Warn("theme", "%s", msg)
+	}
 	if err := theme.ValidateOverrides("theme.overrides", cfg.Theme.Overrides, known); err != nil {
 		return nil, nil, err
 	}

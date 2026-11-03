@@ -25,30 +25,33 @@ import (
 
 // Engine loads templates from the resolved lookup chain and renders pages to HTML.
 type Engine struct {
-	resolver       *engine.ThemeResolver
-	components     *component.Registry
-	baseCache      map[string]*htmltemplate.Template // layout key → baseof+partials
-	templates      map[string]*htmltemplate.Template // "default:blog/single" → cloned template
-	partialCache   map[string]*htmltemplate.Template // partial name → pre-parsed template
-	funcMap        htmltemplate.FuncMap
-	dataCache      sync.Map
-	site           *engine.SiteContext
-	cachedCSS      string // embedded CSS, loaded once
-	cssURL         string // external CSS bundle URL (set during Load)
-	tokenCSSURL    string // external token CSS URL (set by builder)
-	codeBlockCSS   string // dynamically generated code block syntax theme CSS
-	directiveCSS   string // concatenated generic directive CSS sidecars
-	asideCSS       string // opt-in aside style overlay (markdown.asides.style)
-	assetResolver  *asset.Resolver
-	assetManifest  *asset.Manifest
-	imageProcessor *asset.ImageProcessor
-	pluginFuncs    map[string]any
-	i18nStrings    *i18n.StringTable
-	pageIndex      *content.PageIndex
-	urlResolver    *engine.URLResolver
-	currentLang    string // fallback lang for base-funcMap closures; per-render language is resolved via funcMapForLang(lang), so render correctness does not depend on this field
-	loaded         bool   // true after first Load(); subsequent calls skip template re-parsing
-	mu             sync.RWMutex
+	resolver     *engine.ThemeResolver
+	components   *component.Registry
+	baseCache    map[string]*htmltemplate.Template // layout key → baseof+partials
+	templates    map[string]*htmltemplate.Template // "default:blog/single" → cloned template
+	partialCache map[string]*htmltemplate.Template // partial name → pre-parsed template
+	funcMap      htmltemplate.FuncMap
+	dataCache    sync.Map
+	site         *engine.SiteContext
+	cachedCSS    string // embedded CSS, loaded once
+	cssURL       string // external CSS bundle URL (set during Load)
+	tokenCSSURL  string // external token CSS URL (set by builder)
+	codeBlockCSS string // dynamically generated code block syntax theme CSS
+	// codeHighlighter renders the highlight template function's code block;
+	// nil keeps the plain <pre><code> fallback.
+	codeHighlighter func(code, lang string) (string, error)
+	directiveCSS    string // concatenated generic directive CSS sidecars
+	asideCSS        string // opt-in aside style overlay (markdown.asides.style)
+	assetResolver   *asset.Resolver
+	assetManifest   *asset.Manifest
+	imageProcessor  *asset.ImageProcessor
+	pluginFuncs     map[string]any
+	i18nStrings     *i18n.StringTable
+	pageIndex       *content.PageIndex
+	urlResolver     *engine.URLResolver
+	currentLang     string // fallback lang for base-funcMap closures; per-render language is resolved via funcMapForLang(lang), so render correctness does not depend on this field
+	loaded          bool   // true after first Load(); subsequent calls skip template re-parsing
+	mu              sync.RWMutex
 }
 
 // NewEngine creates a new template Engine.
@@ -81,6 +84,12 @@ func (e *Engine) SetImageProcessor(p *asset.ImageProcessor) {
 // SetCodeBlockCSS sets dynamically generated code block syntax theme CSS.
 // Must be called before Load().
 func (e *Engine) SetCodeBlockCSS(css string) { e.codeBlockCSS = css }
+
+// SetCodeHighlighter sets the renderer behind the highlight template
+// function, the site's code block engine; nil keeps the plain fallback.
+func (e *Engine) SetCodeHighlighter(fn func(code, lang string) (string, error)) {
+	e.codeHighlighter = fn
+}
 
 // SetDirectiveCSS sets the concatenated CSS sidecars of all generic
 // directives (internal/directive Registry.CSS). Appended unlayered to the
@@ -353,6 +362,9 @@ func (e *Engine) funcMapForLang(lang string) htmltemplate.FuncMap {
 	}
 	fm["relURL"] = func(relPath string) string {
 		return relURLFor(e.urlResolver, relPath, lang)
+	}
+	fm["recentEntries"] = func(colName string, n int) []*engine.Page {
+		return recentEntries(e.site, colName, n, lang)
 	}
 	fm["absURL"] = func(relPath string) string {
 		if e.urlResolver != nil {

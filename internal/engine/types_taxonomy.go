@@ -10,7 +10,20 @@ type Taxonomy struct {
 	Singular   string
 	Terms      map[string]*TaxonomyTerm
 	Permalink  string
-	PaginateBy int // 0 = no pagination for term listing pages
+	PaginateBy int // terms per page on a term listing; 0 = no pagination (one page)
+}
+
+// TermPageCount returns how many pages a term's listing spans: one when
+// pagination is off or the term is empty, otherwise its pages divided by
+// PaginateBy, rounded up.
+func (t *Taxonomy) TermPageCount(term *TaxonomyTerm) int {
+	if t == nil || term == nil || t.PaginateBy <= 0 {
+		return 1
+	}
+	if n := (len(term.Pages) + t.PaginateBy - 1) / t.PaginateBy; n > 1 {
+		return n
+	}
+	return 1
 }
 
 // TaxonomyTerm is a single term within a taxonomy with its associated pages.

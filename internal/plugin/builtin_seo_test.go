@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/engine"
 )
 
@@ -363,6 +364,9 @@ func TestSEO_OGImage_BasePath(t *testing.T) {
 		"/sub/images/cover.png":   "https://example.com/sub/images/cover.png",
 		"//cdn.example.com/a.png": "//cdn.example.com/a.png",
 		"https://cdn.x/a.png":     "https://cdn.x/a.png",
+		// A relative image sits beside the page; the page is French, but
+		// bundle files are written once, with no language prefix.
+		"cover.jpg": "https://example.com/sub/blog/post/cover.jpg",
 	} {
 		page := &engine.Page{
 			PageIdentity:      engine.PageIdentity{Title: "Post", RelPermalink: "/blog/post/"},
@@ -382,6 +386,97 @@ func TestSEO_OGImage_BasePath(t *testing.T) {
 		seo := page.Params["seo"].(map[string]any)
 		if seo["og_image"] != want || seo["twitter_image"] != want {
 			t.Errorf("image %q: og_image = %v, twitter_image = %v, want %q", image, seo["og_image"], seo["twitter_image"], want)
+		}
+		if ld := string(seo["json_ld"].(template.JS)); !strings.Contains(ld, `"image":"`+want+`"`) {
+			t.Errorf("image %q: JSON-LD image is not %q: %s", image, want, ld)
+		}
+	}
+}
+
+// A relative default_image has no page to sit beside, so it is read from the
+// site root.
+func TestSEO_RelativeDefaultImageResolvesAgainstSiteRoot(t *testing.T) {
+	page := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Post", RelPermalink: "/blog/post/"}}
+	ctx := &BeforeRenderContext{
+		Page:     page,
+		Site:     &engine.SiteContext{BaseURL: "https://example.com"},
+		Resolver: &engine.URLResolver{BaseURL: "https://example.com", BasePath: "/sub/"},
+		store:    NewStore(),
+	}
+	if err := seoBeforeRender(ctx, map[string]any{"default_image": "img/og.png"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := page.Params["seo"].(map[string]any)["og_image"]; got != "https://example.com/sub/img/og.png" {
+		t.Errorf("og_image = %v, want https://example.com/sub/img/og.png", got)
+	}
+}
+
+// The JSON-LD crumbs are built before the route data is resolved, so they
+// get the base path, the page's language and its version here, matching the
+// visible breadcrumbs.
+func TestSEO_BreadcrumbList_ResolvesBasePathAndLanguage(t *testing.T) {
+	page := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Title: "Guide", RelPermalink: "/docs/guide/"},
+		PageI18n:          engine.PageI18n{Lang: "fr"},
+		PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "docs"}},
+	}
+	ctx := &BeforeRenderContext{
+		Page: page,
+		Site: &engine.SiteContext{BaseURL: "https://example.com"},
+		Resolver: &engine.URLResolver{
+			BaseURL: "https://example.com", BasePath: "/sarde/",
+			I18nEnabled: true, DefaultLang: "en", Languages: map[string]bool{"en": true, "fr": true},
+		},
+		RouteData: &engine.RouteData{RouteNav: engine.RouteNav{Breadcrumbs: []engine.BreadcrumbItem{
+			{Label: "Docs", URL: "/docs/"},
+			{Label: "Phantom"},
+			{Label: "Guide", URL: "/docs/guide/", Current: true},
+		}}},
+		store: NewStore(),
+	}
+	if err := seoBeforeRender(ctx, nil); err != nil {
+		t.Fatal(err)
+	}
+	ld := string(page.Params["seo"].(map[string]any)["json_ld"].(template.JS))
+	for _, want := range []string{
+		`"item":"https://example.com/sarde/fr/docs/"`,
+		`"item":"https://example.com/sarde/fr/docs/guide/"`,
+	} {
+		if !strings.Contains(ld, want) {
+			t.Errorf("JSON-LD missing %s: %s", want, ld)
+		}
+	}
+	if strings.Contains(ld, `"item":"https://example.com/docs/`) || strings.Contains(ld, `"item":"https://example.com/sarde/"`) {
+		t.Errorf("a crumb lost its prefix, or an empty crumb got a URL: %s", ld)
+	}
+}
+
+// An inferred date is the file's mtime, so only an explicit date is
+// published as the article's publish date; the modified date is unaffected.
+func TestSEO_PublishDateOnlyWhenExplicit(t *testing.T) {
+	for _, explicit := range []bool{false, true} {
+		page := &engine.Page{
+			PageIdentity: engine.PageIdentity{
+				Title: "Post", RelPermalink: "/blog/post/",
+				Date:    time.Date(2026, 10, 29, 0, 0, 0, 0, time.UTC),
+				Updated: time.Date(2026, 10, 18, 0, 0, 0, 0, time.UTC),
+			},
+			PageMeta:          engine.PageMeta{DateExplicit: explicit},
+			PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "blog"}},
+		}
+		ctx := &BeforeRenderContext{Page: page, Site: &engine.SiteContext{BaseURL: "https://example.com"}, store: NewStore()}
+		if err := seoBeforeRender(ctx, nil); err != nil {
+			t.Fatal(err)
+		}
+		seo := page.Params["seo"].(map[string]any)
+		ld := string(seo["json_ld"].(template.JS))
+		_, hasOG := seo["article_published_time"]
+		hasLD := strings.Contains(ld, `"datePublished"`)
+		if hasOG != explicit || hasLD != explicit {
+			t.Errorf("explicit=%v: article_published_time present=%v, datePublished present=%v", explicit, hasOG, hasLD)
+		}
+		if !strings.Contains(ld, `"dateModified":"2026-10-18"`) || seo["article_modified_time"] == nil {
+			t.Errorf("explicit=%v: modified date missing: %s", explicit, ld)
 		}
 	}
 }
@@ -455,5 +550,43 @@ func TestSEO_OGLocale_FallsBackToRouteLang(t *testing.T) {
 	rd.Lang = "fr"
 	if got := seoLocaleParams(t, page, rd)["og_locale"]; got != "fr_FR" {
 		t.Errorf("og_locale = %v, want fr_FR", got)
+	}
+}
+
+// A fallback copy under /fr/ holds the default language's text, so its
+// og:locale names that language, not the folder's.
+func TestSEO_OGLocale_FallbackCopyNamesItsContentLanguage(t *testing.T) {
+	page := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: "Guide", RelPermalink: "/docs/guide/"},
+		PageI18n:     engine.PageI18n{Lang: "fr", IsFallback: true},
+	}
+	ctx := &BeforeRenderContext{
+		Page:  page,
+		Site:  &engine.SiteContext{BaseURL: "https://example.com", DefaultLang: "en"},
+		store: NewStore(),
+	}
+	if err := seoBeforeRender(ctx, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := page.Params["seo"].(map[string]any)["og_locale"]; got != "en_US" {
+		t.Errorf("og_locale = %v, want en_US", got)
+	}
+}
+
+// An article without its own author names site.author in its JSON-LD.
+func TestSEO_SiteAuthorFallback(t *testing.T) {
+	cfg := config.Defaults()
+	cfg.Site.Author = "Field Notes Team"
+	page := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Title: "Post", RelPermalink: "/blog/post/"},
+		PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "blog"}},
+	}
+	ctx := &BeforeRenderContext{Page: page, Site: &engine.SiteContext{BaseURL: "https://example.com", Config: cfg}, store: NewStore()}
+	if err := seoBeforeRender(ctx, nil); err != nil {
+		t.Fatal(err)
+	}
+	ld := string(page.Params["seo"].(map[string]any)["json_ld"].(template.JS))
+	if !strings.Contains(ld, `"author":{"@type":"Person","name":"Field Notes Team"}`) {
+		t.Errorf("JSON-LD author missing: %s", ld)
 	}
 }

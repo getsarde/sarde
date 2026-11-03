@@ -71,8 +71,9 @@ func WriteEmbeddedAssets(embeddedFS fs.FS, outputDir string, tracker *OutputTrac
 // BundleEmbeddedJS concatenates all JS files under assets/js/ in the embedded
 // theme FS into a single bundle, wrapping each in an IIFE. In production mode
 // the bundle is minified via esbuild. Returns the bundled content and a
-// filename (fingerprinted in production, plain in dev).
-func BundleEmbeddedJS(embeddedFS fs.FS, devMode bool) ([]byte, string, error) {
+// filename (fingerprinted in production, plain in dev). prefetch.js is left
+// out in dev mode and when prefetch is false (prefetch.enabled: false).
+func BundleEmbeddedJS(embeddedFS fs.FS, devMode, prefetch bool) ([]byte, string, error) {
 	if embeddedFS == nil {
 		return nil, "", nil
 	}
@@ -87,7 +88,7 @@ func BundleEmbeddedJS(embeddedFS fs.FS, devMode bool) ([]byte, string, error) {
 			return err
 		}
 		if !d.IsDir() && filepath.Ext(path) == ".js" {
-			if devMode && filepath.Base(path) == "prefetch.js" {
+			if (devMode || !prefetch) && filepath.Base(path) == "prefetch.js" {
 				return nil
 			}
 			files = append(files, path)
@@ -133,7 +134,8 @@ func BundleEmbeddedJS(embeddedFS fs.FS, devMode bool) ([]byte, string, error) {
 // BundleThemeJS concatenates all JS files under themes/{themeName}/assets/js/
 // into a single bundle, wrapping each in an IIFE. Returns ("", "", nil) if the
 // theme has no assets/js/ directory, allowing fallback to BundleEmbeddedJS.
-func BundleThemeJS(projectDir, themeName string, devMode bool) ([]byte, string, error) {
+// prefetch.js is left out as BundleEmbeddedJS leaves it out.
+func BundleThemeJS(projectDir, themeName string, devMode, prefetch bool) ([]byte, string, error) {
 	jsDir := filepath.Join(projectDir, "themes", themeName, "assets", "js")
 	info, err := os.Stat(jsDir)
 	if err != nil || !info.IsDir() {
@@ -146,7 +148,7 @@ func BundleThemeJS(projectDir, themeName string, devMode bool) ([]byte, string, 
 			return err
 		}
 		if !d.IsDir() && filepath.Ext(path) == ".js" {
-			if devMode && filepath.Base(path) == "prefetch.js" {
+			if (devMode || !prefetch) && filepath.Base(path) == "prefetch.js" {
 				return nil
 			}
 			files = append(files, path)

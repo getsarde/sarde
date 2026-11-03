@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/getsarde/sarde/internal/engine"
@@ -198,5 +199,42 @@ func TestBuildSectionTree_SectionOnlySubtreeGetsAncestor(t *testing.T) {
 	}
 	if guides.Sections[0].Parent != guides {
 		t.Error("tutorial.Parent should be the inferred guides section")
+	}
+}
+
+// Two transparent sibling sections hoist their pages into the parent in one
+// order on every build: the section tree walks its folders in sorted order,
+// not map order.
+func TestBuildSectionTree_TransparentHoistIsDeterministic(t *testing.T) {
+	build := func() []string {
+		pages := []*engine.Page{
+			{PageIdentity: engine.PageIdentity{Title: "Docs", Kind: engine.KindSection, RelPermalink: "/docs/"}},
+			{PageIdentity: engine.PageIdentity{Title: "Alpha", Kind: engine.KindSection, RelPermalink: "/docs/alpha/"}, Params: map[string]any{"transparent": true}},
+			{PageIdentity: engine.PageIdentity{Title: "Beta", Kind: engine.KindSection, RelPermalink: "/docs/beta/"}, Params: map[string]any{"transparent": true}},
+			{PageIdentity: engine.PageIdentity{Title: "Gamma", Kind: engine.KindSection, RelPermalink: "/docs/beta/gamma/"}, Params: map[string]any{"transparent": true}},
+			{PageIdentity: engine.PageIdentity{Title: "One", Kind: engine.KindPage, RelPermalink: "/docs/alpha/one/"}},
+			{PageIdentity: engine.PageIdentity{Title: "Two", Kind: engine.KindPage, RelPermalink: "/docs/beta/two/"}},
+			{PageIdentity: engine.PageIdentity{Title: "Three", Kind: engine.KindPage, RelPermalink: "/docs/beta/gamma/three/"}},
+		}
+		var root *engine.Section
+		for _, sec := range BuildSectionTree(pages, "docs") {
+			if sec.Parent == nil {
+				root = sec
+			}
+		}
+		var titles []string
+		for _, p := range root.Pages {
+			titles = append(titles, p.Title)
+		}
+		return titles
+	}
+	want := build()
+	if len(want) != 3 {
+		t.Fatalf("root holds %v, want all three pages hoisted through the nested transparent sections", want)
+	}
+	for i := 0; i < 50; i++ {
+		if got := build(); strings.Join(got, ",") != strings.Join(want, ",") {
+			t.Fatalf("build %d hoisted %v, first build %v", i, got, want)
+		}
 	}
 }

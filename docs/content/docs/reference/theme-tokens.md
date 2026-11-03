@@ -155,6 +155,7 @@ text keeps WCAG AA contrast on tinted backgrounds. Dark mode remaps them to the 
 | `bg-footer` | `var(--sd-bg)` | Footer background |
 | `bg-toc` | `transparent` | Table of contents background |
 | `bg-inline-code` | `var(--sd-gray-2)` | Inline code background |
+| `bg-code` | `oklch(0.228 0.023 255)` | Dark code background set by the default theme. The default stylesheets do not use it; it is available to custom CSS. Code blocks use `code-bg`. |
 | `bg-accent` | `var(--sd-accent, oklch(0.60 0.22 var(--sd-hue-accent)))` | Accent-colored background |
 | `bg-accent-subtle` | `var(--sd-accent-low, oklch(0.60 0.22 var(--sd-hue-accent) / 0.1))` | Subtle accent background |
 | `hover` | `var(--sd-gray-2)` | Hover state background |

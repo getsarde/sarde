@@ -152,16 +152,35 @@ func (p *ImageProcessor) ProcessImage(srcPath string, opts ImageOptions) ([]Imag
 		}
 	}
 
-	// Also include original size as a variant (one per format).
+	// The largest variant (one per format): the original width, capped at
+	// images.max_width. It goes through the same resize op as the others, so
+	// with op=fill every variant in the srcset has the same aspect ratio.
 	if origWidth > 0 {
-		origHeight := bounds.Dy()
+		topWidth := origWidth
+		if p.Config.MaxWidth > 0 && topWidth > p.Config.MaxWidth {
+			topWidth = p.Config.MaxWidth
+		}
+		// An explicit width and height set the aspect ratio; the larger
+		// variant keeps it.
+		topHeight := opts.Height
+		if opts.Width > 0 && opts.Height > 0 {
+			topHeight = opts.Height * topWidth / opts.Width
+		}
+		top := src
+		if topWidth < origWidth || (opts.Op != "" && opts.Op != ResizeOpScale && opts.Op != ResizeOpFitWidth) {
+			top = applyResizeOp(src, opts.Op, topWidth, topHeight)
+		}
+		topBounds := top.Bounds()
 		for _, format := range formats {
+			if hasVariant(variants, topBounds.Dx(), format) {
+				continue
+			}
 			ext := formatToExt(format)
-			hash := hashImage(src, ext, quality)
-			outName := fmt.Sprintf("%s-%s-%dw%s", baseName, hash, origWidth, ext)
+			hash := hashImage(top, ext, quality)
+			outName := fmt.Sprintf("%s-%s-%dw%s", baseName, hash, topBounds.Dx(), ext)
 			cachePath := filepath.Join(cacheImagesDir, outName)
 
-			if err := saveImage(src, cachePath, ext, quality); err != nil {
+			if err := saveImage(top, cachePath, ext, quality); err != nil {
 				if errors.Is(err, ErrAVIFNotAvailable) {
 					logAVIFWarning()
 					continue
@@ -176,8 +195,8 @@ func (p *ImageProcessor) ProcessImage(srcPath string, opts ImageOptions) ([]Imag
 			}
 
 			variants = append(variants, ImageVariant{
-				Width:    origWidth,
-				Height:   origHeight,
+				Width:    topBounds.Dx(),
+				Height:   topBounds.Dy(),
 				Format:   format,
 				URL:      "/assets/images/" + outName,
 				FileSize: fileSize,
@@ -309,8 +328,20 @@ func (p *ImageProcessor) paramsString(opts ImageOptions) string {
 	// MaxWidth and Placeholder change the processing output, so they must be
 	// part of the cache key — otherwise editing either setting between builds
 	// serves stale variants/LQIPs from the on-disk cache.
-	return fmt.Sprintf("w=%v,q=%d,f=%v,op=%s,h=%d,mw=%d,ph=%s",
+	// v=2: the largest variant is capped at max_width and goes through the
+	// resize op; entries cached before that change are regenerated.
+	return fmt.Sprintf("v=2,w=%v,q=%d,f=%v,op=%s,h=%d,mw=%d,ph=%s",
 		widths, quality, formats, op, opts.Height, p.Config.MaxWidth, p.Config.Placeholder)
+}
+
+// hasVariant reports whether variants already holds one of width in format.
+func hasVariant(variants []ImageVariant, width int, format string) bool {
+	for _, v := range variants {
+		if v.Width == width && v.Format == format {
+			return true
+		}
+	}
+	return false
 }
 
 // ParseImageOptionsFromQuery parses a query string like "width=800&op=fill&format=webp"

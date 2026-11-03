@@ -17,6 +17,12 @@ var DefaultsYAML []byte
 //go:embed livereload/livereload.js
 var LiveReloadJS []byte
 
+// DebugClientJS contains the client script `sarde dev --debug-client`
+// injects next to the live reload script.
+//
+//go:embed livereload/debug-client.js
+var DebugClientJS []byte
+
 // i18nFS contains embedded default i18n translation strings.
 //
 //go:embed all:i18n

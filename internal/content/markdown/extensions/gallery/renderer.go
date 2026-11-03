@@ -3,7 +3,6 @@ package gallery
 import (
 	"fmt"
 	"strings"
-	"sync/atomic"
 
 	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 	"github.com/getsarde/sarde/internal/content/markdown/icons"
@@ -11,8 +10,6 @@ import (
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
 )
-
-var galleryCounter atomic.Int64
 
 type galleryRenderer struct {
 	assetURL func(string) string
@@ -70,9 +67,8 @@ func (r *galleryRenderer) render(w util.BufWriter, source []byte, node ast.Node,
 		}
 	}
 
-	id := galleryCounter.Add(1)
-	galleryID := fmt.Sprintf("gallery-%d", id)
-	lightboxID := fmt.Sprintf("lightbox-%d", id)
+	galleryID := htmlutil.PageScopedID("gallery", source, node)
+	lightboxID := "lightbox" + strings.TrimPrefix(galleryID, "gallery")
 
 	// Gallery container
 	_, _ = fmt.Fprintf(w, "<div class=\"sarde-gallery not-content\" id=\"%s\">\n", galleryID)

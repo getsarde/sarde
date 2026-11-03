@@ -2,7 +2,7 @@
 <div class="sarde-taxonomy-term-container">
   <header class="sarde-taxonomy-term-header">
     <h1 class="sarde-taxonomy-term-title">
-      {{ if .TaxonomyTerm.Icon }}<span class="sarde-term-icon" aria-hidden="true">{{ .TaxonomyTerm.Icon }}</span> {{ end }}{{ .TaxonomyTerm.Label }}
+      {{ if .TaxonomyTerm.Icon }}{{ icon .TaxonomyTerm.Icon "sarde-term-icon" }} {{ end }}{{ .TaxonomyTerm.Label }}
     </h1>
     {{ if .TaxonomyTerm.Description }}
     <p class="sarde-taxonomy-term-description">{{ .TaxonomyTerm.Description | markdownify }}</p>
@@ -10,9 +10,8 @@
     {{ if .Page.Content }}
     <div class="sarde-markdown-content">{{ .Page.Content }}</div>
     {{ end }}
-    {{ if .Paginator }}
-    <p class="sarde-taxonomy-term-count">{{ .Paginator.TotalItems }} {{ if eq .Paginator.TotalItems 1 }}{{ t "taxonomy.post" }}{{ else }}{{ t "taxonomy.posts" }}{{ end }}</p>
-    {{ end }}
+    {{ $count := len .TaxonomyTerm.Pages }}
+    <p class="sarde-taxonomy-term-count">{{ $count }} {{ if eq $count 1 }}{{ t "taxonomy.post" }}{{ else }}{{ t "taxonomy.posts" }}{{ end }}</p>
   </header>
 
   {{ $pages := .TaxonomyTerm.Pages }}

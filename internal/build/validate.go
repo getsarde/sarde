@@ -53,6 +53,7 @@ func (b *SiteBuilder) Validate() (*ValidateResult, error) {
 	// This path never runs phaseAssemble, so collect sidebar.yaml
 	// unmatched-key warnings here.
 	warnings = append(warnings, collection.CollectSidebarOverrideWarnings(collections)...)
+	warnings = append(warnings, collection.CollectNavYAMLWarnings(collections, contentDir)...)
 
 	return &ValidateResult{
 		PageCount:   len(allPages),

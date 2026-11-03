@@ -387,7 +387,9 @@ func TestLinkValidatorDisabled(t *testing.T) {
 	}
 }
 
-func TestLinkValidatorFailBuild(t *testing.T) {
+// An incremental rebuild reports a broken link but never fails, whatever the
+// deprecated fail_build says; the full build's link check enforces on_broken.
+func TestLinkValidatorNeverFailsIncrementalRebuild(t *testing.T) {
 	tr := true
 	source := &engine.Page{
 		PageIdentity: engine.PageIdentity{Slug: "page", RelPermalink: "/page/", Permalink: "/page/"},
@@ -399,15 +401,13 @@ func TestLinkValidatorFailBuild(t *testing.T) {
 		},
 	}
 
-	ctx, _ := buildTestContext([]*engine.Page{source}, data, "")
+	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "")
 	ctx.Config.LinkValidation.FailBuild = &tr
-	err := linkValidatorBuildDone(ctx)
-
-	if err == nil {
-		t.Fatal("expected error with fail_build=true, got nil")
+	if err := linkValidatorBuildDone(ctx); err != nil {
+		t.Fatalf("incremental link check returned %v, want nil", err)
 	}
-	if !contains(err.Error(), "1 broken link") {
-		t.Errorf("error message = %q, want to contain '1 broken link'", err.Error())
+	if len(*warnings) != 1 {
+		t.Errorf("got %d warnings, want the broken link reported", len(*warnings))
 	}
 }
 
@@ -426,8 +426,11 @@ func TestLinkValidatorImagesDisabled(t *testing.T) {
 		},
 	}
 
+	// Images follow on_broken, like the full build; the deprecated
+	// check_images key no longer turns the check off.
 	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "")
 	ctx.Config.LinkValidation.CheckImages = &f
+	ctx.Config.LinkValidation.OnBroken = "ignore"
 	linkValidatorBuildDone(ctx)
 
 	if len(*warnings) != 1 {
@@ -572,14 +575,10 @@ func TestLinkValidatorSameSiteError(t *testing.T) {
 	}
 	ctx, warnings := buildTestContext([]*engine.Page{source}, data, "https://example.com")
 	ctx.Config.LinkValidation.SameSitePolicy = "error"
-	ctx.Config.LinkValidation.FailBuild = boolPtr(true)
 
-	err := linkValidatorBuildDone(ctx)
+	_ = linkValidatorBuildDone(ctx)
 	if len(*warnings) != 1 || !contains((*warnings)[0].Message, "same site") {
 		t.Fatalf("expected one same-site finding, got %v", *warnings)
-	}
-	if err == nil {
-		t.Error("same_site_policy error with fail_build must fail the build")
 	}
 }
 

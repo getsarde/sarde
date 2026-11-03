@@ -13,6 +13,7 @@ import (
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/build"
 	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/theme"
 )
@@ -327,5 +328,73 @@ func TestSyncPublicFile_DeletedSourceRemovesCopy(t *testing.T) {
 	}
 	if _, err := os.Stat(outCopy); !os.IsNotExist(err) {
 		t.Error("the served copy of a deleted public file must go")
+	}
+}
+
+// Chrome DevTools asks every origin for its workspace file. The dev server
+// answers 404 without a warning, with or without a base path.
+func TestDevServer_DevToolsProbeIsQuiet(t *testing.T) {
+	for _, basePath := range []string{"/", "/docs/"} {
+		var warned []string
+		restore := devlog.SetSink(func(level, tag, msg string) {
+			if level == "warn" {
+				warned = append(warned, msg)
+			}
+		})
+		ds := &DevServer{outputDir: t.TempDir(), basePath: basePath}
+		handler := devRequestLogger(ds.buildHandler())
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, httptest.NewRequest("GET", devToolsProbePath, nil))
+		restore()
+		if w.Code != http.StatusNotFound {
+			t.Errorf("base path %s: status %d, want 404", basePath, w.Code)
+		}
+		if len(warned) != 0 {
+			t.Errorf("base path %s: the probe logged warnings %v", basePath, warned)
+		}
+	}
+}
+
+// --debug-client injects its script, even with live reload off, and prints
+// each report the page sends to the terminal.
+func TestDevServer_DebugClient(t *testing.T) {
+	out := t.TempDir()
+	if err := os.WriteFile(filepath.Join(out, "index.html"), []byte("<html><body><p>Hi</p></body></html>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	ds := &DevServer{outputDir: out, basePath: "/", debugClient: true}
+	handler := devRequestLogger(ds.buildHandler())
+
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, httptest.NewRequest("GET", "/", nil))
+	body := w.Body.String()
+	if !strings.Contains(body, "/__sarde/client-log") {
+		t.Error("the debug client script was not injected")
+	}
+	if strings.Contains(body, "new WebSocket") {
+		t.Error("live reload is off, but its script was injected")
+	}
+
+	var logged []string
+	restore := devlog.SetSink(func(level, tag, msg string) {
+		if tag == "client" {
+			logged = append(logged, msg)
+		}
+	})
+	defer restore()
+	w = httptest.NewRecorder()
+	report := `{"kind":"link-click","path":"/labs/","detail":"/courses/ defaultPrevented=true inert=1 open-dialogs=0"}`
+	handler.ServeHTTP(w, httptest.NewRequest("POST", clientLogPath, strings.NewReader(report)))
+	if w.Code != http.StatusNoContent {
+		t.Errorf("report status %d, want 204", w.Code)
+	}
+	if len(logged) != 1 || !strings.Contains(logged[0], "/labs/ link-click /courses/ defaultPrevented=true") {
+		t.Errorf("logged %v, want the report", logged)
+	}
+
+	w = httptest.NewRecorder()
+	handler.ServeHTTP(w, httptest.NewRequest("POST", clientLogPath, strings.NewReader(strings.Repeat("x", maxClientLogBytes+1))))
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("oversized report status %d, want 400", w.Code)
 	}
 }

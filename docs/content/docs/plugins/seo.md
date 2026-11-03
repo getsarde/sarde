@@ -20,11 +20,11 @@ For each page, the plugin sets the following in `page.Params["seo"]`:
 | `og_url` | Canonical URL (version-aware) |
 | `og_type` | `"article"` for collection pages, `"website"` otherwise |
 | `og_site_name` | Site title from `sarde.yaml` |
-| `og_locale` | Page language, or `site.language` on a single-language site, normalized to OGP format (e.g., `en_US`, `pt_BR`) |
+| `og_locale` | Page language, or `site.language` on a single-language site, normalized to OGP format (e.g., `en_US`, `pt_BR`). An untranslated page's fallback copy names the default language, the language its text is written in. |
 | `og_locale_alternate` | Locales of the page's other translations |
-| `og_image` | Page image, falling back to `default_image`, resolved to absolute URL |
+| `og_image` | Page image, falling back to `default_image`, as an absolute URL with the base path. A relative page image, such as `cover.jpg`, is read from the page's folder. |
 | `og_image_alt` | Page title |
-| `article_published_time` | Page date in RFC 3339 format (articles only) |
+| `article_published_time` | Page date in RFC 3339 format (articles only). Set only when the date comes from frontmatter `date` or a `YYYY-MM-DD-` filename prefix, not from the file's modification time. |
 | `article_modified_time` | Page updated date in RFC 3339 format (articles only) |
 
 ### Twitter Card tags
@@ -47,10 +47,10 @@ The plugin generates a `@graph` array with up to three schema.org nodes:
 | `Article` | Collection pages (blog posts, docs pages) |
 | `CollectionPage` | Section index pages and the homepage |
 | `WebPage` | All other pages |
-| `BreadcrumbList` | When route data has two or more breadcrumb entries |
+| `BreadcrumbList` | When route data has two or more breadcrumb entries. Each item is an absolute URL with the base path and the page's language and version prefixes, matching the visible breadcrumbs. |
 | `Course` | When the page sets `params.schema_type: "Course"` |
 
-The Article node includes `headline`, `datePublished`, `dateModified`, `author` (from page params), and `image`. The Course node includes `provider` (from page params).
+The Article node includes `headline`, `datePublished`, `dateModified`, `author` (from page params, falling back to `site.author`), and `image` (the page image as an absolute URL). Like `article_published_time`, `datePublished` appears only when the page has an explicit date. The Course node includes `provider` (from page params).
 
 ## Configuration
 
@@ -117,7 +117,7 @@ No meta tags, Open Graph tags, Twitter Card tags, or JSON-LD are generated. The 
 ## Edge cases
 
 - Pages without a collection are typed as `"website"` for Open Graph (not `"article"`).
-- If `default_image` is a relative path, it is resolved to an absolute URL using `site.url`.
+- If `default_image` is a relative path, it is read from the site root and resolved to an absolute URL using `site.url` and the base path.
 - The `auto_description` fallback uses the page's auto-generated summary, which may truncate mid-sentence. When the summary is also empty (a body that is entirely directive blocks has no prose paragraph to extract), the description falls back to plain text taken from the rendered page content, so directive-built homepages still get a meaningful description instead of none.
 - If a versioned page has no peer in the latest version, the canonical URL remains the page's own URL.
 - Breadcrumb JSON-LD is only emitted when the route has at least two breadcrumb entries (a single entry is not useful as a list).

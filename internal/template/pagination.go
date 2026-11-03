@@ -8,16 +8,11 @@ import (
 )
 
 // buildPaginator computes the Paginator for a list page of a paginated collection.
-// current is the 1-based index of the page being rendered.
-func buildPaginator(col *engine.Collection, current int) *engine.Paginator {
+// current is the 1-based index of the page being rendered; lang is the list
+// page's language, whose posts it pages through.
+func buildPaginator(col *engine.Collection, current int, lang string) *engine.Paginator {
 	perPage := col.Config.Paginate
-	// Only include rendered pages (exclude section index).
-	var pages []*engine.Page
-	for _, p := range col.Pages {
-		if p.Kind != engine.KindSection {
-			pages = append(pages, p)
-		}
-	}
+	pages := col.ListPages(lang)
 	total := (len(pages) + perPage - 1) / perPage
 	if total < 1 {
 		total = 1
@@ -34,7 +29,7 @@ func buildPaginator(col *engine.Collection, current int) *engine.Paginator {
 		end = len(pages)
 	}
 
-	base := paginationBaseURL(col)
+	base := paginationBaseURL(col, lang)
 	p := &engine.Paginator{
 		CurrentPages: pages[start:end],
 		Current:      current,
@@ -63,12 +58,12 @@ func buildPaginator(col *engine.Collection, current int) *engine.Paginator {
 }
 
 // paginationBaseURL returns the index URL for a collection, e.g. "/blog/".
-func paginationBaseURL(col *engine.Collection) string {
+func paginationBaseURL(col *engine.Collection, lang string) string {
 	if col == nil {
 		return "/"
 	}
-	if col.IndexPage != nil && col.IndexPage.RelPermalink != "" {
-		return col.IndexPage.RelPermalink
+	if idx := col.IndexFor(lang); idx != nil && idx.RelPermalink != "" {
+		return idx.RelPermalink
 	}
 	return "/" + col.Name + "/"
 }

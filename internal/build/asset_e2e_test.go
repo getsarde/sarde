@@ -303,3 +303,48 @@ func readFixture(t *testing.T, base, rel string) string {
 	}
 	return string(data)
 }
+
+// images.* settings shape every Markdown image: max_width caps the largest
+// variant, sizes follows the configured widths, and images.dimensions drops
+// the width and height attributes. Changing a setting re-renders the page
+// instead of serving its cached HTML.
+func TestBuild_ImageSettingsShapePictures(t *testing.T) {
+	dir := t.TempDir()
+	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n")
+	writeFixture(t, dir, "content/blog/trip/index.md", "---\ntitle: Trip\ndate: 2025-05-01\n---\n![Ridge](ridge.png)\n")
+	createTestPNG(t, filepath.Join(dir, "content", "blog", "trip", "ridge.png"), 1600, 900)
+
+	build := func(dims bool) string {
+		t.Helper()
+		cfg := config.Defaults()
+		cfg.Build.Minify = config.BoolPtr(false)
+		cfg.Images.Widths = []int{300, 600}
+		cfg.Images.MaxWidth = 1000
+		cfg.Images.Dimensions = config.BoolPtr(dims)
+		builder := NewSiteBuilder(BuildOptions{ProjectDir: dir, Config: cfg, ThemeConfig: buildThemeConfig(), EmbeddedFS: embedded.ThemeFS()})
+		if _, err := builder.Build(); err != nil {
+			t.Fatalf("Build failed: %v", err)
+		}
+		html := readFixture(t, filepath.Join(dir, "dist"), "blog/trip/index.html")
+		start := strings.Index(html, "<picture>")
+		end := strings.Index(html, "</picture>")
+		if start < 0 || end < start {
+			t.Fatalf("no <picture> element:\n%s", html)
+		}
+		return html[start:end]
+	}
+
+	pic := build(false)
+	if strings.Contains(pic, "1600w") || !strings.Contains(pic, "1000w") {
+		t.Errorf("want the largest variant capped at max_width 1000:\n%s", pic)
+	}
+	if !strings.Contains(pic, `sizes="(max-width: 450px) 300px, 600px"`) {
+		t.Errorf("sizes does not follow images.widths:\n%s", pic)
+	}
+	if strings.Contains(pic, `width="1600"`) {
+		t.Errorf("images.dimensions: false must drop width and height:\n%s", pic)
+	}
+	if pic := build(true); !strings.Contains(pic, `width="1600" height="900"`) {
+		t.Errorf("after turning images.dimensions on, the cached page was served:\n%s", pic)
+	}
+}

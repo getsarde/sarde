@@ -83,10 +83,6 @@ func appendTaxonomyStubsForLang(pages []*engine.Page, taxonomies map[string]*eng
 			},
 			PageI18n: engine.PageI18n{Lang: lang},
 		})
-		paginateBy := tax.PaginateBy
-		if paginateBy <= 0 {
-			paginateBy = consts.DefaultPaginateBy
-		}
 		for _, term := range tax.Terms {
 			bareTermPermalink := barePermalink + term.Slug + "/"
 			pages = append(pages, &engine.Page{
@@ -96,8 +92,7 @@ func appendTaxonomyStubsForLang(pages []*engine.Page, taxonomies map[string]*eng
 				},
 				PageI18n: engine.PageI18n{Lang: lang},
 			})
-			total := (len(term.Pages) + paginateBy - 1) / paginateBy
-			for n := 2; n <= total; n++ {
+			for n := 2; n <= tax.TermPageCount(term); n++ {
 				paginatedPermalink := sardetemplate.PaginationURL(term.Permalink, n)
 				pages = append(pages, &engine.Page{
 					PageIdentity: engine.PageIdentity{

@@ -105,17 +105,17 @@ themes/magazine/layouts/_blog/list.html
 {{ define "content" }}
 <div class="magazine-listing">
   <h1>{{ .Page.Title }}</h1>
-  {{ $pages := .Collection.Pages }}
+  {{ $pages := .ListPages }}
   {{ if and .Paginator .Paginator.CurrentPages }}{{ $pages = .Paginator.CurrentPages }}{{ end }}
   <div class="magazine-grid">
-    {{ range $pages }}{{ if ne .Kind "section" }}
+    {{ range $pages }}
     <a href="{{ .Permalink }}" class="magazine-card">
-      {{ if .Image }}<img src="{{ .Image }}" alt="{{ .Title }}">{{ end }}
+      {{ if .Image }}<img src="{{ pageRelURL . .Image }}" alt="{{ .Title }}">{{ end }}
       <h2>{{ .Title }}</h2>
       {{ if .Description }}<p>{{ .Description }}</p>{{ end }}
       {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>{{ end }}
     </a>
-    {{ end }}{{ end }}
+    {{ end }}
   </div>
   {{ if .Paginator }}
   <nav class="magazine-pagination">
@@ -129,7 +129,7 @@ themes/magazine/layouts/_blog/list.html
 
 → The blog index renders as a card grid with cover images, titles, and dates, followed by Newer and Older links when the collection is paginated.
 
-`.Collection.Pages` holds every page in the collection, already sorted, including section pages such as the blog's own `_index.md`; the `ne .Kind "section"` check skips them. On a paginated collection, `.Paginator.CurrentPages` holds the posts for the current page.
+`.ListPages` holds the collection's posts in the page's language, already sorted, without section pages such as the blog's own `_index.md`. On a paginated collection, `.Paginator.CurrentPages` holds the posts for the current page. `pageRelURL` reads a relative cover image, such as `image: cover.jpg`, from the post's own folder. Avoid `.Collection.Pages` in a list: on a multi-language site it holds every language's pages.
 
 ## Set the design tokens
 
@@ -151,7 +151,7 @@ dark_tokens:
 
 → The site picks up a warm accent, serif headings, and square corners. Dark mode uses deep warm backgrounds.
 
-Each token becomes a `--sd-*` CSS custom property. Setting `accent` also derives the hover, high, low, and text variants; see [Accent color derivation](/guides/themes-and-styling/#accent-color-derivation). See [Theme Tokens](/reference/theme-tokens/) for every token name.
+Each token becomes a `--sd-*` CSS custom property. Setting `accent` also derives the hover, high, low, and text variants; see [Accent color derivation](/guides/themes-and-styling/#accent-color-derivation). See [Theme Tokens](/reference/theme-tokens/) for every token name. A name that is not a token does nothing, so the build warns about it, in `tokens`, `dark_tokens`, or a preset, and suggests the closest token name.
 
 ## Bundle a preset
 

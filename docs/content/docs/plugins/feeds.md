@@ -98,7 +98,7 @@ Each Atom entry includes:
 | `summary` | Page `description`, falling back to `summary` |
 | `author` | `author` field from page `params`, if present |
 
-The feed's `updated` timestamp uses the most recent entry's date.
+The feed's `updated` timestamp uses the most recent entry's date. When [`site.author`](/reference/configuration/site-and-branding/#site) is set, the feed itself names that author, which covers every entry without its own.
 
 ## Multi-language sites
 

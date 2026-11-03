@@ -60,7 +60,7 @@ Global table of contents *display* settings. These control which extracted headi
 |-----|------|---------|-------------|
 | `default_prefix` | string | `"lucide"` | Icon set used for names without a prefix. The bundled set is `lucide`. |
 | `sets` | list | `[]` | Additional Iconify JSON icon sets to load. |
-| `sets_dir` | string | `""` | Directory of additional Iconify `*.json` sets, auto-discovered by filename prefix. |
+| `sets_dir` | string | `""` | Directory of additional Iconify `*.json` sets, each registered under the `prefix` inside the file. When empty, Sarde reads `icon-sets/`, where `sarde icons add` saves them. |
 | `local_dir` | string | `"icons"` | Directory of local `*.svg` files, referenced by filename. |
 | `attribution` | string | `""` | Attribution line for icon sets whose license requires it. |
 | `render` | string | `"inline"` | Rendering mode. `inline` outputs a full `<svg>` element per use. `sprite` renders one hidden `<symbol>` per unique icon and references it via `<use>`. |
@@ -85,6 +85,6 @@ icons:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `enabled` | bool | `true` | Enable link prefetching for faster navigation. |
-| `strategy` | string | `"hover"` | Prefetch trigger strategy. `hover` prefetches on mouse hover. `visible` prefetches links visible in the viewport. `idle` prefetches during idle time. |
-| `delay` | int | `300` | Delay in milliseconds before prefetching starts (for `hover` strategy). Min: 0. |
+| `enabled` | bool | `true` | Prefetch a page when the reader hovers over a link to it or the link scrolls into view. `false` leaves the prefetch script out of the site. `sarde dev` never prefetches. |
+| `strategy` | string | `"hover"` | Deprecated: has no effect. |
+| `delay` | int | `300` | Deprecated: has no effect. |

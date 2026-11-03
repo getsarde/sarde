@@ -13,6 +13,7 @@ import (
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/content"
+	"github.com/getsarde/sarde/internal/content/markdown"
 	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/i18n"
@@ -482,6 +483,10 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 		}
 
 		i18n.LinkAllTranslations(s.patchedAllPages, weights)
+
+		// The fallback copies are new objects, and re-parsed pages replaced
+		// their old pointers, so the per-language views are rebuilt.
+		collection.BuildLanguageViews(b.lastCollections, s.patchedAllPages, langCodes, defaultLang)
 	}
 
 	// Home layouts render recentEntries (title, date, summary) from the site
@@ -607,6 +612,7 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 	// Inject Kazari CSS into the template engine (reuse existing engine on incremental rebuilds).
 	if b.kazariEngine != nil {
 		b.tmplEngine.SetCodeBlockCSS(b.kazariEngine.CSS())
+		b.tmplEngine.SetCodeHighlighter(markdown.KazariHighlighter(b.kazariEngine))
 	}
 	s.recordTiming("i18n + taxonomies + page index")
 	return nil
@@ -689,10 +695,8 @@ func (b *SiteBuilder) renderAndWriteDirtyPages(s *incrementalRebuildState) error
 		if _, isDirty := s.dirtyPermalinks[page.RelPermalink]; !isDirty {
 			continue
 		}
-		if page.Params != nil {
-			if r, ok := page.Params["render"].(bool); ok && !r {
-				continue
-			}
+		if !page.Renders() {
+			continue
 		}
 		dirtyPages = append(dirtyPages, page)
 	}
@@ -729,10 +733,6 @@ func (b *SiteBuilder) renderAndWriteDirtyPages(s *incrementalRebuildState) error
 					OutPath: PageOutputPath(b.urlResolver.OutputRelPath(taxStub.RelPermalink, taxStub.Lang, "")),
 				})
 			}
-			paginateBy := cfg.PaginateBy
-			if paginateBy <= 0 {
-				paginateBy = consts.DefaultPaginateBy
-			}
 			for _, term := range tax.Terms {
 				if _, isDirty := s.dirtyPermalinks[term.Permalink]; isDirty {
 					termStub := buildTermStub(tax, term, lang)
@@ -748,8 +748,7 @@ func (b *SiteBuilder) renderAndWriteDirtyPages(s *incrementalRebuildState) error
 						OutPath: PageOutputPath(b.urlResolver.OutputRelPath(termStub.RelPermalink, termStub.Lang, "")),
 					})
 				}
-				totalTermPages := (len(term.Pages) + paginateBy - 1) / paginateBy
-				for n := 2; n <= totalTermPages; n++ {
+				for n := 2; n <= tax.TermPageCount(term); n++ {
 					permalink := sardetemplate.PaginationURL(term.Permalink, n)
 					if _, isDirty := s.dirtyPermalinks[permalink]; !isDirty {
 						continue

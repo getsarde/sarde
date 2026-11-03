@@ -8,10 +8,10 @@
   <div class="sarde-markdown-content">{{ .Page.Content }}</div>
   {{ end }}
 
-  {{ if and .Collection .Collection.Featured }}
+  {{ if .FeaturedPages }}
   <h2 class="sarde-section-heading">{{ t "blog.featured" }}</h2>
   <div class="sarde-post-grid">
-    {{ range .Collection.Featured }}
+    {{ range .FeaturedPages }}
     <div class="sarde-post-card sarde-post-card-featured">
       <a href="{{ .Permalink }}">
         <h3 class="sarde-post-card-title">{{ .Title | markdownify }}</h3>
@@ -34,7 +34,7 @@
   </div>
   {{ end }}
 
-  {{ $pages := .Collection.Pages }}
+  {{ $pages := .ListPages }}
   {{ if and .Paginator .Paginator.CurrentPages }}{{ $pages = .Paginator.CurrentPages }}{{ end }}
 
   <div class="sarde-post-grid">

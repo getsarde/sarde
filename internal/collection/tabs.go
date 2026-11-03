@@ -30,7 +30,8 @@ func DetectTabs(col *engine.Collection) bool {
 	if !engine.LayoutHasSidebar(col.Config.Layout) {
 		return false
 	}
-	// Check frontmatter opt-out on root _index.md
+	// Check the frontmatter opt-out on the root _index.md: a top-level
+	// tabs: false, or the same key under params.
 	if col.IndexPage != nil && col.IndexPage.Params != nil {
 		if v, ok := col.IndexPage.Params["tabs"]; ok {
 			if b, ok := v.(bool); ok && !b {

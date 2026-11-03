@@ -196,6 +196,8 @@ collections:
     i18n_fallback: "default" # always show fallback docs pages
 ```
 
+Collection lists show the pages in their own language. On `/fr/blog/`, a labs landing page, or a slide deck list, the French pages appear together with the fallback copies of untranslated pages under `"default"`, or the French pages alone under `"omit"`. The header, breadcrumbs, and search results name each collection by the title of its `_index.md` in the page's language.
+
 Fallback pages set `IsFallback` to `true` in templates, and the `FallbackNotice` component renders the banner when it is set. Customize the text through the `fallback.notice` key. The component renders on the docs and default layouts.
 
 In a versioned collection, fallback stays within a version. A missing French translation of `v2/guides/auth.md` falls back to the English `v2/guides/auth.md`, not to `v3/guides/auth.md`.

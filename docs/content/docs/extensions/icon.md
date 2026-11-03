@@ -19,11 +19,11 @@ Press the :icon[settings] button to open preferences.
 
 Bare names resolve against the default set (Lucide). Prefix a name with the set identifier to use a different set:
 
-::::example
+```markdown
 :icon[tabler:home] :icon[simple-icons:react] :icon[brands:github]
-::::
+```
 
-→ Each icon renders from its respective set. `brands:` is an alias for `simple-icons:`.
+→ With the Tabler and Simple Icons sets loaded, each icon renders from its own set. `brands:` is an alias for `simple-icons:`. Without the set, the build warns and the page shows the placeholder icon.
 
 Additional icon sets must be loaded before use. See the [Icons guide](/docs/guides/icons/) for setup with `sarde icons add` and the `icons.sets` configuration.
 
@@ -96,6 +96,7 @@ An `aria-label` attribute has the same effect without adding a visible `<title>`
 | Attribute | Example | Description |
 |-----------|---------|-------------|
 | `class` | `class="sarde-icon-lg"` | Appended to the base class. Use `sarde-icon-sm` or `sarde-icon-lg` for size variants. |
+| `size` | `size="24"` | Width and height in pixels, together. A `width` or `height` next to it wins. |
 | `width` | `width="24"` | SVG width in pixels. Height auto-derives from the icon's aspect ratio. |
 | `height` | `height="24"` | SVG height in pixels. Width auto-derives if omitted. |
 | `style` | `style="color: red"` | Inline CSS. Use `color` to tint stroke-based icons via `currentColor`. |

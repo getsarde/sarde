@@ -632,3 +632,51 @@ func TestGenerateReport_AmbiguousLink(t *testing.T) {
 		t.Errorf("on_broken: ignore must drop ambiguous links too")
 	}
 }
+
+// With every output URL known, an unverified page link is settled: a link to
+// a page that exists only in the output, such as a tag page, is fine, and a
+// link to nothing is a broken target under on_broken. A link to a file stays
+// unverified, since the build may not track what writes it.
+func TestGenerateReport_KnownURLSettlesUnverifiedLinks(t *testing.T) {
+	graph := NewLinkGraph()
+	for _, resolved := range []string{"/sub/tags/go/", "/sub/nope/missing/#part", "/sub/files/notes.pdf"} {
+		graph.Record(LinkRef{
+			FromFile: "content/docs/guide.md",
+			RawDest:  resolved,
+			Dim:      DimKey{Collection: "docs", Lang: "en"},
+			Kind:     KindContentRoot,
+			Resolved: resolved,
+			Status:   StatusUnverified,
+		})
+	}
+	known := func(p string) bool { return p == "/sub/tags/go/" }
+
+	result := GenerateReport(ReportInput{
+		Graph:    graph,
+		Coverage: CoverageSummary{TotalLinks: 3, TotalLanes: 1},
+		Config:   LinkCheckConfig{ReportFormat: "pretty", OnBroken: "error"},
+		KnownURL: known,
+	})
+	if !result.HasErrors {
+		t.Error("a link to nothing must fail under on_broken: error")
+	}
+	byDest := map[string]FindingType{}
+	for _, f := range result.Findings {
+		byDest[f.Ref.RawDest] = f.Type
+	}
+	if _, ok := byDest["/sub/tags/go/"]; ok {
+		t.Error("a link to a built tag page must not be reported")
+	}
+	if byDest["/sub/nope/missing/#part"] != FindingBrokenTarget {
+		t.Errorf("link to nothing: got %v, want broken target", byDest["/sub/nope/missing/#part"])
+	}
+	if byDest["/sub/files/notes.pdf"] != FindingUnverifiedInternal {
+		t.Errorf("link to a file: got %v, want unverified", byDest["/sub/files/notes.pdf"])
+	}
+
+	// Without the lookup (no build output known) nothing changes.
+	result = GenerateReport(ReportInput{Graph: graph, Config: LinkCheckConfig{ReportFormat: "pretty", OnBroken: "error"}})
+	if result.HasErrors {
+		t.Error("without KnownURL, unverified links must stay warnings")
+	}
+}

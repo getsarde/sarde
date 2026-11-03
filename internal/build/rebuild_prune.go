@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/outputpath"
@@ -39,7 +38,7 @@ func (b *SiteBuilder) pruneOrphanedTaxonomyOutputs(s *incrementalRebuildState) e
 			newTax := newLangTax[taxName]
 			if newTax == nil {
 				for _, term := range oldTax.Terms {
-					b.removeOrphanedTermOutputs(taxName, term, oldTax.PaginateBy, lang)
+					b.removeOrphanedTermOutputs(taxName, oldTax, term, lang)
 				}
 				b.removeOrphanedOutput("/"+taxName+"/", lang, "taxonomy index "+taxName)
 				continue
@@ -48,7 +47,7 @@ func (b *SiteBuilder) pruneOrphanedTaxonomyOutputs(s *incrementalRebuildState) e
 				if _, ok := newTax.Terms[slug]; ok {
 					continue
 				}
-				b.removeOrphanedTermOutputs(taxName, term, oldTax.PaginateBy, lang)
+				b.removeOrphanedTermOutputs(taxName, oldTax, term, lang)
 			}
 		}
 	}
@@ -57,15 +56,11 @@ func (b *SiteBuilder) pruneOrphanedTaxonomyOutputs(s *incrementalRebuildState) e
 	return nil
 }
 
-func (b *SiteBuilder) removeOrphanedTermOutputs(taxName string, term *engine.TaxonomyTerm, paginateBy int, lang string) {
+func (b *SiteBuilder) removeOrphanedTermOutputs(taxName string, tax *engine.Taxonomy, term *engine.TaxonomyTerm, lang string) {
 	bare := "/" + taxName + "/" + term.Slug + "/"
 	b.removeOrphanedOutput(bare, lang, "term "+taxName+"/"+term.Slug)
 
-	if paginateBy <= 0 {
-		paginateBy = consts.DefaultPaginateBy
-	}
-	total := (len(term.Pages) + paginateBy - 1) / paginateBy
-	for n := 2; n <= total; n++ {
+	for n := 2; n <= tax.TermPageCount(term); n++ {
 		b.removeOrphanedOutput(sardetemplate.PaginationURL(bare, n), lang,
 			fmt.Sprintf("term %s/%s page %d", taxName, term.Slug, n))
 	}

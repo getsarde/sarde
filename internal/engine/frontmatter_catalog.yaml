@@ -137,7 +137,7 @@ categories:
       - key: icon
         type: string
         label: Icon
-        description: Lucide icon name displayed alongside the page title.
+        description: Lucide icon name for the tab tile, on the _index.md of a top-level section in a tabbed docs collection.
 
       - key: render
         type: bool
@@ -148,6 +148,16 @@ categories:
         type: bool
         label: Searchable
         description: Set to false to exclude this page from the search index.
+
+      - key: featured
+        type: bool
+        label: Featured
+        description: List this post in the Featured section above a blog list.
+
+      - key: robots
+        type: string
+        label: Robots
+        description: Value of the page's robots meta tag, such as noindex,follow.
 
       - key: show_updated
         type: bool
@@ -361,6 +371,11 @@ categories:
         type: bool
         label: Transparent Section
         description: Merge this section's pages into the parent sidebar level instead of creating a nested group.
+
+      - key: tabs
+        type: bool
+        label: Tab Bar
+        description: On a docs collection's root _index.md, set to false to turn the tab bar off.
 
   - name: toc
     label: Table of Contents

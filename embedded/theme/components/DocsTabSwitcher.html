@@ -5,7 +5,7 @@
     <span class="sarde-tab-active-label">
       <span class="sarde-tab-tile" aria-hidden="true">{{ if .ActiveTab.Icon }}{{ icon .ActiveTab.Icon "sarde-tab-icon" }}{{ else }}{{ initials .ActiveTab.Title }}{{ end }}</span>
       <span class="sarde-tab-active-text">
-        {{ with .Collection }}{{ if .Title }}<span class="sarde-tab-eyebrow">{{ .Title }}</span>{{ end }}{{ end }}
+        {{ with .Collection }}{{ with .TitleFor $.Lang }}<span class="sarde-tab-eyebrow">{{ . }}</span>{{ end }}{{ end }}
         <span class="sarde-tab-active-title">{{ .ActiveTab.Title | markdownify }}</span>
       </span>
     </span>

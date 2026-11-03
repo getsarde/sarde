@@ -112,3 +112,20 @@ func TestTabs_NoMarkersFallsBackToTabOne(t *testing.T) {
 		t.Errorf("content lost:\n%s", out)
 	}
 }
+
+// Tab ids come from the page's own source and the block's place in it, not
+// from a counter shared by every page of the build, so a page gets the same
+// ids on every build whatever order pages render in; two blocks on a page
+// still get distinct ids.
+func TestTabsIDs_StablePerPage(t *testing.T) {
+	md := ":::tabs\n== npm\nnpm install\n== pnpm\npnpm add\n:::\n\n:::tabs\n== Go\ngo get\n:::\n"
+	first := renderTabsMarkdown(t, md)
+	renderTabsMarkdown(t, "# Another page\n\n:::tabs\n== A\nx\n:::\n")
+	if again := renderTabsMarkdown(t, md); again != first {
+		t.Errorf("the same page rendered twice got different HTML:\n%s\n---\n%s", first, again)
+	}
+	ids := regexp.MustCompile(`id="(tab-[0-9a-f]{8}-\d+)-tab-0"`).FindAllStringSubmatch(first, -1)
+	if len(ids) != 2 || ids[0][1] == ids[1][1] {
+		t.Errorf("want two distinct tab id stems, got %v", ids)
+	}
+}

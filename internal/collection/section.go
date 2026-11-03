@@ -107,11 +107,20 @@ func BuildSectionTree(pages []*engine.Page, collectionName string) []*engine.Sec
 		}
 	}
 
+	// Map iteration order is random, so every pass over sectionMap below
+	// walks its keys in sorted order: output must not change between builds.
+	paths := make([]string, 0, len(sectionMap))
+	for path := range sectionMap {
+		paths = append(paths, path)
+	}
+	sort.Strings(paths)
+
 	// Wire parent-child relationships
-	for path, sec := range sectionMap {
+	for _, path := range paths {
 		if path == "" {
 			continue // root section has no parent
 		}
+		sec := sectionMap[path]
 		parentPath := parentDir(path)
 		if parent, ok := sectionMap[parentPath]; ok {
 			sec.Parent = parent
@@ -133,8 +142,15 @@ func BuildSectionTree(pages []*engine.Page, collectionName string) []*engine.Sec
 		}
 	}
 
-	// Handle transparent sections: hoist pages into parent
-	for _, sec := range sectionMap {
+	// Handle transparent sections: hoist pages into parent. Deepest first,
+	// so a transparent section inside another one hands its pages on before
+	// its parent hoists them again.
+	byDepth := append([]string(nil), paths...)
+	sort.SliceStable(byDepth, func(i, j int) bool {
+		return strings.Count(byDepth[i], "/") > strings.Count(byDepth[j], "/")
+	})
+	for _, path := range byDepth {
+		sec := sectionMap[path]
 		if sec.Transparent && sec.Parent != nil {
 			sec.Parent.Pages = append(sec.Parent.Pages, sec.Pages...)
 			sec.Pages = nil
@@ -143,8 +159,8 @@ func BuildSectionTree(pages []*engine.Page, collectionName string) []*engine.Sec
 
 	// Collect top-level sections (those with no parent)
 	var roots []*engine.Section
-	for _, sec := range sectionMap {
-		if sec.Parent == nil {
+	for _, path := range paths {
+		if sec := sectionMap[path]; sec.Parent == nil {
 			roots = append(roots, sec)
 		}
 	}
@@ -156,8 +172,8 @@ func BuildSectionTree(pages []*engine.Page, collectionName string) []*engine.Sec
 
 // sortSectionsRecursive sorts Section.Sections at each level by
 // (IndexPage.Sidebar.Order, Title), matching the comparator used by
-// sortNodesRecursive in navigation/tree.go. This ensures deterministic
-// ordering despite map-iteration randomness in the parent-child wiring loop.
+// sortNodesRecursive in navigation/tree.go, with Permalink as the final
+// tie-break so sections with the same order and title keep one order.
 func sortSectionsRecursive(sections []*engine.Section) {
 	sort.SliceStable(sections, func(i, j int) bool {
 		a, b := sections[i], sections[j]
@@ -165,7 +181,10 @@ func sortSectionsRecursive(sections []*engine.Section) {
 		if ao != bo {
 			return ao < bo
 		}
-		return strings.ToLower(a.Title) < strings.ToLower(b.Title)
+		if at, bt := strings.ToLower(a.Title), strings.ToLower(b.Title); at != bt {
+			return at < bt
+		}
+		return a.Permalink < b.Permalink
 	})
 	for _, sec := range sections {
 		if len(sec.Sections) > 0 {

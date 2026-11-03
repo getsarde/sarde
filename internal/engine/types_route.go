@@ -18,6 +18,8 @@ type RouteNav struct {
 	SidebarCollapsedByDefault bool
 	Section                   *Section
 	IsSection                 bool
+	ListPages                 []*Page // on a collection list page: the pages it lists, in the page's language
+	FeaturedPages             []*Page // on a collection list page: the featured pages in the page's language
 }
 
 // RouteI18n groups language and translation fields.

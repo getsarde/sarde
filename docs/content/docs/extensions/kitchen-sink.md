@@ -43,9 +43,7 @@ Plain style: check the ::annotation[SSR](style="plain" Server-Side Rendering gen
 
 Lucide (default): :icon[rocket] :icon[star] :icon[heart] :icon[zap]
 
-Tabler: :icon[tabler:brand-github] :icon[tabler:brand-discord]
-
-Simple Icons: :icon[brands:go] :icon[brands:typescript] :icon[brands:python]
+Other sets, such as `:icon[tabler:brand-github]` or `:icon[brands:go]`, render once the set is loaded; see [Icons](/guides/icons/#add-icon-sets).
 
 ### Inline Math
 

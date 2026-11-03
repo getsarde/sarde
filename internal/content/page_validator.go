@@ -19,6 +19,7 @@ var knownFrontmatterKeys = map[string]bool{
 	"show_updated": true, "edit_url": true,
 	"sidebar": true, "toc": true, "prev": true, "next": true,
 	"tags": true, "categories": true, "show_tags": true, "transparent": true,
+	"tabs": true, "featured": true, "robots": true,
 	"hero": true, "icon": true, "head": true, "banner": true, "og_card": true,
 	"cascade": true, "params": true,
 	"learning_objectives": true,
@@ -35,7 +36,7 @@ var knownTOCKeys = map[string]bool{
 
 var validLayoutStrings = []string{
 	"default", "docs", "splash", "wide", "full",
-	"centered", "split", "presentation",
+	"centered", "split", "presentation", "labs",
 }
 
 var validBadgeVariants = []string{

@@ -79,6 +79,9 @@ func Resolve(opts ResolveOptions) (*SiteConfig, error) {
 		for _, msg := range codeThemeDeprecations(userCfg) {
 			devlog.Warn("config", "%s", msg)
 		}
+		for _, msg := range inertKeyDeprecations(userCfg) {
+			devlog.Warn("config", "%s", msg)
+		}
 	}
 
 	// Optional root-level sidebar.yaml (sibling of sarde.yaml). Not a cascade
@@ -538,6 +541,65 @@ func codeThemeDeprecations(u *SiteConfig) []string {
 	return msgs
 }
 
+// inertKeyDeprecations returns a warning for each key the user's sarde.yaml
+// sets that Sarde parses but never acts on, naming the setting that does the
+// job where there is one. The keys stay in the schema, since an unknown key
+// fails the build.
+func inertKeyDeprecations(u *SiteConfig) []string {
+	var msgs []string
+	add := func(set bool, key, advice string) {
+		if set {
+			msgs = append(msgs, key+" is deprecated and has no effect; "+advice)
+		}
+	}
+	md := u.Markdown
+	add(md.KaTeX != nil, "markdown.katex", "turn the katex plugin on or off with plugins.enabled and plugins.disabled")
+	add(md.Mermaid != nil, "markdown.mermaid", "turn the mermaid plugin on or off with plugins.enabled and plugins.disabled")
+	add(md.CDN != nil, "markdown.cdn", "KaTeX and Mermaid assets are always bundled with the site")
+	add(md.Unsafe != nil, "markdown.unsafe", "raw HTML in Markdown always renders")
+	add(md.Typographer != nil, "markdown.typographer", "remove the key")
+	add(md.GithubAlerts != nil, "markdown.github_alerts", "write GitHub-style asides as :::gh-note blocks")
+	add(md.TripleColonCallouts != nil, "markdown.triple_colon_callouts", "::: blocks always parse")
+	add(md.Codeblocks.Style != "", "markdown.codeblocks.style", "remove the key")
+
+	lv := u.LinkValidation
+	add(lv.Level != "", "link_validation.level", "set link_validation.on_broken and the other on_* policies")
+	add(lv.CheckAnchors != nil, "link_validation.check_anchors", "set link_validation.on_broken_anchor (ignore skips anchor checks)")
+	add(lv.CheckImages != nil, "link_validation.check_images", "image links follow link_validation.on_broken")
+	add(lv.FailBuild != nil, "link_validation.fail_build", "link_validation.on_broken: error fails the build")
+	add(len(lv.Ignore) > 0, "link_validation.ignore", "use link_validation.exclude")
+
+	add(u.Prefetch.Strategy != "", "prefetch.strategy", "links prefetch on hover and when they scroll into view")
+	add(u.Prefetch.Delay != nil, "prefetch.delay", "links prefetch on hover and when they scroll into view")
+	add(u.Site.Custom404 != "", "site.custom_404", "add content/404.md to customize the 404 page")
+
+	for _, code := range sortedMapKeys(u.I18n.Languages) {
+		add(u.I18n.Languages[code].Title != "", "i18n.languages."+code+".title", "remove the key")
+	}
+	for _, name := range sortedMapKeys(u.Collections) {
+		col := u.Collections[name]
+		if col == nil {
+			continue
+		}
+		prefix := "collections." + name
+		add(col.URLPrefix != "", prefix+".url_prefix", "the collection's URL comes from its folder name")
+		if sb := col.Sidebar; sb != nil {
+			add(sb.Collapsible != nil, prefix+".sidebar.collapsible", "sidebar groups always collapse and expand; set collapsed_by_default or collapse_level to choose which start closed")
+			add(sb.Search != nil, prefix+".sidebar.search", "remove the key")
+		}
+	}
+	return msgs
+}
+
+func sortedMapKeys[V any](m map[string]V) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
 // normalizePluginSlugs rewrites deprecated kebab-case plugin slugs to their
 // canonical snake_case form in Enabled, Disabled, and the Config keys. A kebab
 // spelling is treated as an alias only when its snake form is a known plugin,
@@ -704,9 +766,7 @@ func mergeTaxonomies(base *map[string]TaxonomyConfig, over map[string]TaxonomyCo
 		if v.Singular != "" {
 			existing.Singular = v.Singular
 		}
-		if v.PaginateBy != 0 {
-			existing.PaginateBy = v.PaginateBy
-		}
+		mergeIntP(&existing.PaginateBy, v.PaginateBy)
 		if v.Render != nil {
 			existing.Render = v.Render
 		}

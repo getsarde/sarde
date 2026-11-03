@@ -46,7 +46,8 @@ func buildIndex(pages []*engine.Page, exclude []string, resolve func(relPath, la
 		default:
 			continue
 		}
-		if r, ok := p.Params["render"].(bool); ok && !r {
+		// No URL of its own, or a fallback copy of a default-language page.
+		if !p.Renders() || p.IsFallback {
 			continue
 		}
 		if engine.TabbedRootRedirect(p) != "" {
@@ -65,7 +66,7 @@ func buildIndex(pages []*engine.Page, exclude []string, resolve func(relPath, la
 		seen[url] = true
 		collection := ""
 		if p.Collection != nil {
-			collection = p.Collection.Title
+			collection = p.Collection.TitleFor(p.Lang)
 			if collection == "" {
 				collection = p.Collection.Name
 			}

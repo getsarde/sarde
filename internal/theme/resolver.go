@@ -30,6 +30,42 @@ func ValidateOverrides(label string, overrides map[string]string, known map[stri
 	return fmt.Errorf("%s: %s", label, strings.Join(msgs, "; "))
 }
 
+// ThemeTokenWarnings checks the token names a theme.yaml sets, in tokens,
+// dark_tokens and each preset, against the known tokens. An unknown token
+// does nothing, so each is reported, with a did-you-mean suggestion where one
+// is close. Warnings rather than errors: a third-party theme with a stray
+// token keeps building after an upgrade.
+func ThemeTokenWarnings(t *Theme, known map[string]bool) []string {
+	if t == nil {
+		return nil
+	}
+	label := "theme.yaml"
+	if t.Name != "" {
+		label = "theme " + strconvQuote(t.Name) + ": theme.yaml"
+	}
+	var msgs []string
+	check := func(field string, tokens map[string]string) {
+		if err := ValidateOverrides(label+" "+field, tokens, known); err != nil {
+			msgs = append(msgs, err.Error())
+		}
+	}
+	check("tokens", t.Tokens)
+	check("dark_tokens", t.DarkTokens)
+	names := make([]string, 0, len(t.Presets))
+	for name := range t.Presets {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		p := t.Presets[name]
+		check("presets."+name+".tokens", p.Tokens)
+		check("presets."+name+".dark_tokens", p.DarkTokens)
+	}
+	return msgs
+}
+
+func strconvQuote(s string) string { return fmt.Sprintf("%q", s) }
+
 // ResolveTokens merges light-mode tokens through the 4-layer cascade.
 // Order (last wins): defaults → theme.Tokens → preset.Tokens → overrides.
 func ResolveTokens(defaults map[string]string, t *Theme, presetName string, overrides map[string]string) map[string]string {

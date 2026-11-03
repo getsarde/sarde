@@ -3,7 +3,6 @@ package imagecompare
 import (
 	"fmt"
 	"strings"
-	"sync/atomic"
 
 	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 	"github.com/getsarde/sarde/internal/content/markdown/icons"
@@ -11,8 +10,6 @@ import (
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
 )
-
-var compareCounter atomic.Int64
 
 type imageCompareRenderer struct {
 	assetURL func(string) string
@@ -64,8 +61,7 @@ func (r *imageCompareRenderer) render(w util.BufWriter, source []byte, node ast.
 		return ast.WalkSkipChildren, nil
 	}
 
-	id := compareCounter.Add(1)
-	containerID := fmt.Sprintf("img-compare-%d", id)
+	containerID := htmlutil.PageScopedID("img-compare", source, node)
 
 	_, _ = w.WriteString("<div class=\"sarde-image-compare-wrapper not-content\">\n")
 	if ic.Label != "" {

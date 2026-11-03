@@ -102,18 +102,7 @@ func sitePath(page *engine.Page, raw string) (p, fragment string) {
 	if i := strings.IndexByte(p, '?'); i >= 0 {
 		p = p[:i]
 	}
-	if !strings.HasPrefix(p, "/") {
-		base := page.RelPermalink
-		if !strings.HasSuffix(base, "/") {
-			base = path.Dir(base) + "/"
-		}
-		trailing := strings.HasSuffix(p, "/")
-		p = path.Join(base, p)
-		if trailing && p != "/" {
-			p += "/"
-		}
-	}
-	return p, fragment
+	return engine.PageRelativePath(page, p), fragment
 }
 
 // checkFrontmatterImage looks for the file an image URL names: a file under
@@ -185,7 +174,15 @@ func checkFrontmatterLink(page *engine.Page, field, raw string, idx *content.Pag
 			ref.Status = links.StatusUnverified
 		}
 	default:
+		// A page path the index does not know. The report checks the URL the
+		// page's template writes, in the page's language and version, against
+		// every URL the build writes.
 		ref.Status = links.StatusUnverified
+		normalized := content.NormalizePermalink(p)
+		ref.Resolved = normalized
+		if resolver != nil {
+			ref.Resolved = resolver.URL(normalized, page.Lang, engine.ResolvePageVersion(page))
+		}
 	}
 	return ref
 }

@@ -8,14 +8,14 @@
   <div class="sarde-markdown-content">{{ .Page.Content }}</div>
   {{ end }}
 
-  {{ $pages := .Collection.Pages }}
+  {{ $pages := .ListPages }}
   {{ if and .Paginator .Paginator.CurrentPages }}{{ $pages = .Paginator.CurrentPages }}{{ end }}
 
   <div class="sarde-post-grid sarde-post-grid-cards">
     {{ range $pages }}{{ if ne .Kind "section" }}
     <article class="sarde-post-card sarde-post-card-bordered">
       <a href="{{ .Permalink }}">
-        {{ if .Image }}<img class="sarde-post-card-image" src="{{ if hasPrefix .Image "/" }}{{ rootURL .Image }}{{ else }}{{ .Image }}{{ end }}" alt="" loading="lazy">{{ end }}
+        {{ if .Image }}<img class="sarde-post-card-image" src="{{ pageRelURL . .Image }}" alt="" loading="lazy">{{ end }}
         <div class="sarde-post-card-body">
           <h2 class="sarde-post-card-title">{{ .Title | markdownify }}</h2>
           <div class="sarde-post-card-meta">

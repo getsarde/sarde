@@ -62,12 +62,17 @@ func (b *SiteBuilder) phaseAssemble(s *buildState) error {
 		i18n.LinkAllTranslations(allPages, weights)
 	}
 
+	// Per-language lists, index pages and lab sidebars, built once fallback
+	// copies exist; cleared on a single-language site.
+	collection.BuildLanguageViews(s.collections, allPages, b.config.I18n.LanguageCodes(), s.defaultLang)
+
 	collection.LinkVersions(allPages)
 
 	// sidebar.yaml unmatched-key warnings: computed only after every nav tree
 	// has been built, including the i18n-fallback rebuild above, so keys that
 	// match only in fallback-generated lanes are not falsely flagged.
 	s.warnings = append(s.warnings, collection.CollectSidebarOverrideWarnings(s.collections)...)
+	s.warnings = append(s.warnings, collection.CollectNavYAMLWarnings(s.collections, s.contentDir)...)
 
 	// Build taxonomies. Multi-language sites get per-language maps; single-
 	// language sites build one map with lang="". Permalink resolution on the

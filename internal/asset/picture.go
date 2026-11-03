@@ -4,12 +4,33 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/getsarde/sarde/internal/config"
 )
 
 // PictureOptions controls optional rendering behavior for <picture> elements.
 type PictureOptions struct {
 	IncludeDimensions bool  // when false, omit width/height from <img>
 	Widths            []int // configured widths for dynamic sizes attribute
+}
+
+// PictureOptionsFor returns the <picture> options images.* asks for:
+// width and height attributes unless images.dimensions is false, and the
+// widths the sizes attribute describes. width is a per-image width
+// attribute (0 when unset), which replaces the configured widths, as it does
+// for the variants; widths above images.max_width are left out, as their
+// variants are.
+func PictureOptionsFor(cfg *config.ImageSettings, width int) PictureOptions {
+	if cfg == nil {
+		return PictureOptions{IncludeDimensions: true}
+	}
+	o := PictureOptions{IncludeDimensions: config.BoolVal(cfg.Dimensions, true)}
+	for _, w := range effectiveWidths(cfg, ImageOptions{Width: width}) {
+		if cfg.MaxWidth <= 0 || w <= cfg.MaxWidth {
+			o.Widths = append(o.Widths, w)
+		}
+	}
+	return o
 }
 
 // RenderPicture generates HTML for a responsive <picture> element.

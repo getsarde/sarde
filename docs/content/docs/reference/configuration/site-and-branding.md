@@ -13,6 +13,7 @@ Set the site identity, the links in the header and footer, extra tags in `<head>
 |-----|------|---------|-------------|
 | `title` | string | `"My Site"` | Site title. Appears in the browser tab and header. **Required.** |
 | `description` | string | `""` | Site description. Used in meta tags and feeds. Recommended. |
+| `author` | string | `""` | Site author. Names the author of each Atom feed and, in JSON-LD, of every article that sets no `params.author`. |
 | `url` | string | `""` | Production URL (e.g., `https://example.com`). Used for canonical links, sitemaps, and feeds. Recommended. |
 | `language` | string | `"en"` | Default language code (BCP 47). **Required.** |
 | `logo` | string or object | - | Site logo, rendered in the header before the site title. Accepts a single path string (used for both themes) or an object with `light`, `dark`, `alt`, and `replaces_title` fields. |
@@ -20,7 +21,7 @@ Set the site identity, the links in the header and footer, extra tags in `<head>
 | `edit_url` | string | `""` | Base URL for "Edit this page" links. Append the content file path to this URL. Example: `https://github.com/user/repo/edit/main/content`. |
 | `title_delimiter` | string | `"\|"` | Separator between page title and site title in the browser tab. |
 | `heading_links` | bool | `true` | Add anchor links to headings. |
-| `custom_404` | string | `""` | Path to a custom 404 page template. |
+| `custom_404` | string | `""` | Deprecated: has no effect. Add `content/404.md` to customize the 404 page. |
 
 ### `site.logo` (object form)
 

@@ -225,7 +225,7 @@ Each item supports:
 | Key | Type | Description |
 |-----|------|-------------|
 | `label` | string | Display text. Falls back to the page's sidebar label, then its title. |
-| `page` | string | Page slug, or path relative to the collection root. |
+| `page` | string | Page slug, or path relative to the collection root. The path can use the source filename with its numeric prefix, such as `guide/01-introduction`, or the URL form without it, `guide/introduction`. |
 | `url` | string | Link target instead of `page`: a full URL such as `https://example.com`, or a site path such as `/blog/`. |
 | `external` | bool | Open the `url` in a new tab with `rel="noopener noreferrer"`. |
 | `badge` | string or object | Badge chip on a page item. Overrides the page's own badge. |
@@ -233,7 +233,7 @@ Each item supports:
 | `attrs` | map | Extra attributes on the entry for themes that render them. The default theme ignores it. |
 | `items` | array | Nested child items. |
 
-An item without `page` or `url` acts as a group label, a heading with no link. A `page` that matches no page in the tab is skipped without a warning. The tab's `_index.md` gets no Overview entry, because the file defines the whole tree.
+An item without `page` or `url` acts as a group label, a heading with no link. A `page` that matches no page in the collection, in any language or version, is left out of the sidebar with its nested items, and the build warns with the file and line. The tab's `_index.md` gets no Overview entry, because the file defines the whole tree.
 
 ## Breadcrumbs
 

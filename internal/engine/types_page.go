@@ -152,6 +152,20 @@ type Page struct {
 	Params    map[string]any
 }
 
+// Renders reports whether the build writes the page, which render: false in
+// frontmatter (or cascaded from a section) turns off. A page that does not
+// render still feeds navigation and lists, but has no URL of its own, so
+// search indexes and sitemaps leave it out.
+func (p *Page) Renders() bool {
+	if p.Params == nil {
+		return true
+	}
+	if r, ok := p.Params["render"].(bool); ok && !r {
+		return false
+	}
+	return true
+}
+
 // ShowUpdated reports whether the page's Updated timestamp should be surfaced
 // to visitors, from the show_updated frontmatter field (default true).
 //
@@ -195,6 +209,8 @@ type FrontmatterMeta struct {
 	Pagefind    *bool         `yaml:"pagefind"`
 	ShowUpdated *bool         `yaml:"show_updated"`
 	EditURL     *EditURLValue `yaml:"edit_url"`
+	Featured    bool          `yaml:"featured"` // listed in a blog list's Featured section
+	Robots      string        `yaml:"robots"`   // the page's robots meta tag, e.g. "noindex,follow"
 }
 
 // FrontmatterSidebar holds sidebar presentation fields.
@@ -254,6 +270,7 @@ type Frontmatter struct {
 	Categories         []string       `yaml:"categories"`
 	ShowTags           *bool          `yaml:"show_tags"`
 	Transparent        bool           `yaml:"transparent"`
+	Tabs               *bool          `yaml:"tabs"` // on a collection's root _index.md: false turns the tab bar off
 	Hero               *HeroConfig    `yaml:"hero"`
 	Icon               string         `yaml:"icon"`
 	Head               []HeadTag      `yaml:"head"`

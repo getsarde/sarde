@@ -139,3 +139,15 @@ func DarkModeSelector(cfg *config.CodeblocksSettings) string {
 	}
 	return `[data-theme="dark"]`
 }
+
+// KazariHighlighter returns a function that renders code as a Kazari code
+// block in lang, with the site's code block settings, for the highlight
+// template function. Nil when there is no engine.
+func KazariHighlighter(engine *kazari.Engine) func(code, lang string) (string, error) {
+	if engine == nil {
+		return nil
+	}
+	return func(code, lang string) (string, error) {
+		return engine.Render(code, kazari.Options{Lang: lang})
+	}
+}

@@ -200,3 +200,27 @@ func TestBackwardCompat(t *testing.T) {
 		t.Errorf("expected iframe: %q", out)
 	}
 }
+
+// A native video's site-absolute src goes through AssetURL, so it gets the
+// base path; a relative src and an embed URL are left alone.
+func TestNativeVideo_SiteAbsoluteUsesAssetURL(t *testing.T) {
+	prefixSub := func(src string) string {
+		if strings.HasPrefix(src, "/") {
+			return "/sub" + src
+		}
+		return src
+	}
+	md := goldmark.New(goldmark.WithExtensions(&Extension{AssetURL: prefixSub}))
+	for src, want := range map[string]string{
+		"/media/intro.mp4": `src="/sub/media/intro.mp4"`,
+		"intro.mp4":        `src="intro.mp4"`,
+	} {
+		var buf bytes.Buffer
+		if err := md.Convert([]byte(":::video(src=\""+src+"\")\n:::"), &buf); err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(buf.String(), want) {
+			t.Errorf("src %q: missing %s in %q", src, want, buf.String())
+		}
+	}
+}

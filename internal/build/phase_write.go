@@ -92,6 +92,7 @@ func (b *SiteBuilder) phaseWrite(s *buildState) (*engine.BuildResult, error) {
 	s.recordTiming("Writing assets")
 
 	b.warnIconAttribution()
+	b.warnMissingIcons()
 
 	buildLogger := engine.NewBuildLogger()
 	var pluginWarnings []engine.ValidationWarning

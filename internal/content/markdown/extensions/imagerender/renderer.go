@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/getsarde/sarde/internal/asset"
+	"github.com/getsarde/sarde/internal/config"
 	"github.com/yuin/goldmark/ast"
 	gmrenderer "github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/renderer/html"
@@ -28,7 +29,10 @@ type Renderer struct {
 	AssetURL    func(string) string
 	HasImages   bool // set true when at least one image is rendered
 	LazyLoading bool // site config; the first image per page is always eager
-	imageIndex  int  // per-page image counter, reset via ResetPage
+	// Images is the site's images config, for the <picture> options
+	// (images.dimensions, and the widths in sizes); nil uses the defaults.
+	Images     *config.ImageSettings
+	imageIndex int // per-page image counter, reset via ResetPage
 }
 
 // NewRenderer creates a Goldmark image node renderer.
@@ -76,6 +80,7 @@ func (r *Renderer) renderImage(w util.BufWriter, source []byte, node ast.Node, e
 				processed.Variants,
 				processed.LQIP,
 				processed.Loading == "lazy" && lazy,
+				asset.PictureOptionsFor(r.Images, opts.Width),
 			)
 			w.WriteString(html)
 			return ast.WalkSkipChildren, nil

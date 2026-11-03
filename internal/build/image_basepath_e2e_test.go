@@ -98,14 +98,19 @@ image: /images/cover.png
 	}
 }
 
-// Images exist once, at the site root: the homepage hero on a translated page
-// must not get the page's language prefix. (Lab cards use the same rule but
-// do not render on a translated labs index yet; see the tracker.)
+// Images exist once, at the site root: the homepage hero and a lab card on a
+// translated page must not get the page's language prefix.
 func TestBuild_ImagesNeverGetLanguagePrefix(t *testing.T) {
 	dir := t.TempDir()
 	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n")
 	writeFixture(t, dir, "content/fr/_index.md", "---\ntitle: Accueil\n---\n")
 	writeFixture(t, dir, "public/images/hero.svg", "x")
+	writeFixture(t, dir, "public/images/lab.svg", "x")
+	writeFixture(t, dir, "content/labs/_index.md", "---\ntitle: Labs\n---\n")
+	writeFixture(t, dir, "content/fr/labs/_index.md", "---\ntitle: Ateliers\n---\n")
+	writeFixture(t, dir, "content/labs/web/_index.md", "---\ntitle: Web\nimage: /images/lab.svg\n---\n")
+	writeFixture(t, dir, "content/fr/labs/web/_index.md", "---\ntitle: Web\nimage: /images/lab.svg\n---\n")
+	writeFixture(t, dir, "content/labs/web/setup.md", "---\ntitle: Setup\n---\nStep.\n")
 
 	cfg := config.Defaults()
 	cfg.I18n.DefaultLanguage = "en"
@@ -121,5 +126,55 @@ func TestBuild_ImagesNeverGetLanguagePrefix(t *testing.T) {
 		if html := read(page); !strings.Contains(html, `src="/images/hero.svg"`) {
 			t.Errorf("%s: hero image is not /images/hero.svg", page)
 		}
+	}
+	for _, page := range []string{"labs/index.html", "fr/labs/index.html"} {
+		if html := read(page); !strings.Contains(html, `src="/images/lab.svg"`) {
+			t.Errorf("%s: lab card image is not /images/lab.svg", page)
+		}
+	}
+}
+
+// A relative frontmatter image names a file beside the page, so every
+// template that shows the page reads it from the page's folder: the blog
+// grid card, the cover, and a lab card all point at the bundle's file. A
+// translated post gets no language prefix, because bundle files are written
+// once, at the language-free path.
+func TestBuild_RelativeFrontmatterImageResolvesAgainstItsPage(t *testing.T) {
+	dir := t.TempDir()
+	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n")
+	writeFixture(t, dir, "content/fr/_index.md", "---\ntitle: Accueil\n---\n")
+	writeFixture(t, dir, "content/blog/_index.md", "---\ntitle: Blog\ntemplate: blog/list-grid\n---\n")
+	writeFixture(t, dir, "content/blog/trip/index.md", "---\ntitle: Field Trip\ndate: 2025-05-01\ntemplate: blog/single-cover\nimage: cover.jpg\n---\nNotes.\n")
+	writeFixture(t, dir, "content/blog/trip/cover.jpg", "x")
+	writeFixture(t, dir, "content/fr/blog/sortie/index.md", "---\ntitle: Sortie\ndate: 2025-05-02\ntemplate: blog/single-cover\nimage: photo.jpg\n---\nNotes.\n")
+	writeFixture(t, dir, "content/fr/blog/sortie/photo.jpg", "x")
+	writeFixture(t, dir, "content/labs/_index.md", "---\ntitle: Labs\n---\n")
+	writeFixture(t, dir, "content/labs/web/_index.md", "---\ntitle: Web\nimage: card.png\n---\n")
+	writeFixture(t, dir, "content/labs/web/card.png", "x")
+	writeFixture(t, dir, "content/labs/web/setup.md", "---\ntitle: Setup\n---\nStep.\n")
+
+	cfg := config.Defaults()
+	cfg.Build.BasePath = "/demo/"
+	cfg.I18n.DefaultLanguage = "en"
+	cfg.I18n.Languages = map[string]config.LanguageConfig{
+		"en": {Name: "English", Weight: 1, Dir: "ltr"},
+		"fr": {Name: "French", Weight: 2, Dir: "ltr"},
+	}
+	read := buildImageSite(t, dir, cfg)
+
+	if html := read("blog/trip/index.html"); !strings.Contains(html, `<img src="/demo/blog/trip/cover.jpg"`) {
+		t.Error("blog cover: relative image not resolved against the post")
+	}
+	if html := read("blog/index.html"); !strings.Contains(html, `src="/demo/blog/trip/cover.jpg"`) {
+		t.Error("blog grid card: relative image not resolved against the post")
+	}
+	if html := read("fr/blog/sortie/index.html"); !strings.Contains(html, `<img src="/demo/blog/sortie/photo.jpg"`) {
+		t.Error("translated blog cover: want the language-free bundle path")
+	}
+	if html := read("labs/index.html"); !strings.Contains(html, `src="/demo/labs/web/card.png"`) {
+		t.Error("lab card: relative image not resolved against the course page")
+	}
+	if _, err := os.Stat(filepath.Join(dir, "dist", "blog", "trip", "cover.jpg")); err != nil {
+		t.Errorf("bundle file not written where the URL points: %v", err)
 	}
 }

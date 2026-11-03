@@ -9,21 +9,26 @@ import (
 // navigation within each lab. Supports both 2-level (labs directly under
 // collection root) and 3-level (courses containing labs) structures.
 func BuildLabsNav(col *engine.Collection) {
-	col.LabNavTrees = make(map[string]*engine.NavTree)
-	root := findCollectionRootSection(col.Sections)
+	col.LabNavTrees, col.IsMultiCourse = buildLabNavTrees(col, findCollectionRootSection(col.Sections))
+}
+
+// buildLabNavTrees builds the lab-scoped sidebar trees under root, keyed by
+// lab section permalink, and reports whether root groups labs into courses.
+// The language views call it once per language with that language's root.
+func buildLabNavTrees(col *engine.Collection, root *engine.Section) (map[string]*engine.NavTree, bool) {
+	trees := make(map[string]*engine.NavTree)
 	if root == nil {
-		return
+		return trees, false
 	}
-
-	col.IsMultiCourse = detectMultiCourse(root)
-
-	if col.IsMultiCourse {
+	multiCourse := detectMultiCourse(root)
+	if multiCourse {
 		for _, course := range root.Sections {
-			buildLabTreesForSection(col, course)
+			buildLabTreesForSection(col, course, trees)
 		}
 	} else {
-		buildLabTreesForSection(col, root)
+		buildLabTreesForSection(col, root, trees)
 	}
+	return trees, multiCourse
 }
 
 // detectMultiCourse returns true if any depth-1 section has child sub-sections,
@@ -40,14 +45,14 @@ func detectMultiCourse(root *engine.Section) bool {
 // buildLabTreesForSection iterates labs under a parent section, builds a
 // scoped sidebar tree for each, wires prev/next within the lab, and stamps
 // progress metadata onto each page.
-func buildLabTreesForSection(col *engine.Collection, parent *engine.Section) {
+func buildLabTreesForSection(col *engine.Collection, parent *engine.Section, trees map[string]*engine.NavTree) {
 	for ordinal, lab := range parent.Sections {
 		labTree := buildLabScopedTree(col.Name, col.Config, lab)
 		if labTree == nil {
 			continue
 		}
 		navigation.WirePrevNextFromTree(labTree)
-		col.LabNavTrees[lab.Permalink] = labTree
+		trees[lab.Permalink] = labTree
 
 		stampLabProgress(lab, ordinal+1, labTree, col.Config)
 	}

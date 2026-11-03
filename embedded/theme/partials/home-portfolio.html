@@ -26,7 +26,7 @@
 <section class="sarde-portfolio-recent">
   <div class="sarde-portfolio-recent-inner">
     <div class="sarde-section-header-row">
-      <h2 class="sarde-section-label">{{ $col.Title | markdownify }}</h2>
+      <h2 class="sarde-section-label">{{ $col.TitleFor $.Lang | markdownify }}</h2>
       <a class="sarde-section-link" href="{{ relURL (printf "/%s/" $name) }}">{{ t "home.all_posts" }} &rarr;</a>
     </div>
     <div class="sarde-recent-grid">

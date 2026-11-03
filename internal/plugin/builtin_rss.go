@@ -22,10 +22,11 @@ func newRSSPlugin(cfg map[string]any) *Plugin {
 func rssBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 	return writeFeedFiles(ctx, cfg, "feed.xml", "RSS", func(col *engine.Collection, pages []*engine.Page, lang, baseURL string, limit int) ([]byte, error) {
 		items := buildRSSItems(pages, baseURL, limit)
+		title := col.TitleFor(lang)
 		feed := rssChannel{
-			Title:       col.Title,
+			Title:       title,
 			Link:        ctx.AbsURL("/"+col.Name+"/", lang, ""),
-			Description: "Latest from " + col.Title,
+			Description: "Latest from " + title,
 			Items:       items,
 		}
 		if len(items) > 0 {

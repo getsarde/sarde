@@ -30,6 +30,15 @@ func currentImageProcessor(ptr **asset.ImageProcessor) *asset.ImageProcessor {
 	return *ptr
 }
 
+// pictureOptions returns the <picture> options from the processor's images
+// config, or the defaults without a processor.
+func pictureOptions(p *asset.ImageProcessor, width int) asset.PictureOptions {
+	if p == nil {
+		return asset.PictureOptions{IncludeDimensions: true}
+	}
+	return asset.PictureOptionsFor(p.Config, width)
+}
+
 func buildAssetFuncs(
 	assetResolverPtr **asset.Resolver,
 	assetManifestPtr **asset.Manifest,
@@ -98,33 +107,43 @@ func buildAssetFuncs(
 		},
 		"image": func(res engine.Resource) htmltemplate.HTML {
 			return htmltemplate.HTML(asset.RenderPicture(
-				res.RelPermalink, res.Title,
+				(*urlResolverPtr).AssetURL(res.RelPermalink), res.Title,
 				res.Width, res.Height,
 				nil, "", true,
+				pictureOptions(currentImageProcessor(imageProcessorPtr), 0),
 			))
 		},
 		"resize_image": func(res engine.Resource, params string) htmltemplate.HTML {
+			r := *urlResolverPtr
+			src := r.AssetURL(res.RelPermalink)
 			imageProcessor := currentImageProcessor(imageProcessorPtr)
 			if imageProcessor == nil || res.SrcPath == "" {
 				return htmltemplate.HTML(asset.RenderPicture(
-					res.RelPermalink, res.Title,
+					src, res.Title,
 					res.Width, res.Height,
 					nil, "", true,
 				))
 			}
 			opts := asset.ParseImageOptionsFromQuery(params)
+			pic := pictureOptions(imageProcessor, opts.Width)
 			variants, lqip, err := imageProcessor.ProcessImage(res.SrcPath, opts)
 			if err != nil {
 				return htmltemplate.HTML(asset.RenderPicture(
-					res.RelPermalink, res.Title,
+					src, res.Title,
 					res.Width, res.Height,
-					nil, "", true,
+					nil, "", true, pic,
 				))
 			}
+			// Copy before rewriting: the processor caches the variant slice.
+			resolved := make([]asset.ImageVariant, len(variants))
+			for i, v := range variants {
+				v.URL = r.AssetURL(v.URL)
+				resolved[i] = v
+			}
 			return htmltemplate.HTML(asset.RenderPicture(
-				res.RelPermalink, res.Title,
+				src, res.Title,
 				res.Width, res.Height,
-				variants, lqip, true,
+				resolved, lqip, true, pic,
 			))
 		},
 	}

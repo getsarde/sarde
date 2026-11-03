@@ -140,3 +140,25 @@ func TestKazariConfigKey(t *testing.T) {
 		t.Errorf("the file name must be part of the key, got %q", got)
 	}
 }
+
+// KazariHighlighter renders a highlighted Kazari code block, so the highlight
+// template function matches fenced code in Markdown.
+func TestKazariHighlighter_RendersCodeBlock(t *testing.T) {
+	if KazariHighlighter(nil) != nil {
+		t.Error("no engine must give no highlighter")
+	}
+	eng, err := BuildKazariEngine(context.Background(), &config.CodeblocksSettings{Engine: "chroma"}, t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := KazariHighlighter(eng)(`fmt.Println("hi")`, "go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "kazari-block") || !strings.Contains(out, "Println") {
+		t.Errorf("not a Kazari code block: %s", out)
+	}
+	if strings.Count(out, "<span") < 2 {
+		t.Errorf("no highlighting spans: %s", out)
+	}
+}

@@ -31,7 +31,7 @@ func atomBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 		colURL := ctx.AbsURL("/"+col.Name+"/", lang, "")
 		feed := atomFeed{
 			XMLNS:   "http://www.w3.org/2005/Atom",
-			Title:   col.Title,
+			Title:   col.TitleFor(lang),
 			Updated: updated,
 			ID:      colURL,
 			Links: []atomLink{
@@ -39,6 +39,11 @@ func atomBuildDone(ctx *BuildDoneContext, cfg map[string]any) error {
 				{Href: colURL + "atom.xml", Rel: "self", Type: "application/atom+xml"},
 			},
 			Entries: entries,
+		}
+		// The feed-level author covers every entry without its own, which
+		// Atom (RFC 4287) requires of each entry.
+		if ctx.Config != nil && ctx.Config.Site.Author != "" {
+			feed.Author = &atomAuthor{Name: ctx.Config.Site.Author}
 		}
 		return xml.MarshalIndent(feed, "", "  ")
 	})
@@ -96,6 +101,7 @@ type atomFeed struct {
 	Links   []atomLink  `xml:"link"`
 	Updated string      `xml:"updated"`
 	ID      string      `xml:"id"`
+	Author  *atomAuthor `xml:"author,omitempty"`
 	Entries []atomEntry `xml:"entry"`
 }
 

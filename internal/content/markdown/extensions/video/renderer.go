@@ -11,9 +11,16 @@ import (
 	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 )
 
-type videoRenderer struct{}
+type videoRenderer struct {
+	assetURL func(string) string
+}
 
-func NewRenderer() renderer.NodeRenderer { return &videoRenderer{} }
+// NewRenderer returns the video renderer. assetURL resolves the src of a
+// native <video>, adding the base path to a site-absolute path; nil leaves
+// it as written.
+func NewRenderer(assetURL func(string) string) renderer.NodeRenderer {
+	return &videoRenderer{assetURL: assetURL}
+}
 
 func (r *videoRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 	reg.Register(KindVideoBlock, r.render)
@@ -60,8 +67,12 @@ func (r *videoRenderer) render(w util.BufWriter, source []byte, node ast.Node, e
 		if v.Title != "" {
 			videoAttrs.WriteString(` title="` + htmlutil.EscapeHTML(v.Title) + `"`)
 		}
+		src := v.URL
+		if r.assetURL != nil {
+			src = r.assetURL(src)
+		}
 		_, _ = fmt.Fprintf(w, "<div class=\"sarde-video-embed not-content\"><div class=\"%s\"><video src=\"%s\"%s></video></div>",
-			wrapperClass, htmlutil.EscapeHTML(v.URL), videoAttrs.String())
+			wrapperClass, htmlutil.EscapeHTML(src), videoAttrs.String())
 		writeCaption(w, v.Title)
 		_, _ = w.WriteString("</div>\n")
 	}

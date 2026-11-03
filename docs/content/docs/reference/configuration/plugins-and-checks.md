@@ -58,20 +58,20 @@ plugins:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `enabled` | bool | `true` | Enable the link validation pipeline. |
-| `level` | string | `"warn"` | Default severity level. `error`, `warn`, or `ignore`. |
+| `level` | string | `"warn"` | Deprecated: has no effect. Set `on_broken` and the other `on_*` policies. |
 | `on_broken` | string | `"error"` | Policy for broken internal links. `error`, `warn`, or `ignore`. |
 | `on_broken_anchor` | string | `"error"` | Policy for broken anchor references. `error`, `warn`, or `ignore`. |
 | `report` | string | `"pretty"` | Report output format. `pretty`, `json`, or `github-actions`. |
 | `on_relative_links` | string | `"warn"` | Policy for relative links (without leading `/`). `error`, `warn`, or `ignore`. |
 | `on_local_links` | string | `"warn"` | Policy for `file://` or absolute local paths. `error`, `warn`, or `ignore`. |
-| `on_unverified_internal` | string | `"warn"` | Policy for internal links that cannot be resolved to a known page. `error`, `warn`, or `ignore`. |
-| `check_anchors` | bool | `true` | Validate anchor targets (`#id` references). |
-| `check_images` | bool | `true` | Validate image `src` paths. |
+| `on_unverified_internal` | string | `"warn"` | Policy for a frontmatter file link, such as `image`, that names a file Sarde does not find. An extension-less page link with no page behind it is a broken target, under `on_broken`. `error`, `warn`, or `ignore`. |
+| `check_anchors` | bool | `true` | Deprecated: has no effect. Set `on_broken_anchor` to `ignore` to skip anchor checks. |
+| `check_images` | bool | `true` | Deprecated: has no effect. Image links follow `on_broken`. |
 | `same_site_policy` | string | `"ignore"` | Policy for absolute links pointing to the same site URL. `error`, `warn`, or `ignore`. |
 | `site_root_escape_prefix` | string | `"site:"` | Prefix for links that bypass collection/lang/version lane logic (e.g., `site:/pricing`). Set to `""` to disable. |
 | `exclude` | list of string | `[]` | Path patterns to exclude from validation. |
-| `ignore` | list of string | `[]` | Additional path patterns to ignore during validation. |
-| `fail_build` | bool | `false` | Fail the build on link validation errors. |
+| `ignore` | list of string | `[]` | Deprecated: has no effect. Use `exclude`. |
+| `fail_build` | bool | `false` | Deprecated: has no effect. `on_broken: error` fails the build. |
 
 ### `link_validation.external`
 

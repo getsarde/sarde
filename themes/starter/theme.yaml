@@ -9,7 +9,7 @@ description: >
 license: MIT
 
 tokens:
-  primary: "#d97706"
+  accent: "#d97706"
   bg: "#ffffff"
   bg-surface: "#fffbf2"
   bg-code: "#1c1917"
@@ -32,7 +32,7 @@ presets:
   warm:
     name: Warm
     tokens:
-      primary: "#ea580c"
+      accent: "#ea580c"
       bg-surface: "#fff7ed"
       text-muted: "#9a3412"
       border: "#fed7aa"
@@ -44,7 +44,7 @@ presets:
   cool:
     name: Cool
     tokens:
-      primary: "#0d9488"
+      accent: "#0d9488"
       bg-surface: "#f0fdfa"
       text: "#134e4a"
       text-muted: "#5eead4"

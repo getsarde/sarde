@@ -51,7 +51,7 @@ func BuildRouteData(page *engine.Page, site *engine.SiteContext, theme *engine.T
 			headerLinks = siteCfg.Header.Links
 		}
 	}
-	rd.GlobalNav = navigation.BuildGlobalNav(site, col, headerLinks)
+	rd.GlobalNav = navigation.BuildGlobalNav(site, col, headerLinks, page.Lang)
 
 	return rd
 }
@@ -119,7 +119,13 @@ func buildCollectionRouteData(rd *engine.RouteData, page *engine.Page, col *engi
 				current = n
 			}
 		}
-		rd.Paginator = buildPaginator(col, current)
+		rd.Paginator = buildPaginator(col, current, page.Lang)
+	}
+
+	// A list page shows the collection's pages in its own language.
+	if rd.IsSection {
+		rd.ListPages = col.ListPages(page.Lang)
+		rd.FeaturedPages = col.FeaturedFor(page.Lang)
 	}
 
 	if col.Config != nil {
@@ -208,16 +214,13 @@ func buildStandaloneRouteData(rd *engine.RouteData, page *engine.Page, site *eng
 		if term, ok := page.Params[consts.TaxonomyTermKey].(*engine.TaxonomyTerm); ok {
 			rd.TaxonomyTerm = term
 		}
-		if rd.TaxonomyTerm != nil && rd.Taxonomy != nil {
+		// paginate_by: 0 turns pagination off: the term lists every page.
+		if rd.TaxonomyTerm != nil && rd.Taxonomy != nil && rd.Taxonomy.PaginateBy > 0 {
 			current := 1
 			if n, ok := page.Params[consts.PaginationCurrentKey].(int); ok && n > 0 {
 				current = n
 			}
-			paginateBy := rd.Taxonomy.PaginateBy
-			if paginateBy <= 0 {
-				paginateBy = consts.DefaultPaginateBy
-			}
-			rd.Paginator = buildTermPaginator(rd.TaxonomyTerm, paginateBy, current)
+			rd.Paginator = buildTermPaginator(rd.TaxonomyTerm, rd.Taxonomy.PaginateBy, current)
 		}
 	default:
 		rd.Template = consts.DirDefault + "/single"
@@ -312,7 +315,7 @@ func resolveSidebar(rd *engine.RouteData, col *engine.Collection, page *engine.P
 	} else if collection.IsLabsName(col.Name) && col.LabNavTrees != nil {
 		labPermalink := findLabPermalink(page, col)
 		if labPermalink != "" {
-			if tree, ok := col.LabNavTrees[labPermalink]; ok {
+			if tree := col.LabNavTree(page.Lang, labPermalink); tree != nil {
 				rd.Sidebar = navigation.MarkActive(tree, page)
 			}
 		}

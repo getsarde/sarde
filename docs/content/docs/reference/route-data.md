@@ -57,6 +57,8 @@ A nil pointer is false in `{{ if }}` but panics on field access, so guard option
 | `.SidebarCollapsedByDefault` | `bool` | sidebar layout | From the collection's `sidebar.collapsed_by_default`; forced true when `collapse_level` is set |
 | `.Section` | `*Section` | list page | The section this `_index.md` introduces |
 | `.IsSection` | `bool` | list page | True for collection `_index.md` pages |
+| `.ListPages` | `[]*Page` | list page | The collection's pages in the page's language, without section pages, in the collection's sort order. On a translated list it includes the fallback copies of untranslated pages, unless `i18n.fallback` is `"omit"` |
+| `.FeaturedPages` | `[]*Page` | list page | The pages with `featured: true` in the page's language |
 
 ### `RouteI18n`
 
@@ -332,21 +334,38 @@ Every other top-level key in [Configuration](/reference/configuration/) is reach
 | Field | Type | Description |
 |-------|------|-------------|
 | `.Collection.Name` | `string` | Directory name |
-| `.Collection.Title` | `string` | Display title |
+| `.Collection.Title` | `string` | Display title. On a multi-language site, the title of one language's `_index.md`; use `TitleFor` |
 | `.Collection.Config` | `*CollectionConfig` | Resolved collection settings |
-| `.Collection.Pages` | `[]*Page` | Every page, already sorted |
-| `.Collection.Featured` | `[]*Page` | Pages with `featured: true` |
+| `.Collection.Pages` | `[]*Page` | Every page, already sorted. On a multi-language site, every language's pages together; use `PagesFor` or `.ListPages` |
+| `.Collection.Featured` | `[]*Page` | Pages with `featured: true`, every language together; use `FeaturedFor` or `.FeaturedPages` |
 | `.Collection.Sections` | `[]*Section` | Top-level sections |
 | `.Collection.NavTree` | `*NavTree` | Default-language sidebar tree |
 | `.Collection.NavTrees` | `map[string]*NavTree` | Sidebar tree per language |
-| `.Collection.IndexPage` | `*Page` | The collection's `_index.md` |
+| `.Collection.IndexPage` | `*Page` | The collection's `_index.md`. On a multi-language site, one language's; use `IndexFor` |
 | `.Collection.IsTabbed` | `bool` | True when docs tabs are detected or forced |
 | `.Collection.Tabs` | `[]*DocsTab` | Tabs ordered by weight, then title |
 | `.Collection.Versioning` | `*VersionConfig` | Versioning settings; nil when off |
-| `.Collection.LabNavTrees` | `map[string]*NavTree` | Lab-scoped trees keyed by lab section permalink |
+| `.Collection.LabNavTrees` | `map[string]*NavTree` | Lab-scoped trees keyed by lab section permalink. On a multi-language site, the default language's trees; use `LabNavTree` |
 | `.Collection.IsMultiCourse` | `bool` | True when a labs collection groups labs by course |
 
-Internal, not for templates: `CompositeNavTrees` and `CompositeTabSets` are keyed by a language-and-version key that templates cannot compute.
+These methods take a language code, such as `.Lang` on the route data, and return the collection in that language. On a single-language site they return the fields above.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `.Collection.PagesFor lang` | `[]*Page` | The pages in `lang`, section pages included, in the collection's sort order. Includes the fallback copies of untranslated pages |
+| `.Collection.ListPages lang` | `[]*Page` | `PagesFor` without section pages |
+| `.Collection.FeaturedFor lang` | `[]*Page` | The featured pages in `lang` |
+| `.Collection.IndexFor lang` | `*Page` | The collection's `_index.md` in `lang`, or its fallback copy. Nil when `lang` has neither |
+| `.Collection.TitleFor lang` | `string` | The title of `IndexFor lang`, or `Title` |
+| `.Collection.LabNavTree lang url` | `*NavTree` | The sidebar tree of the lab at section permalink `url` in `lang` |
+
+```html
+{{ range first 3 (.Collection.ListPages .Lang) }}<a href="{{ .Permalink }}">{{ .Title }}</a>{{ end }}
+```
+
+→ Links to the collection's first three pages in the current page's language.
+
+Internal, not for templates: `CompositeNavTrees` and `CompositeTabSets` are keyed by a language-and-version key that templates cannot compute. `LangPages`, `LangIndex`, `LangFeatured` and `LabNavTreesByLang` hold the per-language views behind the methods above; read them through the methods.
 
 ### `CollectionConfig`
 
@@ -526,14 +545,14 @@ Walk `Children` downward only. `Parent` and `Page.NavNode` form cycles.
 | `FirstURL` | `string` | URL of the first page |
 | `LastURL` | `string` | URL of the last page |
 
-`Pages` holds the numbered links, not the content. The content for the current page is `CurrentPages`. Page 1 lives at the collection URL and page N at `<collection>/page/N/`. On an unpaginated list, fall back to `.Collection.Pages` and skip its section pages (`_index.md`), as below.
+`Pages` holds the numbered links, not the content. The content for the current page is `CurrentPages`, taken from the list page's language. Page 1 lives at the collection URL and page N at `<collection>/page/N/`, under the language prefix on a translated list. On an unpaginated list, fall back to `.ListPages`, as below.
 
 ```html
-{{ $pages := .Collection.Pages }}
+{{ $pages := .ListPages }}
 {{ with .Paginator }}{{ $pages = .CurrentPages }}{{ end }}
-{{ range $pages }}{{ if ne .Kind "section" }}
+{{ range $pages }}
 <article><a href="{{ .Permalink }}">{{ .Title }}</a></article>
-{{ end }}{{ end }}
+{{ end }}
 {{ with .Paginator }}
 <nav>
   {{ if .HasPrev }}<a href="{{ .PrevURL }}">Newer</a>{{ end }}

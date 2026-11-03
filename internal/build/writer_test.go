@@ -44,6 +44,23 @@ func TestWriter_WritePages(t *testing.T) {
 	assertFileContains(t, filepath.Join(outDir, "docs", "intro", "index.html"), "Intro")
 }
 
+// When two pages resolve to one URL, the first in page order is written, the
+// one the page index keeps, on every build.
+func TestWriter_DuplicateOutPathKeepsFirst(t *testing.T) {
+	for i := 0; i < 20; i++ {
+		outDir := filepath.Join(t.TempDir(), "dist")
+		w := &Writer{OutputDir: outDir, ProjectDir: t.TempDir()}
+		pages := []RenderedPage{
+			{OutPath: "docs/intro/index.html", HTML: []byte("<html>first</html>")},
+			{OutPath: "docs/intro/index.html", HTML: []byte("<html>second</html>")},
+		}
+		if _, err := w.Write(pages, nil); err != nil {
+			t.Fatal(err)
+		}
+		assertFileContains(t, filepath.Join(outDir, "docs", "intro", "index.html"), "first")
+	}
+}
+
 func TestWriter_Aliases(t *testing.T) {
 	outDir := filepath.Join(t.TempDir(), "dist")
 	w := &Writer{OutputDir: outDir, ProjectDir: t.TempDir()}

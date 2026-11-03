@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/getsarde/sarde/internal/asset"
+	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 )
 
@@ -236,6 +237,42 @@ func TestRenderImage_SiteAbsoluteUsesAssetURL(t *testing.T) {
 		w.Flush()
 		if !strings.Contains(buf.String(), want) {
 			t.Errorf("renderImage(%q) = %s, want %s", dest, buf.String(), want)
+		}
+	}
+}
+
+// An attribute list right after an image reaches the lookup as per-image
+// options and leaves no text behind; a "{" anywhere else stays text.
+func TestImageAttributesFromMarkdown(t *testing.T) {
+	var got asset.ImageOptions
+	lookup := func(_ string, opts asset.ImageOptions) *asset.ProcessedImage {
+		got = opts
+		return &asset.ProcessedImage{Src: "/img/hero.jpg", Width: 800, Height: 400}
+	}
+	gm := goldmark.New(goldmark.WithExtensions(&Extension{Lookup: lookup}))
+
+	var buf bytes.Buffer
+	if err := gm.Convert([]byte("![Hero](hero.jpg){width=800 op=fill height=400 format=webp}\n"), &buf); err != nil {
+		t.Fatal(err)
+	}
+	if got.Width != 800 || got.Height != 400 || got.Op != asset.ResizeOpFill || len(got.Formats) != 1 || got.Formats[0] != "webp" {
+		t.Errorf("lookup options = %+v, want width 800, height 400, op fill, format webp", got)
+	}
+	if strings.Contains(buf.String(), "{") || strings.Contains(buf.String(), "width=800") {
+		t.Errorf("the attribute list was rendered as text: %s", buf.String())
+	}
+
+	for _, md := range []string{
+		"Braces {width=800} in prose stay.\n",
+		"![Hero](hero.jpg) {width=800}\n",
+		"![Hero](hero.jpg){not closed\n",
+	} {
+		buf.Reset()
+		if err := gm.Convert([]byte(md), &buf); err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(buf.String(), "{") {
+			t.Errorf("%q: the brace text was dropped: %s", md, buf.String())
 		}
 	}
 }

@@ -16,14 +16,8 @@ head:
   custom_css:
   - css/custom.css
 markdown:
-  github_alerts: true
   asides:
     style: galaxy
-  katex: true
-  mermaid: true
-  triple_colon_callouts: true
-  typographer: true
-  unsafe: false
   codeblocks:
     engine: nuri
 collections:
@@ -31,7 +25,6 @@ collections:
     sort: order
     tabs: false
     sidebar:
-      collapsible: true
       collapsed_by_default: true
 toc:
   enabled: false

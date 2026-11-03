@@ -150,6 +150,69 @@ func TestContentRebuild_BodyOnlyRendersCollectionPagination(t *testing.T) {
 	assertFixtureFileExists(t, filepath.Join(dir, "dist"), "blog/page/2/index.html")
 }
 
+// On a multi-language site a body-only edit re-renders each language's
+// numbered list pages at that language's path, with that language's posts,
+// exactly as a full build writes them.
+func TestContentRebuild_MultiLangBodyOnlyRendersPerLanguagePagination(t *testing.T) {
+	dir := t.TempDir()
+	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n# Home\n")
+	writeFixture(t, dir, "content/fr/_index.md", "---\ntitle: Accueil\n---\n# Accueil\n")
+	writeFixture(t, dir, "content/blog/_index.md", "---\ntitle: Blog\n---\n")
+	writeFixture(t, dir, "content/fr/blog/_index.md", "---\ntitle: Carnet\n---\n")
+	writeFixture(t, dir, "content/blog/one.md", "---\ntitle: One\ndate: 2025-01-02T00:00:00Z\n---\n# One\nBody.\n")
+	writeFixture(t, dir, "content/blog/two.md", "---\ntitle: Two\ndate: 2025-01-01T00:00:00Z\n---\n# Two\nBody.\n")
+	writeFixture(t, dir, "content/fr/blog/un.md", "---\ntitle: Un\ndate: 2025-01-03T00:00:00Z\n---\n# Un\nCorps.\n")
+
+	cfg := config.Defaults()
+	cfg.I18n.DefaultLanguage = "en"
+	cfg.I18n.Languages = map[string]config.LanguageConfig{"en": {Weight: 1}, "fr": {Weight: 2}}
+	cfg.Collections = map[string]*config.CollectionSiteConfig{"blog": {Paginate: config.IntPtr(1)}}
+
+	builder := newIncrementalBuilder(dir, cfg)
+	full, err := builder.Build()
+	if err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+	distDir := filepath.Join(dir, "dist")
+	read := func(rel string) string {
+		t.Helper()
+		data, err := os.ReadFile(filepath.Join(distDir, filepath.FromSlash(rel)))
+		if err != nil {
+			t.Fatalf("reading %s: %v", rel, err)
+		}
+		return string(data)
+	}
+
+	writeFixture(t, dir, "content/blog/two.md", "---\ntitle: Two\ndate: 2025-01-01T00:00:00Z\n---\n# Two\nEdited body.\n")
+	result, err := builder.ContentRebuild([]string{filepath.Join(dir, "content", "blog", "two.md")})
+	if err != nil {
+		t.Fatalf("ContentRebuild failed: %v", err)
+	}
+	if result.PageCount >= full.PageCount {
+		t.Fatalf("rebuild rendered %d pages, the full build %d: want an incremental rebuild", result.PageCount, full.PageCount)
+	}
+
+	// English: One, then Two. French: Un, then the fallback copies of One and Two.
+	enPage2, frPage2 := read("blog/page/2/index.html"), read("fr/blog/page/2/index.html")
+	if !strings.Contains(enPage2, `href="/blog/two/"`) || strings.Contains(enPage2, `href="/fr/blog/`) {
+		t.Error("blog/page/2/ after the rebuild does not list only the English post Two")
+	}
+	if !strings.Contains(frPage2, `href="/fr/blog/one/"`) {
+		t.Error("fr/blog/page/2/ after the rebuild does not list the French copy of One")
+	}
+	assertFixtureFileExists(t, distDir, "fr/blog/page/3/index.html")
+
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("second full Build failed: %v", err)
+	}
+	if got := read("blog/page/2/index.html"); got != enPage2 {
+		t.Error("blog/page/2/ differs between the incremental rebuild and a full build")
+	}
+	if got := read("fr/blog/page/2/index.html"); got != frPage2 {
+		t.Error("fr/blog/page/2/ differs between the incremental rebuild and a full build")
+	}
+}
+
 func TestContentRebuild_StructuralChangesFallBackToFullBuild(t *testing.T) {
 	tests := []struct {
 		name       string

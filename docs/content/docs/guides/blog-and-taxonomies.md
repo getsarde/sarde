@@ -77,6 +77,8 @@ collections:
 
 `paginate` takes a positive integer. Set it to `0` to turn pagination off: the blog index then lists every post on one page, without page links.
 
+On a multi-language site, each language's blog index lists and pages through the posts in that language, and its numbered pages live under the language prefix, such as `/fr/blog/page/2/`. See [Fallback pages](/guides/internationalization/#fallback-pages) for how untranslated posts appear.
+
 ## Taxonomies
 
 A taxonomy groups content by shared terms. Sarde enables `tags` by default. Each taxonomy generates a listing page at `/<taxonomy>/` and a page for each term at `/<taxonomy>/<term>/`. Term pages paginate at `/<taxonomy>/<term>/page/2/`.
@@ -140,7 +142,7 @@ taxonomies:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `singular` | string | taxonomy name | Singular name of the taxonomy. The default theme does not use it, and URLs always use the taxonomy key (`/tags/`). |
-| `paginate_by` | int | `10` | Items per page on term pages. Must be at least 1. |
+| `paginate_by` | int | `10` | Items per page on term pages. Set it to `0` to turn pagination off: each term page lists every item, without page links. |
 | `undefined_tags` | string | `"warn"` | How to treat terms used in content but missing from `data/<taxonomy>.yml`: `warn` logs a warning, `error` fails the build, `ignore` skips the check, `create` accepts them silently. The check runs only when the data file exists. |
 | `render` | bool | `true` | Generate the listing and term pages. |
 | `show_tags` | bool | `true` | Show tag chips on pages. Applies to the `tags` taxonomy only. A post's own `show_tags` frontmatter field overrides it. |
@@ -163,7 +165,7 @@ lab-work:
 | `label` | Display name. Defaults to the term as written in content. |
 | `description` | Text shown under the term page title. |
 | `color` | Accent color for the term's chips and its pill on the listing page. |
-| `icon` | Lucide icon name drawn on tag chips. |
+| `icon` | Lucide icon name drawn on tag chips, the taxonomy list, and the term page. |
 | `hidden` | Leaves the term out of the tag sidebar and the listing page. |
 | `priority` | Orders the listing page. Higher values come first. |
 | `permalink` | Replaces the term's slug in its URL. |

@@ -3,6 +3,7 @@ package engine
 import (
 	"crypto/sha256"
 	"fmt"
+	"path"
 	"sort"
 	"strings"
 )
@@ -89,6 +90,22 @@ func (r *URLResolver) AbsURL(relPath, lang, version string) string {
 	return origin + r.URL(relPath, lang, version)
 }
 
+// AssetURL returns the URL for an asset path written in content, such as an
+// image under public/: a site-absolute path gets the base path and never a
+// language or version prefix, since assets exist once. A ?query and
+// #fragment are kept. Full URLs, relative paths and a nil resolver leave src
+// unchanged.
+func (r *URLResolver) AssetURL(src string) string {
+	if r == nil || !strings.HasPrefix(src, "/") || IsAbsoluteURL(src) {
+		return src
+	}
+	pathPart, suffix := src, ""
+	if idx := strings.IndexAny(pathPart, "?#"); idx >= 0 {
+		pathPart, suffix = pathPart[:idx], pathPart[idx:]
+	}
+	return r.URL(pathPart, "", "") + suffix
+}
+
 // IsAbsoluteURL reports whether u names another location: a scheme such as
 // https:, mailto: or tel:, or a protocol-relative //host. The resolver's base
 // path, language and version prefixes must not touch such a URL, so callers
@@ -110,6 +127,28 @@ func IsAbsoluteURL(u string) bool {
 		}
 	}
 	return false
+}
+
+// PageRelativePath joins a page-relative path, such as a frontmatter
+// image: cover.jpg, to the folder of the page's URL, the way a browser would
+// on the page itself. A path that starts with "/" is returned as is. The
+// result is site-root-relative and prefix-free, ready for URLResolver.URL. A
+// page bundle's files are written once, at the language-free path, so a
+// caller resolving a bundle file passes no language.
+func PageRelativePath(p *Page, rel string) string {
+	if p == nil || strings.HasPrefix(rel, "/") {
+		return rel
+	}
+	base := p.RelPermalink
+	if !strings.HasSuffix(base, "/") {
+		base = path.Dir(base) + "/"
+	}
+	trailing := strings.HasSuffix(rel, "/")
+	out := path.Join(base, rel)
+	if trailing && out != "/" {
+		out += "/"
+	}
+	return out
 }
 
 // OutputRelPath returns the on-disk output path: version- and lang-prefixed but

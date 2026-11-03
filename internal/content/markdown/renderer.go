@@ -88,6 +88,16 @@ func (r *Renderer) SetImageLazyLoading(enabled bool) {
 	r.imgRend.LazyLoading = enabled
 }
 
+// SetImageSettings gives the image renderer the site's images config, which
+// sets the <picture> options (images.dimensions and the widths in sizes).
+func (r *Renderer) SetImageSettings(processor *asset.ImageProcessor) {
+	if processor == nil {
+		r.imgRend.Images = nil
+		return
+	}
+	r.imgRend.Images = processor.Config
+}
+
 // SetLinkContext sets the current page for internal link resolution.
 // Must be called before Render() for each page.
 func (r *Renderer) SetLinkContext(page *engine.Page) {
@@ -299,7 +309,7 @@ func (r *Renderer) buildMarkdown(cfg RendererConfig) (goldmark.Markdown, string)
 		&figure.Extension{},
 		&gallery.Extension{AssetURL: r.linkRend.AssetURL},
 		&imagecompare.Extension{AssetURL: r.linkRend.AssetURL},
-		&video.Extension{},
+		&video.Extension{AssetURL: r.linkRend.AssetURL},
 		&terminal.Extension{},
 		&mermaid.Extension{},
 		// Inline extensions

@@ -24,7 +24,7 @@ func BuildBreadcrumbs(page *engine.Page, collection *engine.Collection) []engine
 
 	// Collection root.
 	crumbs = append(crumbs, engine.BreadcrumbItem{
-		Label: collection.Title,
+		Label: collection.TitleFor(page.Lang),
 		URL:   "/" + collection.Name + "/",
 	})
 
@@ -70,7 +70,7 @@ func BuildBreadcrumbsTabbed(page *engine.Page, col *engine.Collection, tab *engi
 	}
 
 	crumbs := []engine.BreadcrumbItem{
-		{Label: col.Title, URL: "/" + col.Name + "/"},
+		{Label: col.TitleFor(page.Lang), URL: "/" + col.Name + "/"},
 		{Label: tab.Title, URL: tab.Permalink},
 	}
 
@@ -114,7 +114,7 @@ func BuildBreadcrumbsVersioned(page *engine.Page, col *engine.Collection) []engi
 	}
 
 	crumbs := []engine.BreadcrumbItem{
-		{Label: col.Title, URL: "/" + col.Name + "/"},
+		{Label: col.TitleFor(page.Lang), URL: "/" + col.Name + "/"},
 	}
 
 	// Insert version crumb only for older versions (not the latest).

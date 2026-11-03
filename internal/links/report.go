@@ -108,6 +108,12 @@ type ReportInput struct {
 	Coverage CoverageSummary
 	Config   LinkCheckConfig
 	SiteURL  string
+	// KnownURL reports whether the build writes a page at a URL path (base
+	// path included, no query or fragment), counting pages that exist only
+	// in the output, such as taxonomy and numbered list pages. With it, an
+	// unverified page link is settled: fine when the URL is built, a broken
+	// target when nothing is. Nil leaves unverified links unverified.
+	KnownURL func(urlPath string) bool
 }
 
 // ReportResult is what GenerateReport returns to the builder.
@@ -123,7 +129,7 @@ type ReportResult struct {
 // to return a build error.
 func GenerateReport(in ReportInput) ReportResult {
 	refs := in.Graph.Refs()
-	findings := classifyRefs(refs, in.Config, in.SiteURL)
+	findings := classifyRefs(refs, in.Config, in.SiteURL, in.KnownURL)
 
 	hasErrors := false
 	for _, f := range findings {
@@ -153,7 +159,7 @@ func GenerateReport(in ReportInput) ReportResult {
 	}
 }
 
-func classifyRefs(refs []LinkRef, cfg LinkCheckConfig, siteURL string) []Finding {
+func classifyRefs(refs []LinkRef, cfg LinkCheckConfig, siteURL string, knownURL func(string) bool) []Finding {
 	var findings []Finding
 	for _, ref := range refs {
 		if shouldExcludeRef(ref.RawDest, cfg.Exclude) {
@@ -230,6 +236,20 @@ func classifyRefs(refs []LinkRef, cfg LinkCheckConfig, siteURL string) []Finding
 			})
 
 		case StatusUnverified:
+			// Once every output URL is known, a link to a page path either
+			// reaches a built page or nothing at all.
+			if p, ok := pageURLPath(ref.Resolved); ok && knownURL != nil {
+				if knownURL(p) {
+					continue
+				}
+				if cfg.OnBroken == "ignore" {
+					continue
+				}
+				findings = append(findings, Finding{
+					Type: FindingBrokenTarget, Ref: ref, Policy: cfg.OnBroken,
+				})
+				continue
+			}
 			policy := cfg.OnUnverifiedInternal
 			if policy == "" {
 				policy = "warn"
@@ -258,7 +278,21 @@ func classifyRefs(refs []LinkRef, cfg LinkCheckConfig, siteURL string) []Finding
 		if a.Ref.RawDest != b.Ref.RawDest {
 			return a.Ref.RawDest < b.Ref.RawDest
 		}
-		return a.Ref.Fragment < b.Ref.Fragment
+		if a.Ref.Fragment != b.Ref.Fragment {
+			return a.Ref.Fragment < b.Ref.Fragment
+		}
+		// The same link in several lanes: order the lanes too, so the lane a
+		// deduplicated line names is the same on every build.
+		if a.Ref.Dim.Lang != b.Ref.Dim.Lang {
+			return a.Ref.Dim.Lang < b.Ref.Dim.Lang
+		}
+		if a.Ref.Dim.Version != b.Ref.Dim.Version {
+			return a.Ref.Dim.Version < b.Ref.Dim.Version
+		}
+		if a.Ref.Line != b.Ref.Line {
+			return a.Ref.Line < b.Ref.Line
+		}
+		return a.Ref.Col < b.Ref.Col
 	})
 
 	return findings
@@ -363,4 +397,26 @@ func groupByFile(findings []Finding) []fileGroup {
 type fileGroup struct {
 	File     string
 	Findings []Finding
+}
+
+// pageURLPath returns the path of a resolved page link, without its query
+// and fragment, and whether it names a page: a site path whose last segment
+// has no file extension. A link to a file, such as /files/notes.pdf, may be
+// written by something the build does not track, so it stays unverified.
+func pageURLPath(resolved string) (string, bool) {
+	p := resolved
+	if i := strings.IndexAny(p, "?#"); i >= 0 {
+		p = p[:i]
+	}
+	if !strings.HasPrefix(p, "/") || strings.HasPrefix(p, "//") {
+		return "", false
+	}
+	last := strings.TrimSuffix(p, "/")
+	if i := strings.LastIndexByte(last, '/'); i >= 0 {
+		last = last[i+1:]
+	}
+	if strings.Contains(last, ".") {
+		return "", false
+	}
+	return p, true
 }

@@ -524,18 +524,39 @@ func TestMaxWidth_FiltersVariants(t *testing.T) {
 		t.Fatalf("ProcessImage failed: %v", err)
 	}
 
+	largest := 0
 	for _, v := range variants {
-		if v.Width == 2000 {
-			continue // original is always included
-		}
 		if v.Width > 1000 {
 			t.Errorf("variant %dw exceeds MaxWidth 1000", v.Width)
 		}
+		if v.Width > largest {
+			largest = v.Width
+		}
 	}
 
-	// Should have 400w, 800w (filtered 1200, 1600) + original 2000w = 3.
-	if len(variants) != 3 {
-		t.Errorf("variant count = %d, want 3", len(variants))
+	// 400w and 800w (1200 and 1600 filtered), plus the 2000px original
+	// scaled down to MaxWidth: 1000w.
+	if len(variants) != 3 || largest != 1000 {
+		t.Errorf("variants = %d, largest %dw; want 3 with the largest at 1000w", len(variants), largest)
+	}
+}
+
+// With op=fill the largest variant is cropped like the others, so every
+// width in the srcset has the same aspect ratio.
+func TestFillOp_LargestVariantKeepsAspectRatio(t *testing.T) {
+	srcPath := createTestImage(t, t.TempDir(), "fill.png", 1600, 1200)
+	p := &ImageProcessor{
+		Config: &config.ImageSettings{Widths: []int{400, 800}, Quality: 80},
+		Cache:  NewCache(t.TempDir()),
+	}
+	variants, _, err := p.ProcessImage(srcPath, ImageOptions{Op: ResizeOpFill, Width: 800, Height: 400})
+	if err != nil {
+		t.Fatalf("ProcessImage failed: %v", err)
+	}
+	for _, v := range variants {
+		if v.Width != 2*v.Height {
+			t.Errorf("variant %dx%d is not cropped to 2:1", v.Width, v.Height)
+		}
 	}
 }
 

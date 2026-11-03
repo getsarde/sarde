@@ -2,15 +2,12 @@ package annotation
 
 import (
 	"fmt"
-	"sync/atomic"
 
 	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
 )
-
-var annCounter atomic.Int64
 
 type annotationRenderer struct{}
 
@@ -23,7 +20,7 @@ func (r *annotationRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegister
 func (r *annotationRenderer) render(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		a := node.(*Annotation)
-		id := annCounter.Add(1)
+		id := htmlutil.PageScopedID("ann", source, a)
 		cls := "sarde-annotation"
 		switch a.Style {
 		case "highlight":
@@ -31,7 +28,7 @@ func (r *annotationRenderer) render(w util.BufWriter, source []byte, node ast.No
 		case "plain":
 			cls += " sarde-annotation-plain"
 		}
-		_, _ = fmt.Fprintf(w, `<abbr class="%s" aria-describedby="ann-%d" tabindex="0">%s<span class="sarde-annotation-tooltip" role="tooltip" id="ann-%d">%s</span></abbr>`,
+		_, _ = fmt.Fprintf(w, `<abbr class="%s" aria-describedby="%s" tabindex="0">%s<span class="sarde-annotation-tooltip" role="tooltip" id="%s">%s</span></abbr>`,
 			cls, id, htmlutil.EscapeHTML(a.Label), id, htmlutil.EscapeHTML(a.Explanation))
 	}
 	return ast.WalkSkipChildren, nil

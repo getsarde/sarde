@@ -272,10 +272,21 @@ func mapFrontmatterToParams(page *engine.Page, fm *engine.Frontmatter, fmMap map
 	if fm.Transparent {
 		page.Params["transparent"] = true
 	}
+	// DetectTabs reads the opt-out from Params, where params: {tabs: false}
+	// also puts it.
+	if fm.Tabs != nil {
+		page.Params["tabs"] = *fm.Tabs
+	}
+	// Head.html reads robots from Params; params: {robots: ...} still wins.
+	if fm.Robots != "" {
+		if _, set := page.Params["robots"]; !set {
+			page.Params["robots"] = fm.Robots
+		}
+	}
 	if fm.Render != nil && !*fm.Render {
 		page.Params["render"] = false
 	}
-	if b, ok := fmMap["featured"].(bool); ok && b {
+	if fm.Featured {
 		page.Params["featured"] = true
 	}
 	if fm.Template != "" {

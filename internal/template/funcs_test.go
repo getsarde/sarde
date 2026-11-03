@@ -1,12 +1,14 @@
 package template
 
 import (
+	"errors"
 	htmltemplate "html/template"
 	"image"
 	"image/color"
 	"image/png"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -140,6 +142,33 @@ func TestFnMarkdownify_InlineCode(t *testing.T) {
 	want := "use <code>fmt.Println</code>"
 	if got != want {
 		t.Errorf("markdownify(inline code) = %q, want %q", got, want)
+	}
+}
+
+// A title or description shown on a list card can hold a site-absolute link
+// or image; through the template func it gets the base path, like body
+// content. Full URLs and relative paths are left alone.
+func TestMarkdownify_SiteAbsolutePathsGetBasePath(t *testing.T) {
+	e := &Engine{
+		resolver:    &engine.ThemeResolver{},
+		site:        testSite(),
+		urlResolver: &engine.URLResolver{BasePath: "/sub/"},
+	}
+	fn := e.buildFuncMap(nil, nil)["markdownify"].(func(any) htmltemplate.HTML)
+	got := string(fn("See [the guide](/docs/guide/#setup), ![logo](/img/logo.svg), [x](https://example.com/a) and [y](other/)"))
+	for _, want := range []string{
+		`href="/sub/docs/guide/#setup"`,
+		`src="/sub/img/logo.svg"`,
+		`href="https://example.com/a"`,
+		`href="other/"`,
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("markdownify: missing %s in %q", want, got)
+		}
+	}
+	// Without a resolver (the shortcode map), paths stay as written.
+	if got := string(fnMarkdownify("[g](/docs/)")); !strings.Contains(got, `href="/docs/"`) {
+		t.Errorf("fnMarkdownify without a resolver changed the path: %q", got)
 	}
 }
 
@@ -412,6 +441,38 @@ func TestRootURL_TranslatedPageKeepsSiteRoot(t *testing.T) {
 	}
 }
 
+// pageRelURL reads a relative value from the page's own folder and adds the
+// base path but never the page's language: bundle files are written once.
+func TestPageRelURL(t *testing.T) {
+	e := &Engine{
+		resolver: &engine.ThemeResolver{},
+		site:     testSite(),
+		urlResolver: &engine.URLResolver{
+			BasePath:    "/docs/",
+			I18nEnabled: true,
+			DefaultLang: "en",
+			Languages:   map[string]bool{"en": true, "fr": true},
+		},
+	}
+	e.currentLang = "en"
+	e.funcMap = e.buildFuncMap(nil, nil)
+	fn := e.funcMapForLang("fr")["pageRelURL"].(func(*engine.Page, string) string)
+
+	post := &engine.Page{PageIdentity: engine.PageIdentity{RelPermalink: "/blog/trip/"}}
+	for in, want := range map[string]string{
+		"cover.jpg":                 "/docs/blog/trip/cover.jpg",
+		"img/cover.jpg":             "/docs/blog/trip/img/cover.jpg",
+		"../shared.png":             "/docs/blog/shared.png",
+		"/images/cover.jpg":         "/docs/images/cover.jpg",
+		"https://cdn.example.com/x": "https://cdn.example.com/x",
+		"data:image/png;base64,AA":  "data:image/png;base64,AA",
+	} {
+		if got := fn(post, in); got != want {
+			t.Errorf("pageRelURL(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
 // ── Cross-collection tests ──
 
 func TestRecentEntries(t *testing.T) {
@@ -647,6 +708,39 @@ func TestResizeImageFunc_WithProcessor(t *testing.T) {
 	}
 }
 
+// On a site served from a subfolder, the image and resize_image funcs give
+// the bundle file and every processed variant the base path, as Markdown
+// images get.
+func TestImageFuncs_BasePath(t *testing.T) {
+	srcPath := createTestPNGForTemplate(t, t.TempDir(), "hero.png", 1600, 900)
+	processor := &asset.ImageProcessor{
+		Config: &config.ImageSettings{Widths: []int{400, 800}, Quality: 80},
+		Cache:  asset.NewCache(t.TempDir()),
+	}
+	e := &Engine{imageProcessor: processor, urlResolver: &engine.URLResolver{BasePath: "/sub/"}}
+	fm := e.buildFuncMap(nil, nil)
+	res := engine.Resource{
+		Name: "hero.png", RelPermalink: "/blog/post/hero.png",
+		Width: 1600, Height: 900, Title: "Hero", SrcPath: srcPath,
+	}
+
+	plain := string(fm["image"].(func(engine.Resource) htmltemplate.HTML)(res))
+	if !strings.Contains(plain, `src="/sub/blog/post/hero.png"`) {
+		t.Errorf("image: src has no base path: %s", plain)
+	}
+	resized := string(fm["resize_image"].(func(engine.Resource, string) htmltemplate.HTML)(res, "width=800&format=jpeg"))
+	if !strings.Contains(resized, "srcset=") {
+		t.Fatalf("resize_image: no srcset: %s", resized)
+	}
+	for _, attr := range regexp.MustCompile(`(?:src|srcset)="([^"]*)"`).FindAllStringSubmatch(resized, -1) {
+		for _, candidate := range strings.Split(attr[1], ",") {
+			if u := strings.Fields(candidate); len(u) > 0 && strings.HasPrefix(u[0], "/") && !strings.HasPrefix(u[0], "/sub/") {
+				t.Errorf("resize_image: %q has no base path", u[0])
+			}
+		}
+	}
+}
+
 func createTestPNGForTemplate(t *testing.T, dir, name string, width, height int) string {
 	t.Helper()
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
@@ -770,5 +864,27 @@ func TestTermURL_NonLatinAndCustomSlugTerms(t *testing.T) {
 		if got := termURL("tags", "Ελληνικά"); got == "/tags//" || got != "/tags/"+taxonomy.TermSlug("Ελληνικά")+"/" {
 			t.Errorf("%s termURL(missing non-Latin) = %q", name, got)
 		}
+	}
+}
+
+// highlight renders through the site's code block engine once one is set,
+// and falls back to a plain <pre><code> without one or when it fails.
+func TestHighlight_UsesCodeBlockEngine(t *testing.T) {
+	e := &Engine{}
+	fm := e.buildFuncMap(nil, nil)
+	highlight := fm["highlight"].(func(string, string) htmltemplate.HTML)
+
+	if got := string(highlight("x := 1", "go")); got != `<pre><code class="language-go">x := 1</code></pre>` {
+		t.Errorf("without an engine: %q", got)
+	}
+	e.SetCodeHighlighter(func(code, lang string) (string, error) {
+		return `<div class="kazari" data-lang="` + lang + `">` + code + `</div>`, nil
+	})
+	if got := string(highlight("x := 1", "go")); got != `<div class="kazari" data-lang="go">x := 1</div>` {
+		t.Errorf("with an engine: %q", got)
+	}
+	e.SetCodeHighlighter(func(string, string) (string, error) { return "", errors.New("boom") })
+	if got := string(highlight("x := 1", "go")); !strings.HasPrefix(got, "<pre><code") {
+		t.Errorf("a failed render must fall back: %q", got)
 	}
 }

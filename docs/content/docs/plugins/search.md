@@ -140,6 +140,8 @@ When the [`search_highlighter`](/plugins/search-highlighter/) client plugin is e
 ## Edge cases
 
 - Draft pages are excluded from the index.
+- Pages with `render: false` are excluded: they are never written, so a result would lead nowhere.
+- An untranslated page's fallback copy is left out of the translated language's index; the page is found in the default language's index. The `telescope` plugin skips fallback copies too.
 - Taxonomy pages are excluded from the index: the tag index (`/tags/`), each tag's page (`/tags/python/`), and its numbered pages (`/tags/python/page/2/`) only list other pages.
 - Duplicate URLs (permalink collisions) are deduplicated: only the first page encountered keeps its entry.
 - Heading documents within a page are also deduplicated by their anchor URL.

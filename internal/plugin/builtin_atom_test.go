@@ -126,3 +126,44 @@ func TestAtom_RenderedFallbackSummary(t *testing.T) {
 		t.Errorf("Summary = %q", entries[0].Summary)
 	}
 }
+
+// site.author becomes the feed's author, which Atom requires for entries
+// that name none; a page's own author still wins on its entry.
+func TestAtom_SiteAuthorIsFeedAuthor(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+	cfg := config.Defaults()
+	cfg.Site.Author = "Field Notes Team"
+	ctx := &BuildDoneContext{
+		Config:    cfg,
+		OutputDir: outDir,
+		Site:      &engine.SiteContext{BaseURL: "https://example.com"},
+		Collections: map[string]*engine.Collection{
+			"blog": {
+				Name:   "blog",
+				Title:  "Blog",
+				Config: &engine.CollectionConfig{Feed: true},
+				Pages: []*engine.Page{
+					{PageIdentity: engine.PageIdentity{Title: "Unsigned", RelPermalink: "/blog/unsigned/", Date: time.Date(2025, 3, 2, 0, 0, 0, 0, time.UTC)}},
+					{PageIdentity: engine.PageIdentity{Title: "Signed", RelPermalink: "/blog/signed/", Date: time.Date(2025, 3, 1, 0, 0, 0, 0, time.UTC)}, Params: map[string]any{"author": "Alice"}},
+				},
+			},
+		},
+	}
+	ctx.SetWarnings(&warnings)
+	if err := atomBuildDone(ctx, nil); err != nil {
+		t.Fatal(err)
+	}
+	data, err := readTestFile(outDir, "blog/atom.xml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	content := string(data)
+	feedHead, _, _ := strings.Cut(content, "<entry>")
+	if !strings.Contains(feedHead, "<author>") || !strings.Contains(feedHead, "<name>Field Notes Team</name>") {
+		t.Errorf("feed-level author missing:\n%s", content)
+	}
+	if !strings.Contains(content, "<name>Alice</name>") {
+		t.Error("the page's own author must stay on its entry")
+	}
+}

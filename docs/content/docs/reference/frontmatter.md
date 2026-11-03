@@ -57,13 +57,13 @@ If the opening brace is never balanced, the file is treated as content with no f
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `title` | string | inferred | Page title. When not set, Sarde uses the first `# H1` heading, then the filename. |
-| `slug` | string | inferred | URL slug for the page. Inferred from the filename with numeric prefixes stripped. |
+| `slug` | string | inferred | Short name of the page: the value of `:slug` in a collection's [`permalink`](/reference/configuration/content/#collections) pattern, and a name `prev`, `next` and `nav.yaml` `page` can use. Without a permalink pattern, the URL comes from the filename and `slug` does not change it. Inferred from the filename with date and numeric prefixes stripped; an `_index.md` or `index.md` uses its folder name. |
 | `date` | date | inferred | Publication date. Inferred from a `YYYY-MM-DD` filename prefix or the file modification time. |
 | `updated` | date | inferred | Last modification date. Inferred from the file's last git commit, or its modification time, per [`build.last_updated`](/reference/configuration/build-and-output/#last-updated-strategy). Set it explicitly when a commit date would misrepresent the change (a formatting sweep, for example). |
 | `publish_date` | date | - | Future publication date. Pages with a future `publish_date` are excluded unless `build.future` is enabled. |
 | `expiry_date` | date | - | Expiration date. Pages past this date are excluded unless `build.expired` is enabled. |
 | `aliases` | list of string | `[]` | Alternative URL paths that redirect to this page. |
-| `layout` | string | - | Page layout. `default`, `docs`, `splash`, `wide`, `full`, `centered`, `split`, or `presentation`. |
+| `layout` | string | - | Page layout. `default`, `docs`, `splash`, `wide`, `full`, `centered`, `split`, `presentation`, or `labs`. |
 | `type` | string | - | Content type identifier. |
 | `template` | string | - | Template override for rendering this page. |
 
@@ -89,11 +89,12 @@ A value that is neither empty nor a recognized date is an error, and the build r
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `draft` | bool | `false` | Mark the page as a draft. Drafts are excluded from builds unless `build.drafts` is enabled. |
-| `description` | string | inferred | Page description for meta tags and feeds. Auto-derived from the first prose paragraph (truncated to 160 characters) if not set; code fences and directive blocks, including nested ones, are skipped. An inferred description is used for meta tags, search, and listings, but is not shown under the page title. |
-| `image` | string | - | Featured image path for social cards and Open Graph tags. |
+| `description` | string | inferred | Page description for meta tags and feeds. Auto-derived from the first prose paragraph (truncated to 160 characters) if not set; code fences, directive blocks (including nested ones), and lines that hold only images are skipped, and an image inside the paragraph is dropped. An inferred description is used for meta tags, search, and listings, but is not shown under the page title. |
+| `image` | string | - | Featured image path for social cards, Open Graph tags, blog covers, and list cards. A relative path, such as `cover.jpg`, is read from the page's folder. |
 | `summary` | string | inferred | Page summary. Falls back to `description`, then to the first paragraph truncated to [`content.summary_length`](/reference/configuration/content/#content) words. |
 | `render` | bool | - | Whether to render this page. Treated as `true` when unset. Set to `false` to process the page in the content pipeline without generating an output file. |
 | `pagefind` | bool | - | Include this page in the search index. Treated as `true` when unset. |
+| `featured` | bool | `false` | List the post in the Featured section above the posts on the default blog list (the `blog/list` template). |
 | `robots` | string | - | Value for the page's `<meta name="robots">` tag, e.g. `noindex` or `noindex,nofollow`. When unset, no robots meta is emitted, except on pagination pages beyond page 1, which default to `noindex,follow`. |
 | `show_updated` | bool | - | Show the "last updated" date on this page. Set to `false` to hide it. This gates display only: the timestamp is still resolved, so sitemap `lastmod`, SEO `dateModified`, and feed timestamps stay correct. |
 | `edit_url` | bool or string | - | Controls the "Edit this page" link. `false` hides it. `true` uses the site-wide [`site.edit_url`](/reference/configuration/site-and-branding/#site). A string provides a custom URL for this page. |
@@ -222,7 +223,8 @@ categories:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `transparent` | bool | `false` | Mark this section as transparent. Transparent sections do not appear as a level in the sidebar tree; their children are promoted one level up. |
-| `icon` | string | - | Page-level icon. Distinct from `sidebar.icon`, which controls the sidebar entry. |
+| `tabs` | bool | - | On a docs collection's root `_index.md`, `false` turns the [tab bar](/guides/tabbed-navigation/) off. `tabs: true` in `sarde.yaml` takes precedence. |
+| `icon` | string | - | Lucide icon name for the tab tile, on the `_index.md` of a top-level section in a tabbed docs collection. Distinct from `sidebar.icon`, which controls the sidebar entry. |
 | `head` | list | `[]` | Custom HTML tags injected into the page's `<head>`. |
 | `banner` | object | - | Per-page announcement banner. See [`banner`](#banner) below. |
 | `og_card` | object | - | Per-page social card overrides. See [`og_card`](#og-card) below. |
@@ -353,7 +355,7 @@ Sarde fills in missing frontmatter fields automatically. Frontmatter values alwa
 | `date` | Frontmatter, then `YYYY-MM-DD` filename prefix, then file modification time |
 | `updated` | Frontmatter, then git commit date or file modification time (per [`build.last_updated`](/reference/configuration/build-and-output/#build) strategy) |
 | `sidebar.order` | Frontmatter, then numeric filename prefix |
-| `description` | Frontmatter, then first prose paragraph of content (truncated to 160 characters; code fences and directive blocks are skipped) |
+| `description` | Frontmatter, then first prose paragraph of content (truncated to 160 characters; code fences, directive blocks, and image-only lines are skipped) |
 | `summary` | Frontmatter, then `description`, then first prose paragraph (truncated to [`content.summary_length`](/reference/configuration/content/#content) words; same skipping) |
 
 ### Filename patterns

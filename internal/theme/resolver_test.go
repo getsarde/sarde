@@ -1,6 +1,7 @@
 package theme
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -82,5 +83,43 @@ func TestResolveDarkTokens(t *testing.T) {
 
 	if result["bg"] != "#222222" {
 		t.Errorf("dark bg: got %q", result["bg"])
+	}
+}
+
+// An unknown token in a theme.yaml does nothing, so it is reported, with a
+// suggestion, in tokens, dark_tokens and presets alike.
+func TestThemeTokenWarnings(t *testing.T) {
+	thm := &Theme{
+		Name:   "Starter",
+		Tokens: map[string]string{"primary": "#d97706", "bg": "#fff"},
+		Presets: map[string]Preset{
+			"warm": {Tokens: map[string]string{"primary": "#ea580c"}},
+		},
+	}
+	msgs := ThemeTokenWarnings(thm, KnownTokens())
+	if len(msgs) != 2 {
+		t.Fatalf("got %d warnings %q, want one for tokens and one for the warm preset", len(msgs), msgs)
+	}
+	if !strings.Contains(msgs[0], `theme.yaml tokens: unknown token "primary"`) {
+		t.Errorf("tokens warning = %q", msgs[0])
+	}
+	if !strings.Contains(msgs[1], "presets.warm.tokens") {
+		t.Errorf("preset warning = %q", msgs[1])
+	}
+	if got := ThemeTokenWarnings(&Theme{Tokens: map[string]string{"accent": "#000"}}, KnownTokens()); len(got) != 0 {
+		t.Errorf("known tokens warned: %q", got)
+	}
+}
+
+// Every theme shipped in the repository sets only known tokens.
+func TestShippedThemesUseKnownTokens(t *testing.T) {
+	for _, dir := range []string{"../../embedded/theme", "../../themes/starter"} {
+		thm, err := LoadFromDir(dir)
+		if err != nil {
+			t.Fatalf("loading %s: %v", dir, err)
+		}
+		if msgs := ThemeTokenWarnings(thm, KnownTokens()); len(msgs) != 0 {
+			t.Errorf("%s: %q", dir, msgs)
+		}
 	}
 }

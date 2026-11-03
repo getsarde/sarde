@@ -24,17 +24,17 @@ Each finding has one of these types:
 
 | Type | Meaning | Policy key |
 |------|---------|------------|
-| Broken target | A link to a page that does not exist, such as `./missing.md` | `on_broken` |
+| Broken target | A link to a page that does not exist, such as `./missing.md` or `/docs/nope/` | `on_broken` |
 | Broken anchor | A link to a heading ID that does not exist on the target page | `on_broken_anchor` |
 | Ambiguous link | A bare `name.md` destination, which could be a sibling or a content-root file | `on_broken` |
 | Relative link | A destination that starts with `./` or `../` | `on_relative_links` |
 | Local link | A `localhost` or `127.0.0.1` URL | `on_local_links` |
-| Unverified internal | An extension-less internal link, such as `/docs/nope/`, that did not resolve in its lane | `on_unverified_internal` |
+| Unverified internal | A frontmatter `image`, `prev.link` or `next.link` that names a file Sarde does not find under `public/` or beside the page bundle | `on_unverified_internal` |
 | Same site | A link written with the site's own absolute URL | `same_site_policy` |
 
 Sarde never guesses what a bare `name.md` means. It reports the link as an ambiguous link, and the finding's `hint` gives the fix: write `./name.md` for a sibling page or `docs/name.md` from the content root. Every finding carries the 1-based line and column of the link in its source file: the `pretty` report shows them as `path:line:col`, and the `json` report as `line` and `col`.
 
-Image sources in the body are not checked, and static assets such as `/img/logo.png` and the site root `/` linked from the body are never reported as unverified.
+Image sources in the body are not checked, and static assets such as `/img/logo.png` and the site root `/` linked from the body are never reported. An extension-less link is checked against every URL the build writes, including tag pages, numbered list pages, and folders under `public/` with an `index.html`, so it passes or is a broken target.
 
 A full build re-validates every link target and anchor, including on pages served from the page cache, so renaming a linked page is caught without editing the file that links to it.
 
@@ -83,7 +83,7 @@ link_validation:
 | `on_broken_anchor` | string | `"error"` | Policy for links to missing heading anchors. |
 | `on_relative_links` | string | `"warn"` | Policy for relative links (`./` or `../`). |
 | `on_local_links` | string | `"warn"` | Policy for `localhost` and `127.0.0.1` URLs. |
-| `on_unverified_internal` | string | `"warn"` | Policy for extension-less internal links that did not resolve in their lane. |
+| `on_unverified_internal` | string | `"warn"` | Policy for a frontmatter file link that names a file Sarde does not find. |
 | `same_site_policy` | string | `"ignore"` | Policy for links to the site's own absolute URL. |
 | `report` | string | `"pretty"` | Report format: `pretty`, `json`, or `github-actions`. |
 | `site_root_escape_prefix` | string | `"site:"` | Prefix that routes a link to the site root and skips lane logic (for example `site:/pricing`). Set to `""` to disable. |

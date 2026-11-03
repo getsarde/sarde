@@ -166,6 +166,9 @@ func (b *SiteBuilder) setupAssetPipelineAndShortcodes(s *buildState) error {
 	if icons.SpriteMode() {
 		s.iconRenderKey = "icon-sprite"
 	}
+	// Loading a set turns a cached placeholder into the real icon, so the
+	// loaded sets are part of the key.
+	s.iconRenderKey += "|sets=" + strings.Join(icons.LoadedSetPrefixes(), ",")
 
 	if config.BoolVal(b.config.Build.Cache, true) && !b.checkOnly {
 		s.pageCache = NewPageCache(b.projectDir)
@@ -214,7 +217,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 		})
 	}
 	if b.rendererKey == "" {
-		b.rendererKey = b.mdRenderer.Fingerprint()
+		b.rendererKey = b.mdRenderer.Fingerprint() + imagesRenderKey(b.config.Images)
 	}
 
 	// Render markdown, parallel when page count warrants it.
@@ -314,6 +317,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 				lookup := markdown.ImageLookupForPage(page, assetPipeline.ImageProcessor(), b.assetURLResolver())
 				renderer.SetImageLookup(lookup)
 				renderer.SetImageLazyLoading(markdown.LazyLoadingEnabled(assetPipeline.ImageProcessor()))
+				renderer.SetImageSettings(assetPipeline.ImageProcessor())
 				renderer.SetLinkContext(page)
 
 				result, err := renderer.Render(processed)
@@ -479,7 +483,8 @@ func (b *SiteBuilder) validateLinks(s *buildState) (bool, error) {
 				OnExternalBroken:     lvc.EffectiveExternalOnBroken(),
 				OnUnverifiedInternal: lvc.EffectiveOnUnverifiedInternal(),
 			},
-			SiteURL: siteURL,
+			SiteURL:  siteURL,
+			KnownURL: b.knownOutputURLs(s),
 		})
 		b.checkReportResult = &reportResult
 		// Through devlog so the report never lands on the progress line. A
@@ -544,13 +549,13 @@ func (b *SiteBuilder) bundleGlobalAssets(s *buildState) error {
 	var jsFilename string
 	var err error
 	if b.config.Theme.Name != "" {
-		jsContent, jsFilename, err = BundleThemeJS(b.projectDir, b.config.Theme.Name, b.devMode)
+		jsContent, jsFilename, err = BundleThemeJS(b.projectDir, b.config.Theme.Name, b.devMode, config.BoolVal(b.config.Prefetch.Enabled, true))
 		if err != nil {
 			return fmt.Errorf("bundling theme JS: %w", err)
 		}
 	}
 	if jsFilename == "" {
-		jsContent, jsFilename, err = BundleEmbeddedJS(b.embeddedFS, b.devMode)
+		jsContent, jsFilename, err = BundleEmbeddedJS(b.embeddedFS, b.devMode, config.BoolVal(b.config.Prefetch.Enabled, true))
 		if err != nil {
 			return fmt.Errorf("bundling embedded theme JS: %w", err)
 		}
@@ -624,6 +629,7 @@ func (b *SiteBuilder) wireTemplateEngine(s *buildState) error {
 		b.tmplEngine.SetI18nStrings(s.stringTable)
 	}
 	b.tmplEngine.SetCodeBlockCSS(b.kazariEngine.CSS())
+	b.tmplEngine.SetCodeHighlighter(markdown.KazariHighlighter(b.kazariEngine))
 	if s.directiveRegistry != nil {
 		b.tmplEngine.SetDirectiveCSS(s.directiveRegistry.CSS())
 	}

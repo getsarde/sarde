@@ -58,7 +58,9 @@ Reference these with absolute paths:
 
 Images from `public/` are not processed. They render as a plain `<img>` with the original file.
 
-On a site served from a subfolder, Sarde adds [`build.base_path`](/reference/configuration/build-and-output/#build) to these paths, so write them from the site root without it. The same applies to a page's frontmatter `image` and to images in figures, galleries, and image comparisons. Images never get a language prefix: a translated page uses the same `/images/logo.png`.
+On a site served from a subfolder, Sarde adds [`build.base_path`](/reference/configuration/build-and-output/#build) to these paths, so write them from the site root without it. The same applies to a page's frontmatter `image`, to images in figures, galleries, and image comparisons, and to a self-hosted `:::video` source. Images never get a language prefix: a translated page uses the same `/images/logo.png`.
+
+A relative frontmatter `image`, such as `image: cover.jpg` in a page bundle, names the file beside the page. Every template that shows the page reads it from there, so a blog grid card or a lab card on a list page shows the post's own `cover.jpg`. A translated bundle's files are written once, at the path without the language prefix, so a French post's cover also has no `/fr/`.
 
 ### Which to use
 
@@ -91,11 +93,32 @@ images:
 | `widths` | int[] | `[400, 800, 1200]` | Widths of the responsive variants. A width at or above the source width is skipped. |
 | `formats` | string[] | `["webp"]` | Output formats: `jpeg`, `png`, `webp`, or `avif`. |
 | `quality` | int | `80` | Encoding quality, 1 to 100, for lossy formats. |
-| `max_width` | int | `2400` | Skips any entry of `widths` above this value. Does not shrink the full-size variant. |
+| `max_width` | int | `2400` | Skips any entry of `widths` above this value, and scales the full-size variant of a wider source down to it. |
 | `lazy_loading` | bool | `true` | Adds `loading="lazy" decoding="async"` to `<img>` tags. The first image on a page always loads eagerly. |
+| `dimensions` | bool | `true` | Adds the source's `width` and `height` to the `<img>`, which reserves its space and prevents layout shift. |
 | `placeholder` | string | `"lqip"` | `"lqip"` embeds a blurred preview. `"none"` disables it. |
 
-Sarde also writes a variant at the source's full width, in each configured format. For a 1600px source with the defaults, Sarde generates WebP files at 400, 800, 1200, and 1600 pixels wide. A 300px source produces only its full-width WebP. A 3000px source keeps its 3000px variant even though `max_width` is 2400.
+Sarde also writes a variant at the source's full width, capped at `max_width`, in each configured format. For a 1600px source with the defaults, Sarde generates WebP files at 400, 800, 1200, and 1600 pixels wide. A 300px source produces only its full-width WebP. A 3000px source gets a 2400px variant instead of its full width.
+
+### Per-image options
+
+Write an attribute list right after an image to override the defaults for that image:
+
+```markdown
+![Ridge at dawn](ridge.jpg){width=800 height=400 op=fill format=webp}
+```
+
+→ The image is cropped to 800 by 400 pixels around its center. A wider source also gets a variant at its full width, up to `max_width`, cropped to the same 2:1 shape.
+
+| Attribute | Description |
+|-----------|-------------|
+| `width` | Variant width in pixels. Replaces `images.widths` for this image. |
+| `height` | Target height in pixels, used by `fill`, `fit`, and `fit_height`. |
+| `op` | Resize operation: `scale` (default, keeps the aspect ratio), `fit` (fits inside `width` by `height`), `fill` (crops to `width` by `height`), `fit_width`, or `fit_height`. |
+| `quality` | Encoding quality, 1 to 100. |
+| `format` | A single output format, such as `webp` or `avif`. |
+
+The attribute list applies to page bundle images, which Sarde processes. The `{` must follow the image's closing parenthesis directly; with a space before it, the text stays as written.
 
 `sarde dev` skips image processing and placeholder generation. Images render from their original files, with `width` and `height` still read from the file.
 
@@ -121,14 +144,14 @@ Each format gets a `<source>` element, listed AVIF first, then WebP, then JPEG o
            /assets/images/hero-c3d4-800w.webp 800w,
            /assets/images/hero-e5f6-1200w.webp 1200w,
            /assets/images/hero-a7b8-1600w.webp 1600w"
-    sizes="(max-width: 600px) 400px, (max-width: 1024px) 800px, 1200px">
+    sizes="(max-width: 600px) 400px, (max-width: 1200px) 800px, 1200px">
   <img src="/assets/images/hero-c3d4-800w.webp" alt="Course hero image"
     width="1600" height="900" loading="lazy" decoding="async"
     style="background-image: url(data:image/jpeg;base64,...); background-size: cover;">
 </picture>
 ```
 
-The `<img>` always carries `width` and `height` from the source file, and every image gets the same `sizes` value.
+The `<img>` carries `width` and `height` from the source file unless `images.dimensions` is `false`. The `sizes` value follows `images.widths`, or the single `width` of an image with per-image options.
 
 ## Format support
 

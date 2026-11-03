@@ -32,10 +32,10 @@ Sarde registers custom functions into Go's `html/template` engine. Call them wit
 | `hasPrefix` | `hasPrefix(s, prefix string) bool` | Prefix check |
 | `hasSuffix` | `hasSuffix(s, suffix string) bool` | Suffix check |
 | `trim` | `trim(s string) string` | Trims leading and trailing whitespace |
-| `markdownify` | `markdownify(v any) HTML` | Renders a value as inline Markdown (GFM). Strips the wrapping `<p>` tag from single-paragraph input. |
+| `markdownify` | `markdownify(v any) HTML` | Renders a value as inline Markdown (GFM). Strips the wrapping `<p>` tag from single-paragraph input. A site-absolute link or image, such as `[Guide](/docs/guide/)`, gets the base path; it gets no language prefix. |
 | `plainify` | `plainify(s string) string` | Strips all HTML tags, returning plain text |
 | `safeHTML` | `safeHTML(s string) HTML` | Marks a string as safe, unescaped HTML |
-| `highlight` | `highlight(code, lang string) HTML` | Wraps code in `<pre><code class="language-X">`. This is a lightweight stub, not full syntax highlighting. |
+| `highlight` | `highlight(code, lang string) HTML` | Renders code as a highlighted code block in language `lang`, with the site's code block settings, the same way a fenced code block in Markdown renders. |
 
 ## Math
 
@@ -89,6 +89,7 @@ All math functions accept any numeric type. Results stay as `int` when both oper
 | `absURL` | `absURL(path string) string` | Resolves a path to an absolute URL using the site's base URL |
 | `relURL` | `relURL(path string) string` | Resolves a path to a relative URL. On a translated page, adds the page's language prefix. Passes through paths already containing `://`. |
 | `rootURL` | `rootURL(path string) string` | Resolves a path against the site's base path, never adding a language prefix. Use it for files that exist once at the site root, such as `/sitemap.xml` or theme fonts. Passes through paths already containing `://`. |
+| `pageRelURL` | `pageRelURL(page *Page, path string) string` | Resolves a path a page names, such as its frontmatter `image`, from any template that shows that page, for example a list card. A relative path is read from the page's own folder, so `cover.jpg` on `/blog/post/` gives `/blog/post/cover.jpg`. Adds the base path but no language prefix, because a page bundle's files are written once. Passes full URLs through. |
 | `editURL` | `editURL(base, relPath string) string` | Joins a base "edit this page" URL with a relative content path |
 
 ## Assets
@@ -144,7 +145,7 @@ See [`images`](/reference/configuration/build-and-output/#images) for global ima
 |----------|-----------|-------------|
 | `ref` | `ref(slug string) string` | Absolute permalink for a page found by slug. Returns the slug unchanged if not found. |
 | `relref` | `relref(slug string) string` | Relative permalink for a page found by slug |
-| `recentEntries` | `recentEntries(colName string, n int) []*Page` | First `n` pages of a named collection |
+| `recentEntries` | `recentEntries(colName string, n int) []*Page` | First `n` pages of a named collection, in the current page's language |
 | `findEntry` | `findEntry(colName, slug string) *Page` | Finds a page by slug within a named collection |
 | `allCollections` | `allCollections() map[string]*Collection` | Returns all site collections |
 | `termURL` | `termURL(taxonomyName, termName string) string` | URL for a taxonomy term page |
@@ -223,4 +224,6 @@ Shortcode templates run during parallel Markdown rendering and receive a reduced
 | `t`, `tWithData` | Degraded | Return the key unchanged (i18n string table unavailable) |
 | `absURL`, `relURL` | Degraded | Available but not language-aware (URL resolver unavailable) |
 | `rootURL` | Degraded | Returns the path without the base path (URL resolver unavailable) |
+| `pageRelURL` | Degraded | Joins a relative path to the page's folder, without the base path (URL resolver unavailable) |
+| `highlight` | Degraded | Wraps the code in `<pre><code class="language-X">` without highlighting (code block engine unavailable) |
 | `themeStyles` | Degraded | Emits inline `<style>` only, not external `<link>` tags |

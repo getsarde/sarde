@@ -13,11 +13,11 @@
   <div class="dashboard-grid">
     {{ range $name, $col := .Site.Collections }}
     <article class="dashboard-card">
-      <h2><a href="{{ relURL (printf "/%s/" $name) }}">{{ if $col.Title }}{{ $col.Title | markdownify }}{{ else }}{{ $name }}{{ end }}</a></h2>
-      <p class="dashboard-card-meta">{{ len $col.Pages }} page{{ if ne (len $col.Pages) 1 }}s{{ end }}</p>
-      {{ if $col.Pages }}
+      <h2><a href="{{ relURL (printf "/%s/" $name) }}">{{ if $col.Title }}{{ $col.TitleFor $.Lang | markdownify }}{{ else }}{{ $name }}{{ end }}</a></h2>
+      <p class="dashboard-card-meta">{{ len ($col.PagesFor $.Lang) }} page{{ if ne (len ($col.PagesFor $.Lang)) 1 }}s{{ end }}</p>
+      {{ if $col.PagesFor $.Lang }}
       <ul class="dashboard-card-list">
-        {{ range first 5 $col.Pages }}
+        {{ range first 5 ($col.PagesFor $.Lang) }}
         <li><a href="{{ .Permalink }}">{{ .Title | markdownify }}</a></li>
         {{ end }}
       </ul>

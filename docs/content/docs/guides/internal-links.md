@@ -111,10 +111,10 @@ What happens to a link with no target depends on how it is written:
 | Link | Result by default |
 |---|---|
 | Relative link to a missing page, or any link written with `.md` | Build error: `broken target` |
-| Extension-less collection-root link that matches no page in the current language and version | Build warning: `unverified internal`. Sarde leaves the URL as written, which may not exist. |
+| Extension-less collection-root link that matches no page in the current language and version, and no other URL the build writes | Build error: `broken target` |
 | Link to a heading that does not exist | Build error: `broken anchor` |
 
-The extension-less collection-root case is a warning because the author may have meant a page in another collection, language, or version. Add `.md` to the link to turn it into an error. See [Link Validation and Linting](/guides/link-validation-and-linting/) for the policy settings.
+Sarde checks an extension-less link against every URL the build writes, including tag and term pages, numbered list pages such as `/blog/page/2/`, and folders under `public/` that hold an `index.html`. A link to a page in another collection, or to one of those generated pages, passes; a link to nothing fails. To link to a part of the deployment that Sarde does not build, write a `site:` link. See [Link Validation and Linting](/guides/link-validation-and-linting/) for the policy settings.
 
 ## URL composition
 
@@ -132,7 +132,7 @@ The same link resolves differently depending on the page's language and version:
 
 ### Language
 
-Links resolve within the current page's language. A relative link on a French page finds the French translation of the target. To link across languages, use the `?lang=` query parameter:
+Links resolve within the current page's language. A relative link on a French page finds the French translation of the target. A collection-root link to a page with no French translation goes to the default-language version: its fallback copy under `/fr/` when [`i18n.fallback`](/guides/internationalization/#fallback-pages) is `"default"`, or the default-language page's own URL when it is `"omit"`. To link across languages, use the `?lang=` query parameter:
 
 ```markdown
 [English version](./auth?lang=en)
@@ -143,7 +143,7 @@ Links resolve within the current page's language. A relative link on a French pa
 Links resolve within the current page's version:
 
 - On a page of the latest version (served at the unprefixed URL), links resolve to unprefixed URLs.
-- On a page of an older version (for example `/docs/v1/guide/...`), links stay in that version. A `.md` or relative link to a page that exists only in the latest version is a `broken target` error, and an extension-less collection-root link is an `unverified internal` warning.
+- On a page of an older version (for example `/docs/v1/guide/...`), links stay in that version. A link to a page that exists only in the latest version is a `broken target` error, whether it is written as a `.md`, relative, or extension-less collection-root link, since no page is built at that URL in the older version.
 
 To link across versions, use the `?version=` query parameter:
 

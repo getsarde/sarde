@@ -35,6 +35,7 @@ func (e *Engine) buildFuncMap(
 	currentLang := e.currentLangResolver()
 	i18nStrings := e.i18nStrings
 	pageIndexPtr := &e.pageIndex
+	highlighterPtr := &e.codeHighlighter
 
 	fm := htmltemplate.FuncMap{
 		// ── Strings ──
@@ -51,10 +52,17 @@ func (e *Engine) buildFuncMap(
 		"hasPrefix":   strings.HasPrefix,
 		"hasSuffix":   strings.HasSuffix,
 		"trim":        strings.TrimSpace,
-		"markdownify": fnMarkdownify,
+		"markdownify": func(v any) htmltemplate.HTML { return markdownifyWith(*urlResolverPtr, v) },
 		"plainify":    fnPlainify,
 		"safeHTML":    fnSafeHTML,
-		"highlight":   fnHighlight,
+		"highlight": func(code, lang string) htmltemplate.HTML {
+			if h := *highlighterPtr; h != nil {
+				if out, err := h(code, lang); err == nil {
+					return htmltemplate.HTML(out)
+				}
+			}
+			return fnHighlight(code, lang)
+		},
 
 		// ── Icons ──
 		"icon": fnIcon,

@@ -14,7 +14,7 @@
   <main id="main-content">
     {{ component "DraftBanner" . }}
     {{ component "FallbackNotice" . }}
-    {{ component "PageBanner" . }}
+    {{ if .PageBanner }}{{ component "PageBanner" . }}{{ end }}
     {{ block "content" . }}{{ .Page.Content }}{{ end }}
   </main>
   {{ component "Footer" . }}

@@ -52,6 +52,11 @@ func runNew(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("getting working directory: %w", err)
 	}
+	// Scaffold only inside a site: outside one, content/ would be created in
+	// whatever directory the command runs from.
+	if err := requireSite(cmd, projectDir); err != nil {
+		return err
+	}
 
 	slug := content.Slugify(title)
 	if slug == "" {
@@ -107,6 +112,11 @@ func runNewCourse(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("getting working directory: %w", err)
 	}
+	// Scaffold only inside a site: outside one, content/ would be created in
+	// whatever directory the command runs from.
+	if err := requireSite(cmd, projectDir); err != nil {
+		return err
+	}
 
 	courseDir := filepath.Join(projectDir, consts.DirContent, consts.CollectionCourses, slug)
 	if _, err := os.Stat(courseDir); err == nil {
@@ -150,6 +160,11 @@ func runNewLesson(cmd *cobra.Command, args []string) error {
 	projectDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("getting working directory: %w", err)
+	}
+	// Scaffold only inside a site: outside one, content/ would be created in
+	// whatever directory the command runs from.
+	if err := requireSite(cmd, projectDir); err != nil {
+		return err
 	}
 
 	courseDir := filepath.Join(projectDir, consts.DirContent, consts.CollectionCourses, courseSlug)

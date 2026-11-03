@@ -2,7 +2,6 @@ package tabs
 
 import (
 	"fmt"
-	"sync/atomic"
 
 	"github.com/getsarde/sarde/internal/content/markdown/htmlutil"
 	"github.com/getsarde/sarde/internal/content/markdown/icons"
@@ -10,8 +9,6 @@ import (
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
 )
-
-var tabsCounter atomic.Int64
 
 type tabsRenderer struct{}
 
@@ -28,7 +25,7 @@ func (r *tabsRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 func (r *tabsRenderer) renderTabsBlock(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		tb := node.(*TabsBlock)
-		tb.ID = tabsCounter.Add(1)
+		tb.ID = htmlutil.PageScopedID("tab", source, tb)
 
 		_, _ = w.WriteString("<div class=\"sarde-tabs not-content\">\n<div class=\"sarde-tabs-header\" role=\"tablist\">\n")
 
@@ -47,7 +44,7 @@ func (r *tabsRenderer) renderTabsBlock(w util.BufWriter, source []byte, node ast
 						iconHTML = svg
 					}
 				}
-				_, _ = fmt.Fprintf(w, "<button class=\"sarde-tab-button%s\" role=\"tab\" aria-selected=\"%s\" data-tab=\"%d\" data-tab-label=\"%s\" id=\"tab-%d-tab-%d\" aria-controls=\"tab-%d-panel-%d\">%s%s</button>\n",
+				_, _ = fmt.Fprintf(w, "<button class=\"sarde-tab-button%s\" role=\"tab\" aria-selected=\"%s\" data-tab=\"%d\" data-tab-label=\"%s\" id=\"%s-tab-%d\" aria-controls=\"%s-panel-%d\">%s%s</button>\n",
 					activeClass, ariaSelected, tab.Index, htmlutil.EscapeHTML(tab.Label), tb.ID, tab.Index, tb.ID, tab.Index, iconHTML, htmlutil.EscapeHTML(tab.Label))
 			}
 		}
@@ -71,7 +68,7 @@ func (r *tabsRenderer) renderTabItem(w util.BufWriter, source []byte, node ast.N
 		} else {
 			hiddenAttr = " hidden"
 		}
-		_, _ = fmt.Fprintf(w, "<div class=\"sarde-tab-panel%s\" role=\"tabpanel\" data-tab=\"%d\" data-tab-label=\"%s\" id=\"tab-%d-panel-%d\" aria-labelledby=\"tab-%d-tab-%d\"%s>\n",
+		_, _ = fmt.Fprintf(w, "<div class=\"sarde-tab-panel%s\" role=\"tabpanel\" data-tab=\"%d\" data-tab-label=\"%s\" id=\"%s-panel-%d\" aria-labelledby=\"%s-tab-%d\"%s>\n",
 			activeClass, tab.Index, htmlutil.EscapeHTML(tab.Label), tabsID, tab.Index, tabsID, tab.Index, hiddenAttr)
 	} else {
 		_, _ = w.WriteString("</div>\n")

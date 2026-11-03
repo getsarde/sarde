@@ -24,6 +24,8 @@
     ws.onmessage = function (e) {
       var msg;
       try { msg = JSON.parse(e.data); } catch (_) { return; }
+      // For sarde dev --debug-client, which logs every message.
+      try { window.dispatchEvent(new CustomEvent("sarde:livereload", { detail: msg })); } catch (_) {}
 
       if (msg.type === "reload") {
         if (msg.buildId && pageBuild && msg.buildId <= pageBuild) return;

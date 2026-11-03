@@ -50,11 +50,11 @@ Outside a git repository, or when git is unavailable, Sarde falls back to `mtime
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `widths` | list of int | `[400, 800, 1200]` | Responsive image widths to generate (in pixels). Each value must be at least 1. |
+| `widths` | list of int | `[400, 800, 1200]` | Responsive image widths to generate (in pixels), also described by each image's `sizes` attribute. A per-image `width` attribute replaces them. Each value must be at least 1. |
 | `formats` | list of string | `["webp"]` | Output image formats. Valid values: `jpeg`, `jpg`, `png`, `webp`, `avif`. |
 | `quality` | int | `80` | Compression quality for generated images. Range: 1-100. |
 | `placeholder` | string | `"lqip"` | Placeholder strategy while images load. `lqip` (low-quality image placeholder), `blur`, `dominantColor`, or `none`. |
-| `max_width` | int | `2400` | Maximum image width in pixels. Images wider than this are downscaled. Min: 1. |
+| `max_width` | int | `2400` | Maximum variant width in pixels. Widths above it are skipped, and the full-size variant of a wider image is scaled down to it. Min: 1. |
 | `lazy_loading` | bool | `true` | Add `loading="lazy"` to images. |
 | `dimensions` | bool | `true` | Add `width` and `height` attributes to prevent layout shift. |
 

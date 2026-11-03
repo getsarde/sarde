@@ -98,25 +98,45 @@ func TestTaxonomyConfig_MapForm(t *testing.T) {
 	if tc.Singular != "tag" {
 		t.Errorf("Singular = %q, want %q", tc.Singular, "tag")
 	}
-	if tc.PaginateBy != 20 {
-		t.Errorf("PaginateBy = %d, want 20", tc.PaginateBy)
+	if IntVal(tc.PaginateBy, 0) != 20 {
+		t.Errorf("PaginateBy = %v, want 20", tc.PaginateBy)
+	}
+}
+
+// paginate_by: 0 is kept (pagination off), unlike an unset key, which
+// resolves to 10 per page.
+func TestTaxonomyConfig_PaginateByZero(t *testing.T) {
+	var cfg SiteConfig
+	if err := yaml.Unmarshal([]byte("taxonomies:\n  tags:\n    paginate_by: 0\n  categories: category\n"), &cfg); err != nil {
+		t.Fatal(err)
+	}
+	if got := cfg.Taxonomies["tags"].EffectivePaginateBy(); got != 0 {
+		t.Errorf("tags: EffectivePaginateBy = %d, want 0", got)
+	}
+	if got := cfg.Taxonomies["categories"].EffectivePaginateBy(); got != 10 {
+		t.Errorf("categories (unset): EffectivePaginateBy = %d, want 10", got)
+	}
+	base := map[string]TaxonomyConfig{"tags": {PaginateBy: IntPtr(20)}}
+	mergeTaxonomies(&base, map[string]TaxonomyConfig{"tags": {PaginateBy: IntPtr(0)}})
+	if got := base["tags"].EffectivePaginateBy(); got != 0 {
+		t.Errorf("merged paginate_by: 0 = %d, want 0 to override 20", got)
 	}
 }
 
 func TestMergeTaxonomies(t *testing.T) {
 	base := map[string]TaxonomyConfig{
-		"tags": {Singular: "tag", PaginateBy: 10},
+		"tags": {Singular: "tag", PaginateBy: IntPtr(10)},
 	}
 	over := map[string]TaxonomyConfig{
-		"tags":       {PaginateBy: 20},
+		"tags":       {PaginateBy: IntPtr(20)},
 		"categories": {Singular: "category"},
 	}
 	mergeTaxonomies(&base, over)
 	if base["tags"].Singular != "tag" {
 		t.Errorf("tags.Singular = %q, want %q (should keep base)", base["tags"].Singular, "tag")
 	}
-	if base["tags"].PaginateBy != 20 {
-		t.Errorf("tags.PaginateBy = %d, want 20 (should override)", base["tags"].PaginateBy)
+	if got := base["tags"].EffectivePaginateBy(); got != 20 {
+		t.Errorf("tags.PaginateBy = %d, want 20 (should override)", got)
 	}
 	if base["categories"].Singular != "category" {
 		t.Errorf("categories.Singular = %q, want %q (should add new)", base["categories"].Singular, "category")
@@ -726,5 +746,57 @@ func TestResolve_WarnsDeprecatedCodeThemes(t *testing.T) {
 	}
 	if len(msgs) != 0 {
 		t.Errorf("without sarde.yaml, warnings = %q, want none", msgs)
+	}
+}
+
+// Every key Sarde parses but never acts on warns when the user's sarde.yaml
+// sets it, and names the setting to use instead; an unset key is silent.
+func TestInertKeyDeprecations(t *testing.T) {
+	tr := true
+	cases := []struct {
+		key string
+		set func(*SiteConfig)
+	}{
+		{"markdown.katex", func(c *SiteConfig) { c.Markdown.KaTeX = &tr }},
+		{"markdown.mermaid", func(c *SiteConfig) { c.Markdown.Mermaid = &tr }},
+		{"markdown.cdn", func(c *SiteConfig) { c.Markdown.CDN = &tr }},
+		{"markdown.unsafe", func(c *SiteConfig) { c.Markdown.Unsafe = &tr }},
+		{"markdown.typographer", func(c *SiteConfig) { c.Markdown.Typographer = &tr }},
+		{"markdown.github_alerts", func(c *SiteConfig) { c.Markdown.GithubAlerts = &tr }},
+		{"markdown.triple_colon_callouts", func(c *SiteConfig) { c.Markdown.TripleColonCallouts = &tr }},
+		{"markdown.codeblocks.style", func(c *SiteConfig) { c.Markdown.Codeblocks.Style = "class" }},
+		{"link_validation.level", func(c *SiteConfig) { c.LinkValidation.Level = "warn" }},
+		{"link_validation.check_anchors", func(c *SiteConfig) { c.LinkValidation.CheckAnchors = &tr }},
+		{"link_validation.check_images", func(c *SiteConfig) { c.LinkValidation.CheckImages = &tr }},
+		{"link_validation.fail_build", func(c *SiteConfig) { c.LinkValidation.FailBuild = &tr }},
+		{"link_validation.ignore", func(c *SiteConfig) { c.LinkValidation.Ignore = []string{"/old/*"} }},
+		{"prefetch.strategy", func(c *SiteConfig) { c.Prefetch.Strategy = "hover" }},
+		{"prefetch.delay", func(c *SiteConfig) { c.Prefetch.Delay = IntPtr(300) }},
+		{"site.custom_404", func(c *SiteConfig) { c.Site.Custom404 = "missing.html" }},
+		{"i18n.languages.fr.title", func(c *SiteConfig) {
+			c.I18n.Languages = map[string]LanguageConfig{"fr": {Title: "Mon site"}}
+		}},
+		{"collections.docs.url_prefix", func(c *SiteConfig) {
+			c.Collections = map[string]*CollectionSiteConfig{"docs": {URLPrefix: "/guide"}}
+		}},
+		{"collections.docs.sidebar.collapsible", func(c *SiteConfig) {
+			c.Collections = map[string]*CollectionSiteConfig{"docs": {Sidebar: &CollectionSidebarConfig{Collapsible: &tr}}}
+		}},
+		{"collections.docs.sidebar.search", func(c *SiteConfig) {
+			c.Collections = map[string]*CollectionSiteConfig{"docs": {Sidebar: &CollectionSidebarConfig{Search: &tr}}}
+		}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.key, func(t *testing.T) {
+			u := &SiteConfig{}
+			tc.set(u)
+			got := inertKeyDeprecations(u)
+			if len(got) != 1 || !strings.HasPrefix(got[0], tc.key+" is deprecated and has no effect; ") {
+				t.Errorf("inertKeyDeprecations = %q, want one warning for %s", got, tc.key)
+			}
+		})
+	}
+	if got := inertKeyDeprecations(&SiteConfig{}); len(got) != 0 {
+		t.Errorf("nothing set, got %q", got)
 	}
 }

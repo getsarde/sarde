@@ -38,6 +38,7 @@ func init() {
 	devCmd.Flags().Bool("watch-stdin", false, "Exit when stdin closes (sidecar/child-process mode)")
 	devCmd.Flags().String("theme-dev", "", "Path to embedded/theme/ source dir for live-reload (framework dev only)")
 	devCmd.Flags().Bool("check-syntax", false, "Enable syntax checking for unclosed fenced blocks during rebuilds")
+	devCmd.Flags().Bool("debug-client", false, "Log page events (link clicks, errors, long tasks, inert state) to the browser console and this terminal")
 	devCmd.Flags().String("format", "pretty", "Error output format: pretty, json")
 	rootCmd.AddCommand(devCmd)
 }
@@ -179,6 +180,7 @@ func serveProject(cmd *cobra.Command, args []string) error {
 	}
 
 	liveReload := config.BoolVal(cfg.Server.LiveReload, true)
+	debugClient, _ := cmd.Flags().GetBool("debug-client")
 
 	themeName := cfg.Theme.Name
 	if themeName == "" {
@@ -215,6 +217,7 @@ func serveProject(cmd *cobra.Command, args []string) error {
 		ThemeDevDirs:   themeDevWatchDirs,
 		PluginDevDirs:  pluginDevWatchDirs,
 		Verbose:        verbose,
+		DebugClient:    debugClient,
 	})
 
 	// Graceful shutdown on SIGINT/SIGTERM.

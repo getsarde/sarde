@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/links"
 )
@@ -213,4 +214,14 @@ func (c *PageCache) evictTail() {
 	lru.prev.next = c.tail
 	c.tail.prev = lru.prev
 	delete(c.items, lru.key)
+}
+
+// imagesRenderKey folds the images.* settings that shape rendered Markdown
+// images (variants, srcset and sizes, width and height attributes, lazy
+// loading, placeholders) into the page-cache key, so changing one re-renders
+// pages instead of serving their cached HTML.
+func imagesRenderKey(img config.ImageSettings) string {
+	return fmt.Sprintf("\x00images=w%v,f%v,q%d,ph%s,mw%d,lazy%t,dims%t",
+		img.Widths, img.Formats, img.Quality, img.Placeholder, img.MaxWidth,
+		config.BoolVal(img.LazyLoading, true), config.BoolVal(img.Dimensions, true))
 }

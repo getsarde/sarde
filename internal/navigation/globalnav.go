@@ -9,8 +9,9 @@ import (
 
 // BuildGlobalNav builds the top-level site navigation from collections and
 // optional header links from the site config. Collection items are sorted
-// alphabetically; header links are appended after collection items.
-func BuildGlobalNav(site *engine.SiteContext, currentCollection *engine.Collection, headerLinks []config.NavLink) *engine.GlobalNav {
+// alphabetically and labeled in lang, the page's language; header links are
+// appended after collection items.
+func BuildGlobalNav(site *engine.SiteContext, currentCollection *engine.Collection, headerLinks []config.NavLink, lang string) *engine.GlobalNav {
 	if site == nil {
 		return nil
 	}
@@ -30,7 +31,7 @@ func BuildGlobalNav(site *engine.SiteContext, currentCollection *engine.Collecti
 	for _, name := range names {
 		col := site.Collections[name]
 		item := engine.GlobalNavItem{
-			Label:      col.Title,
+			Label:      col.TitleFor(lang),
 			URL:        "/" + col.Name + "/",
 			Collection: col.Name,
 		}

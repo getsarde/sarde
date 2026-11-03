@@ -41,7 +41,7 @@ func BuildTaxonomies(pages []*engine.Page, taxCfg map[string]config.TaxonomyConf
 			Singular:   singular,
 			Terms:      make(map[string]*engine.TaxonomyTerm),
 			Permalink:  "/" + name + "/",
-			PaginateBy: tc.PaginateBy,
+			PaginateBy: tc.EffectivePaginateBy(),
 		}
 	}
 

@@ -1,5 +1,7 @@
 package icons
 
+import "sort"
+
 // ---------------------------------------------------------------------------
 // License reporting
 // ---------------------------------------------------------------------------
@@ -10,6 +12,18 @@ type SetLicense struct {
 	Title  string
 	SPDX   string
 	URL    string
+}
+
+// LoadedSetPrefixes returns the prefix of every loaded collection, sorted.
+func LoadedSetPrefixes() []string {
+	collectionsMu.RLock()
+	defer collectionsMu.RUnlock()
+	out := make([]string, 0, len(collections))
+	for prefix := range collections {
+		out = append(out, prefix)
+	}
+	sort.Strings(out)
+	return out
 }
 
 // LoadedSetLicenses returns license metadata for every loaded collection.

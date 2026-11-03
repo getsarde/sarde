@@ -23,6 +23,7 @@ func Validate(cfg *SiteConfig, knownPlugins []string) (errs []validate.Error, wa
 	validateRanges(&c, cfg)
 	validateInterdependencies(&c, cfg)
 	validateCollections(&c, cfg)
+	validateCollectionSort(&w, cfg)
 	validateSliceElements(&c, cfg, knownPlugins)
 	return c.Errors(), w.Errors()
 }
@@ -139,12 +140,45 @@ func IsBareHostname(s string) bool {
 
 // --- Per-collection, per-taxonomy, per-language checks ---
 
+// sortFields are the keys collections.<name>.sort accepts (collection.SortPages).
+var sortFields = []string{"date", "order", "title", "slug"}
+
+// validateCollectionSort warns about a sort value that builds but does not
+// sort as written: an unknown field sorts by title, and a direction other
+// than asc or desc sorts ascending. A warning, not an error, so a site that
+// has built with such a value keeps building.
+func validateCollectionSort(w *validate.Checker, cfg *SiteConfig) {
+	for name, col := range cfg.Collections {
+		if col == nil || col.Sort == "" {
+			continue
+		}
+		path := "collections." + name + ".sort"
+		parts := strings.Fields(col.Sort)
+		w.Check(path, col.Sort, len(parts) > 0 && slicesContains(sortFields, parts[0]),
+			"sort field must be one of: date, order, title, slug; any other field sorts by title")
+		if len(parts) > 1 {
+			dir := strings.ToLower(parts[1])
+			w.Check(path, col.Sort, dir == "asc" || dir == "desc",
+				"sort direction must be asc or desc; any other direction sorts ascending")
+		}
+	}
+}
+
+func slicesContains(list []string, v string) bool {
+	for _, s := range list {
+		if s == v {
+			return true
+		}
+	}
+	return false
+}
+
 func validateCollections(c *validate.Checker, cfg *SiteConfig) {
 	for name, col := range cfg.Collections {
 		prefix := "collections." + name
 		if col.Layout != "" {
 			c.Check(prefix+".layout", col.Layout, engine.ValidateLayout(engine.LayoutType(col.Layout)),
-				"must be one of: default, docs, splash, wide, full, centered, split, presentation")
+				"must be one of: default, docs, splash, wide, full, centered, split, presentation, labs")
 		}
 		c.OneOf(prefix+".i18n_fallback", col.I18nFallback, []string{"default", "omit"})
 		c.IntMin(prefix+".paginate", IntVal(col.Paginate, 0), 0)
@@ -168,7 +202,7 @@ func validateCollections(c *validate.Checker, cfg *SiteConfig) {
 	for name, tax := range cfg.Taxonomies {
 		c.OneOf("taxonomies."+name+".undefined_tags", tax.UndefinedTags,
 			[]string{"warn", "error", "ignore", "create"})
-		c.IntMin("taxonomies."+name+".paginate_by", tax.PaginateBy, 1)
+		c.IntMin("taxonomies."+name+".paginate_by", IntVal(tax.PaginateBy, 0), 0)
 	}
 	for code, lang := range cfg.I18n.Languages {
 		c.OneOf("i18n.languages."+code+".dir", lang.Dir, []string{"ltr", "rtl"})

@@ -71,7 +71,7 @@ func TestBundleEmbeddedJS(t *testing.T) {
 		"assets/js/b.js": {Data: []byte("var b = 2;")},
 	}
 
-	content, filename, err := BundleEmbeddedJS(fs, true)
+	content, filename, err := BundleEmbeddedJS(fs, true, true)
 	if err != nil {
 		t.Fatalf("BundleEmbeddedJS: %v", err)
 	}
@@ -92,7 +92,7 @@ func TestBundleEmbeddedJS_Production(t *testing.T) {
 		"assets/js/a.js": {Data: []byte("var longVariableName = 1;")},
 	}
 
-	_, filename, err := BundleEmbeddedJS(fs, false)
+	_, filename, err := BundleEmbeddedJS(fs, false, true)
 	if err != nil {
 		t.Fatalf("BundleEmbeddedJS: %v", err)
 	}
@@ -101,8 +101,30 @@ func TestBundleEmbeddedJS_Production(t *testing.T) {
 	}
 }
 
+// prefetch.enabled: false leaves prefetch.js out of the production bundle.
+func TestBundleEmbeddedJS_PrefetchSwitch(t *testing.T) {
+	fs := fstest.MapFS{
+		"assets/js/a.js":        {Data: []byte(`console.log("keep-me");`)},
+		"assets/js/prefetch.js": {Data: []byte(`console.log("prefetch-marker");`)},
+	}
+	on, _, err := BundleEmbeddedJS(fs, false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	off, _, err := BundleEmbeddedJS(fs, false, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(on), "prefetch-marker") {
+		t.Errorf("prefetch.js missing with prefetch on: %s", on)
+	}
+	if strings.Contains(string(off), "prefetch-marker") || !strings.Contains(string(off), "keep-me") {
+		t.Errorf("with prefetch off, want only the other scripts: %s", off)
+	}
+}
+
 func TestBundleEmbeddedJS_NilFS(t *testing.T) {
-	content, filename, err := BundleEmbeddedJS(nil, true)
+	content, filename, err := BundleEmbeddedJS(nil, true, true)
 	if err != nil || content != nil || filename != "" {
 		t.Errorf("expected nil return for nil FS, got (%v, %q, %v)", content, filename, err)
 	}

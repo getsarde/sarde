@@ -54,7 +54,7 @@
             {{ component "DraftBanner" . }}
             {{ component "FallbackNotice" . }}
             {{ component "VersionBanner" . }}
-            {{ component "PageBanner" . }}
+            {{ if .PageBanner }}{{ component "PageBanner" . }}{{ end }}
             {{ component "PageTitle" . }}
             {{ component "PageTags" . }}
           </div>

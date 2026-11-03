@@ -11,7 +11,7 @@ var KindTabItem = gast.NewNodeKind("TabItem")
 // TabsBlock is an AST node representing a tabs container.
 type TabsBlock struct {
 	gast.BaseBlock
-	ID int64
+	ID string // HTML id stem, such as "tab-3f9a1c2e-2"; set when rendered
 }
 
 // Kind implements ast.Node.Kind.

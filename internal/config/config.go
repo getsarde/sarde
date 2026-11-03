@@ -5,6 +5,7 @@ import (
 	"slices"
 	"sort"
 
+	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/devlog"
 	"gopkg.in/yaml.v3"
 )
@@ -620,10 +621,16 @@ type CollectionPrevNextConfig struct {
 // Accepts both short form ("tag") and full form ({singular: "tag", paginate_by: 20}) in YAML.
 type TaxonomyConfig struct {
 	Singular      string `yaml:"singular"`
-	PaginateBy    int    `yaml:"paginate_by"`
+	PaginateBy    *int   `yaml:"paginate_by"` // nil = 10 per page; 0 turns pagination off
 	UndefinedTags string `yaml:"undefined_tags"`
 	Render        *bool  `yaml:"render"`
 	ShowTags      *bool  `yaml:"show_tags"`
+}
+
+// EffectivePaginateBy returns the terms per page on a term listing: 10 when
+// unset, and 0 when pagination is turned off.
+func (tc TaxonomyConfig) EffectivePaginateBy() int {
+	return IntVal(tc.PaginateBy, consts.DefaultPaginateBy)
 }
 
 // ShouldRender returns true if this taxonomy should generate pages.

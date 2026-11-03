@@ -20,7 +20,8 @@ import (
 // devRequestLogger wraps an HTTP handler to log requests with colored status codes.
 func devRequestLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/ws" {
+		switch r.URL.Path {
+		case "/ws", devToolsProbePath, clientLogPath:
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -118,7 +119,14 @@ func (ds *DevServer) fileHandler() http.Handler {
 
 // injectScript wraps an HTTP handler to inject the live reload script into HTML responses.
 func (ds *DevServer) injectScript(next http.Handler) http.Handler {
-	script := []byte("\n<script>" + string(embedded.LiveReloadJS) + "</script>\n")
+	var js string
+	if ds.liveReload {
+		js += string(embedded.LiveReloadJS)
+	}
+	if ds.debugClient {
+		js += "\n" + string(embedded.DebugClientJS)
+	}
+	script := []byte("\n<script>" + js + "</script>\n")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Skip injection for WebSocket, static assets.

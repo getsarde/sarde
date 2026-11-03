@@ -26,6 +26,91 @@ type Collection struct {
 	// Labs
 	LabNavTrees   map[string]*NavTree // keyed by lab section permalink, for lab-scoped sidebar
 	IsMultiCourse bool                // true when the labs collection has a course grouping layer
+
+	// Per-language views, keyed by language code. Pages, Featured,
+	// IndexPage and Title hold every language together; on a multi-language
+	// site collection.BuildLanguageViews fills these once i18n fallback
+	// copies exist, and they stay nil on a single-language site. Read them
+	// through PagesFor, ListPages, FeaturedFor, IndexFor, TitleFor and
+	// LabNavTree, which fall back to the shared fields.
+	LangPages         map[string][]*Page             // Pages in one language, fallback copies included, sorted
+	LangIndex         map[string]*Page               // the collection's root index page in one language
+	LangFeatured      map[string][]*Page             // Featured in one language
+	LabNavTreesByLang map[string]map[string]*NavTree // LabNavTrees in one language
+}
+
+// PagesFor returns the collection's pages in lang, section pages included,
+// in the collection's sort order. Without a per-language view for lang, such
+// as on a single-language site, it returns Pages.
+func (c *Collection) PagesFor(lang string) []*Page {
+	if c == nil {
+		return nil
+	}
+	if pages, ok := c.LangPages[lang]; ok {
+		return pages
+	}
+	return c.Pages
+}
+
+// ListPages returns the pages a list of the collection shows in lang:
+// PagesFor without section pages.
+func (c *Collection) ListPages(lang string) []*Page {
+	all := c.PagesFor(lang)
+	out := make([]*Page, 0, len(all))
+	for _, p := range all {
+		if p.Kind != KindSection {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+// FeaturedFor returns the featured pages in lang, or Featured without a
+// per-language view.
+func (c *Collection) FeaturedFor(lang string) []*Page {
+	if c == nil {
+		return nil
+	}
+	if pages, ok := c.LangFeatured[lang]; ok {
+		return pages
+	}
+	return c.Featured
+}
+
+// IndexFor returns the collection's root index page in lang, or IndexPage
+// without a per-language view. It is nil when lang has no index page, such
+// as an untranslated collection under i18n fallback "omit".
+func (c *Collection) IndexFor(lang string) *Page {
+	if c == nil {
+		return nil
+	}
+	if idx, ok := c.LangIndex[lang]; ok {
+		return idx
+	}
+	return c.IndexPage
+}
+
+// TitleFor returns the collection's title in lang: the title of its index
+// page in that language, or Title.
+func (c *Collection) TitleFor(lang string) string {
+	if c == nil {
+		return ""
+	}
+	if idx := c.LangIndex[lang]; idx != nil && idx.Title != "" {
+		return idx.Title
+	}
+	return c.Title
+}
+
+// LabNavTree returns the sidebar tree of the lab at labPermalink in lang.
+func (c *Collection) LabNavTree(lang, labPermalink string) *NavTree {
+	if c == nil {
+		return nil
+	}
+	if trees, ok := c.LabNavTreesByLang[lang]; ok {
+		return trees[labPermalink]
+	}
+	return c.LabNavTrees[labPermalink]
 }
 
 // CollectionConfig holds per-collection settings (auto-detected or explicit).

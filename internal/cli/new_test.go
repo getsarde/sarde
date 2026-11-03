@@ -16,6 +16,7 @@ import (
 
 func TestRunNewCourse(t *testing.T) {
 	dir := t.TempDir()
+	markSite(t, dir)
 	origWd, _ := os.Getwd()
 	os.Chdir(dir)
 	defer os.Chdir(origWd)
@@ -64,6 +65,7 @@ func TestRunNewCourse_AlreadyExists(t *testing.T) {
 
 func TestRunNewLesson(t *testing.T) {
 	dir := t.TempDir()
+	markSite(t, dir)
 	origWd, _ := os.Getwd()
 	os.Chdir(dir)
 	defer os.Chdir(origWd)
@@ -112,6 +114,7 @@ func TestRunNewLesson_CourseNotFound(t *testing.T) {
 
 func TestRunNewLesson_GapInNumbering(t *testing.T) {
 	dir := t.TempDir()
+	markSite(t, dir)
 	origWd, _ := os.Getwd()
 	os.Chdir(dir)
 	defer os.Chdir(origWd)
@@ -137,6 +140,7 @@ func TestRunNewLesson_GapInNumbering(t *testing.T) {
 
 func TestRunNew_FlatCommand(t *testing.T) {
 	dir := t.TempDir()
+	markSite(t, dir)
 	origWd, _ := os.Getwd()
 	os.Chdir(dir)
 	defer os.Chdir(origWd)
@@ -154,6 +158,7 @@ func TestRunNew_FlatCommand(t *testing.T) {
 
 func TestRunNewDirective(t *testing.T) {
 	dir := t.TempDir()
+	markSite(t, dir)
 	origWd, _ := os.Getwd()
 	os.Chdir(dir)
 	defer os.Chdir(origWd)
@@ -514,5 +519,40 @@ func TestRunNewSite_KazariConfigSetsThemes(t *testing.T) {
 	}
 	if !strings.Contains("\n"+string(data), "\nthemes:\n") {
 		t.Errorf("kazari.config.yaml does not set themes:\n%s", data)
+	}
+}
+
+// markSite makes dir a Sarde site, which the new commands require.
+func markSite(t *testing.T, dir string) {
+	t.Helper()
+	if err := os.WriteFile(filepath.Join(dir, "sarde.yaml"), []byte("site:\n  title: Test\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Outside a site the new commands fail instead of creating content/ in the
+// current directory.
+func TestRunNew_RequiresSite(t *testing.T) {
+	for _, args := range [][]string{
+		{"new", "blog", "First Post"},
+		{"new", "course", "intro-to-go"},
+		{"new", "directive", "pullquote"},
+	} {
+		dir := t.TempDir()
+		origWd, _ := os.Getwd()
+		os.Chdir(dir)
+		cmd := rootCmd
+		cmd.SetArgs(args)
+		err := cmd.Execute()
+		os.Chdir(origWd)
+		if err == nil || !strings.Contains(err.Error(), "not a Sarde site") {
+			t.Errorf("%v outside a site: err = %v, want not a Sarde site", args, err)
+		}
+		if _, statErr := os.Stat(filepath.Join(dir, "content")); statErr == nil {
+			t.Errorf("%v created content/ outside a site", args)
+		}
+		if _, statErr := os.Stat(filepath.Join(dir, "directives")); statErr == nil {
+			t.Errorf("%v created directives/ outside a site", args)
+		}
 	}
 }

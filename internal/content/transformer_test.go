@@ -218,6 +218,26 @@ func TestFirstProseParagraph_TildeAndLongerFences(t *testing.T) {
 	}
 }
 
+// An image is not prose: an opening image line is skipped, and an image
+// inside a sentence is dropped, so a list card or meta description never
+// shows an image or its Markdown.
+func TestFirstProseParagraph_SkipsImages(t *testing.T) {
+	tests := []struct{ name, raw, want string }{
+		{"image-only first paragraph", "![Cover](/img/cover.jpg)\n\nThe real opening.\n", "The real opening."},
+		{"linked image line", "[![Badge](badge.svg)](https://ci.example.com)\n\nProse.\n", "Prose."},
+		{"two images on one line", "![a](a.png) ![b](b.png)\n\nProse.\n", "Prose."},
+		{"image inside prose", "Look at ![the chart](chart.png) closely.\n", "Look at closely."},
+		{"image line ends the paragraph", "Opening line.\n![Figure](fig.png)\n", "Opening line."},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := firstProseParagraph(tt.raw); got != tt.want {
+				t.Errorf("firstProseParagraph = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestExtractSummary_SkipsHTMLBlocks(t *testing.T) {
 	// extractSummary shares the scanner's HTML-block skip that previously
 	// only extractDescription had.

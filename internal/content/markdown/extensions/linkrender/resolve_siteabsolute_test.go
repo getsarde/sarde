@@ -59,6 +59,40 @@ func TestResolveSiteAbsolute_Found(t *testing.T) {
 	}
 }
 
+// Under i18n fallback "omit" there is no French copy of an untranslated
+// page, so a French page's link to it falls back to the default-language
+// page and must point at that page's own URL, not a /fr/ URL that does not
+// exist.
+func TestResolveSiteAbsolute_FallsBackToDefaultLanguageURL(t *testing.T) {
+	docsCol := &engine.Collection{Name: "docs", Config: &engine.CollectionConfig{}}
+	english := &engine.Page{
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/guide/", Permalink: "/docs/guide/"},
+		PageI18n:          engine.PageI18n{Lang: "en", LangRelPath: "docs/guide.md"},
+		PageRelationships: engine.PageRelationships{Collection: docsCol},
+	}
+	french := &engine.Page{
+		PageIdentity:      engine.PageIdentity{RelPermalink: "/docs/intro/", Permalink: "/fr/docs/intro/"},
+		PageI18n:          engine.PageI18n{Lang: "fr", LangRelPath: "docs/intro.md"},
+		PageRelationships: engine.PageRelationships{Collection: docsCol},
+	}
+	graph := links.NewLinkGraph()
+	r := &Renderer{
+		CurrentPage: french,
+		PageIndex:   content.BuildPageIndex([]*engine.Page{english, french}),
+		URLResolver: &engine.URLResolver{
+			BasePath: "/", I18nEnabled: true, DefaultLang: "en",
+			Strategy: "prefix-except-default", Languages: map[string]bool{"en": true, "fr": true},
+		},
+		LinkGraph: graph,
+	}
+	if got := r.ResolveHref("/docs/guide"); got != "/docs/guide/" {
+		t.Errorf("ResolveHref = %q, want /docs/guide/", got)
+	}
+	if ref := lastRef(t, graph); ref.Status != links.StatusOK {
+		t.Errorf("status = %v, want StatusOK", ref.Status)
+	}
+}
+
 func TestResolveSiteAbsolute_FoundWithFragment(t *testing.T) {
 	r, graph := buildSiteAbsoluteRenderer(t)
 

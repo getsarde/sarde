@@ -11,6 +11,30 @@ import (
 	"github.com/getsarde/sarde/internal/taxonomy"
 )
 
+// recentEntries returns the first n pages of a collection in its sort order,
+// in lang on a multi-language site (funcMapForLang passes the page's
+// language).
+func recentEntries(s *engine.SiteContext, colName string, n int, lang string) []*engine.Page {
+	if s == nil {
+		return nil
+	}
+	col, ok := s.Collections[colName]
+	if !ok || col == nil {
+		return nil
+	}
+	pages := col.PagesFor(lang)
+	// Clamp both ends: a negative n from template arithmetic would panic
+	// with a runtime error that escapes template recovery and kills the
+	// whole build.
+	if n < 0 {
+		n = 0
+	}
+	if n > len(pages) {
+		n = len(pages)
+	}
+	return pages[:n]
+}
+
 // buildContentFuncs returns cross-collection content lookup functions: ref,
 // relref, recentEntries, findEntry, allCollections, and topTerms.
 func buildContentFuncs(pageIndexPtr **content.PageIndex, sitePtr **engine.SiteContext) htmltemplate.FuncMap {
@@ -28,25 +52,7 @@ func buildContentFuncs(pageIndexPtr **content.PageIndex, sitePtr **engine.SiteCo
 			return slug
 		},
 		"recentEntries": func(colName string, n int) []*engine.Page {
-			s := *sitePtr
-			if s == nil {
-				return nil
-			}
-			col, ok := s.Collections[colName]
-			if !ok || col == nil {
-				return nil
-			}
-			pages := col.Pages
-			// Clamp both ends: a negative n from template arithmetic would
-			// panic with a runtime error that escapes template recovery and
-			// kills the whole build.
-			if n < 0 {
-				n = 0
-			}
-			if n > len(pages) {
-				n = len(pages)
-			}
-			return pages[:n]
+			return recentEntries(*sitePtr, colName, n, "")
 		},
 		"findEntry": func(colName, slug string) *engine.Page {
 			s := *sitePtr

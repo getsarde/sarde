@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/plugin/cfgutil"
 	"golang.org/x/text/language"
@@ -70,18 +71,11 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 		page.DescriptionInferred = true
 	}
 
-	// Build image URL.
-	ogImage := page.Image
+	// Build image URL: the page's own image, else the plugin default.
+	pageImage := seoImageURL(ctx, page, page.Image)
+	ogImage := pageImage
 	if ogImage == "" {
-		ogImage = defaultImage
-	}
-	switch {
-	case ogImage == "" || engine.IsAbsoluteURL(ogImage):
-	case strings.HasPrefix(ogImage, "/"):
-		// A site-absolute path: origin plus base path, never a language.
-		ogImage = ctx.AbsURL(ogImage, "", "")
-	default:
-		ogImage = baseURL + ogImage
+		ogImage = seoImageURL(ctx, nil, defaultImage)
 	}
 
 	// Determine OG type.
@@ -118,8 +112,13 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 	seo["og_type"] = ogType
 	seo["og_site_name"] = siteTitle
 	// A single-language site leaves page.Lang empty; the route language is
-	// then the site language, the same value <html lang> uses.
+	// then the site language, the same value <html lang> uses. A fallback
+	// copy sits under a translated folder but holds the default language's
+	// text, so its locale names the language it is written in.
 	lang := page.Lang
+	if page.IsFallback && ctx.Site != nil && ctx.Site.DefaultLang != "" {
+		lang = ctx.Site.DefaultLang
+	}
 	if lang == "" && ctx.RouteData != nil {
 		lang = ctx.RouteData.Lang
 	}
@@ -146,9 +145,15 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 		delete(seo, "og_locale_alternate")
 	}
 
+	// An inferred date is the file's mtime, which says nothing about when
+	// the page was published and resets on every checkout, so only an
+	// explicit date becomes a publish date. The key is removed otherwise,
+	// since the seo map outlives a single render.
 	if ogType == "article" {
-		if !page.Date.IsZero() {
+		if page.DateExplicit && !page.Date.IsZero() {
 			seo["article_published_time"] = page.Date.Format(time.RFC3339)
+		} else {
+			delete(seo, "article_published_time")
 		}
 		if !page.Updated.IsZero() {
 			seo["article_modified_time"] = page.Updated.Format(time.RFC3339)
@@ -186,7 +191,7 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 	// content, and buildJSONLD's output is json.Marshal-generated with no
 	// user-controlled raw markup.
 	if enableJSONLD {
-		ld := buildJSONLD(page, ctx.RouteData, ctx.Site, baseURL, description)
+		ld := buildJSONLD(ctx, page, baseURL, description, pageImage)
 		if ld != "" {
 			seo["json_ld"] = template.JS(ld)
 		}
@@ -200,17 +205,17 @@ func seoBeforeRender(ctx *BeforeRenderContext, cfg map[string]any) error {
 // the primary node for the page (Article / CollectionPage / WebPage), a
 // BreadcrumbList derived from route data, and a Course when the collection
 // is tagged as a course (via Params["schema_type"] = "Course").
-func buildJSONLD(page *engine.Page, route *engine.RouteData, site *engine.SiteContext, baseURL, description string) string {
+func buildJSONLD(ctx *BeforeRenderContext, page *engine.Page, baseURL, description, image string) string {
 	pageURL := baseURL + page.URL()
 	siteName := ""
-	if site != nil {
-		siteName = site.Title
+	if ctx.Site != nil {
+		siteName = ctx.Site.Title
 	}
 
-	primary := primaryNode(page, pageURL, description, siteName)
+	primary := primaryNode(page, pageURL, description, siteName, image, siteAuthor(ctx.Site))
 	graph := []map[string]any{primary}
 
-	if crumbs := breadcrumbListNode(route, site, baseURL); crumbs != nil {
+	if crumbs := breadcrumbListNode(ctx, page); crumbs != nil {
 		graph = append(graph, crumbs)
 	}
 	if course := courseNode(page, pageURL, description); course != nil {
@@ -228,7 +233,18 @@ func buildJSONLD(page *engine.Page, route *engine.RouteData, site *engine.SiteCo
 	return string(data)
 }
 
-func primaryNode(page *engine.Page, pageURL, description, siteName string) map[string]any {
+// siteAuthor returns site.author, the author of pages that name none.
+func siteAuthor(site *engine.SiteContext) string {
+	if site == nil {
+		return ""
+	}
+	if cfg, ok := site.Config.(*config.SiteConfig); ok && cfg != nil {
+		return cfg.Site.Author
+	}
+	return ""
+}
+
+func primaryNode(page *engine.Page, pageURL, description, siteName, image, defaultAuthor string) map[string]any {
 	node := map[string]any{}
 	switch {
 	case page.Kind == engine.KindSection || page.Kind == engine.KindHome:
@@ -243,17 +259,21 @@ func primaryNode(page *engine.Page, pageURL, description, siteName string) map[s
 		node["headline"] = page.Title
 		node["url"] = pageURL
 		node["mainEntityOfPage"] = pageURL
-		if !page.Date.IsZero() {
+		if page.DateExplicit && !page.Date.IsZero() {
 			node["datePublished"] = page.Date.Format("2006-01-02")
 		}
 		if !page.Updated.IsZero() {
 			node["dateModified"] = page.Updated.Format("2006-01-02")
 		}
-		if author, ok := page.Params["author"].(string); ok && author != "" {
+		author, _ := page.Params["author"].(string)
+		if author == "" {
+			author = defaultAuthor
+		}
+		if author != "" {
 			node["author"] = map[string]any{"@type": "Person", "name": author}
 		}
-		if page.Image != "" {
-			node["image"] = page.Image
+		if image != "" {
+			node["image"] = image
 		}
 	default:
 		node["@type"] = "WebPage"
@@ -266,10 +286,17 @@ func primaryNode(page *engine.Page, pageURL, description, siteName string) map[s
 	return node
 }
 
-func breadcrumbListNode(route *engine.RouteData, site *engine.SiteContext, baseURL string) map[string]any {
+// breadcrumbListNode runs before resolveRouteAssets, so the crumbs still hold
+// prefix-free paths. Each is resolved the way resolveRouteAssets resolves the
+// visible breadcrumbs, with the page's language and version, then made
+// absolute. URLResolver.URL is idempotent, so an already resolved crumb is
+// safe too.
+func breadcrumbListNode(ctx *BeforeRenderContext, page *engine.Page) map[string]any {
+	route := ctx.RouteData
 	if route == nil || len(route.Breadcrumbs) < 2 {
 		return nil
 	}
+	lang, version := page.Lang, engine.ResolvePageVersion(page)
 	items := make([]map[string]any, 0, len(route.Breadcrumbs))
 	for i, c := range route.Breadcrumbs {
 		item := map[string]any{
@@ -277,16 +304,34 @@ func breadcrumbListNode(route *engine.RouteData, site *engine.SiteContext, baseU
 			"position": i + 1,
 			"name":     c.Label,
 		}
-		if c.URL != "" {
-			// c.URL is already fully resolved (basePath + lang + version)
-			// by resolveRouteAssets — just prepend the origin.
-			item["item"] = baseURL + c.URL
+		switch {
+		case c.URL == "":
+		case engine.IsAbsoluteURL(c.URL):
+			item["item"] = c.URL
+		default:
+			item["item"] = ctx.AbsURL(c.URL, lang, version)
 		}
 		items = append(items, item)
 	}
 	return map[string]any{
 		"@type":           "BreadcrumbList",
 		"itemListElement": items,
+	}
+}
+
+// seoImageURL returns the absolute URL of an image. A relative value is read
+// from the page's folder, as a browser on the page would read it; with no
+// page (the plugin's default_image) it is read from the site root. Like every
+// image it gets the base path but never a language prefix: a page bundle's
+// files are written once, at the language-free path.
+func seoImageURL(ctx *BeforeRenderContext, page *engine.Page, v string) string {
+	switch {
+	case v == "" || engine.IsAbsoluteURL(v):
+		return v
+	case page == nil:
+		return ctx.AbsURL("/"+strings.TrimPrefix(v, "/"), "", "")
+	default:
+		return ctx.AbsURL(engine.PageRelativePath(page, v), "", "")
 	}
 }
 

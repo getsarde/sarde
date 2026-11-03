@@ -73,14 +73,12 @@ Every page under the section inherits the banner. A page that sets its own `bann
 
 ## Customize the template
 
-The banner renders through the `PageBanner` component. Override it by adding `layouts/components/PageBanner.html` to the project root. The component runs on every page, including pages without a banner, so wrap the markup in a check. The banner is available as `.PageBanner` with the fields `.Content`, `.Variant`, and `.Icon`:
+The banner renders through the `PageBanner` component. Override it by adding `layouts/components/PageBanner.html` to the project root. The layouts render the component only on pages that have a banner, available as `.PageBanner` with the fields `.Content`, `.Variant`, and `.Icon`:
 
 ```html title="layouts/components/PageBanner.html"
-{{ if .PageBanner }}
 <aside class="my-banner my-banner-{{ or .PageBanner.Variant "note" }}">
   {{ .PageBanner.Content }}
 </aside>
-{{ end }}
 ```
 
-Without the `{{ if .PageBanner }}` check, the build fails with a nil pointer error on the first page that has no banner. See [Frontmatter](/reference/frontmatter/#banner) for the field reference.
+A theme that calls the component from its own `baseof.html` needs the same check around the call, `{{ if .PageBanner }}{{ component "PageBanner" . }}{{ end }}`; without it, an override like the one above fails the build with a nil pointer error on the first page without a banner. See [Frontmatter](/reference/frontmatter/#banner) for the field reference.

@@ -65,13 +65,19 @@ func countWords(text string) int {
 // and deliberately does not match.
 var directiveOpenRe = regexp.MustCompile(`^:{3,}\s*[\w-]`)
 
+// inlineImageRe matches a Markdown image, "![alt](src)", or a linked one,
+// "[![alt](src)](href)". An image is not prose: a description or summary
+// that kept one would show the image, or its raw Markdown, as text.
+var inlineImageRe = regexp.MustCompile(`\[?!\[[^\]]*\]\([^)]*\)(?:\]\([^)]*\))?`)
+
 // firstProseParagraph extracts the first prose paragraph from raw markdown.
 // It skips headings, frontmatter-like "---" lines, HTML block lines, fenced
 // code blocks, and directive container blocks. Directives nest with the same
 // fence length (":::card-grid" containing ":::card", both closed by a bare
 // ":::"), so nesting is tracked by depth rather than a toggle; a stray
-// closer clamps at depth zero. Returns "" when the body has no prose at all,
-// e.g. a homepage that is entirely directive blocks.
+// closer clamps at depth zero. A line holding only images is skipped like a
+// heading, and an image inside prose is dropped. Returns "" when the body has
+// no prose at all, e.g. a homepage that is entirely directive blocks.
 func firstProseParagraph(markdown string) string {
 	lines := strings.Split(markdown, "\n")
 	var para strings.Builder
@@ -101,10 +107,13 @@ func firstProseParagraph(markdown string) string {
 			}
 			continue
 		}
-		// Skip headings, frontmatter-like lines, and HTML blocks.
+		// Skip headings, frontmatter-like lines, HTML blocks, and lines that
+		// hold only images.
+		prose := strings.Join(strings.Fields(inlineImageRe.ReplaceAllString(trimmed, " ")), " ")
 		if strings.HasPrefix(trimmed, "#") ||
 			strings.HasPrefix(trimmed, "---") ||
-			strings.HasPrefix(trimmed, "<") {
+			strings.HasPrefix(trimmed, "<") ||
+			prose == "" {
 			if inPara {
 				break
 			}
@@ -113,7 +122,7 @@ func firstProseParagraph(markdown string) string {
 		if inPara {
 			para.WriteString(" ")
 		}
-		para.WriteString(trimmed)
+		para.WriteString(prose)
 		inPara = true
 	}
 

@@ -59,11 +59,19 @@ func (w *Writer) Write(pages []RenderedPage, aliases map[string]string) (int, er
 	resolved := make([]resolvedPage, 0, len(pages))
 	dirs := make(map[string]struct{}, len(pages)/4)
 
+	// Two pages can resolve to one URL (a reported collision). The writes
+	// run in parallel, so writing both would let either win; the first in
+	// page order is kept, the same page the page index keeps.
+	seen := make(map[string]struct{}, len(pages))
 	for _, rp := range pages {
 		outPath, err := outputpath.SafeJoinWithRoot(absOutputDir, rp.OutPath)
 		if err != nil {
 			return 0, err
 		}
+		if _, dup := seen[outPath]; dup {
+			continue
+		}
+		seen[outPath] = struct{}{}
 		dirs[filepath.Dir(outPath)] = struct{}{}
 		resolved = append(resolved, resolvedPage{outPath: outPath, html: rp.HTML})
 	}

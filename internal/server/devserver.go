@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -45,6 +46,7 @@ type Options struct {
 	ThemeDevDirs   []string // theme source dirs to watch as ChangeTemplate, with CSS fast path (for --theme-dev)
 	PluginDevDirs  []string // plugin asset dirs to watch as ChangeTemplate, no CSS fast path (plugin CSS is bundled per-plugin)
 	Verbose        bool     // print per-phase rebuild timings and plugin log messages
+	DebugClient    bool     // inject the debug client script and log its reports (--debug-client)
 }
 
 // DevServer runs the development HTTP server with live reload.
@@ -57,10 +59,13 @@ type DevServer struct {
 	version    string
 	basePath   string // normalized: "/docs/" or "/"
 	verbose    bool
-	hub        *Hub
-	watcher    *Watcher
-	rebuilder  *Rebuilder
-	server     *http.Server // constructed in New(), immutable afterwards
+	// debugClient injects the debug client script, which reports page
+	// events to clientLogPath.
+	debugClient bool
+	hub         *Hub
+	watcher     *Watcher
+	rebuilder   *Rebuilder
+	server      *http.Server // constructed in New(), immutable afterwards
 
 	ready     chan int // actual bound port; sent once then closed (closed empty on pre-bind failure)
 	readyOnce sync.Once
@@ -84,16 +89,17 @@ func New(opts Options) *DevServer {
 		basePath = "/"
 	}
 	ds := &DevServer{
-		projectDir: opts.ProjectDir,
-		outputDir:  opts.OutputDir,
-		host:       host,
-		port:       opts.Port,
-		liveReload: opts.LiveReload,
-		version:    version,
-		basePath:   basePath,
-		verbose:    opts.Verbose,
-		hub:        NewHub(),
-		rebuilder:  NewRebuilder(opts.BuilderFactory, opts.ProjectDir),
+		projectDir:  opts.ProjectDir,
+		outputDir:   opts.OutputDir,
+		host:        host,
+		port:        opts.Port,
+		liveReload:  opts.LiveReload,
+		version:     version,
+		basePath:    basePath,
+		verbose:     opts.Verbose,
+		debugClient: opts.DebugClient,
+		hub:         NewHub(),
+		rebuilder:   NewRebuilder(opts.BuilderFactory, opts.ProjectDir),
 	}
 
 	ds.watcher = NewWatcher(opts.ProjectDir, opts.OutputDir, 150*time.Millisecond, ds.onFileChange)
@@ -117,9 +123,15 @@ func (ds *DevServer) buildHandler() http.Handler {
 	if ds.liveReload {
 		mux.HandleFunc("/ws", ds.hub.HandleWS)
 	}
+	// Chrome DevTools asks every page's origin for this file; a site has none,
+	// so answer 404 without logging a warning for each page view.
+	mux.HandleFunc(devToolsProbePath, http.NotFound)
+	if ds.debugClient {
+		mux.HandleFunc("POST "+clientLogPath, ds.handleClientLog)
+	}
 
 	var handler http.Handler = ds.fileHandler()
-	if ds.liveReload {
+	if ds.liveReload || ds.debugClient {
 		handler = ds.injectScript(handler)
 	}
 	if ds.basePath != "/" {
@@ -483,4 +495,31 @@ func mergeChanges(changes []FileChange) FileChange {
 		}
 	}
 	return best
+}
+
+const (
+	// devToolsProbePath is the workspace file Chrome DevTools requests from
+	// every origin it inspects.
+	devToolsProbePath = "/.well-known/appspecific/com.chrome.devtools.json"
+	// clientLogPath receives the debug client's reports.
+	clientLogPath = "/__sarde/client-log"
+	// maxClientLogBytes caps one debug client report.
+	maxClientLogBytes = 16 << 10
+)
+
+// handleClientLog prints one debug client report, a JSON object with the
+// event kind, the page path and a detail string, to the terminal.
+func (ds *DevServer) handleClientLog(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, maxClientLogBytes)
+	var entry struct {
+		Kind   string `json:"kind"`
+		Path   string `json:"path"`
+		Detail string `json:"detail"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&entry); err != nil {
+		http.Error(w, "bad client log entry", http.StatusBadRequest)
+		return
+	}
+	devlog.Log("client", "%s %s %s", entry.Path, entry.Kind, entry.Detail)
+	w.WriteHeader(http.StatusNoContent)
 }

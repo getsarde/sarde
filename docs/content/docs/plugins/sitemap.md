@@ -51,6 +51,7 @@ Each entry's `<lastmod>` uses the page's `updated` date if set, falling back to 
 The following pages are automatically excluded:
 
 - Draft pages
+- Pages with `render: false`, which are never written
 - Paginated list pages (URLs containing `/page/`)
 - Pages matching `exclude` glob patterns
 

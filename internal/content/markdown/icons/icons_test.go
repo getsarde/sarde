@@ -117,3 +117,34 @@ func TestGetWithClassUnchanged(t *testing.T) {
 		t.Error("GetWithClass should return empty for an unknown icon (no fallback)")
 	}
 }
+
+// size= sets width and height together; an explicit width or height wins,
+// and size itself never reaches the <svg>.
+func TestRenderSizeAttribute(t *testing.T) {
+	got := Render("rocket", "", map[string]string{"size": "32"})
+	if !strings.Contains(got, `width="32"`) || !strings.Contains(got, `height="32"`) {
+		t.Errorf("size=32 did not set both dimensions: %s", got)
+	}
+	if strings.Contains(got, `size=`) {
+		t.Errorf("size leaked onto the svg: %s", got)
+	}
+	got = Render("rocket", "", map[string]string{"size": "32", "width": "48"})
+	if !strings.Contains(got, `width="48"`) || !strings.Contains(got, `height="32"`) {
+		t.Errorf("an explicit width must win over size: %s", got)
+	}
+}
+
+// An unknown name renders the placeholder and is recorded once for the
+// build's warning; DrainMissing empties the list.
+func TestRenderRecordsMissingIcons(t *testing.T) {
+	DrainMissing()
+	Render("no-such-icon-xyz", "", nil)
+	Render("no-such-icon-xyz", "", nil)
+	Render("rocket", "", nil)
+	if got := DrainMissing(); len(got) != 1 || got[0] != "no-such-icon-xyz" {
+		t.Errorf("DrainMissing = %v, want [no-such-icon-xyz]", got)
+	}
+	if got := DrainMissing(); len(got) != 0 {
+		t.Errorf("second DrainMissing = %v, want empty", got)
+	}
+}

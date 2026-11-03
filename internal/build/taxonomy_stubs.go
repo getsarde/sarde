@@ -58,13 +58,16 @@ func buildTermPaginatedStub(tax *engine.Taxonomy, term *engine.TaxonomyTerm, per
 	}
 }
 
-func crossLinkStubs(byLang map[string]map[string]*engine.Page, key, selfLang string) []*engine.Page {
+// crossLinkStubs returns the other languages' stubs for key, in langOrder
+// (the configured language order), so the language switcher on a taxonomy
+// page lists them in the same order on every build.
+func crossLinkStubs(byLang map[string]map[string]*engine.Page, key, selfLang string, langOrder []string) []*engine.Page {
 	var peers []*engine.Page
-	for lang, stubs := range byLang {
+	for _, lang := range langOrder {
 		if lang == selfLang {
 			continue
 		}
-		if stub, ok := stubs[key]; ok {
+		if stub, ok := byLang[lang][key]; ok {
 			peers = append(peers, stub)
 		}
 	}

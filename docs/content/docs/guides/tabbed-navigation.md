@@ -156,7 +156,7 @@ content/docs/
     _index.md       # API tab keeps its auto-generated tree
 ```
 
-See [Navigation and Sidebar](/guides/navigation-and-sidebar/#manual-tab-sidebar-with-nav-yaml) for the item format. Sarde ignores a `nav.yaml` at the collection root. If a tab's `nav.yaml` fails to parse, Sarde falls back to the auto-generated tree for that tab without reporting an error.
+See [Navigation and Sidebar](/guides/navigation-and-sidebar/#manual-tab-sidebar-with-nav-yaml) for the item format. Sarde ignores a `nav.yaml` at the collection root. If a tab's `nav.yaml` fails to parse, Sarde warns and falls back to the auto-generated tree for that tab.
 
 ## Tabs with versioning and i18n
 

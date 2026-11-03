@@ -16,8 +16,8 @@
   <div class="sarde-marketing-stats">
     {{ range $name, $col := . }}
     <div class="sarde-marketing-stat">
-      <span class="sarde-marketing-stat-number">{{ len $col.Pages }}</span>
-      <span class="sarde-marketing-stat-label">{{ $col.Title | markdownify }}</span>
+      <span class="sarde-marketing-stat-number">{{ len ($col.PagesFor $.Lang) }}</span>
+      <span class="sarde-marketing-stat-label">{{ $col.TitleFor $.Lang | markdownify }}</span>
     </div>
     {{ end }}
   </div>
@@ -30,8 +30,8 @@
     <div class="sarde-catalog-grid">
       {{ range $name, $col := . }}
       <a class="sarde-marketing-collection-card" href="{{ relURL (printf "/%s/" $name) }}">
-        <h2>{{ $col.Title | markdownify }}</h2>
-        <span class="sarde-marketing-collection-count">{{ len $col.Pages }} entries</span>
+        <h2>{{ $col.TitleFor $.Lang | markdownify }}</h2>
+        <span class="sarde-marketing-collection-count">{{ len ($col.PagesFor $.Lang) }} entries</span>
       </a>
       {{ end }}
     </div>
@@ -51,7 +51,7 @@
 <section class="sarde-marketing-recent">
   <div class="sarde-marketing-recent-inner">
     <div class="sarde-section-header-row">
-      <h2 class="sarde-section-label">{{ $col.Title | markdownify }}</h2>
+      <h2 class="sarde-section-label">{{ $col.TitleFor $.Lang | markdownify }}</h2>
       <a class="sarde-section-link" href="{{ relURL (printf "/%s/" $name) }}">{{ t "home.all_posts" }} &rarr;</a>
     </div>
     <div class="sarde-recent-grid">

@@ -129,6 +129,7 @@ sarde dev [flags] [project-dir]
 | `--watch-stdin` | bool | `false` | Exit when stdin closes (for child-process mode). |
 | `--theme-dev` | string | `""` | Path to a theme source directory for live-reload during framework development. |
 | `--check-syntax` | bool | `false` | Enable syntax checking for unclosed fenced blocks during rebuilds. |
+| `--debug-client` | bool | `false` | Log page events, such as link clicks, errors, and long tasks, to the browser console and the terminal. See [Diagnose a page that stops responding](/advanced/dev-server/#diagnose-a-page-that-stops-responding). |
 | `--format` | string | `pretty` | Error output format: `pretty` or `json`. With `json`, a fatal startup error (bad config, port bind) is emitted as a [JSON error envelope](#json-error-envelope) on stdout before exiting. Normal server logs are unaffected. |
 
 ```

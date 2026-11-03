@@ -193,8 +193,10 @@ func (r *Renderer) resolveSiteAbsolute(raw string) string {
 
 	target := LookupInLaneWithDefaultFallback(r.PageIndex, relP, r.CurrentPage, r.URLResolver)
 	if target != nil {
-		version := engine.ResolvePageVersion(r.CurrentPage)
-		url := withSuffix(r.URLResolver.URL(target.RelPermalink, r.CurrentPage.Lang, version), fragment, query)
+		// The URL is built in the target's own language and version: under
+		// i18n fallback "omit" the lookup can fall back to a default-language
+		// page, which has no copy under the current page's language prefix.
+		url := withSuffix(r.URLResolver.URL(target.RelPermalink, target.Lang, engine.ResolvePageVersion(target)), fragment, query)
 		result := ResolveResult{URL: url, TargetPermalink: target.Permalink, Found: true}
 		if fragment != "" {
 			r.appendPendingAnchor(dest, target, result)
@@ -241,30 +243,15 @@ func (r *Renderer) resolveSiteRoot(rawHref, rest string) string {
 	return url
 }
 
-// withSuffix re-attaches a ?query and/or #fragment to a resolved URL in the
-// canonical order (path?query#fragment).
 // AssetURL returns the URL for an asset path written in content, such as an
-// image under public/: a site-absolute path gets the base path and never a
-// language or version prefix, since assets exist once. Full URLs, relative
-// paths and a nil resolver leave src unchanged. Unlike ResolveHref it
+// image under public/; see engine.URLResolver.AssetURL. Unlike ResolveHref it
 // records no link reference.
 func (r *Renderer) AssetURL(src string) string {
-	if r.URLResolver == nil || !strings.HasPrefix(src, "/") || engine.IsAbsoluteURL(src) {
-		return src
-	}
-	pathPart := src
-	var fragment, query string
-	if idx := strings.IndexByte(pathPart, '#'); idx >= 0 {
-		fragment = pathPart[idx+1:]
-		pathPart = pathPart[:idx]
-	}
-	if idx := strings.IndexByte(pathPart, '?'); idx >= 0 {
-		query = pathPart[idx+1:]
-		pathPart = pathPart[:idx]
-	}
-	return withSuffix(r.URLResolver.URL(pathPart, "", ""), fragment, query)
+	return r.URLResolver.AssetURL(src)
 }
 
+// withSuffix re-attaches a ?query and/or #fragment to a resolved URL in the
+// canonical order (path?query#fragment).
 func withSuffix(url, fragment, query string) string {
 	if query != "" {
 		url += "?" + query

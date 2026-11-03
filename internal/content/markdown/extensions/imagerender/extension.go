@@ -2,6 +2,7 @@ package imagerender
 
 import (
 	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
 )
@@ -18,6 +19,7 @@ func (e *Extension) Extend(m goldmark.Markdown) {
 	if r == nil {
 		r = NewRenderer(e.Lookup)
 	}
+	m.Parser().AddOptions(parser.WithInlineParsers(util.Prioritized(attributeParser{}, 150)))
 	m.Renderer().AddOptions(
 		renderer.WithNodeRenderers(
 			util.Prioritized(r, 50),

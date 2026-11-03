@@ -10,12 +10,13 @@ import (
 
 	"github.com/frostybee/go-swarm-icons/npm"
 	"github.com/getsarde/sarde/internal/config"
+	"github.com/getsarde/sarde/internal/consts"
 	"github.com/spf13/cobra"
 )
 
 // defaultSetsDir is where downloaded Iconify sets land when icons.sets_dir is
 // not configured and --dest is not given.
-const defaultSetsDir = "icon-sets"
+const defaultSetsDir = consts.DirIconSets
 
 var iconsCmd = &cobra.Command{
 	Use:   "icons",

@@ -86,7 +86,7 @@ Sarde uses the same Go `html/template` syntax. Key differences:
 | `{{ .Content }}` | `{{ .Content }}` (same) |
 | `{{ .Permalink }}` | `{{ .Page.Permalink }}` |
 | `{{ partial "name.html" . }}` | `{{ partial "name.html" . }}` (same) |
-| `{{ range .Pages }}` | `{{ range .Collection.Pages }}` |
+| `{{ range .Pages }}` | `{{ range .ListPages }}` (on a list page) |
 | `{{ .Site.Title }}` | `{{ .Site.Title }}` (same) |
 
 ### Shortcodes

@@ -9,6 +9,7 @@ import (
 	"github.com/getsarde/sarde/embedded"
 	"github.com/getsarde/sarde/internal/config"
 	"github.com/getsarde/sarde/internal/content/markdown/icons"
+	"github.com/getsarde/sarde/internal/devlog"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/theme"
 )
@@ -164,8 +165,10 @@ func TestContentRebuild_IconRenderKeyThreaded(t *testing.T) {
 	if _, err := b.Build(); err != nil {
 		t.Fatalf("full build failed: %v", err)
 	}
-	if b.lastIconRenderKey != "icon-sprite" {
-		t.Fatalf("lastIconRenderKey = %q after sprite build, want %q", b.lastIconRenderKey, "icon-sprite")
+	// The key also names the loaded icon sets, so loading one re-renders
+	// pages that showed its icons as placeholders.
+	if !strings.HasPrefix(b.lastIconRenderKey, "icon-sprite|sets=") {
+		t.Fatalf("lastIconRenderKey = %q after sprite build, want the sprite mode and the loaded sets", b.lastIconRenderKey)
 	}
 
 	writeFixture(t, dir, "content/docs/icons.md", "---\ntitle: Icons\nweight: 1\n---\nMore stars :icon[star] :icon[star]\n")
@@ -543,4 +546,70 @@ func TestBuild_NoCustom404_UsesDefault(t *testing.T) {
 	distDir := filepath.Join(projDir, "dist")
 	assertFixtureFileExists(t, distDir, "404.html")
 	assertFixtureFileContains(t, distDir, "404.html", "Page Not Found")
+}
+
+// A project's PageBanner.html override without its own nil check builds: the
+// layouts render the component only on pages that have a banner.
+func TestBuild_UnguardedPageBannerOverride(t *testing.T) {
+	dir := t.TempDir()
+	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\nWelcome.\n")
+	writeFixture(t, dir, "content/docs/notice.md", "---\ntitle: Notice\nbanner:\n  content: Read this first.\n---\nBody.\n")
+	writeFixture(t, dir, "content/docs/plain.md", "---\ntitle: Plain\n---\nBody.\n")
+	writeFixture(t, dir, "layouts/components/PageBanner.html",
+		`<aside class="my-banner my-banner-{{ or .PageBanner.Variant "note" }}">{{ .PageBanner.Content }}</aside>`)
+
+	read := buildImageSite(t, dir, config.Defaults())
+	if html := read("docs/notice/index.html"); !strings.Contains(html, `<aside class="my-banner my-banner-note">Read this first.</aside>`) {
+		t.Error("the override did not render on the page with a banner")
+	}
+	if html := read("docs/plain/index.html"); strings.Contains(html, "my-banner") {
+		t.Error("the override rendered on a page without a banner")
+	}
+}
+
+// Sets that `sarde icons add` downloads into icon-sets/ load without
+// icons.sets_dir; an unknown icon name warns once per build; and a term's
+// icon from data/tags.yml renders as an icon on the taxonomy pages, not as
+// its name.
+func TestBuild_IconSetsAndUnknownIcons(t *testing.T) {
+	dir := t.TempDir()
+	writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\nWelcome.\n")
+	writeFixture(t, dir, "content/blog/_index.md", "---\ntitle: Blog\n---\n")
+	writeFixture(t, dir, "content/blog/field.md", "---\ntitle: Field\ndate: 2025-01-01\ntags: [botany]\n---\nLeaf :icon[zzsets:leaf] and :icon[no-such-icon-qq].\n")
+	writeFixture(t, dir, "icon-sets/zzsets.json", `{"prefix":"zzsets","width":24,"height":24,"icons":{"leaf":{"body":"<path d=\"LEAF\"/>"}}}`)
+	writeFixture(t, dir, "data/tags.yml", "botany:\n  icon: rocket\n")
+
+	var warns []string
+	restore := devlog.SetSink(func(level, tag, msg string) {
+		if level == "warn" && tag == "icons" {
+			warns = append(warns, msg)
+		}
+	})
+	defer restore()
+
+	cfg := config.Defaults()
+	cfg.Build.Minify = config.BoolPtr(false)
+	read := buildImageSite(t, dir, cfg)
+
+	if html := read("blog/field/index.html"); !strings.Contains(html, `d="LEAF"`) {
+		t.Error("zzsets:leaf from icon-sets/ did not render")
+	}
+	found := 0
+	for _, w := range warns {
+		if strings.Contains(w, `unknown icon "no-such-icon-qq"`) {
+			found++
+		}
+	}
+	if found != 1 {
+		t.Errorf("want one unknown-icon warning, got %v", warns)
+	}
+	for _, page := range []string{"tags/index.html", "tags/botany/index.html"} {
+		html := read(page)
+		if strings.Contains(html, ">rocket<") {
+			t.Errorf("%s: the term icon is printed as text", page)
+		}
+		if !strings.Contains(html, `sarde-term-icon`) || !strings.Contains(html, "<svg") {
+			t.Errorf("%s: the term icon is not rendered as an icon", page)
+		}
+	}
 }

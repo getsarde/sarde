@@ -66,6 +66,7 @@ func applyEnvOverrides(cfg *SiteConfig, prefix string) {
 	}
 	if v, ok := lookupEnvBool(prefix, "MARKDOWN_UNSAFE"); ok {
 		cfg.Markdown.Unsafe = BoolPtr(v)
+		devlog.Warn("config", "%s_MARKDOWN_UNSAFE is deprecated and has no effect; raw HTML in Markdown always renders", prefix)
 	}
 	if v, ok := lookupEnvBool(prefix, "SEARCH_ENABLED"); ok {
 		cfg.Search.Enabled = BoolPtr(v)

@@ -73,3 +73,75 @@ func TestBuild_LabsLandingCards(t *testing.T) {
 	assertFixtureFileContains(t, distDir, course, `<span class="sarde-doc-card__count">1 step</span>`)
 	assertFixtureFileNotContains(t, distDir, course, "1 steps")
 }
+
+// TestBuild_LabsLandingCards_Translated: a translated labs collection gets
+// its own cards, lab sidebars and step counts. The French index lists the
+// French labs, plus a card for an untranslated lab's fallback copy unless
+// i18n fallback is "omit"; the English index shows no French card, and a
+// French lab's progress counts only that language's steps.
+func TestBuild_LabsLandingCards_Translated(t *testing.T) {
+	for _, fallback := range []string{"default", "omit"} {
+		t.Run(fallback, func(t *testing.T) {
+			dir := t.TempDir()
+			writeFixture(t, dir, "content/_index.md", "---\ntitle: Home\n---\n")
+			writeFixture(t, dir, "content/fr/_index.md", "---\ntitle: Accueil\n---\n")
+			writeFixture(t, dir, "content/labs/_index.md", "---\ntitle: Labs\n---\n")
+			writeFixture(t, dir, "content/fr/labs/_index.md", "---\ntitle: Ateliers\n---\n")
+			writeFixture(t, dir, "content/labs/web/_index.md", "---\ntitle: Web Fundamentals\n---\nIntro.\n")
+			writeFixture(t, dir, "content/fr/labs/web/_index.md", "---\ntitle: Fondamentaux du Web\n---\nIntro.\n")
+			writeFixture(t, dir, "content/labs/web/setup.md", "---\ntitle: Setup\nsidebar:\n  order: 1\n---\nStep one.\n")
+			writeFixture(t, dir, "content/fr/labs/web/setup.md", "---\ntitle: Installation\nsidebar:\n  order: 1\n---\nPremière étape.\n")
+			writeFixture(t, dir, "content/labs/web/style.md", "---\ntitle: Style\nsidebar:\n  order: 2\n---\nStep two.\n")
+			writeFixture(t, dir, "content/labs/py/_index.md", "---\ntitle: Python Basics\n---\nIntro.\n")
+			writeFixture(t, dir, "content/labs/py/intro.md", "---\ntitle: First Script\n---\nStep.\n")
+
+			cfg := config.Defaults()
+			cfg.Build.Minify = config.BoolPtr(false)
+			cfg.Build.Cache = config.BoolPtr(false)
+			cfg.Build.LastUpdated = "false"
+			cfg.I18n.DefaultLanguage = "en"
+			cfg.I18n.Fallback = fallback
+			cfg.I18n.Languages = map[string]config.LanguageConfig{
+				"en": {Name: "English", Weight: 1, Dir: "ltr"},
+				"fr": {Name: "Français", Weight: 2, Dir: "ltr"},
+			}
+			builder := NewSiteBuilder(BuildOptions{
+				ProjectDir:  dir,
+				Config:      cfg,
+				ThemeConfig: buildThemeConfig(),
+				EmbeddedFS:  embedded.ThemeFS(),
+			})
+			if _, err := builder.Build(); err != nil {
+				t.Fatalf("Build failed: %v", err)
+			}
+			distDir := filepath.Join(dir, "dist")
+
+			fr := "fr/labs/index.html"
+			assertFixtureFileContains(t, distDir, fr, `href="/fr/labs/web/"`)
+			assertFixtureFileContains(t, distDir, fr, "Fondamentaux du Web")
+			en := "labs/index.html"
+			assertFixtureFileContains(t, distDir, en, "Web Fundamentals")
+			assertFixtureFileNotContains(t, distDir, en, "Fondamentaux")
+			assertFixtureFileContains(t, distDir, en, `href="/labs/py/"`)
+
+			// The French lab's own steps: Overview, Installation, and Style's
+			// fallback copy unless omitted. The English lab is unaffected.
+			step := "fr/labs/web/setup/index.html"
+			assertFixtureFileContains(t, distDir, step, "Installation")
+			assertFixtureFileNotContains(t, distDir, step, `href="/labs/web/style/"`)
+			enStep := "labs/web/setup/index.html"
+			assertFixtureFileContains(t, distDir, enStep, `max="3"`)
+			assertFixtureFileNotContains(t, distDir, enStep, "Installation")
+
+			if fallback == "default" {
+				assertFixtureFileContains(t, distDir, fr, `href="/fr/labs/py/"`)
+				assertFixtureFileContains(t, distDir, step, `href="/fr/labs/web/style/"`)
+				assertFixtureFileContains(t, distDir, step, `max="3"`)
+			} else {
+				assertFixtureFileNotContains(t, distDir, fr, `href="/fr/labs/py/"`)
+				assertFixtureFileNotContains(t, distDir, step, "/web/style/")
+				assertFixtureFileContains(t, distDir, step, `max="2"`)
+			}
+		})
+	}
+}

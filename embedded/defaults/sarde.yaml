@@ -127,10 +127,10 @@ link_validation:
   report: "pretty"
   on_relative_links: "warn"
   on_local_links: "warn"
-  # Extension-less internal links (e.g. /docs/plugins/auth) that don't resolve to a
-  # known page in the current lane — possibly cross-collection/cross-lane or a typo.
-  # Static assets (/img/logo.png) and the site root (/) are never flagged.
-  # `sarde check-links --strict` escalates this to "error".
+  # A frontmatter file link (image, prev.link, next.link) that names a file
+  # Sarde does not find under public/ or beside the page bundle. An
+  # extension-less page link with no page behind it is a broken target
+  # (on_broken). `sarde check-links --strict` escalates this to "error".
   on_unverified_internal: "warn"
   check_anchors: true
   check_images: true

@@ -43,17 +43,17 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 		return nil
 	}
 
-	checkAnchors := config.BoolVal(settings.CheckAnchors, true)
-	checkImages := config.BoolVal(settings.CheckImages, true)
+	// The same policies as the full build's link check (internal/links): an
+	// ignored policy skips the check. The deprecated check_anchors,
+	// check_images, fail_build and ignore keys have no effect.
+	checkAnchors := settings.EffectiveOnBrokenAnchor() != "ignore"
+	checkImages := settings.EffectiveOnBroken() != "ignore"
 	sameSitePolicy := settings.SameSitePolicy
 	if sameSitePolicy == "" {
 		sameSitePolicy = "ignore"
 	}
 
 	excludePatterns := settings.Exclude
-	if len(excludePatterns) == 0 {
-		excludePatterns = settings.Ignore
-	}
 
 	warnLocal := settings.EffectiveOnLocalLinks() != "ignore"
 
@@ -99,10 +99,8 @@ func linkValidatorBuildDone(ctx *BuildDoneContext) error {
 		ctx.Log(fmt.Sprintf("Validated %d links", linkCount))
 	}
 
-	if config.BoolVal(settings.FailBuild, false) && errorCount > 0 {
-		return fmt.Errorf("link validation failed: %d broken link(s) found", errorCount)
-	}
-
+	// An incremental rebuild reports broken links but never fails: the full
+	// build's link check enforces on_broken.
 	return nil
 }
 

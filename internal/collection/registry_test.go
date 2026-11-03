@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/getsarde/sarde/internal/config"
@@ -569,4 +570,74 @@ func TestNormalizeRootVersionPages(t *testing.T) {
 			t.Errorf("Version = %q, want empty (no-op)", pages[0].Version)
 		}
 	})
+}
+
+// A top-level tabs: false on a docs collection's root _index.md turns the
+// tab bar off, without an unknown-key warning; without it the two top-level
+// sections become tabs.
+func TestBuildCollections_TabsFalseInIndexFrontmatter(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		index  string
+		tabbed bool
+	}{
+		{"auto-detected", "---\ntitle: Docs\n---\n", true},
+		{"tabs: false", "---\ntitle: Docs\ntabs: false\n---\n", false},
+		{"params: {tabs: false}", "---\ntitle: Docs\nparams:\n  tabs: false\n---\n", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			contentDir := filepath.Join(t.TempDir(), "content")
+			writeTestFile(t, contentDir, filepath.Join("docs", "_index.md"), tc.index)
+			for _, sec := range []string{"guide", "api"} {
+				writeTestFile(t, contentDir, filepath.Join("docs", sec, "_index.md"), "---\ntitle: "+sec+"\n---\n")
+				writeTestFile(t, contentDir, filepath.Join("docs", sec, "intro.md"), "---\ntitle: Intro\n---\nBody.\n")
+			}
+			files, err := (&content.Scanner{}).DiscoverFiles(contentDir)
+			if err != nil {
+				t.Fatal(err)
+			}
+			collections, warnings, err := BuildCollections(files, config.Defaults(), contentDir, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := collections["docs"].IsTabbed; got != tc.tabbed {
+				t.Errorf("IsTabbed = %v, want %v", got, tc.tabbed)
+			}
+			for _, w := range warnings {
+				if strings.Contains(w.Message, `"tabs"`) {
+					t.Errorf("unexpected warning: %v", w)
+				}
+			}
+		})
+	}
+}
+
+// featured and robots are known frontmatter keys: no unknown-key warning, a
+// featured post joins Featured, and a top-level robots reaches Params, where
+// Head.html reads it.
+func TestBuildCollections_FeaturedAndRobotsKeys(t *testing.T) {
+	contentDir := filepath.Join(t.TempDir(), "content")
+	writeTestFile(t, contentDir, filepath.Join("blog", "_index.md"), "---\ntitle: Blog\n---\n")
+	writeTestFile(t, contentDir, filepath.Join("blog", "pick.md"), "---\ntitle: Pick\nfeatured: true\nrobots: noindex,follow\n---\nBody.\n")
+	writeTestFile(t, contentDir, filepath.Join("blog", "lab.md"), "---\ntitle: Lab\nlayout: labs\n---\nBody.\n")
+	files, err := (&content.Scanner{}).DiscoverFiles(contentDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	collections, warnings, err := BuildCollections(files, config.Defaults(), contentDir, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, w := range warnings {
+		t.Errorf("unexpected warning: %v", w)
+	}
+	blog := collections["blog"]
+	if len(blog.Featured) != 1 || blog.Featured[0].Title != "Pick" {
+		t.Errorf("Featured = %v, want [Pick]", blog.Featured)
+	}
+	for _, p := range blog.Pages {
+		if p.Title == "Pick" && p.Params["robots"] != "noindex,follow" {
+			t.Errorf("robots param = %v, want noindex,follow", p.Params["robots"])
+		}
+	}
 }

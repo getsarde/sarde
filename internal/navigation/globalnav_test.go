@@ -17,7 +17,7 @@ func TestBuildGlobalNav_Basic(t *testing.T) {
 		},
 	}
 
-	nav := BuildGlobalNav(site, docs, nil)
+	nav := BuildGlobalNav(site, docs, nil, "")
 
 	if nav == nil {
 		t.Fatal("expected non-nil")
@@ -48,7 +48,7 @@ func TestBuildGlobalNav_NilCurrentCollection(t *testing.T) {
 		},
 	}
 
-	nav := BuildGlobalNav(site, nil, nil)
+	nav := BuildGlobalNav(site, nil, nil, "")
 	if nav == nil {
 		t.Fatal("expected non-nil")
 	}
@@ -58,7 +58,22 @@ func TestBuildGlobalNav_NilCurrentCollection(t *testing.T) {
 }
 
 func TestBuildGlobalNav_NilSite(t *testing.T) {
-	if BuildGlobalNav(nil, nil, nil) != nil {
+	if BuildGlobalNav(nil, nil, nil, "") != nil {
 		t.Error("expected nil for nil site")
+	}
+}
+
+// On a translated page the header names each collection in the page's
+// language.
+func TestBuildGlobalNav_TranslatedLabels(t *testing.T) {
+	docs := &engine.Collection{Name: "docs", Title: "Documentation", LangIndex: map[string]*engine.Page{
+		"ar": {PageIdentity: engine.PageIdentity{Title: "التوثيق"}},
+	}}
+	site := &engine.SiteContext{Collections: map[string]*engine.Collection{"docs": docs}}
+	if got := BuildGlobalNav(site, docs, nil, "ar").Items[0].Label; got != "التوثيق" {
+		t.Errorf("label on an Arabic page = %q, want the Arabic title", got)
+	}
+	if got := BuildGlobalNav(site, docs, nil, "en").Items[0].Label; got != "Documentation" {
+		t.Errorf("label on an English page = %q, want the shared title", got)
 	}
 }

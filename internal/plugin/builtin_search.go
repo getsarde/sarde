@@ -152,6 +152,12 @@ func searchBuildDone(ctx *BuildDoneContext, cfg map[string]any, cache *searchDoc
 		if page.Draft {
 			continue
 		}
+		// A render: false page has no URL to send a reader to. A fallback
+		// copy repeats a default-language page, which that language's index
+		// already holds; hreflang leaves fallbacks out for the same reason.
+		if !page.Renders() || page.IsFallback {
+			continue
+		}
 		// Frontmatter opt-out: pagefind: false (cascadable via section
 		// _index.md). The typed field lives on FrontmatterMeta; Params is
 		// where the page builder and cascade surface it.
@@ -300,7 +306,7 @@ func buildSearchDocs(page *engine.Page, url string, maxLen int) []searchDocument
 func buildBreadcrumb(page *engine.Page) string {
 	var parts []string
 	if page.Collection != nil {
-		parts = append(parts, page.Collection.Title)
+		parts = append(parts, page.Collection.TitleFor(page.Lang))
 	}
 	var sectionParts []string
 	// Depth cap guards against a (mis-assembled) circular section tree.

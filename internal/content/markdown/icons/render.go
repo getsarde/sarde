@@ -2,6 +2,7 @@ package icons
 
 import (
 	"html"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -42,6 +43,10 @@ var aliasMap = map[string]string{
 }
 
 var usedSets sync.Map
+
+// missingIcons holds the names Render could not find this build; see
+// DrainMissing.
+var missingIcons sync.Map
 
 var spriteMode atomic.Bool
 
@@ -99,6 +104,9 @@ func Render(name, baseClass string, attrs map[string]string) string {
 
 	icon, spriteID, ok := lookupIcon(name, ariaAttrs)
 	if !ok {
+		if name != "" {
+			missingIcons.Store(name, struct{}{})
+		}
 		icon, spriteID, ok = lookupIcon("circle-help", ariaAttrs)
 		if !ok {
 			return ""
@@ -106,7 +114,7 @@ func Render(name, baseClass string, attrs map[string]string) string {
 	}
 
 	class := baseClass
-	var callerW, callerH, userStyle string
+	var callerW, callerH, userStyle, size string
 	passThrough := map[string]string{}
 
 	for k, v := range attrs {
@@ -121,12 +129,24 @@ func Render(name, baseClass string, attrs map[string]string) string {
 			callerH = v
 		case "style":
 			userStyle = v
+		case "size":
+			size = v
 		case "rotate", "flip", "title":
 			// handled separately
 		case "role", "aria-label", "aria-labelledby":
 			// already applied via manager.Get caller attrs
 		default:
 			passThrough[k] = v
+		}
+	}
+
+	// size sets both dimensions; an explicit width or height wins.
+	if size != "" {
+		if callerW == "" {
+			callerW = size
+		}
+		if callerH == "" {
+			callerH = size
 		}
 	}
 
@@ -295,4 +315,17 @@ func parseIconID(id string) (string, string) {
 
 func recordUsed(prefix string) {
 	usedSets.Store(prefix, struct{}{})
+}
+
+// DrainMissing returns the icon names Render could not find since the last
+// call, sorted, and forgets them.
+func DrainMissing() []string {
+	var names []string
+	missingIcons.Range(func(k, _ any) bool {
+		names = append(names, k.(string))
+		missingIcons.Delete(k)
+		return true
+	})
+	sort.Strings(names)
+	return names
 }

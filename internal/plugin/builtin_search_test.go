@@ -152,6 +152,54 @@ func TestSearch_PagefindFrontmatterExcludes(t *testing.T) {
 	}
 }
 
+// A render: false page is never written, and a fallback copy repeats a
+// default-language page, so neither is indexed.
+func TestSearch_SkipsUnrenderedAndFallbackPages(t *testing.T) {
+	outDir := t.TempDir()
+	var warnings []engine.ValidationWarning
+	ctx := &BuildDoneContext{
+		Config:    config.Defaults(),
+		OutputDir: outDir,
+		Site:      &engine.SiteContext{BaseURL: "https://example.com"},
+		Pages: []*engine.Page{
+			{
+				PageIdentity: engine.PageIdentity{Title: "Lesson", RelPermalink: "/lesson/", Permalink: "/lesson/"},
+				PageContent:  engine.PageContent{Content: template.HTML("<p>indexed</p>")},
+			},
+			{
+				PageIdentity: engine.PageIdentity{Title: "Hidden Section", RelPermalink: "/hidden/", Permalink: "/hidden/"},
+				PageContent:  engine.PageContent{Content: template.HTML("<p>not written</p>")},
+				Params:       map[string]any{"render": false},
+			},
+			{
+				PageIdentity: engine.PageIdentity{Title: "Copy", RelPermalink: "/copy/", Permalink: "/copy/"},
+				PageContent:  engine.PageContent{Content: template.HTML("<p>fallback</p>")},
+				PageI18n:     engine.PageI18n{IsFallback: true},
+			},
+		},
+	}
+	ctx.SetWarnings(&warnings)
+	if err := searchBuildDone(ctx, nil, &searchDocCache{}); err != nil {
+		t.Fatalf("searchBuildDone failed: %v", err)
+	}
+	data, err := readTestFile(outDir, "search-index.en.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var docs []searchDocument
+	if err := json.Unmarshal(data, &docs); err != nil {
+		t.Fatal(err)
+	}
+	for _, d := range docs {
+		if d.Title == "Hidden Section" || d.Title == "Copy" {
+			t.Errorf("%q must not be indexed", d.Title)
+		}
+	}
+	if len(docs) != 1 {
+		t.Errorf("got %d documents, want only the lesson", len(docs))
+	}
+}
+
 func TestSearch_GeneratesIndex(t *testing.T) {
 	outDir := t.TempDir()
 	var warnings []engine.ValidationWarning
@@ -795,6 +843,24 @@ func TestBuildBreadcrumb(t *testing.T) {
 		if got := buildBreadcrumb(page); got != tt.want {
 			t.Errorf("%s: buildBreadcrumb = %q, want %q", tt.name, got, tt.want)
 		}
+	}
+}
+
+// Each language's search index names the collection in that language: the
+// title of its own _index.md, not the one title the languages share.
+func TestBuildBreadcrumb_TranslatedCollectionTitle(t *testing.T) {
+	col, _, guides, _ := breadcrumbFixture()
+	col.LangIndex = map[string]*engine.Page{
+		"en": {PageIdentity: engine.PageIdentity{Title: "Docs"}},
+		"fr": {PageIdentity: engine.PageIdentity{Title: "Documentation"}},
+	}
+	page := &engine.Page{
+		PageIdentity:      engine.PageIdentity{Title: "Page"},
+		PageI18n:          engine.PageI18n{Lang: "fr"},
+		PageRelationships: engine.PageRelationships{Collection: col, Section: guides},
+	}
+	if got := buildBreadcrumb(page); got != "Documentation > Guides" {
+		t.Errorf("buildBreadcrumb on a French page = %q, want %q", got, "Documentation > Guides")
 	}
 }
 

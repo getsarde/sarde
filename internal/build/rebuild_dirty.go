@@ -5,7 +5,6 @@ import (
 
 	"github.com/getsarde/sarde/internal/collection"
 	"github.com/getsarde/sarde/internal/config"
-	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/navigation"
@@ -166,28 +165,22 @@ func addRemovedTermsDirty(old, next *engine.Page, oldTaxonomies map[string]*engi
 }
 
 func addCollectionListDirty(col *engine.Collection, dirty map[string]struct{}) {
-	if col == nil || col.IndexPage == nil {
+	if col == nil {
 		return
 	}
-	if col.IndexPage.RelPermalink != "" {
-		dirty[col.IndexPage.RelPermalink] = struct{}{}
-	}
-	if col.Config == nil || col.Config.Paginate <= 0 {
-		return
-	}
-	contentPages := 0
-	for _, p := range col.Pages {
-		if p.Kind != engine.KindSection {
-			contentPages++
+	// RelPermalink carries no language, so marking each language's index and
+	// numbered pages marks the longest language's set once.
+	for _, lang := range listLangs(col) {
+		idx := col.IndexFor(lang)
+		if idx == nil {
+			continue
 		}
-	}
-	total := (contentPages + col.Config.Paginate - 1) / col.Config.Paginate
-	base := col.IndexPage.RelPermalink
-	if base == "" {
-		base = "/" + col.Name + "/"
-	}
-	for n := 2; n <= total; n++ {
-		dirty[sardetemplate.PaginationURL(base, n)] = struct{}{}
+		if idx.RelPermalink != "" {
+			dirty[idx.RelPermalink] = struct{}{}
+		}
+		for _, stub := range paginationStubs(col, lang) {
+			dirty[stub.RelPermalink] = struct{}{}
+		}
 	}
 }
 
@@ -195,10 +188,6 @@ func addTaxonomyDirtyForPage(filePath string, taxonomies map[string]*engine.Taxo
 	for taxName, tax := range taxonomies {
 		if !cfg[taxName].ShouldRender() {
 			continue
-		}
-		paginateBy := tax.PaginateBy
-		if paginateBy <= 0 {
-			paginateBy = consts.DefaultPaginateBy
 		}
 		for _, term := range tax.Terms {
 			found := false
@@ -213,8 +202,7 @@ func addTaxonomyDirtyForPage(filePath string, taxonomies map[string]*engine.Taxo
 			}
 			dirty[tax.Permalink] = struct{}{}
 			dirty[term.Permalink] = struct{}{}
-			total := (len(term.Pages) + paginateBy - 1) / paginateBy
-			for n := 2; n <= total; n++ {
+			for n := 2; n <= tax.TermPageCount(term); n++ {
 				dirty[sardetemplate.PaginationURL(term.Permalink, n)] = struct{}{}
 			}
 		}

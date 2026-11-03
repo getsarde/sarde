@@ -33,7 +33,7 @@ image: /images/photosynthesis.png
 
 The image resolves in this order: the page's `image`, a generated [social card](#social-card-images), then the `default_image` option.
 
-When `description` is not set, the plugin uses the page summary (the first prose paragraph, truncated; code fences and directive blocks are skipped). If the body has no prose at all, such as a homepage built only from directive blocks, it uses text taken from the rendered page. Set `auto_description: false` to turn the fallback off.
+When `description` is not set, the plugin uses the page summary (the first prose paragraph, truncated; code fences, directive blocks, and image-only lines are skipped). If the body has no prose at all, such as a homepage built only from directive blocks, it uses text taken from the rendered page. Set `auto_description: false` to turn the fallback off.
 
 To control indexing for one page, set `robots` in its frontmatter:
 

@@ -56,7 +56,7 @@ Each link category has a configurable policy: `"error"`, `"warn"`, or `"ignore"`
 | `on_broken_anchor` | `"error"` | Policy for anchor links (`#id`) that do not match a heading. |
 | `on_relative_links` | `"warn"` | Policy for relative links (`./page` or `../page`). |
 | `on_local_links` | `"warn"` | Policy for links to `localhost` or `127.0.0.1`. |
-| `on_unverified_internal` | `"warn"` | Policy for extension-less internal links that could not be resolved in the current lane. |
+| `on_unverified_internal` | `"warn"` | Policy for a frontmatter file link that names a file Sarde does not find. |
 | `same_site_policy` | `"ignore"` | Policy for absolute URLs pointing to the site's own domain. `"ignore"` passes them through, `"warn"` or `"error"` flags them. |
 
 ## Configuration

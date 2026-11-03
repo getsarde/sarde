@@ -5,8 +5,8 @@
   <div class="sarde-catalog-grid">
     {{ range $name, $col := $cols }}
     <div class="sarde-catalog-card">
-      <h2><a href="{{ relURL (printf "/%s/" $name) }}">{{ $col.Title | markdownify }}</a></h2>
-      {{ if and $col.IndexPage $col.IndexPage.Description }}<p>{{ $col.IndexPage.Description | markdownify }}</p>{{ end }}
+      <h2><a href="{{ relURL (printf "/%s/" $name) }}">{{ $col.TitleFor $.Lang | markdownify }}</a></h2>
+      {{ $idx := $col.IndexFor $.Lang }}{{ if and $idx $idx.Description }}<p>{{ $idx.Description | markdownify }}</p>{{ end }}
       {{ $recent := recentEntries $name 3 }}
       {{ if $recent }}
       <ul>

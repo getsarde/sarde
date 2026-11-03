@@ -12,7 +12,11 @@ import (
 	"github.com/getsarde/sarde/internal/content/markdown/icons"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
+	"github.com/yuin/goldmark/text"
+	"github.com/yuin/goldmark/util"
 )
 
 func fnTitle(s string) string {
@@ -44,21 +48,62 @@ func fnTruncate(s string, n int) string {
 var (
 	inlineMDOnce sync.Once
 	inlineMD     goldmark.Markdown
+
+	// inlineMDResolverKey carries the site's URL resolver into one
+	// markdownify call, so the shared Goldmark instance can add the base path.
+	inlineMDResolverKey = parser.NewContextKey()
 )
 
 func getInlineMD() goldmark.Markdown {
 	inlineMDOnce.Do(func() {
 		inlineMD = goldmark.New(
 			goldmark.WithExtensions(extension.GFM),
+			goldmark.WithParserOptions(parser.WithASTTransformers(
+				util.Prioritized(sitePathTransformer{}, 100),
+			)),
 		)
 	})
 	return inlineMD
 }
 
+// sitePathTransformer gives a site-absolute link or image in a markdownify
+// value the base path, as the page renderer does for body content. There is
+// no page here to look a link up against, so it gets no language prefix.
+type sitePathTransformer struct{}
+
+func (sitePathTransformer) Transform(doc *ast.Document, _ text.Reader, pc parser.Context) {
+	r, _ := pc.Get(inlineMDResolverKey).(*engine.URLResolver)
+	if r == nil {
+		return
+	}
+	_ = ast.Walk(doc, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		if !entering {
+			return ast.WalkContinue, nil
+		}
+		switch n := n.(type) {
+		case *ast.Link:
+			n.Destination = []byte(r.AssetURL(string(n.Destination)))
+		case *ast.Image:
+			n.Destination = []byte(r.AssetURL(string(n.Destination)))
+		}
+		return ast.WalkContinue, nil
+	})
+}
+
 func fnMarkdownify(v any) htmltemplate.HTML {
+	return markdownifyWith(nil, v)
+}
+
+// markdownifyWith renders v as inline Markdown. A non-nil resolver adds the
+// base path to site-absolute links and images.
+func markdownifyWith(r *engine.URLResolver, v any) htmltemplate.HTML {
 	s := fmt.Sprint(v)
+	pc := parser.NewContext()
+	if r != nil {
+		pc.Set(inlineMDResolverKey, r)
+	}
 	var buf bytes.Buffer
-	if err := getInlineMD().Convert([]byte(s), &buf); err != nil {
+	if err := getInlineMD().Convert([]byte(s), &buf, parser.WithContext(pc)); err != nil {
 		return htmltemplate.HTML(htmltemplate.HTMLEscapeString(s))
 	}
 	result := strings.TrimSpace(buf.String())
@@ -132,8 +177,9 @@ func fnIcon(name string, args ...string) htmltemplate.HTML {
 	return htmltemplate.HTML(icons.Render(name, class, attrs))
 }
 
+// fnHighlight is the highlight fallback without a code block engine (the
+// shortcode function map, or a failed render): the code in <pre><code>.
 func fnHighlight(code, lang string) htmltemplate.HTML {
-	// Stub: wraps code in <pre><code>. Full Chroma syntax highlighting is not yet implemented.
 	escaped := htmltemplate.HTMLEscapeString(code)
 	return htmltemplate.HTML(fmt.Sprintf(`<pre><code class="language-%s">%s</code></pre>`, htmltemplate.HTMLEscapeString(lang), escaped))
 }

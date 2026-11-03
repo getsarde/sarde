@@ -39,6 +39,11 @@ func runNewDirective(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("getting working directory: %w", err)
 	}
+	// Scaffold only inside a site: outside one, content/ would be created in
+	// whatever directory the command runs from.
+	if err := requireSite(cmd, projectDir); err != nil {
+		return err
+	}
 
 	dirDir := filepath.Join(projectDir, consts.DirDirectives)
 	yamlPath := filepath.Join(dirDir, name+".yaml")

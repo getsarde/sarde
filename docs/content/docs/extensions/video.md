@@ -36,6 +36,8 @@ For non-YouTube/Vimeo URLs, a native `<video>` element renders with playback con
 
 → A video player appears with standard browser controls (play, pause, seek, volume).
 
+Write a file under `public/` from the site root, as in the example. On a site served from a subfolder, Sarde adds [`build.base_path`](/reference/configuration/build-and-output/#build) to the path.
+
 ## Title and caption
 
 Add a `title` attribute to set the iframe's accessible title and display a caption below the video:

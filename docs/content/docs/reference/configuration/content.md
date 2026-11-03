@@ -22,9 +22,9 @@ Each key under `collections` defines overrides for a content collection. Collect
 |-----|------|---------|-------------|
 | `enabled` | bool | - | Enable or disable this collection. |
 | `path` | string | - | Content directory path override. |
-| `url_prefix` | string | - | URL prefix override (e.g., `/docs`). |
-| `sort` | string | - | Sort order. Format: `<field> <direction>` (e.g., `"date desc"`, `"weight asc"`). |
-| `layout` | string | - | Default layout for pages. `default`, `docs`, `splash`, `wide`, `full`, `centered`, `split`, or `presentation`. |
+| `url_prefix` | string | - | Deprecated: has no effect. A collection's URL comes from its folder name. |
+| `sort` | string | - | Sort order. Format: `<field> <direction>` (e.g., `"date desc"`, `"order asc"`). Fields: `date`, `order` (`sidebar.order`, then title), `title`, `slug`. Direction: `asc` or `desc`. Any other field sorts by title and warns at build time. |
+| `layout` | string | - | Default layout for pages. `default`, `docs`, `splash`, `wide`, `full`, `centered`, `split`, `presentation`, or `labs`. |
 | `permalink` | string | - | Permalink pattern (e.g., `/:slug`). |
 | `paginate` | int | `10` for blog collections, otherwise `0` | Items per list page. `0` turns pagination off. |
 | `feed` | bool | - | Generate RSS/Atom feeds for this collection. |
@@ -35,11 +35,11 @@ Each key under `collections` defines overrides for a content collection. Collect
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `collapsible` | bool | - | Allow sidebar groups to collapse. |
+| `collapsible` | bool | - | Deprecated: has no effect. Sidebar groups always collapse and expand; `collapsed_by_default` and `collapse_level` choose which start closed. |
 | `collapsed_by_default` | bool | - | Start sidebar groups in collapsed state. |
-| `collapse_level` | int | - | Depth at which sidebar groups start collapsed. Sections at this depth or deeper are collapsed by default. Requires `collapsible: true`. Also settable per collection in [`sidebar.yaml`](/guides/navigation-and-sidebar#overrides-with-sidebar-yaml), which takes precedence. |
+| `collapse_level` | int | - | Expands sidebar groups down to depth N, where 1 is the top-level groups, and collapses deeper ones. Overrides `collapsed_by_default`; a group's `collapsed` override in `sidebar.yaml` still wins. Also settable per collection in [`sidebar.yaml`](/guides/navigation-and-sidebar#overrides-with-sidebar-yaml), which takes precedence. |
 | `max_depth` | int | - | Maximum nesting depth to display. Range: 1-10. |
-| `search` | bool | - | Enable sidebar search/filter. |
+| `search` | bool | - | Deprecated: has no effect. |
 
 ### `collections.<name>.toc`
 
@@ -87,10 +87,9 @@ Each entry in `versions`:
 ```yaml
 collections:
   docs:
-    sort: "weight asc"
+    sort: "order asc"
     layout: docs
     sidebar:
-      collapsible: true
       collapsed_by_default: false
     toc:
       enabled: true
@@ -113,7 +112,7 @@ Each key under `taxonomies` defines a taxonomy. The value can be a bare string (
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `singular` | string | - | Singular form of the taxonomy name (e.g., `"tag"` for a `tags` taxonomy). |
-| `paginate_by` | int | - | Number of items per taxonomy term page. Min: 1. |
+| `paginate_by` | int | `10` | Number of items per taxonomy term page. `0` turns pagination off. |
 | `undefined_tags` | string | - | Behavior when content uses a tag not defined in `data/`. `warn`, `error`, `ignore`, or `create`. |
 | `render` | bool | `true` | Generate taxonomy listing pages. |
 | `show_tags` | bool | - | Show taxonomy terms on content pages. |
@@ -165,8 +164,8 @@ Controls which heading levels are *extracted* during the build: ID injection, an
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `engine` | string | `""` | Syntax highlighting engine. `nuri` or `chroma`. When empty, defaults to `nuri` (tree-sitter-based). |
-| `style` | string | `"class"` | Highlighting output style. Only `class` is supported. |
+| `engine` | string | `""` | Syntax highlighting engine. `nuri` or `chroma`. When empty, defaults to `nuri`, which highlights with TextMate grammars, as VS Code does. |
+| `style` | string | `"class"` | Deprecated: has no effect. |
 | `light_theme` | string | `"github-light"` | Deprecated: set `themes.light` in [`kazari.config.yaml`](/guides/code-blocks/#configuration). Applies only when that file sets no `themes`. |
 | `dark_theme` | string | `"github-dark"` | Deprecated: set `themes.dark` in `kazari.config.yaml`. Applies only when that file sets no `themes`. |
 | `theme` | string | `""` | Deprecated, no effect. Set `themes` in `kazari.config.yaml`. |
@@ -187,7 +186,7 @@ Controls which heading levels are *extracted* during the build: ID injection, an
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `name` | string | - | Language display name (e.g., `"Français"`). |
-| `title` | string | - | Site title override for this language. |
+| `title` | string | - | Deprecated: has no effect. |
 | `weight` | int | - | Sort weight for language switcher ordering. |
 | `dir` | string | `"ltr"` | Text direction. `ltr` or `rtl`. |
 

@@ -356,3 +356,44 @@ func TestCollectSidebarOverrideWarnings_LaneUnion(t *testing.T) {
 		t.Errorf("key matched in one lane must not warn, got %v", warnings)
 	}
 }
+
+// A per-tab nav.yaml that does not parse, or names a page that does not
+// exist, warns once per build with the file and position, instead of being
+// skipped silently.
+func TestCollectNavYAMLWarnings(t *testing.T) {
+	contentDir := t.TempDir()
+	writeTestFile(t, contentDir, filepath.Join("docs", "guide", "nav.yaml"),
+		"- page: guide/intro\n- page: guide/missing\n")
+	writeTestFile(t, contentDir, filepath.Join("docs", "api", "nav.yaml"), "- page: [unclosed\n")
+
+	pages := []*engine.Page{
+		{PageIdentity: engine.PageIdentity{Title: "Guide", Slug: "guide", Kind: engine.KindSection, RelPermalink: "/docs/guide/"}, PageI18n: engine.PageI18n{Lang: "en"}},
+		{PageIdentity: engine.PageIdentity{Title: "Intro", Slug: "intro", Kind: engine.KindPage, RelPermalink: "/docs/guide/intro/"}, PageI18n: engine.PageI18n{Lang: "en"}},
+		{PageIdentity: engine.PageIdentity{Title: "API", Slug: "api", Kind: engine.KindSection, RelPermalink: "/docs/api/"}, PageI18n: engine.PageI18n{Lang: "en"}},
+		{PageIdentity: engine.PageIdentity{Title: "Ref", Slug: "ref", Kind: engine.KindPage, RelPermalink: "/docs/api/ref/"}, PageI18n: engine.PageI18n{Lang: "en"}},
+	}
+	col := &engine.Collection{
+		Name:     "docs",
+		Title:    "Docs",
+		Config:   &engine.CollectionConfig{Layout: engine.LayoutDocs},
+		Pages:    pages,
+		Sections: BuildSectionTree(pages, "docs"),
+		IsTabbed: true,
+	}
+	for _, p := range pages {
+		p.Collection = col
+	}
+	col.Tabs = BuildTabs(col, contentDir)
+
+	warnings := CollectNavYAMLWarnings(map[string]*engine.Collection{"docs": col}, contentDir)
+	if len(warnings) != 2 {
+		t.Fatalf("got %d warnings %v, want one parse error and one unresolved ref", len(warnings), warnings)
+	}
+	parse, ref := warnings[0], warnings[1]
+	if parse.File != "docs/api/nav.yaml" || !strings.Contains(parse.Message, "parsing nav.yaml") || !strings.Contains(parse.Message, `tab "api" uses the auto-generated sidebar`) {
+		t.Errorf("parse warning = %+v", parse)
+	}
+	if ref.File != "docs/guide/nav.yaml" || ref.Line != 2 || !strings.Contains(ref.Message, `page "guide/missing" matches no page`) {
+		t.Errorf("ref warning = %+v", ref)
+	}
+}

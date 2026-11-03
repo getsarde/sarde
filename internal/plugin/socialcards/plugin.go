@@ -217,7 +217,7 @@ func buildDone(ctx *plugin.BuildDoneContext, cfg map[string]any, pending *sync.M
 			for j := range jobCh {
 				collectionName := ""
 				if j.page.Collection != nil {
-					collectionName = j.page.Collection.Title
+					collectionName = j.page.Collection.TitleFor(j.page.Lang)
 				}
 
 				params := CardParams{

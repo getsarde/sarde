@@ -20,10 +20,10 @@ Click the :icon[settings] icon to open preferences.
 Add attributes after the name to set color and size:
 
 ```markdown
-:icon[alert-triangle color="orange" width=20 height=20]
+:icon[alert-triangle color="orange" size=20]
 ```
 
-→ An orange warning triangle, 20 pixels square, appears in the text. Without `width` and `height`, icons render at 16 pixels.
+→ An orange warning triangle, 20 pixels square, appears in the text. Without `size`, `width`, or `height`, icons render at 16 pixels.
 
 ## Icon resolution
 
@@ -34,7 +34,7 @@ For a name without a prefix, Sarde looks for the icon in this order:
 3. **Alias:** a few shorthand names map to Lucide icons when the default prefix is `lucide`, for example `warning`, `note`, `tip`, `arrow`, and `close`.
 4. **Fallback:** a `circle-help` placeholder icon.
 
-A missing icon never fails the build and produces no warning, so a typo shows up as the placeholder on the page.
+A missing icon never fails the build. The build warns once per unknown name, as in `unknown icon "settngs"`, and the page shows the placeholder.
 
 ### Prefixed names
 
@@ -65,14 +65,12 @@ Sarde reads icon sets in Iconify JSON format. Adding a set takes two steps: down
 
    → The command saves `tabler.json` and `simple-icons.json` into `icon-sets/` (or into `--dest` or `icons.sets_dir` when given), and prints one line per set. It fetches the sets from the npm registry.
 
-2. Point `icons.sets_dir` at that directory:
+2. Build the site. Sarde loads every `*.json` file in `icon-sets/` and registers each set under the `prefix` stored inside the file. To keep the sets in another folder, set `icons.sets_dir`:
 
    ```yaml title="sarde.yaml"
    icons:
-     sets_dir: "icon-sets"
+     sets_dir: "vendor/icons"
    ```
-
-   Sarde loads every `*.json` file in `sets_dir` and registers each set under the `prefix` stored inside the file.
 
 Reference the icons with the set prefix:
 
@@ -124,7 +122,7 @@ icons:
 |-----|------|---------|-------------|
 | `default_prefix` | string | `"lucide"` | Icon set used for names without a prefix. |
 | `sets` | array | `[]` | Individual Iconify JSON files to load, as `file` entries such as `[{prefix: "mdi", file: "icon-sets/mdi.json"}]`. The set's prefix comes from the file's own `prefix` field. |
-| `sets_dir` | string | `""` | Directory whose `*.json` files are all loaded as icon sets. |
+| `sets_dir` | string | `""` | Directory whose `*.json` files are all loaded as icon sets. When empty, Sarde reads `icon-sets/`, where `sarde icons add` saves them. |
 | `local_dir` | string | `"icons"` | Directory of local `*.svg` files. |
 | `attribution` | string | `""` | Credit line for sets whose license requires attribution. |
 | `render` | string | `"inline"` | `"inline"` writes a full `<svg>` for each use. `"sprite"` writes one `<symbol>` per unique icon and references it with `<use>`. |
@@ -141,6 +139,7 @@ The `:icon[]` extension accepts these attributes after the name:
 | Attribute | Description |
 |-----------|-------------|
 | `color` | Icon color, any CSS color value. Lucide icons draw with `currentColor`, so this recolors them. |
+| `size` | Width and height in pixels, together. `width` or `height` set next to it wins. |
 | `width` | Width in pixels. Defaults to 16. |
 | `height` | Height in pixels. Defaults to 16. |
 | `rotate` | Rotation in degrees. |
@@ -150,7 +149,7 @@ The `:icon[]` extension accepts these attributes after the name:
 | `title` | Accessible title text. Adds a `<title>` element and `role="img"`. |
 | `aria-label` | ARIA label for screen readers. Adds `role="img"`. |
 
-There is no `size` attribute. Set `width` and `height` instead. Any other attribute passes through to the `<svg>` element unchanged.
+Any other attribute passes through to the `<svg>` element unchanged.
 
 An icon without `title` or `aria-label` is hidden from assistive technology with `aria-hidden="true"`.
 
