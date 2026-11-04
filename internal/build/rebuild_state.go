@@ -1,11 +1,8 @@
 package build
 
 import (
-	"github.com/getsarde/sarde/internal/config"
-	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/engine"
-	sardetemplate "github.com/getsarde/sarde/internal/template"
 )
 
 func collectionName(p *engine.Page) string {
@@ -26,6 +23,24 @@ func preserveStablePageState(next, old *engine.Page) {
 	next.VersionRelPath = old.VersionRelPath
 	next.VersionPeers = old.VersionPeers
 	next.Translations = old.Translations
+}
+
+// swapPage returns a copy of pages with next in place of old, matched the
+// way replacePagePointer matches it; next is appended when old is absent.
+func swapPage(pages []*engine.Page, old, next *engine.Page) []*engine.Page {
+	out := make([]*engine.Page, len(pages), len(pages)+1)
+	copy(out, pages)
+	found := false
+	for i, p := range out {
+		if p == old || (p != nil && p.FilePath == old.FilePath && !p.IsFallback) {
+			out[i] = next
+			found = true
+		}
+	}
+	if !found {
+		out = append(out, next)
+	}
+	return out
 }
 
 func replacePagePointer(pages *[]*engine.Page, old, next *engine.Page) {
@@ -68,42 +83,4 @@ func copyRenderedContentToFallbacks(pages []*engine.Page, changed map[string]*en
 		p.HasImages = src.HasImages
 		setPageIndexHeadings(idx, p)
 	}
-}
-
-func appendTaxonomyStubsForLang(pages []*engine.Page, taxonomies map[string]*engine.Taxonomy, cfg map[string]config.TaxonomyConfig, lang string) []*engine.Page {
-	for taxName, tax := range taxonomies {
-		if !cfg[taxName].ShouldRender() {
-			continue
-		}
-		barePermalink := "/" + taxName + "/"
-		pages = append(pages, &engine.Page{
-			PageIdentity: engine.PageIdentity{
-				Title: tax.Name, Kind: engine.KindTaxonomy,
-				Permalink: tax.Permalink, RelPermalink: barePermalink,
-			},
-			PageI18n: engine.PageI18n{Lang: lang},
-		})
-		for _, term := range tax.Terms {
-			bareTermPermalink := barePermalink + term.Slug + "/"
-			pages = append(pages, &engine.Page{
-				PageIdentity: engine.PageIdentity{
-					Title: term.Label, Kind: engine.KindTerm,
-					Permalink: term.Permalink, RelPermalink: bareTermPermalink,
-				},
-				PageI18n: engine.PageI18n{Lang: lang},
-			})
-			for n := 2; n <= tax.TermPageCount(term); n++ {
-				paginatedPermalink := sardetemplate.PaginationURL(term.Permalink, n)
-				pages = append(pages, &engine.Page{
-					PageIdentity: engine.PageIdentity{
-						Title: term.Label, Kind: engine.KindTerm,
-						Permalink: paginatedPermalink, RelPermalink: bareTermPermalink,
-					},
-					PageI18n: engine.PageI18n{Lang: lang},
-					Params:   map[string]any{consts.PaginationCurrentKey: n},
-				})
-			}
-		}
-	}
-	return pages
 }

@@ -290,3 +290,25 @@ func TestGenerateFallbacks_ParamsDeepCopied(t *testing.T) {
 		t.Errorf("nested seo map is shared: source og_title = %q, want %q", got, "orig")
 	}
 }
+
+// A fallback copy gets its own resources, with the Permalink cleared: the
+// copy's bundle files sit beside the copy, under its own language.
+func TestClonePage_CopiesResources(t *testing.T) {
+	src := &engine.Page{
+		PageIdentity: engine.PageIdentity{RelPermalink: "/blog/trip/"},
+		Resources:    []engine.Resource{{Name: "cover.jpg", RelPermalink: "/blog/trip/cover.jpg", Permalink: "/blog/trip/cover.jpg"}},
+	}
+	cp := clonePage(src)
+	if &cp.Resources[0] == &src.Resources[0] {
+		t.Fatal("the copy shares the source's Resources array")
+	}
+	if cp.Resources[0].Permalink != "" {
+		t.Errorf("copy Permalink = %q, want it cleared", cp.Resources[0].Permalink)
+	}
+	if cp.Resources[0].RelPermalink != "/blog/trip/cover.jpg" {
+		t.Errorf("copy RelPermalink = %q, want it kept", cp.Resources[0].RelPermalink)
+	}
+	if src.Resources[0].Permalink != "/blog/trip/cover.jpg" {
+		t.Error("clearing the copy's Permalink changed the source")
+	}
+}

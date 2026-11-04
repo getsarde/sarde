@@ -364,15 +364,17 @@ func TestSEO_OGImage_BasePath(t *testing.T) {
 		"/sub/images/cover.png":   "https://example.com/sub/images/cover.png",
 		"//cdn.example.com/a.png": "//cdn.example.com/a.png",
 		"https://cdn.x/a.png":     "https://cdn.x/a.png",
-		// A relative image sits beside the page; the page is French, but
-		// bundle files are written once, with no language prefix.
-		"cover.jpg": "https://example.com/sub/blog/post/cover.jpg",
+		// A relative image of the page's bundle sits beside the French page;
+		// one outside the bundle exists once, with no language prefix.
+		"cover.jpg":     "https://example.com/sub/fr/blog/post/cover.jpg",
+		"../shared.png": "https://example.com/sub/blog/shared.png",
 	} {
 		page := &engine.Page{
 			PageIdentity:      engine.PageIdentity{Title: "Post", RelPermalink: "/blog/post/"},
 			PageMeta:          engine.PageMeta{Description: "A post", Image: image},
 			PageI18n:          engine.PageI18n{Lang: "fr"},
 			PageRelationships: engine.PageRelationships{Collection: &engine.Collection{Name: "blog"}},
+			Resources:         []engine.Resource{{Name: "cover.jpg", RelPermalink: "/blog/post/cover.jpg"}},
 		}
 		ctx := &BeforeRenderContext{
 			Page:     page,

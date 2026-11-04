@@ -163,6 +163,7 @@ During incremental rebuilds (e.g., in `sarde dev`), only changed pages are re-li
 ## Edge cases
 
 - Draft pages are skipped entirely.
+- Pages Sarde generates are skipped: tag and term pages, the list page of a collection without an `_index.md`, and the fallback copies of untranslated pages. A fallback copy's source page is linted in its own language.
 - Headings and images inside fenced code blocks are ignored. The fenced block detector handles both backtick and tilde fences, and requires the closing fence to match the opener's length.
 - Image and link patterns inside inline code spans (backtick-delimited) are also ignored.
 - Lint issues report line numbers relative to the source file (adjusted for frontmatter offset).

@@ -47,14 +47,16 @@ func buildURLFuncs(urlResolverPtr **engine.URLResolver, sitePtr **engine.SiteCon
 		// pageRelURL resolves a value a page names, such as its frontmatter
 		// image, from any template that shows the page: a list card, a
 		// cover. A relative value is joined to the page's folder, the way a
-		// browser on the page itself would read it. Like rootURL it adds no
-		// language: a page bundle's files are written once, at the
-		// language-free path.
+		// browser on the page itself would read it. A file of the page's
+		// bundle is written beside each copy of the page, so it takes the
+		// page's language and version; anything else takes neither.
 		"pageRelURL": func(page *engine.Page, relPath string) string {
-			if engine.IsAbsoluteURL(relPath) {
+			r := *urlResolverPtr
+			if r == nil || engine.IsAbsoluteURL(relPath) {
 				return relPath
 			}
-			return relURLFor(*urlResolverPtr, engine.PageRelativePath(page, relPath), "")
+			target, lang, version := engine.PageRelativeTarget(page, relPath)
+			return r.URL(target, lang, version)
 		},
 		"editURL": func(base, relPath string) string {
 			if base == "" || relPath == "" {

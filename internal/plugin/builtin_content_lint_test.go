@@ -515,3 +515,25 @@ func TestContentLint_TabsNamedCloserRecoversUnclosedNote(t *testing.T) {
 		t.Errorf("expected the bad marker on line 7 to be flagged, got line %d", issues[0].Line)
 	}
 }
+
+// Pages the build generates have no file to fix: taxonomy and term pages,
+// fallback copies (their source is linted) and synthetic collection indexes.
+func TestLintPages_SkipsGeneratedPages(t *testing.T) {
+	required := config.ContentLintSettings{
+		Rules: config.ContentLintRules{FrontmatterRequired: []string{"title", "description"}},
+	}
+	generated := []*engine.Page{
+		{PageIdentity: engine.PageIdentity{Title: "Tags", Kind: engine.KindTaxonomy}},
+		{PageIdentity: engine.PageIdentity{Title: "Go", Kind: engine.KindTerm}},
+		{PageIdentity: engine.PageIdentity{Title: "Blog", Kind: engine.KindSection}},
+		{PageIdentity: engine.PageIdentity{Title: "Intro", FilePath: "content/docs/intro.md"}, PageI18n: engine.PageI18n{IsFallback: true}},
+	}
+	if warnings := LintPages(generated, required); len(warnings) != 0 {
+		t.Errorf("generated pages were linted: %v", warnings)
+	}
+
+	source := &engine.Page{PageIdentity: engine.PageIdentity{Title: "Intro", FilePath: "content/docs/intro.md"}}
+	if warnings := LintPages([]*engine.Page{source}, required); len(warnings) != 1 {
+		t.Errorf("source page: %d warnings, want 1 (missing description)", len(warnings))
+	}
+}

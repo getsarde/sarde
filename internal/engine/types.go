@@ -81,7 +81,8 @@ type Resource struct {
 	Name         string
 	Title        string
 	MediaType    string
-	RelPermalink string
+	RelPermalink string // page folder URL + name, with no base path, language or version
+	Permalink    string // the URL to use: beside the owning page, with its base path, language and version
 	Width        int
 	Height       int
 	SrcPath      string // absolute filesystem path for image processing

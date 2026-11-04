@@ -66,8 +66,8 @@ func TestBuild_BrokenLinkErrorHasNoBuildFailedPrefix(t *testing.T) {
 
 // An extension-less site path that no page answers is a broken target once
 // the whole site is known, while links to pages that exist only in the
-// output, a tag page or a numbered list page, and to a public/ folder with an
-// index.html pass without a warning.
+// output, a tag page, a numbered list page or a redirect from the redirects:
+// config, and to a public/ folder with an index.html pass without a warning.
 func TestBuild_UnresolvedSitePathIsBrokenTarget(t *testing.T) {
 	newSite := func(t *testing.T, body string) string {
 		dir := t.TempDir()
@@ -83,10 +83,11 @@ func TestBuild_UnresolvedSitePathIsBrokenTarget(t *testing.T) {
 		cfg := config.Defaults()
 		cfg.Build.Minify = config.BoolPtr(false)
 		cfg.Collections = map[string]*config.CollectionSiteConfig{"blog": {Paginate: config.IntPtr(1)}}
+		cfg.Redirects = map[string]string{"/syllabus": "/docs/guide/"}
 		return NewSiteBuilder(BuildOptions{ProjectDir: dir, Config: cfg, ThemeConfig: buildThemeConfig(), EmbeddedFS: embedded.ThemeFS()}).Build()
 	}
 
-	result, err := build(newSite(t, "See [botany](/tags/botany), [page two](/blog/page/2) and [the demo](/demo/).\n"))
+	result, err := build(newSite(t, "See [botany](/tags/botany), [page two](/blog/page/2), [the syllabus](/syllabus) and [the demo](/demo/).\n"))
 	if err != nil {
 		t.Fatalf("Build failed on links to output-only pages: %v", err)
 	}

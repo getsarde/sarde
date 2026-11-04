@@ -89,7 +89,7 @@ All math functions accept any numeric type. Results stay as `int` when both oper
 | `absURL` | `absURL(path string) string` | Resolves a path to an absolute URL using the site's base URL |
 | `relURL` | `relURL(path string) string` | Resolves a path to a relative URL. On a translated page, adds the page's language prefix. Passes through paths already containing `://`. |
 | `rootURL` | `rootURL(path string) string` | Resolves a path against the site's base path, never adding a language prefix. Use it for files that exist once at the site root, such as `/sitemap.xml` or theme fonts. Passes through paths already containing `://`. |
-| `pageRelURL` | `pageRelURL(page *Page, path string) string` | Resolves a path a page names, such as its frontmatter `image`, from any template that shows that page, for example a list card. A relative path is read from the page's own folder, so `cover.jpg` on `/blog/post/` gives `/blog/post/cover.jpg`. Adds the base path but no language prefix, because a page bundle's files are written once. Passes full URLs through. |
+| `pageRelURL` | `pageRelURL(page *Page, path string) string` | Resolves a path a page names, such as its frontmatter `image`, from any template that shows that page, for example a list card. A relative path is read from the page's own folder, so `cover.jpg` on `/blog/post/` gives `/blog/post/cover.jpg`. Adds the base path. A file of the page's bundle also gets the page's language and version prefixes, since bundle files sit beside each copy of the page; any other path gets neither. Passes full URLs through. |
 | `editURL` | `editURL(base, relPath string) string` | Joins a base "edit this page" URL with a relative content path |
 
 ## Assets

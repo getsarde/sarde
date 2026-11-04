@@ -1,6 +1,7 @@
 package build
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/getsarde/sarde/internal/engine"
@@ -11,9 +12,10 @@ import (
 // path included: the pages themselves and their aliases, the taxonomy and
 // term pages with their numbered pages, the numbered list pages of paginated
 // collections, the latest-version copies a versioned collection publishes,
-// and folders under public/ that hold an index.html. The link report runs
-// before the taxonomy and list pages are rendered, so it uses this to tell a
-// link to an output-only page from one to nothing.
+// the redirect pages of the redirects: config, and folders under public/
+// that hold an index.html. The link report runs before the taxonomy and list
+// pages are rendered, so it uses this to tell a link to an output-only page
+// from one to nothing.
 func (b *SiteBuilder) knownOutputURLs(s *buildState) func(string) bool {
 	r := b.urlResolver
 	if r == nil {
@@ -64,6 +66,14 @@ func (b *SiteBuilder) knownOutputURLs(s *buildState) func(string) bool {
 					add(sardetemplate.PaginationURL(term.Permalink, n))
 				}
 			}
+		}
+	}
+
+	// The redirect pages the redirects plugin writes for the redirects:
+	// config. They have no language prefix.
+	if slices.Contains(b.config.Plugins.Enabled, "redirects") && !slices.Contains(b.config.Plugins.Disabled, "redirects") {
+		for from := range b.config.Redirects {
+			add(r.URL(from, "", ""))
 		}
 	}
 

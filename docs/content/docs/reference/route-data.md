@@ -689,7 +689,8 @@ Embeds `*TaxonomyTerm`, so every field above (`Name`, `Slug`, `CustomSlug`, `Per
 | `Name` | `string` | File name |
 | `Title` | `string` | Title |
 | `MediaType` | `string` | MIME type |
-| `RelPermalink` | `string` | URL of the file |
+| `RelPermalink` | `string` | Path of the file: the page's folder plus `Name`, with no base path, language, or version prefix |
+| `Permalink` | `string` | URL of the file. The file sits beside the page, so the URL carries the base path and the page's language and version prefixes |
 | `Width` | `int` | Image width, 0 when unknown |
 | `Height` | `int` | Image height, 0 when unknown |
 

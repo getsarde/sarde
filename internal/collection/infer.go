@@ -42,7 +42,13 @@ func IsSlidesName(name string) bool {
 // render as card grids. The depth threshold depends on whether the collection
 // uses 2-level (labs at depth 1) or 3-level (labs at depth 2) structure.
 func applyLabsLayoutDefault(pages []*engine.Page) {
-	isMultiCourse := detectMultiCourseFromPages(pages)
+	applyLabsLayoutDefaultWith(pages, detectMultiCourseFromPages(pages))
+}
+
+// applyLabsLayoutDefaultWith is applyLabsLayoutDefault with the multi-course
+// flag supplied by the caller, for a slice that does not hold every section
+// page of the collection.
+func applyLabsLayoutDefaultWith(pages []*engine.Page, isMultiCourse bool) {
 	labDepth := 1
 	if isMultiCourse {
 		labDepth = 2

@@ -107,7 +107,7 @@ func buildAssetFuncs(
 		},
 		"image": func(res engine.Resource) htmltemplate.HTML {
 			return htmltemplate.HTML(asset.RenderPicture(
-				(*urlResolverPtr).AssetURL(res.RelPermalink), res.Title,
+				(*urlResolverPtr).AssetURL(asset.ResourceURL(&res)), res.Title,
 				res.Width, res.Height,
 				nil, "", true,
 				pictureOptions(currentImageProcessor(imageProcessorPtr), 0),
@@ -115,7 +115,7 @@ func buildAssetFuncs(
 		},
 		"resize_image": func(res engine.Resource, params string) htmltemplate.HTML {
 			r := *urlResolverPtr
-			src := r.AssetURL(res.RelPermalink)
+			src := r.AssetURL(asset.ResourceURL(&res))
 			imageProcessor := currentImageProcessor(imageProcessorPtr)
 			if imageProcessor == nil || res.SrcPath == "" {
 				return htmltemplate.HTML(asset.RenderPicture(

@@ -135,55 +135,15 @@ func BuildCollectionsWithOptions(
 		// 7. Build section tree
 		sections := BuildSectionTree(pages, name)
 
-		// 7b. Apply frontmatter cascade from section _index.md
-		ApplyCascade(pages)
+		// 7b. Apply the frontmatter cascade from each lane's section
+		// _index.md files, then the slides and labs layout defaults.
+		// Incremental rebuilds call the same function for a re-parsed page.
+		ApplyPageDefaults(name, pages, pages, CascadeDefaultLang(siteCfg))
 
-		// 7c. Slides collections: deck pages default to the presentation
-		// layout. Applied after cascade so explicit frontmatter and cascade
-		// both take precedence over this default.
-		if IsSlidesName(name) {
-			applySlidesLayoutDefault(pages)
-		}
-
-		// 7d. Labs collections: lab-level and deeper pages default to the
-		// labs layout. Applied after cascade so explicit overrides win.
-		if IsLabsName(name) {
-			applyLabsLayoutDefault(pages)
-		}
-
-		// 8. Find index page
-		var indexPage *engine.Page
-		for _, p := range pages {
-			if p.Kind == engine.KindSection && sectionDir(p.RelPermalink, name) == "" {
-				indexPage = p
-				break
-			}
-		}
-
-		// Auto-create a synthetic index page when no _index.md exists,
-		// so every collection root renders a landing page.
-		if indexPage == nil && len(pages) > 0 {
-			indexPage = &engine.Page{
-				PageIdentity: engine.PageIdentity{
-					Title:        collectionTitle(name, nil),
-					Slug:         name,
-					RelPermalink: "/" + name + "/",
-					Kind:         engine.KindSection,
-				},
-				PageI18n: engine.PageI18n{
-					Lang: pages[0].Lang,
-				},
-				Params: map[string]any{},
-			}
-			for _, sec := range sections {
-				if sec.Permalink == "/"+name+"/" {
-					indexPage.Section = sec
-					sec.IndexPage = indexPage
-					break
-				}
-			}
-			pages = append(pages, indexPage)
-		}
+		// 8. Index pages: the root _index.md files, plus a synthetic index
+		// for each language that needs a landing page and has none.
+		indexPage, synthetic := collectionIndexPages(name, pages, sections, collCfg, siteCfg)
+		pages = append(pages, synthetic...)
 
 		col := &engine.Collection{
 			Name:      name,
@@ -403,6 +363,103 @@ func setCollectionOnSections(sections []*engine.Section, col *engine.Collection)
 	}
 }
 
+// collectionIndexPages returns the collection's index page and the synthetic
+// index pages to add to it. A language with pages but no root _index.md of
+// its own gets a synthetic one when it is the default language, when the
+// default language has no real one either (a fallback copy of a synthetic
+// index would show a translation notice on a generated page), or when the
+// collection's fallback policy is omit (no fallback copy would be made). The
+// index page is the default language's real or synthetic one, else the first
+// real one. Each synthetic page carries the LangRelPath a real _index.md
+// would have, so translations pair up and fallbacks are keyed per collection.
+func collectionIndexPages(name string, pages []*engine.Page, sections []*engine.Section, collCfg *engine.CollectionConfig, siteCfg *config.SiteConfig) (*engine.Page, []*engine.Page) {
+	if len(pages) == 0 {
+		return nil, nil
+	}
+	langs := []string{""}
+	defaultLang := ""
+	if siteCfg.I18n.IsMultiLang() {
+		langs = collectLanguages(pages)
+		defaultLang = siteCfg.I18n.GetDefaultLanguage()
+	}
+	realIdx := make(map[string]*engine.Page, len(langs))
+	for _, lang := range langs {
+		langPages := pages
+		if lang != "" {
+			langPages = filterByLang(pages, lang)
+		}
+		if idx := rootIndexPage(langPages, name, collCfg); idx != nil {
+			realIdx[lang] = idx
+		}
+	}
+
+	omit := siteCfg.CollectionFallback(name) == "omit"
+	var root *engine.Section
+	for _, sec := range sections {
+		if sec.Permalink == "/"+name+"/" {
+			root = sec
+			break
+		}
+	}
+	var synthetic []*engine.Page
+	byLang := make(map[string]*engine.Page, len(langs))
+	for _, lang := range langs {
+		if idx := realIdx[lang]; idx != nil {
+			byLang[lang] = idx
+			continue
+		}
+		if lang != defaultLang && realIdx[defaultLang] != nil && !omit {
+			continue
+		}
+		idx := newSyntheticIndex(name, lang, collCfg, root)
+		byLang[lang] = idx
+		synthetic = append(synthetic, idx)
+	}
+
+	indexPage := byLang[defaultLang]
+	if indexPage == nil {
+		for _, lang := range langs {
+			if idx := realIdx[lang]; idx != nil {
+				indexPage = idx
+				break
+			}
+		}
+	}
+	if indexPage == nil && len(synthetic) > 0 {
+		indexPage = synthetic[0]
+	}
+	// The shared tree's root keeps a real _index.md that won its slot; a
+	// synthetic index only fills an empty root, as before.
+	if root != nil && root.IndexPage == nil && indexPage != nil && indexPage.FilePath == "" {
+		root.IndexPage = indexPage
+	}
+	return indexPage, synthetic
+}
+
+// newSyntheticIndex builds the landing page of a collection that has no
+// _index.md in the given language.
+func newSyntheticIndex(name, lang string, collCfg *engine.CollectionConfig, root *engine.Section) *engine.Page {
+	idx := &engine.Page{
+		PageIdentity: engine.PageIdentity{
+			Title:        collectionTitle(name, nil),
+			Slug:         name,
+			RelPermalink: "/" + name + "/",
+			Kind:         engine.KindSection,
+		},
+		PageI18n: engine.PageI18n{
+			Lang:        lang,
+			LangRelPath: name + "/_index.md",
+		},
+		Params: map[string]any{},
+	}
+	idx.Section = root
+	if vc := collCfg.Versioning; vc != nil && vc.Enabled && vc.LastVersion != "" {
+		idx.Version = vc.LastVersion
+		idx.VersionRelPath = "_index.md"
+	}
+	return idx
+}
+
 // collectLanguages returns the unique language codes found in the pages, in order of first appearance.
 func collectLanguages(pages []*engine.Page) []string {
 	seen := make(map[string]bool)
@@ -414,4 +471,14 @@ func collectLanguages(pages []*engine.Page) []string {
 		}
 	}
 	return langs
+}
+
+// CascadeDefaultLang returns the language whose section indexes other
+// languages borrow in ApplyPageDefaults: the default language on a
+// multi-language site, "" (no borrowing) otherwise.
+func CascadeDefaultLang(siteCfg *config.SiteConfig) string {
+	if !siteCfg.I18n.IsMultiLang() {
+		return ""
+	}
+	return siteCfg.I18n.GetDefaultLanguage()
 }

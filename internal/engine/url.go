@@ -132,9 +132,9 @@ func IsAbsoluteURL(u string) bool {
 // PageRelativePath joins a page-relative path, such as a frontmatter
 // image: cover.jpg, to the folder of the page's URL, the way a browser would
 // on the page itself. A path that starts with "/" is returned as is. The
-// result is site-root-relative and prefix-free, ready for URLResolver.URL. A
-// page bundle's files are written once, at the language-free path, so a
-// caller resolving a bundle file passes no language.
+// result is site-root-relative and prefix-free, ready for URLResolver.URL.
+// A caller resolving it needs the language and version to pass as well; see
+// PageRelativeTarget.
 func PageRelativePath(p *Page, rel string) string {
 	if p == nil || strings.HasPrefix(rel, "/") {
 		return rel
@@ -149,6 +149,24 @@ func PageRelativePath(p *Page, rel string) string {
 		out += "/"
 	}
 	return out
+}
+
+// PageRelativeTarget is PageRelativePath plus the language and version to
+// resolve the result with. A page bundle's files are written beside each
+// copy of the page, so a relative path naming one of the page's resources
+// takes the page's language and version. Anything else, such as a file under
+// public/ reached with "../", exists once and takes neither.
+func PageRelativeTarget(p *Page, rel string) (target, lang, version string) {
+	target = PageRelativePath(p, rel)
+	if p == nil || strings.HasPrefix(rel, "/") {
+		return target, "", ""
+	}
+	for i := range p.Resources {
+		if p.Resources[i].RelPermalink == target {
+			return target, p.Lang, ResolvePageVersion(p)
+		}
+	}
+	return target, "", ""
 }
 
 // OutputRelPath returns the on-disk output path: version- and lang-prefixed but

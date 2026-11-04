@@ -99,6 +99,13 @@ func rebuildCollectionNav(col *engine.Collection) {
 	}
 	collection.SortPages(col.Pages, col.Config.SortBy, col.Config.SortOrder)
 
+	// Labs wire prev/next within each lab, as the full build does, not across
+	// the whole collection.
+	if collection.IsLabsName(col.Name) {
+		collection.BuildLabsNav(col)
+		return
+	}
+
 	if engine.LayoutHasSidebar(col.Config.Layout) {
 		col.NavTree = navigation.BuildNavTree(col)
 		navigation.WirePrevNextFromTree(col.NavTree)

@@ -88,6 +88,29 @@ func (c *SiteConfig) SitemapActive() bool {
 		!slices.Contains(c.Plugins.Disabled, "sitemap")
 }
 
+// CollectionFallbackOverride returns the i18n fallback policy a collection
+// sets for itself: versioning.fallback when versioning is on and sets one,
+// else the collection's i18n_fallback, else "" (inherit the site policy).
+func (c *SiteConfig) CollectionFallbackOverride(name string) string {
+	colCfg := c.Collections[name]
+	if colCfg == nil {
+		return ""
+	}
+	if v := colCfg.Versioning; v != nil && BoolVal(v.Enabled, false) && v.Fallback != "" {
+		return v.Fallback
+	}
+	return colCfg.I18nFallback
+}
+
+// CollectionFallback returns the i18n fallback policy that applies to a
+// collection: its own override, else the site's i18n.fallback.
+func (c *SiteConfig) CollectionFallback(name string) string {
+	if fb := c.CollectionFallbackOverride(name); fb != "" {
+		return fb
+	}
+	return c.I18n.Fallback
+}
+
 // ---------------------------------------------------------------------------
 // Site Identity
 // ---------------------------------------------------------------------------

@@ -20,7 +20,6 @@ import (
 	"github.com/getsarde/sarde/internal/plugin"
 	"github.com/getsarde/sarde/internal/syntax"
 	"github.com/getsarde/sarde/internal/taxonomy"
-	sardetemplate "github.com/getsarde/sarde/internal/template"
 	"github.com/getsarde/sarde/internal/workers"
 )
 
@@ -76,6 +75,7 @@ type incrementalRebuildState struct {
 	// Dirty render + write
 	dirtyRendered []RenderedPage
 	dirtyAliases  map[string]string
+	taxonomyStubs []*engine.Page // every language's taxonomy pages, as a full build makes them
 }
 
 // ContentRebuild performs an incremental rebuild for content-only changes.
@@ -221,17 +221,23 @@ func (b *SiteBuilder) classifyAndParseChanges(changedPaths []string, s *incremen
 			}
 		}
 
-		// Determine collection config for parsing.
+		// Determine collection config for parsing. The last build's config
+		// already carries the site-level permalinks pattern and the
+		// sidebar.yaml overlay, which inferring it afresh would drop.
 		var collCfg *engine.CollectionConfig
 		var schema *engine.FrontmatterSchema
 		if cf.CollectionName != "" {
-			inferred := collection.InferCollection(cf.CollectionName)
-			if b.config.Collections != nil {
-				if scfg, ok := b.config.Collections[cf.CollectionName]; ok {
-					inferred = collection.MergeCollectionConfig(inferred, scfg)
+			if old.Collection != nil && old.Collection.Name == cf.CollectionName && old.Collection.Config != nil {
+				collCfg = old.Collection.Config
+			} else {
+				inferred := collection.InferCollection(cf.CollectionName)
+				if b.config.Collections != nil {
+					if scfg, ok := b.config.Collections[cf.CollectionName]; ok {
+						inferred = collection.MergeCollectionConfig(inferred, scfg)
+					}
 				}
+				collCfg = inferred
 			}
-			collCfg = inferred
 			schema, _ = content.LoadSchema(filepath.Join(s.contentDir, cf.CollectionName))
 		}
 
@@ -247,6 +253,8 @@ func (b *SiteBuilder) classifyAndParseChanges(changedPaths []string, s *incremen
 			return errFallBackToFull
 		}
 		s.warnings = append(s.warnings, pageWarnings...)
+
+		b.prepareReparsedPage(newPage, old)
 
 		// Layer 2: frontmatter digest gate. The digest is computed over the raw
 		// frontmatter map before inference runs, so a body edit that changes the
@@ -311,6 +319,37 @@ func (b *SiteBuilder) classifyAndParseChanges(changedPaths []string, s *incremen
 	return nil
 }
 
+// prepareReparsedPage gives a re-parsed page what the full build gave the page
+// it replaces beyond its own frontmatter: its collection, section and
+// version, then the cascade and the slides and labs layout defaults, from the
+// function the full build runs. It runs before the change is classified,
+// since cascade can set the sidebar fields classifyChange compares, and
+// before fallbacks are generated, so fallback copies carry the values too.
+func (b *SiteBuilder) prepareReparsedPage(newPage, old *engine.Page) {
+	// BuildSinglePage leaves Version "" for root pages (no vN/ directory);
+	// the full build normalizes them in BuildCollectionsWithOptions.
+	newPage.Version = old.Version
+	newPage.VersionRelPath = old.VersionRelPath
+	if newPage.Version == "" {
+		if col := old.Collection; col != nil && col.Config != nil {
+			if vc := col.Config.Versioning; vc != nil && vc.Enabled && vc.LastVersion != "" {
+				newPage.Version = vc.LastVersion
+				if parts := strings.SplitN(newPage.LangRelPath, "/", 2); len(parts) == 2 {
+					newPage.VersionRelPath = parts[1]
+				}
+			}
+		}
+	}
+	newPage.Collection = old.Collection
+	newPage.Section = old.Section
+	if old.Collection == nil {
+		return
+	}
+	col := old.Collection
+	collection.ApplyPageDefaults(col.Name, swapPage(col.Pages, old, newPage),
+		[]*engine.Page{newPage}, collection.CascadeDefaultLang(b.config))
+}
+
 // patchPages swaps the re-parsed pages into copies of the last build's page
 // list and collection/section membership, rebuilds navigation for
 // collection-scoped changes, and dirty-marks every permalink whose output
@@ -332,22 +371,6 @@ func (b *SiteBuilder) patchPages(s *incrementalRebuildState) error {
 		idx, ok := indexByPath[e.filePath]
 		if !ok {
 			return errFallBackToFull
-		}
-
-		// Normalize version for root-level pages in versioned collections.
-		// BuildSinglePage leaves Version="" for root pages (no vN/ directory);
-		// the full build normalizes them in BuildCollectionsWithOptions, but the
-		// incremental path skips that step. preserveStablePageState below copies
-		// old.Version, but we normalize first as a safety net.
-		if e.newPage.Version == "" {
-			if col := e.old.Collection; col != nil {
-				if vc := col.Config.Versioning; vc != nil && vc.Enabled && vc.LastVersion != "" {
-					e.newPage.Version = vc.LastVersion
-					if parts := strings.SplitN(e.newPage.LangRelPath, "/", 2); len(parts) == 2 {
-						e.newPage.VersionRelPath = parts[1]
-					}
-				}
-			}
 		}
 
 		preserveStablePageState(e.newPage, e.old)
@@ -372,6 +395,20 @@ func (b *SiteBuilder) patchPages(s *incrementalRebuildState) error {
 
 		s.dirtyPermalinks[e.newPage.RelPermalink] = struct{}{}
 		addCollectionListDirty(col, s.dirtyPermalinks)
+	}
+
+	// Labs collections stamp each step's lab number and progress and wire
+	// prev/next within each lab; the re-parsed pages need the stamps, and the
+	// lab trees the new page pointers. Multi-language sites get both from
+	// BuildLanguageViews.
+	if !b.config.I18n.IsMultiLang() {
+		relabeled := make(map[*engine.Collection]bool)
+		for _, e := range s.parsed {
+			if col := e.old.Collection; col != nil && collection.IsLabsName(col.Name) && !relabeled[col] {
+				relabeled[col] = true
+				collection.BuildLabsNav(col)
+			}
+		}
 	}
 
 	// Collection-scoped rebuild: re-sort and rebuild navigation for any
@@ -434,30 +471,27 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 	if s.isMultiLang {
 		defaultLang := b.config.I18n.GetDefaultLanguage()
 		langCodes := b.config.I18n.LanguageCodes()
-		weights := make(map[string]int)
-		for code, lc := range b.config.I18n.Languages {
-			weights[code] = lc.Weight
-		}
+		weights := languageWeights(b.config)
 
 		i18n.LinkTranslations(s.patchedAllPages, weights)
 
-		collFallback := make(map[string]string)
-		for colName, colCfg := range b.config.Collections {
-			if colCfg != nil && colCfg.I18nFallback != "" {
-				collFallback[colName] = colCfg.I18nFallback
-			}
-		}
-		fbOpts := i18n.FallbackOptions{
-			SiteFallback:       b.config.I18n.Fallback,
-			CollectionFallback: collFallback,
-		}
-
-		fallbacks := i18n.GenerateFallbacks(s.patchedAllPages, langCodes, defaultLang, fbOpts)
+		fallbacks := i18n.GenerateFallbacks(s.patchedAllPages, langCodes, defaultLang, i18nFallbackOptions(b.config))
 		s.patchedAllPages = append(s.patchedAllPages, fallbacks...)
 
 		if b.urlResolver != nil {
 			resolvePermalinks(b.urlResolver, fallbacks)
 		}
+		// clonePage clears each resource's Permalink: a copy's bundle files
+		// sit beside the copy, under its own language.
+		if err := enhancePageResources(fallbacks, b.lastAssetPipeline, false, 0); err != nil {
+			devlog.Warn("build", "ContentRebuild: %v, falling back", err)
+			return errFallBackToFull
+		}
+
+		// The fallback copies are new objects with no nav wiring (clonePage
+		// clears PrevPage, NextPage and NavNode), so the per-language trees
+		// are rebuilt over them, as phaseAssemble does.
+		collection.RebuildNavTreesWithFallbacks(b.lastCollections, s.patchedAllPages, langCodes, s.contentDir)
 
 		for _, fb := range fallbacks {
 			if fb.FilePath != "" {
@@ -712,63 +746,29 @@ func (b *SiteBuilder) renderAndWriteDirtyPages(s *incrementalRebuildState) error
 		return errFallBackToFull
 	}
 
-	for lang, langTax := range s.rebuildTaxByLang {
-		for taxName, tax := range langTax {
-			cfg := b.config.Taxonomies[taxName]
-			if !cfg.ShouldRender() {
-				continue
-			}
-			if _, isDirty := s.dirtyPermalinks[tax.Permalink]; isDirty {
-				termEntries := taxonomy.ComputeTermEntries(tax)
-				taxStub := buildTaxonomyIndexStub(tax, termEntries, lang)
-				resolvePermalinks(b.urlResolver, []*engine.Page{taxStub})
-				rd := sardetemplate.BuildRouteData(taxStub, b.lastSiteCtx, b.themeConfig)
-				resolveRouteAssets(b.urlResolver, rd)
-				html, err := b.tmplEngine.Render(rd.Template, rd)
-				if err != nil {
-					return errFallBackToFull
-				}
-				dirtyRendered = append(dirtyRendered, RenderedPage{
-					Page: taxStub, HTML: html,
-					OutPath: PageOutputPath(b.urlResolver.OutputRelPath(taxStub.RelPermalink, taxStub.Lang, "")),
-				})
-			}
-			for _, term := range tax.Terms {
-				if _, isDirty := s.dirtyPermalinks[term.Permalink]; isDirty {
-					termStub := buildTermStub(tax, term, lang)
-					resolvePermalinks(b.urlResolver, []*engine.Page{termStub})
-					rd := sardetemplate.BuildRouteData(termStub, b.lastSiteCtx, b.themeConfig)
-					resolveRouteAssets(b.urlResolver, rd)
-					html, err := b.tmplEngine.Render(rd.Template, rd)
-					if err != nil {
-						return errFallBackToFull
-					}
-					dirtyRendered = append(dirtyRendered, RenderedPage{
-						Page: termStub, HTML: html,
-						OutPath: PageOutputPath(b.urlResolver.OutputRelPath(termStub.RelPermalink, termStub.Lang, "")),
-					})
-				}
-				for n := 2; n <= tax.TermPageCount(term); n++ {
-					permalink := sardetemplate.PaginationURL(term.Permalink, n)
-					if _, isDirty := s.dirtyPermalinks[permalink]; !isDirty {
-						continue
-					}
-					paginatedStub := buildTermPaginatedStub(tax, term, permalink, n, lang)
-					resolvePermalinks(b.urlResolver, []*engine.Page{paginatedStub})
-					rd := sardetemplate.BuildRouteData(paginatedStub, b.lastSiteCtx, b.themeConfig)
-					resolveRouteAssets(b.urlResolver, rd)
-					html, err := b.tmplEngine.Render(rd.Template, rd)
-					if err != nil {
-						return errFallBackToFull
-					}
-					dirtyRendered = append(dirtyRendered, RenderedPage{
-						Page: paginatedStub, HTML: html,
-						OutPath: PageOutputPath(b.urlResolver.OutputRelPath(paginatedStub.RelPermalink, paginatedStub.Lang, "")),
-					})
-				}
-			}
+	// Taxonomy pages: every language's stubs are built, so the dirty ones
+	// link to their translations, then rendered like any other page. A stub's
+	// Permalink before resolution is the key the dirty set uses.
+	stubs, _ := b.taxonomyStubs(s.rebuildTaxByLang, b.taxonomyLangs(s.isMultiLang), s.isMultiLang)
+	var dirtyStubs []*engine.Page
+	for _, stub := range stubs {
+		if _, isDirty := s.dirtyPermalinks[stub.Permalink]; isDirty {
+			dirtyStubs = append(dirtyStubs, stub)
 		}
 	}
+	if b.urlResolver != nil {
+		resolvePermalinks(b.urlResolver, stubs)
+	}
+	stubRendered, stubAliases, err := b.renderPages(dirtyStubs, b.lastSiteCtx, true, workers.Count())
+	if err != nil {
+		devlog.Warn("build", "ContentRebuild: taxonomy render error: %v, falling back", err)
+		return errFallBackToFull
+	}
+	dirtyRendered = append(dirtyRendered, stubRendered...)
+	for alias, target := range stubAliases {
+		dirtyAliases[alias] = target
+	}
+	s.taxonomyStubs = stubs
 
 	if !b.devMode && config.BoolVal(b.config.Build.Minify, true) {
 		minifyRendered(dirtyRendered, false, 0)
@@ -795,9 +795,7 @@ func (b *SiteBuilder) renderAndWriteDirtyPages(s *incrementalRebuildState) error
 // the builder's last-build snapshot, runs the BuildDone plugin hook, and
 // assembles the incremental BuildResult.
 func (b *SiteBuilder) finishIncrementalRebuild(s *incrementalRebuildState) (*engine.BuildResult, error) {
-	for lang, langTax := range s.rebuildTaxByLang {
-		s.patchedAllPages = appendTaxonomyStubsForLang(s.patchedAllPages, langTax, b.config.Taxonomies, lang)
-	}
+	s.patchedAllPages = append(s.patchedAllPages, s.taxonomyStubs...)
 	b.lastSiteCtx.Pages = s.patchedAllPages
 
 	b.lastAllPages = s.patchedAllPages

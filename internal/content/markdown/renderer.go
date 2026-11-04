@@ -158,7 +158,7 @@ func ImageLookupForPage(page *engine.Page, processor *asset.ImageProcessor, reso
 		// In dev mode, return simple image without variants.
 		if processor.DevMode {
 			return &asset.ProcessedImage{
-				Src:     resolve(res.RelPermalink),
+				Src:     resolve(asset.ResourceURL(res)),
 				Width:   res.Width,
 				Height:  res.Height,
 				Loading: loading,
@@ -171,7 +171,7 @@ func ImageLookupForPage(page *engine.Page, processor *asset.ImageProcessor, reso
 		if err != nil {
 			// Fallback to unprocessed.
 			return &asset.ProcessedImage{
-				Src:     resolve(res.RelPermalink),
+				Src:     resolve(asset.ResourceURL(res)),
 				Width:   res.Width,
 				Height:  res.Height,
 				Loading: loading,
@@ -186,7 +186,7 @@ func ImageLookupForPage(page *engine.Page, processor *asset.ImageProcessor, reso
 		}
 
 		return &asset.ProcessedImage{
-			Src:      resolve(res.RelPermalink),
+			Src:      resolve(asset.ResourceURL(res)),
 			Width:    res.Width,
 			Height:   res.Height,
 			LQIP:     lqip,

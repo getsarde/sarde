@@ -207,3 +207,40 @@ func TestIsAbsoluteURL(t *testing.T) {
 		}
 	}
 }
+
+// A relative path naming one of the page's bundle files takes the page's
+// language and version; anything else takes neither.
+func TestPageRelativeTarget(t *testing.T) {
+	docs := &Collection{Name: "docs", Config: &CollectionConfig{Versioning: &VersionConfig{Enabled: true, LastVersion: "v2"}}}
+	frPage := &Page{
+		PageIdentity: PageIdentity{RelPermalink: "/blog/trip/"},
+		PageI18n:     PageI18n{Lang: "fr"},
+		Resources:    []Resource{{Name: "cover.jpg", RelPermalink: "/blog/trip/cover.jpg"}},
+	}
+	v1Page := &Page{
+		PageIdentity:      PageIdentity{RelPermalink: "/docs/guide/"},
+		PageVersioning:    PageVersioning{Version: "v1"},
+		PageRelationships: PageRelationships{Collection: docs},
+		Resources:         []Resource{{Name: "flow.svg", RelPermalink: "/docs/guide/flow.svg"}},
+	}
+	tests := []struct {
+		page                  *Page
+		rel                   string
+		target, lang, version string
+	}{
+		{frPage, "cover.jpg", "/blog/trip/cover.jpg", "fr", ""},
+		{frPage, "./cover.jpg", "/blog/trip/cover.jpg", "fr", ""},
+		{frPage, "missing.jpg", "/blog/trip/missing.jpg", "", ""},
+		{frPage, "../shared.png", "/blog/shared.png", "", ""},
+		{frPage, "/blog/trip/cover.jpg", "/blog/trip/cover.jpg", "", ""},
+		{v1Page, "flow.svg", "/docs/guide/flow.svg", "", "v1"},
+		{nil, "cover.jpg", "cover.jpg", "", ""},
+	}
+	for _, tt := range tests {
+		target, lang, version := PageRelativeTarget(tt.page, tt.rel)
+		if target != tt.target || lang != tt.lang || version != tt.version {
+			t.Errorf("PageRelativeTarget(%q) = (%q, %q, %q), want (%q, %q, %q)",
+				tt.rel, target, lang, version, tt.target, tt.lang, tt.version)
+		}
+	}
+}

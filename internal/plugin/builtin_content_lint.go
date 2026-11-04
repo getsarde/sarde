@@ -51,6 +51,14 @@ func contentLintBuildDone(ctx *BuildDoneContext) error {
 	return nil
 }
 
+// isGeneratedPage reports whether the build made the page rather than read it
+// from a file the author can edit: a synthetic collection index, a taxonomy or
+// term page, or an i18n fallback copy (its source page is linted).
+func isGeneratedPage(page *engine.Page) bool {
+	return page.FilePath == "" || page.IsFallback ||
+		page.Kind == engine.KindTaxonomy || page.Kind == engine.KindTerm
+}
+
 // LintPages runs content lint rules on a set of pages and returns warnings.
 // This is exported so that the validate command can call it directly without
 // going through the plugin BuildDone hook.
@@ -59,7 +67,7 @@ func LintPages(pages []*engine.Page, lint config.ContentLintSettings) []engine.V
 	var warnings []engine.ValidationWarning
 
 	for _, page := range pages {
-		if page.Draft {
+		if page.Draft || isGeneratedPage(page) {
 			continue
 		}
 

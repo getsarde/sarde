@@ -60,7 +60,7 @@ Images from `public/` are not processed. They render as a plain `<img>` with the
 
 On a site served from a subfolder, Sarde adds [`build.base_path`](/reference/configuration/build-and-output/#build) to these paths, so write them from the site root without it. The same applies to a page's frontmatter `image`, to images in figures, galleries, and image comparisons, and to a self-hosted `:::video` source. Images never get a language prefix: a translated page uses the same `/images/logo.png`.
 
-A relative frontmatter `image`, such as `image: cover.jpg` in a page bundle, names the file beside the page. Every template that shows the page reads it from there, so a blog grid card or a lab card on a list page shows the post's own `cover.jpg`. A translated bundle's files are written once, at the path without the language prefix, so a French post's cover also has no `/fr/`.
+A relative frontmatter `image`, such as `image: cover.jpg` in a page bundle, names the file beside the page. Every template that shows the page reads it from there, so a blog grid card or a lab card on a list page shows the post's own `cover.jpg`. Each copy of a page has its bundle files beside it: a French post's cover is at `/fr/blog/trip/cover.jpg`, and an older docs version's files sit under its version prefix, such as `/docs/v1/`. A [fallback page](/guides/internationalization/#fallback-pages) gets a copy of the default-language files under its own language prefix, so relative links work on every copy. A translated bundle uses its own files only: a file that exists only in the default-language bundle does not resolve on the translated page.
 
 ### Which to use
 

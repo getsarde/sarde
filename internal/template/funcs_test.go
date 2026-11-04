@@ -471,6 +471,24 @@ func TestPageRelURL(t *testing.T) {
 			t.Errorf("pageRelURL(%q) = %q, want %q", in, got, want)
 		}
 	}
+
+	// A file of a French page's bundle sits beside the French page; a path
+	// outside the bundle exists once and gets no language.
+	frPost := &engine.Page{
+		PageIdentity: engine.PageIdentity{RelPermalink: "/blog/trip/"},
+		PageI18n:     engine.PageI18n{Lang: "fr"},
+		Resources:    []engine.Resource{{Name: "cover.jpg", RelPermalink: "/blog/trip/cover.jpg"}},
+	}
+	for in, want := range map[string]string{
+		"cover.jpg":     "/docs/fr/blog/trip/cover.jpg",
+		"./cover.jpg":   "/docs/fr/blog/trip/cover.jpg",
+		"../shared.png": "/docs/blog/shared.png",
+		"/cover.jpg":    "/docs/cover.jpg",
+	} {
+		if got := fn(frPost, in); got != want {
+			t.Errorf("French page: pageRelURL(%q) = %q, want %q", in, got, want)
+		}
+	}
 }
 
 // ── Cross-collection tests ──

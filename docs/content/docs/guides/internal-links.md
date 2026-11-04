@@ -114,7 +114,7 @@ What happens to a link with no target depends on how it is written:
 | Extension-less collection-root link that matches no page in the current language and version, and no other URL the build writes | Build error: `broken target` |
 | Link to a heading that does not exist | Build error: `broken anchor` |
 
-Sarde checks an extension-less link against every URL the build writes, including tag and term pages, numbered list pages such as `/blog/page/2/`, and folders under `public/` that hold an `index.html`. A link to a page in another collection, or to one of those generated pages, passes; a link to nothing fails. To link to a part of the deployment that Sarde does not build, write a `site:` link. See [Link Validation and Linting](/guides/link-validation-and-linting/) for the policy settings.
+Sarde checks an extension-less link against every URL the build writes, including tag and term pages, numbered list pages such as `/blog/page/2/`, the redirect pages of the [`redirects`](/reference/configuration/deploy-and-redirects/#redirects) config, and folders under `public/` that hold an `index.html`. A link to a page in another collection, or to one of those generated pages, passes; a link to nothing fails. To link to a part of the deployment that Sarde does not build, write a `site:` link. See [Link Validation and Linting](/guides/link-validation-and-linting/) for the policy settings.
 
 ## URL composition
 

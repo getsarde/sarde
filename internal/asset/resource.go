@@ -15,11 +15,12 @@ import (
 
 // ResourceEnhancer populates Resource metadata for page bundles.
 type ResourceEnhancer struct {
-	DevMode bool
+	DevMode     bool
+	URLResolver *engine.URLResolver // nil leaves Permalink unset
 }
 
-// EnhancePageResources populates MediaType, Title, RelPermalink, Width, and Height
-// for all resources attached to a page bundle.
+// EnhancePageResources populates MediaType, Title, RelPermalink, Permalink,
+// Width, and Height for all resources attached to a page bundle.
 func (e *ResourceEnhancer) EnhancePageResources(page *engine.Page) error {
 	if len(page.Resources) == 0 {
 		return nil
@@ -48,6 +49,12 @@ func (e *ResourceEnhancer) EnhancePageResources(page *engine.Page) error {
 				pageURL += "/"
 			}
 			res.RelPermalink = pageURL + res.Name
+		}
+
+		// Set Permalink: the file is written beside this page, under the
+		// page's language and version.
+		if res.Permalink == "" && e.URLResolver != nil {
+			res.Permalink = e.URLResolver.URL(res.RelPermalink, page.Lang, engine.ResolvePageVersion(page))
 		}
 
 		// Set absolute source path for image processing.
@@ -118,4 +125,13 @@ func ResourcesByType(resources []engine.Resource, mediaType string) []engine.Res
 		}
 	}
 	return matched
+}
+
+// ResourceURL returns the URL to link to for res: its Permalink when set,
+// else its prefix-free RelPermalink.
+func ResourceURL(res *engine.Resource) string {
+	if res.Permalink != "" {
+		return res.Permalink
+	}
+	return res.RelPermalink
 }

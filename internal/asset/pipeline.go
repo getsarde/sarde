@@ -22,6 +22,10 @@ type PipelineOptions struct {
 	ThemeName  string
 	EmbeddedFS fs.FS
 	DevMode    bool
+	// URLResolver places each page's bundle files beside the page: under
+	// its language and version prefix. Nil writes them at the prefix-free
+	// path.
+	URLResolver *engine.URLResolver
 }
 
 // Pipeline orchestrates all asset processing.
@@ -54,7 +58,8 @@ func NewPipeline(opts PipelineOptions) *Pipeline {
 	return &Pipeline{
 		resolver: resolver,
 		enhancer: &ResourceEnhancer{
-			DevMode: opts.DevMode,
+			DevMode:     opts.DevMode,
+			URLResolver: opts.URLResolver,
 		},
 		processor: &ImageProcessor{
 			Config:  &opts.Config.Images,
@@ -207,6 +212,10 @@ func (p *Pipeline) WriteBundleAssetsWithOptions(pages []*engine.Page, outputDir 
 		dst string
 	}
 	var copies []assetCopy
+	// Each page's files are written beside the page, so the copies of a
+	// translated or versioned bundle never share a path. Should two pages
+	// still name one path, the first in page order wins, as for pages.
+	seen := make(map[string]bool)
 	for _, page := range pages {
 		if len(page.Resources) == 0 {
 			continue
@@ -216,10 +225,18 @@ func (p *Pipeline) WriteBundleAssetsWithOptions(pages []*engine.Page, outputDir 
 
 		for _, res := range page.Resources {
 			srcPath := filepath.Join(pageDir, res.Name)
-			outPath, err := outputpath.SafeJoin(outputDir, res.RelPermalink)
+			outRel := res.RelPermalink
+			if r := p.opts.URLResolver; r != nil {
+				outRel = r.OutputRelPath(res.RelPermalink, page.Lang, engine.ResolvePageVersion(page))
+			}
+			outPath, err := outputpath.SafeJoin(outputDir, outRel)
 			if err != nil {
 				return err
 			}
+			if seen[outPath] {
+				continue
+			}
+			seen[outPath] = true
 			copies = append(copies, assetCopy{src: srcPath, dst: outPath})
 		}
 	}

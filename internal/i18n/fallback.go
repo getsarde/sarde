@@ -104,6 +104,15 @@ func fallbackKey(p *engine.Page) string {
 // pages display the same content as the original).
 func clonePage(p *engine.Page) *engine.Page {
 	cp := *p
+	// Each copy gets its own resources: a resource's Permalink depends on the
+	// page's language, so it is cleared for the enhancer to set again.
+	if len(p.Resources) > 0 {
+		cp.Resources = make([]engine.Resource, len(p.Resources))
+		copy(cp.Resources, p.Resources)
+		for i := range cp.Resources {
+			cp.Resources[i].Permalink = ""
+		}
+	}
 	// Clear per-language relationship fields (rebuilt by LinkAllTranslations / nav wiring).
 	// Collection and Section are intentionally kept — they are structural references
 	// needed by BuildRouteData for layout, sidebar, template, and breadcrumbs.

@@ -165,15 +165,28 @@ func ContentHash(content string) string {
 // replay zero link refs forever, reproducing the coverage undercount; entries
 // from before markdown.hard_wraps became configurable carry <br> for every
 // soft line break; entries from before markdown.asides.style became
-// configurable carry the classic aside icons regardless of style).
-const pageCacheSchemaVersion = "8"
+// configurable carry the classic aside icons regardless of style; entries
+// from before bundle files were written beside each page carry
+// language-free image URLs on translated pages).
+const pageCacheSchemaVersion = "9"
 
 // pageCacheKey builds the content-addressed key for a rendered page. Both the
 // parallel and serial render paths must use this single helper so the key
 // composition cannot drift between them.
-func pageCacheKey(processed, shortcodesHash, resolutionKey, iconRenderKey, rendererKey, lang string) string {
+func pageCacheKey(processed, shortcodesHash, resolutionKey, iconRenderKey, rendererKey string, page *engine.Page) string {
 	return ContentHash(processed + shortcodesHash + resolutionKey + iconRenderKey + rendererKey +
-		"\x00lang=" + lang + "\x00schema=" + pageCacheSchemaVersion)
+		"\x00lang=" + page.Lang + "\x00at=" + bundleLocation(page) + "\x00schema=" + pageCacheSchemaVersion)
+}
+
+// bundleLocation returns where a page bundle's files are written, for the
+// page-cache key: they sit beside the page, so two bundle pages with the same
+// body (a v1 page and its latest twin) render different image URLs. It is ""
+// for a page without resources.
+func bundleLocation(page *engine.Page) string {
+	if len(page.Resources) == 0 {
+		return ""
+	}
+	return page.RelPermalink + "\x00" + engine.ResolvePageVersion(page)
 }
 
 // insertFront adds a new node at the MRU position. Evicts LRU if at capacity.

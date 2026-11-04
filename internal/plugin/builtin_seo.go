@@ -331,7 +331,7 @@ func seoImageURL(ctx *BeforeRenderContext, page *engine.Page, v string) string {
 	case page == nil:
 		return ctx.AbsURL("/"+strings.TrimPrefix(v, "/"), "", "")
 	default:
-		return ctx.AbsURL(engine.PageRelativePath(page, v), "", "")
+		return ctx.AbsURL(engine.PageRelativeTarget(page, v))
 	}
 }
 

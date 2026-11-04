@@ -91,12 +91,13 @@ func (b *SiteBuilder) checkPageSyntax(s *buildState) {
 func (b *SiteBuilder) setupAssetPipelineAndShortcodes(s *buildState) error {
 	// Asset pipeline: image processing, resource enhancement, CSS/JS bundling.
 	s.assetPipeline = asset.NewPipeline(asset.PipelineOptions{
-		ProjectDir: b.projectDir,
-		OutputDir:  s.outputDir,
-		Config:     b.config,
-		ThemeName:  b.config.Theme.Name,
-		EmbeddedFS: b.embeddedFS,
-		DevMode:    b.devMode,
+		ProjectDir:  b.projectDir,
+		OutputDir:   s.outputDir,
+		Config:      b.config,
+		ThemeName:   b.config.Theme.Name,
+		EmbeddedFS:  b.embeddedFS,
+		DevMode:     b.devMode,
+		URLResolver: b.urlResolver,
 	})
 	if err := enhancePageResources(s.allPages, s.assetPipeline, s.parallel, s.workerCount); err != nil {
 		return err
@@ -289,7 +290,7 @@ func (b *SiteBuilder) renderAllMarkdown(s *buildState) error {
 					validationMu.Unlock()
 				}
 
-				hash := pageCacheKey(processed, shortcodesHash, b.resolutionKey, iconRenderKey, b.rendererKey, page.Lang)
+				hash := pageCacheKey(processed, shortcodesHash, b.resolutionKey, iconRenderKey, b.rendererKey, page)
 				if pageCache != nil {
 					if entry := pageCache.Get(hash); entry != nil && !entryStale(entry, page, pageIndex, b.urlResolver, s.collections) {
 						page.Content = htmltemplate.HTML(entry.HTML)

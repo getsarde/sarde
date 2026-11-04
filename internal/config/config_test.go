@@ -800,3 +800,36 @@ func TestInertKeyDeprecations(t *testing.T) {
 		t.Errorf("nothing set, got %q", got)
 	}
 }
+
+func TestCollectionFallbackOverride(t *testing.T) {
+	on := true
+	off := false
+	cfg := &SiteConfig{
+		I18n: I18nSettings{Fallback: "default"},
+		Collections: map[string]*CollectionSiteConfig{
+			"docs": {I18nFallback: "default", Versioning: &VersioningConfig{Enabled: &on, Fallback: "omit"}},
+			"old":  {I18nFallback: "omit", Versioning: &VersioningConfig{Enabled: &off, Fallback: "default"}},
+			"blog": {I18nFallback: "omit"},
+			"news": {},
+			"nil":  nil,
+		},
+	}
+	tests := []struct {
+		name, override, resolved string
+	}{
+		{"docs", "omit", "omit"},   // versioning.fallback wins
+		{"old", "omit", "omit"},    // versioning off: i18n_fallback
+		{"blog", "omit", "omit"},   // i18n_fallback
+		{"news", "", "default"},    // nothing set: inherit the site
+		{"nil", "", "default"},     // nil entry
+		{"missing", "", "default"}, // no entry
+	}
+	for _, tt := range tests {
+		if got := cfg.CollectionFallbackOverride(tt.name); got != tt.override {
+			t.Errorf("CollectionFallbackOverride(%q) = %q, want %q", tt.name, got, tt.override)
+		}
+		if got := cfg.CollectionFallback(tt.name); got != tt.resolved {
+			t.Errorf("CollectionFallback(%q) = %q, want %q", tt.name, got, tt.resolved)
+		}
+	}
+}

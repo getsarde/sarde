@@ -144,7 +144,7 @@ func (b *SiteBuilder) renderMarkdownPageSerial(
 	}
 
 	processed, scWarns := deps.scProcessor.Process(page.RawContent, page, siteCtx, b.mdRenderer)
-	hash := pageCacheKey(processed, deps.shortcodesHash, deps.resolutionKey, deps.iconRenderKey, deps.rendererKey, page.Lang)
+	hash := pageCacheKey(processed, deps.shortcodesHash, deps.resolutionKey, deps.iconRenderKey, deps.rendererKey, page)
 
 	if deps.pageCache != nil {
 		entry := deps.pageCache.Get(hash)
@@ -307,20 +307,30 @@ func (b *SiteBuilder) synthesizePaginationPages(s *buildState) ([]*engine.Page, 
 // translations in multilingual builds. It returns the stubs (all of which are
 // also taxonomy pages) and the number of paginator pages created.
 func (b *SiteBuilder) synthesizeTaxonomyPages(s *buildState) ([]*engine.Page, int) {
-	var taxonomyPages []*engine.Page
-	paginatorPages := 0
-
 	allTaxByLang := s.taxByLang
 	if allTaxByLang == nil {
 		allTaxByLang = map[string]map[string]*engine.Taxonomy{"": s.taxonomies}
 	}
+	return b.taxonomyStubs(allTaxByLang, b.taxonomyLangs(s.isMultiLang), s.isMultiLang)
+}
 
-	var taxLangs []string
-	if s.isMultiLang {
-		taxLangs = b.config.I18n.LanguageCodes()
-	} else {
-		taxLangs = []string{""}
+// taxonomyLangs returns the languages taxonomy pages are built for: every
+// configured language on a multi-language site, "" otherwise.
+func (b *SiteBuilder) taxonomyLangs(multiLang bool) []string {
+	if multiLang {
+		return b.config.I18n.LanguageCodes()
 	}
+	return []string{""}
+}
+
+// taxonomyStubs builds the taxonomy index, term and numbered term pages of
+// every language in langs, in a stable order, with each index and term page
+// linked to its translations on a multi-language site. It also returns the
+// count of numbered term pages. The full build and the incremental rebuild
+// both call it, so their taxonomy pages cannot differ.
+func (b *SiteBuilder) taxonomyStubs(allTaxByLang map[string]map[string]*engine.Taxonomy, taxLangs []string, multiLang bool) ([]*engine.Page, int) {
+	var taxonomyPages []*engine.Page
+	paginatorPages := 0
 
 	// Pass 1: build all index + term (page 1) stubs, keyed for cross-linking.
 	stubsByLang := make(map[string]map[string]*engine.Page, len(taxLangs))
@@ -363,7 +373,7 @@ func (b *SiteBuilder) synthesizeTaxonomyPages(s *buildState) ([]*engine.Page, in
 			}
 
 			taxStub := stubs[taxName]
-			if s.isMultiLang {
+			if multiLang {
 				taxStub.Translations = crossLinkStubs(stubsByLang, taxName, lang, taxLangs)
 				taxStub.AllTranslations = taxStub.Translations
 			}
@@ -375,7 +385,7 @@ func (b *SiteBuilder) synthesizeTaxonomyPages(s *buildState) ([]*engine.Page, in
 				term := tax.Terms[slug]
 				key := taxName + "/" + term.Slug
 				termStub := stubs[key]
-				if s.isMultiLang {
+				if multiLang {
 					termStub.Translations = crossLinkStubs(stubsByLang, key, lang, taxLangs)
 					termStub.AllTranslations = termStub.Translations
 				}

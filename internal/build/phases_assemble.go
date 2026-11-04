@@ -29,32 +29,11 @@ func (b *SiteBuilder) phaseAssemble(s *buildState) error {
 	// i18n: link real translations, generate fallbacks, link all translations
 	if s.isMultiLang {
 		langCodes := b.config.I18n.LanguageCodes()
-		weights := make(map[string]int)
-		for code, lc := range b.config.I18n.Languages {
-			weights[code] = lc.Weight
-		}
+		weights := languageWeights(b.config)
 
 		i18n.LinkTranslations(allPages, weights)
 
-		collFallback := make(map[string]string)
-		for colName, colCfg := range b.config.Collections {
-			if colCfg == nil {
-				continue
-			}
-			if colCfg.I18nFallback != "" {
-				collFallback[colName] = colCfg.I18nFallback
-			}
-			// Versioning fallback overrides i18n fallback for versioned collections.
-			if colCfg.Versioning != nil && config.BoolVal(colCfg.Versioning.Enabled, false) && colCfg.Versioning.Fallback != "" {
-				collFallback[colName] = colCfg.Versioning.Fallback
-			}
-		}
-		fbOpts := i18n.FallbackOptions{
-			SiteFallback:       b.config.I18n.Fallback,
-			CollectionFallback: collFallback,
-		}
-
-		fallbacks := i18n.GenerateFallbacks(allPages, langCodes, s.defaultLang, fbOpts)
+		fallbacks := i18n.GenerateFallbacks(allPages, langCodes, s.defaultLang, i18nFallbackOptions(b.config))
 		allPages = append(allPages, fallbacks...)
 
 		collection.RebuildNavTreesWithFallbacks(s.collections, allPages, langCodes, s.contentDir)
@@ -192,4 +171,30 @@ func computeSiteID(title, basePath string) string {
 		h = h*33 ^ uint32(b)
 	}
 	return fmt.Sprintf("%08x", h)
+}
+
+// i18nFallbackOptions returns the fallback policies GenerateFallbacks applies:
+// the site's i18n.fallback and each collection's own override, where a
+// versioned collection's versioning.fallback wins over its i18n_fallback. The
+// full and the incremental build both call it, so they cannot disagree.
+func i18nFallbackOptions(cfg *config.SiteConfig) i18n.FallbackOptions {
+	collFallback := make(map[string]string)
+	for colName := range cfg.Collections {
+		if fb := cfg.CollectionFallbackOverride(colName); fb != "" {
+			collFallback[colName] = fb
+		}
+	}
+	return i18n.FallbackOptions{
+		SiteFallback:       cfg.I18n.Fallback,
+		CollectionFallback: collFallback,
+	}
+}
+
+// languageWeights maps each configured language code to its weight.
+func languageWeights(cfg *config.SiteConfig) map[string]int {
+	weights := make(map[string]int, len(cfg.I18n.Languages))
+	for code, lc := range cfg.I18n.Languages {
+		weights[code] = lc.Weight
+	}
+	return weights
 }

@@ -168,13 +168,23 @@ func TestBuild_RelativeFrontmatterImageResolvesAgainstItsPage(t *testing.T) {
 	if html := read("blog/index.html"); !strings.Contains(html, `src="/demo/blog/trip/cover.jpg"`) {
 		t.Error("blog grid card: relative image not resolved against the post")
 	}
-	if html := read("fr/blog/sortie/index.html"); !strings.Contains(html, `<img src="/demo/blog/sortie/photo.jpg"`) {
-		t.Error("translated blog cover: want the language-free bundle path")
+	// Each copy of a page has its bundle files beside it: the French post's
+	// own photo, and the French fallback copy of the English trip.
+	if html := read("fr/blog/sortie/index.html"); !strings.Contains(html, `<img src="/demo/fr/blog/sortie/photo.jpg"`) {
+		t.Error("translated blog cover: want the file beside the French page")
+	}
+	if html := read("fr/blog/index.html"); !strings.Contains(html, `src="/demo/fr/blog/trip/cover.jpg"`) {
+		t.Error("French grid card of the fallback trip: want the file beside the French copy")
 	}
 	if html := read("labs/index.html"); !strings.Contains(html, `src="/demo/labs/web/card.png"`) {
 		t.Error("lab card: relative image not resolved against the course page")
 	}
-	if _, err := os.Stat(filepath.Join(dir, "dist", "blog", "trip", "cover.jpg")); err != nil {
-		t.Errorf("bundle file not written where the URL points: %v", err)
+	for _, f := range []string{"blog/trip/cover.jpg", "fr/blog/sortie/photo.jpg", "fr/blog/trip/cover.jpg"} {
+		if _, err := os.Stat(filepath.Join(dir, "dist", filepath.FromSlash(f))); err != nil {
+			t.Errorf("bundle file not written where the URL points: %v", err)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(dir, "dist", "blog", "sortie", "photo.jpg")); err == nil {
+		t.Error("the French bundle's photo was also written at the language-free path")
 	}
 }

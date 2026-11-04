@@ -325,14 +325,17 @@ head:
 
 ### `cascade`
 
-A map of arbitrary key-value pairs propagated to all descendant pages in the section tree. Add `cascade` to a section's `_index.md` to apply values to every child page.
+A map of values that every page below a section inherits. Add `cascade` to a section's `_index.md`. A page keeps any value it sets itself, and a nearer section's value wins over an outer section's.
 
-```yaml
+```yaml title="content/courses/web/_index.md"
 cascade:
-  draft: true
-  sidebar:
-    hidden: true
+  banner:
+    content: This course runs in the fall term.
+  params:
+    author: Web Team
 ```
+
+Each language and docs version inherits from its own `_index.md` files: `content/fr/courses/web/_index.md` cascades to the French pages, and a `v1/` folder's `_index.md` to the v1 pages. When a folder has no `_index.md` in a page's language, the page inherits the default language's cascade for that folder, from the same version. Versions never inherit from each other. `draft` is not inherited; set it on each page.
 
 ### `params`
 

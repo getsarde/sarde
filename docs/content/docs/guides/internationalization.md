@@ -87,6 +87,10 @@ The default language has no directory prefix. Other languages use `content/<lang
 
 Sarde matches pages across languages by their path after the language prefix. `docs/getting-started.md` and `fr/docs/getting-started.md` are translations of each other.
 
+A section's `_index.md` applies its [`cascade`](/reference/frontmatter/#cascade) to the pages of its own language: `fr/docs/guides/_index.md` cascades to the French guides only. When a folder has no `_index.md` in a language, its pages in that language inherit the default language's cascade.
+
+A [page bundle](/guides/images-and-assets/#page-bundles) in a language folder holds that translation's files. Each language's copy of the page links the files in its own bundle, so give the French bundle its own copy of every image the French page uses.
+
 ## Localized URLs
 
 With `prefix-except-default`, the default language serves from the site root and other languages get a `/<lang>/` prefix:
@@ -197,6 +201,8 @@ collections:
 ```
 
 Collection lists show the pages in their own language. On `/fr/blog/`, a labs landing page, or a slide deck list, the French pages appear together with the fallback copies of untranslated pages under `"default"`, or the French pages alone under `"omit"`. The header, breadcrumbs, and search results name each collection by the title of its `_index.md` in the page's language.
+
+A collection without an `_index.md` still gets a list page in each language that has pages in it, such as `/blog/` and `/fr/blog/`, linked to each other in the language switcher.
 
 Fallback pages set `IsFallback` to `true` in templates, and the `FallbackNotice` component renders the banner when it is set. Customize the text through the `fallback.notice` key. The component renders on the docs and default layouts.
 
