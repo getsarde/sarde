@@ -107,6 +107,7 @@ func TestContinueContainer(t *testing.T) {
 		{"phantom opener and bare closer cancel (the bare fence is lazy paragraph text)", ":::box\n:::nosuchthing\nx\n:::\nstill\n:::/box\nafter\n", "<box><p>:::nosuchthing x ::: still</p></box><p>after</p>"},
 		{"fence lines inside a code block are content", ":::box\n```md\n:::note\n```\n:::\nafter\n", "<box><pre><code class=\"language-md\">:::note </code></pre></box><p>after</p>"},
 		{"malformed closer is content", ":::box\n:::/ box\n:::\nafter\n", "<box><p>:::/ box</p></box><p>after</p>"},
+		{"one-line opener is content, not a nested opener", ":::box\n:::nosuchthing hi :::\nin\n:::\nafter\n", "<box><p>:::nosuchthing hi ::: in</p></box><p>after</p>"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

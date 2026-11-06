@@ -123,7 +123,15 @@ Hidden twice.
 
 A bare `:::` closes the innermost open block. Longer fences (`::::`, `:::::`) are accepted, so content written for Docusaurus, VitePress, or Pandoc keeps working. The extra colons are a readability convention, not a nesting level.
 
-Run `sarde check-syntax` to find unclosed, mismatched, or malformed fences before building. `sarde dev --check-syntax` runs the same check on every rebuild.
+Put every fence on its own line. A block cannot open and close on one line: `:::badge(type="note") New :::` renders as text. Write the content and the closing fence on lines of their own:
+
+```markdown
+:::badge(type="note")
+New
+:::
+```
+
+Run `sarde check-syntax` to find unclosed, mismatched, malformed, or one-line fences before building. `sarde dev --check-syntax` runs the same check on every rebuild.
 
 ### Code groups
 

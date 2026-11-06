@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/blockutil"
+	"github.com/getsarde/sarde/internal/content/markdown/fence"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
@@ -30,6 +31,10 @@ func (p *asideParser) Open(parent ast.Node, reader text.Reader, pc parser.Contex
 	line, _ := reader.PeekLine()
 	lineStr := strings.TrimSpace(string(line))
 
+	// A one-line ":::note Text :::" opens nothing, as for every directive.
+	if fence.Classify(lineStr).Kind == fence.OneLine {
+		return nil, parser.NoChildren
+	}
 	matches := openingFenceRegex.FindStringSubmatch(lineStr)
 	if matches == nil {
 		return nil, parser.NoChildren

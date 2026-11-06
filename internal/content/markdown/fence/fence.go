@@ -20,6 +20,11 @@ const (
 	// ":::/ note" or ":::/note extra". Parsers treat it as content; the
 	// checker reports it.
 	Malformed
+	// OneLine is an opener that ends with its own closing fence, such as
+	// ":::badge Changed :::" or ":::note Text :::/note". No directive opens
+	// on one line: parsers decline it and print it as text, containers treat
+	// it as content, and the checker reports it.
+	OneLine
 )
 
 // Fence describes one classified line.
@@ -31,7 +36,9 @@ type Fence struct {
 
 // Classify reads a whitespace-trimmed line. The opener name is the run of
 // word characters and hyphens after the colons and optional spaces; a named
-// closer must end right after its name.
+// closer must end right after its name. An opener whose line ends with a
+// closing fence (three or more colons, optionally followed by "/name") is
+// OneLine.
 func Classify(trimmed string) Fence {
 	n := leadingRun(trimmed, ':')
 	if n < 3 {
@@ -50,11 +57,39 @@ func Classify(trimmed string) Fence {
 		}
 		return Fence{Kind: Close, Name: strings.ToLower(name), Colons: n}
 	}
-	name := nameRun(strings.TrimLeft(rest, " \t"))
+	head := strings.TrimLeft(rest, " \t")
+	name := nameRun(head)
 	if name == "" || !isWord(name[0]) {
 		return Fence{Kind: None, Colons: n}
 	}
+	if endsWithCloser(head[len(name):]) {
+		return Fence{Kind: OneLine, Name: strings.ToLower(name), Colons: n}
+	}
 	return Fence{Kind: Open, Name: strings.ToLower(name), Colons: n}
+}
+
+// ClosesBlock reports whether f closes a block opened as ":::name": a bare
+// closer, or a named closer that Closes it.
+func (f Fence) ClosesBlock(name string) bool {
+	return f.Kind == Close && (f.Name == "" || Closes(f.Name, name))
+}
+
+// endsWithCloser reports whether s ends with three or more colons, or with
+// three or more colons followed by "/name".
+func endsWithCloser(s string) bool {
+	end := len(s)
+	start := end
+	for start > 0 && (isWord(s[start-1]) || s[start-1] == '-') {
+		start--
+	}
+	if start < end && start > 0 && s[start-1] == '/' {
+		end = start - 1
+	}
+	colons := 0
+	for end-colons > 0 && s[end-colons-1] == ':' {
+		colons++
+	}
+	return colons >= 3
 }
 
 // AsideTypes lists the aside names the aside extension opens. The aside

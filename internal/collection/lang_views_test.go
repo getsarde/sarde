@@ -110,6 +110,31 @@ func TestBuildLanguageViews_VersionedIndexIsTheLatest(t *testing.T) {
 	}
 }
 
+// Only an older version has a root _index.md: it never becomes the
+// collection's index in any language.
+func TestBuildLanguageViews_VersionedIndexIgnoresOlderVersions(t *testing.T) {
+	v1 := langViewPage("/docs/", "en", "Docs v1", engine.KindSection, 1)
+	v1.Version = "v1"
+	page := langViewPage("/docs/intro/", "en", "Intro", engine.KindPage, 1)
+	page.Version = "v2"
+	col := &engine.Collection{
+		Name:  "docs",
+		Title: "Docs",
+		Config: &engine.CollectionConfig{
+			Layout:     engine.LayoutDocs,
+			Versioning: &engine.VersionConfig{Enabled: true, LastVersion: "v2"},
+		},
+		Pages: []*engine.Page{v1, page},
+	}
+	BuildLanguageViews(map[string]*engine.Collection{"docs": col}, col.Pages, []string{"en", "fr"}, "en")
+	if got := col.IndexFor("en"); got != nil {
+		t.Errorf("IndexFor(en) = %q, want nil", got.Title)
+	}
+	if got := col.TitleFor("en"); got != "Docs" {
+		t.Errorf("TitleFor(en) = %q, want Docs", got)
+	}
+}
+
 func titles(pages []*engine.Page) []string {
 	out := make([]string, len(pages))
 	for i, p := range pages {

@@ -1,6 +1,7 @@
 package syntax
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -319,5 +320,29 @@ func TestCheck_SlashNoTagIsOrphan(t *testing.T) {
 	// :::/  with no tag name should be skipped, leaving details unclosed
 	if len(diags) != 1 {
 		t.Fatalf("expected 1 diagnostic (unclosed details), got %d: %+v", len(diags), diags)
+	}
+}
+
+// A one-line directive opens nothing: it gets its own diagnostic, and the
+// container around it still closes at its ":::".
+func TestCheck_OneLineDirective(t *testing.T) {
+	content := []byte(`:::note
+:::badge(type="note") Changed :::
+:::
+`)
+	diags := Check("test.md", content, 0)
+	if len(diags) != 1 {
+		t.Fatalf("expected 1 diagnostic, got %d: %+v", len(diags), diags)
+	}
+	d := diags[0]
+	if d.Line != 2 || d.Tag != "badge" || d.Level != "warning" || !strings.Contains(d.Message, "one-line") {
+		t.Errorf("diagnostic = %+v, want a one-line warning for badge at line 2", d)
+	}
+}
+
+func TestCheck_OneLineInsideCodeFenceIgnored(t *testing.T) {
+	content := []byte("```markdown\n:::badge Changed :::\n```\n")
+	if diags := Check("test.md", content, 0); len(diags) != 0 {
+		t.Errorf("expected 0 diagnostics, got %d: %+v", len(diags), diags)
 	}
 }

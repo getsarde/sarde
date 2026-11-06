@@ -30,7 +30,7 @@ func buildNavFuncs(sitePtr **engine.SiteContext) htmltemplate.FuncMap {
 			if page == nil || page.Section == nil {
 				return nil
 			}
-			return page.Section.Pages
+			return page.Section.ListingSection().Pages
 		},
 		"translations": func(data any) []engine.TranslationLink {
 			rd, ok := data.(*engine.RouteData)

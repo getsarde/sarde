@@ -31,6 +31,10 @@ func (p *directiveParser) Trigger() []byte { return []byte{':'} }
 func (p *directiveParser) Open(parent ast.Node, reader text.Reader, pc parser.Context) (ast.Node, parser.State) {
 	line, seg := reader.PeekLine()
 	lineStr := strings.TrimSpace(string(line))
+	// A one-line ":::name ... :::" opens nothing, as for every directive.
+	if fence.Classify(lineStr).Kind == fence.OneLine {
+		return nil, parser.NoChildren
+	}
 	matches := openingRegex.FindStringSubmatch(lineStr)
 	if matches == nil {
 		return nil, parser.NoChildren
@@ -88,7 +92,7 @@ func (p *directiveParser) continueLeaf(n *Node, reader text.Reader) parser.State
 	line, _ := reader.PeekLine()
 	trimmed := strings.TrimSpace(string(line))
 
-	if f := fence.Classify(trimmed); f.Kind == fence.Close && (f.Name == "" || fence.Closes(f.Name, n.Name)) {
+	if fence.Classify(trimmed).ClosesBlock(n.Name) {
 		reader.AdvanceToEOL()
 		return parser.Close
 	}

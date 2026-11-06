@@ -167,7 +167,7 @@ Aliased as `sarde check` for backward compatibility.
 
 ## `check-syntax`
 
-Scan Markdown files for unclosed, mismatched, or malformed `:::` fenced block tags. It follows the renderer's rules: a block closed implicitly by an outer `:::/name` fence is reported as a warning at its opening line, a `:::/name` fence that matches no open block is an error and leaves the block open, and a closer with text after the name, such as `:::/ note`, is reported as malformed.
+Scan Markdown files for unclosed, mismatched, or malformed `:::` fenced block tags. It follows the renderer's rules: a block closed implicitly by an outer `:::/name` fence is reported as a warning at its opening line, a `:::/name` fence that matches no open block is an error and leaves the block open, and a closer with text after the name, such as `:::/ note`, is reported as malformed. A block opened and closed on one line, such as `:::badge New :::`, renders as text and is reported as a warning.
 
 ```
 sarde check-syntax [flags] [project-dir]

@@ -1,8 +1,6 @@
 package collection
 
 import (
-	"strings"
-
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/navigation"
 )
@@ -11,8 +9,9 @@ import (
 // pages have been generated, so every language gets a complete sidebar
 // (real translations + fallback pages from the default language). contentDir
 // must be the real content directory so per-tab nav.yaml files are honored on
-// the rebuild exactly as in the initial build.
-func RebuildNavTreesWithFallbacks(collections map[string]*engine.Collection, allPages []*engine.Page, langs []string, contentDir string) {
+// the rebuild exactly as in the initial build. The language-free NavTree
+// fields hold defaultLang's tree.
+func RebuildNavTreesWithFallbacks(collections map[string]*engine.Collection, allPages []*engine.Page, langs []string, contentDir, defaultLang string) {
 	if len(langs) <= 1 {
 		return
 	}
@@ -34,40 +33,16 @@ func RebuildNavTreesWithFallbacks(collections map[string]*engine.Collection, all
 				col.CompositeTabSets = BuildCompositeTabSets(col, contentDir, langs)
 			} else {
 				col.CompositeNavTrees = BuildCompositeNavTrees(col, langs)
-				if len(langs) > 0 {
-					key := LangVersionKey(langs[0], col.Config.Versioning.LastVersion)
-					col.NavTree = col.CompositeNavTrees[key]
-				}
+				key := LangVersionKey(primaryLang(langs, defaultLang), col.Config.Versioning.LastVersion)
+				col.NavTree = col.CompositeNavTrees[key]
 			}
 			continue
 		}
 
 		if col.IsTabbed && len(col.Tabs) > 0 {
-			for _, tab := range col.Tabs {
-				prefix := tab.Permalink
-				var tabPages []*engine.Page
-				for _, p := range colPages {
-					if strings.HasPrefix(p.RelPermalink, prefix) {
-						tabPages = append(tabPages, p)
-					}
-				}
-				tab.NavTrees = make(map[string]*engine.NavTree)
-				for _, lang := range langs {
-					langPages := filterByLang(tabPages, lang)
-					langCol := &engine.Collection{
-						Name:     col.Name,
-						Config:   col.Config,
-						Pages:    langPages,
-						Sections: BuildSectionTree(langPages, col.Name),
-					}
-					tree := buildTabNavTree(langCol, col.Name, tab.Slug, contentDir)
-					tab.NavTrees[lang] = tree
-					navigation.WirePrevNextFromTree(tree)
-				}
-				if len(langs) > 0 {
-					tab.NavTree = tab.NavTrees[langs[0]]
-				}
-			}
+			// Fallback copies of untranslated _index.md files give each
+			// language's tabs their labels.
+			col.Tabs, col.LangTabs = BuildTabsI18n(col, colPages, contentDir, langs, defaultLang)
 		} else {
 			col.NavTrees = make(map[string]*engine.NavTree)
 			for _, lang := range langs {
@@ -82,11 +57,24 @@ func RebuildNavTreesWithFallbacks(collections map[string]*engine.Collection, all
 				col.NavTrees[lang] = tree
 				navigation.WirePrevNextFromTree(tree)
 			}
-			if len(langs) > 0 {
-				col.NavTree = col.NavTrees[langs[0]]
-			}
+			col.NavTree = col.NavTrees[primaryLang(langs, defaultLang)]
 		}
 	}
+}
+
+// primaryLang returns the language whose tree fills a collection's
+// language-free NavTree: defaultLang when langs has it, else the first of
+// langs, else "".
+func primaryLang(langs []string, defaultLang string) string {
+	for _, lang := range langs {
+		if lang == defaultLang {
+			return lang
+		}
+	}
+	if len(langs) > 0 {
+		return langs[0]
+	}
+	return ""
 }
 
 // filterByLang returns only pages with the given language code.

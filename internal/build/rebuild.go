@@ -389,8 +389,10 @@ func (b *SiteBuilder) patchPages(s *incrementalRebuildState) error {
 			replacePagePointer(&col.Pages, e.old, e.newPage)
 			replacePagePointer(&col.Featured, e.old, e.newPage)
 		}
+		// A page of a transparent section is listed, and held, by the
+		// nearest non-transparent ancestor.
 		if e.old.Section != nil {
-			replacePagePointer(&e.old.Section.Pages, e.old, e.newPage)
+			replacePagePointer(&e.old.Section.ListingSection().Pages, e.old, e.newPage)
 		}
 
 		s.dirtyPermalinks[e.newPage.RelPermalink] = struct{}{}
@@ -491,7 +493,7 @@ func (b *SiteBuilder) rebuildIncrementalI18nAndTaxonomies(s *incrementalRebuildS
 		// The fallback copies are new objects with no nav wiring (clonePage
 		// clears PrevPage, NextPage and NavNode), so the per-language trees
 		// are rebuilt over them, as phaseAssemble does.
-		collection.RebuildNavTreesWithFallbacks(b.lastCollections, s.patchedAllPages, langCodes, s.contentDir)
+		collection.RebuildNavTreesWithFallbacks(b.lastCollections, s.patchedAllPages, langCodes, s.contentDir, defaultLang)
 
 		for _, fb := range fallbacks {
 			if fb.FilePath != "" {

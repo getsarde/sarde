@@ -140,6 +140,28 @@ func TestBuildCollections_SyntheticIndexVersioned(t *testing.T) {
 	}
 }
 
+// Only the older version has a root _index.md: the latest version still gets
+// a synthetic landing page, and the older version's index gives the
+// collection neither its index page nor its title.
+func TestBuildCollections_SyntheticIndexWhenOnlyAnOlderVersionHasOne(t *testing.T) {
+	contentDir := filepath.Join(t.TempDir(), "content")
+	writeTestFile(t, contentDir, filepath.Join("docs", "intro.md"), "---\ntitle: Intro\n---\n")
+	writeTestFile(t, contentDir, filepath.Join("docs", "v1", "_index.md"), "---\ntitle: Docs v1\n---\n")
+	writeTestFile(t, contentDir, filepath.Join("docs", "v1", "intro.md"), "---\ntitle: Intro v1\n---\n")
+
+	docs := buildBilingual(t, contentDir, "default", true)["docs"]
+	if got := len(rootIndexes(docs)["en"]); got != 2 {
+		t.Fatalf("en root indexes = %d, want the v1 index and a synthetic one", got)
+	}
+	idx := docs.IndexPage
+	if idx == nil || idx.FilePath != "" || idx.Version != "v2" {
+		t.Fatalf("IndexPage = %+v, want the synthetic v2 index", idx)
+	}
+	if docs.Title != "Docs" {
+		t.Errorf("Title = %q, want Docs", docs.Title)
+	}
+}
+
 // A single-language collection with no _index.md keeps its one synthetic
 // index, now with a LangRelPath.
 func TestBuildCollections_SyntheticIndexSingleLanguage(t *testing.T) {

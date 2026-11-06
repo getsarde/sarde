@@ -39,3 +39,27 @@ func TestCollection_LanguageAccessors(t *testing.T) {
 		t.Error("accessors on a nil collection must return zero values")
 	}
 }
+
+func TestSection_ListingSection(t *testing.T) {
+	root := &Section{Slug: "docs"}
+	outer := &Section{Slug: "outer", Transparent: true, Parent: root}
+	inner := &Section{Slug: "inner", Transparent: true, Parent: outer}
+	plain := &Section{Slug: "plain", Parent: root}
+	orphan := &Section{Slug: "orphan", Transparent: true}
+
+	tests := []struct {
+		sec, want *Section
+	}{
+		{inner, root},
+		{outer, root},
+		{plain, plain},
+		{root, root},
+		{orphan, orphan},
+		{nil, nil},
+	}
+	for _, tt := range tests {
+		if got := tt.sec.ListingSection(); got != tt.want {
+			t.Errorf("ListingSection(%v) = %v, want %v", tt.sec, got, tt.want)
+		}
+	}
+}

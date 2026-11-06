@@ -85,3 +85,20 @@ func TestTabbedRoot_UntabbedAndVersioned(t *testing.T) {
 		t.Error("versioned tabbed collection: root matched")
 	}
 }
+
+// The French root forwards to the first tab in French order.
+func TestTabbedRoot_RedirectsToFirstTabOfPageLanguage(t *testing.T) {
+	col, root := tabbedFixture("")
+	col.LangTabs = map[string][]*DocsTab{
+		"en": col.Tabs,
+		"fr": {{Slug: "b", Permalink: "/courses/b/"}, {Slug: "a", Permalink: "/courses/a/"}},
+	}
+	root.Lang = "fr"
+	if got := TabbedRootRedirect(root); got != "/courses/b/" {
+		t.Errorf("TabbedRootRedirect = %q, want /courses/b/", got)
+	}
+	root.Lang = "en"
+	if got := TabbedRootRedirect(root); got != "/courses/a/" {
+		t.Errorf("TabbedRootRedirect = %q, want /courses/a/", got)
+	}
+}

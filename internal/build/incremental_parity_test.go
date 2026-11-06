@@ -314,3 +314,32 @@ func TestContentRebuild_TermPageKeepsCustomCSS(t *testing.T) {
 		"---\ntitle: Two\ndate: 2025-01-01T00:00:00Z\ntags: [golang]\n---\nTwo.\n",
 		"tags/golang/index.html", "tags/index.html")
 }
+
+// A page of a transparent section is listed with its parent's pages. Editing
+// it in sarde dev must reach the parent's list and the sidebar, as a full
+// build does: a description edit re-renders the collection index, and a
+// title edit also rebuilds the collection's sidebar.
+func TestContentRebuild_HoistedPageEditReachesListAndSidebar(t *testing.T) {
+	dir := createIncrementalSite(t)
+	writeFixture(t, dir, "content/docs/_index.md", "---\ntitle: Docs\n---\nDocs home.\n")
+	writeFixture(t, dir, "content/docs/overview.md", "---\ntitle: Overview\n---\nOverview.\n")
+	writeFixture(t, dir, "content/docs/basics/_index.md", "---\ntitle: Basics\ntransparent: true\n---\n")
+	writeFixture(t, dir, "content/docs/basics/install.md", "---\ntitle: Install\ndescription: Old summary.\nsidebar:\n  order: 1\n---\nInstall steps.\n")
+	writeFixture(t, dir, "content/docs/basics/setup.md", "---\ntitle: Setup\nsidebar:\n  order: 2\n---\nSetup steps.\n")
+	builder := newIncrementalBuilder(dir, config.Defaults())
+	full := fullBuild(t, builder)
+
+	got := rebuildParity(t, builder, dir, full, "content/docs/basics/install.md",
+		"---\ntitle: Install\ndescription: New summary.\nsidebar:\n  order: 1\n---\nInstall steps.\n",
+		"docs/index.html", "docs/basics/install/index.html")
+	if !strings.Contains(got["docs/index.html"], "New summary.") {
+		t.Error("the docs list does not show the new description")
+	}
+
+	got = rebuildParity(t, builder, dir, full, "content/docs/basics/install.md",
+		"---\ntitle: Installation\ndescription: New summary.\nsidebar:\n  order: 1\n---\nInstall steps.\n",
+		"docs/index.html", "docs/overview/index.html", "docs/basics/install/index.html")
+	if !strings.Contains(got["docs/overview/index.html"], "Installation") {
+		t.Error("the sidebar does not show the new title")
+	}
+}

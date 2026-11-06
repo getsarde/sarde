@@ -787,3 +787,56 @@ func TestRender_SourceLines(t *testing.T) {
 		t.Errorf("the offset carried over to the next page:\n%s", out.HTML)
 	}
 }
+
+// No directive opens on one line: every built-in extension leaves
+// ":::name ... :::" to render as text, and the next paragraph is untouched.
+func TestRender_OneLineDirectiveIsText(t *testing.T) {
+	names := []string{
+		"note", "tip", "info", "warning", "caution", "important", "danger", "gh-note",
+		"badge", "badge-group", "details", "accordion", "card", "card-grid", "columns",
+		"tabs", "timeline", "steps", "code-group", "terminal", "figure", "gallery",
+		"image-compare", "video", "link-button", "link-button-group", "link-card", "file-tree",
+	}
+	r := NewRenderer()
+	for _, name := range names {
+		md := ":::" + name + " Lesson one :::\n\nAfter.\n"
+		result, err := r.Render(md)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(result.HTML, "<p>:::"+name+" Lesson one :::</p>") || !strings.Contains(result.HTML, "<p>After.</p>") {
+			t.Errorf("%s: one-line form did not render as text:\n%s", name, result.HTML)
+		}
+	}
+}
+
+// A one-line badge inside an aside is text, and the aside still closes at
+// its own ":::".
+func TestRender_OneLineDirectiveInsideAside(t *testing.T) {
+	r := NewRenderer()
+	md := ":::note\n:::badge(type=\"note\") Changed :::\n\nInside.\n:::\n\nAfter.\n"
+	result, err := r.Render(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+	html := result.HTML
+	end := strings.LastIndex(html, "</aside>")
+	if end < 0 || strings.Index(html, "Inside.") > end || strings.Index(html, "After.") < end {
+		t.Errorf("want Inside. in the aside and After. after it, got:\n%s", html)
+	}
+	if strings.Contains(html, "sarde-badge") {
+		t.Errorf("a one-line badge must not render as a badge, got:\n%s", html)
+	}
+}
+
+// Leaf closers fold case like container closers.
+func TestRender_BadgeNamedCloserIsCaseInsensitive(t *testing.T) {
+	r := NewRenderer()
+	result, err := r.Render(":::badge(type=\"success\")\nNew\n:::/BADGE\n\nAfter.\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "sarde-badge") || !strings.Contains(result.HTML, "<p>After.</p>") {
+		t.Errorf("expected a closed badge, got: %s", result.HTML)
+	}
+}

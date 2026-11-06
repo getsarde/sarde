@@ -161,8 +161,10 @@ func BuildCollectionsWithOptions(
 		}
 		setCollectionOnSections(sections, col)
 
-		// 9. Build navigation (versioned, tabbed, or standard)
+		// 9. Build navigation (versioned, tabbed, or standard). The
+		// language-free NavTree holds the default language's tree.
 		langs := collectLanguages(pages)
+		navLang := primaryLang(langs, siteCfg.I18n.GetDefaultLanguage())
 
 		if IsLabsName(name) {
 			BuildLabsNav(col)
@@ -173,15 +175,12 @@ func BuildCollectionsWithOptions(
 				col.CompositeTabSets = BuildCompositeTabSets(col, contentDir, langs)
 			} else {
 				col.CompositeNavTrees = BuildCompositeNavTrees(col, langs)
-				if len(langs) > 0 {
-					key := LangVersionKey(langs[0], collCfg.Versioning.LastVersion)
-					col.NavTree = col.CompositeNavTrees[key]
-				}
+				col.NavTree = col.CompositeNavTrees[LangVersionKey(navLang, collCfg.Versioning.LastVersion)]
 			}
 		} else if DetectTabs(col) {
 			col.IsTabbed = true
 			if len(langs) > 1 {
-				col.Tabs = BuildTabsI18n(col, contentDir, langs)
+				col.Tabs, col.LangTabs = BuildTabsI18n(col, pages, contentDir, langs, navLang)
 			} else {
 				col.Tabs = BuildTabs(col, contentDir)
 			}
@@ -204,10 +203,7 @@ func BuildCollectionsWithOptions(
 					WirePrevNext(langPages)
 				}
 			}
-			// Set default NavTree for backward compat
-			if len(langs) > 0 {
-				col.NavTree = col.NavTrees[langs[0]]
-			}
+			col.NavTree = col.NavTrees[navLang]
 		} else {
 			if engine.LayoutHasSidebar(collCfg.Layout) {
 				col.NavTree = navigation.BuildNavTree(col)

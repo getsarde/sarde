@@ -121,3 +121,15 @@ func TestParser_EmptyRegistryNoOps(t *testing.T) {
 		t.Errorf("empty registry must leave fences as text:\n%s", out)
 	}
 }
+
+// A one-line custom directive, leaf or container, opens nothing and renders
+// as text.
+func TestParser_OneLineIsText(t *testing.T) {
+	reg := testRegistry(t)
+	for _, line := range []string{":::rawbox Some text :::", ":::pullquote Wise words :::/pullquote"} {
+		out := render(t, reg, line+"\n\nAfter.\n")
+		if !strings.Contains(out, "<p>"+line+"</p>") || !strings.Contains(out, "<p>After.</p>") {
+			t.Errorf("%q did not render as text:\n%s", line, out)
+		}
+	}
+}

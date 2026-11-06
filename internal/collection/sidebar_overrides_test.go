@@ -308,7 +308,7 @@ func TestRebuildNavTreesWithFallbacks_HonorsNavYAML(t *testing.T) {
 	}
 	col.Tabs = BuildTabs(col, contentDir)
 
-	RebuildNavTreesWithFallbacks(map[string]*engine.Collection{"docs": col}, pages, []string{"en", "fr"}, contentDir)
+	RebuildNavTreesWithFallbacks(map[string]*engine.Collection{"docs": col}, pages, []string{"en", "fr"}, contentDir, "en")
 
 	var guide *engine.DocsTab
 	for _, tab := range col.Tabs {

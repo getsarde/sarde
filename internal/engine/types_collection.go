@@ -15,8 +15,9 @@ type Collection struct {
 	NavTree   *NavTree            // default language nav tree (backward compat)
 	NavTrees  map[string]*NavTree // per-language nav trees (i18n)
 	IndexPage *Page
-	IsTabbed  bool       // true when docs tabs are auto-detected or forced
-	Tabs      []*DocsTab // ordered by weight, then title
+	IsTabbed  bool                  // true when docs tabs are auto-detected or forced
+	Tabs      []*DocsTab            // ordered by weight, then title; the default language's on a multi-language site
+	LangTabs  map[string][]*DocsTab // Tabs in one language, keyed by language code; read through TabsFor
 
 	// Versioning
 	Versioning        *VersionConfig
@@ -100,6 +101,19 @@ func (c *Collection) TitleFor(lang string) string {
 		return idx.Title
 	}
 	return c.Title
+}
+
+// TabsFor returns the collection's tabs in lang, with that language's
+// titles, icons, order and sidebar trees, or Tabs without a per-language
+// list.
+func (c *Collection) TabsFor(lang string) []*DocsTab {
+	if c == nil {
+		return nil
+	}
+	if tabs, ok := c.LangTabs[lang]; ok {
+		return tabs
+	}
+	return c.Tabs
 }
 
 // LabNavTree returns the sidebar tree of the lab at labPermalink in lang.
@@ -216,4 +230,16 @@ type Section struct {
 	Collection  *Collection
 	Transparent bool
 	Render      bool
+}
+
+// ListingSection returns the section whose Pages lists this section's
+// pages. A transparent section hands its pages to its parent, and on up
+// through transparent ancestors, so a page whose Section is transparent is
+// listed by the nearest non-transparent ancestor; a transparent section
+// with no parent keeps its own.
+func (s *Section) ListingSection() *Section {
+	for s != nil && s.Transparent && s.Parent != nil {
+		s = s.Parent
+	}
+	return s
 }

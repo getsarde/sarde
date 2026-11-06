@@ -1,6 +1,7 @@
 package build
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -134,4 +135,52 @@ func TestBuild_NavYAMLExternalURL(t *testing.T) {
 			}
 		})
 	}
+}
+
+// writeTabbedI18nSite writes writeTabbedSite's courses in English and
+// French. The French web tab has its own _index.md with the given sidebar
+// order; the go tab has no French files, so French gets fallback copies.
+func writeTabbedI18nSite(t *testing.T, rootBody string, frWebOrder int) string {
+	t.Helper()
+	dir := writeTabbedSite(t, rootBody)
+	writeFixture(t, dir, "content/fr/_index.md", "---\ntitle: Accueil\n---\n# Accueil\n")
+	writeFixture(t, dir, "content/fr/courses/_index.md", "---\ntitle: Cours\n---\n"+rootBody)
+	writeFixture(t, dir, "content/fr/courses/web/_index.md", fmt.Sprintf("---\ntitle: Bases du Web\nsidebar:\n  order: %d\n---\nPrésentation.\n", frWebOrder))
+	writeFixture(t, dir, "content/fr/courses/web/html.md", "---\ntitle: HTML\n---\nLeçon HTML.\n")
+	return dir
+}
+
+// Both web/_index.md files share one folder slot in the collection's section
+// tree, and the English one wins it. French pages must still show the French
+// tab label, and the French catalog lists the untranslated go tab through its
+// fallback copy.
+func TestBuild_TabLabelsFollowPageLanguage(t *testing.T) {
+	dir := writeTabbedI18nSite(t, "Pick a course to start.\n", 1)
+	builder := newIncrementalBuilder(dir, cascadeI18nConfig())
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+	dist := filepath.Join(dir, "dist")
+
+	assertFixtureFileContains(t, dist, "fr/courses/web/html/index.html", "Bases du Web")
+	assertFixtureFileNotContains(t, dist, "fr/courses/web/html/index.html", "Web Basics")
+	assertFixtureFileContains(t, dist, "courses/web/html/index.html", "Web Basics")
+	assertFixtureFileNotContains(t, dist, "courses/web/html/index.html", "Bases du Web")
+
+	assertFixtureFileContains(t, dist, "fr/courses/index.html", "Bases du Web")
+	assertFixtureFileContains(t, dist, "fr/courses/index.html", "Go Basics")
+}
+
+// The French root forwards to the first tab in French order: the French web
+// tab sorts after go.
+func TestBuild_TabbedRootRedirectFollowsLanguageOrder(t *testing.T) {
+	dir := writeTabbedI18nSite(t, "", 3)
+	builder := newIncrementalBuilder(dir, cascadeI18nConfig())
+	if _, err := builder.Build(); err != nil {
+		t.Fatalf("Build failed: %v", err)
+	}
+	dist := filepath.Join(dir, "dist")
+
+	assertFixtureFileContains(t, dist, "courses/index.html", `content="0;url=/courses/web/"`)
+	assertFixtureFileContains(t, dist, "fr/courses/index.html", `content="0;url=/fr/courses/go/"`)
 }

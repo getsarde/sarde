@@ -79,55 +79,62 @@ func BuildTabs(col *engine.Collection, contentDir string) []*engine.DocsTab {
 	return tabs
 }
 
-// BuildTabsI18n creates DocsTab entries with per-language nav trees.
-func BuildTabsI18n(col *engine.Collection, contentDir string, langs []string) []*engine.DocsTab {
-	topSections := topLevelSections(col)
-	tabs := make([]*engine.DocsTab, 0, len(topSections))
-
-	for _, sec := range topSections {
-		tabPages := pagesForSection(sec, col)
-		tab := &engine.DocsTab{
-			Title:     sec.Title,
-			Slug:      sec.Slug,
-			Permalink: sec.Permalink,
-			Section:   sec,
-			IndexPage: sec.IndexPage,
-			Pages:     tabPages,
-			NavTrees:  make(map[string]*engine.NavTree),
+// BuildTabsI18n builds one tab list per language from pages: each list is
+// BuildTabs over that language's pages, so a tab's title, description, icon,
+// order, index page and sidebar tree come from that language's files. A tab
+// with no _index.md in a language (an untranslated tab under i18n fallback
+// "omit") borrows the primary language's labels and order. Tabs that share a
+// slug share one NavTrees map, keyed by language. It returns the primary
+// language's list (defaultLang's when it has one) and the lists by language.
+func BuildTabsI18n(col *engine.Collection, pages []*engine.Page, contentDir string, langs []string, defaultLang string) ([]*engine.DocsTab, map[string][]*engine.DocsTab) {
+	byLang := make(map[string][]*engine.DocsTab, len(langs))
+	var built []string
+	for _, lang := range langs {
+		langPages := filterByLang(pages, lang)
+		if len(langPages) == 0 {
+			continue
 		}
-		if sec.IndexPage != nil {
-			tab.Description = sec.IndexPage.Description
-			tab.Order = sec.IndexPage.Sidebar.Order
-			if icon, ok := sec.IndexPage.Params["icon"].(string); ok {
-				tab.Icon = icon
-			}
+		view := &engine.Collection{
+			Name:     col.Name,
+			Title:    col.Title,
+			Config:   col.Config,
+			Pages:    langPages,
+			Sections: BuildSectionTree(langPages, col.Name),
 		}
-		applyTabOverride(tab, tabOverride(col.Config, sec.Slug))
-
-		for _, lang := range langs {
-			langPages := filterTabPagesByLang(tabPages, lang)
-			langSections := BuildSectionTree(langPages, col.Name)
-			tabCol := &engine.Collection{
-				Name:     col.Name,
-				Title:    tab.Title,
-				Config:   col.Config,
-				Pages:    langPages,
-				Sections: langSections,
-			}
-			tree := buildTabNavTree(tabCol, col.Name, sec.Slug, contentDir)
-			tab.NavTrees[lang] = tree
-			navigation.WirePrevNextFromTree(tree)
+		if tabs := BuildTabs(view, contentDir); len(tabs) > 0 {
+			byLang[lang] = tabs
+			built = append(built, lang)
 		}
-		// Default nav tree for backward compat
-		if len(langs) > 0 {
-			tab.NavTree = tab.NavTrees[langs[0]]
-		}
-
-		tabs = append(tabs, tab)
 	}
+	primary := primaryLang(built, defaultLang)
 
-	sortTabs(tabs)
-	return tabs
+	bySlug := make(map[string]*engine.DocsTab, len(byLang[primary]))
+	for _, tab := range byLang[primary] {
+		bySlug[tab.Slug] = tab
+	}
+	navTrees := make(map[string]map[string]*engine.NavTree)
+	for _, lang := range built {
+		tabs := byLang[lang]
+		borrowed := false
+		for _, tab := range tabs {
+			if src := bySlug[tab.Slug]; lang != primary && tab.IndexPage == nil && src != nil {
+				tab.Title = src.Title
+				tab.Description = src.Description
+				tab.Icon = src.Icon
+				tab.Order = src.Order
+				borrowed = true
+			}
+			if navTrees[tab.Slug] == nil {
+				navTrees[tab.Slug] = make(map[string]*engine.NavTree, len(built))
+			}
+			navTrees[tab.Slug][lang] = tab.NavTree
+			tab.NavTrees = navTrees[tab.Slug]
+		}
+		if borrowed {
+			sortTabs(tabs)
+		}
+	}
+	return byLang[primary], byLang
 }
 
 // BuildCompositeTabSets builds one tab set per (lang, version) pair found in
@@ -353,17 +360,6 @@ func pagesForSection(sec *engine.Section, col *engine.Collection) []*engine.Page
 		}
 	}
 	return pages
-}
-
-// filterTabPagesByLang returns pages matching the given language code.
-func filterTabPagesByLang(pages []*engine.Page, lang string) []*engine.Page {
-	var result []*engine.Page
-	for _, p := range pages {
-		if p.Lang == lang {
-			result = append(result, p)
-		}
-	}
-	return result
 }
 
 // sortTabs sorts tabs by weight ascending, then title alphabetically.

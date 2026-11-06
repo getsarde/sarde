@@ -99,24 +99,18 @@ func BuildLanguageViews(collections map[string]*engine.Collection, allPages []*e
 
 // rootIndexPage returns the collection's root _index.md among pages, or nil.
 // RelPermalink carries no version, so in a versioned collection every
-// version's root _index.md looks like the collection root; the latest
-// version's is the collection's own.
+// version's root _index.md looks like the collection root; only the latest
+// version's is the collection's own. An older version's never stands in for
+// it, so a latest version without one gets a synthetic index.
 func rootIndexPage(pages []*engine.Page, name string, cfg *engine.CollectionConfig) *engine.Page {
-	latest := ""
-	if vc := cfg.Versioning; vc != nil && vc.Enabled {
-		latest = vc.LastVersion
-	}
-	var first *engine.Page
+	versioned := cfg.Versioning != nil && cfg.Versioning.Enabled
 	for _, p := range pages {
 		if p.Kind != engine.KindSection || sectionDir(p.RelPermalink, name) != "" {
 			continue
 		}
-		if latest == "" || p.Version == latest {
+		if !versioned || p.Version == cfg.Versioning.LastVersion {
 			return p
 		}
-		if first == nil {
-			first = p
-		}
 	}
-	return first
+	return nil
 }

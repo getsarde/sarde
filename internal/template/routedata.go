@@ -78,7 +78,7 @@ func buildCollectionRouteData(rd *engine.RouteData, page *engine.Page, col *engi
 	// <collection>/catalog template.
 	if engine.IsTabbedLanding(page) {
 		rd.Layout = engine.LayoutDefault
-		rd.DocsTabs = col.Tabs
+		rd.DocsTabs = col.TabsFor(page.Lang)
 	}
 
 	// Resolve template name
@@ -287,25 +287,17 @@ func resolveSidebar(rd *engine.RouteData, col *engine.Collection, page *engine.P
 		} else {
 			rd.Breadcrumbs = navigation.BuildBreadcrumbsVersioned(page, col)
 		}
-	} else if col.IsTabbed && len(col.Tabs) > 0 {
+	} else if tabs := col.TabsFor(page.Lang); col.IsTabbed && len(tabs) > 0 {
 		rd.IsTabbed = true
-		rd.DocsTabs = col.Tabs
-		rd.ActiveTab = collection.FindTabForPage(col.Tabs, page)
-		if rd.ActiveTab == nil && len(col.Tabs) > 0 {
-			rd.ActiveTab = col.Tabs[0]
+		rd.DocsTabs = tabs
+		rd.ActiveTab = collection.FindTabForPage(tabs, page)
+		if rd.ActiveTab == nil {
+			rd.ActiveTab = tabs[0]
 		}
-		if rd.ActiveTab != nil {
-			navTree := rd.ActiveTab.NavTree
-			if rd.ActiveTab.NavTrees != nil && page.Lang != "" {
-				if langTree, ok := rd.ActiveTab.NavTrees[page.Lang]; ok {
-					navTree = langTree
-				}
-			}
-			if navTree != nil {
-				rd.Sidebar = navigation.MarkActive(navTree, page)
-			}
-			rd.Breadcrumbs = navigation.BuildBreadcrumbsTabbed(page, col, rd.ActiveTab)
+		if rd.ActiveTab.NavTree != nil {
+			rd.Sidebar = navigation.MarkActive(rd.ActiveTab.NavTree, page)
 		}
+		rd.Breadcrumbs = navigation.BuildBreadcrumbsTabbed(page, col, rd.ActiveTab)
 	} else if col.CompositeNavTrees != nil {
 		key := collection.LangVersionKey(page.Lang, page.Version)
 		if navTree, ok := col.CompositeNavTrees[key]; ok && navTree != nil {

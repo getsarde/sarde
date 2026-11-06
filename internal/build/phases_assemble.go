@@ -36,7 +36,7 @@ func (b *SiteBuilder) phaseAssemble(s *buildState) error {
 		fallbacks := i18n.GenerateFallbacks(allPages, langCodes, s.defaultLang, i18nFallbackOptions(b.config))
 		allPages = append(allPages, fallbacks...)
 
-		collection.RebuildNavTreesWithFallbacks(s.collections, allPages, langCodes, s.contentDir)
+		collection.RebuildNavTreesWithFallbacks(s.collections, allPages, langCodes, s.contentDir, s.defaultLang)
 
 		i18n.LinkAllTranslations(allPages, weights)
 	}

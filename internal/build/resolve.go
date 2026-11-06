@@ -59,7 +59,7 @@ func resolveRouteAssets(r *engine.URLResolver, rd *engine.RouteData) {
 		resolveNavNodes(r, rd.Sidebar.Root, lang, ver)
 	}
 
-	// DocsTabs: shallow-copy to avoid mutating shared col.Tabs, then resolve permalinks.
+	// DocsTabs: shallow-copy to avoid mutating the shared tab lists, then resolve permalinks.
 	if len(rd.DocsTabs) > 0 && lang != "" {
 		copied := make([]*engine.DocsTab, len(rd.DocsTabs))
 		for i, tab := range rd.DocsTabs {

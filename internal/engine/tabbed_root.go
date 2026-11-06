@@ -12,7 +12,7 @@ func IsTabbedRoot(p *Page) bool {
 		return false
 	}
 	col := p.Collection
-	if col == nil || !col.IsTabbed || len(col.Tabs) == 0 || col.IndexPage == nil {
+	if col == nil || !col.IsTabbed || len(col.TabsFor(p.Lang)) == 0 || col.IndexPage == nil {
 		return false
 	}
 	return p.RelPermalink != "" && p.RelPermalink == col.IndexPage.RelPermalink
@@ -20,12 +20,13 @@ func IsTabbedRoot(p *Page) bool {
 
 // TabbedRootRedirect returns the URL a tabbed collection's root forwards to,
 // or "" when p renders as a page. A root whose _index.md has no body only
-// redirects to the first tab; a root with a body is a catalog landing page.
+// redirects to the first tab in its language; a root with a body is a
+// catalog landing page.
 func TabbedRootRedirect(p *Page) string {
 	if !IsTabbedRoot(p) || strings.TrimSpace(p.RawContent) != "" {
 		return ""
 	}
-	return p.Collection.Tabs[0].Permalink
+	return p.Collection.TabsFor(p.Lang)[0].Permalink
 }
 
 // IsTabbedLanding reports whether p is a tabbed collection's root rendered

@@ -607,6 +607,13 @@ func TestSiblings(t *testing.T) {
 	if siblings(&engine.Page{}) != nil {
 		t.Error("siblings(no section) should return nil")
 	}
+
+	// A transparent section's pages are listed by its parent.
+	transparent := &engine.Section{Transparent: true, Parent: section}
+	hoisted := &engine.Page{PageRelationships: engine.PageRelationships{Section: transparent}}
+	if got := siblings(hoisted); len(got) != 2 {
+		t.Errorf("siblings(hoisted) = %d pages, want the parent's 2", len(got))
+	}
 }
 
 func TestTranslations(t *testing.T) {

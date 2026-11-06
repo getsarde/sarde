@@ -12,7 +12,6 @@ type LinkButtonBlock struct {
 	IconPlacement string
 	Size          string
 	Content       string
-	ColonCount    int
 	Block         bool
 	Disabled      bool
 	Center        bool

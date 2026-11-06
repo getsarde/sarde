@@ -1,13 +1,16 @@
 package linkcard_test
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
 	"github.com/getsarde/sarde/internal/content"
 	"github.com/getsarde/sarde/internal/content/markdown"
+	"github.com/getsarde/sarde/internal/content/markdown/extensions/linkcard"
 	"github.com/getsarde/sarde/internal/engine"
 	"github.com/getsarde/sarde/internal/links"
+	"github.com/yuin/goldmark"
 )
 
 func setupTestEnv() (*markdown.Renderer, *engine.Page, *links.LinkGraph) {
@@ -183,5 +186,17 @@ func TestLinkCardContentRootHref(t *testing.T) {
 	}
 	if refs[0].Status != links.StatusOK {
 		t.Errorf("Expected StatusOK, got: %v", refs[0].Status)
+	}
+}
+
+func TestLinkCard_NamedCloserIsCaseInsensitive(t *testing.T) {
+	md := goldmark.New(goldmark.WithExtensions(&linkcard.Extension{}))
+	var buf bytes.Buffer
+	if err := md.Convert([]byte(":::link-card[Guide](href=\"https://example.com\")\nRead the guide.\n:::/LINK-CARD\n\nafter\n"), &buf); err != nil {
+		t.Fatalf("Convert: %v", err)
+	}
+	html := buf.String()
+	if !strings.Contains(html, "Read the guide.") || !strings.Contains(html, "<p>after</p>") || strings.Contains(html, "LINK-CARD") {
+		t.Errorf("want a closed link card and a paragraph after it, got: %s", html)
 	}
 }

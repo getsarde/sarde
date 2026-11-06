@@ -16,7 +16,8 @@ type stackEntry struct {
 // fences. It follows the renderer's rules (the fence package, shared with the
 // block parsers): a bare ":::" closes the innermost open block, ":::/name"
 // closes the nearest open block that name closes and takes any inner block
-// left open with it, and a ":::/name" that matches no open block is content.
+// left open with it, a ":::/name" that matches no open block is content, and
+// a one-line ":::name ... :::" opens nothing and prints as text.
 // Lines inside fenced code blocks (``` or ~~~) are skipped.
 // lineOffset is added to all reported line numbers (use page.FrontmatterLines
 // when checking RawContent that has frontmatter stripped).
@@ -72,6 +73,9 @@ func Check(filename string, content []byte, lineOffset int) []Diagnostic {
 				diag(e.line, e.tag, "unclosed block ':::"+e.tag+"' (opened at line "+itoa(e.line)+"), closed implicitly by ':::/"+f.Name+"' at line "+itoa(lineNum), "warning")
 			}
 			stack = stack[:k]
+
+		case fence.OneLine:
+			diag(lineNum, f.Name, "one-line ':::"+f.Name+" ... :::' is not supported and renders as text: put the closing ':::' on its own line", "warning")
 
 		case fence.Malformed:
 			// ":::/" alone is skipped, as before; a closer with a name but

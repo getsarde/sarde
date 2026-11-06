@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/getsarde/sarde/internal/engine"
@@ -170,5 +171,84 @@ func TestBuildTabs_PhantomTabHasNoOverview(t *testing.T) {
 
 	if got := nodeLabels(extra.NavTree.Root.Children); len(got) != 1 || got[0] != "Note" {
 		t.Errorf("root children = %v, want [Note]", got)
+	}
+}
+
+// i18nTabPage builds a page of a bilingual tabbed "docs" collection.
+func i18nTabPage(lang, title, rel string, kind engine.NodeKind, order int) *engine.Page {
+	segs := strings.Split(strings.Trim(rel, "/"), "/")
+	p := &engine.Page{
+		PageIdentity: engine.PageIdentity{Title: title, Slug: segs[len(segs)-1], Kind: kind, RelPermalink: rel},
+		PageI18n:     engine.PageI18n{Lang: lang},
+		Sidebar:      engine.PageSidebar{Order: order},
+		Params:       map[string]any{},
+	}
+	return p
+}
+
+// Each language's tabs carry that language's labels. The French api tab has
+// no _index.md, so it borrows the English title, description, icon and
+// order, and sorts after the guide as in English. Tabs that share a slug
+// share one NavTrees map.
+func TestBuildTabsI18n_LabelsPerLanguage(t *testing.T) {
+	enGuide := i18nTabPage("en", "User Guide", "/docs/guide/", engine.KindSection, 1)
+	enGuide.Params["icon"] = "book"
+	frGuide := i18nTabPage("fr", "Guide de l'utilisateur", "/docs/guide/", engine.KindSection, 1)
+	enAPI := i18nTabPage("en", "API Reference", "/docs/api/", engine.KindSection, 2)
+	enAPI.Description = "Every endpoint"
+	enAPI.Params["icon"] = "code"
+	pages := []*engine.Page{
+		i18nTabPage("fr", "Docs", "/docs/", engine.KindSection, 0),
+		frGuide,
+		i18nTabPage("fr", "Intro", "/docs/guide/intro/", engine.KindPage, 1),
+		i18nTabPage("fr", "Réf", "/docs/api/ref/", engine.KindPage, 1),
+		i18nTabPage("en", "Docs", "/docs/", engine.KindSection, 0),
+		enGuide,
+		i18nTabPage("en", "Intro", "/docs/guide/intro/", engine.KindPage, 1),
+		enAPI,
+		i18nTabPage("en", "Ref", "/docs/api/ref/", engine.KindPage, 1),
+	}
+	col := &engine.Collection{
+		Name:     "docs",
+		Config:   &engine.CollectionConfig{Layout: engine.LayoutDocs},
+		Pages:    pages,
+		Sections: BuildSectionTree(pages, "docs"),
+	}
+
+	tabs, byLang := BuildTabsI18n(col, pages, "", []string{"fr", "en"}, "en")
+
+	if len(tabs) == 0 || len(byLang["en"]) == 0 || tabs[0] != byLang["en"][0] {
+		t.Fatal("the returned tabs are not the English list")
+	}
+	en, fr := byLang["en"], byLang["fr"]
+	if got := findTab(t, en, "guide").Title; got != "User Guide" {
+		t.Errorf("en guide title = %q, want User Guide", got)
+	}
+	frGuideTab := findTab(t, fr, "guide")
+	if frGuideTab.Title != "Guide de l'utilisateur" || frGuideTab.IndexPage != frGuide {
+		t.Errorf("fr guide = %q (index %v), want the French _index.md", frGuideTab.Title, frGuideTab.IndexPage)
+	}
+	frAPI := findTab(t, fr, "api")
+	if frAPI.Title != "API Reference" || frAPI.Description != "Every endpoint" || frAPI.Icon != "code" || frAPI.Order != 2 {
+		t.Errorf("fr api = %+v, want the English labels and order", frAPI)
+	}
+	if fr[0].Slug != "guide" || fr[1].Slug != "api" {
+		t.Errorf("fr tab order = %s, %s, want guide, api", fr[0].Slug, fr[1].Slug)
+	}
+	enGuideTab := findTab(t, en, "guide")
+	if enGuideTab.NavTree == frGuideTab.NavTree {
+		t.Error("en and fr guide tabs share one sidebar tree")
+	}
+	if enGuideTab.NavTrees["fr"] != frGuideTab.NavTree || frGuideTab.NavTrees["en"] != enGuideTab.NavTree {
+		t.Error("same-slug tabs do not share NavTrees")
+	}
+	for lang, list := range byLang {
+		for _, tab := range list {
+			for _, p := range tab.Pages {
+				if p.Lang != lang {
+					t.Errorf("%s tab %s holds a %s page", lang, tab.Slug, p.Lang)
+				}
+			}
+		}
 	}
 }

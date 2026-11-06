@@ -5,13 +5,13 @@ import (
 	"strings"
 
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/attrutil"
+	"github.com/getsarde/sarde/internal/content/markdown/fence"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 )
 
 var openRegex = regexp.MustCompile(`^:{3,}\s*badge(?:\(([^)]+)\))?\s*$`)
-var closingRegex = regexp.MustCompile(`^:{3,}(?:/badge)?\s*$`)
 
 type badgeParser struct{}
 
@@ -57,7 +57,7 @@ func (p *badgeParser) Continue(node ast.Node, reader text.Reader, pc parser.Cont
 	line, _ := reader.PeekLine()
 	trimmed := strings.TrimSpace(string(line))
 
-	if closingRegex.MatchString(trimmed) {
+	if fence.Classify(trimmed).ClosesBlock("badge") {
 		reader.AdvanceToEOL()
 		return parser.Close
 	}

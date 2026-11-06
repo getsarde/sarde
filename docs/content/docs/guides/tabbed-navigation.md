@@ -162,4 +162,6 @@ See [Navigation and Sidebar](/guides/navigation-and-sidebar/#manual-tab-sidebar-
 
 Tabs compose with both [versioning](/guides/versioning/) and [internationalization](/guides/internationalization/). Each language and version pair gets its own tab set and navigation trees, so a reader browsing French v2 docs sees French v2 tabs. The switcher links stay within the current language and version.
 
+On a multi-language site, each language's tabs take their label, icon, description, and order from that language's `_index.md`. A tab with no `_index.md` in a language uses the default language's values. Tab order can differ between languages, and a collection root without a body redirects to the first tab in the reader's language.
+
 See [Navigation and Sidebar](/guides/navigation-and-sidebar/) for sidebar behavior inside a tab, and [Configuration](/reference/configuration/content/#collections) for the `tabs` collection setting.

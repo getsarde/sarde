@@ -98,7 +98,7 @@ Wrap multiple link buttons in `:::link-button-group` for horizontal alignment:
 
 → Two buttons appear side by side with consistent spacing.
 
-`:::link-button-group` takes no attributes. Each nested `:::link-button` block controls its own style and content. Close the group with `:::/link-button-group`. Each button closes with `:::`; a button opened with four or more colons needs at least as many colons on its own closing fence. When a nested button has no `href`, Sarde drops that button and renders the group around the remaining buttons.
+`:::link-button-group` takes no attributes. Each nested `:::link-button` block controls its own style and content. Close the group with `:::/link-button-group`. Each button closes with `:::`. When a nested button has no `href`, Sarde drops that button and renders the group around the remaining buttons.
 
 ## Body text as label
 

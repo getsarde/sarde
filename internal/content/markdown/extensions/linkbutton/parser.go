@@ -5,13 +5,14 @@ import (
 	"strings"
 
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/attrutil"
+	"github.com/getsarde/sarde/internal/content/markdown/fence"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 )
 
-// matches[1] = colon sequence, matches[2] = label, matches[3] = attrs
-var openingRegex = regexp.MustCompile(`^(:{3,})\s*link-button(?:\[([^\]]*)\])?(?:\((.+)\))?\s*$`)
+// matches[1] = label, matches[2] = attrs
+var openingRegex = regexp.MustCompile(`^:{3,}\s*link-button(?:\[([^\]]*)\])?(?:\((.+)\))?\s*$`)
 
 // linkButtonParser is stateless; per-block parse state lives on LinkButtonBlock.
 type linkButtonParser struct{}
@@ -27,9 +28,8 @@ func (p *linkButtonParser) Open(parent ast.Node, reader text.Reader, pc parser.C
 		return nil, parser.NoChildren
 	}
 
-	colonCount := len(matches[1])
-	label := matches[2]
-	attrs := attrutil.Parse(matches[3])
+	label := matches[1]
+	attrs := attrutil.Parse(matches[2])
 
 	if attrs["href"] == "" {
 		return nil, parser.NoChildren
@@ -68,7 +68,6 @@ func (p *linkButtonParser) Open(parent ast.Node, reader text.Reader, pc parser.C
 		IconPlacement: iconPlacement,
 		Size:          size,
 		Content:       content,
-		ColonCount:    colonCount,
 		Block:         attrs["block"] == "true",
 		Disabled:      attrs["disabled"] == "true",
 		Center:        attrs["center"] == "true",
@@ -82,7 +81,7 @@ func (p *linkButtonParser) Continue(node ast.Node, reader text.Reader, pc parser
 	trimmed := strings.TrimSpace(string(line))
 	lb := node.(*LinkButtonBlock)
 
-	if isClosingFence(trimmed, lb.ColonCount) {
+	if fence.Classify(trimmed).ClosesBlock("link-button") {
 		reader.AdvanceToEOL()
 		return parser.Close
 	}
@@ -103,20 +102,6 @@ func (p *linkButtonParser) Close(node ast.Node, reader text.Reader, pc parser.Co
 
 func (p *linkButtonParser) CanInterruptParagraph() bool { return false }
 func (p *linkButtonParser) CanAcceptIndentedLine() bool { return false }
-
-// isClosingFence returns true when line is a valid closing fence: at least minColons
-// colons followed by nothing or "/link-button".
-func isClosingFence(line string, minColons int) bool {
-	count := 0
-	for count < len(line) && line[count] == ':' {
-		count++
-	}
-	if count < minColons {
-		return false
-	}
-	rest := strings.TrimSpace(line[count:])
-	return rest == "" || rest == "/link-button"
-}
 
 func isValidVariant(v string) bool {
 	return v == "primary" || v == "secondary" || v == "minimal" || v == "ghost" || v == "outline"

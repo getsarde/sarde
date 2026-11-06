@@ -116,7 +116,8 @@ func CollectNavYAMLWarnings(collections map[string]*engine.Collection, contentDi
 }
 
 // tabSlugs returns the slugs of every tab of a tabbed collection, across
-// its plain tab list and its per-language, per-version tab sets, sorted.
+// its plain tab list, its per-language lists and its per-language,
+// per-version tab sets, sorted.
 func tabSlugs(col *engine.Collection) []string {
 	seen := make(map[string]bool)
 	add := func(tabs []*engine.DocsTab) {
@@ -127,6 +128,9 @@ func tabSlugs(col *engine.Collection) []string {
 		}
 	}
 	add(col.Tabs)
+	for _, tabs := range col.LangTabs {
+		add(tabs)
+	}
 	for _, tabs := range col.CompositeTabSets {
 		add(tabs)
 	}

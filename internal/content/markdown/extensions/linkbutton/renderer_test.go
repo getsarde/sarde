@@ -230,3 +230,29 @@ func TestLinkButtonSharedParserConcurrent(t *testing.T) {
 		t.Error(e)
 	}
 }
+
+func convertLinkButton(t *testing.T, src string) string {
+	t.Helper()
+	md := goldmark.New(goldmark.WithExtensions(&linkbutton.Extension{}))
+	var buf bytes.Buffer
+	if err := md.Convert([]byte(src), &buf); err != nil {
+		t.Fatalf("Convert: %v", err)
+	}
+	return buf.String()
+}
+
+// Extra colons on the opener are readability only: ":::" closes a button
+// opened with "::::", as for every other extension.
+func TestLinkButton_ShortCloserClosesLongOpener(t *testing.T) {
+	html := convertLinkButton(t, "::::link-button[Go](href=\"https://example.com\")\n:::\n\nafter\n")
+	if strings.Count(html, "<a ") != 1 || !strings.Contains(html, "<p>after</p>") {
+		t.Errorf("want one closed button and a paragraph after it, got: %s", html)
+	}
+}
+
+func TestLinkButton_NamedCloserIsCaseInsensitive(t *testing.T) {
+	html := convertLinkButton(t, ":::link-button[Go](href=\"https://example.com\")\n:::/LINK-BUTTON\n\nafter\n")
+	if !strings.Contains(html, ">Go</a>") || !strings.Contains(html, "<p>after</p>") {
+		t.Errorf("want a closed button and a paragraph after it, got: %s", html)
+	}
+}

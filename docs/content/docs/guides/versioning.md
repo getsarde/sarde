@@ -60,6 +60,7 @@ Place versioned content in subdirectories named by version ID. The latest versio
 ```text
 content/
   docs/
+    _index.md                # latest version's landing page, /docs/
     getting-started.md       # latest version (matches last_version)
     guides/
       auth.md
@@ -121,6 +122,8 @@ The switcher appears in the header on pages of a versioned collection. It lists 
 With `redirect: "same-page"`, an entry links to the same page in that version. When that version has no equivalent page, the link goes to the version's root, such as `/docs/v1/`. An entry with `redirect: "root"` always links to the version's root.
 
 A version root is the version directory's `_index.md`. Without one, `/docs/v1/` has no page, so add an `_index.md` to every version directory you link to.
+
+The latest version's root is the collection's own `_index.md`, at `/docs/`. Without one, Sarde generates a landing page titled from the collection's directory name. An older version's `_index.md` never stands in for it.
 
 ## Cross-version linking
 

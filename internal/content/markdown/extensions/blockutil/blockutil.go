@@ -64,6 +64,7 @@ func Release(pc parser.Context, node ast.Node) {
 // Rules, for the trimmed line:
 //   - inside a fenced code block: content
 //   - ":::word": a nested opener, pushed on the stack
+//   - ":::word ... :::" on one line: content; no parser opens it
 //   - ":::": pops one nested opener; with none left, closes this block when
 //     no inner ':'-triggered block is still open
 //   - ":::/x" that closes a nested opener: pops through it, taking any

@@ -5,13 +5,13 @@ import (
 	"strings"
 
 	"github.com/getsarde/sarde/internal/content/markdown/extensions/attrutil"
+	"github.com/getsarde/sarde/internal/content/markdown/fence"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 )
 
 var openRegex = regexp.MustCompile(`^:{3,}\s*video(?:\(([^)]+)\))?\s*$`)
-var closingRegex = regexp.MustCompile(`^:{3,}(?:/video)?\s*$`)
 
 var (
 	youtubeRegex = regexp.MustCompile(`(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/|youtube\.com/shorts/)([a-zA-Z0-9_-]+)`)
@@ -60,7 +60,7 @@ func (p *videoParser) Continue(node ast.Node, reader text.Reader, pc parser.Cont
 	line, _ := reader.PeekLine()
 	trimmed := strings.TrimSpace(string(line))
 
-	if closingRegex.MatchString(trimmed) {
+	if fence.Classify(trimmed).ClosesBlock("video") {
 		reader.AdvanceToEOL()
 		return parser.Close
 	}

@@ -84,7 +84,7 @@ A nil pointer is false in `{{ if }}` but panics on field access, so guard option
 | Field | Type | Set when | Description |
 |-------|------|----------|-------------|
 | `.IsTabbed` | `bool` | tabbed | True when the collection renders docs tabs |
-| `.DocsTabs` | `[]*DocsTab` | tabbed, catalog | Tabs in display order. Also set on a tabbed collection's [catalog page](/guides/tabbed-navigation/#the-collection-root), where `.IsTabbed` is false and the page has no sidebar |
+| `.DocsTabs` | `[]*DocsTab` | tabbed, catalog | Tabs in display order, in the page's language. Also set on a tabbed collection's [catalog page](/guides/tabbed-navigation/#the-collection-root), where `.IsTabbed` is false and the page has no sidebar |
 | `.ActiveTab` | `*DocsTab` | tabbed | The tab containing this page; falls back to the first tab. Nil on a catalog page |
 
 ### `RouteLabs`
@@ -343,7 +343,7 @@ Every other top-level key in [Configuration](/reference/configuration/) is reach
 | `.Collection.NavTrees` | `map[string]*NavTree` | Sidebar tree per language |
 | `.Collection.IndexPage` | `*Page` | The collection's `_index.md`. On a multi-language site, one language's; use `IndexFor` |
 | `.Collection.IsTabbed` | `bool` | True when docs tabs are detected or forced |
-| `.Collection.Tabs` | `[]*DocsTab` | Tabs ordered by weight, then title |
+| `.Collection.Tabs` | `[]*DocsTab` | Tabs ordered by weight, then title. On a multi-language site, the default language's tabs; use `TabsFor` |
 | `.Collection.Versioning` | `*VersionConfig` | Versioning settings; nil when off |
 | `.Collection.LabNavTrees` | `map[string]*NavTree` | Lab-scoped trees keyed by lab section permalink. On a multi-language site, the default language's trees; use `LabNavTree` |
 | `.Collection.IsMultiCourse` | `bool` | True when a labs collection groups labs by course |
@@ -357,6 +357,7 @@ These methods take a language code, such as `.Lang` on the route data, and retur
 | `.Collection.FeaturedFor lang` | `[]*Page` | The featured pages in `lang` |
 | `.Collection.IndexFor lang` | `*Page` | The collection's `_index.md` in `lang`, or its fallback copy. Nil when `lang` has neither |
 | `.Collection.TitleFor lang` | `string` | The title of `IndexFor lang`, or `Title` |
+| `.Collection.TabsFor lang` | `[]*DocsTab` | The tabs in `lang`, with that language's titles, icons, order and sidebar trees |
 | `.Collection.LabNavTree lang url` | `*NavTree` | The sidebar tree of the lab at section permalink `url` in `lang` |
 
 ```html
@@ -365,7 +366,7 @@ These methods take a language code, such as `.Lang` on the route data, and retur
 
 → Links to the collection's first three pages in the current page's language.
 
-Internal, not for templates: `CompositeNavTrees` and `CompositeTabSets` are keyed by a language-and-version key that templates cannot compute. `LangPages`, `LangIndex`, `LangFeatured` and `LabNavTreesByLang` hold the per-language views behind the methods above; read them through the methods.
+Internal, not for templates: `CompositeNavTrees` and `CompositeTabSets` are keyed by a language-and-version key that templates cannot compute. `LangPages`, `LangIndex`, `LangFeatured`, `LangTabs` and `LabNavTreesByLang` hold the per-language views behind the methods above; read them through the methods.
 
 ### `CollectionConfig`
 
@@ -406,6 +407,8 @@ Internal, not for templates: `CompositeNavTrees` and `CompositeTabSets` are keye
 
 ### `DocsTab`
 
+On a multi-language site, each language has its own list of tabs, built from that language's `_index.md` files. A tab's fields hold its list's language.
+
 | Field | Type | Description |
 |-------|------|-------------|
 | `Title` | `string` | Tab label |
@@ -415,10 +418,10 @@ Internal, not for templates: `CompositeNavTrees` and `CompositeTabSets` are keye
 | `Order` | `int` | Sort order |
 | `Permalink` | `string` | URL of the tab's index page |
 | `Section` | `*Section` | The top-level section backing this tab |
-| `NavTree` | `*NavTree` | Default-language tree for the tab |
-| `NavTrees` | `map[string]*NavTree` | Tree per language |
+| `NavTree` | `*NavTree` | Sidebar tree for the tab |
+| `NavTrees` | `map[string]*NavTree` | The same tab's tree in each language, keyed by language code |
 | `Pages` | `[]*Page` | Pages in the tab |
-| `IndexPage` | `*Page` | The tab's `_index.md` |
+| `IndexPage` | `*Page` | The tab's `_index.md`, or its fallback copy in a language without a translation |
 
 ### `Section`
 

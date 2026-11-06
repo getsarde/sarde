@@ -224,3 +224,10 @@ func TestNativeVideo_SiteAbsoluteUsesAssetURL(t *testing.T) {
 		}
 	}
 }
+
+func TestVideo_NamedCloserIsCaseInsensitive(t *testing.T) {
+	out := render(t, ":::video(src=\"https://youtu.be/dQw4w9WgXcQ\")\n:::/VIDEO\n\nAfter.\n")
+	if !strings.Contains(out, "youtube-nocookie.com/embed/dQw4w9WgXcQ") || !strings.Contains(out, "<p>After.</p>") {
+		t.Errorf("want a closed video and a paragraph after it, got: %q", out)
+	}
+}

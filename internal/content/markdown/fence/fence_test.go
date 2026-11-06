@@ -23,6 +23,15 @@ func TestClassify(t *testing.T) {
 		{":::card-grid(cols=3)", Fence{Kind: Open, Name: "card-grid", Colons: 3}},
 		{":::tab{label=\"Go\"}", Fence{Kind: Open, Name: "tab", Colons: 3}},
 		{":::-x", Fence{Kind: None, Colons: 3}},
+		{`:::badge(type="note") Changed :::`, Fence{Kind: OneLine, Name: "badge", Colons: 3}},
+		{":::note Text :::/note", Fence{Kind: OneLine, Name: "note", Colons: 3}},
+		{"::::tip a ::::", Fence{Kind: OneLine, Name: "tip", Colons: 4}},
+		{":::note:::", Fence{Kind: OneLine, Name: "note", Colons: 3}},
+		{":::note :::", Fence{Kind: OneLine, Name: "note", Colons: 3}},
+		{":::note[Title :::]", Fence{Kind: Open, Name: "note", Colons: 3}},
+		{":::note a :::/", Fence{Kind: Open, Name: "note", Colons: 3}},
+		{":::note a ::", Fence{Kind: Open, Name: "note", Colons: 3}},
+		{":::note a :::x", Fence{Kind: Open, Name: "note", Colons: 3}},
 		{"::kbd[Ctrl]", Fence{}},
 		{"text", Fence{}},
 		{"", Fence{}},
@@ -30,6 +39,29 @@ func TestClassify(t *testing.T) {
 	for _, tt := range tests {
 		if got := Classify(tt.line); got != tt.want {
 			t.Errorf("Classify(%q) = %+v, want %+v", tt.line, got, tt.want)
+		}
+	}
+}
+
+func TestFenceClosesBlock(t *testing.T) {
+	tests := []struct {
+		line, name string
+		want       bool
+	}{
+		{":::", "badge", true},
+		{"::::", "link-button", true},
+		{":::/badge", "badge", true},
+		{":::/BADGE", "badge", true},
+		{":::/Link-Card", "link-card", true},
+		{":::/aside", "note", true},
+		{":::/video", "badge", false},
+		{":::badge", "badge", false},
+		{":::/badge x", "badge", false},
+		{"text", "badge", false},
+	}
+	for _, tt := range tests {
+		if got := Classify(tt.line).ClosesBlock(tt.name); got != tt.want {
+			t.Errorf("Classify(%q).ClosesBlock(%q) = %v, want %v", tt.line, tt.name, got, tt.want)
 		}
 	}
 }

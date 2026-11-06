@@ -128,7 +128,7 @@ See [`images`](/reference/configuration/build-and-output/#images) for global ima
 |----------|-----------|-------------|
 | `navFor` | `navFor(colName string) *NavTree` | Returns the navigation tree for a named collection |
 | `breadcrumbs` | `breadcrumbs(data *RouteData) []BreadcrumbItem` | Extracts breadcrumb items from route data. Pass `.` in a page template. |
-| `siblings` | `siblings(page *Page) []*Page` | Returns sibling pages within the same section |
+| `siblings` | `siblings(page *Page) []*Page` | Returns sibling pages within the same section. A page of a [transparent section](/guides/content-and-collections/#transparent-sections) gets the parent section's pages |
 | `translations` | `translations(data *RouteData) []TranslationLink` | Extracts translation links from route data. Pass `.` in a page template. |
 
 ## i18n
