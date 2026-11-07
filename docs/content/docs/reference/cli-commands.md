@@ -54,7 +54,7 @@ sarde build /path/to/project
 
 ```text
 Building site with sarde v1.4.0 (linux/amd64)
-14:02:11 [links] checked 642 links across 3 lanes: 1 warning
+14:02:11 [links] checked 642 links: 1 warning
    WARN  content/docs/guides/setup.md:42:5  broken anchor    ./install.md#prereqs
 
                     | Total
@@ -301,7 +301,7 @@ OS/Arch: linux/amd64
 
 ## `update`
 
-Check for and install the latest version from GitHub Releases. For the full update workflow, see [Updating Sarde](/docs/start-here/updating-sarde/).
+Check for and install the latest version from GitHub Releases. For the full update workflow, see [Updating Sarde](/start-here/updating-sarde/).
 
 ```
 sarde update [flags]

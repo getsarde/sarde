@@ -82,6 +82,19 @@ func (idx *GitLastModIndex) Stale() bool {
 	return err == nil && sha != idx.headSHA
 }
 
+// NoGitHistoryError reports that contentDir has no git history to read: it is
+// not inside a repository, git is not installed, or the repository has no
+// commits yet. Callers use errors.As to tell a site that is not under version
+// control yet from a real git failure. Error returns only the reason; the
+// underlying exec error stays reachable through Unwrap.
+type NoGitHistoryError struct {
+	Reason string
+	Err    error
+}
+
+func (e *NoGitHistoryError) Error() string { return e.Reason }
+func (e *NoGitHistoryError) Unwrap() error { return e.Err }
+
 // BuildGitLastModIndex walks git history once for contentDir and records the
 // most recent commit time for every path in wantedPaths that git knows about.
 //
@@ -91,11 +104,11 @@ func (idx *GitLastModIndex) Stale() bool {
 func BuildGitLastModIndex(contentDir string, wantedPaths []string) (*GitLastModIndex, error) {
 	repoRoot, err := gitRevParse(contentDir, "--show-toplevel")
 	if err != nil {
-		return &GitLastModIndex{}, fmt.Errorf("not a git repository, or git is not installed: %w", err)
+		return &GitLastModIndex{}, &NoGitHistoryError{Reason: "not a git repository, or git is not installed", Err: err}
 	}
 	headSHA, err := gitRevParse(repoRoot, "HEAD")
 	if err != nil {
-		return &GitLastModIndex{}, fmt.Errorf("repository has no commits: %w", err)
+		return &GitLastModIndex{}, &NoGitHistoryError{Reason: "the repository has no commits", Err: err}
 	}
 
 	shallow, _ := gitRevParse(repoRoot, "--is-shallow-repository")

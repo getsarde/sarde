@@ -23,7 +23,7 @@ content/
     └── photosynthesis.md
 ```
 
-Build the site:
+Building the site is one command. [Installation](/start-here/installation/) and [Getting Started](/start-here/getting-started/) set up a site to run it on.
 
 ```sh
 sarde build
@@ -105,4 +105,4 @@ That design comes with tradeoffs:
 - **No browser-based editing**: Publishing means editing a file and running a build, usually through Git. Contributors who expect a publish button need a content management system instead.
 - **A smaller ecosystem**: Hugo and Astro have more themes, more plugins, and more answered questions. Sarde targets documentation, course, and blog sites.
 
-Continue to [Getting Started](/start-here/getting-started/) to install Sarde and build a first site. Once it runs, [Core Concepts](/start-here/core-concepts/) explains the model behind these defaults.
+Continue to [Installation](/start-here/installation/) to install Sarde, then [Getting Started](/start-here/getting-started/) to build a first site. Once it runs, [Core Concepts](/start-here/core-concepts/) explains the model behind these defaults.

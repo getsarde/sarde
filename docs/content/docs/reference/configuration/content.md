@@ -154,6 +154,17 @@ Controls which heading levels are *extracted* during the build: ID injection, an
 | `min_heading_level` | int | `2` | Minimum heading level to extract. Range: 1-6. Must be &le; `max_heading_level`. |
 | `max_heading_level` | int | `4` | Maximum heading level to extract. Range: 1-6. |
 
+To include h5 and h6 headings, widen the range:
+
+```yaml title="sarde.yaml"
+markdown:
+  toc:
+    min_heading_level: 2
+    max_heading_level: 6
+```
+
+The table of contents widget still shows only the levels in [`toc.min_level` and `toc.max_level`](/reference/configuration/theme-and-appearance/#toc). To show h5 and h6 headings there too, raise `toc.max_level` as well.
+
 ### `markdown.asides`
 
 | Key | Type | Default | Description |

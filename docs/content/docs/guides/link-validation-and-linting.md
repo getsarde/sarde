@@ -14,11 +14,11 @@ The checker validates internal links and `#anchor` references to headings. It re
 No configuration is needed. The build prints a summary line that counts the findings by policy, followed by one line per finding with its `path:line:col` location:
 
 ```text
-[links] checked 12 links across 2 lanes: 1 error
+[links] checked 12 links: 1 error
   ERROR  content/docs/guide.md:7:3  broken target    ./missing.md
 ```
 
-A run without findings prints `no issues` after the lane count. Identical findings in one file appear once, followed by a count such as `(x3)`.
+A run without findings prints `no issues` after the link count. On a site with several languages or versions, the line also counts the combinations it checked, for example `checked 40 links across 3 language/version combinations: no issues`. Identical findings in one file appear once, followed by a count such as `(x3)`.
 
 Each finding has one of these types:
 

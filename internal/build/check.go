@@ -20,6 +20,7 @@ type CheckResult struct {
 	PageCount int
 	LinkCount int
 	Lanes     int
+	Variants  int // distinct language × version combinations checked
 	HasErrors bool
 	Findings  []links.Finding
 	Warnings  []engine.ValidationWarning
@@ -73,6 +74,7 @@ func (b *SiteBuilder) Check(opts CheckOptions) (*CheckResult, error) {
 	}
 	result.LinkCount = b.lastCoverage.TotalLinks
 	result.Lanes = b.lastCoverage.TotalLanes
+	result.Variants = b.lastCoverage.Variants
 
 	if rr := b.checkReportResult; rr != nil {
 		result.HasErrors = rr.HasErrors

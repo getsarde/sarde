@@ -5,7 +5,7 @@ sidebar:
   order: 98
 ---
 
-This page demonstrates every standard Markdown formatting option supported by Sarde. For custom extensions (admonitions, cards, tabs, and more), see the [Kitchen Sink](/docs/extensions/kitchen-sink/).
+This page demonstrates every standard Markdown formatting option supported by Sarde. For custom extensions (admonitions, cards, tabs, and more), see the [Kitchen Sink](/extensions/kitchen-sink/).
 
 ---
 

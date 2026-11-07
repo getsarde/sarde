@@ -2,7 +2,7 @@
 title: Deploying
 description: "Build a production site and pick a guide to deploy it to GitHub Pages, Netlify, Cloudflare Pages, Vercel, or any static host"
 sidebar:
-  order: 4
+  order: 6
 ---
 
 Sarde builds a static site that any static host can serve. Build it once, then follow the guide for your host.

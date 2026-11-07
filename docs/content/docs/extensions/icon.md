@@ -25,7 +25,7 @@ Bare names resolve against the default set (Lucide). Prefix a name with the set 
 
 → With the Tabler and Simple Icons sets loaded, each icon renders from its own set. `brands:` is an alias for `simple-icons:`. Without the set, the build warns and the page shows the placeholder icon.
 
-Additional icon sets must be loaded before use. See the [Icons guide](/docs/guides/icons/) for setup with `sarde icons add` and the `icons.sets` configuration.
+Additional icon sets must be loaded before use. See the [Icons guide](/guides/icons/) for setup with `sarde icons add` and the `icons.sets` configuration.
 
 ## Sizing
 

@@ -3,7 +3,7 @@ title: Sarde Studio Quickstart
 description: "Create, edit, and preview Sarde content visually with the Sarde Studio desktop app"
 draft: true
 sidebar:
-  order: 5
+  order: 8
 ---
 
 Sarde Studio is a visual editor for Sarde sites. It wraps the Sarde engine in a native desktop application so content can be created, edited, and previewed without opening a terminal. It is available for macOS, Windows, and Linux.

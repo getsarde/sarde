@@ -411,18 +411,20 @@ func TestPrettySummary(t *testing.T) {
 		findings []Finding
 		want     string
 	}{
-		{"clean single lane", CoverageSummary{TotalLinks: 812, TotalLanes: 1}, nil,
-			"checked 812 links across 1 lane: no issues"},
-		{"clean single link", CoverageSummary{TotalLinks: 1, TotalLanes: 3}, nil,
-			"checked 1 link across 3 lanes: no issues"},
+		{"clean single variant", CoverageSummary{TotalLinks: 812, TotalLanes: 2, Variants: 1}, nil,
+			"checked 812 links: no issues"},
+		{"clean single link", CoverageSummary{TotalLinks: 1, TotalLanes: 1}, nil,
+			"checked 1 link: no issues"},
+		{"several variants", CoverageSummary{TotalLinks: 30, TotalLanes: 6, Variants: 3}, nil,
+			"checked 30 links across 3 language/version combinations: no issues"},
 		{"policy split", CoverageSummary{TotalLinks: 9, TotalLanes: 2}, []Finding{
 			{Type: FindingAmbiguousLink, Policy: "error"},
 			{Type: FindingBrokenAnchor, Policy: "warn"},
 			{Type: FindingRelativeLink, Policy: "warn"},
-		}, "checked 9 links across 2 lanes: 1 error, 2 warnings"},
+		}, "checked 9 links: 1 error, 2 warnings"},
 		{"warnings only", CoverageSummary{TotalLinks: 4, TotalLanes: 1}, []Finding{
 			{Type: FindingBrokenAnchor, Policy: "warn"},
-		}, "checked 4 links across 1 lane: 1 warning"},
+		}, "checked 4 links: 1 warning"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

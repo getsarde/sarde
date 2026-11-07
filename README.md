@@ -88,7 +88,7 @@ Add any of these to `plugins.enabled` to bundle its CSS and JS. Nothing ships to
 
 ## Installation
 
-**Homebrew (macOS/Linux):**
+**Homebrew (macOS):**
 
 ```bash
 brew install getsarde/sarde/sarde

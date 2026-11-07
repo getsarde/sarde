@@ -89,7 +89,8 @@ type dedupedFinding struct {
 }
 
 // prettySummary reports the link count and the findings split by policy:
-// "checked 812 links across 1 lane: no issues" or "...: 1 error, 2 warnings".
+// "checked 812 links: no issues" or "...: 1 error, 2 warnings". A site with
+// several languages or versions also gets the number of combinations checked.
 func prettySummary(cov CoverageSummary, findings []Finding) string {
 	outcome := "no issues"
 	if len(findings) > 0 {
@@ -103,11 +104,10 @@ func prettySummary(cov CoverageSummary, findings []Finding) string {
 		}
 		outcome = strings.Join(parts, ", ")
 	}
-	return fmt.Sprintf("%s %s %s %s %s",
+	return fmt.Sprintf("%s %s %s %s",
 		devlog.Green("checked"), devlog.Bold(fmt.Sprint(cov.TotalLinks)),
-		devlog.Green(pluralWord(cov.TotalLinks, "link", "links")+" across"),
-		devlog.Bold(fmt.Sprint(cov.TotalLanes)),
-		devlog.Green(pluralWord(cov.TotalLanes, "lane", "lanes")+":")+" "+outcome)
+		devlog.Green(pluralWord(cov.TotalLinks, "link", "links")+VariantsClause(cov.Variants)+":"),
+		outcome)
 }
 
 // plural formats a count with the matching noun form: "1 error", "2 errors".

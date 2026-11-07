@@ -389,7 +389,9 @@ Infers `sidebar.order: 3` and `slug: advanced-topics`.
 
 Infers `date: 2024-01-15`, `sidebar.order: 1`, and `slug: intro`.
 
-A filename made only of characters outside the Latin alphabet, such as `日本語.md`, gets the first 8 hex characters of a hash of the name as its slug and URL segment.
+A filename made only of characters outside the Latin alphabet, such as `日本語.md`, has no slug to strip down to. Its slug and URL segment use the first 8 hex characters of a hash of the name instead: `/blog/a1b2c3d4/`. For a readable URL, name the file in Latin characters, or set `slug` in frontmatter and give the collection a `permalink` pattern with `:slug`.
+
+Two posts in one folder whose names differ only by the date, such as `2025-01-10-recap.md` and `2026-01-10-recap.md`, resolve to the same URL. The build warns about the collision and keeps the first. Rename one, or give the collection a `permalink` pattern with `:year`.
 
 **Index files** (`_index.md` or `index.md`):
 

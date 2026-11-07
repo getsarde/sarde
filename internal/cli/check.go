@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/getsarde/sarde/internal/build"
+	"github.com/getsarde/sarde/internal/links"
 	"github.com/spf13/cobra"
 )
 
@@ -71,8 +72,8 @@ func runCheckWithReport(cmd *cobra.Command, args []string, report string) error 
 	// Print a summary if no findings were reported.
 	quiet, _ := cmd.Flags().GetBool("quiet")
 	if !quiet && result.Output == "" {
-		fmt.Fprintf(os.Stderr, "checked %d pages, %d links across %d lanes: no issues found\n",
-			result.PageCount, result.LinkCount, result.Lanes)
+		fmt.Fprintf(os.Stderr, "checked %d pages, %d links%s: no issues found\n",
+			result.PageCount, result.LinkCount, links.VariantsClause(result.Variants))
 	}
 
 	if result.HasErrors {

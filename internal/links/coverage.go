@@ -1,6 +1,7 @@
 package links
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/getsarde/sarde/internal/engine"
@@ -24,6 +25,11 @@ type CoverageSummary struct {
 	TotalLinks  int
 	TotalBroken int
 	MissedLanes []DimKey // expected lanes with no links checked
+	// Variants counts the distinct language × version combinations among
+	// Lanes. Summaries mention it only when a site has more than one, since
+	// "lane" (collection × language × version) means nothing to a reader of
+	// a single-language, unversioned site.
+	Variants int
 }
 
 // ComputeCoverage analyzes the link graph and the set of rendered pages to
@@ -117,6 +123,11 @@ func ComputeCoverage(graph *LinkGraph, pages []*engine.Page, expectedLanes []Dim
 
 	sortLaneSummaries(lanes)
 
+	variants := make(map[[2]string]struct{}, len(lanes))
+	for _, l := range lanes {
+		variants[[2]string{l.Dim.Lang, l.Dim.Version}] = struct{}{}
+	}
+
 	// Identify expected lanes that have no recorded links and no pages with content.
 	checkedLanes := make(map[DimKey]bool, len(allDims))
 	for dim := range allDims {
@@ -136,7 +147,17 @@ func ComputeCoverage(graph *LinkGraph, pages []*engine.Page, expectedLanes []Dim
 		TotalLinks:  totalLinks,
 		TotalBroken: totalBroken,
 		MissedLanes: missed,
+		Variants:    len(variants),
 	}
+}
+
+// VariantsClause returns " across N language/version combinations" when a
+// site checks links in more than one combination, and "" otherwise.
+func VariantsClause(n int) string {
+	if n <= 1 {
+		return ""
+	}
+	return fmt.Sprintf(" across %d language/version combinations", n)
 }
 
 // EnumerateLanes computes the full set of expected lanes from collections and

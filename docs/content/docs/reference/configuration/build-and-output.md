@@ -44,7 +44,7 @@ Three caveats are worth knowing:
 - **Commit time is a proxy for content change:** a formatting sweep or lint pass bumps the date on every file it touches, even when nothing reader-visible changed. Set `updated` in [frontmatter](/reference/frontmatter#core-fields) to state the real date explicitly.
 - **Uncommitted edits keep their last committed date:** during `sarde dev` a page's timestamp does not move until you commit, which is correct but can look like a bug while writing.
 
-Outside a git repository, or when git is unavailable, Sarde falls back to `mtime` and emits one build warning explaining the consequence.
+Outside a git repository, in a repository with no commits, or when git is not installed, Sarde falls back to `mtime`. On a local machine the fallback is silent, because the modification time is the right date there. When the `CI` environment variable is set, as GitHub Actions, GitLab CI, Vercel, and Cloudflare Pages do, the build emits one warning, since every file then has the checkout time.
 
 ## `images`
 

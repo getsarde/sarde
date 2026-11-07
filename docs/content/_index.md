@@ -7,6 +7,8 @@ Drop a page into `content/docs/` and it appears in the sidebar, indexed for sear
 
 ## Try it
 
+[Install Sarde](/docs/start-here/installation/), then create a site and start the preview server:
+
 ```sh
 sarde new site my-site
 cd my-site

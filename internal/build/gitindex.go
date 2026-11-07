@@ -1,7 +1,9 @@
 package build
 
 import (
+	"errors"
 	"fmt"
+	"os"
 
 	"github.com/getsarde/sarde/internal/consts"
 	"github.com/getsarde/sarde/internal/content"
@@ -12,6 +14,12 @@ import (
 // resolveGitIndex builds the batched git-history index used by the "git"
 // last_updated strategy, and turns any git problem into a single build warning
 // rather than a silent per-file fallback to mtime.
+//
+// A site with no git history at all (not a repository yet, or no commits) gets
+// the mtime fallback silently outside CI: on a local machine the modification
+// time is the right date, and a warning on the first build of a freshly
+// scaffolded site only alarms. In CI every file has the checkout time, so the
+// warning stays there.
 //
 // Returns (nil, nil) for every other strategy, so mtime and disabled sites pay
 // nothing.
@@ -27,6 +35,10 @@ func (b *SiteBuilder) resolveGitIndex(files []content.ContentFile, contentDir st
 
 	idx, err := content.BuildGitLastModIndex(contentDir, paths)
 	if err != nil {
+		var noHistory *content.NoGitHistoryError
+		if errors.As(err, &noHistory) && !runningInCI() {
+			return idx, nil
+		}
 		return idx, &engine.ValidationWarning{
 			File:  consts.FileSiteConfig,
 			Field: "build.last_updated",
@@ -90,4 +102,12 @@ func (b *SiteBuilder) refreshGitIndexIfStale() {
 	}
 	devlog.Log("build", "ContentRebuild: refreshed git index for %d path(s) (HEAD moved)", len(paths))
 	b.lastGitIndex = idx
+}
+
+// runningInCI reports whether the build runs in a continuous integration job.
+// GitHub Actions, GitLab CI, Vercel, Cloudflare Pages and most other CI
+// services set CI to a non-empty value.
+func runningInCI() bool {
+	v := os.Getenv("CI")
+	return v != "" && v != "0" && v != "false"
 }

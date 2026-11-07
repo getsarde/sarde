@@ -335,8 +335,8 @@ func CountFindings(findings []Finding) FindingCounts {
 
 func buildSummaryLine(cov CoverageSummary, findings []Finding) string {
 	c := CountFindings(findings)
-	return fmt.Sprintf("checked %d links across %d lanes: %d broken targets, %d broken anchors, %d broken external, %d warnings",
-		cov.TotalLinks, cov.TotalLanes, c.BrokenTargets, c.BrokenAnchors, c.ExternalBroken, c.Other)
+	return fmt.Sprintf("checked %d links%s: %d broken targets, %d broken anchors, %d broken external, %d warnings",
+		cov.TotalLinks, VariantsClause(cov.Variants), c.BrokenTargets, c.BrokenAnchors, c.ExternalBroken, c.Other)
 }
 
 // shouldExcludeRef matches link destinations against exclude globs using

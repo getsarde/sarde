@@ -365,3 +365,49 @@ func TestComputeCoverage_ExternalLinks(t *testing.T) {
 		t.Errorf("expected 1 external link, got %d", summary.Lanes[0].External)
 	}
 }
+
+func TestComputeCoverage_Variants(t *testing.T) {
+	docs := &engine.Collection{Name: "docs", Config: &engine.CollectionConfig{}}
+	blog := &engine.Collection{Name: "blog", Config: &engine.CollectionConfig{}}
+	page := func(path, lang, version string, coll *engine.Collection) *engine.Page {
+		return &engine.Page{
+			PageIdentity:      engine.PageIdentity{FilePath: path},
+			PageContent:       engine.PageContent{RawContent: "# Page"},
+			PageI18n:          engine.PageI18n{Lang: lang},
+			PageVersioning:    engine.PageVersioning{Version: version},
+			PageRelationships: engine.PageRelationships{Collection: coll},
+		}
+	}
+
+	// Two collections in one language and no versions: two lanes, one variant.
+	plain := ComputeCoverage(NewLinkGraph(), []*engine.Page{
+		page("content/docs/a.md", "", "", docs),
+		page("content/blog/b.md", "", "", blog),
+	}, nil)
+	if plain.TotalLanes != 2 || plain.Variants != 1 {
+		t.Errorf("plain site: got %d lanes, %d variants; want 2, 1", plain.TotalLanes, plain.Variants)
+	}
+
+	// Two languages, one of them with an extra version: three variants.
+	multi := ComputeCoverage(NewLinkGraph(), []*engine.Page{
+		page("content/docs/a.md", "en", "", docs),
+		page("content/blog/b.md", "en", "", blog),
+		page("content/fr/docs/a.md", "fr", "", docs),
+		page("content/docs/v1/a.md", "en", "v1", docs),
+	}, nil)
+	if multi.Variants != 3 {
+		t.Errorf("multi site: got %d variants, want 3", multi.Variants)
+	}
+}
+
+func TestVariantsClause(t *testing.T) {
+	for n, want := range map[int]string{
+		0: "",
+		1: "",
+		3: " across 3 language/version combinations",
+	} {
+		if got := VariantsClause(n); got != want {
+			t.Errorf("VariantsClause(%d) = %q, want %q", n, got, want)
+		}
+	}
+}

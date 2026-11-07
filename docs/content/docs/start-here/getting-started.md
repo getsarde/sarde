@@ -1,72 +1,21 @@
 ---
 title: Getting Started
-description: "Install Sarde, scaffold a new site, preview it locally, and produce a production build"
+description: "Scaffold a new site, preview it locally, add a page, and produce a production build"
 sidebar:
-  order: 2
+  order: 3
 ---
 
-Install Sarde, create a site, and preview it in the browser. By the end, a themed site runs locally and updates on every save, a new page appears in its sidebar, and a production build sits in `dist/`, ready to publish. The steps need a terminal and a text editor, and assume no experience with build tools.
+Create a site and preview it in the browser. By the end, a themed site runs locally and updates on every save, a new page appears in its sidebar, and a production build sits in `dist/`, ready to publish. The steps need Sarde [installed](/start-here/installation/), a terminal, and a text editor, and assume no experience with build tools.
 
 ## Install Sarde
 
-Choose one installation method:
-
-:::tabs
-
-== Homebrew
-
-On macOS or Linux with [Homebrew](https://brew.sh/):
-
-```sh
-brew install getsarde/sarde/sarde
-```
-
-== Shell script
-
-The install script supports macOS and Linux. On Windows, use the Windows tab instead.
-
-```sh
-curl -sSfL https://raw.githubusercontent.com/getsarde/sarde/main/install.sh | sh
-```
-
-The script installs `sarde` into `/usr/local/bin`, or into `~/.local/bin` when `/usr/local/bin` is not writable. If it prints `Add <directory> to your PATH`, run the `export` command it shows, and add the same line to the shell profile (for example, `~/.bashrc` or `~/.zshrc`) to keep it for new terminals.
-
-== Windows
-
-1. Download `sarde_windows_amd64.zip` from [GitHub Releases](https://github.com/getsarde/sarde/releases).
-2. Extract the archive and move `sarde.exe` into a permanent folder, for example `C:\Users\<name>\sarde`.
-3. Add that folder to the `PATH` environment variable so any terminal can find the program: open **Settings > System > About > Advanced system settings**, click **Environment Variables**, select `Path` under *User variables*, then click **Edit > New** and paste the folder path.
-4. Open a new terminal window. Terminals that were already open do not pick up the `PATH` change.
-
-== Binary download
-
-Download the latest release archive for your platform from [GitHub Releases](https://github.com/getsarde/sarde/releases). Extract it and place the `sarde` binary in a directory on the `PATH`.
-
-== From source
-
-Requires [Go](https://go.dev/dl/) 1.25 or later.
-
-```sh
-go install github.com/getsarde/sarde/cmd/sarde@latest
-```
-
-:::
-
-Verify the installation:
+Follow [Installation](/start-here/installation/) to install Sarde, then check that the terminal finds it:
 
 ```sh
 sarde version
 ```
 
-→ The terminal prints the Sarde version, the Go version, and the platform:
-
-```text
-sarde 1.0.0
-Go: go1.25.0
-OS/Arch: linux/amd64
-```
-
-An error saying that `sarde` is not found or not recognized means the folder that holds the program is not on the `PATH`. Open a new terminal window and run the command again before repeating the install steps.
+→ The terminal prints the Sarde version, for example `sarde 1.8.0`, followed by the Go version and the platform.
 
 ## Create a site
 
@@ -105,6 +54,10 @@ my-site/
   .gitignore
 ```
 
+:::tip
+To build a course site, start from the course template instead: `sarde new site my-course --template course` creates a course website with lessons, assignments, schedules, announcements, and hands-on labs. It downloads the template from GitHub, so it needs an internet connection. See [Course Template](/teaching/course-template/).
+:::
+
 The `sarde.yaml` file controls the site title, theme preset, homepage hero, and all other settings. [Configuration Examples](/reference/configuration/examples/) has complete files to start from, and [Configuration](/reference/configuration/) documents every key. The `kazari.config.yaml` file controls syntax highlighting, covered in [Code Blocks](/guides/code-blocks/).
 
 ## Start the dev server
@@ -118,7 +71,7 @@ sarde dev
 → The terminal prints:
 
 ```text
- sarde  v1.0.0 ready in 320 ms
+ sarde  v1.8.0 ready in 320 ms
 ┃ Local    http://localhost:4727
 ┃ Network  use --host 0.0.0.0 to expose
 ```
@@ -191,12 +144,12 @@ Built 9 pages in 320 ms
   Output: /path/to/my-site/dist
 ```
 
-Before those lines, the build prints the link check result and a table of page counts. Outside a Git repository, it also lists a `git strategy unavailable` warning, and the last line reads `Built 9 pages in 320 ms, 1 warning`. The build still succeeds, and page dates come from file modification times.
+Before those lines, the build prints the link check result and a table of page counts.
 
 The `dist/` directory is the complete site as HTML, CSS, and JavaScript. [Deploying](/start-here/deploying/) covers publishing it to GitHub Pages, Netlify, Cloudflare Pages, Vercel, or another host.
 
 ## Next steps
 
-- [Writing Content](/guides/writing-content/) covers frontmatter, drafts, and page bundles
-- [Content and Collections](/guides/content-and-collections/) explains how folders become blogs, docs, and courses
+- [Write Your First Pages](/start-here/writing-your-first-pages/) continues with this site: Markdown, images, links, sidebar order, and the homepage
 - [Core Concepts](/start-here/core-concepts/) explains how content, configuration, and a theme combine into a site
+- [Deploying](/start-here/deploying/) publishes `dist/` to a web host

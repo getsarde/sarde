@@ -2,10 +2,10 @@
 title: Core Concepts
 description: "How Sarde turns content, configuration, and a theme into a finished site."
 sidebar:
-  order: 3
+  order: 5
 ---
 
-Every Sarde build combines three inputs and writes one output directory. [Getting Started](/start-here/getting-started/) showed the commands; this page explains the model behind them.
+Every Sarde build combines three inputs and writes one output directory. [Getting Started](/start-here/getting-started/) and [Write Your First Pages](/start-here/writing-your-first-pages/) showed the commands; this page explains the model behind them.
 
 ```text
 content + configuration + theme → sarde build → dist/
@@ -80,42 +80,34 @@ See [Content and Collections](/guides/content-and-collections/) for the full per
 
 ## Configuration
 
-Configuration resolves in five layers. Later layers override earlier ones.
+`sarde.yaml` at the project root changes the defaults. Every key has a default, so the file is optional and lists only the values that differ. A project with an empty `sarde.yaml`, or none at all, still builds a complete site.
 
-1. **Embedded defaults** compiled into the binary
-2. **`theme.yaml`** from the active theme
-3. **`sarde.yaml`** at the project root
-4. **CLI flags** passed to the command
-5. **`SARDE_` environment variables**
-
-A value set nowhere falls through to the embedded default, which is why a project with an empty `sarde.yaml`, or none at all, still builds a complete site. To override the output directory for one build, pass a flag and leave the config file unchanged:
+A command-line flag overrides a setting for one run and leaves the file unchanged. To write one build to `public/` instead of `dist/`, run:
 
 ```sh
 sarde build --output public
 ```
 
-Print the resolved configuration after all five layers merge:
+To see every setting with the value Sarde uses, after defaults, `sarde.yaml`, flags, and [environment variables](/reference/configuration/environment-variables/) are combined, run:
 
 ```sh
 sarde effective-config
 ```
 
-See [Configuration](/reference/configuration/) for the full key reference.
+[Configuration](/reference/configuration/) lists every key and explains the order in which these sources override each other.
 
 ## Themes
 
 A theme supplies layouts, components, styles, and design tokens. Content carries no styling information, so switching themes changes the appearance of the site without editing any Markdown file.
 
-Sarde resolves templates by specificity, and the first match wins: a collection override in the project, then a collection template in the theme, then a project default, then a theme default, then an embedded fallback. Overriding one template therefore means copying one file into the project, not forking the theme.
+To change one part of a layout, copy that one template into the project instead of forking the whole theme. [Layouts and Templates](/customization/layouts-and-templates/) explains which file wins when several exist.
 
 See [Themes and Styling](/guides/themes-and-styling/) to customize the look.
 
 ## Developing and building
 
-`sarde dev` runs a local server on port 4727, watches the project files, and reloads the browser on change. CSS edits swap in without a full page reload. Drafts and expired pages are included so work in progress stays visible.
+`sarde dev` runs a local server on port 4727, watches the project files, and reloads the browser on change. CSS edits swap in without a full page reload.
 
-`sarde build` writes the publishable site to `dist/`. Drafts and expired pages are excluded. The build also checks internal links and anchors, and most broken ones stop it. [Internal Links](/guides/internal-links/#links-that-do-not-resolve) lists the cases that only warn.
+`sarde build` writes the publishable site to `dist/`. It also checks internal links and anchors, and most broken ones stop it. [Internal Links](/guides/internal-links/#links-that-do-not-resolve) lists the cases that only warn.
 
-Both commands exclude a page with a future `publish_date` until that date passes. Pass `--future` to either command to include it.
-
-When a page appears locally but not in production, check its frontmatter for `draft: true` or a past `expiry_date`.
+Drafts appear in `sarde dev` and are left out of `sarde build`. [Drafts, scheduled, and expiring content](/guides/writing-content/#drafts-scheduled-and-expiring-content) explains which pages each command includes.

@@ -2,7 +2,7 @@
 title: Updating Sarde
 description: "Check for new releases and update the sarde binary in place with a single command"
 sidebar:
-  order: 6
+  order: 7
 ---
 
 Run `sarde update` to replace the installed program with the latest release. Sarde downloads the release, verifies it, and swaps the program file in place. The next `sarde` command runs the new version. Releases are published on the [GitHub releases page](https://github.com/getsarde/sarde/releases).
@@ -114,4 +114,4 @@ Sarde skips the notice and the background lookup when any of these apply:
 
 ## Dev builds
 
-A copy of Sarde compiled from source code, rather than downloaded as a release, reports its version as `dev`. It has no release version to compare against, so `sarde update` exits with `cannot update a dev build; install a release version first`. To switch to release builds and get updates, follow the [installation steps](/start-here/getting-started/#install-sarde).
+A copy of Sarde compiled from source code, rather than downloaded as a release, reports its version as `dev`. It has no release version to compare against, so `sarde update` exits with `cannot update a dev build; install a release version first`. To switch to release builds and get updates, follow the [installation steps](/start-here/installation/).
