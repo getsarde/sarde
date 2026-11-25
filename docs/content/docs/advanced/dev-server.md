@@ -96,6 +96,12 @@ If no matching file exists, the server tries a language-scoped `404.html` (deriv
 
 If the requested port is taken, the server tries up to 10 consecutive ports before giving up, and reports the one it bound to. Code driving the server through the project API gets the same value back from the preview call, so a caller that passed port 0 or a busy port learns the real port rather than assuming its request was honored.
 
+## Host check
+
+The server answers only requests whose `Host` is `localhost` or a `*.localhost` name, an IP address, or the host given to `--host`. Any other name gets a 403, and the terminal warns once per name. This stops DNS rebinding: a web page whose domain is made to resolve to your machine sends its own domain as `Host`, so it cannot read the preview, drafts included.
+
+With `--host 0.0.0.0`, open the preview from another device by the machine's IP address, such as `http://192.168.1.20:4727/`. A network name such as `mypc.local` is refused unless you bind to that name with `--host mypc.local`.
+
 ## Timing a rebuild
 
 Run the server with `--verbose` to print per-phase timings on every rebuild. Use it to find which phase a slow save is spending its time in before reaching for the cache settings.

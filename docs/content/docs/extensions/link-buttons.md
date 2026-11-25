@@ -23,15 +23,15 @@ Link buttons look like buttons and behave like normal links. Each button require
 Set the `variant` attribute to change the button style:
 
 ::::example
-:::link-button[Primary](href="/docs/" variant="primary")
+:::link-button[Primary](href="/" variant="primary")
 :::
-:::link-button[Secondary](href="/docs/" variant="secondary")
+:::link-button[Secondary](href="/" variant="secondary")
 :::
-:::link-button[Outline](href="/docs/" variant="outline")
+:::link-button[Outline](href="/" variant="outline")
 :::
-:::link-button[Ghost](href="/docs/" variant="ghost")
+:::link-button[Ghost](href="/" variant="ghost")
 :::
-:::link-button[Minimal](href="/docs/" variant="minimal")
+:::link-button[Minimal](href="/" variant="minimal")
 :::
 ::::
 
@@ -71,9 +71,9 @@ An icon-only button (no label text) receives a compact square layout:
 Set `size` to `sm` or `lg`:
 
 ::::example
-:::link-button[Small](href="/docs/" size="sm")
+:::link-button[Small](href="/" size="sm")
 :::
-:::link-button[Large](href="/docs/" size="lg")
+:::link-button[Large](href="/" size="lg")
 :::
 ::::
 
@@ -105,7 +105,7 @@ Wrap multiple link buttons in `:::link-button-group` for horizontal alignment:
 When no label is provided in square brackets, body text between the fences becomes the button label:
 
 ::::example
-:::link-button(href="/docs/")
+:::link-button(href="/")
 Read the documentation
 :::
 ::::

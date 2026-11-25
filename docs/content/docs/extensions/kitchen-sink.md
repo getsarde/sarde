@@ -315,7 +315,7 @@ Override any template at any level.
 
 ### Link Cards
 
-:::link-card[Getting Started Guide](href="/docs/start-here/getting-started" icon="book-open")
+:::link-card[Getting Started Guide](href="/start-here/getting-started" icon="book-open")
 Follow the step-by-step setup guide.
 :::
 
@@ -333,7 +333,7 @@ A visual authoring environment powered by Tauri and Svelte.
 
 #### Tab Behavior Override
 
-:::link-card[Internal (opens new tab)](href="/docs/start-here/getting-started" icon="download" new-tab="true")
+:::link-card[Internal (opens new tab)](href="/start-here/getting-started" icon="download" new-tab="true")
 This internal link opens in a new tab.
 :::
 

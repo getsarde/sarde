@@ -10,7 +10,7 @@ Link cards render a clickable card-style link with a title, optional description
 ## Basic syntax
 
 ::::example
-:::link-card[Sarde Documentation](href="/docs/")
+:::link-card[Sarde Documentation](href="/")
 :::
 ::::
 
@@ -42,7 +42,7 @@ If both an attribute and body text are present, the body text overrides the attr
 Add a Lucide icon to the card with the `icon` attribute:
 
 ::::example
-:::link-card[API Reference](href="/docs/reference/" icon="book-open")
+:::link-card[API Reference](href="/reference/" icon="book-open")
 :::
 ::::
 

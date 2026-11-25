@@ -112,7 +112,7 @@ func New(opts Options) *DevServer {
 	ds.ready = make(chan int, 1)
 	// Constructing the server here (single write before any goroutine exists)
 	// avoids the Start/Stop data race on ds.server.
-	ds.server = &http.Server{Handler: devRequestLogger(ds.buildHandler())}
+	ds.server = &http.Server{Handler: ds.hostGuard(devRequestLogger(ds.buildHandler()))}
 	return ds
 }
 

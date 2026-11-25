@@ -122,7 +122,7 @@ sarde dev [flags] [project-dir]
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--port`, `-p` | int | `0` | Server port. Defaults to [`server.port`](/reference/configuration/build-and-output/#server) or 4727. |
-| `--host` | string | `""` | Host to bind to. Defaults to `127.0.0.1`. Use `0.0.0.0` for LAN access. |
+| `--host` | string | `""` | Host to bind to. Defaults to `127.0.0.1`. Use `0.0.0.0` for LAN access, and open the preview by the machine's IP address (see [Host check](/advanced/dev-server/#host-check)). |
 | `--no-drafts` | bool | `false` | Exclude draft content. By default, drafts are included in dev mode. |
 | `--base-path` | string | `""` | Override the URL base path. |
 | `--content` | string | `""` | Override the content directory path. |
