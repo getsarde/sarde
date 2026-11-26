@@ -15,7 +15,7 @@ Follow [Installation](/start-here/installation/) to install Sarde, then check th
 sarde version
 ```
 
-→ The terminal prints the Sarde version, for example `sarde 1.8.0`, followed by the Go version and the platform.
+→ The terminal prints the Sarde version, for example `sarde 1.9.0`, followed by the Go version and the platform.
 
 ## Create a site
 
@@ -71,7 +71,7 @@ sarde dev
 → The terminal prints:
 
 ```text
- sarde  v1.8.0 ready in 320 ms
+ sarde  v1.9.0 ready in 320 ms
 ┃ Local    http://localhost:4727
 ┃ Network  use --host 0.0.0.0 to expose
 ```

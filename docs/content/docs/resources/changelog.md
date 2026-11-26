@@ -9,6 +9,8 @@ Notable changes to Sarde, grouped by release. Bug fixes, new features, and break
 
 ## Unreleased
 
+## 1.9.0 - 2026-11-26
+
 ### Added
 
 - **`pageRelURL` template function:** `pageRelURL .Page .Page.Image` resolves a path a page names from any template that shows the page, such as a list card. A relative path is read from the page's own folder and gets the base path; a file of the page's bundle also gets the page's language and version prefixes. See [Template Functions](/reference/template-functions/#urls).

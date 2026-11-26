@@ -65,7 +65,7 @@ sarde version
 → The terminal prints the Sarde version, the Go version, and the platform:
 
 ```text
-sarde 1.8.0
+sarde 1.9.0
 Go: go1.27.4
 OS/Arch: linux/amd64
 ```
