@@ -66,7 +66,7 @@ sarde version
 
 ```text
 sarde 1.8.0
-Go: go1.25.0
+Go: go1.27.4
 OS/Arch: linux/amd64
 ```
 

@@ -116,6 +116,31 @@ func (c *Collection) TabsFor(lang string) []*DocsTab {
 	return c.Tabs
 }
 
+// TabsForPage returns the tabs p sees: for a collection that is both
+// versioned and tabbed, the tab set of p's language and version; otherwise
+// TabsFor(p.Lang).
+func (c *Collection) TabsForPage(p *Page) []*DocsTab {
+	if c == nil || p == nil {
+		return nil
+	}
+	if c.CompositeTabSets != nil {
+		return c.CompositeTabSets[LangVersionKey(p.Lang, p.Version)]
+	}
+	return c.TabsFor(p.Lang)
+}
+
+// LangVersionKey computes the key of CompositeNavTrees and CompositeTabSets
+// for a (lang, version) pair.
+func LangVersionKey(lang, ver string) string {
+	if lang == "" {
+		lang = "_default"
+	}
+	if ver == "" {
+		ver = "_latest"
+	}
+	return lang + "/" + ver
+}
+
 // LabNavTree returns the sidebar tree of the lab at labPermalink in lang.
 func (c *Collection) LabNavTree(lang, labPermalink string) *NavTree {
 	if c == nil {

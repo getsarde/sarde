@@ -3,6 +3,7 @@ package asset
 import (
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/getsarde/sarde/internal/config"
@@ -133,8 +134,15 @@ func TestWriteBundleAssets_PerLanguageAndVersion(t *testing.T) {
 
 	out := filepath.Join(dir, "dist")
 	p := NewPipeline(PipelineOptions{ProjectDir: dir, OutputDir: out, Config: config.Defaults(), URLResolver: bundleResolver()})
+	// The callback runs on the parallel workers, so the append needs a lock.
+	var mu sync.Mutex
 	var written []string
-	if err := p.WriteBundleAssetsWithOptions(pages, out, func(path string) { written = append(written, path) }, WriteOptions{Parallel: true, WorkerCount: 4}); err != nil {
+	record := func(path string) {
+		mu.Lock()
+		written = append(written, path)
+		mu.Unlock()
+	}
+	if err := p.WriteBundleAssetsWithOptions(pages, out, record, WriteOptions{Parallel: true, WorkerCount: 4}); err != nil {
 		t.Fatal(err)
 	}
 	for rel, want := range map[string]string{

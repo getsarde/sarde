@@ -31,9 +31,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
-          go-version: "1.25"
+          go-version: "1.27"
           cache-dependency-path: go.sum
 
       - name: Build the sarde binary
@@ -55,7 +55,7 @@ jobs:
             --baseline benchmarks/baseline.json \
             >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: benchmark-results
           path: results.json

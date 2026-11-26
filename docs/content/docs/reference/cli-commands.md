@@ -183,7 +183,7 @@ sarde check-syntax
 sarde check-syntax --format json
 ```
 
-Piping Markdown via stdin activates a single-file mode that outputs JSON diagnostics (used for editor/tooling integration).
+Piping Markdown via stdin activates a single-file mode that outputs JSON diagnostics (used for editor/tooling integration). Input over 10 MB is refused.
 
 ## `validate`
 
@@ -295,7 +295,7 @@ Output:
 
 ```
 sarde v0.1.0
-Go: go1.21.0
+Go: go1.27.4
 OS/Arch: linux/amd64
 ```
 
@@ -973,7 +973,7 @@ Outputs a JSON line to stdout with `ready`, `port`, and `token` fields for the h
 
 ## `render`
 
-Render Markdown from stdin to HTML. This is an internal command used for editor preview integration.
+Render Markdown from stdin to HTML. This is an internal command used for editor preview integration. Input over 10 MB is refused.
 
 ```
 echo "# Hello" | sarde render

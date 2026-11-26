@@ -79,7 +79,7 @@ func (b *SiteBuilder) renderPage(page *engine.Page, siteCtx *engine.SiteContext)
 	var html []byte
 	if redirect := engine.TabbedRootRedirect(page); redirect != "" {
 		if b.urlResolver != nil {
-			redirect = b.urlResolver.URL(redirect, page.Lang, "")
+			redirect = b.urlResolver.URL(redirect, page.Lang, engine.ResolvePageVersion(page))
 		}
 		html = []byte(buildRedirectHTML(redirect))
 	} else {

@@ -24,7 +24,7 @@ For link validation issues, include the output of `sarde check-links`.
 
 ### Prerequisites
 
-- Go 1.21 or later
+- Go 1.27 or later
 - Git
 
 ### Building from source

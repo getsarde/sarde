@@ -42,8 +42,9 @@ func (s *APIServer) Start(port int) (int, error) {
 	mux := http.NewServeMux()
 	s.setupRoutes(mux)
 
-	// Apply middleware: logger → recoverer → cors → auth → mux.
+	// Apply middleware: logger → recoverer → cors → auth → body limit → mux.
 	var handler http.Handler = mux
+	handler = bodyLimitMiddleware(handler)
 	handler = s.authMiddleware(handler)
 	handler = corsMiddleware(handler)
 	handler = recovererMiddleware(handler)
@@ -55,7 +56,7 @@ func (s *APIServer) Start(port int) (int, error) {
 	}
 
 	s.port = listener.Addr().(*net.TCPAddr).Port
-	s.server = &http.Server{Handler: handler}
+	s.server = &http.Server{Handler: handler, ReadHeaderTimeout: readHeaderTimeout, IdleTimeout: idleTimeout}
 
 	go s.server.Serve(listener)
 	return s.port, nil

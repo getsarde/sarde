@@ -3,7 +3,6 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,7 +40,7 @@ func runCheckSyntax(cmd *cobra.Command, args []string) error {
 	// Stdin mode: read markdown from stdin, write JSON to stdout (for sidecar/studio).
 	if stdinModeEligible(args, contentDir) {
 		if stat, err := os.Stdin.Stat(); err == nil && (stat.Mode()&os.ModeCharDevice) == 0 {
-			input, err := io.ReadAll(os.Stdin)
+			input, err := readLimited(os.Stdin, maxStdinInput)
 			if err != nil {
 				return fmt.Errorf("reading stdin: %w", err)
 			}

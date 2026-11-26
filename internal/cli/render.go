@@ -3,7 +3,6 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/getsarde/sarde/internal/content/markdown"
@@ -28,7 +27,7 @@ type renderResult struct {
 }
 
 func runRender(cmd *cobra.Command, args []string) error {
-	input, err := io.ReadAll(os.Stdin)
+	input, err := readLimited(os.Stdin, maxStdinInput)
 	if err != nil {
 		return fmt.Errorf("reading stdin: %w", err)
 	}

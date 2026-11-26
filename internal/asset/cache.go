@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/getsarde/sarde/internal/atomicwrite"
 )
 
 // Cache stores processed asset results keyed by source hash + processing params.
@@ -65,5 +67,7 @@ func (c *Cache) Put(key string, entry *CacheEntry) error {
 		return err
 	}
 
-	return os.WriteFile(filepath.Join(c.Dir, key+".json"), data, 0o644)
+	// Atomic: parallel workers can process the same image, and a reader must
+	// never see a half-written entry.
+	return atomicwrite.WriteFile(filepath.Join(c.Dir, key+".json"), data, 0o644)
 }

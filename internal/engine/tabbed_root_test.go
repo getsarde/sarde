@@ -70,19 +70,59 @@ func TestTabbedRoot_NotRoot(t *testing.T) {
 	}
 }
 
-func TestTabbedRoot_UntabbedAndVersioned(t *testing.T) {
+func TestTabbedRoot_Untabbed(t *testing.T) {
 	col, root := tabbedFixture("")
 	col.IsTabbed = false
 	if IsTabbedRoot(root) {
 		t.Error("untabbed collection: IsTabbedRoot = true")
 	}
+}
 
-	// Versioned tabbed collections fill CompositeTabSets and leave Tabs empty.
-	col.IsTabbed = true
+// A collection that is both versioned and tabbed fills CompositeTabSets and
+// leaves Tabs empty. Every version has its own root page with the same
+// lane-free RelPermalink, and each sees its own version's tabs.
+func TestTabbedRoot_Versioned(t *testing.T) {
+	col, latest := tabbedFixture("")
 	col.Tabs = nil
-	col.CompositeTabSets = map[string][]*DocsTab{"": {{Permalink: "/courses/a/"}}}
-	if IsTabbedRoot(root) || TabbedRootRedirect(root) != "" {
-		t.Error("versioned tabbed collection: root matched")
+	col.CompositeTabSets = map[string][]*DocsTab{
+		LangVersionKey("", "v2"): {{Slug: "guide", Permalink: "/courses/guide/"}, {Slug: "api", Permalink: "/courses/api/"}},
+		LangVersionKey("", "v1"): {{Slug: "api", Permalink: "/courses/api/"}},
+	}
+	latest.Version = "v2"
+	old := &Page{
+		PageIdentity:      PageIdentity{Kind: KindSection, RelPermalink: "/courses/"},
+		PageVersioning:    PageVersioning{Version: "v1"},
+		PageRelationships: PageRelationships{Collection: col},
+	}
+
+	if got := TabbedRootRedirect(latest); got != "/courses/guide/" {
+		t.Errorf("latest root: TabbedRootRedirect = %q, want /courses/guide/", got)
+	}
+	if got := TabbedRootRedirect(old); got != "/courses/api/" {
+		t.Errorf("v1 root: TabbedRootRedirect = %q, want its own first tab /courses/api/", got)
+	}
+
+	old.RawContent = "Pick a section."
+	if !IsTabbedLanding(old) || TabbedRootRedirect(old) != "" {
+		t.Error("v1 root with a body: want a landing page and no redirect")
+	}
+
+	// A section below the root is not a root, and a version with no tabs
+	// has a plain root.
+	section := &Page{
+		PageIdentity:      PageIdentity{Kind: KindSection, RelPermalink: "/courses/guide/"},
+		PageVersioning:    PageVersioning{Version: "v2"},
+		PageRelationships: PageRelationships{Collection: col},
+	}
+	untabbed := &Page{
+		PageIdentity:      PageIdentity{Kind: KindSection, RelPermalink: "/courses/"},
+		PageVersioning:    PageVersioning{Version: "v0"},
+		PageRelationships: PageRelationships{Collection: col},
+	}
+	for name, p := range map[string]*Page{"section": section, "version without tabs": untabbed} {
+		if IsTabbedRoot(p) {
+			t.Errorf("%s: matched as tabbed root", name)
+		}
 	}
 }
 

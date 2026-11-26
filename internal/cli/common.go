@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -154,4 +155,21 @@ func newSiteBuilder(projectDir string, cfg *config.SiteConfig, themeCfg *engine.
 		ThemeConfig: themeCfg,
 		EmbeddedFS:  embedded.ThemeFS(),
 	})
+}
+
+// maxStdinInput caps the Markdown that render and check-syntax read from
+// stdin.
+const maxStdinInput = 10 << 20
+
+// readLimited reads all of r, and fails when it holds more than max bytes
+// instead of reading without bound.
+func readLimited(r io.Reader, max int64) ([]byte, error) {
+	data, err := io.ReadAll(io.LimitReader(r, max+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > max {
+		return nil, fmt.Errorf("input exceeds %d MB", max>>20)
+	}
+	return data, nil
 }

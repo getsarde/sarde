@@ -26,9 +26,9 @@ jobs:
           # omits one, so the full history has to be present.
           fetch-depth: 0
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
-          go-version: "1.25"
+          go-version: "1.27"
           cache-dependency-path: go.sum
 
       # Built from source rather than via getsarde/action, which installs the
@@ -46,7 +46,7 @@ jobs:
 
       - uses: actions/configure-pages@v6
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: docs/dist
 

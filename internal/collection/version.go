@@ -7,13 +7,7 @@ import (
 
 // LangVersionKey computes the composite map key for a (lang, version) pair.
 func LangVersionKey(lang, ver string) string {
-	if lang == "" {
-		lang = "_default"
-	}
-	if ver == "" {
-		ver = "_latest"
-	}
-	return lang + "/" + ver
+	return engine.LangVersionKey(lang, ver)
 }
 
 // BuildCompositeNavTrees builds one NavTree per (lang, version) pair found in

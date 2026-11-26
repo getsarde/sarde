@@ -157,3 +157,13 @@ func writeFile(t *testing.T, path string) {
 		t.Fatal(err)
 	}
 }
+
+func TestReadLimited(t *testing.T) {
+	data, err := readLimited(strings.NewReader("hello"), 5)
+	if err != nil || string(data) != "hello" {
+		t.Errorf("at the limit: got %q, %v", data, err)
+	}
+	if _, err := readLimited(strings.NewReader("hello!"), 5); err == nil {
+		t.Error("over the limit: expected an error")
+	}
+}

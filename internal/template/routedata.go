@@ -78,7 +78,7 @@ func buildCollectionRouteData(rd *engine.RouteData, page *engine.Page, col *engi
 	// <collection>/catalog template.
 	if engine.IsTabbedLanding(page) {
 		rd.Layout = engine.LayoutDefault
-		rd.DocsTabs = col.TabsFor(page.Lang)
+		rd.DocsTabs = col.TabsForPage(page)
 	}
 
 	// Resolve template name
