@@ -38,7 +38,11 @@ func (c *Cache) Key(sourceHash, params string) string {
 	return fmt.Sprintf("%x", h[:8])
 }
 
-// Get retrieves a cached entry. Returns nil if the entry does not exist.
+// Get retrieves a cached entry. It returns nil, nil for a miss: the entry
+// does not exist, or its file does not hold a complete entry. The second
+// case can follow an interrupted build, or on Windows a write that could not
+// be renamed into place; the caller reprocesses the image and Put replaces
+// the file.
 func (c *Cache) Get(key string) (*CacheEntry, error) {
 	path := filepath.Join(c.Dir, key+".json")
 	data, err := os.ReadFile(path)
@@ -51,7 +55,7 @@ func (c *Cache) Get(key string) (*CacheEntry, error) {
 
 	var entry CacheEntry
 	if err := json.Unmarshal(data, &entry); err != nil {
-		return nil, err
+		return nil, nil
 	}
 	return &entry, nil
 }

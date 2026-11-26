@@ -44,7 +44,7 @@ To install by hand instead, download the archive for your platform from [GitHub 
 
 == From source
 
-Requires [Go](https://go.dev/dl/) 1.25 or later.
+Requires [Go](https://go.dev/dl/) 1.27 or later.
 
 ```sh
 go install github.com/getsarde/sarde/cmd/sarde@latest
