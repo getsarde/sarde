@@ -182,8 +182,11 @@ func newPendingUpdateCheck(path string, state updateCheckState, now time.Time) *
 	p := &pendingUpdateCheck{path: path, state: state}
 	if state.isStale(now) {
 		p.result = make(chan fetchResult, 1)
+		// Read the seam here, not in the goroutine: a lookup can outlive
+		// its caller, and tests swap fetchLatestVersion between runs.
+		fetch := fetchLatestVersion
 		go func() {
-			v, ok := fetchLatestVersion()
+			v, ok := fetch()
 			p.result <- fetchResult{version: v, ok: ok}
 		}()
 	}

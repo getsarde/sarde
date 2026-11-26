@@ -155,16 +155,9 @@ func TestHub_ConcurrentConnectAndBroadcast(t *testing.T) {
 }
 
 func TestHub_PingKeepalive(t *testing.T) {
-	saved := pingInterval
-	savedPong := pongWait
-	pingInterval = 200 * time.Millisecond
-	pongWait = 400 * time.Millisecond
-	t.Cleanup(func() {
-		pingInterval = saved
-		pongWait = savedPong
-	})
-
 	hub := NewHub()
+	hub.pingInterval = 200 * time.Millisecond
+	hub.pongWait = 400 * time.Millisecond
 	srv := httptest.NewServer(http.HandlerFunc(hub.HandleWS))
 	defer srv.Close()
 
@@ -198,7 +191,7 @@ func TestHub_PingKeepalive(t *testing.T) {
 
 	select {
 	case <-gotPing:
-	case <-time.After(pingInterval + 200*time.Millisecond):
+	case <-time.After(hub.pingInterval + 200*time.Millisecond):
 		t.Fatal("did not receive a ping within the expected interval")
 	}
 }

@@ -68,9 +68,12 @@ const (
 // h.mu (and with it all broadcasts and new connections) indefinitely.
 const writeTimeout = 5 * time.Second
 
-var (
-	pingInterval = 30 * time.Second
-	pongWait     = 35 * time.Second
+// Default keepalive timing for each live-reload connection. A hub copies
+// them at construction; tests shorten them on their own hub instead of
+// changing these, which handlers of other hubs may still be reading.
+const (
+	defaultPingInterval = 30 * time.Second
+	defaultPongWait     = 35 * time.Second
 )
 
 // WarningItem is a single structured warning for the browser overlay.
@@ -101,6 +104,8 @@ type Hub struct {
 	upgrader     websocket.Upgrader
 	pendingError *ReloadMessage
 	buildID      int64 // latest successful build ID; seeded with the server start time so it survives restarts
+	pingInterval time.Duration
+	pongWait     time.Duration
 }
 
 // NewHub creates a new WebSocket hub.
@@ -113,7 +118,9 @@ func NewHub() *Hub {
 		// Seeding with wall-clock time (rather than 0) makes IDs comparable
 		// across server restarts: a page served by a previous server instance
 		// always predates this instance's first build.
-		buildID: time.Now().UnixMilli(),
+		buildID:      time.Now().UnixMilli(),
+		pingInterval: defaultPingInterval,
+		pongWait:     defaultPongWait,
 	}
 }
 
@@ -181,15 +188,15 @@ func (h *Hub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	}
 	h.mu.Unlock()
 
-	conn.SetReadDeadline(time.Now().Add(pongWait))
+	conn.SetReadDeadline(time.Now().Add(h.pongWait))
 	conn.SetPongHandler(func(string) error {
-		conn.SetReadDeadline(time.Now().Add(pongWait))
+		conn.SetReadDeadline(time.Now().Add(h.pongWait))
 		return nil
 	})
 
 	done := make(chan struct{})
 	go func() {
-		ticker := time.NewTicker(pingInterval)
+		ticker := time.NewTicker(h.pingInterval)
 		defer ticker.Stop()
 		for {
 			select {

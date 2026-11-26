@@ -21,16 +21,21 @@ type Event struct {
 // hold h.mu indefinitely.
 const eventWriteTimeout = 5 * time.Second
 
-var (
-	pingInterval = 30 * time.Second
-	pongWait     = 35 * time.Second
+// Default keepalive timing for each event connection. A hub copies them at
+// construction; tests shorten them on their own hub instead of changing
+// these, which handlers of other hubs may still be reading.
+const (
+	defaultPingInterval = 30 * time.Second
+	defaultPongWait     = 35 * time.Second
 )
 
 // EventHub manages WebSocket client connections and broadcasts events.
 type EventHub struct {
-	clients  map[*websocket.Conn]bool
-	mu       sync.Mutex
-	upgrader websocket.Upgrader
+	clients      map[*websocket.Conn]bool
+	mu           sync.Mutex
+	upgrader     websocket.Upgrader
+	pingInterval time.Duration
+	pongWait     time.Duration
 }
 
 // NewEventHub creates a new event hub.
@@ -42,6 +47,8 @@ func NewEventHub() *EventHub {
 				return allowedEventOrigin(r.Header.Get("Origin"))
 			},
 		},
+		pingInterval: defaultPingInterval,
+		pongWait:     defaultPongWait,
 	}
 }
 
@@ -81,15 +88,15 @@ func (h *EventHub) HandleWS(w http.ResponseWriter, r *http.Request) {
 	h.clients[conn] = true
 	h.mu.Unlock()
 
-	conn.SetReadDeadline(time.Now().Add(pongWait))
+	conn.SetReadDeadline(time.Now().Add(h.pongWait))
 	conn.SetPongHandler(func(string) error {
-		conn.SetReadDeadline(time.Now().Add(pongWait))
+		conn.SetReadDeadline(time.Now().Add(h.pongWait))
 		return nil
 	})
 
 	done := make(chan struct{})
 	go func() {
-		ticker := time.NewTicker(pingInterval)
+		ticker := time.NewTicker(h.pingInterval)
 		defer ticker.Stop()
 		for {
 			select {
